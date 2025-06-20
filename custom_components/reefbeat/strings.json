@@ -1,0 +1,87 @@
+{
+    "title": "ReefLed",
+    "config": {
+        "flow_title": "ReefLed configuration",
+        "step": {
+            "user": {
+                "title": "Add new Led",
+                "data": {
+                    "ip_address": "IP Address",
+		    "virtual_led": "New virtual LED Controler",
+                    "platform": "Platform",
+                }
+            }
+        },
+        "abort": {
+            "already_configured": "Device Already configured",
+            "cannot_create": "Unable to create ReefLed device with specified parameters"
+        }
+    },
+    "options": {
+	"step":{
+	    "init":{
+		"title": "Detect possible LEDs",
+		"data":{
+		    "slaves": "LED",
+		    "not_virtual": "Not configurable"
+		}
+		
+	    }
+	}
+    },
+    "entity": {
+	"binary_sensor": {
+	    "status":{
+		"name":"LED Status"
+	    }
+	},
+	"sensor": {
+	    "fan": {
+		"name": "Fan"
+	    },
+	    "temperature": {
+		"name": "Temperature"
+	    },
+	    "ip": {
+		"name": "IP Address"
+	    },
+	    "auto_1": {
+		"name": "Sunday"
+	    },
+	    "auto_2": {
+		"name": "Monday"
+	    },
+	    "auto_3": {
+		"name": "Tuesday"
+	    },
+	    "auto_4": {
+		"name": "Wednesday"
+	    },
+	    "auto_5": {
+		"name": "Thursday"
+	    },
+	    "auto_6": {
+		"name": "Friday"
+	    },
+	    "auto_7": {
+		"name": "Saturday"
+	    }
+	},
+	"light": {
+	    "white": {
+		"name": "White"
+	    },
+	    "blue": {
+		"name": "Blue"
+	    },
+	    "moon": {
+		"name": "Moon"
+	    }
+	},
+	"switch": {
+	    "daily_prog": {
+		"name": "Daily Programmation"
+	    }
+	}
+    }
+}

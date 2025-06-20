@@ -1,0 +1,11 @@
+{
+  "name": "ReefBeat",
+  "render_readme": true,
+  "iot_class": "local_polling",
+  "domains":[
+      "light",
+      "sensor",
+      "binary_sensor",
+      "switch"
+  ]
+}
