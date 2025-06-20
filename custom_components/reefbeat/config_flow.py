@@ -19,8 +19,7 @@ from homeassistant.data_entry_flow import FlowResult
 
 from .auto_detect import (
     get_reefbeats,
-    get_unique_id,
-    get_friendly_name
+    get_unique_id
 )
 
 from .const import (
@@ -82,7 +81,10 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     _LOGGER.info("%s skipped (already configured)"%coordinator.detected_id)
                     available_devices.remove(coordinator.detected_id)
         _LOGGER.info("Available devices: %s"%detected_devices)
-        available_devices += [VIRTUAL_LED]
+        available_devices += [{'ip':VIRTUAL_LED,'hw_model':'','friendly_name':''}]
+        def device_to_string(d):
+            return d['ip']+' '+d['hw_model']+' '+d['friendly_name']
+        available_devices_s = map(device_to_string,available_devices)
         if len(available_devices) > 1 :
             return self.async_show_form(
                 step_id="user",
@@ -90,7 +92,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     {
                         vol.Required(
                             CONFIG_FLOW_IP_ADDRESS
-                        ): vol.In(available_devices),
+                        ): vol.In(available_devices_s),
                     }
                      ),
                 )

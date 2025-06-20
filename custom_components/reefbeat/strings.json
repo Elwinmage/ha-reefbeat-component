@@ -1,7 +1,7 @@
 {
-    "title": "ReefLed",
+    "title": "ReefBeat",
     "config": {
-        "flow_title": "ReefLed configuration",
+        "flow_title": "ReefBeat configuration",
         "step": {
             "user": {
                 "title": "Add new Led",
@@ -14,13 +14,13 @@
         },
         "abort": {
             "already_configured": "Device Already configured",
-            "cannot_create": "Unable to create ReefLed device with specified parameters"
+            "cannot_create": "Unable to create ReefBeat device with specified parameters"
         }
     },
     "options": {
 	"step":{
 	    "init":{
-		"title": "Detect possible LEDs",
+		"title": "Detect possible ReefLeds",
 		"data":{
 		    "slaves": "LED",
 		    "not_virtual": "Not configurable"

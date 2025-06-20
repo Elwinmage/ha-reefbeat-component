@@ -1,7 +1,7 @@
 {
-    "title": "ReefLed",
+    "title": "ReefBeat",
     "config": {
-        "flow_title": "ReefLed configuration",
+        "flow_title": "ReefBeat configuration",
         "step": {
             "user": {
                 "title": "Définir une nouvelle entitée",
@@ -14,7 +14,7 @@
         },
         "abort": {
             "already_configured": "Entitée déjà existatnte",
-            "cannot_create": "Impossible de créer une entitié pour une ReefLed avec ces paramètres"
+            "cannot_create": "Impossible de créer une entitié pour une ReefBeat avec ces paramètres"
         }
     },
     "options": {
