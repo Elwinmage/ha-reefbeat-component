@@ -13,19 +13,22 @@ from .const import (
     DOMAIN,
     PLATFORMS,
     CONFIG_FLOW_IP_ADDRESS,
+    CONFIG_FLOW_HW_MODEL,
+    HW_LED_IDS,
+    HW_DOSE_IDS,
+    HW_MAT_IDS,
     VIRTUAL_LED,
     VIRTUAL_LED_INIT_DELAY,
     )
 
-from .coordinator import ReefLedCoordinator, ReefLedVirtualCoordinator
+from .coordinator import ReefLedCoordinator, ReefLedVirtualCoordinator,ReefMatCoordinator,ReefDoseCoordinator
 
 import traceback
 
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up the ReefLed component."""
-    # hass.data[DOMAIN] stores one entry for each ReefLed instance using ip address as a key
+    """Set up the ReefBeat component."""
     hass.data.setdefault(DOMAIN, {})
     return True
 
@@ -39,11 +42,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data,
     )
     ip = entry.data[CONFIG_FLOW_IP_ADDRESS]
+    hw = entry.data[CONFIG_FLOW_HW_MODEL]
     if ip.startswith(VIRTUAL_LED):
         await asyncio.sleep(VIRTUAL_LED_INIT_DELAY)
         coordinator = ReefLedVirtualCoordinator(hass,entry)
     else:
-        coordinator = ReefLedCoordinator(hass,entry)
+        if hw in HW_LED_IDS:
+            coordinator = ReefLedCoordinator(hass,entry)
+        elif hw in HW_DOSE_IDS:
+            coordinator = ReefDoseCoordinator(hass,entry)
+        elif hw in HW_MAT_IDS:
+            coordinator = ReefMatCoordinator(hass,entry)
+        else:
+            _LOGGER.error('Unknown hardware %s'%hw)
         await coordinator._async_setup()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 

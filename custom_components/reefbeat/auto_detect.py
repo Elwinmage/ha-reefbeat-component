@@ -62,8 +62,5 @@ def get_unique_id(ip):
         return str(e)
      
 if __name__ == '__main__':
-#    print(get_unique_id("192.168.0.194"))
-#    print(get_friendly_name("192.168.0.194"))
-    
     res=get_reefbeats()
     print(res)

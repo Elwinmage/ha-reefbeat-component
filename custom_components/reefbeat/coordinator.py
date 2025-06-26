@@ -16,6 +16,7 @@ from typing import Any
 from .const import (
     DOMAIN,
     CONFIG_FLOW_IP_ADDRESS,
+    CONFIG_FLOW_HW_MODEL,
     SCAN_INTERVAL,
     MODEL_NAME,
     MODEL_ID,
@@ -26,7 +27,7 @@ from .const import (
     LINKED_LED,
 )
 
-from .reefled import ReefLedAPI
+from .reefbeat import ReefLedAPI, ReefMatAPI, ReefDoseAPI
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,6 +42,7 @@ class ReefLedCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=SCAN_INTERVAL))
         self._hass=hass
         self._ip = entry.data[CONFIG_FLOW_IP_ADDRESS]
+        self._hw = entry.data[CONFIG_FLOW_HW_MODEL]
         self.my_api = ReefLedAPI(self._ip)
         self._title = entry.title
 
@@ -133,7 +135,7 @@ class ReefLedCoordinator(DataUpdateCoordinator[dict[str,Any]]):
 
     @property
     def detected_id(self):
-        return self._ip+' '+self._title
+        return self._ip+' '+self._hw+' '+self._title
     
 
 class ReefLedVirtualCoordinator(DataUpdateCoordinator[dict[str,Any]]):
@@ -265,3 +267,201 @@ class ReefLedVirtualCoordinator(DataUpdateCoordinator[dict[str,Any]]):
 
 
 
+################################################################################
+## REEFMAT
+class ReefMatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
+
+    def __init__(
+            self,
+            hass: HomeAssistant,
+            entry
+    ) -> None:
+        """Initialize coordinator."""
+        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=SCAN_INTERVAL))
+        self._hass=hass
+        self._ip = entry.data[CONFIG_FLOW_IP_ADDRESS]
+        self._hw = entry.data[CONFIG_FLOW_HW_MODEL]
+        self.my_api = ReefMatAPI(self._ip)
+        self._title = entry.title
+
+    async def update(self):
+        await self.my_api.fetch_data()
+        pass
+        
+    async def _async_setup(self) -> None:
+        """Do initialization logic."""
+        return await self.my_api.get_initial_data()
+        pass
+        
+    async def _async_update_data(self) -> dict[str,Any]:
+        """Do the usual update"""
+        pass
+    #return await self.my_api.update()
+    
+    async def async_send_new_values(self):
+        #return await self.my_api.async_send_new_values()
+        pass
+
+    async def async_config_entry_first_refresh(self):
+        return await self.my_api.async_first_refresh()
+    
+
+    @property
+    def device_info(self):
+        return DeviceInfo(
+            identifiers={
+                (DOMAIN, self.model_id)
+            },
+            name=self.title,
+            manufacturer=DEVICE_MANUFACTURER,
+            model=self.model,
+            model_id=self.model_id,
+            hw_version=self.hw_version,
+            sw_version=self.sw_version,
+        )
+
+    def push_values(self):
+        #self.my_api.push_values()
+        pass
+        
+    def get_data(self,name):
+        _LOGGER.debug("get_data for %s: %s"%(name,self.my_api.data[name]))
+        return self.my_api.data[name]
+    
+    def set_data(self,name,value):
+        #self.my_api.data[name]=value
+        pass
+    
+    def data_exist(self,name):
+        if name in self.my_api.data:
+            return True
+        return False
+    
+    @property
+    def title(self):
+        return self._title
+
+    @property
+    def serial(self):
+        return self._title
+    
+    @property
+    def model(self):
+        return self.my_api.data[MODEL_NAME]
+
+    @property
+    def model_id(self):
+        return self.my_api.data[MODEL_ID]
+
+    @property
+    def hw_version(self):
+        return self.my_api.data[HW_VERSION]
+
+
+    @property
+    def sw_version(self):
+        return self.my_api.data[SW_VERSION]
+
+    @property
+    def detected_id(self):
+        return self._ip+' '+self._hw+' '+self._title
+################################################################################
+# REEFDOSE
+class ReefDoseCoordinator(DataUpdateCoordinator[dict[str,Any]]):
+
+    def __init__(
+            self,
+            hass: HomeAssistant,
+            entry
+    ) -> None:
+        """Initialize coordinator."""
+        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=SCAN_INTERVAL))
+        self._hass=hass
+        self._ip = entry.data[CONFIG_FLOW_IP_ADDRESS]
+        self._hw = entry.data[CONFIG_FLOW_HW_MODEL]
+        self.my_api = ReefDoseAPI(self._ip)
+        self._title = entry.title
+
+    async def update(self):
+        #await self.my_api.fetch_data()
+        pass
+        
+    async def _async_setup(self) -> None:
+        """Do initialization logic."""
+        #return await self.my_api.get_initial_data()
+        pass
+        
+    async def _async_update_data(self) -> dict[str,Any]:
+        """Do the usual update"""
+        #return await self.my_api.update()
+        pass
+    
+    async def async_send_new_values(self):
+        #return await self.my_api.async_send_new_values()
+        pass
+
+    async def async_config_entry_first_refresh(self):
+        #return await self.my_api.async_first_refresh()
+        pass
+
+    @property
+    def device_info(self):
+        return DeviceInfo(
+            identifiers={
+                (DOMAIN, self.model_id)
+            },
+            name=self.title,
+            manufacturer=DEVICE_MANUFACTURER,
+            model=self.model,
+            model_id=self.model_id,
+            hw_version=self.hw_version,
+            sw_version=self.sw_version,
+        )
+
+    def push_values(self):
+        #self.my_api.push_values()
+        pass
+        
+    def get_data(self,name):
+        _LOGGER.debug("get_data for %s: %s"%(name,self.my_api.data[name]))
+        #return self.my_api.data[name]
+        pass
+    
+
+    def set_data(self,name,value):
+        #self.my_api.data[name]=value
+        pass
+    
+    def data_exist(self,name):
+        if name in self.my_api.data:
+            return True
+        return False
+    
+    @property
+    def title(self):
+        return self._title
+
+    @property
+    def serial(self):
+        return self._title
+    
+    @property
+    def model(self):
+        return self.my_api.data[MODEL_NAME]
+
+    @property
+    def model_id(self):
+        return self.my_api.data[MODEL_ID]
+
+    @property
+    def hw_version(self):
+        return self.my_api.data[HW_VERSION]
+
+
+    @property
+    def sw_version(self):
+        return self.my_api.data[SW_VERSION]
+
+    @property
+    def detected_id(self):
+        return self._ip+' '+self._hw+' '+self._title

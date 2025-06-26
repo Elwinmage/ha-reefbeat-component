@@ -58,9 +58,10 @@ async def async_setup_entry(
     """ Configure binary entities from graphic user interface data """
     device = hass.data[DOMAIN][entry.entry_id]
     entities=[]
-    entities += [ReefLedBinarySensorEntity(device, description)
-                 for description in SENSORS
-                 if description.exists_fn(device)]
+    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedVirtualCoordinator':
+        entities += [ReefLedBinarySensorEntity(device, description)
+                     for description in SENSORS
+                     if description.exists_fn(device)]
     async_add_entities(entities, True)
 
 

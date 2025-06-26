@@ -22,6 +22,7 @@ from .const import (
     MODEL_ID,
     HW_VERSION,
     SW_VERSION,
+    MAT_SENSORS_INTERNAL_NAME,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,23 +43,19 @@ _LOGGER = logging.getLogger(__name__)
 # /preset_name/[1-7]
 # /cloud
 # /clouds/[1-7] (intensity: Low,Medium,High)
-
-class ReefLedAPI():
+################################################################################
+# Reef beat API
+class ReefBeatAPI():
     """ Access to Reefled informations and commands """
     def __init__(self,ip) -> None:
         self._base_url = "http://"+ip
         _LOGGER.debug("API set for %s"%ip)
         self.data={}
-        self.data[STATUS_INTERNAL_NAME]=False
-        self.data[FAN_INTERNAL_NAME]=0
-        self.data[DAILY_PROG_INTERNAL_NAME]=True
-        self.programs={}
         self.last_update_success=None
-
       
     async def get_initial_data(self):
         """ Get inital datas and device information async """
-        _LOGGER.debug('Reefled.get_initial_data')
+        _LOGGER.debug('Reefbeat.get_initial_data')
         await self._fetch_infos()
         await self.fetch_data()
         _LOGGER.debug('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
@@ -66,6 +63,19 @@ class ReefLedAPI():
         _LOGGER.debug('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
         return self.data
 
+    async def fetch_data(self):
+        """ Get Led information for light, program, fan, temeprature... """
+        # Only if last request where less that 2s """
+        if self.last_update_success:
+            up = datetime.datetime.now() - self.last_update_success
+            last_update  = up.seconds
+        else:
+            last_update = DO_NOT_REFRESH_TIME +1 
+        if last_update > DO_NOT_REFRESH_TIME:
+            await self.fetch_device_data()
+        else:
+            _LOGGER.debug("No refresh, last data retrieved less than 2s")
+    
     async def _fetch_infos(self):
         """ Get device information """
         _LOGGER.debug("fecth_info: %s",self._base_url+"/device-info")
@@ -91,20 +101,41 @@ class ReefLedAPI():
                 except Exception as e:
                     _LOGGER.error("Getting info %s"%e)
 
-    async def fetch_data(self):
-        """ Get Led information for light, program, fan, temeprature... """
-        # Only if last request where less that 2s """
-        if self.last_update_success:
-            up = datetime.datetime.now() - self.last_update_success
-            last_update  = up.seconds
-        else:
-            last_update = DO_NOT_REFRESH_TIME +1 
-        if last_update > DO_NOT_REFRESH_TIME:
-            await self._fetch_led_status()
-            await self._fetch_program()
-        else:
-            _LOGGER.debug("No refresh, last data retrieved less than 2s")
-            
+    async def update(self) :       
+        """ Update reeefled datas """
+        await self.fetch_data()
+        return self.data
+    
+    async def async_first_refresh(self):
+        async with httpx.AsyncClient(verify=False) as client:
+            r = await client.get(self._base_url+'/',timeout=2)
+            if r.status_code == 200:
+                response=r.json()
+                self.data[IP_INTERNAL_NAME]=response['wifi_ip']
+        
+    async def async_add_listener(self,callback,context):
+        _LOGGER.debug("async_add_listener")
+        pass
+
+    async def async_send_new_values(self):
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None,self.push_values)
+        
+################################################################################
+#Reef LED
+class ReefLedAPI(ReefBeatAPI):
+    """ Access to Reefled informations and commands """
+    def __init__(self,ip) -> None:
+        super().__init__(ip)
+        self.data[STATUS_INTERNAL_NAME]=False
+        self.data[FAN_INTERNAL_NAME]=0
+        self.data[DAILY_PROG_INTERNAL_NAME]=True
+        self.programs={}
+        
+    async def fetch_device_data(self):
+        await self._fetch_led_status()
+        await self._fetch_program()
+        
     async def _fetch_program(self):
         """ Get week program with clouds """
         #get week
@@ -131,6 +162,7 @@ class ReefLedAPI():
                     else:
                         prog_data=self.programs[prog_name]
                     # Get clouds
+                    _LOGGER.info(self._base_url+"/clouds/"+str(prog_id))
                     c = await client.get(self._base_url+"/clouds/"+str(prog_id),timeout=2)
                     if c.status_code==200:
                         clouds_data=c.json()
@@ -163,28 +195,49 @@ class ReefLedAPI():
             except Exception as e:
                 _LOGGER.error("Getting LED values %s"%e)
     
-    async def update(self) :       
-        """ Update reeefled datas """
-        await self.fetch_data()
-        return self.data
-    
-    
-    async def async_first_refresh(self):
-        async with httpx.AsyncClient(verify=False) as client:
-            r = await client.get(self._base_url+'/',timeout=2)
-            if r.status_code == 200:
-                response=r.json()
-                self.data[IP_INTERNAL_NAME]=response['wifi_ip']
-        
-    async def async_add_listener(self,callback,context):
-        _LOGGER.debug("async_add_listener")
-        pass
-
     def push_values(self):
         payload={"white": self.data[WHITE_INTERNAL_NAME]*CONVERSION_COEF, "blue":self.data[BLUE_INTERNAL_NAME]*CONVERSION_COEF,"moon": self.data[MOON_INTERNAL_NAME]*CONVERSION_COEF}
         r = httpx.post(self._base_url+'/manual', json = payload,verify=False)
 
-    async def async_send_new_values(self):
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None,self.push_values)
         
+################################################################################
+#ReefMat
+class ReefMatAPI(ReefBeatAPI):
+    """ Access to Reefled informations and commands """
+    def __init__(self,ip) -> None:
+        super().__init__(ip)
+
+    # TODO a remonter dans reefbeatapi
+    async def fetch_device_data(self):
+        async with httpx.AsyncClient(verify=False) as client:
+            r = await client.get(self._base_url+"/dashboard",timeout=2)
+        if r.status_code == 200:
+            response=r.json()
+            _LOGGER.debug("Get data: %s"%response)
+            try:
+                for sensor_name in MAT_SENSORS_INTERNAL_NAME:
+                    self.data[sensor_name]=float(response[sensor_name])
+                    _LOGGER.debug("%s: %f"%(sensor_name,self.data[sensor_name]))
+                ##
+                self.last_update_success=datetime.datetime.now()
+                ##
+            except Exception as e:
+                _LOGGER.error("Getting MAT values %s"%e)
+            
+    def push_values(self):
+        pass
+
+################################################################################
+#ReefDose
+class ReefDoseAPI(ReefBeatAPI):
+    """ Access to Reefled informations and commands """
+    def __init__(self,ip) -> None:
+        super().__init__(ip)
+
+    # TODO a remonter dans reefbeatapi
+    async def fetch_device_data(self):
+        pass
+            
+    def push_values(self):
+        pass
+    

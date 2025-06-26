@@ -7,6 +7,7 @@
                 "title": "Add new Led",
                 "data": {
                     "ip_address": "IP Address",
+		    "hw_model": "Hardware Model",
 		    "virtual_led": "New virtual LED Controler",
                     "platform": "Platform",
                 }
@@ -36,6 +37,21 @@
 	    }
 	},
 	"sensor": {
+	    "days_till_end_of_roll":{
+		"name": "Days till end of roll"
+	    },
+	    "daily_average_usage":{
+		"name": "Daily Average Usage"
+	    },
+	    "total_usage":{
+		"name": "Total usage"
+	    },
+	    "remaining_length":{
+		"name": "Remaining Length"
+	    },
+	    "today_usage":{
+		"name": "Today Usage"
+	    },
 	    "fan": {
 		"name": "Fan"
 	    },

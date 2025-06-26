@@ -7,6 +7,7 @@
                 "title": "Définir une nouvelle entitée",
                 "data": {
                     "ip_address": "Adresse IP",
+		    "hw_model": "Modèle hardware",
 		    "virtual_led": "Nouvelle Led virtuelle",
 		    "platform": "Platforme"
                 }
@@ -36,6 +37,21 @@
 	    }
 	},
 	"sensor": {
+	    "days_till_end_of_roll":{
+		"name": "Jours avant la fin du rouleau"
+	    },
+	    "daily_average_usage":{
+		"name": "Moyenne journalière d'utilisation"
+	    },
+	    "total_usage":{
+		"name": "Usage Total"
+	    },
+	    "remaining_length":{
+		"name": "Longeur restante"
+	    },
+	    "today_usage": {
+		"name": "Usage du jour"
+	    },
 	    "fan": {
 		"name": "Ventilateur"
 	    },

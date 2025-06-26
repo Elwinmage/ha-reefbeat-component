@@ -57,8 +57,9 @@ async def async_setup_entry(
     entities=[]
     _LOGGER.debug("SWITCHES")
     _LOGGER.debug(type(device).__name__)
-    _LOGGER.debug(SWITCHES)
-    entities += [ReefLedSwitchEntity(device, description)
+    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedVirtualCoordinator':
+        _LOGGER.debug(SWITCHES)
+        entities += [ReefLedSwitchEntity(device, description)
                  for description in SWITCHES
                  if description.exists_fn(device)]
 
