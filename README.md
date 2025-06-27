@@ -18,7 +18,7 @@ ReefLed:
 ReefMat:
   - Test with ReefMat 1200
 
-ReefDose (NOT implemented yet):
+ReefDose:
   - Test with ReefDose4
 
 
@@ -32,8 +32,11 @@ ReefDose (NOT implemented yet):
     - Group and manage LED with a virtual device (Create a vitual device from the integration panel, then use the configure button to link the leds)
       
 - ReefMat:
-    - some sensor values: auto_advance, unclean_sensor, daily_avergage_usage, today_usage, remaining_length,days_till_end_of_roll and total_usage
+    - some sensors values: auto_advance, unclean_sensor, daily_avergage_usage, today_usage, remaining_length,days_till_end_of_roll and total_usage
 
+- ReefDose:
+  - some sensors
+  
 # Futur implementation
 - LED:
     - Set programs (and implement the daily prog button that do nothing yet)
@@ -44,7 +47,10 @@ ReefDose (NOT implemented yet):
 - ReefMat:
     - Changing mode
     - Manual advance
- 
+
+- ReefDose:
+  - Implement dosing management
+  
 # Home Assitant Card
 An example to display your led program.
 

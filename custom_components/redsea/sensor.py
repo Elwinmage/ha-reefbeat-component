@@ -22,9 +22,11 @@ from homeassistant.const import (
     UnitOfTemperature,
     PERCENTAGE,
     UnitOfLength,
+    UnitOfVolume,
     UnitOfTime,
     EntityCategory,
 )
+
 
 from .const import (
     DOMAIN,
@@ -36,6 +38,15 @@ from .const import (
     MAT_TOTAL_USAGE_INTERNAL_NAME,
     MAT_REMAINING_LENGTH_INTERNAL_NAME,
     MAT_DAYS_TILL_END_OF_ROLL_INTERNAL_NAME,
+    DOSE_SUPPLEMENT_INTERNAL_NAME,
+    DOSE_STATE_INTERNAL_NAME,
+    DOSE_AUTO_DOSED_TODAY_INTERNAL_NAME,
+    DOSE_MANUAL_DOSED_TODAY_INTERNAL_NAME,
+    DOSE_DOSES_TODAY_INTERNAL_NAME,
+    DOSE_DAILY_DOSE_INTERNAL_NAME,
+    DOSE_REMAINING_DAYS_INTERNAL_NAME,
+    DOSE_STOCK_LEVEL_INTERNAL_NAME,
+    DOSE_DAILY_DOSES_INTERNAL_NAME,
 )
 
 from .coordinator import ReefBeatCoordinator
@@ -90,7 +101,7 @@ MAT_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTime.DAYS,
         value_fn=lambda device:  device.get_data(MAT_DAYS_TILL_END_OF_ROLL_INTERNAL_NAME),
         exists_fn=lambda device: device.data_exist(MAT_DAYS_TILL_END_OF_ROLL_INTERNAL_NAME),
-        icon="mdi:sun-clock-outline",
+        icon="mdi:sort-calendar-ascending",
         suggested_display_precision=0,
     ),
     ReefBeatSensorEntityDescription(
@@ -140,6 +151,288 @@ MAT_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
 )
 
 
+""" ReefDose sensors list """
+DOSE_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = ()
+ds_list=list(DOSE_SENSORS)
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="1_"+"supplement",
+        translation_key="1_"+"supplement",
+        value_fn=lambda device:  device.get_data("1_"+DOSE_SUPPLEMENT_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("1_"+DOSE_SUPPLEMENT_INTERNAL_NAME),
+        icon="mdi:shaker",
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="1_"+"auto_dosed_today",
+        translation_key="1_"+"auto_dosed_today",
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,
+        value_fn=lambda device:  device.get_data("1_"+DOSE_AUTO_DOSED_TODAY_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("1_"+DOSE_AUTO_DOSED_TODAY_INTERNAL_NAME),
+        icon="mdi:cup-water",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="1_"+"manual_dosed_today",
+        translation_key="1_"+"manual_dosed_today",
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,
+        value_fn=lambda device:  device.get_data("1_"+DOSE_MANUAL_DOSED_TODAY_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("1_"+DOSE_MANUAL_DOSED_TODAY_INTERNAL_NAME),
+        icon="mdi:cup-water",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="1_"+"doses_today",
+        translation_key="1_"+"doses_today",
+        value_fn=lambda device:  device.get_data("1_"+DOSE_DOSES_TODAY_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("1_"+DOSE_DOSES_TODAY_INTERNAL_NAME),
+        icon="mdi:counter",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="1_"+"daily_dose",
+        translation_key="1_"+"daily_dose",
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,
+        value_fn=lambda device:  device.get_data("1_"+DOSE_DAILY_DOSE_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("1_"+DOSE_DAILY_DOSE_INTERNAL_NAME),
+        icon="mdi:cup-water",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="1_"+"remaining_days",
+        translation_key="1_"+"remaining_days",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn=lambda device:  device.get_data("1_"+DOSE_REMAINING_DAYS_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("1_"+DOSE_REMAINING_DAYS_INTERNAL_NAME),
+        icon="mdi:sort-calendar-ascending",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="1_"+"daily_doses",
+        translation_key="1_"+"daily_doses",
+        value_fn=lambda device:  device.get_data("1_"+DOSE_DAILY_DOSES_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("1_"+DOSE_DAILY_DOSES_INTERNAL_NAME),
+        icon="mdi:counter",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="2_"+"supplement",
+        translation_key="2_"+"supplement",
+        value_fn=lambda device:  device.get_data("2_"+DOSE_SUPPLEMENT_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("2_"+DOSE_SUPPLEMENT_INTERNAL_NAME),
+        icon="mdi:shaker",
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="2_"+"auto_dosed_today",
+        translation_key="2_"+"auto_dosed_today",
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,
+        value_fn=lambda device:  device.get_data("2_"+DOSE_AUTO_DOSED_TODAY_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("2_"+DOSE_AUTO_DOSED_TODAY_INTERNAL_NAME),
+        icon="mdi:cup-water",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="2_"+"manual_dosed_today",
+        translation_key="2_"+"manual_dosed_today",
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,
+        value_fn=lambda device:  device.get_data("2_"+DOSE_MANUAL_DOSED_TODAY_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("2_"+DOSE_MANUAL_DOSED_TODAY_INTERNAL_NAME),
+        icon="mdi:cup-water",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="2_"+"doses_today",
+        translation_key="2_"+"doses_today",
+        value_fn=lambda device:  device.get_data("2_"+DOSE_DOSES_TODAY_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("2_"+DOSE_DOSES_TODAY_INTERNAL_NAME),
+        icon="mdi:counter",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="2_"+"daily_dose",
+        translation_key="2_"+"daily_dose",
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,
+        value_fn=lambda device:  device.get_data("2_"+DOSE_DAILY_DOSE_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("2_"+DOSE_DAILY_DOSE_INTERNAL_NAME),
+        icon="mdi:cup-water",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="2_"+"remaining_days",
+        translation_key="2_"+"remaining_days",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn=lambda device:  device.get_data("2_"+DOSE_REMAINING_DAYS_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("2_"+DOSE_REMAINING_DAYS_INTERNAL_NAME),
+        icon="mdi:sort-calendar-ascending",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="2_"+"daily_doses",
+        translation_key="2_"+"daily_doses",
+        value_fn=lambda device:  device.get_data("2_"+DOSE_DAILY_DOSES_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("2_"+DOSE_DAILY_DOSES_INTERNAL_NAME),
+        icon="mdi:counter",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="3_"+"supplement",
+        translation_key="3_"+"supplement",
+        value_fn=lambda device:  device.get_data("3_"+DOSE_SUPPLEMENT_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("3_"+DOSE_SUPPLEMENT_INTERNAL_NAME),
+        icon="mdi:shaker",
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="3_"+"auto_dosed_today",
+        translation_key="3_"+"auto_dosed_today",
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,
+        value_fn=lambda device:  device.get_data("3_"+DOSE_AUTO_DOSED_TODAY_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("3_"+DOSE_AUTO_DOSED_TODAY_INTERNAL_NAME),
+        icon="mdi:cup-water",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="3_"+"manual_dosed_today",
+        translation_key="3_"+"manual_dosed_today",
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,
+        value_fn=lambda device:  device.get_data("3_"+DOSE_MANUAL_DOSED_TODAY_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("3_"+DOSE_MANUAL_DOSED_TODAY_INTERNAL_NAME),
+        icon="mdi:cup-water",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="3_"+"doses_today",
+        translation_key="3_"+"doses_today",
+        value_fn=lambda device:  device.get_data("3_"+DOSE_DOSES_TODAY_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("3_"+DOSE_DOSES_TODAY_INTERNAL_NAME),
+        icon="mdi:counter",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="3_"+"daily_dose",
+        translation_key="3_"+"daily_dose",
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,
+        value_fn=lambda device:  device.get_data("3_"+DOSE_DAILY_DOSE_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("3_"+DOSE_DAILY_DOSE_INTERNAL_NAME),
+        icon="mdi:cup-water",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="3_"+"remaining_days",
+        translation_key="3_"+"remaining_days",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn=lambda device:  device.get_data("3_"+DOSE_REMAINING_DAYS_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("3_"+DOSE_REMAINING_DAYS_INTERNAL_NAME),
+        icon="mdi:sort-calendar-ascending",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="3_"+"daily_doses",
+        translation_key="3_"+"daily_doses",
+        value_fn=lambda device:  device.get_data("3_"+DOSE_DAILY_DOSES_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("3_"+DOSE_DAILY_DOSES_INTERNAL_NAME),
+        icon="mdi:counter",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="4_"+"supplement",
+        translation_key="4_"+"supplement",
+        value_fn=lambda device:  device.get_data("4_"+DOSE_SUPPLEMENT_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("4_"+DOSE_SUPPLEMENT_INTERNAL_NAME),
+        icon="mdi:shaker",
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="4_"+"auto_dosed_today",
+        translation_key="4_"+"auto_dosed_today",
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,
+        value_fn=lambda device:  device.get_data("4_"+DOSE_AUTO_DOSED_TODAY_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("4_"+DOSE_AUTO_DOSED_TODAY_INTERNAL_NAME),
+        icon="mdi:cup-water",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="4_"+"manual_dosed_today",
+        translation_key="4_"+"manual_dosed_today",
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,
+        value_fn=lambda device:  device.get_data("4_"+DOSE_MANUAL_DOSED_TODAY_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("4_"+DOSE_MANUAL_DOSED_TODAY_INTERNAL_NAME),
+        icon="mdi:cup-water",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="4_"+"doses_today",
+        translation_key="4_"+"doses_today",
+        value_fn=lambda device:  device.get_data("4_"+DOSE_DOSES_TODAY_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("4_"+DOSE_DOSES_TODAY_INTERNAL_NAME),
+        icon="mdi:counter",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="4_"+"daily_dose",
+        translation_key="4_"+"daily_dose",
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,
+        value_fn=lambda device:  device.get_data("4_"+DOSE_DAILY_DOSE_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("4_"+DOSE_DAILY_DOSE_INTERNAL_NAME),
+        icon="mdi:cup-water",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="4_"+"remaining_days",
+        translation_key="4_"+"remaining_days",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn=lambda device:  device.get_data("4_"+DOSE_REMAINING_DAYS_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("4_"+DOSE_REMAINING_DAYS_INTERNAL_NAME),
+        icon="mdi:sort-calendar-ascending",
+        suggested_display_precision=0,
+    ))
+ds_list.append(
+    ReefBeatSensorEntityDescription(
+        key="4_"+"daily_doses",
+        translation_key="4_"+"daily_doses",
+        value_fn=lambda device:  device.get_data("4_"+DOSE_DAILY_DOSES_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist("4_"+DOSE_DAILY_DOSES_INTERNAL_NAME),
+        icon="mdi:counter",
+        suggested_display_precision=0,
+    ))
+
+DOSE_SENSORS=tuple(ds_list)
+
 SCHEDULES = ()
 """ Lights and cloud schedule as sensors """
 for auto_id in range(1,8):
@@ -170,6 +463,11 @@ async def async_setup_entry(
         _LOGGER.debug(MAT_SENSORS)
         entities += [ReefBeatSensorEntity(device, description)
                      for description in MAT_SENSORS
+                     if description.exists_fn(device)]
+    elif type(device).__name__=='ReefDoseCoordinator':
+        _LOGGER.debug(DOSE_SENSORS)
+        entities += [ReefBeatSensorEntity(device, description)
+                     for description in DOSE_SENSORS
                      if description.exists_fn(device)]
 
     if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedVirtualCoordinator':

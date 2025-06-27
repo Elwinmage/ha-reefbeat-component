@@ -43,6 +43,98 @@
 	    }
 	},
 	"sensor": {
+	    "1_supplement":{
+		"name": "Pump 1: Supplement"
+	    },
+	    "1_auto_dosed_today":{
+		"name": "Pump 1: Auto dosed today"
+	    },
+	    "1_manual_dosed_today":{
+		"name": "Pump 1: Manual dosed today"
+	    },
+	    "1_doses_today":{
+		"name": "Pump 1: Manual dosed today"
+	    },
+	    "1_remaining_days":{
+		"name": "Pump 1: Remaining days Pump"
+	    },
+	    "1_daily_dose":{
+		"name": "Pump 1: Daily dose"
+	    },
+	    "1_daily_doses":{
+		"name": "Pump 1: Daily doses"
+	    },
+
+	    "2_supplement":{
+		"name": "Pump 2: Supplement"
+	    },
+	    "2_auto_dosed_today":{
+		"name": "Pump 2: Auto dosed today"
+	    },
+	    "2_manual_dosed_today":{
+		"name": "Pump 2: Manual dosed today"
+	    },
+	    "2_doses_today":{
+		"name": "Pump 2: Manual dosed today"
+	    },
+	    "2_remaining_days":{
+		"name": "Pump 2: Remaining days Pump"
+	    },
+	    "2_daily_dose":{
+		"name": "Pump 2: Daily dose"
+	    },
+	    "2_daily_doses":{
+		"name": "Pump 2: Daily doses"
+	    },
+
+	    "3_supplement":{
+		"name": "Pump 3: Supplement"
+	    },
+	    "3_auto_dosed_today":{
+		"name": "Pump 3: Auto dosed today"
+	    },
+	    "3_manual_dosed_today":{
+		"name": "Pump 3: Manual dosed today"
+	    },
+	    "3_doses_today":{
+		"name": "Pump 3: Manual dosed today"
+	    },
+	    "3_remaining_days":{
+		"name": "Pump 3: Remaining days Pump"
+	    },
+	    "3_daily_dose":{
+		"name": "Pump 3: Daily dose"
+	    },
+	    "3_daily_doses":{
+		"name": "Pump 3: Daily doses"
+	    },
+	    
+
+	    "4_supplement":{
+		"name": "Pump 4: Supplement"
+	    },
+	    "4_auto_dosed_today":{
+		"name": "Pump 4: Auto dosed today"
+	    },
+	    "4_manual_dosed_today":{
+		"name": "Pump 4: Manual dosed today"
+	    },
+	    "4_doses_today":{
+		"name": "Pump 4: Manual dosed today"
+	    },
+	    "4_remaining_days":{
+		"name": "Pump 4: Remaining days Pump"
+	    },
+	    "4_daily_dose":{
+		"name": "Pump 4: Daily dose"
+	    },
+	    "4_daily_doses":{
+		"name": "Pump 4: Daily doses"
+	    },
+
+
+	    //MAT
+	    
 	    "days_till_end_of_roll":{
 		"name": "Days till end of roll"
 	    },

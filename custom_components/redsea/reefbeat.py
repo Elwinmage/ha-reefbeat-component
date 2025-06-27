@@ -24,6 +24,8 @@ from .const import (
     SW_VERSION,
     MAT_SENSORS_INTERNAL_NAME,
     MAT_BINARY_SENSORS_INTERNAL_NAME,
+    DOSE_SENSORS_INTERNAL_NAME,
+    DOSE_SENSORS_MISSED_INTERNAL_NAME,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -90,7 +92,10 @@ class ReefBeatAPI():
                 try:
                     self.data[MODEL_NAME]=response[MODEL_NAME]
                     self.data[MODEL_ID]=response[MODEL_ID]
-                    self.data[HW_VERSION]=response[HW_VERSION]
+                    if HW_VERSION in response:
+                        self.data[HW_VERSION]=response[HW_VERSION]
+                    else:
+                        self.data[HW_VERSION]=""
                 except Exception as e:
                     _LOGGER.error("Getting info %s"%e)
             # Firmware
@@ -235,10 +240,11 @@ class ReefMatAPI(ReefBeatAPI):
 #ReefDose
 class ReefDoseAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
-    def __init__(self,ip) -> None:
+    def __init__(self,ip,heads_nb) -> None:
         super().__init__(ip)
+        self._heads_nb=heads_nb
 
-    # TODO a remonter dans reefbeatapi
+        # TODO a remonter dans reefbeatapi
     async def fetch_device_data(self):
         async with httpx.AsyncClient(verify=False) as client:
             r = await client.get(self._base_url+"/dashboard",timeout=2)
@@ -246,9 +252,11 @@ class ReefDoseAPI(ReefBeatAPI):
             response=r.json()
             _LOGGER.debug("Get data: %s"%response)
             try:
-                for sensor_name in DOSE_SENSORS_INTERNAL_NAME:
-                    self.data[sensor_name]=float(response[sensor_name])
-                    _LOGGER.debug("%s: %f"%(sensor_name,self.data[sensor_name]))
+                for head in range (1,self._heads_nb+1):
+                    for sensor_name in DOSE_SENSORS_INTERNAL_NAME:
+                        fname=str(head)+'_'+sensor_name
+                        self.data[fname]=response['heads'][str(head)][sensor_name]
+                        _LOGGER.debug("Updating %s: %s"%(fname,self.data[fname]))
                 ##
                 self.last_update_success=datetime.datetime.now()
                 ##

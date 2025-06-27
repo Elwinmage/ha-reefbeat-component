@@ -43,6 +43,93 @@
 	    }
 	},
 	"sensor": {
+	    "1_supplement":{
+		"name": "Pompe 1: Nom du supplément"
+	    },
+	    "1_auto_dosed_today":{
+		"name": "Pompe 1: Dose automatique du jour"
+	    },
+	    "1_manual_dosed_today":{
+		"name": "Pompe 1: Dose manuelle du jour"
+	    },
+	    "1_doses_today":{
+		"name": "Pompe 1: Dose du jour"
+	    },
+	    "1_remaining_days":{
+		"name": "Pompe 1: Jours restant"
+	    },
+	    "1_daily_doses":{
+		"name": "Pompe 1: Doses journalière"
+	    },
+	    "1_daily_dose":{
+		"name": "Pompe 1: Dose journalière"
+	    },
+	    "2_supplement":{
+		"name": "Pompe 2: Nom du supplément"
+	    },
+	    "2_auto_dosed_today":{
+		"name": "Pompe 2: Dose automatique du jour"
+	    },
+	    "2_manual_dosed_today":{
+		"name": "Pompe 2: Dose manuelle du jour"
+	    },
+	    "2_doses_today":{
+		"name": "Pompe 2: Dose du jour"
+	    },
+	    "2_remaining_days":{
+		"name": "Pompe 2: Jours restant"
+	    },
+	    "2_daily_dose":{
+		"name": "Pompe 2: Dose journalière"
+	    },
+	    "2_daily_doses":{
+		"name": "Pompe 2: Doses journalière"
+	    },
+	    "3_supplement":{
+		"name": "Pompe 3: Nom du supplément"
+	    },
+	    "3_auto_dosed_today":{
+		"name": "Pompe 3: Dose automatique du jour"
+	    },
+	    "3_manual_dosed_today":{
+		"name": "Pompe 3: Dose manuelle du jour"
+	    },
+	    "3_doses_today":{
+		"name": "Pompe 3: Dose du jour"
+	    },
+	    "3_remaining_days":{
+		"name": "Pompe 3: Jours restant"
+	    },
+	    "3_daily_doses":{
+		"name": "Pompe 3: Doses journalière"
+	    },
+	    "3_daily_dose":{
+		"name": "Pompe 3: Dose journalière"
+	    },
+	    
+	    "4_supplement":{
+		"name": "Pompe 4: Nom du supplément"
+	    },
+	    "4_auto_dosed_today":{
+		"name": "Pompe 4: Dose automatique du jour"
+	    },
+	    "4_manual_dosed_today":{
+		"name": "Pompe 4: Dose manuelle du jour"
+	    },
+	    "4_doses_today":{
+		"name": "Pompe 4: Dose du jour"
+	    },
+	    "4_remaining_days":{
+		"name": "Pompe 4: Jours restant"
+	    },
+	    "4_daily_dose":{
+		"name": "Pompe 4: Dose journalière"
+	    },
+	    "4_daily_doses":{
+		"name": "Pompe 4: Doses journalière"
+	    },
+	    
+
 	    "days_till_end_of_roll":{
 		"name": "Jours avant la fin du rouleau"
 	    },
