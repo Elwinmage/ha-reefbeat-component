@@ -53,7 +53,7 @@
 		"name": "Pompe 1: Dose manuelle du jour"
 	    },
 	    "1_doses_today":{
-		"name": "Pompe 1: Dose du jour"
+		"name": "Pompe 1: Doses du jour"
 	    },
 	    "1_remaining_days":{
 		"name": "Pompe 1: Jours restant"
@@ -74,7 +74,7 @@
 		"name": "Pompe 2: Dose manuelle du jour"
 	    },
 	    "2_doses_today":{
-		"name": "Pompe 2: Dose du jour"
+		"name": "Pompe 2: Doses du jour"
 	    },
 	    "2_remaining_days":{
 		"name": "Pompe 2: Jours restant"
@@ -95,7 +95,7 @@
 		"name": "Pompe 3: Dose manuelle du jour"
 	    },
 	    "3_doses_today":{
-		"name": "Pompe 3: Dose du jour"
+		"name": "Pompe 3: Doses du jour"
 	    },
 	    "3_remaining_days":{
 		"name": "Pompe 3: Jours restant"
@@ -117,7 +117,7 @@
 		"name": "Pompe 4: Dose manuelle du jour"
 	    },
 	    "4_doses_today":{
-		"name": "Pompe 4: Dose du jour"
+		"name": "Pompe 4: Doses du jour"
 	    },
 	    "4_remaining_days":{
 		"name": "Pompe 4: Jours restant"
