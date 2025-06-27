@@ -8,7 +8,7 @@ Use at your own risk
 # Installation via hacs 
 1) open HACS
 2) go to custom repositories and add:
-    https://github.com/Elwinmage/ha-reebeat-component
+    https://github.com/Elwinmage/ha-reefbeat-component
 
 # Hardware
 ReefLed:
@@ -18,23 +18,33 @@ ReefLed:
 ReefMat:
   - Test with ReefMat 1200
 
-ReefDose:
+ReefDose (NOT implemented yet):
   - Test with ReefDose4
 
 
 # What works
-- Auto detect LED on private network (if on same network)
-- Get and Set White, Blue and Moon values
-- Get Fan and Temperature
-- Get name and value for progams (with clouds support)
-- Group and manage LED with a virtual device (Create a vitual device from the integration panel, then use the configure button to link the leds)
+- All:
+    - Auto detect on private network (if on same network)
+- LED:
+    - Get and Set White, Blue and Moon values
+    - Get Fan and Temperature
+    - Get name and value for progams (with clouds support)
+    - Group and manage LED with a virtual device (Create a vitual device from the integration panel, then use the configure button to link the leds)
+      
+- ReefMat:
+    - some sensor values: auto_advance, unclean_sensor, daily_avergage_usage, today_usage, remaining_length,days_till_end_of_roll and total_usage
 
 # Futur implementation
-- Set programs (and implement the daily prog button that do nothing yet)
-- Manage manual mode timing
-- Random  program creation
-- Daily program generation according to meteo of a specific place according to geographic coordinates
+- LED:
+    - Set programs (and implement the daily prog button that do nothing yet)
+    - Manage manual mode timing
+    - Random  program creation
+    - Daily program generation according to meteo of a specific place according to geographic coordinates
 
+- ReefMat:
+    - Changing mode
+    - Manual advance
+ 
 # Home Assitant Card
 An example to display your led program.
 
