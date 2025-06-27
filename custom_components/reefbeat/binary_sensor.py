@@ -25,28 +25,20 @@ from .const import (
     MAT_AUTO_ADVANCE_INTERNAL_NAME,
 )
 
-from .coordinator import ReefLedCoordinator, ReefMatCoordinator
+from .coordinator import ReefBeatCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-
-
 @dataclass(kw_only=True)
-class ReefLedBinarySensorEntityDescription(BinarySensorEntityDescription):
+class ReefBeatBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Describes ReefLed binary sensor entity."""
-    exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
-    value_fn: Callable[[ReefLedCoordinator], StateType]
-
-@dataclass(kw_only=True)
-class ReefMatBinarySensorEntityDescription(BinarySensorEntityDescription):
-    """Describes Reefmat binary sensor entity."""
-    exists_fn: Callable[[ReefMatCoordinator], bool] = lambda _: True
-    value_fn: Callable[[ReefMatCoordinator], StateType]
+    exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
+    value_fn: Callable[[ReefBeatCoordinator], StateType]
 
 
 """ ReefLed Binary Sensor List """    
-SENSORS: tuple[ReefLedBinarySensorEntityDescription, ...] = (
-    ReefLedBinarySensorEntityDescription(
+SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
+    ReefBeatBinarySensorEntityDescription(
         key="status",
         translation_key="status",
         device_class=BinarySensorDeviceClass.LIGHT,
@@ -57,8 +49,8 @@ SENSORS: tuple[ReefLedBinarySensorEntityDescription, ...] = (
 )
 
 """ ReefMat Binary Sensor List """    
-MAT_SENSORS: tuple[ReefMatBinarySensorEntityDescription, ...] = (
-    ReefMatBinarySensorEntityDescription(
+MAT_SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
+    ReefBeatBinarySensorEntityDescription(
         key="unclean_sensor",
         translation_key="unclean_sensor",
         device_class=BinarySensorDeviceClass.PROBLEM,
@@ -66,7 +58,7 @@ MAT_SENSORS: tuple[ReefMatBinarySensorEntityDescription, ...] = (
         exists_fn=lambda device: device.data_exist(MAT_UNCLEAN_SENSOR_INTERNAL_NAME),
         icon="mdi:liquid-spot",
     ),
-    ReefMatBinarySensorEntityDescription(
+    ReefBeatBinarySensorEntityDescription(
         key="auot_advance",
         translation_key="auto_advance",
         value_fn=lambda device: device.get_data(MAT_AUTO_ADVANCE_INTERNAL_NAME),
@@ -75,7 +67,6 @@ MAT_SENSORS: tuple[ReefMatBinarySensorEntityDescription, ...] = (
     ),
 
 )
-
 
 async def async_setup_entry(
         hass: HomeAssistant,
@@ -87,7 +78,7 @@ async def async_setup_entry(
     device = hass.data[DOMAIN][entry.entry_id]
     entities=[]
     if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedVirtualCoordinator':
-        entities += [ReefbeatBinarySensorEntity(device, description)
+        entities += [ReefBeatBinarySensorEntity(device, description)
                      for description in SENSORS
                      if description.exists_fn(device)]
     if type(device).__name__=="ReefMatCoordinator":

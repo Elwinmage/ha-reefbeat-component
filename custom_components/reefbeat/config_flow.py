@@ -53,6 +53,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if user_input[CONFIG_FLOW_IP_ADDRESS] == VIRTUAL_LED:
                 title=VIRTUAL_LED+'-'+str(int(time()))
                 user_input[CONFIG_FLOW_IP_ADDRESS]=title
+                user_input[CONFIG_FLOW_HW_MODEL]=VIRTUAL_LED
                 _LOGGER.debug("-- ** UUID ** -- %s"%title)
                 await self.async_set_unique_id(title)
             else:
@@ -133,6 +134,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             data={}
             leds={}
             data[CONFIG_FLOW_IP_ADDRESS]=self._config_entry.data[CONFIG_FLOW_IP_ADDRESS]
+            data[CONFIG_FLOW_HW_MODEL]=VIRTUAL_LED
             for led in user_input:
                 if user_input[led]:
                     leds[led]=True

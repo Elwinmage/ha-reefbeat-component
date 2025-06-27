@@ -38,27 +38,19 @@ from .const import (
     MAT_DAYS_TILL_END_OF_ROLL_INTERNAL_NAME,
 )
 
-from .coordinator import ReefLedCoordinator,ReefMatCoordinator,ReefDoseCoordinator
+from .coordinator import ReefBeatCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 @dataclass(kw_only=True)
-class ReefLedSensorEntityDescription(SensorEntityDescription):
+class ReefBeatSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
-    exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
-    value_fn: Callable[[ReefLedCoordinator], StateType]
+    exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
+    value_fn: Callable[[ReefBeatCoordinator], StateType]
 
-@dataclass(kw_only=True)
-class ReefMatSensorEntityDescription(SensorEntityDescription):
-    """Describes reefbeat sensor entity."""
-    exists_fn: Callable[[ReefMatCoordinator], bool] = lambda _: True
-    value_fn: Callable[[ReefMatCoordinator], StateType]
-
-
-    
 """ Reefbeat sensors list """
-SENSORS: tuple[ReefLedSensorEntityDescription, ...] = (
-    ReefLedSensorEntityDescription(
+SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
+    ReefBeatSensorEntityDescription(
         key="fan",
         translation_key="fan",
         native_unit_of_measurement=PERCENTAGE,
@@ -69,7 +61,7 @@ SENSORS: tuple[ReefLedSensorEntityDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:fan",
     ),
-    ReefLedSensorEntityDescription(
+    ReefBeatSensorEntityDescription(
         key="temperature",
         translation_key="temperature",
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
@@ -80,7 +72,7 @@ SENSORS: tuple[ReefLedSensorEntityDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:thermometer",
     ),
-    ReefLedSensorEntityDescription(
+    ReefBeatSensorEntityDescription(
         key="ip",
         translation_key="ip",
         value_fn=lambda device:  device.get_data(IP_INTERNAL_NAME),
@@ -90,9 +82,9 @@ SENSORS: tuple[ReefLedSensorEntityDescription, ...] = (
 )
 
 """ ReefMat sensors list """
-MAT_SENSORS: tuple[ReefMatSensorEntityDescription, ...] = (
+MAT_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
 
-    ReefMatSensorEntityDescription(
+    ReefBeatSensorEntityDescription(
         key="days_till_end_of_roll",
         translation_key="days_till_end_of_roll",
         native_unit_of_measurement=UnitOfTime.DAYS,
@@ -101,7 +93,7 @@ MAT_SENSORS: tuple[ReefMatSensorEntityDescription, ...] = (
         icon="mdi:sun-clock-outline",
         suggested_display_precision=0,
     ),
-    ReefMatSensorEntityDescription(
+    ReefBeatSensorEntityDescription(
         key="today_usage",
         translation_key="today_usage",
         native_unit_of_measurement=UnitOfLength.CENTIMETERS,
@@ -112,7 +104,7 @@ MAT_SENSORS: tuple[ReefMatSensorEntityDescription, ...] = (
         icon="mdi:tape-measure",
         suggested_display_precision=2,
     ),
-    ReefMatSensorEntityDescription(
+    ReefBeatSensorEntityDescription(
         key="daily_average_usage",
         translation_key="daily_average_usage",
         native_unit_of_measurement=UnitOfLength.CENTIMETERS,
@@ -123,7 +115,7 @@ MAT_SENSORS: tuple[ReefMatSensorEntityDescription, ...] = (
         icon="mdi:tape-measure",
         suggested_display_precision=1,
     ),
-    ReefMatSensorEntityDescription(
+    ReefBeatSensorEntityDescription(
         key="total_usage",
         translation_key="total_usage",
         native_unit_of_measurement=UnitOfLength.METERS,
@@ -134,7 +126,7 @@ MAT_SENSORS: tuple[ReefMatSensorEntityDescription, ...] = (
         icon="mdi:paper-roll",
         suggested_display_precision=2,
     ),
-    ReefMatSensorEntityDescription(
+    ReefBeatSensorEntityDescription(
         key="remaining_length",
         translation_key="remaining_length",
         native_unit_of_measurement=UnitOfLength.METERS,
@@ -151,7 +143,7 @@ MAT_SENSORS: tuple[ReefMatSensorEntityDescription, ...] = (
 SCHEDULES = ()
 """ Lights and cloud schedule as sensors """
 for auto_id in range(1,8):
-    SCHEDULES += (ReefLedSensorEntityDescription(
+    SCHEDULES += (ReefBeatSensorEntityDescription(
         key="auto_"+str(auto_id),
         translation_key="auto_"+str(auto_id),
         value_fn=lambda device: device.get_prog_name("auto_"+str(auto_id)),
