@@ -23,6 +23,7 @@ from .const import (
     HW_VERSION,
     SW_VERSION,
     MAT_SENSORS_INTERNAL_NAME,
+    MAT_BINARY_SENSORS_INTERNAL_NAME,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -218,6 +219,9 @@ class ReefMatAPI(ReefBeatAPI):
                 for sensor_name in MAT_SENSORS_INTERNAL_NAME:
                     self.data[sensor_name]=float(response[sensor_name])
                     _LOGGER.debug("%s: %f"%(sensor_name,self.data[sensor_name]))
+                for sensor_name in MAT_BINARY_SENSORS_INTERNAL_NAME:
+                    self.data[sensor_name]=bool(response[sensor_name])
+                    _LOGGER.debug("%s: %s"%(sensor_name,self.data[sensor_name]))
                 ##
                 self.last_update_success=datetime.datetime.now()
                 ##
@@ -236,7 +240,21 @@ class ReefDoseAPI(ReefBeatAPI):
 
     # TODO a remonter dans reefbeatapi
     async def fetch_device_data(self):
-        pass
+        async with httpx.AsyncClient(verify=False) as client:
+            r = await client.get(self._base_url+"/dashboard",timeout=2)
+        if r.status_code == 200:
+            response=r.json()
+            _LOGGER.debug("Get data: %s"%response)
+            try:
+                for sensor_name in DOSE_SENSORS_INTERNAL_NAME:
+                    self.data[sensor_name]=float(response[sensor_name])
+                    _LOGGER.debug("%s: %f"%(sensor_name,self.data[sensor_name]))
+                ##
+                self.last_update_success=datetime.datetime.now()
+                ##
+            except Exception as e:
+                _LOGGER.error("Getting Dose values %s"%e)
+
             
     def push_values(self):
         pass

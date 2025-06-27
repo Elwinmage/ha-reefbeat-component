@@ -34,6 +34,12 @@
 	"binary_sensor": {
 	    "status":{
 		"name":"Status de la LED"
+	    },
+	    "unclean_sensor":{
+		"name": "Etat du capteur"
+	    },
+	    "auto_advance":{
+		"name": "Avance automatique du rouleau"
 	    }
 	},
 	"sensor": {

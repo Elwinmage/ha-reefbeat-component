@@ -21,9 +21,11 @@ from homeassistant.helpers.typing import StateType
 from .const import (
     DOMAIN,
     STATUS_INTERNAL_NAME,
+    MAT_UNCLEAN_SENSOR_INTERNAL_NAME,
+    MAT_AUTO_ADVANCE_INTERNAL_NAME,
 )
 
-from .coordinator import ReefLedCoordinator
+from .coordinator import ReefLedCoordinator, ReefMatCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,6 +36,12 @@ class ReefLedBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Describes ReefLed binary sensor entity."""
     exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
     value_fn: Callable[[ReefLedCoordinator], StateType]
+
+@dataclass(kw_only=True)
+class ReefMatBinarySensorEntityDescription(BinarySensorEntityDescription):
+    """Describes Reefmat binary sensor entity."""
+    exists_fn: Callable[[ReefMatCoordinator], bool] = lambda _: True
+    value_fn: Callable[[ReefMatCoordinator], StateType]
 
 
 """ ReefLed Binary Sensor List """    
@@ -48,7 +56,27 @@ SENSORS: tuple[ReefLedBinarySensorEntityDescription, ...] = (
     ),
 )
 
-    
+""" ReefMat Binary Sensor List """    
+MAT_SENSORS: tuple[ReefMatBinarySensorEntityDescription, ...] = (
+    ReefMatBinarySensorEntityDescription(
+        key="unclean_sensor",
+        translation_key="unclean_sensor",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        value_fn=lambda device: device.get_data(MAT_UNCLEAN_SENSOR_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(MAT_UNCLEAN_SENSOR_INTERNAL_NAME),
+        icon="mdi:liquid-spot",
+    ),
+    ReefMatBinarySensorEntityDescription(
+        key="auot_advance",
+        translation_key="auto_advance",
+        value_fn=lambda device: device.get_data(MAT_AUTO_ADVANCE_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(MAT_AUTO_ADVANCE_INTERNAL_NAME),
+        icon="mdi:autorenew",
+    ),
+
+)
+
+
 async def async_setup_entry(
         hass: HomeAssistant,
         entry: ConfigEntry,
@@ -59,18 +87,23 @@ async def async_setup_entry(
     device = hass.data[DOMAIN][entry.entry_id]
     entities=[]
     if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedVirtualCoordinator':
-        entities += [ReefLedBinarySensorEntity(device, description)
+        entities += [ReefbeatBinarySensorEntity(device, description)
                      for description in SENSORS
                      if description.exists_fn(device)]
+    if type(device).__name__=="ReefMatCoordinator":
+        entities += [ReefBeatBinarySensorEntity(device, description)
+                     for description in MAT_SENSORS
+                     if description.exists_fn(device)]
+    
     async_add_entities(entities, True)
 
 
-class ReefLedBinarySensorEntity(BinarySensorEntity):
+class ReefBeatBinarySensorEntity(BinarySensorEntity):
     """Represent an ReefLed binary sensor."""
     _attr_has_entity_name = True
 
     def __init__(
-        self, device: ReefLedCoordinator, entity_description: ReefLedBinarySensorEntityDescription
+        self, device, entity_description
     ) -> None:
         """Set up the instance."""
         self._device = device
@@ -89,5 +122,7 @@ class ReefLedBinarySensorEntity(BinarySensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info
+
+    
 
     
