@@ -3,7 +3,7 @@
     "config_flow": true,
     "dependencies": [],
     "documentation": "https://github.com/Elwinmage/ha-reefbeat-component",
-    "domain": "reefbeat",
+    "domain": "redsea",
     "iot_class": "local_polling",
     "name": "ReefBeat",
     "requirements": [],

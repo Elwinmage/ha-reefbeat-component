@@ -1,6 +1,6 @@
 from homeassistant.const import Platform
 
-DOMAIN = "reefbeat"
+DOMAIN = "redsea"
 
 DEVICE_MANUFACTURER="Red Sea"
 
