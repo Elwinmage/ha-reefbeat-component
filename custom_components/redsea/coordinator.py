@@ -276,6 +276,9 @@ class ReefMatCoordinator(ReefBeatCoordinator):
         super().__init__(hass, entry)
         self.my_api = ReefMatAPI(self._ip)
 
+    def advance(self):
+        self.my_api.advance()
+        
 ################################################################################
 # REEFDOSE
 class ReefDoseCoordinator(ReefBeatCoordinator):

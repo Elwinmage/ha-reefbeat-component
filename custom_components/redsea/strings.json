@@ -31,6 +31,16 @@
 	}
     },
     "entity": {
+	"button":{
+	    "advance":{
+		"name": "Advance"
+	    }
+	},
+	"number":{
+	    "custom_advance_value":{
+		"name": "Valeur d'avance"
+	    }
+	} ,
 	"binary_sensor": {
 	    "status":{
 		"name":"LED Status"
@@ -38,8 +48,8 @@
 	    "unclean_sensor":{
 		"name": "Sensor State"
 	    },
-	    "auto_advance":{
-		"name": "Automatic roll advance"
+	    "is_ec_sensor_connected":{
+		"name": "Is EC sensor Connected"
 	    }
 	},
 	"sensor": {
@@ -195,6 +205,9 @@
 	"switch": {
 	    "daily_prog": {
 		"name": "Daily Programmation"
+	    },
+	    "auto_advance":{
+		"name": "Auto advance"
 	    }
 	}
     }

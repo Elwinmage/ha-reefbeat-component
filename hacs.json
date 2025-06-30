@@ -6,6 +6,8 @@
       "light",
       "sensor",
       "binary_sensor",
-      "switch"
+      "switch",
+      "number",
+      "button"
   ]
 }

@@ -23,6 +23,7 @@ from .const import (
     STATUS_INTERNAL_NAME,
     MAT_UNCLEAN_SENSOR_INTERNAL_NAME,
     MAT_AUTO_ADVANCE_INTERNAL_NAME,
+    MAT_IS_EC_SENSOR_CONNECTED_INTERNAL_NAME,
 )
 
 from .coordinator import ReefBeatCoordinator
@@ -59,11 +60,12 @@ MAT_SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
         icon="mdi:liquid-spot",
     ),
     ReefBeatBinarySensorEntityDescription(
-        key="auot_advance",
-        translation_key="auto_advance",
-        value_fn=lambda device: device.get_data(MAT_AUTO_ADVANCE_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(MAT_AUTO_ADVANCE_INTERNAL_NAME),
-        icon="mdi:autorenew",
+        key=MAT_IS_EC_SENSOR_CONNECTED_INTERNAL_NAME,
+        translation_key=MAT_IS_EC_SENSOR_CONNECTED_INTERNAL_NAME,
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        value_fn=lambda device: device.get_data(MAT_IS_EC_SENSOR_CONNECTED_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(MAT_IS_EC_SENSOR_CONNECTED_INTERNAL_NAME),
+        icon="mdi:connection",
     ),
 
 )

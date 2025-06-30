@@ -24,6 +24,10 @@ from .const import (
     SW_VERSION,
     MAT_SENSORS_INTERNAL_NAME,
     MAT_BINARY_SENSORS_INTERNAL_NAME,
+    MAT_SWITCHES_INTERNAL_NAME,
+    MAT_NUMBERS_INTERNAL_NAME,
+    MAT_AUTO_ADVANCE_INTERNAL_NAME,
+    MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
     DOSE_SENSORS_INTERNAL_NAME,
     DOSE_SENSORS_MISSED_INTERNAL_NAME,
 )
@@ -218,6 +222,7 @@ class ReefMatAPI(ReefBeatAPI):
     async def fetch_device_data(self):
         async with httpx.AsyncClient(verify=False) as client:
             r = await client.get(self._base_url+"/dashboard",timeout=2)
+            c = await client.get(self._base_url+"/configuration",timeout=2)
         if r.status_code == 200:
             response=r.json()
             _LOGGER.debug("Get data: %s"%response)
@@ -228,14 +233,29 @@ class ReefMatAPI(ReefBeatAPI):
                 for sensor_name in MAT_BINARY_SENSORS_INTERNAL_NAME:
                     self.data[sensor_name]=bool(response[sensor_name])
                     _LOGGER.debug("%s: %s"%(sensor_name,self.data[sensor_name]))
+
+                response=c.json()
+                for sensor_name in MAT_SWITCHES_INTERNAL_NAME:
+                    self.data[sensor_name]=bool(response[sensor_name])
+                    _LOGGER.debug("%s: %s"%(sensor_name,self.data[sensor_name]))
+
+                for sensor_name in MAT_NUMBERS_INTERNAL_NAME:
+                    self.data[sensor_name]=float(response[sensor_name])
+                    _LOGGER.debug("%s: %s"%(sensor_name,self.data[sensor_name]))
                 ##
                 self.last_update_success=datetime.datetime.now()
                 ##
             except Exception as e:
                 _LOGGER.error("Getting MAT values %s"%e)
-            
+
+    def advance(self):
+        payload=''
+        _LOGGER.info("Manual advance")
+        r = httpx.post(self._base_url+'/advance', json = payload,verify=False)
+
     def push_values(self):
-        pass
+        payload={MAT_AUTO_ADVANCE_INTERNAL_NAME: self.data[MAT_AUTO_ADVANCE_INTERNAL_NAME],MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME: self.data[MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME]}
+        r = httpx.put(self._base_url+'/configuration', json = payload,verify=False)
 
 ################################################################################
 #ReefDose

@@ -12,8 +12,7 @@ Use at your own risk
 
 # Hardware
 ReefLed:
-  - Test with the RESLED 160 but may work with 90 and 50 versions let me know.
-  - If you have the RESLED Gen2 you can contact me to add the support
+  - Test with the RESLED 160 and RSLED 115 (G2) but may work with 50,60,90,175 versions let me know.
 
 ReefMat:
   - Test with ReefMat 1200
@@ -32,7 +31,10 @@ ReefDose:
     - Group and manage LED with a virtual device (Create a vitual device from the integration panel, then use the configure button to link the leds)
       
 - ReefMat:
-    - some sensors values: auto_advance, unclean_sensor, daily_avergage_usage, today_usage, remaining_length,days_till_end_of_roll and total_usage
+    - many sensors values: auto_advance, unclean_sensor, daily_avergage_usage, today_usage, remaining_length,days_till_end_of_roll and total_usage,is_ec_sensor_connected (let me know if you want some more)
+    - auto advance switch (enable/disable)
+    - custom advance value: let you select the value of roll advance
+    - a press button to manualy advance 
 
 - ReefDose:
   - some sensors
@@ -43,10 +45,6 @@ ReefDose:
     - Manage manual mode timing
     - Random  program creation
     - Daily program generation according to meteo of a specific place according to geographic coordinates
-
-- ReefMat:
-    - Changing mode
-    - Manual advance
 
 - ReefDose:
   - Implement dosing management

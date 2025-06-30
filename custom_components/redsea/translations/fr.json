@@ -31,6 +31,15 @@
 	}
     },
     "entity": {
+	"button":{
+	    "advance":{
+		"name": "Faire dérouler"
+	    }
+	},	"number":{
+	    "custom_advance_value":{
+		"name": "Valeur d'avance"
+	    }
+	} ,
 	"binary_sensor": {
 	    "status":{
 		"name":"Status de la LED"
@@ -38,8 +47,8 @@
 	    "unclean_sensor":{
 		"name": "Etat du capteur"
 	    },
-	    "auto_advance":{
-		"name": "Avance automatique du rouleau"
+	    "is_ec_sensor_connected":{
+		"name": "Capteur connecté?"
 	    }
 	},
 	"sensor": {
@@ -190,7 +199,11 @@
 	"switch": {
 	    "daily_prog": {
 		"name": "Programmation journalière"
+	    },
+	    "auto_advance":{
+		"name": "Avance automatique"
 	    }
+	    
 	}
 	
     }
