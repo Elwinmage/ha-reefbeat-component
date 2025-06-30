@@ -208,6 +208,7 @@ class ReefLedAPI(ReefBeatAPI):
         
 ################################################################################
 #ReefMat
+# wget --quiet -O - --post-data '' http://192.168.0.216/advance
 class ReefMatAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
     def __init__(self,ip) -> None:
