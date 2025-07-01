@@ -30,6 +30,14 @@ from .const import (
     MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
     DOSE_SENSORS_INTERNAL_NAME,
     DOSE_SENSORS_MISSED_INTERNAL_NAME,
+    ATO_BASE_SENSORS,
+    ATO_BASE_BINARY_SENSORS,
+    ATO_LEAK_BINARY_SENSORS,
+    ATO_LEAK_SENSORS,
+    ATO_ATO_BINARY_SENSORS,
+    ATO_ATO_SENSORS,
+    ATO_SWITCHES_INTERNAL_NAME,
+    ATO_AUTO_FILL_INTERNAL_NAME,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -116,6 +124,12 @@ class ReefBeatAPI():
         await self.fetch_data()
         return self.data
     
+    def press(self,action):
+        payload=''
+        _LOGGER.info("Sending: %s"%action)
+        r = httpx.post(self._base_url+'/'+action, json = payload,verify=False)
+        
+    
     async def async_first_refresh(self):
         async with httpx.AsyncClient(verify=False) as client:
             r = await client.get(self._base_url+'/',timeout=2)
@@ -177,8 +191,6 @@ class ReefLedAPI(ReefBeatAPI):
                     if c.status_code==200:
                         clouds_data=c.json()
                     self.data['auto_'+str(prog_id)]={'name':prog_name,'data':prog_data,'clouds':clouds_data}
-#                except Exception as e:
-#                    _LOGGER.error("Can not get value: %s because %s"%(response,e))
                 
     async def _fetch_led_status(self):
         """ Get led information data """
@@ -218,7 +230,6 @@ class ReefMatAPI(ReefBeatAPI):
     def __init__(self,ip) -> None:
         super().__init__(ip)
 
-    # TODO a remonter dans reefbeatapi
     async def fetch_device_data(self):
         async with httpx.AsyncClient(verify=False) as client:
             r = await client.get(self._base_url+"/dashboard",timeout=2)
@@ -248,11 +259,6 @@ class ReefMatAPI(ReefBeatAPI):
             except Exception as e:
                 _LOGGER.error("Getting MAT values %s"%e)
 
-    def advance(self):
-        payload=''
-        _LOGGER.info("Manual advance")
-        r = httpx.post(self._base_url+'/advance', json = payload,verify=False)
-
     def push_values(self):
         payload={MAT_AUTO_ADVANCE_INTERNAL_NAME: self.data[MAT_AUTO_ADVANCE_INTERNAL_NAME],MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME: self.data[MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME]}
         r = httpx.put(self._base_url+'/configuration', json = payload,verify=False)
@@ -265,7 +271,6 @@ class ReefDoseAPI(ReefBeatAPI):
         super().__init__(ip)
         self._heads_nb=heads_nb
 
-        # TODO a remonter dans reefbeatapi
     async def fetch_device_data(self):
         async with httpx.AsyncClient(verify=False) as client:
             r = await client.get(self._base_url+"/dashboard",timeout=2)
@@ -287,4 +292,55 @@ class ReefDoseAPI(ReefBeatAPI):
             
     def push_values(self):
         pass
+    
+################################################################################
+# ReefATO+
+class ReefATOAPI(ReefBeatAPI):
+    """ Access to Reefled informations and commands """
+    def __init__(self,ip) -> None:
+        super().__init__(ip)
+
+        # TODO a remonter dans reefbeatapi
+    async def fetch_device_data(self):
+        async with httpx.AsyncClient(verify=False) as client:
+            r = await client.get(self._base_url+"/dashboard",timeout=2)
+            c = await client.get(self._base_url+"/configuration",timeout=2)
+        if r.status_code == 200:
+            response=r.json()
+            _LOGGER.debug("Get data: %s"%response)
+            try:
+                for sensor_name in ATO_BASE_SENSORS:
+                    self.data[sensor_name]=response[sensor_name]
+                    _LOGGER.debug("Updating %s: %s"%(sensor_name,self.data[sensor_name]))
+                for sensor_name in ATO_BASE_BINARY_SENSORS:
+                    self.data[sensor_name]=bool(response[sensor_name])
+                    _LOGGER.debug("Updating %s: %s"%(sensor_name,self.data[sensor_name]))
+                for sensor_name in ATO_LEAK_BINARY_SENSORS:
+                    self.data[sensor_name]=bool(response["leak_sensor"][sensor_name])
+                    _LOGGER.debug("Updating %s: %s"%(sensor_name,self.data[sensor_name]))
+                for sensor_name in ATO_LEAK_SENSORS:
+                    self.data[sensor_name]=response["leak_sensor"][sensor_name]
+                    _LOGGER.debug("Updating %s: %s"%(sensor_name,self.data[sensor_name]))
+                for sensor_name in ATO_ATO_BINARY_SENSORS:
+                    self.data[sensor_name]=bool(response["ato_sensor"][sensor_name])
+                    _LOGGER.debug("Updating %s: %s"%(sensor_name,self.data[sensor_name]))
+                for sensor_name in ATO_ATO_SENSORS:
+                    self.data[sensor_name]=response["ato_sensor"][sensor_name]
+                    _LOGGER.debug("Updating %s: %s"%(sensor_name,self.data[sensor_name]))
+                response=c.json()
+                for sensor_name in ATO_SWITCHES_INTERNAL_NAME:
+                    self.data[sensor_name]=bool(response[sensor_name])
+                    _LOGGER.debug("%s: %s"%(sensor_name,self.data[sensor_name]))
+
+                    ##
+                self.last_update_success=datetime.datetime.now()
+                ##
+            except Exception as e:
+                _LOGGER.error("Getting ATO+ values %s"%e)
+
+
+    def push_values(self):
+        payload={ATO_AUTO_FILL_INTERNAL_NAME: self.data[ATO_AUTO_FILL_INTERNAL_NAME]}
+        r = httpx.put(self._base_url+'/configuration', json = payload,verify=False)
+
     

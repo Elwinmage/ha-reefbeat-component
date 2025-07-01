@@ -34,14 +34,25 @@ _LOGGER = logging.getLogger(__name__)
 class ReefBeatButtonEntityDescription(ButtonEntityDescription):
     """Describes reefbeat Button entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
-
+    press_fn: Callable[[ReefBeatCoordinator], StateType]
     
 MAT_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
         key='advance',
         translation_key='advance',
         exists_fn=lambda _: True,
+        press_fn=lambda device: device.press("advance"),
         icon="mdi:paper-roll-outline",
+    ),
+)
+
+ATO_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
+    ReefBeatButtonEntityDescription(
+        key='fill',
+        translation_key='fill',
+        exists_fn=lambda _: True,
+        press_fn=lambda device: device.press("fill"),
+        icon="mdi:water-arrow-up",
     ),
 )
 
@@ -61,6 +72,11 @@ async def async_setup_entry(
         _LOGGER.debug(MAT_BUTTONS)
         entities += [ReefBeatButtonEntity(device, description)
                  for description in MAT_BUTTONS
+                 if description.exists_fn(device)]
+    if type(device).__name__=='ReefATOCoordinator':
+        _LOGGER.debug(ATO_BUTTONS)
+        entities += [ReefBeatButtonEntity(device, description)
+                 for description in ATO_BUTTONS
                  if description.exists_fn(device)]
 
     async_add_entities(entities, True)
@@ -82,7 +98,7 @@ class ReefBeatButtonEntity(ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        self._device.advance()
+        self.entity_description.press_fn(self._device)
 
     @property
     def device_info(self) -> DeviceInfo:

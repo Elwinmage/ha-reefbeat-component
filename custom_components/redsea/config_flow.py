@@ -80,7 +80,10 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if DOMAIN in self.hass.data:
             for device in self.hass.data[DOMAIN]:
                 coordinator=self.hass.data[DOMAIN][device]
-                if (type(coordinator).__name__=='ReefLedCoordinator' or type(coordinator).__name__=='ReefMatCoordinator' or type(coordinator).__name__=='ReefDoseCoordinator')and coordinator.detected_id in detected_devices_s:
+                if (type(coordinator).__name__=='ReefLedCoordinator' or
+                    type(coordinator).__name__=='ReefMatCoordinator' or
+                    type(coordinator).__name__=='ReefDoseCoordinator' or
+                    type(coordinator).__name__=='ReefATOCoordinator') and coordinator.detected_id in detected_devices_s:
                     _LOGGER.info("%s skipped (already configured)"%coordinator.detected_id)
                     available_devices.remove(coordinator.detected_id)
         _LOGGER.info("Available devices: %s"%detected_devices)

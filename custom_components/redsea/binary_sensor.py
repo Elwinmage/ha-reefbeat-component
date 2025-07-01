@@ -24,6 +24,14 @@ from .const import (
     MAT_UNCLEAN_SENSOR_INTERNAL_NAME,
     MAT_AUTO_ADVANCE_INTERNAL_NAME,
     MAT_IS_EC_SENSOR_CONNECTED_INTERNAL_NAME,
+    ATO_WATER_LEVEL_INTERNAL_NAME,
+    ATO_IS_PUMP_ON_INTERNAL_NAME,
+    ATO_LEAK_SENSOR_CONNECTED_INTERNAL_NAME,
+    ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME,
+    ATO_LEAK_SENSOR_BUZZER_ENABLED_INTERNAL_NAME,
+    ATO_LEAK_SENSOR_STATUS_INTERNAL_NAME,
+    ATO_ATO_SENSOR_IS_SENSOR_ERROR_INTERNAL_NAME,
+    ATO_ATO_SENSOR_IS_TEMP_ENABLED_INTERNAL_NAME,
 )
 
 from .coordinator import ReefBeatCoordinator
@@ -67,7 +75,70 @@ MAT_SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
         exists_fn=lambda device: device.data_exist(MAT_IS_EC_SENSOR_CONNECTED_INTERNAL_NAME),
         icon="mdi:connection",
     ),
+)
 
+ATO_SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
+    ReefBeatBinarySensorEntityDescription(
+        key=ATO_WATER_LEVEL_INTERNAL_NAME,
+        translation_key=ATO_WATER_LEVEL_INTERNAL_NAME,
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        value_fn=lambda device: not device.get_data(ATO_WATER_LEVEL_INTERNAL_NAME).startswith("desired"),
+        exists_fn=lambda device: device.data_exist(ATO_WATER_LEVEL_INTERNAL_NAME),
+        icon="mdi:water-alert",
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key=ATO_LEAK_SENSOR_CONNECTED_INTERNAL_NAME,
+        translation_key=ATO_LEAK_SENSOR_CONNECTED_INTERNAL_NAME,
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        value_fn=lambda device: device.get_data(ATO_LEAK_SENSOR_CONNECTED_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_LEAK_SENSOR_CONNECTED_INTERNAL_NAME),
+        icon="mdi:connection",
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key=ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME,
+        translation_key=ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME,
+        value_fn=lambda device: device.get_data(ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME),
+        icon="mdi:leak",
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key=ATO_LEAK_SENSOR_BUZZER_ENABLED_INTERNAL_NAME,
+        translation_key=ATO_LEAK_SENSOR_BUZZER_ENABLED_INTERNAL_NAME,
+        value_fn=lambda device: device.get_data(ATO_LEAK_SENSOR_BUZZER_ENABLED_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_LEAK_SENSOR_BUZZER_ENABLED_INTERNAL_NAME),
+        icon="mdi:volume-high",
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key=ATO_LEAK_SENSOR_STATUS_INTERNAL_NAME,
+        translation_key=ATO_LEAK_SENSOR_STATUS_INTERNAL_NAME,
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        value_fn=lambda device: device.get_data(ATO_LEAK_SENSOR_STATUS_INTERNAL_NAME)!="dry",
+        exists_fn=lambda device: device.data_exist(ATO_LEAK_SENSOR_STATUS_INTERNAL_NAME),
+        icon="mdi:water-off",
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key=ATO_ATO_SENSOR_IS_SENSOR_ERROR_INTERNAL_NAME,
+        translation_key=ATO_ATO_SENSOR_IS_SENSOR_ERROR_INTERNAL_NAME,
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        value_fn=lambda device: device.get_data(ATO_ATO_SENSOR_IS_SENSOR_ERROR_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_ATO_SENSOR_IS_SENSOR_ERROR_INTERNAL_NAME),
+        icon="mdi:alert-circle-outline",
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key=ATO_ATO_SENSOR_IS_TEMP_ENABLED_INTERNAL_NAME,
+        translation_key=ATO_ATO_SENSOR_IS_TEMP_ENABLED_INTERNAL_NAME,
+        value_fn=lambda device: device.get_data(ATO_ATO_SENSOR_IS_TEMP_ENABLED_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_ATO_SENSOR_IS_TEMP_ENABLED_INTERNAL_NAME),
+        icon="mdi:thermometer-check",
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key=ATO_IS_PUMP_ON_INTERNAL_NAME,
+        translation_key=ATO_IS_PUMP_ON_INTERNAL_NAME,
+        device_class=BinarySensorDeviceClass.RUNNING,
+        value_fn=lambda device: device.get_data(ATO_IS_PUMP_ON_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_IS_PUMP_ON_INTERNAL_NAME),
+        icon="mdi:pump",
+    ),
 )
 
 async def async_setup_entry(
@@ -86,6 +157,10 @@ async def async_setup_entry(
     if type(device).__name__=="ReefMatCoordinator":
         entities += [ReefBeatBinarySensorEntity(device, description)
                      for description in MAT_SENSORS
+                     if description.exists_fn(device)]
+    if type(device).__name__=="ReefATOCoordinator":
+        entities += [ReefBeatBinarySensorEntity(device, description)
+                     for description in ATO_SENSORS
                      if description.exists_fn(device)]
     
     async_add_entities(entities, True)

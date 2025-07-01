@@ -17,11 +17,12 @@ from .const import (
     HW_LED_IDS,
     HW_DOSE_IDS,
     HW_MAT_IDS,
+    HW_ATO_IDS,
     VIRTUAL_LED,
     VIRTUAL_LED_INIT_DELAY,
     )
 
-from .coordinator import ReefLedCoordinator, ReefLedVirtualCoordinator,ReefMatCoordinator,ReefDoseCoordinator
+from .coordinator import ReefLedCoordinator, ReefLedVirtualCoordinator,ReefMatCoordinator,ReefDoseCoordinator, ReefATOCoordinator
 
 import traceback
 
@@ -53,6 +54,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             coordinator = ReefDoseCoordinator(hass,entry)
         elif hw in HW_MAT_IDS:
             coordinator = ReefMatCoordinator(hass,entry)
+        elif hw in HW_ATO_IDS:
+            coordinator = ReefATOCoordinator(hass,entry)
         else:
             _LOGGER.error('Unknown hardware %s'%hw)
         await coordinator._async_setup()

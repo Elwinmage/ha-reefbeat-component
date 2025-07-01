@@ -14,7 +14,7 @@
             }
         },
         "abort": {
-            "already_configured": "Entitée déjà existatnte",
+            "already_configured": "Entitée déjà existante",
             "cannot_create": "Impossible de créer une entitié pour une ReefBeat avec ces paramètres"
         }
     },
@@ -34,6 +34,9 @@
 	"button":{
 	    "advance":{
 		"name": "Faire dérouler"
+	    },
+	    "fill":{
+		"name": "Remplissage"
 	    }
 	},	"number":{
 	    "custom_advance_value":{
@@ -41,15 +44,38 @@
 	    }
 	} ,
 	"binary_sensor": {
+	    "enabled":{
+		"name" : "Détecteur de fuite"
+	    },
 	    "status":{
-		"name":"Status de la LED"
+		"name":"Status"
 	    },
 	    "unclean_sensor":{
 		"name": "Etat du capteur"
 	    },
 	    "is_ec_sensor_connected":{
 		"name": "Capteur connecté?"
+	    },
+
+	    "water_level":{
+		"name": "Niveau d'eau"
+	    },
+	    "is_pump_on":{
+		"name": "Pompe"
+	    },
+	    "connected":{
+		"name": "Détecteur de fuite connecté"
+	    },
+	    "buzzer_enabled":{
+		"name": "Buzzer"
+	    },
+	    "is_sensor_error":{
+		"name": "Senseur en erreur?"
+	    },
+	    "is_temp_enabled":{
+		"name": "Capteur de température"
 	    }
+	    
 	},
 	"sensor": {
 	    "1_supplement":{
@@ -183,6 +209,43 @@
 	    },
 	    "auto_7": {
 		"name": "Samedi"
+	    },
+	    "today_fills": {
+		"name": "Remplissages du jour"
+	    },
+	    "today_volume_usage": {
+		"name": "Volume utilisé aujourd'hui"
+	    },
+	    "total_volume_usage": {
+		"name": "Volume total utilisé"
+	    },
+	    "total_fills": {
+		"name": "Nombre de remplissages total"
+	    },
+	    "daily_fills_average": {
+		"name": "Moyenne journalière de remplissage"
+	    },
+	    "daily_volume_average": {
+		"name": "Volume journalier moyen"
+	    },
+	    "volume_left": {
+		"name": "Volume restant"
+	    },
+	    "days_till_empty": {
+		"name": "Nombre de jours restant"
+	    },
+	    
+	    "status": {
+		"name": "Status"
+	    },
+	    "current_level": {
+		"name": "Niveau courrant"
+	    },
+	    "current_read": {
+		"name": "Température"
+	    },
+	    "temperature_probe_status": {
+		"name": "Status de la sonde de température"
 	    }
 	},
 	"light": {
@@ -202,6 +265,9 @@
 	    },
 	    "auto_advance":{
 		"name": "Avance automatique"
+	    },
+	    "auto_fill":{
+		"name" :"Remplissage automatique"
 	    }
 	    
 	}

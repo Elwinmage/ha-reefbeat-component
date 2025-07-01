@@ -1,5 +1,5 @@
 # Overview
-RedSea Reefled, ReefMat and ReefDose Local Management (no cloud)
+RedSea Reefled, ReefMat, ReefDose and ReefATO+ Local Management (no cloud)
 
 This is not an official repo of RedSea
 
@@ -12,14 +12,16 @@ Use at your own risk
 
 # Hardware
 ReefLed:
-  - Test with the RESLED 160 and RSLED 115 (G2) but may work with 50,60,90,175 versions let me know.
+  - Test with the RESLED 160  but may work with 50, 60, 90, 115 and 175 versions let me know.
 
 ReefMat:
-  - Test with ReefMat 1200
+  - Test with ReefMat 1200 must work with all other versions
 
 ReefDose:
-  - Test with ReefDose4
+  - Test with ReefDose4 but may work with ReefdDose2
 
+ReefATO+:
+  - Implemented but not tested yet : any volonteer?
 
 # What works
 - All:
@@ -38,6 +40,12 @@ ReefDose:
 
 - ReefDose:
   - some sensors
+
+- ReefATO+:
+  - I hope sensors
+  - I hope auto_fill enalbe/disable
+  - I hope manual fill
+  Cane anymoe confirm?
   
 # Futur implementation
 - LED:

@@ -25,7 +25,7 @@ def get_local_ips():
 
 
 def is_reefbeat(ip):
-    device_list=['RSLED160','RSLED90','RSLED50','RSDOSE4','RSDOSE2','RSMAT','RSLED115','RSLED60','RSLED175']
+    device_list=['RSLED160','RSLED90','RSLED50','RSDOSE4','RSDOSE2','RSMAT','RSLED115','RSLED60','RSLED175','RSATO+']
     try:
         r = requests.get('http://'+ip+'/device-info',timeout=2)
         if r.status_code == 200:

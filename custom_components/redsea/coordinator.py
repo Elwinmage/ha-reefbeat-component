@@ -27,7 +27,7 @@ from .const import (
     LINKED_LED,
 )
 
-from .reefbeat import ReefBeatAPI,ReefLedAPI, ReefMatAPI, ReefDoseAPI
+from .reefbeat import ReefBeatAPI,ReefLedAPI, ReefMatAPI, ReefDoseAPI, ReefATOAPI
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -91,6 +91,9 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         if name in self.my_api.data:
             return True
         return False
+
+    def press(self,action):
+        self.my_api.press(action)
     
     @property
     def title(self):
@@ -121,6 +124,8 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
     def detected_id(self):
         return self._ip+' '+self._hw+' '+self._title
 
+
+    
 class ReefLedCoordinator(ReefBeatCoordinator):
 
     def __init__(
@@ -276,8 +281,6 @@ class ReefMatCoordinator(ReefBeatCoordinator):
         super().__init__(hass, entry)
         self.my_api = ReefMatAPI(self._ip)
 
-    def advance(self):
-        self.my_api.advance()
         
 ################################################################################
 # REEFDOSE
@@ -292,3 +295,19 @@ class ReefDoseCoordinator(ReefBeatCoordinator):
         super().__init__(hass,entry)
         heads_nb=int(entry.data[CONFIG_FLOW_HW_MODEL][-1])
         self.my_api = ReefDoseAPI(self._ip,heads_nb)
+
+################################################################################
+# REEFATO+
+class ReefATOCoordinator(ReefBeatCoordinator):
+
+    def __init__(
+            self,
+            hass: HomeAssistant,
+            entry
+    ) -> None:
+        """Initialize coordinator."""
+        super().__init__(hass,entry)
+        self.my_api = ReefATOAPI(self._ip)
+        
+    def fill(self):
+        self.my_api.fill()

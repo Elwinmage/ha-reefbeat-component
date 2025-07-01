@@ -23,6 +23,7 @@ from .const import (
     DOMAIN,
     DAILY_PROG_INTERNAL_NAME,
     MAT_AUTO_ADVANCE_INTERNAL_NAME,
+    ATO_AUTO_FILL_INTERNAL_NAME,
     )
 
 from .coordinator import ReefBeatCoordinator
@@ -56,6 +57,17 @@ MAT_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
     ),
 )
 
+
+ATO_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
+    ReefBeatSwitchEntityDescription(
+        key="auto_fill",
+        translation_key="auto_fill",
+        value_fn=lambda device: device.get_data(ATO_AUTO_FILL_INTERNAL_NAME),
+        exists_fn=lambda _: True,
+        icon="mdi:water-arrow-up",
+    ),
+)
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -77,6 +89,11 @@ async def async_setup_entry(
         _LOGGER.debug(MAT_SWITCHES)
         entities += [ReefBeatSwitchEntity(device, description)
                  for description in MAT_SWITCHES
+                 if description.exists_fn(device)]
+    elif type(device).__name__=='ReefATOCoordinator':
+        _LOGGER.debug(ATO_SWITCHES)
+        entities += [ReefBeatSwitchEntity(device, description)
+                 for description in ATO_SWITCHES
                  if description.exists_fn(device)]
 
     async_add_entities(entities, True)

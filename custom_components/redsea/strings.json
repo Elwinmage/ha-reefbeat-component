@@ -34,7 +34,11 @@
 	"button":{
 	    "advance":{
 		"name": "Advance"
+	    },
+	    "fill":{
+		"name": "fill"
 	    }
+	    
 	},
 	"number":{
 	    "custom_advance_value":{
@@ -42,14 +46,36 @@
 	    }
 	} ,
 	"binary_sensor": {
+	    "enabled":{
+		"name" : "Leak sensor enabled"
+	    },
 	    "status":{
-		"name":"LED Status"
+		"name": "Status"
 	    },
 	    "unclean_sensor":{
 		"name": "Sensor State"
 	    },
 	    "is_ec_sensor_connected":{
 		"name": "Is EC sensor Connected"
+	    },
+
+	    "water_level":{
+		"name": "Water level"
+	    },
+	    "is_pump_on":{
+		"name": "Is pump on?"
+	    },
+	    "connected":{
+		"name": "Leak sensor Connected"
+	    },
+	    "buzzer_enabled":{
+		"name": "Buzzer enabled"
+	    },
+	    "is_sensor_error":{
+		"name": "Is sensor in error?"
+	    },
+	    "is_temp_enabled":{
+		"name": "Is temperature enabled"
 	    }
 	},
 	"sensor": {
@@ -189,6 +215,43 @@
 	    },
 	    "auto_7": {
 		"name": "Saturday"
+	    },
+	    "today_fills": {
+		"name": "Today Fills"
+	    },
+	    "today_volume_usage": {
+		"name": "Today volume usage"
+	    },
+	    "total_volume_usage": {
+		"name": "Total volume usage"
+	    },
+	    "total_fills": {
+		"name": "Total fills"
+	    },
+	    "daily_fills_average": {
+		"name": "Daily fills average"
+	    },
+	    "daily_volume_average": {
+		"name": "Daily volume average"
+	    },
+	    "volume_left": {
+		"name": "volume left"
+	    },
+	    "days_till_empty": {
+		"name": "Days till empty"
+	    },
+	    
+	    "status": {
+		"name": "Status"
+	    },
+	    "current_level": {
+		"name": "Current level"
+	    },
+	    "current_read": {
+		"name": "Temperature"
+	    },
+	    "temperature_probe_status": {
+		"name": "Temperature probe status"
 	    }
 	},
 	"light": {
@@ -208,7 +271,11 @@
 	    },
 	    "auto_advance":{
 		"name": "Auto advance"
+	    },
+	    "auto_fill":{
+		"name": "Auto fill"
 	    }
+	    
 	}
     }
 }

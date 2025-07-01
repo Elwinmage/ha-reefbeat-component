@@ -47,6 +47,17 @@ from .const import (
     DOSE_REMAINING_DAYS_INTERNAL_NAME,
     DOSE_STOCK_LEVEL_INTERNAL_NAME,
     DOSE_DAILY_DOSES_INTERNAL_NAME,
+    ATO_TODAY_FILLS_INTERNAL_NAME,
+    ATO_TODAY_VOLUME_USAGE_INTERNAL_NAME,
+    ATO_TOTAL_VOLUME_USAGE_INTERNAL_NAME,
+    ATO_TOTAL_FILLS_INTERNAL_NAME,
+    ATO_DAILY_FILLS_AVERAGE_INTERNAL_NAME,
+    ATO_DAILY_VOLUME_AVERAGE_INTERNAL_NAME,
+    ATO_VOLUME_LEFT_INTERNAL_NAME,
+    ATO_DAYS_TILL_EMPTY_INTERNAL_NAME,
+    ATO_ATO_SENSOR_CURRENT_LEVEL_INTERNAL_NAME,
+    ATO_ATO_SENSOR_CURRENT_READ_INTERNAL_NAME,
+    ATO_ATO_SENSOR_TEMPERATURE_PROBE_STATUS_INTERNAL_NAME,
 )
 
 from .coordinator import ReefBeatCoordinator
@@ -433,6 +444,8 @@ ds_list.append(
 
 DOSE_SENSORS=tuple(ds_list)
 
+
+
 SCHEDULES = ()
 """ Lights and cloud schedule as sensors """
 for auto_id in range(1,8):
@@ -444,6 +457,102 @@ for auto_id in range(1,8):
         icon="mdi:calendar",
     ),)
 
+
+""" ReefMat sensors list """
+ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
+
+    ReefBeatSensorEntityDescription(
+        key=ATO_TODAY_FILLS_INTERNAL_NAME,
+        translation_key=ATO_TODAY_FILLS_INTERNAL_NAME,
+        value_fn=lambda device:  device.get_data(ATO_TODAY_FILLS_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_TODAY_FILLS_INTERNAL_NAME),
+        icon="mdi:counter",
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
+        key=ATO_TODAY_VOLUME_USAGE_INTERNAL_NAME,
+        translation_key=ATO_TODAY_VOLUME_USAGE_INTERNAL_NAME,
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,   
+        value_fn=lambda device:  device.get_data(ATO_TODAY_VOLUME_USAGE_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_TODAY_VOLUME_USAGE_INTERNAL_NAME),
+        icon="mdi:waves-arrow-up",
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
+        key=ATO_TOTAL_VOLUME_USAGE_INTERNAL_NAME,
+        translation_key=ATO_TOTAL_VOLUME_USAGE_INTERNAL_NAME,
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,   
+        value_fn=lambda device:  device.get_data(ATO_TOTAL_VOLUME_USAGE_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_TOTAL_VOLUME_USAGE_INTERNAL_NAME),
+        icon="mdi:waves-arrow-up",
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
+        key=ATO_TOTAL_FILLS_INTERNAL_NAME,
+        translation_key=ATO_TOTAL_FILLS_INTERNAL_NAME,
+        value_fn=lambda device:  device.get_data(ATO_TOTAL_FILLS_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_TOTAL_FILLS_INTERNAL_NAME),
+        icon="mdi:counter",
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
+        key=ATO_DAILY_FILLS_AVERAGE_INTERNAL_NAME,
+        translation_key=ATO_DAILY_FILLS_AVERAGE_INTERNAL_NAME,
+        value_fn=lambda device:  device.get_data(ATO_DAILY_FILLS_AVERAGE_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_DAILY_FILLS_AVERAGE_INTERNAL_NAME),
+        icon="mdi:counter",
+        suggested_display_precision=1,
+    ),
+    ReefBeatSensorEntityDescription(
+        key=ATO_DAILY_VOLUME_AVERAGE_INTERNAL_NAME,
+        translation_key=ATO_DAILY_VOLUME_AVERAGE_INTERNAL_NAME,
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,   
+        value_fn=lambda device:  device.get_data(ATO_DAILY_VOLUME_AVERAGE_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_DAILY_VOLUME_AVERAGE_INTERNAL_NAME),
+        icon="mdi:waves-arrow-up",
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
+        key=ATO_VOLUME_LEFT_INTERNAL_NAME,
+        translation_key=ATO_VOLUME_LEFT_INTERNAL_NAME,
+        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+        device_class=SensorDeviceClass.VOLUME,
+        value_fn=lambda device:  device.get_data(ATO_VOLUME_LEFT_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_VOLUME_LEFT_INTERNAL_NAME),
+        icon="mdi:water-pump-off",
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
+        key=ATO_ATO_SENSOR_CURRENT_LEVEL_INTERNAL_NAME,
+        translation_key=ATO_ATO_SENSOR_CURRENT_LEVEL_INTERNAL_NAME,
+        value_fn=lambda device:  device.get_data(ATO_ATO_SENSOR_CURRENT_LEVEL_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_ATO_SENSOR_CURRENT_LEVEL_INTERNAL_NAME),
+        icon="mdi:car-coolant-level",
+    ),
+    ReefBeatSensorEntityDescription(
+        key=ATO_ATO_SENSOR_CURRENT_READ_INTERNAL_NAME,
+        translation_key=ATO_ATO_SENSOR_CURRENT_READ_INTERNAL_NAME,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda device:  device.get_data(ATO_ATO_SENSOR_CURRENT_READ_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_ATO_SENSOR_CURRENT_READ_INTERNAL_NAME),
+        icon="mdi:water-thermometer-outline",
+        suggested_display_precision=1,
+    ),
+    ReefBeatSensorEntityDescription(
+        key=ATO_ATO_SENSOR_TEMPERATURE_PROBE_STATUS_INTERNAL_NAME,
+        translation_key=ATO_ATO_SENSOR_TEMPERATURE_PROBE_STATUS_INTERNAL_NAME,
+        value_fn=lambda device:  device.get_data(ATO_ATO_SENSOR_TEMPERATURE_PROBE_STATUS_INTERNAL_NAME),
+        exists_fn=lambda device: device.data_exist(ATO_ATO_SENSOR_TEMPERATURE_PROBE_STATUS_INTERNAL_NAME),
+        icon="mdi:thermometer-check",
+    ),
+)
+
+
+    
 async def async_setup_entry(
         hass: HomeAssistant,
         entry: ConfigEntry,
@@ -468,6 +577,11 @@ async def async_setup_entry(
         _LOGGER.debug(DOSE_SENSORS)
         entities += [ReefBeatSensorEntity(device, description)
                      for description in DOSE_SENSORS
+                     if description.exists_fn(device)]
+    elif type(device).__name__=='ReefATOCoordinator':
+        _LOGGER.debug(ATO_SENSORS)
+        entities += [ReefBeatSensorEntity(device, description)
+                     for description in ATO_SENSORS
                      if description.exists_fn(device)]
 
     if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedVirtualCoordinator':
