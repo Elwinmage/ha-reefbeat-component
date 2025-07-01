@@ -1,6 +1,10 @@
 # Overview
 RedSea Reefled, ReefMat, ReefDose and ReefATO+ Local Management (no cloud)
 
+***If someone have reefwave, reef dc skimmer and/or reefrun I ll try to integrate them too.***
+
+***If yout need other sensors or actuators in ReefLed, ReefMat, ReefDose or ReefATO+ let me know.***
+
 This is not an official repo of RedSea
 
 Use at your own risk
