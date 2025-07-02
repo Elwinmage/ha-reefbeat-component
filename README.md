@@ -10,6 +10,16 @@ This is not an official repo of RedSea
 Use at your own risk
 
 # Installation via hacs 
+
+## Direct installation
+Search reefbeat in hacs 
+
+<p align="center">                                                                                                                                                                              
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/hacs_search.png" alt="Image">                                                                                       
+</p> 
+
+
+## Old way, manual installation in hacs
 1) open HACS
 2) go to custom repositories and add:
     https://github.com/Elwinmage/ha-reefbeat-component
@@ -64,7 +74,7 @@ ReefATO+:
 An example to display your led program.
 
 <p align="center">                                                                                                                                                                              
-  <img src="https://github.com/Elwinmage/ha-reefled-component/blob/main/doc/img/program.png" alt="Image">                                                                                       
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/program.png" alt="Image">                                                                                       
 </p> 
 
 
