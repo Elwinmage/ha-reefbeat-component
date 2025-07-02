@@ -82,6 +82,7 @@ ReefATO+:
 <p align="center">                                                                                                                                                                              
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato.png" alt="Image">                                                                                       
 </p> 
+
 # Futur implementation
 - LED:
     - Set programs (and implement the daily prog button that do nothing yet)
