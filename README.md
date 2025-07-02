@@ -25,7 +25,7 @@ ReefDose:
   - Test with ReefDose4 but may work with ReefdDose2
 
 ReefATO+:
-  - Implemented but not tested yet : any volonteer?
+  - Tested
 
 # What works
 - All:
@@ -46,10 +46,9 @@ ReefATO+:
   - some sensors
 
 - ReefATO+:
-  - I hope sensors
-  - I hope auto_fill enalbe/disable
-  - I hope manual fill
-  Cane anymoe confirm?
+  - Sensors
+  - Auto_fill enalbe/disable
+  - Manual fill
   
 # Futur implementation
 - LED:
