@@ -75,7 +75,7 @@
 		"name": "Buzzer enabled"
 	    },
 	    "is_sensor_error":{
-		"name": "Is sensor in error?"
+		"name": "Sensor status"
 	    },
 	    "is_temp_enabled":{
 		"name": "Is temperature enabled"

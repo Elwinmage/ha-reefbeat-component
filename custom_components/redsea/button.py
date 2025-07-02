@@ -51,8 +51,15 @@ ATO_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         key='fill',
         translation_key='fill',
         exists_fn=lambda _: True,
-        press_fn=lambda device: device.press("fill"),
-        icon="mdi:water-arrow-up",
+        press_fn=lambda device: device.press("manual-pump"),
+        icon="mdi:water-pump",
+    ),
+    ReefBeatButtonEntityDescription(
+        key='stop_fill',
+        translation_key='stop_fill',
+        exists_fn=lambda _: True,
+        press_fn=lambda device: device.press("stop"),
+        icon="mdi:water-pump-off",
     ),
 )
 

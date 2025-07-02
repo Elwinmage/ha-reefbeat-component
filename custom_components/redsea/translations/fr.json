@@ -37,8 +37,12 @@
 	    },
 	    "fill":{
 		"name": "Remplissage"
+	    },
+	    "stop_fill":{
+		"name": "Arrêt du remplissage"
 	    }
-	},	"number":{
+	},
+	"number":{
 	    "custom_advance_value":{
 		"name": "Valeur d'avance"
 	    }
