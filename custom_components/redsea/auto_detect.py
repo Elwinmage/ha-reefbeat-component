@@ -7,6 +7,11 @@ import requests
 from lxml import objectify
 from multiprocessing import Pool
 
+if __name__ == '__main__':
+    from const import HW_DEVICES_IDS
+else:
+    from .const import HW_DEVICES_IDS
+    
 def get_local_ips():
     # Get local IP
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -25,14 +30,13 @@ def get_local_ips():
 
 
 def is_reefbeat(ip):
-    device_list=['RSLED160','RSLED90','RSLED50','RSDOSE4','RSDOSE2','RSMAT','RSLED115','RSLED60','RSLED175','RSATO+']
     try:
         r = requests.get('http://'+ip+'/device-info',timeout=2)
         if r.status_code == 200:
             data=r.json()
             hw_model=data["hw_model"]
             name=data["name"]
-            if hw_model in device_list:
+            if hw_model in HW_DEVICES_IDS:
                 return True,ip,hw_model,name
     except:
         pass
@@ -62,5 +66,9 @@ def get_unique_id(ip):
         return str(e)
      
 if __name__ == '__main__':
+    print(HW_DEVICES_IDS)
     res=get_reefbeats()
     print(res)
+
+
+    

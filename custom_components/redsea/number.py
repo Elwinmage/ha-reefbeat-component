@@ -20,6 +20,7 @@ from homeassistant.components.number import (
 
 from homeassistant.const import (
     UnitOfLength,
+    UnitOfVolume,
 )
 
 
@@ -32,7 +33,8 @@ from .const import (
     DOMAIN,
     MAT_NUMBERS_INTERNAL_NAME,
     MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
-    )
+    DOSE_MANUAL_HEAD_1_VOLUME_INTERNAL_NAME,    
+)
 
 from .coordinator import ReefBeatCoordinator
 
@@ -60,6 +62,7 @@ MAT_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
     ),
 )
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -78,6 +81,27 @@ async def async_setup_entry(
                  for description in MAT_NUMBERS
                  if description.exists_fn(device)]
 
+    if type(device).__name__=='ReefDoseCoordinator':
+        dn=()
+        for head in range(1,device.heads_nb+1):
+            new_head= (ReefBeatNumberEntityDescription(
+                key="manual_head_"+str(head)+"_volume",
+                translation_key="manual_head_"+str(head)+"_volume",
+                mode="box",
+                native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+                device_class=NumberDeviceClass.VOLUME,
+                native_min_value=0,
+                native_step=1,
+                value_fn=lambda _: 0,
+                exists_fn=lambda  _: True,
+                icon="mdi:cup-water",
+            ), )
+            dn+=new_head
+        _LOGGER.debug(dn)
+        entities += [ReefBeatNumberEntity(device, description)
+                 for description in dn
+                 if description.exists_fn(device)]
+        
     async_add_entities(entities, True)
 
 

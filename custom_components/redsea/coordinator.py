@@ -293,9 +293,12 @@ class ReefDoseCoordinator(ReefBeatCoordinator):
     ) -> None:
         """Initialize coordinator."""
         super().__init__(hass,entry)
-        heads_nb=int(entry.data[CONFIG_FLOW_HW_MODEL][-1])
-        self.my_api = ReefDoseAPI(self._ip,heads_nb)
+        self.heads_nb=int(entry.data[CONFIG_FLOW_HW_MODEL][-1])
+        self.my_api = ReefDoseAPI(self._ip,self.heads_nb)
 
+    def press(self,action,head):
+        self.my_api.press(action,head)
+        
 ################################################################################
 # REEFATO+
 class ReefATOCoordinator(ReefBeatCoordinator):
@@ -309,5 +312,3 @@ class ReefATOCoordinator(ReefBeatCoordinator):
         super().__init__(hass,entry)
         self.my_api = ReefATOAPI(self._ip)
         
-    def fill(self):
-        self.my_api.fill()

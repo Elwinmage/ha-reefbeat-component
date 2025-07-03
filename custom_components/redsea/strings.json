@@ -32,6 +32,18 @@
     },
     "entity": {
 	"button":{
+	    "manual_head_1":{
+		"name": "Pump 1: dosing"
+	    },
+	    "manual_head_2":{
+		"name": "Pump 2: dosing"
+	    },
+	    "manual_head_3":{
+		"name": "Pump 3: dosing"
+	    },
+	    "manual_head_4":{
+		"name": "Pump 4: dosing"
+	    },
 	    "advance":{
 		"name": "Advance"
 	    },
@@ -46,7 +58,20 @@
 	"number":{
 	    "custom_advance_value":{
 		"name": "Valeur d'avance"
+	    },
+	    "manual_head_1_volume":{
+		"name": "Pump 1 Manual Volume"
+	    },
+	    "manual_head_2_volume":{
+		"name": "Pump 2 Manual Volume"
+	    },
+	    "manual_head_3_volume":{
+		"name": "Pump 3 Manual Volume"
+	    },
+	    "manual_head_4_volume":{
+		"name": "Pump 4 Manual Volume"
 	    }
+	    
 	} ,
 	"binary_sensor": {
 	    "enabled":{

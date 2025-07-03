@@ -85,6 +85,21 @@ async def async_setup_entry(
         entities += [ReefBeatButtonEntity(device, description)
                  for description in ATO_BUTTONS
                  if description.exists_fn(device)]
+    if type(device).__name__=='ReefDoseCoordinator':
+        db=()
+        for head in range(1,device.heads_nb+1):
+            new_head= (ReefBeatButtonEntityDescription(
+                key="manual_head_"+str(head),
+                translation_key="manual_head_"+str(head),
+                exists_fn=lambda  _: True,
+                icon="mdi:cup-water",
+                press_fn=lambda _: device.press("manual",head),
+            ), )
+            db+=new_head
+        _LOGGER.debug(db)
+        entities += [ReefBeatButtonEntity(device, description)
+                 for description in db
+                 if description.exists_fn(device)]
 
     async_add_entities(entities, True)
 

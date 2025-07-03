@@ -6,6 +6,7 @@ import datetime
 
 from homeassistant.core import HomeAssistant
 
+
 from .const import (
     DOMAIN,
     DO_NOT_REFRESH_TIME,
@@ -41,6 +42,7 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
 
 #API
 # /
@@ -283,12 +285,19 @@ class ReefDoseAPI(ReefBeatAPI):
                         fname=str(head)+'_'+sensor_name
                         self.data[fname]=response['heads'][str(head)][sensor_name]
                         _LOGGER.debug("Updating %s: %s"%(fname,self.data[fname]))
+                    self.data["manual_head_"+str(head)+"_volume"]=0
+                ##
                 ##
                 self.last_update_success=datetime.datetime.now()
                 ##
             except Exception as e:
                 _LOGGER.error("Getting Dose values %s"%e)
 
+    def press(self,action,head):
+        manual_dose=self.data["manual_head_"+str(head)+"_volume"]
+        payload={"manual_dose_scheduled": True,"volume": manual_dose}
+        _LOGGER.info("Sending: %s to head  %d with value %s"%(action,head,manual_dose))
+        r = httpx.post(self._base_url+'/head/'+str(head)+'/'+action, json = payload,verify=False)
             
     def push_values(self):
         pass
