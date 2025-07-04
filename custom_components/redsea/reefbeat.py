@@ -295,10 +295,11 @@ class ReefDoseAPI(ReefBeatAPI):
 
     def press(self,action,head):
         manual_dose=self.data["manual_head_"+str(head)+"_volume"]
-        payload={"manual_dose_scheduled": True,"volume": manual_dose}
+        payload={'manual_dose_scheduled': True,'volume': manual_dose}
         _LOGGER.info("Sending: %s to head  %d with value %s"%(action,head,manual_dose))
         r = httpx.post(self._base_url+'/head/'+str(head)+'/'+action, json = payload,verify=False)
-            
+        _LOGGER.info(r.text)
+        
     def push_values(self):
         pass
     

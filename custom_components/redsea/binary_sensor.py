@@ -44,7 +44,6 @@ class ReefBeatBinarySensorEntityDescription(BinarySensorEntityDescription):
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_fn: Callable[[ReefBeatCoordinator], StateType]
 
-
 """ ReefLed Binary Sensor List """    
 SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
     ReefBeatBinarySensorEntityDescription(

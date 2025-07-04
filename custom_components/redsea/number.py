@@ -36,7 +36,7 @@ from .const import (
     DOSE_MANUAL_HEAD_1_VOLUME_INTERNAL_NAME,    
 )
 
-from .coordinator import ReefBeatCoordinator
+from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,6 +45,13 @@ class ReefBeatNumberEntityDescription(NumberEntityDescription):
     """Describes reefbeat Number entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_fn: Callable[[ReefBeatCoordinator], StateType]
+
+@dataclass(kw_only=True)
+class ReefDoseNumberEntityDescription(NumberEntityDescription):
+    """Describes reefbeat Number entity."""
+    exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
+    value_fn: Callable[[ReefDoseCoordinator], StateType]
+    head: 0
 
     
 MAT_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
@@ -84,9 +91,9 @@ async def async_setup_entry(
     if type(device).__name__=='ReefDoseCoordinator':
         dn=()
         for head in range(1,device.heads_nb+1):
-            new_head= (ReefBeatNumberEntityDescription(
+            new_head= (ReefDoseNumberEntityDescription(
                 key="manual_head_"+str(head)+"_volume",
-                translation_key="manual_head_"+str(head)+"_volume",
+                translation_key="manual_head_volume",
                 mode="box",
                 native_unit_of_measurement=UnitOfVolume.MILLILITERS,
                 device_class=NumberDeviceClass.VOLUME,
@@ -95,10 +102,11 @@ async def async_setup_entry(
                 value_fn=lambda _: 0,
                 exists_fn=lambda  _: True,
                 icon="mdi:cup-water",
+                head=head,
             ), )
             dn+=new_head
         _LOGGER.debug(dn)
-        entities += [ReefBeatNumberEntity(device, description)
+        entities += [ReefDoseNumberEntity(device, description)
                  for description in dn
                  if description.exists_fn(device)]
         
@@ -153,3 +161,25 @@ class ReefBeatNumberEntity(NumberEntity):
         return self._device.device_info
 
 
+class ReefDoseNumberEntity(ReefBeatNumberEntity):
+    """Represent an ReefBeat number."""
+    _attr_has_entity_name = True
+    
+    def __init__(
+        self, device, entity_description: ReefDoseNumberEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+        self._head=self.entity_description.head
+        
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        di=self._device.device_info
+        di['name']+='_head_'+str(self._head)
+        identifiers=list(di['identifiers'])[0]
+        head=("head_"+str(self._head),)
+        identifiers+=head
+        di['identifiers']={identifiers}
+        _LOGGER.info(di)
+        return di

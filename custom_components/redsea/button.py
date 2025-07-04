@@ -26,7 +26,7 @@ from .const import (
     DOMAIN,
     )
 
-from .coordinator import ReefBeatCoordinator
+from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,6 +35,14 @@ class ReefBeatButtonEntityDescription(ButtonEntityDescription):
     """Describes reefbeat Button entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     press_fn: Callable[[ReefBeatCoordinator], StateType]
+
+@dataclass(kw_only=True)
+class ReefDoseButtonEntityDescription(ButtonEntityDescription):
+    """Describes reefbeat Button entity."""
+    exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
+    action: "manual"
+    head: 0
+
     
 MAT_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
@@ -69,6 +77,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
     discovery_info=None,  
 ):
+
     """Configuration de la plate-forme tuto_hacs à partir de la configuration graphique"""
     device = hass.data[DOMAIN][config_entry.entry_id]
     
@@ -88,16 +97,17 @@ async def async_setup_entry(
     if type(device).__name__=='ReefDoseCoordinator':
         db=()
         for head in range(1,device.heads_nb+1):
-            new_head= (ReefBeatButtonEntityDescription(
+            new_head= (ReefDoseButtonEntityDescription(
                 key="manual_head_"+str(head),
-                translation_key="manual_head_"+str(head),
-                exists_fn=lambda  _: True,
+                translation_key="manual_head",
+                exists_fn=lambda _: True,
                 icon="mdi:cup-water",
-                press_fn=lambda _: device.press("manual",head),
+                action="manual",
+                head=head,
             ), )
             db+=new_head
         _LOGGER.debug(db)
-        entities += [ReefBeatButtonEntity(device, description)
+        entities += [ReefDoseButtonEntity(device, description)
                  for description in db
                  if description.exists_fn(device)]
 
@@ -126,5 +136,36 @@ class ReefBeatButtonEntity(ButtonEntity):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info
+
+
+
+class ReefDoseButtonEntity(ReefBeatButtonEntity):
+    """Represent an ReefBeat button."""
+    _attr_has_entity_name = True
+    
+    def __init__(
+        self, device, entity_description: ReefDoseButtonEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+        self._head=self.entity_description.head
+
+    async def async_press(self) -> None:
+        """Handle the button press."""
+        self._device.press(self.entity_description.action,self.entity_description.head)
+
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        di=self._device.device_info
+        di['name']+='_head_'+str(self._head)
+        identifiers=list(di['identifiers'])[0]
+        head=("head_"+str(self._head),)
+        identifiers+=head
+        di['identifiers']={identifiers}
+        _LOGGER.info(di)
+        return di
+
 
 

@@ -32,17 +32,8 @@
     },
     "entity": {
 	"button":{
-	    "manual_head_1":{
-		"name": "Pump 1: dosing"
-	    },
-	    "manual_head_2":{
-		"name": "Pump 2: dosing"
-	    },
-	    "manual_head_3":{
-		"name": "Pump 3: dosing"
-	    },
-	    "manual_head_4":{
-		"name": "Pump 4: dosing"
+	    "manual_head":{
+		"name": "Manual dosing"
 	    },
 	    "advance":{
 		"name": "Advance"
@@ -59,18 +50,10 @@
 	    "custom_advance_value":{
 		"name": "Valeur d'avance"
 	    },
-	    "manual_head_1_volume":{
-		"name": "Pump 1 Manual Volume"
-	    },
-	    "manual_head_2_volume":{
-		"name": "Pump 2 Manual Volume"
-	    },
-	    "manual_head_3_volume":{
-		"name": "Pump 3 Manual Volume"
-	    },
-	    "manual_head_4_volume":{
-		"name": "Pump 4 Manual Volume"
+	    "manual_head_volume":{
+		"name": "Manual Volume"
 	    }
+	    
 	} ,
 	"binary_sensor": {
 	    "enabled":{
@@ -99,100 +82,33 @@
 		"name": "Buzzer enabled"
 	    },
 	    "is_sensor_error":{
-		"name": "Sensor status"
+		"name": "Is sensor in error?"
 	    },
 	    "is_temp_enabled":{
 		"name": "Is temperature enabled"
 	    }
 	},
 	"sensor": {
-	    "1_supplement":{
-		"name": "Pump 1: Supplement"
+	    "supplement":{
+		"name": "Supplement"
 	    },
-	    "1_auto_dosed_today":{
-		"name": "Pump 1: Auto dosed today"
+	    "auto_dosed_today":{
+		"name": "Auto dosed today"
 	    },
-	    "1_manual_dosed_today":{
-		"name": "Pump 1: Manual dosed today"
+	    "manual_dosed_today":{
+		"name": "Manual dosed today"
 	    },
-	    "1_doses_today":{
-		"name": "Pump 1: Manual dosed today"
+	    "doses_today":{
+		"name": "Manual dosed today"
 	    },
-	    "1_remaining_days":{
-		"name": "Pump 1: Remaining days Pump"
+	    "remaining_days":{
+		"name": "Remaining days Pump"
 	    },
-	    "1_daily_dose":{
-		"name": "Pump 1: Daily dose"
+	    "daily_dose":{
+		"name": "Daily dose"
 	    },
-	    "1_daily_doses":{
-		"name": "Pump 1: Daily doses"
-	    },
-
-	    "2_supplement":{
-		"name": "Pump 2: Supplement"
-	    },
-	    "2_auto_dosed_today":{
-		"name": "Pump 2: Auto dosed today"
-	    },
-	    "2_manual_dosed_today":{
-		"name": "Pump 2: Manual dosed today"
-	    },
-	    "2_doses_today":{
-		"name": "Pump 2: Manual dosed today"
-	    },
-	    "2_remaining_days":{
-		"name": "Pump 2: Remaining days Pump"
-	    },
-	    "2_daily_dose":{
-		"name": "Pump 2: Daily dose"
-	    },
-	    "2_daily_doses":{
-		"name": "Pump 2: Daily doses"
-	    },
-
-	    "3_supplement":{
-		"name": "Pump 3: Supplement"
-	    },
-	    "3_auto_dosed_today":{
-		"name": "Pump 3: Auto dosed today"
-	    },
-	    "3_manual_dosed_today":{
-		"name": "Pump 3: Manual dosed today"
-	    },
-	    "3_doses_today":{
-		"name": "Pump 3: Manual dosed today"
-	    },
-	    "3_remaining_days":{
-		"name": "Pump 3: Remaining days Pump"
-	    },
-	    "3_daily_dose":{
-		"name": "Pump 3: Daily dose"
-	    },
-	    "3_daily_doses":{
-		"name": "Pump 3: Daily doses"
-	    },
-	    
-
-	    "4_supplement":{
-		"name": "Pump 4: Supplement"
-	    },
-	    "4_auto_dosed_today":{
-		"name": "Pump 4: Auto dosed today"
-	    },
-	    "4_manual_dosed_today":{
-		"name": "Pump 4: Manual dosed today"
-	    },
-	    "4_doses_today":{
-		"name": "Pump 4: Manual dosed today"
-	    },
-	    "4_remaining_days":{
-		"name": "Pump 4: Remaining days Pump"
-	    },
-	    "4_daily_dose":{
-		"name": "Pump 4: Daily dose"
-	    },
-	    "4_daily_doses":{
-		"name": "Pump 4: Daily doses"
+	    "daily_doses":{
+		"name": "Daily doses"
 	    },
 	    "days_till_end_of_roll":{
 		"name": "Days till end of roll"
