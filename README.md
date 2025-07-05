@@ -161,11 +161,11 @@ decluttering_templates:
             data_generator: >
               const now = new Date();  now.setHours(0,0,0,0); const data = [];
               data.push([now.getTime(),0]);
-              data.push([now.getTime()+60000*(entity.attributes.data.white.rise),0]);
+              data.push([now.getTime()+60000*(entity.attributes.data.white.rise%1440),0]);
               for (var point in entity.attributes.data.white.points){
-                data.push([now.getTime()+60000*(entity.attributes.data.white.points[point].t+entity.attributes.data.white.rise),entity.attributes.data.white.points[point].i]);
+                data.push([now.getTime()+60000*(entity.attributes.data.white.points[point].t+entity.attributes.data.white.rise%1440),entity.attributes.data.white.points[point].i]);
                 }
-              data.push([now.getTime()+60000*(entity.attributes.data.white.set),0]);
+              data.push([now.getTime()+60000*(entity.attributes.data.white.set%1440),0]);
               return data;
           - entity: '[[sensor]]'
             show:
@@ -176,11 +176,11 @@ decluttering_templates:
             data_generator: >
               const now = new Date(); now.setHours(0,0,0,0); const data = [];
               data.push([now.getTime(),0]);
-              data.push([now.getTime()+60000*(entity.attributes.data.blue.rise),0]);
+              data.push([now.getTime()+60000*(entity.attributes.data.blue.rise%1440),0]);
               for (var point in entity.attributes.data.blue.points){
-                data.push([now.getTime()+60000*(entity.attributes.data.blue.points[point].t+entity.attributes.data.blue.rise),entity.attributes.data.blue.points[point].i]);
+                data.push([now.getTime()+60000*(entity.attributes.data.blue.points[point].t+entity.attributes.data.blue.rise%1440),entity.attributes.data.blue.points[point].i]);
                 }
-              data.push([now.getTime()+60000*(entity.attributes.data.blue.set),0]);
+              data.push([now.getTime()+60000*(entity.attributes.data.blue.set%1440),0]);
               return data;
           - entity: '[[sensor]]'
             show:
@@ -191,11 +191,11 @@ decluttering_templates:
             data_generator: >
               const now = new Date(); now.setHours(0,0,0,0); const data = [];
               data.push([now.getTime(),0]);
-              data.push([now.getTime()+60000*(entity.attributes.data.moon.rise),0]);
+              data.push([now.getTime()+60000*(entity.attributes.data.moon.rise%1440),0]);
               for (var point in entity.attributes.data.moon.points){
-                data.push([now.getTime()+60000*(entity.attributes.data.moon.points[point].t+entity.attributes.data.moon.rise),entity.attributes.data.moon.points[point].i]);
+                data.push([now.getTime()+60000*(entity.attributes.data.moon.points[point].t+entity.attributes.data.moon.rise%1440),entity.attributes.data.moon.points[point].i]);
                 }
-              data.push([now.getTime()+60000*(entity.attributes.data.moon.set),0]);
+              data.push([now.getTime()+60000*(entity.attributes.data.moon.set%1440),0]);
               return data;
         yaxis:
           - id: clouds
