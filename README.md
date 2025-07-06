@@ -39,12 +39,21 @@ ReefATO+:
 
 # What works
 - All:
-    - Auto detect on private network (if on same network)
+  - Display device IP in diagnostics
+  - Auto detect on private network (if on same network)
 
 <p align="center">                                                                                                                                                                              
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/auto_detect.png" alt="Image">                                                                                       
 </p> 
-      
+   - Set scan interval for device
+<p align="center">                                                                                                                                                                              
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_1.png" alt="Image">                                                                                       
+</p> 
+<p align="center">                                                                                                                                                                              
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_2.png" alt="Image">                                                                                       
+</p> 
+   
+
 - LED:
     - Get and Set White, Blue and Moon values
     - Get Fan and Temperature
@@ -57,8 +66,6 @@ ReefATO+:
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_1.png" alt="Image">                                                                                       
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_2.png" alt="Image">                                                                                       
 </p> 
-
-
       
 - ReefMat:
     - many sensors values: auto_advance, unclean_sensor, daily_avergage_usage, today_usage, remaining_length,days_till_end_of_roll and total_usage,is_ec_sensor_connected (let me know if you want some more)
@@ -70,7 +77,9 @@ ReefATO+:
 </p>     - 
 
 - ReefDose:
-  - some sensors
+  - sensors: auto_dose_today,container_volume,daily_dose,daily_doses,manual_dosed_today,doses_today,remaining_days,supplement,calibration status
+  - edit daily dose
+  - manual dose
 <p align="center">                                                                                                                                                                              
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose.png" alt="Image">                                                                                       
 </p> 
@@ -83,7 +92,7 @@ ReefATO+:
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato.png" alt="Image">                                                                                       
 </p> 
 
-# Futur implementation
+# What next?
 - LED:
     - Set programs (and implement the daily prog button that do nothing yet)
     - Manage manual mode timing
@@ -91,7 +100,7 @@ ReefATO+:
     - Daily program generation according to meteo of a specific place according to geographic coordinates
 
 - ReefDose:
-  - Implement dosing management
+  - Implement scheling edition
   
 # Home Assitant Card
 An example to display your led program.

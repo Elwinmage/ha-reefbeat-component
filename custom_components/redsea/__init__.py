@@ -19,10 +19,11 @@ from .const import (
     HW_MAT_IDS,
     HW_ATO_IDS,
     VIRTUAL_LED,
-    VIRTUAL_LED_INIT_DELAY,
+    LINKED_LED,
+    VIRTUAL_LED_MAX_WAITING_TIME,
     )
 
-from .coordinator import ReefLedCoordinator, ReefLedVirtualCoordinator,ReefMatCoordinator,ReefDoseCoordinator, ReefATOCoordinator
+from .coordinator import ReefLedCoordinator, ReefVirtualLedCoordinator,ReefMatCoordinator,ReefDoseCoordinator, ReefATOCoordinator
 
 import traceback
 
@@ -45,8 +46,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ip = entry.data[CONFIG_FLOW_IP_ADDRESS]
     hw = entry.data[CONFIG_FLOW_HW_MODEL]
     if ip.startswith(VIRTUAL_LED):
-        await asyncio.sleep(VIRTUAL_LED_INIT_DELAY)
-        coordinator = ReefLedVirtualCoordinator(hass,entry)
+        if LINKED_LED in entry.data:
+            for led in entry.data[LINKED_LED]:
+                name=led.split(' ')[1]
+                uuid=led.split('(')[1][:-1]
+                waiting_time=0
+                while uuid not in hass.data[DOMAIN]:
+                    _LOGGER.info("Waiting for LED  %s (needed by virtual led) to be ready!"%name)
+                    if waiting_time > VIRTUAL_LED_MAX_WAITING_TIME:
+                        _LOGGER.error("Virtual LED need %s, but this led is not ready!"%name)
+                        break
+                    await asyncio.sleep(1)
+                    waiting_time+=1
+        coordinator = ReefVirtualLedCoordinator(hass,entry)
     else:
         if hw in HW_LED_IDS:
             coordinator = ReefLedCoordinator(hass,entry)
@@ -60,8 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _LOGGER.error('Unknown hardware %s'%hw)
         await coordinator._async_setup()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
-
-    await coordinator.async_config_entry_first_refresh()
+    
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(update_listener))
     return True
@@ -75,5 +86,4 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
-
     return unload_ok

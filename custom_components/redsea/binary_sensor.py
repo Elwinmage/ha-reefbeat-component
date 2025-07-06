@@ -18,23 +18,13 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import StateType
 
+from homeassistant.const import EntityCategory
+
 from .const import (
     DOMAIN,
-    STATUS_INTERNAL_NAME,
-    MAT_UNCLEAN_SENSOR_INTERNAL_NAME,
-    MAT_AUTO_ADVANCE_INTERNAL_NAME,
-    MAT_IS_EC_SENSOR_CONNECTED_INTERNAL_NAME,
-    ATO_WATER_LEVEL_INTERNAL_NAME,
-    ATO_IS_PUMP_ON_INTERNAL_NAME,
-    ATO_LEAK_SENSOR_CONNECTED_INTERNAL_NAME,
-    ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME,
-    ATO_LEAK_SENSOR_BUZZER_ENABLED_INTERNAL_NAME,
-    ATO_LEAK_SENSOR_STATUS_INTERNAL_NAME,
-    ATO_ATO_SENSOR_IS_SENSOR_ERROR_INTERNAL_NAME,
-    ATO_ATO_SENSOR_IS_TEMP_ENABLED_INTERNAL_NAME,
 )
 
-from .coordinator import ReefBeatCoordinator
+from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,14 +34,21 @@ class ReefBeatBinarySensorEntityDescription(BinarySensorEntityDescription):
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_fn: Callable[[ReefBeatCoordinator], StateType]
 
+@dataclass(kw_only=True)
+class ReefDoseBinarySensorEntityDescription(BinarySensorEntityDescription):
+    """Describes ReefLed binary sensor entity."""
+    exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
+    value_name: ""
+    head: 0
+
+    
 """ ReefLed Binary Sensor List """    
-SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
+LED_SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
     ReefBeatBinarySensorEntityDescription(
         key="status",
         translation_key="status",
         device_class=BinarySensorDeviceClass.LIGHT,
-        value_fn=lambda device: device.get_data(STATUS_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(STATUS_INTERNAL_NAME),
+        value_fn=lambda device: device.get_data("$.local.status"),
         icon="mdi:wall-sconce-flat",
     ),
 )
@@ -62,80 +59,70 @@ MAT_SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
         key="unclean_sensor",
         translation_key="unclean_sensor",
         device_class=BinarySensorDeviceClass.PROBLEM,
-        value_fn=lambda device: device.get_data(MAT_UNCLEAN_SENSOR_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(MAT_UNCLEAN_SENSOR_INTERNAL_NAME),
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.unclean_sensor"),
         icon="mdi:liquid-spot",
     ),
     ReefBeatBinarySensorEntityDescription(
-        key=MAT_IS_EC_SENSOR_CONNECTED_INTERNAL_NAME,
-        translation_key=MAT_IS_EC_SENSOR_CONNECTED_INTERNAL_NAME,
+        key='is_ec_sensor_connected',
+        translation_key='is_ec_sensor_connected',
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
-        value_fn=lambda device: device.get_data(MAT_IS_EC_SENSOR_CONNECTED_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(MAT_IS_EC_SENSOR_CONNECTED_INTERNAL_NAME),
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.is_ec_sensor_connected"),
         icon="mdi:connection",
     ),
 )
 
 ATO_SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
     ReefBeatBinarySensorEntityDescription(
-        key=ATO_WATER_LEVEL_INTERNAL_NAME,
-        translation_key=ATO_WATER_LEVEL_INTERNAL_NAME,
+        key="water_level",
+        translation_key='water_level',
         device_class=BinarySensorDeviceClass.PROBLEM,
-        value_fn=lambda device: not device.get_data(ATO_WATER_LEVEL_INTERNAL_NAME).startswith("desired"),
-        exists_fn=lambda device: device.data_exist(ATO_WATER_LEVEL_INTERNAL_NAME),
+        value_fn=lambda device: not device.get_data("$.sources[?(@.name=='/dashboard')].data.water_level").startswith("desired"),
         icon="mdi:water-alert",
     ),
     ReefBeatBinarySensorEntityDescription(
-        key=ATO_LEAK_SENSOR_CONNECTED_INTERNAL_NAME,
-        translation_key=ATO_LEAK_SENSOR_CONNECTED_INTERNAL_NAME,
+        key='connected',
+        translation_key='connected',
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
-        value_fn=lambda device: device.get_data(ATO_LEAK_SENSOR_CONNECTED_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(ATO_LEAK_SENSOR_CONNECTED_INTERNAL_NAME),
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.leak_sensor.connected"),
         icon="mdi:connection",
     ),
     ReefBeatBinarySensorEntityDescription(
-        key=ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME,
-        translation_key=ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME,
-        value_fn=lambda device: device.get_data(ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME),
+        key='enabled',
+        translation_key='enabled',
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.leak_sensor.enabled"),
         icon="mdi:leak",
     ),
     ReefBeatBinarySensorEntityDescription(
-        key=ATO_LEAK_SENSOR_BUZZER_ENABLED_INTERNAL_NAME,
-        translation_key=ATO_LEAK_SENSOR_BUZZER_ENABLED_INTERNAL_NAME,
-        value_fn=lambda device: device.get_data(ATO_LEAK_SENSOR_BUZZER_ENABLED_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(ATO_LEAK_SENSOR_BUZZER_ENABLED_INTERNAL_NAME),
+        key='buzzer_enabled',
+        translation_key='buzzer_enabled',
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.leak_sensor.buzzer_enabled"),
         icon="mdi:volume-high",
     ),
     ReefBeatBinarySensorEntityDescription(
-        key=ATO_LEAK_SENSOR_STATUS_INTERNAL_NAME,
-        translation_key=ATO_LEAK_SENSOR_STATUS_INTERNAL_NAME,
+        key='status',
+        translation_key='status',
         device_class=BinarySensorDeviceClass.PROBLEM,
-        value_fn=lambda device: device.get_data(ATO_LEAK_SENSOR_STATUS_INTERNAL_NAME)!="dry",
-        exists_fn=lambda device: device.data_exist(ATO_LEAK_SENSOR_STATUS_INTERNAL_NAME),
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.leak_sensor.status")!="dry",
         icon="mdi:water-off",
     ),
     ReefBeatBinarySensorEntityDescription(
-        key=ATO_ATO_SENSOR_IS_SENSOR_ERROR_INTERNAL_NAME,
-        translation_key=ATO_ATO_SENSOR_IS_SENSOR_ERROR_INTERNAL_NAME,
+        key='is_sensor_error',
+        translation_key='is_sensor_error',
         device_class=BinarySensorDeviceClass.PROBLEM,
-        value_fn=lambda device: device.get_data(ATO_ATO_SENSOR_IS_SENSOR_ERROR_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(ATO_ATO_SENSOR_IS_SENSOR_ERROR_INTERNAL_NAME),
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.ato_sensor.is_sensor_error"),
         icon="mdi:alert-circle-outline",
     ),
     ReefBeatBinarySensorEntityDescription(
-        key=ATO_ATO_SENSOR_IS_TEMP_ENABLED_INTERNAL_NAME,
-        translation_key=ATO_ATO_SENSOR_IS_TEMP_ENABLED_INTERNAL_NAME,
-        value_fn=lambda device: device.get_data(ATO_ATO_SENSOR_IS_TEMP_ENABLED_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(ATO_ATO_SENSOR_IS_TEMP_ENABLED_INTERNAL_NAME),
+        key='is_temp_enabled',
+        translation_key='is_temp_enabled',
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.ato_sensor.is_temp_enabled"),
         icon="mdi:thermometer-check",
     ),
     ReefBeatBinarySensorEntityDescription(
-        key=ATO_IS_PUMP_ON_INTERNAL_NAME,
-        translation_key=ATO_IS_PUMP_ON_INTERNAL_NAME,
+        key='is_pump_on',
+        translation_key='is_pump_on',
         device_class=BinarySensorDeviceClass.RUNNING,
-        value_fn=lambda device: device.get_data(ATO_IS_PUMP_ON_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(ATO_IS_PUMP_ON_INTERNAL_NAME),
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.is_pump_on"),
         icon="mdi:pump",
     ),
 )
@@ -146,27 +133,42 @@ async def async_setup_entry(
         async_add_entities: AddEntitiesCallback,
         discovery_info=None,
 ):
-    """ Configure binary entities from graphic user interface data """
+    """ Configure binary entities """
     device = hass.data[DOMAIN][entry.entry_id]
     entities=[]
-    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedVirtualCoordinator':
+    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefVirtualLedCoordinator':
         entities += [ReefBeatBinarySensorEntity(device, description)
-                     for description in SENSORS
+                     for description in LED_SENSORS
                      if description.exists_fn(device)]
-    if type(device).__name__=="ReefMatCoordinator":
+    elif type(device).__name__=="ReefMatCoordinator":
         entities += [ReefBeatBinarySensorEntity(device, description)
                      for description in MAT_SENSORS
                      if description.exists_fn(device)]
-    if type(device).__name__=="ReefATOCoordinator":
+    elif type(device).__name__=="ReefATOCoordinator":
         entities += [ReefBeatBinarySensorEntity(device, description)
                      for description in ATO_SENSORS
                      if description.exists_fn(device)]
+    elif type(device).__name__=='ReefDoseCoordinator':
+        ds=()
+        for head in range (1,device.heads_nb+1):
+            new_head= (ReefDoseBinarySensorEntityDescription(
+                key="recalibration_required_head_"+str(head),
+                translation_key="recalibration_required",
+                icon="mdi:water-percent-alert",
+                device_class=BinarySensorDeviceClass.PROBLEM,
+                entity_category=EntityCategory.DIAGNOSTIC,
+                value_name="$.sources[?(@.name=='/dashboard')].data.heads."+str(head)+".recalibration_required",
+                head=head,
+            ),)
+            ds+=new_head
     
+        entities += [ReefDoseBinarySensorEntity(device, description)
+                     for description in ds
+                     if description.exists_fn(device)]
     async_add_entities(entities, True)
 
-
 class ReefBeatBinarySensorEntity(BinarySensorEntity):
-    """Represent an ReefLed binary sensor."""
+    """Represent an binary sensor."""
     _attr_has_entity_name = True
 
     def __init__(
@@ -177,12 +179,20 @@ class ReefBeatBinarySensorEntity(BinarySensorEntity):
         self.entity_description = entity_description
         self._attr_available = True
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
-        self._state=self.entity_description.value_fn(self._device)
+        self._state=self._get_value()
+
+    def _get_value(self):
+        if hasattr(self.entity_description, 'value_fn'):
+            return self.entity_description.value_fn(self._device)
+        elif hasattr(self.entity_description, 'value_name'):
+            return self._device.get_data(self.entity_description.value_name)
+        else:
+            _LOGGER.error("redsea.binary_sensor.ReefBeatBinarySensorEntity._get_value: no method to get value")
         
     @property
     def is_on(self) -> bool | None:
         """Return the state of the sensor."""
-        self._state=self.entity_description.value_fn(self._device)
+        self._state=self._get_value()
         return self._state
 
     @property
@@ -190,6 +200,24 @@ class ReefBeatBinarySensorEntity(BinarySensorEntity):
         """Return the device info."""
         return self._device.device_info
 
+class ReefDoseBinarySensorEntity(ReefBeatBinarySensorEntity):
+    """Represent an ReefBeat number."""
+    _attr_has_entity_name = True
     
+    def __init__(
+        self, device, entity_description: ReefDoseBinarySensorEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+        self._head=self.entity_description.head
 
-    
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        di=self._device.device_info
+        di['name']+='_head_'+str(self._head)
+        identifiers=list(di['identifiers'])[0]
+        head=("head_"+str(self._head),)
+        identifiers+=head
+        di['identifiers']={identifiers}
+        return di

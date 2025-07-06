@@ -1,79 +1,58 @@
 import logging
-import json
 import asyncio
 import httpx
-import datetime
+
+import json
+from jsonpath_ng import jsonpath
+from jsonpath_ng.ext import parse
 
 from homeassistant.core import HomeAssistant
 
-
 from .const import (
     DOMAIN,
+    DEFAULT_TIMEOUT,
     DO_NOT_REFRESH_TIME,
-    FAN_INTERNAL_NAME,
-    TEMPERATURE_INTERNAL_NAME,
-    WHITE_INTERNAL_NAME,
-    BLUE_INTERNAL_NAME,
-    MOON_INTERNAL_NAME,
-    STATUS_INTERNAL_NAME,
-    IP_INTERNAL_NAME,
+    LED_WHITE_INTERNAL_NAME,
+    LED_BLUE_INTERNAL_NAME,
+    LED_MOON_INTERNAL_NAME,
     DAILY_PROG_INTERNAL_NAME,
-    CONVERSION_COEF,
     MODEL_NAME,
     MODEL_ID,
     HW_VERSION,
     SW_VERSION,
-    MAT_SENSORS_INTERNAL_NAME,
-    MAT_BINARY_SENSORS_INTERNAL_NAME,
-    MAT_SWITCHES_INTERNAL_NAME,
-    MAT_NUMBERS_INTERNAL_NAME,
     MAT_AUTO_ADVANCE_INTERNAL_NAME,
     MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
-    DOSE_SENSORS_INTERNAL_NAME,
-    DOSE_SENSORS_MISSED_INTERNAL_NAME,
-    ATO_BASE_SENSORS,
-    ATO_BASE_BINARY_SENSORS,
-    ATO_LEAK_BINARY_SENSORS,
-    ATO_LEAK_SENSORS,
-    ATO_ATO_BINARY_SENSORS,
-    ATO_ATO_SENSORS,
-    ATO_SWITCHES_INTERNAL_NAME,
     ATO_AUTO_FILL_INTERNAL_NAME,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
-
-#API
-# /
-# /dashboard
-# /acclimation
-# /device-info
-# /firmware
-# /moonphase
-# /current
-# /timer
-# /mode : {"mode": "auto|manual|timer"}
-# /auto
-# /auto/[1-7]
-# /preset_name
-# /preset_name/[1-7]
-# /cloud
-# /clouds/[1-7] (intensity: Low,Medium,High)
 ################################################################################
 # Reef beat API
 class ReefBeatAPI():
     """ Access to Reefled informations and commands """
     def __init__(self,ip) -> None:
         self._base_url = "http://"+ip
-        _LOGGER.debug("API set for %s"%ip)
-        self.data={}
+        self.data={"sources": [{"name":"/","get_once":True,"data":""},
+                               {"name":"/device-info","get_once":True,"data":""},
+                               {"name":"/firmware","get_once":True,"data":""},
+                               {"name":"/dashboard","get_once":False,"data":""}]}
         self.last_update_success=None
-      
+        self._sources=None        
+        
     async def get_initial_data(self):
         """ Get inital datas and device information async """
         _LOGGER.debug('Reefbeat.get_initial_data')
-        await self._fetch_infos()
+        if self._sources == None:
+            query=parse("$.sources[?(@.get_once==true)]")
+            self._sources=query.find(self.data)
+        async with httpx.AsyncClient(verify=False) as client:
+            for source in range (0,len(self._sources)):
+                _LOGGER.info(self._base_url+self._sources[source].value['name'])
+                r = await client.get(self._base_url+self._sources[source].value['name'],timeout=DEFAULT_TIMEOUT)
+                if r.status_code == 200:
+                    response=r.json()
+                    self._sources[source].value['data']=response
         await self.fetch_data()
         _LOGGER.debug('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
         _LOGGER.debug(self.data)
@@ -81,71 +60,37 @@ class ReefBeatAPI():
         return self.data
 
     async def fetch_data(self):
-        """ Get Led information for light, program, fan, temeprature... """
-        # Only if last request where less that 2s """
-        if self.last_update_success:
-            up = datetime.datetime.now() - self.last_update_success
-            last_update  = up.seconds
-        else:
-            last_update = DO_NOT_REFRESH_TIME +1 
-        if last_update > DO_NOT_REFRESH_TIME:
-            await self.fetch_device_data()
-        else:
-            _LOGGER.debug("No refresh, last data retrieved less than 2s")
-    
-    async def _fetch_infos(self):
-        """ Get device information """
-        _LOGGER.debug("fecth_info: %s",self._base_url+"/device-info")
-        # Device
+        """ Get device data """
+        query=parse("$.sources[?(@.get_once==false)]")
+        sources=query.find(self.data)
         async with httpx.AsyncClient(verify=False) as client:
-            r = await client.get(self._base_url+"/device-info",timeout=2)
-            f = await client.get(self._base_url+"/firmware",timeout=2)
-            if r.status_code == 200:
-                response=r.json()
-                _LOGGER.debug("Get device infos: %s"%response)
-                try:
-                    self.data[MODEL_NAME]=response[MODEL_NAME]
-                    self.data[MODEL_ID]=response[MODEL_ID]
-                    if HW_VERSION in response:
-                        self.data[HW_VERSION]=response[HW_VERSION]
-                    else:
-                        self.data[HW_VERSION]=""
-                except Exception as e:
-                    _LOGGER.error("Getting info %s"%e)
-            # Firmware
-            if f.status_code == 200:
-                response=f.json()
-                _LOGGER.debug("Get firmware infos: %s"%response)
-                try:
-                    self.data[SW_VERSION]=response[SW_VERSION]
-                except Exception as e:
-                    _LOGGER.error("Getting info %s"%e)
-
-    async def update(self) :       
-        """ Update reeefled datas """
-        await self.fetch_data()
-        return self.data
+            for source in range (0,len(sources)):
+                r = await client.get(self._base_url+sources[source].value['name'],timeout=DEFAULT_TIMEOUT)
+                if r.status_code == 200:
+                    response=r.json()
+                    sources[source].value['data']=response
     
     def press(self,action):
         payload=''
-        _LOGGER.info("Sending: %s"%action)
-        r = httpx.post(self._base_url+'/'+action, json = payload,verify=False)
+        _LOGGER.debug("Sending: %s"%action)
+        r = httpx.post(self._base_url+'/'+action, json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
         
-    
-    async def async_first_refresh(self):
-        async with httpx.AsyncClient(verify=False) as client:
-            r = await client.get(self._base_url+'/',timeout=2)
-            if r.status_code == 200:
-                response=r.json()
-                self.data[IP_INTERNAL_NAME]=response['wifi_ip']
-        
-    async def async_add_listener(self,callback,context):
-        _LOGGER.debug("async_add_listener")
-        pass
+    def get_data(self,data_name):
+        """ get device data named data_name """
+        query=parse(data_name)
+        res=query.find(self.data)
+        if(len(res)==0):
+            _LOGGER.error("reefbeat.get_data('%s')"%data_name)
+        return res[0].value
 
-    async def async_send_new_values(self):
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None,self.push_values)
+    def set_data(self,data_name,value):
+        """ set deivce data named data_name to value"""
+        query=parse(data_name)
+        try:
+            res=query.update(self.data,value)
+        except:
+            _LOGGER.error("reefbeat.set_data('%s')"%data_name)
+            
         
 ################################################################################
 #Reef LED
@@ -153,155 +98,76 @@ class ReefLedAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
     def __init__(self,ip) -> None:
         super().__init__(ip)
-        self.data[STATUS_INTERNAL_NAME]=False
-        self.data[FAN_INTERNAL_NAME]=0
-        self.data[DAILY_PROG_INTERNAL_NAME]=True
-        self.programs={}
-        
-    async def fetch_device_data(self):
-        await self._fetch_led_status()
-        await self._fetch_program()
-        
-    async def _fetch_program(self):
-        """ Get week program with clouds """
-        #get week
-        async with httpx.AsyncClient(verify=False) as client:
-            r = await client.get(self._base_url+"/preset_name",timeout=2)
-            if r.status_code==200:
-                response=r.json()
-                _LOGGER.debug("Get program data:%s"%response)
- #               try:
-                self.data[DAILY_PROG_INTERNAL_NAME] =  True
-                old_prog_name=None
-                for i in range(1,8):
-                    prog_id=response[i-1]['day']
-                    prog_name=response[i-1]['name']
-                    if i > 1 and prog_name != old_prog_name:
-                            self.data[DAILY_PROG_INTERNAL_NAME] = False
-                    old_prog_name=prog_name        
-                    clouds_data={}
-                    if prog_name not in self.programs:
-                        r = await client.get(self._base_url+"/auto/"+str(prog_id),timeout=2)
-                        if r.status_code==200:
-                            prog_data=r.json()
-                            self.programs[prog_name]=prog_data
-                    else:
-                        prog_data=self.programs[prog_name]
-                    # Get clouds
-                    _LOGGER.info(self._base_url+"/clouds/"+str(prog_id))
-                    c = await client.get(self._base_url+"/clouds/"+str(prog_id),timeout=2)
-                    if c.status_code==200:
-                        clouds_data=c.json()
-                    self.data['auto_'+str(prog_id)]={'name':prog_name,'data':prog_data,'clouds':clouds_data}
-                
-    async def _fetch_led_status(self):
-        """ Get led information data """
-        async with httpx.AsyncClient(verify=False) as client:
-            r = await client.get(self._base_url+"/manual",timeout=2)
-        if r.status_code == 200:
-            response=r.json()
-            _LOGGER.debug("Get data: %s"%response)
-            try:
-                self.data[WHITE_INTERNAL_NAME]=int(response['white']/CONVERSION_COEF)
-                self.data[BLUE_INTERNAL_NAME]=int(response['blue']/CONVERSION_COEF)
-                self.data[MOON_INTERNAL_NAME]=int(response['moon']/CONVERSION_COEF)
-                self.data[FAN_INTERNAL_NAME]=response['fan']
-                self.data[TEMPERATURE_INTERNAL_NAME]=response['temperature']
-                if ( self.data[WHITE_INTERNAL_NAME]>0 or
-                     self.data[BLUE_INTERNAL_NAME]>0 or
-                     self.data[MOON_INTERNAL_NAME]>0 ):
-                    self.data[STATUS_INTERNAL_NAME]= True
-                else:
-                    self.data[STATUS_INTERNAL_NAME]= False
-                ##
-                self.last_update_success=datetime.datetime.now()
-                ##
-            except Exception as e:
-                _LOGGER.error("Getting LED values %s"%e)
-    
-    def push_values(self):
-        payload={"white": self.data[WHITE_INTERNAL_NAME]*CONVERSION_COEF, "blue":self.data[BLUE_INTERNAL_NAME]*CONVERSION_COEF,"moon": self.data[MOON_INTERNAL_NAME]*CONVERSION_COEF}
-        r = httpx.post(self._base_url+'/manual', json = payload,verify=False)
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/preset_name","get_once": False,"data":""})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/manual","get_once": False,"data":""})
+        for day in range(1,8):
+            self.data['sources'].insert(len(self.data['sources']),{"name":"/auto/"+str(day),"get_once": False,"data":""})
+            self.data['sources'].insert(len(self.data['sources']),{"name":"/clouds/"+str(day),"get_once": False,"data":""})
+        self.data['local']={"status":False}
 
+    async def fetch_data(self):
+        await super().fetch_data()
+        self.force_status_update()
         
+    def push_values(self):
+        payload={"white": self.get_data(LED_WHITE_INTERNAL_NAME), "blue":self.get_data(LED_BLUE_INTERNAL_NAME),"moon": self.get_data(LED_MOON_INTERNAL_NAME)}
+        try:
+            r = httpx.post(self._base_url+'/manual', json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
+        except:
+            _LOGGER.warning("Coul not send command, you must retry")
+            asyncio.sleep(1)
+            r = httpx.post(self._base_url+'/manual', json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
+
+    def force_status_update(self,state=False):
+        if state:
+            self.data['local']['status']=True
+        else:
+            if self.get_data(LED_WHITE_INTERNAL_NAME) > 0 or self.get_data(LED_BLUE_INTERNAL_NAME) > 0 or self.get_data(LED_MOON_INTERNAL_NAME) > 0:
+                self.data['local']['status']=True
+            else:
+                self.data['local']['status']=False
+
 ################################################################################
 #ReefMat
-# wget --quiet -O - --post-data '' http://192.168.0.216/advance
 class ReefMatAPI(ReefBeatAPI):
-    """ Access to Reefled informations and commands """
+    """ Access to Reefmat informations and commands """
     def __init__(self,ip) -> None:
         super().__init__(ip)
-
-    async def fetch_device_data(self):
-        async with httpx.AsyncClient(verify=False) as client:
-            r = await client.get(self._base_url+"/dashboard",timeout=2)
-            c = await client.get(self._base_url+"/configuration",timeout=2)
-        if r.status_code == 200:
-            response=r.json()
-            _LOGGER.debug("Get data: %s"%response)
-            try:
-                for sensor_name in MAT_SENSORS_INTERNAL_NAME:
-                    self.data[sensor_name]=float(response[sensor_name])
-                    _LOGGER.debug("%s: %f"%(sensor_name,self.data[sensor_name]))
-                for sensor_name in MAT_BINARY_SENSORS_INTERNAL_NAME:
-                    self.data[sensor_name]=bool(response[sensor_name])
-                    _LOGGER.debug("%s: %s"%(sensor_name,self.data[sensor_name]))
-
-                response=c.json()
-                for sensor_name in MAT_SWITCHES_INTERNAL_NAME:
-                    self.data[sensor_name]=bool(response[sensor_name])
-                    _LOGGER.debug("%s: %s"%(sensor_name,self.data[sensor_name]))
-
-                for sensor_name in MAT_NUMBERS_INTERNAL_NAME:
-                    self.data[sensor_name]=float(response[sensor_name])
-                    _LOGGER.debug("%s: %s"%(sensor_name,self.data[sensor_name]))
-                ##
-                self.last_update_success=datetime.datetime.now()
-                ##
-            except Exception as e:
-                _LOGGER.error("Getting MAT values %s"%e)
-
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/configuration","get_once": False,"data":""})
+        
     def push_values(self):
-        payload={MAT_AUTO_ADVANCE_INTERNAL_NAME: self.data[MAT_AUTO_ADVANCE_INTERNAL_NAME],MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME: self.data[MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME]}
-        r = httpx.put(self._base_url+'/configuration', json = payload,verify=False)
+        payload={'auto_advance': self.get_data(MAT_AUTO_ADVANCE_INTERNAL_NAME),'custom_advance_value': self.get_data(MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME)}
+        r = httpx.put(self._base_url+'/configuration', json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
 
 ################################################################################
 #ReefDose
 class ReefDoseAPI(ReefBeatAPI):
-    """ Access to Reefled informations and commands """
+    """ Access to ReefDose informations and commands """
     def __init__(self,ip,heads_nb) -> None:
         super().__init__(ip)
         self._heads_nb=heads_nb
-
-    async def fetch_device_data(self):
-        async with httpx.AsyncClient(verify=False) as client:
-            r = await client.get(self._base_url+"/dashboard",timeout=2)
-        if r.status_code == 200:
-            response=r.json()
-            _LOGGER.debug("Get data: %s"%response)
-            try:
-                for head in range (1,self._heads_nb+1):
-                    for sensor_name in DOSE_SENSORS_INTERNAL_NAME:
-                        fname=str(head)+'_'+sensor_name
-                        self.data[fname]=response['heads'][str(head)][sensor_name]
-                        _LOGGER.debug("Updating %s: %s"%(fname,self.data[fname]))
-                    self.data["manual_head_"+str(head)+"_volume"]=0
-                ##
-                ##
-                self.last_update_success=datetime.datetime.now()
-                ##
-            except Exception as e:
-                _LOGGER.error("Getting Dose values %s"%e)
-
+        if self._heads_nb == 2:
+            self.data['local']={"head":{"1":"","2":""}}
+        elif self._heads_nb == 4:
+            self.data['local']={"head":{"1":"","2":"","3":"","4":""}}
+        else:
+            _LOGGER.error("redsea.reefbeat.ReefDoseAPI.__init__() unkown head number: %d"%self._heads_nb)
+        for head in range(1,self._heads_nb+1):
+            self.data['sources'].insert(len(self.data['sources']),{"name":"/head/"+str(head)+"/settings","get_once": False,"data":""})
+            self.data['local']["head"][str(head)]={"manual_dose":0}
+            
     def press(self,action,head):
-        manual_dose=self.data["manual_head_"+str(head)+"_volume"]
+        manual_dose=self.get_data("$.local.head."+str(head)+".manual_dose")
         payload={'manual_dose_scheduled': True,'volume': manual_dose}
-        _LOGGER.info("Sending: %s to head  %d with value %s"%(action,head,manual_dose))
-        r = httpx.post(self._base_url+'/head/'+str(head)+'/'+action, json = payload,verify=False)
-        _LOGGER.info(r.text)
+        r = httpx.post(self._base_url+'/head/'+str(head)+'/'+action, json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
         
-    def push_values(self):
-        pass
+    def push_values(self,head):
+        payload={'schedule':self.get_data("$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.schedule")}
+        try:
+            r = httpx.put(self._base_url+'/head/'+str(head)+'/settings', json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
+        except Exception as e:
+            _LOGGER.error("readsea.reefbeat.ReefDoseAPI.push_value failed")
+            _LOGGER.error(e)
     
 ################################################################################
 # ReefATO+
@@ -309,48 +175,10 @@ class ReefATOAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
     def __init__(self,ip) -> None:
         super().__init__(ip)
-
-        # TODO a remonter dans reefbeatapi
-    async def fetch_device_data(self):
-        async with httpx.AsyncClient(verify=False) as client:
-            r = await client.get(self._base_url+"/dashboard",timeout=2)
-            c = await client.get(self._base_url+"/configuration",timeout=2)
-        if r.status_code == 200:
-            response=r.json()
-            _LOGGER.debug("Get data: %s"%response)
-            try:
-                for sensor_name in ATO_BASE_SENSORS:
-                    self.data[sensor_name]=response[sensor_name]
-                    _LOGGER.debug("Updating %s: %s"%(sensor_name,self.data[sensor_name]))
-                for sensor_name in ATO_BASE_BINARY_SENSORS:
-                    self.data[sensor_name]=bool(response[sensor_name])
-                    _LOGGER.debug("Updating %s: %s"%(sensor_name,self.data[sensor_name]))
-                for sensor_name in ATO_LEAK_BINARY_SENSORS:
-                    self.data[sensor_name]=bool(response["leak_sensor"][sensor_name])
-                    _LOGGER.debug("Updating %s: %s"%(sensor_name,self.data[sensor_name]))
-                for sensor_name in ATO_LEAK_SENSORS:
-                    self.data[sensor_name]=response["leak_sensor"][sensor_name]
-                    _LOGGER.debug("Updating %s: %s"%(sensor_name,self.data[sensor_name]))
-                for sensor_name in ATO_ATO_BINARY_SENSORS:
-                    self.data[sensor_name]=bool(response["ato_sensor"][sensor_name])
-                    _LOGGER.debug("Updating %s: %s"%(sensor_name,self.data[sensor_name]))
-                for sensor_name in ATO_ATO_SENSORS:
-                    self.data[sensor_name]=response["ato_sensor"][sensor_name]
-                    _LOGGER.debug("Updating %s: %s"%(sensor_name,self.data[sensor_name]))
-                response=c.json()
-                for sensor_name in ATO_SWITCHES_INTERNAL_NAME:
-                    self.data[sensor_name]=bool(response[sensor_name])
-                    _LOGGER.debug("%s: %s"%(sensor_name,self.data[sensor_name]))
-
-                    ##
-                self.last_update_success=datetime.datetime.now()
-                ##
-            except Exception as e:
-                _LOGGER.error("Getting ATO+ values %s"%e)
-
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/configuration","get_once": False,"data":""})
 
     def push_values(self):
-        payload={ATO_AUTO_FILL_INTERNAL_NAME: self.data[ATO_AUTO_FILL_INTERNAL_NAME]}
-        r = httpx.put(self._base_url+'/configuration', json = payload,verify=False)
+        payload={'auto_fill': self.get_data(ATO_AUTO_FILL_INTERNAL_NAME)}
+        r = httpx.put(self._base_url+'/configuration', json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
 
     

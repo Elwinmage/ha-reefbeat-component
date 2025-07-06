@@ -9,7 +9,8 @@
                     "ip_address": "Adresse IP",
 		    "hw_model": "Modèle hardware",
 		    "virtual_led": "Nouvelle Led virtuelle",
-		    "platform": "Platforme"
+		    "platform": "Platforme",
+		    "scan_interval": "interval de rafraichissement"
                 }
             }
         },
@@ -21,7 +22,7 @@
     "options": {
 	"step":{
 	    "init":{
-		"title": "Détection des LEDs potentielles",
+		"title": "Configuration",
 		"data":{
 		    "slaves": "LED",
 		    "not_virtual": "Pas de configuration disponible"
@@ -46,6 +47,9 @@
 	    }
 	},
 	"number":{
+	    "daily_dose":{
+		"name": "MAJ Dose journalière"
+	    },
 	    "custom_advance_value":{
 		"name": "Valeur d'avance"
 	    },
@@ -54,6 +58,9 @@
 	    }
 	} ,
 	"binary_sensor": {
+	    "recalibration_required":{
+		"name": "Calibration"
+	    },
 	    "enabled":{
 		"name" : "Détecteur de fuite"
 	    },
@@ -88,6 +95,9 @@
 	    
 	},
 	"sensor": {
+	    "container_volume":{
+		"name": "Container Volume"
+	    },
 	    "supplement":{
 		"name": "Nom du supplément"
 	    },

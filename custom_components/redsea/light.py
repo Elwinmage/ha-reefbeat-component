@@ -22,12 +22,13 @@ from homeassistant.helpers.typing import StateType
 from .const import (
     DOMAIN,
     CONFIG_FLOW_IP_ADDRESS,
-    WHITE_INTERNAL_NAME,
-    BLUE_INTERNAL_NAME,
-    MOON_INTERNAL_NAME,
+    LED_WHITE_INTERNAL_NAME,
+    LED_BLUE_INTERNAL_NAME,
+    LED_MOON_INTERNAL_NAME,
+    LED_CONVERSION_COEF,
 )
 
-from .coordinator import ReefLedCoordinator
+from .coordinator import ReefLedCoordinator, ReefVirtualLedCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,32 +36,56 @@ _LOGGER = logging.getLogger(__name__)
 class ReefLedLightEntityDescription(LightEntityDescription):
     """Describes reefled Light entity."""
     exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
-    value_fn: Callable[[ReefLedCoordinator], StateType]
+    value_name: ''
+
+@dataclass(kw_only=True)
+class ReefVirtualLedLightEntityDescription(LightEntityDescription):
+    """Describes reefled Light entity."""
+    exists_fn: Callable[[ReefVirtualLedCoordinator], bool] = lambda _: True
+    value_name: ''
+
 
 LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
     ReefLedLightEntityDescription(
         key="white",
         translation_key="white",
-        value_fn=lambda device: device.get_data(WHITE_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(WHITE_INTERNAL_NAME),
+        value_name=LED_WHITE_INTERNAL_NAME,
         icon="mdi:lightbulb-outline",
     ),
     ReefLedLightEntityDescription(
         key="blue",
         translation_key="blue",
-        value_fn=lambda device: device.get_data(BLUE_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(BLUE_INTERNAL_NAME),
+        value_name=LED_BLUE_INTERNAL_NAME,
         icon="mdi:lightbulb",
     ),
     ReefLedLightEntityDescription(
         key="moon",
         translation_key="moon",
-        value_fn=lambda device: device.get_data(MOON_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(MOON_INTERNAL_NAME),
+        value_name=LED_MOON_INTERNAL_NAME,
         icon="mdi:lightbulb-night-outline",
     ),
 )
 
+VIRTUAL_LIGHTS: tuple[ReefVirtualLedLightEntityDescription, ...] = (
+    ReefVirtualLedLightEntityDescription(
+        key="white",
+        translation_key="white",
+        value_name=LED_WHITE_INTERNAL_NAME,
+        icon="mdi:lightbulb-outline",
+    ),
+    ReefVirtualLedLightEntityDescription(
+        key="blue",
+        translation_key="blue",
+        value_name=LED_BLUE_INTERNAL_NAME,
+        icon="mdi:lightbulb",
+    ),
+    ReefVirtualLedLightEntityDescription(
+        key="moon",
+        translation_key="moon",
+        value_name=LED_MOON_INTERNAL_NAME,
+        icon="mdi:lightbulb-night-outline",
+    ),
+)
 
 async def async_setup_entry(
         hass: HomeAssistant,
@@ -70,11 +95,16 @@ async def async_setup_entry(
 ):
 
     device = hass.data[DOMAIN][config_entry.entry_id]
-    
     entities=[]
-    entities += [ReefLedLightEntity(device, description)
-                 for description in LIGHTS
-                 if description.exists_fn(device)]
+    if type(device).__name__=='ReefLedCoordinator':
+        entities += [ReefLedLightEntity(device, description)
+                     for description in LIGHTS
+                     if description.exists_fn(device)]
+    elif type(device).__name__=='ReefVirtualLedCoordinator':
+        entities += [ReefLedLightEntity(device, description)
+                     for description in VIRTUAL_LIGHTS
+                     if description.exists_fn(device)]
+
     async_add_entities(entities, True)
 
 
@@ -85,7 +115,7 @@ class ReefLedLightEntity(LightEntity):
     _attr_color_mode = ColorMode.BRIGHTNESS
     
     def __init__(
-        self, device: ReefLedCoordinator, entity_description: ReefLedLightEntityDescription
+        self, device, entity_description
     ) -> None:
         """Set up the instance."""
         self._device = device
@@ -93,40 +123,49 @@ class ReefLedLightEntity(LightEntity):
         self._attr_available = False
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._brighness = 0
+        self._old_brighness=0
         self._state = "off"
         
         
     async def async_update(self) -> None:
         """Update entity state."""
-        try:
-            await self._device.update()
-        except Exception as e:
-            # _LOGGER.warning("Update failed for %s: %s", self.entity_id,e)
-            # self._attr_available = False  # Set property value
-            # return
-            pass
         self._attr_available = True
-        # We don't need to check if device available here
-        self._brightness =  self.entity_description.value_fn(
-            self._device
-        )  # Update "native_value" property
+        
+        # If virtua lLED is not initialized thne None is returned
+        raw_data=self._device.get_data(self.entity_description.value_name)
+        if (raw_data != None):
+            self._brightness =  self._device.get_data(self.entity_description.value_name)/LED_CONVERSION_COEF
+        else:
+            self._attr_available = False
+            self._brightness = 0
         if self.brightness > 0:
             self._state='on'
+            self._attr_is_on=True
         else:
             self._state='off'
+            self._attr_is_on=False
 
     async def async_turn_on(self, **kwargs):
         """Turn the light on."""
         _LOGGER.debug("Reefled.light.async_turn_on %s"%kwargs)
         if ATTR_BRIGHTNESS in kwargs:
             ha_value = int(kwargs[ATTR_BRIGHTNESS])
-            self._device.set_data(self.entity_description.key,ha_value)
-            self._device.push_values()
+        else:
+            ha_value = self._old_brighness
+        self._state='on'
+        self._attr_is_on=True
+        self._brightness = ha_value
+        self._device.set_data(self.entity_description.value_name,ha_value*LED_CONVERSION_COEF)
+        self._device.force_status_update(True)
+        self._device.push_values()
 
     async def async_turn_off(self, **kwargs):
+        self._old_brighness=self._brightness
         self._brightness=0
+        self._attr_is_on=False
         self._state="off"
-        self._device.set_data(self.entity_description.key,0)
+        self._device.set_data(self.entity_description.value_name,0)
+        self._device.force_status_update()
         self._device.push_values()
 
     @property

@@ -9,7 +9,6 @@ from homeassistant.core import (
     callback,
     )
 
-
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.components.button import (
@@ -83,14 +82,11 @@ async def async_setup_entry(
     
     entities=[]
     _LOGGER.debug("BUTTONS")
-    _LOGGER.debug(type(device).__name__)
     if type(device).__name__=='ReefMatCoordinator':
-        _LOGGER.debug(MAT_BUTTONS)
         entities += [ReefBeatButtonEntity(device, description)
                  for description in MAT_BUTTONS
                  if description.exists_fn(device)]
     if type(device).__name__=='ReefATOCoordinator':
-        _LOGGER.debug(ATO_BUTTONS)
         entities += [ReefBeatButtonEntity(device, description)
                  for description in ATO_BUTTONS
                  if description.exists_fn(device)]
@@ -100,13 +96,11 @@ async def async_setup_entry(
             new_head= (ReefDoseButtonEntityDescription(
                 key="manual_head_"+str(head),
                 translation_key="manual_head",
-                exists_fn=lambda _: True,
                 icon="mdi:cup-water",
                 action="manual",
                 head=head,
             ), )
             db+=new_head
-        _LOGGER.debug(db)
         entities += [ReefDoseButtonEntity(device, description)
                  for description in db
                  if description.exists_fn(device)]
@@ -127,7 +121,6 @@ class ReefBeatButtonEntity(ButtonEntity):
         self._attr_available = True
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
 
-
     async def async_press(self) -> None:
         """Handle the button press."""
         self.entity_description.press_fn(self._device)
@@ -138,9 +131,8 @@ class ReefBeatButtonEntity(ButtonEntity):
         return self._device.device_info
 
 
-
 class ReefDoseButtonEntity(ReefBeatButtonEntity):
-    """Represent an ReefBeat button."""
+    """Represent a ReefDose button."""
     _attr_has_entity_name = True
     
     def __init__(
@@ -154,7 +146,6 @@ class ReefDoseButtonEntity(ReefBeatButtonEntity):
         """Handle the button press."""
         self._device.press(self.entity_description.action,self.entity_description.head)
 
-
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
@@ -164,7 +155,6 @@ class ReefDoseButtonEntity(ReefBeatButtonEntity):
         head=("head_"+str(self._head),)
         identifiers+=head
         di['identifiers']={identifiers}
-        _LOGGER.info(di)
         return di
 
 

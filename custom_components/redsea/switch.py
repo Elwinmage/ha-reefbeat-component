@@ -34,35 +34,34 @@ _LOGGER = logging.getLogger(__name__)
 class ReefBeatSwitchEntityDescription(SwitchEntityDescription):
     """Describes reefbeat Switch entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
-    value_fn: Callable[[ReefBeatCoordinator], StateType]
+    data_name: ''
 
     
 LED_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
-    ReefBeatSwitchEntityDescription(
-        key="daily_prog",
-        translation_key="daily_prog",
-        value_fn=lambda device: device.get_data(DAILY_PROG_INTERNAL_NAME),
-        exists_fn=lambda _: True,
-        icon="mdi:calendar-range",
-    ),
+    # ReefBeatSwitchEntityDescription(
+    #     key="daily_prog",
+    #     translation_key="daily_prog",
+    #     data_name= DAILY_PROG_INTERNAL_NAME,
+    #     exists_fn=lambda _: True,
+    #     icon="mdi:calendar-range",
+    # ),
 )
 
 MAT_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
     ReefBeatSwitchEntityDescription(
         key="auto_advance",
         translation_key="auto_advance",
-        value_fn=lambda device: device.get_data(MAT_AUTO_ADVANCE_INTERNAL_NAME),
+        data_name=MAT_AUTO_ADVANCE_INTERNAL_NAME,
         exists_fn=lambda _: True,
         icon="mdi:auto-mode",
     ),
 )
 
-
 ATO_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
     ReefBeatSwitchEntityDescription(
         key="auto_fill",
         translation_key="auto_fill",
-        value_fn=lambda device: device.get_data(ATO_AUTO_FILL_INTERNAL_NAME),
+        data_name=ATO_AUTO_FILL_INTERNAL_NAME,
         exists_fn=lambda _: True,
         icon="mdi:water-arrow-up",
     ),
@@ -79,19 +78,15 @@ async def async_setup_entry(
     
     entities=[]
     _LOGGER.debug("SWITCHES")
-    _LOGGER.debug(type(device).__name__)
-    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedVirtualCoordinator':
-        _LOGGER.debug(LED_SWITCHES)
+    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefVirtualLedCoordinator':
         entities += [ReefBeatSwitchEntity(device, description)
                  for description in LED_SWITCHES
                  if description.exists_fn(device)]
     elif type(device).__name__=='ReefMatCoordinator':
-        _LOGGER.debug(MAT_SWITCHES)
         entities += [ReefBeatSwitchEntity(device, description)
                  for description in MAT_SWITCHES
                  if description.exists_fn(device)]
     elif type(device).__name__=='ReefATOCoordinator':
-        _LOGGER.debug(ATO_SWITCHES)
         entities += [ReefBeatSwitchEntity(device, description)
                  for description in ATO_SWITCHES
                  if description.exists_fn(device)]
@@ -116,23 +111,17 @@ class ReefBeatSwitchEntity(SwitchEntity):
     async def async_update(self) -> None:
         """Update entity state."""
         self._attr_available = True
-        self._state = self.entity_description.value_fn(
-            self._device
-        )
+        self._state = self._device.get_data(self.entity_description.data_name)
 
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
-        _LOGGER.debug("Reefbeat.switch.async_turn_on %s"%kwargs)
         self._state=True
-        #self._device.data[self.entity_description.key]=True
-        self._device.set_data(self.entity_description.key,True)
+        self._device.set_data(self.entity_description.data_name,True)
         self._device.push_values()
 
     def async_turn_off(self, **kwargs):
-        _LOGGER.debug("Reefbeat.switch.async_turn_off %s (%s)"%(kwargs,self.entity_description))
         self._state=False
-        #self._device.data[self.entity_description.key]=False
-        self._device.set_data(self.entity_description.key,False)
+        self._device.set_data(self.entity_description.data_name,False)
         self._device.push_values()
         
     @property

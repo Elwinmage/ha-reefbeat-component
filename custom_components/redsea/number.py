@@ -9,7 +9,6 @@ from homeassistant.core import (
     callback,
     )
 
-
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.components.number import (
@@ -23,7 +22,6 @@ from homeassistant.const import (
     UnitOfVolume,
 )
 
-
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import  DeviceInfo
 
@@ -31,9 +29,7 @@ from homeassistant.helpers.typing import StateType
 
 from .const import (
     DOMAIN,
-    MAT_NUMBERS_INTERNAL_NAME,
     MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
-    DOSE_MANUAL_HEAD_1_VOLUME_INTERNAL_NAME,    
 )
 
 from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
@@ -44,27 +40,26 @@ _LOGGER = logging.getLogger(__name__)
 class ReefBeatNumberEntityDescription(NumberEntityDescription):
     """Describes reefbeat Number entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
-    value_fn: Callable[[ReefBeatCoordinator], StateType]
+    value_name: ""
 
 @dataclass(kw_only=True)
 class ReefDoseNumberEntityDescription(NumberEntityDescription):
     """Describes reefbeat Number entity."""
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
-    value_fn: Callable[[ReefDoseCoordinator], StateType]
+    value_name: ""
     head: 0
 
     
 MAT_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
     ReefBeatNumberEntityDescription(
-        key=MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
-        translation_key=MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
+        key='custom_advance_value',
+        translation_key='custom_advance_value',
         native_unit_of_measurement=UnitOfLength.CENTIMETERS,
         device_class=NumberDeviceClass.DISTANCE,
         native_max_value=48,
         native_min_value=0.75,
         native_step=0.5,
-        value_fn=lambda device:  device.get_data(MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME),
-        exists_fn=lambda device: device.data_exist(MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME),
+        value_name=MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
         icon="mdi:arrow-expand-right",
     ),
 )
@@ -81,9 +76,7 @@ async def async_setup_entry(
     
     entities=[]
     _LOGGER.debug("NUMBERS")
-    _LOGGER.debug(type(device).__name__)
     if type(device).__name__=='ReefMatCoordinator':
-        _LOGGER.debug(MAT_NUMBERS)
         entities += [ReefBeatNumberEntity(device, description)
                  for description in MAT_NUMBERS
                  if description.exists_fn(device)]
@@ -99,13 +92,26 @@ async def async_setup_entry(
                 device_class=NumberDeviceClass.VOLUME,
                 native_min_value=0,
                 native_step=1,
-                value_fn=lambda _: 0,
-                exists_fn=lambda  _: True,
+                value_name="$.local.head."+str(head)+".manual_dose",
                 icon="mdi:cup-water",
                 head=head,
             ), )
             dn+=new_head
-        _LOGGER.debug(dn)
+            new_head= (ReefDoseNumberEntityDescription(
+                key="daily_dose_head_"+str(head)+"_volume",
+                translation_key="daily_dose",
+                mode="box",
+                native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+                device_class=NumberDeviceClass.VOLUME,
+                native_min_value=0,
+                native_step=1,
+                native_max_value=300,
+                value_name="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.schedule.dd",
+                icon="mdi:cup-water",
+                head=head,
+            ), )
+            dn+=new_head
+            
         entities += [ReefDoseNumberEntity(device, description)
                  for description in dn
                  if description.exists_fn(device)]
@@ -130,29 +136,23 @@ class ReefBeatNumberEntity(NumberEntity):
     async def async_update(self) -> None:
         """Update entity state."""
         self._attr_available = True
-        _LOGGER.debug("Reefbeat.number.async_update %s: %s"%(self.entity_description.key,self._device.get_data(self.entity_description.key)))
-        self._attr_native_value=self._device.get_data(self.entity_description.key)
+        self._attr_native_value=self._device.get_data(self.entity_description.value_name)
 
 
     @callback
     def _async_update_attrs(self) -> None:
         """Update attrs from device."""
-        #if (value := self.entity_description.value_fn(self._device)) is not None:
-        #    self._attr_native_value = float(value)
-        _LOGGER.debug("Reefbeat.number._async_update_attrs")
-        self._attr_native_value = float(self._device.get_data(self.entity_description.key))
-        _LOGGER.debug("Reefbeat.number._async_update_attrs %s %f"%(self.entity_description.key,self._device.get_data(self.entity_description.key)))
+        self._attr_native_value=self._device.get_data(self.entity_description.value_name)
         
     @property
     def native_value(self) -> float:
-        _LOGGER.debug("Reefbeat.number.native_value %s: %s"%(self.entity_description.key,self._device.get_data(self.entity_description.key)))
-        return self._device.get_data(self.entity_description.key)
+        return self._device.get_data(self.entity_description.value_name)
 
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
         _LOGGER.debug("Reefbeat.number.set_native_value %f"%value)
         self._attr_native_value=value
-        self._device.set_data(self.entity_description.key,value)
+        self._device.set_data(self.entity_description.value_name,value)
         self._device.push_values()
        
     @property
@@ -171,6 +171,14 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         """Set up the instance."""
         super().__init__(device,entity_description)
         self._head=self.entity_description.head
+        self._attr_native_value=0
+
+    async def async_set_native_value(self, value: float) -> None:
+        """Update the current value."""
+        _LOGGER.debug("Reefbeat.number.set_native_value %f"%value)
+        self._attr_native_value=value
+        self._device.set_data(self.entity_description.value_name,value)
+        self._device.push_values(self._head)
         
     @property
     def device_info(self) -> DeviceInfo:
@@ -181,5 +189,4 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         head=("head_"+str(self._head),)
         identifiers+=head
         di['identifiers']={identifiers}
-        _LOGGER.info(di)
         return di

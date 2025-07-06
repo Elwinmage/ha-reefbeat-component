@@ -1,7 +1,7 @@
 import logging
 import asyncio
 
-from datetime import  datetime,timedelta
+from datetime import  timedelta
 
 from homeassistant.core import HomeAssistant
 
@@ -17,6 +17,7 @@ from .const import (
     DOMAIN,
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_HW_MODEL,
+    CONFIG_FLOW_SCAN_INTERVAL,
     SCAN_INTERVAL,
     MODEL_NAME,
     MODEL_ID,
@@ -36,33 +37,32 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
     def __init__(
             self,
             hass: HomeAssistant,
-            entry
+            entry,
     ) -> None:
         """Initialize coordinator."""
-        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=SCAN_INTERVAL))
+        if CONFIG_FLOW_SCAN_INTERVAL in entry.data:
+            scan_interval=entry.data[CONFIG_FLOW_SCAN_INTERVAL]
+        else:
+            scan_interval=SCAN_INTERVAL
+        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=scan_interval))
         self._hass=hass
         self._ip = entry.data[CONFIG_FLOW_IP_ADDRESS]
         self._hw = entry.data[CONFIG_FLOW_HW_MODEL]
         self._title = entry.title
         self.my_api = ReefBeatAPI(self._ip)
+        _LOGGER.info("%s scan interval set to %d"%(self._title,scan_interval))
+        self._boot=True
         
     async def update(self):
         await self.my_api.fetch_data() 
         
     async def _async_setup(self) -> None:
         """Do initialization logic."""
-        return await self.my_api.get_initial_data()
+        if(self._boot==True):
+            self._boot=False
+            return await self.my_api.get_initial_data()
+        return None
         
-    async def _async_update_data(self) -> dict[str,Any]:
-        """Do the usual update"""
-        return await self.my_api.update()
-    
-    async def async_send_new_values(self):
-        return await self.my_api.async_send_new_values()
-
-    async def async_config_entry_first_refresh(self):
-        return await self.my_api.async_first_refresh()
-
     @property
     def device_info(self):
         return DeviceInfo(
@@ -81,11 +81,10 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         self.my_api.push_values()
         
     def get_data(self,name):
-        _LOGGER.debug("get_data for %s: %s"%(name,self.my_api.data[name]))
-        return self.my_api.data[name]
+        return self.my_api.get_data(name)
 
     def set_data(self,name,value):
-        self.my_api.data[name]=value
+        self.my_api.set_data(name,value)
     
     def data_exist(self,name):
         if name in self.my_api.data:
@@ -105,20 +104,19 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
     
     @property
     def model(self):
-        return self.my_api.data[MODEL_NAME]
+        return self.my_api.get_data("$.sources[?(@.name=='/device-info')].data.hw_model")
 
     @property
     def model_id(self):
-        return self.my_api.data[MODEL_ID]
+        return self.my_api.get_data("$.sources[?(@.name=='/device-info')].data.hwid")
 
     @property
     def hw_version(self):
-        return self.my_api.data[HW_VERSION]
-
+        return self.my_api.get_data("$.sources[?(@.name=='/device-info')].data.hw_revision")
 
     @property
     def sw_version(self):
-        return self.my_api.data[SW_VERSION]
+        return self.my_api.get_data("$.sources[?(@.name=='/firmware')].data.version")
 
     @property
     def detected_id(self):
@@ -137,21 +135,15 @@ class ReefLedCoordinator(ReefBeatCoordinator):
         super().__init__(hass,entry)
         self.my_api = ReefLedAPI(self._ip)
         
+    def force_status_update(self,state=False):
+        self.my_api.force_status_update(state)
+        
     def daily_prog(self):
         return self.my_api.daily_prog
 
-    def get_prog_name(self,name):
-        return self.my_api.data[name]['name']
-
-    def get_prog_data(self,name):
-        try:
-            data = self.my_api.data[name]
-            res = {'data':data['data'],'clouds':data['clouds']}
-            return res
-        except Exception as e:
-            return None
-
-class ReefLedVirtualCoordinator(ReefBeatCoordinator):
+################################################################################
+# VIRTUAL LED
+class ReefVirtualLedCoordinator(ReefLedCoordinator):
 
     def __init__(
             self,
@@ -170,44 +162,27 @@ class ReefLedVirtualCoordinator(ReefBeatCoordinator):
                 self._linked+=[self._hass.data[DOMAIN][uuid]]
                 _LOGGER.info(" - %s"%(name))
 
-    async def _async_setup(self) -> None:
-        """Do initialization logic."""
-        pass
-        
-    async def _async_update_data(self) -> dict[str,Any]:
-        """Do the usual update"""
+    def force_status_update(self,state=False):
         pass
     
-    async def async_send_new_values(self):
-        _LOGGER.error("Not implemented: async_send_new_values")
-        pass
-
-    async def async_config_entry_first_refresh(self):
-        pass
-
-    def daily_prog(self):
-        _LOGGER.error("Not implemented: daily_prog")
-        pass
-
     def get_data(self,name):
         if len(self._linked)>0:
             data=self._linked[0].get_data(name)
             match type(data).__name__:
                 case 'bool':
                     return self.get_data_bool(name)
-                case "int":
+                case 'int':
                     return self.get_data_int(name)
-                case "float":
+                case 'float':
                     return self.get_data_float(name)
                 case _:
-                    _LOGGER.warning("Not implemented")
+                    pass #_LOGGER.warning("Not implemented %s: %s"%(name,data))
 
     def get_data_bool(self,name):
         for led in self._linked:
             if led.get_data(name):
                 return True
         return False
-
 
     def get_data_int(self,name):
         res=0
@@ -217,11 +192,11 @@ class ReefLedVirtualCoordinator(ReefBeatCoordinator):
             count +=1
         return int(res/count)
 
-
     def get_data_float(self,name):
         res=0
         count=0
         for led in self._linked:
+            _LOGGER.debug("coordinator.get_data_float %s"%name)
             res+=led.get_data(name)
             count +=1
         return res/count
@@ -243,16 +218,6 @@ class ReefLedVirtualCoordinator(ReefBeatCoordinator):
         _LOGGER.debug("not data_exists: %s"%name)            
         return False
 
-    def get_prog_name(self,name):
-        if len(self._linked)>0:
-            return self._linked[0].get_prog_name(name)
-        return None
-    
-    def get_prog_data(self,name):
-        if len(self._linked)>0:
-            return self._linked[0].get_prog_data(name)
-        return None
-    
     @property
     def device_info(self):
         return DeviceInfo(
@@ -263,10 +228,6 @@ class ReefLedVirtualCoordinator(ReefBeatCoordinator):
             manufacturer=DEVICE_MANUFACTURER,
             model=VIRTUAL_LED,
         )
-        
- 
-
-
 
 ################################################################################
 ## REEFMAT
@@ -289,7 +250,7 @@ class ReefDoseCoordinator(ReefBeatCoordinator):
     def __init__(
             self,
             hass: HomeAssistant,
-            entry
+            entry,
     ) -> None:
         """Initialize coordinator."""
         super().__init__(hass,entry)
@@ -299,6 +260,12 @@ class ReefDoseCoordinator(ReefBeatCoordinator):
     def press(self,action,head):
         self.my_api.press(action,head)
 
+    def push_values(self,head):
+        self.my_api.push_values(head)
+        
+    @property
+    def hw_version(self):
+        return None
 
         
 ################################################################################

@@ -27,11 +27,37 @@ from .const import (
     DOMAIN,
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_HW_MODEL,
+    CONFIG_FLOW_SCAN_INTERVAL,
+    HW_LED_IDS,
+    HW_DOSE_IDS,
+    HW_MAT_IDS,
+    HW_ATO_IDS,
+    HW_RUN_IDS,
+    HW_WAVE_IDS,
+    SCAN_INTERVAL,
+    DOSE_SCAN_INTERVAL,
+    MAT_SCAN_INTERVAL,
+    LED_SCAN_INTERVAL,
+    ATO_SCAN_INTERVAL,
     VIRTUAL_LED,
     LINKED_LED,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def get_scan_interval(hw_model):
+    default_san_interval=SCAN_INTERVAL
+    if hw_model in HW_DOSE_IDS:
+        default_scan_interval=DOSE_SCAN_INTERVAL
+    elif hw_model in HW_MAT_IDS:
+        default_scan_interval=MAT_SCAN_INTERVAL
+    elif hw_model in HW_ATO_IDS:
+        default_scan_interval=MAT_ATO_INTERVAL
+    elif hw_model in HW_LED_IDS:
+        default_scan_interval=LED_SCAN_INTERVAL
+    return default_scan_interval
+
 
 class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """ReefBeat config flow."""
@@ -48,12 +74,12 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input=None):
         """Create a new entity from UI."""
         if user_input is not None:
-            _LOGGER.error("**/*///*")
             _LOGGER.debug(user_input)
             if user_input[CONFIG_FLOW_IP_ADDRESS] == VIRTUAL_LED:
                 title=VIRTUAL_LED+'-'+str(int(time()))
                 user_input[CONFIG_FLOW_IP_ADDRESS]=title
                 user_input[CONFIG_FLOW_HW_MODEL]=VIRTUAL_LED
+                user_input[CONFIG_FLOW_SCAN_INTERVAL]=SCAN_INTERVAL
                 _LOGGER.debug("-- ** UUID ** -- %s"%title)
                 await self.async_set_unique_id(title)
             else:
@@ -65,6 +91,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 title=user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')[2]
                 user_input[CONFIG_FLOW_HW_MODEL]=user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')[1]
                 user_input[CONFIG_FLOW_IP_ADDRESS]=user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')[0]
+                user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(user_input[CONFIG_FLOW_HW_MODEL])
                 _LOGGER.info("-- ** TITLE ** -- %s"%title)
     
             return self.async_create_entry(
@@ -132,31 +159,47 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     ) -> FlowResult:
         """Manage the options."""
         if user_input is not None:
-            _LOGGER.info(user_input)
-            _LOGGER.info(self._config_entry.data)
-            data={}
-            leds={}
-            data[CONFIG_FLOW_IP_ADDRESS]=self._config_entry.data[CONFIG_FLOW_IP_ADDRESS]
-            data[CONFIG_FLOW_HW_MODEL]=VIRTUAL_LED
-            for led in user_input:
-                if user_input[led]:
-                    leds[led]=True
-            data[LINKED_LED]=leds
-            
-            _LOGGER.info(user_input)
-            self.hass.config_entries.async_update_entry(
-                self.config_entry, data=data, options=self.config_entry.options
-            )
-            return self.async_create_entry(data=data)
+            if CONFIG_FLOW_SCAN_INTERVAL in user_input:
+                _LOGGER.debug("user input")
+                _LOGGER.debug(user_input)
+                data={}
+                data[CONFIG_FLOW_IP_ADDRESS]=self._config_entry.data[CONFIG_FLOW_IP_ADDRESS]
+                data[CONFIG_FLOW_HW_MODEL]=self._config_entry.data[CONFIG_FLOW_HW_MODEL]
+                data[CONFIG_FLOW_SCAN_INTERVAL]=user_input[CONFIG_FLOW_SCAN_INTERVAL]
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry, data=data, options=self.config_entry.options
+                )
+                return self.async_create_entry(data=data)
+            else:
+                _LOGGER.info(user_input)
+                _LOGGER.info(self._config_entry.data)
+                data={}
+                leds={}
+                data[CONFIG_FLOW_IP_ADDRESS]=self._config_entry.data[CONFIG_FLOW_IP_ADDRESS]
+                data[CONFIG_FLOW_HW_MODEL]=VIRTUAL_LED
+                for led in user_input:
+                    if user_input[led]:
+                        leds[led]=True
+                data[LINKED_LED]=leds
+
+                _LOGGER.info(user_input)
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry, data=data, options=self.config_entry.options
+                )
+                return self.async_create_entry(data=data)
         errors = {}
         devices_list=[]
         options_schema=None
 
         if not self._config_entry.title.startswith(VIRTUAL_LED+'-'):
-            errors["base"]="Only virtual"
+#            errors["base"]="Only virtual"
+            hw_model=self._config_entry.data[CONFIG_FLOW_HW_MODEL]
             options_schema=vol.Schema(
                 {
-                    vol.Required("not_virtual"): vol.In(devices_list),
+                    vol.Required(
+                        CONFIG_FLOW_SCAN_INTERVAL, default=get_scan_interval(hw_model)
+                    ): int,
+ 
                 }
             )
 
@@ -175,3 +218,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             ),
             errors=errors,
         )
+
+
+        

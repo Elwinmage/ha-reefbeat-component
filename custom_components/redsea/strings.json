@@ -9,7 +9,8 @@
                     "ip_address": "IP Address",
 		    "hw_model": "Hardware Model",
 		    "virtual_led": "New virtual LED Controler",
-                    "platform": "Platform"
+                    "platform": "Platform",
+		    "scan_interval": "scan interval"
                 }
             }
         },
@@ -21,7 +22,7 @@
     "options": {
 	"step":{
 	    "init":{
-		"title": "Detect possible ReefLeds",
+		"title": "Configuration",
 		"data":{
 		    "slaves": "LED",
 		    "not_virtual": "Not configurable"
@@ -47,6 +48,9 @@
 	    
 	},
 	"number":{
+	    "daily_dose":{
+		"name": "Update Daily dose"
+	    },
 	    "custom_advance_value":{
 		"name": "Valeur d'avance"
 	    },
@@ -56,6 +60,9 @@
 	    
 	} ,
 	"binary_sensor": {
+	    "recalibration_required":{
+		"name": "Calibration"
+	    },
 	    "enabled":{
 		"name" : "Leak sensor enabled"
 	    },
@@ -89,6 +96,9 @@
 	    }
 	},
 	"sensor": {
+	    "container_volume":{
+		"name": "Container Volume"
+	    },
 	    "supplement":{
 		"name": "Supplement"
 	    },
@@ -99,10 +109,10 @@
 		"name": "Manual dosed today"
 	    },
 	    "doses_today":{
-		"name": "Manual dosed today"
+		"name": "Doses today"
 	    },
 	    "remaining_days":{
-		"name": "Remaining days Pump"
+		"name": "Remaining days"
 	    },
 	    "daily_dose":{
 		"name": "Daily dose"
