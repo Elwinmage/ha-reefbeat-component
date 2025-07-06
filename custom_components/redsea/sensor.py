@@ -380,13 +380,13 @@ class ReefBeatSensorEntity(SensorEntity):
         
     async def async_update(self) -> None:
         """Update entity state."""
-        try:
-            await self._device.update()
-        except Exception as e:
-           # _LOGGER.warning("Update failed for %s: %s", self.entity_id,e)
-           # self._attr_available = False  # Set property value
-           # return
-            pass
+        # try:
+        #     await self._device.update()
+        # except Exception as e:
+        #    # _LOGGER.warning("Update failed for %s: %s", self.entity_id,e)
+        #    # self._attr_available = False  # Set property value
+        #    # return
+        #     pass
         self._attr_available = True
         # We don't need to check if device available here
         self._attr_native_value =  self._get_value()
@@ -416,11 +416,11 @@ class ReefLedScheduleSensorEntity(ReefBeatSensorEntity):
         super().__init__(device,entity_description)
 
     async def async_update(self) -> None:
-        """Update entity state."""
-        try:
-            await self._device.update()
-        except Exception as e:
-            pass
+    #     """Update entity state."""
+    #     try:
+    #         await self._device.update()
+    #     except Exception as e:
+    #         pass
         self._attr_available = True
         # We don't need to check if device available here
         self._attr_native_value =  self._device.get_data(self.entity_description.value_name)
