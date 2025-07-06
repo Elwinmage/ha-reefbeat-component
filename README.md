@@ -100,7 +100,7 @@ ReefATO+:
     - Daily program generation according to meteo of a specific place according to geographic coordinates
 
 - ReefDose:
-  - Implement scheling edition
+  - Implement scheduling edition
   
 # Home Assitant Card
 An example to display your led program.
