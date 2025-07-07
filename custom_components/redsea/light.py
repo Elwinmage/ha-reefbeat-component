@@ -4,7 +4,14 @@ import logging
 from dataclasses import dataclass
 from collections.abc import Callable
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import (
+    HomeAssistant,
+    callback,
+    )
+
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    )
 
 from homeassistant.config_entries import ConfigEntry
 
@@ -108,7 +115,7 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-class ReefLedLightEntity(LightEntity):
+class ReefLedLightEntity(CoordinatorEntity,LightEntity):
     """Represent an ReefLed light."""
     _attr_has_entity_name = True
     _attr_supported_color_modes = [ColorMode.BRIGHTNESS]
@@ -118,6 +125,7 @@ class ReefLedLightEntity(LightEntity):
         self, device, entity_description
     ) -> None:
         """Set up the instance."""
+        super().__init__(device,entity_description)
         self._device = device
         self.entity_description = entity_description
         self._attr_available = False
@@ -125,13 +133,19 @@ class ReefLedLightEntity(LightEntity):
         self._brighness = 0
         self._old_brighness=0
         self._state = "off"
-        
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._update()
+        self.async_write_ha_state()
         
     async def async_update(self) -> None:
         """Update entity state."""
-        self._attr_available = True
+        self._update()
         
-        # If virtua lLED is not initialized thne None is returned
+    def _update(self):
+        self._attr_available = True
         raw_data=self._device.get_data(self.entity_description.value_name)
         if (raw_data != None):
             self._brightness =  self._device.get_data(self.entity_description.value_name)/LED_CONVERSION_COEF
@@ -144,7 +158,7 @@ class ReefLedLightEntity(LightEntity):
         else:
             self._state='off'
             self._attr_is_on=False
-
+            
     async def async_turn_on(self, **kwargs):
         """Turn the light on."""
         _LOGGER.debug("Reefled.light.async_turn_on %s"%kwargs)
@@ -158,6 +172,7 @@ class ReefLedLightEntity(LightEntity):
         self._device.set_data(self.entity_description.value_name,ha_value*LED_CONVERSION_COEF)
         self._device.force_status_update(True)
         self._device.push_values()
+        await self._device.async_request_refresh()
 
     async def async_turn_off(self, **kwargs):
         self._old_brighness=self._brightness
@@ -167,6 +182,7 @@ class ReefLedLightEntity(LightEntity):
         self._device.set_data(self.entity_description.value_name,0)
         self._device.force_status_update()
         self._device.push_values()
+        await self._device.async_request_refresh()
 
     @property
     def brightness(self) -> int:

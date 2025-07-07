@@ -4,7 +4,15 @@ import logging
 from dataclasses import dataclass
 from collections.abc import Callable
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import (
+    HomeAssistant,
+    callback,
+    )
+
+
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    )
 
 from homeassistant.config_entries import ConfigEntry
 
@@ -167,7 +175,7 @@ async def async_setup_entry(
                      if description.exists_fn(device)]
     async_add_entities(entities, True)
 
-class ReefBeatBinarySensorEntity(BinarySensorEntity):
+class ReefBeatBinarySensorEntity(CoordinatorEntity,BinarySensorEntity):
     """Represent an binary sensor."""
     _attr_has_entity_name = True
 
@@ -175,11 +183,19 @@ class ReefBeatBinarySensorEntity(BinarySensorEntity):
         self, device, entity_description
     ) -> None:
         """Set up the instance."""
+        super().__init__(device,entity_description)
         self._device = device
         self.entity_description = entity_description
         self._attr_available = True
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._state=self._get_value()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_available = True
+        self._state=self._get_value()
+        self.async_write_ha_state()
 
     def _get_value(self):
         if hasattr(self.entity_description, 'value_fn'):

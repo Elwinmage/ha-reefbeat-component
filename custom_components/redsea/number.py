@@ -9,6 +9,10 @@ from homeassistant.core import (
     callback,
     )
 
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    )
+
 from homeassistant.config_entries import ConfigEntry
 
 from homeassistant.components.number import (
@@ -92,6 +96,7 @@ async def async_setup_entry(
                 device_class=NumberDeviceClass.VOLUME,
                 native_min_value=0,
                 native_step=1,
+                native_max_value=300,
                 value_name="$.local.head."+str(head)+".manual_dose",
                 icon="mdi:cup-water",
                 head=head,
@@ -119,7 +124,7 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-class ReefBeatNumberEntity(NumberEntity):
+class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
     """Represent an ReefBeat number."""
     _attr_has_entity_name = True
     
@@ -127,11 +132,20 @@ class ReefBeatNumberEntity(NumberEntity):
         self, device, entity_description: ReefBeatNumberEntityDescription
     ) -> None:
         """Set up the instance."""
+        super().__init__(device,entity_description)
         self._device = device
         self.entity_description = entity_description
         self._attr_available = False
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._attr_native_value=3.25
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_available = True
+        self._attr_native_value=self._device.get_data(self.entity_description.value_name)
+        self.async_write_ha_state()
+
         
     async def async_update(self) -> None:
         """Update entity state."""
@@ -142,6 +156,7 @@ class ReefBeatNumberEntity(NumberEntity):
     @callback
     def _async_update_attrs(self) -> None:
         """Update attrs from device."""
+        _LOGGER.error("number.async_update_attrs")
         self._attr_native_value=self._device.get_data(self.entity_description.value_name)
         
     @property
@@ -154,6 +169,8 @@ class ReefBeatNumberEntity(NumberEntity):
         self._attr_native_value=value
         self._device.set_data(self.entity_description.value_name,value)
         self._device.push_values()
+        await self._device.async_request_refresh()
+      
        
     @property
     def device_info(self) -> DeviceInfo:
@@ -179,6 +196,7 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         self._attr_native_value=value
         self._device.set_data(self.entity_description.value_name,value)
         self._device.push_values(self._head)
+        await self._device.async_request_refresh()
         
     @property
     def device_info(self) -> DeviceInfo:

@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import async_timeout
 
 from datetime import  timedelta
 
@@ -53,16 +54,36 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         _LOGGER.info("%s scan interval set to %d"%(self._title,scan_interval))
         self._boot=True
         
+
+    async def _async_update_data(self):
+        try:
+            # Note: asyncio.TimeoutError and aiohttp.ClientError are already
+            # handled by the data update coordinator.
+            async with async_timeout.timeout(10):
+                return await self.my_api.fetch_data()
+        except Exception as e:
+            # Raising ConfigEntryAuthFailed will cancel future updates
+            # and start a config flow with SOURCE_REAUTH (async_step_reauth)
+            _LOGGER.error("Error communicating with API")
+            _LOGGER.error(e)
+
     async def update(self):
         await self.my_api.fetch_data() 
         
     async def _async_setup(self) -> None:
         """Do initialization logic."""
+        _LOGGER.debug("async_setup...")
         if(self._boot==True):
             self._boot=False
             return await self.my_api.get_initial_data()
         return None
-        
+
+    async def async_request_refresh(self):
+        #wait fore device to refresh state
+        await asyncio.sleep(3)
+        return await super().async_request_refresh()
+    
+    
     @property
     def device_info(self):
         return DeviceInfo(

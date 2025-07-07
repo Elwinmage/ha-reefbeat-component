@@ -4,6 +4,8 @@ import logging
 from dataclasses import dataclass
 from collections.abc import Callable
 
+from homeassistant.core import callback
+
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
@@ -13,6 +15,11 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
+
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    )
+    
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -365,7 +372,7 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-class ReefBeatSensorEntity(SensorEntity):
+class ReefBeatSensorEntity(CoordinatorEntity,SensorEntity):
     """Represent an ReefBeat sensor."""
     _attr_has_entity_name = True
 
@@ -373,20 +380,24 @@ class ReefBeatSensorEntity(SensorEntity):
         self, device, entity_description
     ) -> None:
         """Set up the instance."""
+        super().__init__(device,entity_description)
         self._device = device
         self.entity_description = entity_description
         self._attr_available = False  
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_available = True
+        # We don't need to check if device available here
+        self._attr_native_value =  self._get_value()
+        self.async_write_ha_state()
+
+        
     async def async_update(self) -> None:
         """Update entity state."""
-        # try:
-        #     await self._device.update()
-        # except Exception as e:
-        #    # _LOGGER.warning("Update failed for %s: %s", self.entity_id,e)
-        #    # self._attr_available = False  # Set property value
-        #    # return
-        #     pass
         self._attr_available = True
         # We don't need to check if device available here
         self._attr_native_value =  self._get_value()
@@ -416,11 +427,6 @@ class ReefLedScheduleSensorEntity(ReefBeatSensorEntity):
         super().__init__(device,entity_description)
 
     async def async_update(self) -> None:
-    #     """Update entity state."""
-    #     try:
-    #         await self._device.update()
-    #     except Exception as e:
-    #         pass
         self._attr_available = True
         # We don't need to check if device available here
         self._attr_native_value =  self._device.get_data(self.entity_description.value_name)

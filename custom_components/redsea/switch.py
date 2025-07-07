@@ -4,7 +4,14 @@ import logging
 from dataclasses import dataclass
 from collections.abc import Callable
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import (
+    HomeAssistant,
+    callback,
+    )
+
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    )
 
 from homeassistant.config_entries import ConfigEntry
 
@@ -94,7 +101,7 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-class ReefBeatSwitchEntity(SwitchEntity):
+class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
     """Represent an ReefBeat switch."""
     _attr_has_entity_name = True
     
@@ -102,11 +109,20 @@ class ReefBeatSwitchEntity(SwitchEntity):
         self, device, entity_description: ReefBeatSwitchEntityDescription
     ) -> None:
         """Set up the instance."""
+        super().__init__(device,entity_description)
         self._device = device
         self.entity_description = entity_description
         self._attr_available = False
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._state = False
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_available = True
+        self._state = self._device.get_data(self.entity_description.data_name)
+        self.async_write_ha_state()
+
         
     async def async_update(self) -> None:
         """Update entity state."""
@@ -118,11 +134,14 @@ class ReefBeatSwitchEntity(SwitchEntity):
         self._state=True
         self._device.set_data(self.entity_description.data_name,True)
         self._device.push_values()
-
-    def async_turn_off(self, **kwargs):
+        await self._device.async_request_refresh()
+        
+        
+    async def async_turn_off(self, **kwargs):
         self._state=False
         self._device.set_data(self.entity_description.data_name,False)
         self._device.push_values()
+        await self._device.async_request_refresh()
         
     @property
     def is_on(self) -> bool:
