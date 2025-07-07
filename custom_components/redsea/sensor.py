@@ -38,7 +38,7 @@ from .const import (
     DOMAIN,
 )
 
-from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator
+from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator, ReefRunCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,6 +54,13 @@ class ReefDoseSensorEntityDescription(SensorEntityDescription):
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
     value_name: ''
     head: 0
+
+@dataclass(kw_only=True)
+class ReefRunSensorEntityDescription(SensorEntityDescription):
+    """Describes reefbeat sensor entity."""
+    exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
+    value_name: ''
+    pump: 0
 
 @dataclass(kw_only=True)
 class ReefLedScheduleSensorEntityDescription(SensorEntityDescription):
@@ -245,8 +252,6 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         icon="mdi:thermometer-check",
     ),
 )
-
-
     
 async def async_setup_entry(
         hass: HomeAssistant,
@@ -266,7 +271,6 @@ async def async_setup_entry(
         entities += [ReefBeatSensorEntity(device, description)
                      for description in MAT_SENSORS
                      if description.exists_fn(device)]
-    # REEFDOSE
     elif type(device).__name__=='ReefDoseCoordinator':
         ds=()
         for head in range (1,device.heads_nb+1):
@@ -360,11 +364,85 @@ async def async_setup_entry(
                      for description in ATO_SENSORS
                      if description.exists_fn(device)]
 
+    elif type(device).__name__=='ReefRunCoordinator':
+        ds=()
+        for pump in range (1,3):
+            new_pump= (ReefRunSensorEntityDescription(
+                key="name_pump_"+str(pump),
+                translation_key="name",
+                icon="mdi:pump",
+                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".name",
+                pump=pump,
+            ),)
+            ds+=new_pump
+            new_pump= (ReefRunSensorEntityDescription(
+                key="type_pump_"+str(pump),
+                translation_key="type",
+                icon="mdi:pump",
+                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".type",
+                pump=pump,
+            ),)
+            ds+=new_pump
+            new_pump= (ReefRunSensorEntityDescription(
+                key="model_pump_"+str(pump),
+                translation_key="model",
+                icon="mdi:pump",
+                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".model",
+                pump=pump,
+            ),)
+            ds+=new_pump
+            new_pump= (ReefRunSensorEntityDescription(
+                key="state_pump_"+str(pump),
+                translation_key="state",
+                icon="mdi:pump",
+                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".state",
+                entity_category=EntityCategory.DIAGNOSTIC,
+                pump=pump,
+            ),)
+            ds+=new_pump
+            new_pump= (ReefRunSensorEntityDescription(
+                key="intensity_pump_"+str(pump),
+                translation_key="intensity",
+                icon="mdi:waves",
+                native_unit_of_measurement=PERCENTAGE,
+                device_class=SensorDeviceClass.POWER_FACTOR,
+                state_class=SensorStateClass.MEASUREMENT,
+                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".intensity",
+                pump=pump,
+                suggested_display_precision=0,
+            ),)
+            ds+=new_pump
+            new_pump= (ReefRunSensorEntityDescription(
+                key="pulse_pump_"+str(pump),
+                translation_key="pulse",
+                icon="mdi:pulse",
+                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".pulse",
+                pump=pump,
+            ),)
+            ds+=new_pump
+            new_pump= (ReefRunSensorEntityDescription(
+                key="temperature_pump_"+str(pump),
+                translation_key="temperature",
+                icon="mdi:thermometer",
+                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".temperature",
+                native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                device_class=SensorDeviceClass.TEMPERATURE,
+                state_class=SensorStateClass.MEASUREMENT,
+                entity_category=EntityCategory.DIAGNOSTIC,
+                suggested_display_precision=1,
+                pump=pump,
+            ),)
+            ds+=new_pump
+        entities += [ReefRunSensorEntity(device, description)
+                     for description in ds
+                     if description.exists_fn(device)]
+        
     if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefVirtualLedCoordinator':
         entities += [ReefLedScheduleSensorEntity(device, description)
                      for description in LED_SCHEDULES
                      if description.exists_fn(device)]
 
+        
     entities += [ReefBeatSensorEntity(device, description)
                  for description in  COMMON_SENSORS
                  if description.exists_fn(device)]
@@ -453,5 +531,28 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
         identifiers=list(di['identifiers'])[0]
         head=("head_"+str(self._head),)
         identifiers+=head
+        di['identifiers']={identifiers}
+        return di
+
+    
+class ReefRunSensorEntity(ReefBeatSensorEntity):
+    """Represent an ReefBeat sensor."""
+    _attr_has_entity_name = True
+    
+    def __init__(
+        self, device, entity_description: ReefRunSensorEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+        self._pump=self.entity_description.pump
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        di=self._device.device_info
+        di['name']+='_pump_'+str(self._pump)
+        identifiers=list(di['identifiers'])[0]
+        pump=("pump_"+str(self._pump),)
+        identifiers+=pump
         di['identifiers']={identifiers}
         return di

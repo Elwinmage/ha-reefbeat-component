@@ -29,7 +29,7 @@ from .const import (
     LINKED_LED,
 )
 
-from .reefbeat import ReefBeatAPI,ReefLedAPI, ReefMatAPI, ReefDoseAPI, ReefATOAPI
+from .reefbeat import ReefBeatAPI,ReefLedAPI, ReefMatAPI, ReefDoseAPI, ReefATOAPI, ReefRunAPI
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -301,4 +301,17 @@ class ReefATOCoordinator(ReefBeatCoordinator):
         """Initialize coordinator."""
         super().__init__(hass,entry)
         self.my_api = ReefATOAPI(self._ip)
+        
+################################################################################
+# REERUN
+class ReefRunCoordinator(ReefBeatCoordinator):
+
+    def __init__(
+            self,
+            hass: HomeAssistant,
+            entry
+    ) -> None:
+        """Initialize coordinator."""
+        super().__init__(hass,entry)
+        self.my_api = ReefRunAPI(self._ip)
         

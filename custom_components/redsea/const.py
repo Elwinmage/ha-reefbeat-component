@@ -63,9 +63,12 @@ DOSE_SCAN_INTERVAL= 120 # in seconds
 
 ################################################################################
 # ATO
-ATO_SCAN_INTERVAL=30 #in seconds
+ATO_SCAN_INTERVAL=10 #in seconds
 #MAT SWITCHES
 ATO_AUTO_FILL_INTERNAL_NAME="$.sources[?(@.name=='/configuration')].data.auto_fill"
 
+################################################################################
+# RUN
+RUN_SCAN_INTERVAL=5 #in seconds
 
 

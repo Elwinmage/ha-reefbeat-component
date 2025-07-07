@@ -60,6 +60,18 @@
 	    
 	} ,
 	"binary_sensor": {
+	    "ec_sensor_connected":{
+		"name": "EC sensor Connected"
+	    },
+	    "missing_pump":{
+		"name": "Pump"
+	    },
+	    "missing_sensor":{
+		"name": "Sensor"
+	    },
+	    "schedule_enabled":{
+		"name": "Schedule Enabled"
+	    },
 	    "recalibration_required":{
 		"name": "Calibration"
 	    },
@@ -96,6 +108,24 @@
 	    }
 	},
 	"sensor": {
+	    "name":{
+		"name": "Name"
+	    },
+	    "type":{
+		"name": "Type"
+	    },
+	    "model":{
+		"name": "Model"
+	    },
+	    "state":{
+		"name": "State"
+	    },
+	    "intensity":{
+		"name": "Intensity"
+	    },
+	    "pulse":{
+		"name": "Pulse"
+	    },
 	    "container_volume":{
 		"name": "Container Volume"
 	    },

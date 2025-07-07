@@ -39,6 +39,7 @@ from .const import (
     MAT_SCAN_INTERVAL,
     LED_SCAN_INTERVAL,
     ATO_SCAN_INTERVAL,
+    RUN_SCAN_INTERVAL,
     VIRTUAL_LED,
     LINKED_LED,
 )
@@ -47,7 +48,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def get_scan_interval(hw_model):
-    default_san_interval=SCAN_INTERVAL
+    default_scan_interval=SCAN_INTERVAL
     if hw_model in HW_DOSE_IDS:
         default_scan_interval=DOSE_SCAN_INTERVAL
     elif hw_model in HW_MAT_IDS:
@@ -56,6 +57,8 @@ def get_scan_interval(hw_model):
         default_scan_interval=MAT_ATO_INTERVAL
     elif hw_model in HW_LED_IDS:
         default_scan_interval=LED_SCAN_INTERVAL
+    elif hw_model in HW_RUN_IDS:
+        default_scan_interval=RUN_SCAN_INTERVAL
     return default_scan_interval
 
 
@@ -192,7 +195,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         options_schema=None
 
         if not self._config_entry.title.startswith(VIRTUAL_LED+'-'):
-#            errors["base"]="Only virtual"
             hw_model=self._config_entry.data[CONFIG_FLOW_HW_MODEL]
             options_schema=vol.Schema(
                 {

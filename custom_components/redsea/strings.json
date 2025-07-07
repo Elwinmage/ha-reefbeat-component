@@ -60,6 +60,15 @@
 	    
 	} ,
 	"binary_sensor": {
+	    "missing_pump":{
+		"name": "Missing Pump"
+	    },
+	    "missing_sensor":{
+		"name": "Missing Sensor"
+	    },
+	    "schedule_enabled":{
+		"name": "Schedule Enabled"
+	    },
 	    "recalibration_required":{
 		"name": "Calibration"
 	    },
@@ -74,6 +83,9 @@
 	    },
 	    "is_ec_sensor_connected":{
 		"name": "Is EC sensor Connected"
+	    },
+	    "ec_sensor_connected":{
+		"name": "EC sensor Connected"
 	    },
 
 	    "water_level":{
@@ -96,6 +108,27 @@
 	    }
 	},
 	"sensor": {
+	    "name":{
+		"name": "Name"
+	    },
+	    "type":{
+		"name": "Type"
+	    },
+	    
+	    "model":{
+		"name": "Model"
+	    },
+	    
+	    "state":{
+		"name": "State"
+	    },
+	    "intensity":{
+		"name": "Intensity"
+	    },
+	    "pulse":{
+		"name": "Pulse"
+	    },
+	    
 	    "container_volume":{
 		"name": "Container Volume"
 	    },

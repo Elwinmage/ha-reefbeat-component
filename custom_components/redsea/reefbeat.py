@@ -181,4 +181,15 @@ class ReefATOAPI(ReefBeatAPI):
         payload={'auto_fill': self.get_data(ATO_AUTO_FILL_INTERNAL_NAME)}
         r = httpx.put(self._base_url+'/configuration', json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
 
+################################################################################
+# ReefRun
+class ReefRunAPI(ReefBeatAPI):
+    """ Access to Reefled informations and commands """
+    def __init__(self,ip) -> None:
+        super().__init__(ip)
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/pump/settings","get_once": False,"data":""})
+
+    def push_values(self):
+        pass
+
     

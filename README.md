@@ -37,6 +37,9 @@ ReefDose:
 ReefATO+:
   - Tested
 
+ReefRun:
+  - Partila Test
+  
 # What works
 - All:
   - Display device IP in diagnostics
@@ -91,6 +94,15 @@ ReefATO+:
 <p align="center">                                                                                                                                                                              
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato.png" alt="Image">                                                                                       
 </p> 
+
+-ReefRun:
+  -  Sensors
+<p align="center">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_1.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_2.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_3.png" alt="Image">
+</p>
+
 
 # What next?
 - LED:

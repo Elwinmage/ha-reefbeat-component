@@ -32,7 +32,7 @@ from .const import (
     DOMAIN,
 )
 
-from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
+from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator, ReefRunCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,6 +48,13 @@ class ReefDoseBinarySensorEntityDescription(BinarySensorEntityDescription):
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
     value_name: ""
     head: 0
+
+@dataclass(kw_only=True)
+class ReefRunBinarySensorEntityDescription(BinarySensorEntityDescription):
+    """Describes ReefLed binary sensor entity."""
+    exists_fn: Callable[[ReefRunCoordinator], bool] = lambda _: True
+    value_name: ""
+    pump: 0
 
     
 """ ReefLed Binary Sensor List """    
@@ -114,10 +121,10 @@ ATO_SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
         icon="mdi:water-off",
     ),
     ReefBeatBinarySensorEntityDescription(
-        key='is_sensor_error',
+        key='ec_sensor_error',
         translation_key='is_sensor_error',
         device_class=BinarySensorDeviceClass.PROBLEM,
-        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.ato_sensor.is_sensor_error"),
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.ato_sensor.ec_sensor_error"),
         icon="mdi:alert-circle-outline",
     ),
     ReefBeatBinarySensorEntityDescription(
@@ -134,6 +141,18 @@ ATO_SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
         icon="mdi:pump",
     ),
 )
+
+""" ReefRunBinary Sensor List """
+RUN_SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
+    ReefBeatBinarySensorEntityDescription(
+        key='ec_sensor_connected',
+        translation_key='ec_sensor_connected',
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.ec_sensor_connected"),
+        icon="mdi:connection",
+    ),
+)
+
 
 async def async_setup_entry(
         hass: HomeAssistant,
@@ -173,6 +192,45 @@ async def async_setup_entry(
         entities += [ReefDoseBinarySensorEntity(device, description)
                      for description in ds
                      if description.exists_fn(device)]
+    elif  type(device).__name__=='ReefRunCoordinator':
+        ds=()
+        for pump in range (1,3):
+            new_pump= (ReefRunBinarySensorEntityDescription(
+                key="schedule_enabled_pump_"+str(pump),
+                translation_key="schedule_enabled",
+                icon="mdi:calendar-arrow-right",
+                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".schedule_enabled",
+                pump=pump,
+            ),)
+            ds+=new_pump
+            new_pump= (ReefRunBinarySensorEntityDescription(
+                key="missing_sensor_pump_"+str(pump),
+                translation_key="missing_sensor",
+                device_class=BinarySensorDeviceClass.PROBLEM,
+                entity_category=EntityCategory.DIAGNOSTIC,
+                icon="mdi:leak-off",
+                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".missing_sensor",
+                pump=pump,
+            ),)
+            ds+=new_pump
+            new_pump= (ReefRunBinarySensorEntityDescription(
+                key="missing_pump_pump_"+str(pump),
+                translation_key="missing_pump",
+                device_class=BinarySensorDeviceClass.PROBLEM,
+                entity_category=EntityCategory.DIAGNOSTIC,
+                icon="mdi:alert-outline",
+                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".missing_pump",
+                pump=pump,
+            ),)
+            ds+=new_pump
+        entities += [ReefRunBinarySensorEntity(device, description)
+                     for description in ds
+                     if description.exists_fn(device)]
+        entities += [ReefBeatBinarySensorEntity(device, description)
+                     for description in RUN_SENSORS
+                     if description.exists_fn(device)]
+
+            
     async_add_entities(entities, True)
 
 class ReefBeatBinarySensorEntity(CoordinatorEntity,BinarySensorEntity):
@@ -235,5 +293,27 @@ class ReefDoseBinarySensorEntity(ReefBeatBinarySensorEntity):
         identifiers=list(di['identifiers'])[0]
         head=("head_"+str(self._head),)
         identifiers+=head
+        di['identifiers']={identifiers}
+        return di
+
+class ReefRunBinarySensorEntity(ReefBeatBinarySensorEntity):
+    """Represent an ReefBeat number."""
+    _attr_has_entity_name = True
+    
+    def __init__(
+        self, device, entity_description: ReefRunBinarySensorEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+        self._pump=self.entity_description.pump
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        di=self._device.device_info
+        di['name']+='_pump_'+str(self._pump)
+        identifiers=list(di['identifiers'])[0]
+        pump=("pump_"+str(self._pump),)
+        identifiers+=pump
         di['identifiers']={identifiers}
         return di

@@ -58,6 +58,18 @@
 	    }
 	} ,
 	"binary_sensor": {
+	    "ec_sensor_connected":{
+		"name": "Détecteur"
+	    },
+	    "missing_pump":{
+		"name": "Pompe"
+	    },
+	    "missing_sensor":{
+		"name": "Détecteur"
+	    },
+	    "schedule_enabled":{
+		"name": "Planification Activée"
+	    },
 	    "recalibration_required":{
 		"name": "Calibration"
 	    },
@@ -95,6 +107,24 @@
 	    
 	},
 	"sensor": {
+	    "name":{
+		"name": "Nom"
+	    },
+	    "type":{
+		"name": "Type"
+	    },
+	    "model":{
+		"name": "Modèle"
+	    },
+	    "state":{
+		"name": "Etat"
+	    },
+	    "intensity":{
+		"name": "Intensité"
+	    },
+	    "pulse":{
+		"name": "Impulsion"
+	    },
 	    "container_volume":{
 		"name": "Container Volume"
 	    },
