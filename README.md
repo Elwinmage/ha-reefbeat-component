@@ -117,6 +117,10 @@ ReefRun:
 
 - ReefDose:
   - Implement scheduling edition
+  - Edit container volume
+
+- ReefMat:
+  - Rool replacement
   
 # Home Assitant Card
 An example to display your led program.
