@@ -64,7 +64,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         except Exception as e:
             # Raising ConfigEntryAuthFailed will cancel future updates
             # and start a config flow with SOURCE_REAUTH (async_step_reauth)
-            _LOGGER.error("Error communicating with API")
+            _LOGGER.error("Error communicating with API: %s"%self._title)
             _LOGGER.error(e)
 
     async def update(self):
@@ -184,6 +184,9 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
                 _LOGGER.info(" - %s"%(name))
 
     def force_status_update(self,state=False):
+        pass
+    
+    async def _async_update_data(self):
         pass
     
     def get_data(self,name):

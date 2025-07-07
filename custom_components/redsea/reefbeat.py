@@ -38,21 +38,19 @@ class ReefBeatAPI():
                                {"name":"/firmware","get_once":True,"data":""},
                                {"name":"/dashboard","get_once":False,"data":""}]}
         self.last_update_success=None
-        self._sources=None        
         
     async def get_initial_data(self):
         """ Get inital datas and device information async """
         _LOGGER.debug('Reefbeat.get_initial_data')
-        if self._sources == None:
-            query=parse("$.sources[?(@.get_once==true)]")
-            self._sources=query.find(self.data)
+        query=parse("$.sources[?(@.get_once==true)]")
+        sources=query.find(self.data)
         async with httpx.AsyncClient(verify=False) as client:
-            for source in range (0,len(self._sources)):
-                _LOGGER.info(self._base_url+self._sources[source].value['name'])
-                r = await client.get(self._base_url+self._sources[source].value['name'],timeout=DEFAULT_TIMEOUT)
+            for source in range (0,len(sources)):
+                _LOGGER.info(self._base_url+sources[source].value['name'])
+                r = await client.get(self._base_url+sources[source].value['name'],timeout=DEFAULT_TIMEOUT)
                 if r.status_code == 200:
                     response=r.json()
-                    self._sources[source].value['data']=response
+                    sources[source].value['data']=response
         await self.fetch_data()
         _LOGGER.debug('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
         _LOGGER.debug(self.data)
