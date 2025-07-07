@@ -1,9 +1,9 @@
 # Overview
 RedSea Reefled, ReefMat, ReefDose and ReefATO+ Local Management (no cloud)
 
-***If someone have reefwave, reef dc skimmer and/or reefrun I ll try to integrate them too.***
+***If someone have reefwave I ll try to integrate them too.***
 
-***If yout need other sensors or actuators in ReefLed, ReefMat, ReefDose or ReefATO+ let me know.***
+***If yout need other sensors or actuators let me know.***
 
 This is not an official repo of RedSea
 
@@ -38,7 +38,7 @@ ReefATO+:
   - Tested
 
 ReefRun:
-  - Partila Test
+  - Partially tested
   
 # What works
 - All:
@@ -99,7 +99,11 @@ ReefRun:
   -  Sensors
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_1.png" alt="Image">
+</p>
+<p align="center">                                                                                                                                                                              
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_2.png" alt="Image">
+</p>
+<p align="center">                                                                                                                                                                              
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_3.png" alt="Image">
 </p>
 
