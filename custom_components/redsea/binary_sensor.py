@@ -121,10 +121,10 @@ ATO_SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
         icon="mdi:water-off",
     ),
     ReefBeatBinarySensorEntityDescription(
-        key='ec_sensor_error',
+        key='is_sensor_error',
         translation_key='is_sensor_error',
         device_class=BinarySensorDeviceClass.PROBLEM,
-        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.ato_sensor.ec_sensor_error"),
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.ato_sensor.is_sensor_error"),
         icon="mdi:alert-circle-outline",
     ),
     ReefBeatBinarySensorEntityDescription(

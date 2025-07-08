@@ -54,7 +54,7 @@ def get_scan_interval(hw_model):
     elif hw_model in HW_MAT_IDS:
         default_scan_interval=MAT_SCAN_INTERVAL
     elif hw_model in HW_ATO_IDS:
-        default_scan_interval=MAT_ATO_INTERVAL
+        default_scan_interval=ATO_SCAN_INTERVAL
     elif hw_model in HW_LED_IDS:
         default_scan_interval=LED_SCAN_INTERVAL
     elif hw_model in HW_RUN_IDS:
