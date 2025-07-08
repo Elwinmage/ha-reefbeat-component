@@ -1,0 +1,43 @@
+name: Release
+on: 
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag Version'     
+        required: true
+        default: 'v'
+  
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: "Set version number from trigger's tag"
+        id: update_manifest
+        run: |
+          yq -i -o json '.version="${{ github.event.inputs.tag}}"' \
+            "${{ github.workspace }}/custom_components/redsea/manifest.json"
+          git config --global user.email "moranderic31@gmail.com"
+          git config --global user.name "Elwinmage"
+          git commit -a -m "Update version"
+          git push origin HEAD:main
+          SHA=`git rev-parse HEAD`
+          echo "tag_sha=${SHA}" >> $GITHUB_OUTPUT
+      - name: Create tag
+        if: steps.update_manifest.outcome == 'success'
+        uses: actions/github-script@v5
+        id: create_tag
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ github.event.inputs.tag}}',
+              sha: '${{steps.update_manifest.outputs.tag_sha}}'
+            })
+      - uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.event.inputs.tag}}
