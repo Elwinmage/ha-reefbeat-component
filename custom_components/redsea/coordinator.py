@@ -16,6 +16,7 @@ from typing import Any
 
 from .const import (
     DOMAIN,
+    DEFAULT_TIMEOUT,
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_SCAN_INTERVAL,
@@ -59,7 +60,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         try:
             # Note: asyncio.TimeoutError and aiohttp.ClientError are already
             # handled by the data update coordinator.
-            async with async_timeout.timeout(10):
+            async with async_timeout.timeout(DEFAULT_TIMEOUT):
                 return await self.my_api.fetch_data()
         except Exception as e:
             # Raising ConfigEntryAuthFailed will cancel future updates

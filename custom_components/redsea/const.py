@@ -18,7 +18,7 @@ CONFIG_FLOW_SCAN_INTERVAL="scan_interval"
 SCAN_INTERVAL=120 #in seconds
 DO_NOT_REFRESH_TIME=2 #in seconds
 
-DEFAULT_TIMEOUT=10
+DEFAULT_TIMEOUT=20
 
 ################################################################################
 
