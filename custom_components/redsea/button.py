@@ -51,6 +51,14 @@ MAT_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         press_fn=lambda device: device.press("advance"),
         icon="mdi:paper-roll-outline",
     ),
+    ReefBeatButtonEntityDescription(
+        key='new_roll',
+        translation_key='new_roll',
+        exists_fn=lambda _: True,
+        press_fn=lambda device: device.new_roll(),
+        icon="mdi:paper-roll-outline",
+    ),
+
 )
 
 ATO_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (

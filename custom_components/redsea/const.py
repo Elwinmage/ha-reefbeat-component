@@ -1,6 +1,6 @@
 from homeassistant.const import Platform
 
-PLATFORMS: list[Platform] = [Platform.LIGHT,Platform.SENSOR,Platform.BINARY_SENSOR,Platform.SWITCH,Platform.NUMBER,Platform.BUTTON]
+PLATFORMS: list[Platform] = [Platform.LIGHT,Platform.SENSOR,Platform.BINARY_SENSOR,Platform.SWITCH,Platform.NUMBER,Platform.BUTTON,Platform.SELECT]
 
 DOMAIN = "redsea"
 
@@ -22,12 +22,13 @@ DEFAULT_TIMEOUT=10
 
 ################################################################################
 
-HW_LED_IDS=['RSLED160','RSLED90','RSLED50','RSLED115','RSLED60','RSLED175']
-HW_DOSE_IDS=['RSDOSE4','RSDOSE2']
-HW_MAT_IDS=['RSMAT','RSMAT500']
+HW_LED_IDS=['RSLED50','RSLED60','RSLED90','RSLED115','RSLED160','RSLED170']
+HW_DOSE_IDS=['RSDOSE2','RSDOSE4']
+HW_MAT_IDS=['RSMAT']
+HW_MAT_MODEL=['RSMAT250','RSMAT500','RSMAT1200']
 HW_ATO_IDS=['RSATO+']
 HW_RUN_IDS=['RSRUN']
-HW_WAVE_IDS=['RSWAVE45','RSWAVE25']
+HW_WAVE_IDS=['RSWAVE25','RSWAVE45']
 
 HW_DEVICES_IDS=HW_LED_IDS+HW_DOSE_IDS+HW_MAT_IDS+HW_RUN_IDS+HW_WAVE_IDS+HW_ATO_IDS
 
@@ -50,10 +51,17 @@ LED_CONVERSION_COEF=100/255
 ################################################################################
 # MAT
 MAT_SCAN_INTERVAL=300 #in seconds
+MAT_MIN_ROLL_DIAMETER=4.0
+MAT_MAX_ROLL_DIAMETERS={'RSMAT1200':11.1,'RSMAT500':10.0,'RSMAT250':10.6}
+MAT_ROLL_THICKNESS=0.0237
 # MAT SWITCHES
 MAT_AUTO_ADVANCE_INTERNAL_NAME="$.sources[?(@.name=='/configuration')].data.auto_advance"
 # MAT NUMBERS
 MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME="$.sources[?(@.name=='/configuration')].data.custom_advance_value"
+MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME="$.local.started_roll_diameter"
+# MAT SELECT
+MAT_MODEL_INTERNAL_NAME="$.sources[?(@.name=='/configuration')].data.model"
+MAT_POSITION_INTERNAL_NAME="$.sources[?(@.name=='/configuration')].data.position"
 
 ########################################
 #DOSE__INTERNAL_NAME
@@ -64,7 +72,7 @@ DOSE_SCAN_INTERVAL= 120 # in seconds
 ################################################################################
 # ATO
 ATO_SCAN_INTERVAL=10 #in seconds
-#MAT SWITCHES
+#ATO SWITCHES
 ATO_AUTO_FILL_INTERNAL_NAME="$.sources[?(@.name=='/configuration')].data.auto_fill"
 
 ################################################################################
