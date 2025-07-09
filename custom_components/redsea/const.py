@@ -20,6 +20,10 @@ DO_NOT_REFRESH_TIME=2 #in seconds
 
 DEFAULT_TIMEOUT=20
 
+
+HTTP_GET_MAX_RETRY=5
+HTTP_GET_DELAY_BETWEEN_RETRY=2
+
 ################################################################################
 
 HW_LED_IDS=['RSLED50','RSLED60','RSLED90','RSLED115','RSLED160','RSLED170']

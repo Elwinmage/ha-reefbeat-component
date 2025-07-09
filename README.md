@@ -120,10 +120,10 @@ Or search for "redsea" or "reefbeat" in hacs
 
 # What next?
 ## LED:
-    - Set programs (and implement the daily prog button that do nothing yet)
-    - Manage manual mode timing
-    - Random  program creation
-    - Daily program generation according to meteo of a specific place according to geographic coordinates
+  - Set programs (and implement the daily prog button that do nothing yet)
+  - Manage manual mode timing
+  - Random  program creation
+  - Daily program generation according to meteo of a specific place according to geographic coordinates
 
 ## ReefDose:
   - Implement scheduling edition

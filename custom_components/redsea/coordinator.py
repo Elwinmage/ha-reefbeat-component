@@ -60,7 +60,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         try:
             # Note: asyncio.TimeoutError and aiohttp.ClientError are already
             # handled by the data update coordinator.
-            async with async_timeout.timeout(DEFAULT_TIMEOUT):
+            async with async_timeout.timeout(DEFAULT_TIMEOUT*2):
                 return await self.my_api.fetch_data()
         except Exception as e:
             # Raising ConfigEntryAuthFailed will cancel future updates

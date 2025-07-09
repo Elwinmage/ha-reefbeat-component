@@ -29,6 +29,8 @@ from .const import (
     MAT_MODEL_INTERNAL_NAME,
     MAT_POSITION_INTERNAL_NAME,
     ATO_AUTO_FILL_INTERNAL_NAME,
+    HTTP_GET_MAX_RETRY,
+    HTTP_GET_DELAY_BETWEEN_RETRY,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,15 +48,31 @@ class ReefBeatAPI():
         self.last_update_success=None
 
 
-    async def _call_url(self,client,source):
+    async def _http_get(self,client,source):
         r = await client.get(self._base_url+source.value['name'],timeout=DEFAULT_TIMEOUT)
         if r.status_code == 200:
             response=r.json()
             query=parse("$.sources[?(@.name=='"+source.value["name"]+"')]")
             s=query.find(self.data)
             s[0].value['data']=response
+            return True
         else:
             _LOGGER.error("Can not get data: %s"%source)
+            return False
+            
+    async def _call_url(self,client,source):
+        status_ok=False
+        error_count=0
+        while status_ok == False and error_count <= HTTP_GET_MAX_RETRY:
+            try:
+                status_ok=await self._http_get(client,source)
+            except Exception as e:
+                error_count += 1
+                _LOGGER.debug("Can not get data: %s, retry nb %d/%d"%(source.value['name'],error_count,HTTP_GET_MAX_RETRY))
+            await asyncio.sleep(HTTP_GET_DELAY_BETWEEN_RETRY)
+        if not status_ok:
+            _LOGGER.error("Can not get data from %s after %s try"%(source.value['name'],HTTP_GET_MAX_RETRY))
+            
             
     async def get_initial_data(self):
         """ Get inital datas and device information async """
