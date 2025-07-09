@@ -49,7 +49,7 @@ ReefRun:
   - Partially tested
   
 # What works
-- All:
+## All:
   - Display device IP in diagnostics
   - Auto detect on private network (if on same network)
 
@@ -65,10 +65,10 @@ ReefRun:
 </p> 
    
 
-- LED:
-    - Get and Set White, Blue and Moon values
-    - Get Fan and Temperature
-    - Get name and value for progams (with clouds support)
+## LED:
+  - Get and Set White, Blue and Moon values
+  - Get Fan and Temperature
+  - Get name and value for progams (with clouds support)
 <p align="center">                                                                                                                                                                              
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled.png" alt="Image">                                                                                       
 </p> 
@@ -78,18 +78,19 @@ ReefRun:
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_2.png" alt="Image">                                                                                       
 </p> 
       
-- ReefMat:
-    - many sensors values: auto_advance, unclean_sensor, daily_avergage_usage, today_usage, remaining_length,days_till_end_of_roll and total_usage,is_ec_sensor_connected (let me know if you want some more)
-    - auto advance switch (enable/disable)
-    - custom advance value: let you select the value of roll advance
-    - a press button to manualy advance
-    - can now change the roll form homeassistant. For a new full rool please set roll diameter to min (4.0cm). It will adjust the size according to your RSMAT version. For a started roll enter the value in cm.
+## ReefMat:
+- many sensors values: auto_advance, unclean_sensor, daily_avergage_usage, today_usage, remaining_length, days_till_end_of_roll and total_usage, is_ec_sensor_connected (let me know if you want some more)
+- auto advance switch (enable/disable)
+- custom advance value: let you select the value of roll advance
+- a press button to manualy advance
+- can change the roll. <b>For a new full roll please set "roll diameter" to min (4.0cm). It will adjust the size according to your RSMAT version. For a started roll enter the value in cm.</b>
+- two hidden parameters: model and position if you need to reconfigure your RSMAT
 <p align="center">                                                                                                                                                                              
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat.png" alt="Image">                                                                                       
-</p>     - 
+</p>
 
-- ReefDose:
-  - sensors: auto_dose_today,container_volume,daily_dose,daily_doses,manual_dosed_today,doses_today,remaining_days,supplement,calibration status
+## ReefDose:
+  - sensors: auto_dose_today, container_volume, daily_dose, daily_doses, manual_dosed_today, doses_today, remaining_days, supplement,calibration, status
   - edit daily dose
   - manual dose
   - change and control container volume
@@ -98,7 +99,7 @@ ReefRun:
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose.png" alt="Image">                                                                                       
 </p> 
 
-- ReefATO+:
+## ReefATO+:
   - Sensors
   - Auto_fill enalbe/disable
   - Manual fill
@@ -106,7 +107,7 @@ ReefRun:
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato.png" alt="Image">                                                                                       
 </p> 
 
--ReefRun:
+## ReefRun:
   -  Sensors
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_1.png" alt="Image">
@@ -120,18 +121,14 @@ ReefRun:
 
 
 # What next?
-- LED:
+## LED:
     - Set programs (and implement the daily prog button that do nothing yet)
     - Manage manual mode timing
     - Random  program creation
     - Daily program generation according to meteo of a specific place according to geographic coordinates
 
-- ReefDose:
+## ReefDose:
   - Implement scheduling edition
-  - Edit container volume
-
-- ReefMat:
-  - Rool replacement
   
 # Home Assitant Card
 An example to display your led program.
