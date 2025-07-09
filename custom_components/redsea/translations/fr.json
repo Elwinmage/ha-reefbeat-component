@@ -33,6 +33,9 @@
     },
     "entity": {
 	"button":{
+	    "new_roll":{
+		"name": "Nouveau Rouleau"
+	    },
 	    "manual_head":{
 		"name": "Dosage manuel"
 	    },
@@ -47,6 +50,12 @@
 	    }
 	},
 	"number":{
+	    "started_roll_diameter":{
+		"name": "Diamètre du rouleau"
+	    },
+	    "container_volume":{
+		"name": "Volume restant"
+	    },
 	    "daily_dose":{
 		"name": "MAJ Dose journalière"
 	    },
@@ -245,6 +254,12 @@
 	    }
 	},
 	"switch": {
+	    "slm":{
+		"name": "Contrôleur du Volume"
+	    },
+	    "schedule_enabled":{
+		"name": "Planifcation active"
+	    },
 	    "daily_prog": {
 		"name": "Programmation journalière"
 	    },
@@ -255,6 +270,15 @@
 		"name" :"Remplissage automatique"
 	    }
 	    
+	},
+	"select" : {
+	    "model": {
+		"name": "Model"
+	    },
+	    "position": {
+		"name": "Position"
+	    }
+
 	}
 	
     }

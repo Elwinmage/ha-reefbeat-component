@@ -33,7 +33,9 @@ from homeassistant.helpers.typing import StateType
 
 from .const import (
     DOMAIN,
+    MAT_MIN_ROLL_DIAMETER,
     MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
+    MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
 )
 
 from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
@@ -52,7 +54,7 @@ class ReefDoseNumberEntityDescription(NumberEntityDescription):
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
     value_name: ""
     head: 0
-
+    dependency: str = None
     
 MAT_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
     ReefBeatNumberEntityDescription(
@@ -66,8 +68,19 @@ MAT_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         value_name=MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
         icon="mdi:arrow-expand-right",
     ),
-)
+    ReefBeatNumberEntityDescription(
+        key='started_roll_diameter',
+        translation_key='started_roll_diameter',
+        native_unit_of_measurement=UnitOfLength.CENTIMETERS,
+        device_class=NumberDeviceClass.DISTANCE,
+        native_max_value=11.1,
+        native_min_value=MAT_MIN_ROLL_DIAMETER,
+        native_step=0.1,
+        value_name=MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
+        icon="mdi:arrow-expand-right",
+    ),
 
+)
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -116,6 +129,21 @@ async def async_setup_entry(
                 head=head,
             ), )
             dn+=new_head
+            new_head= (ReefDoseNumberEntityDescription(
+                key="container_volume_head_"+str(head)+"_volume",
+                translation_key="container_volume",
+                mode="box",
+                native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+                device_class=NumberDeviceClass.VOLUME,
+                native_min_value=0,
+                native_step=1,
+                native_max_value=2000,
+                value_name="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.container_volume",
+                icon="mdi:cup-water",
+                head=head,
+                dependency="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.slm",
+            ), )
+            dn+=new_head
             
         entities += [ReefDoseNumberEntity(device, description)
                  for description in dn
@@ -135,7 +163,6 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
         super().__init__(device,entity_description)
         self._device = device
         self.entity_description = entity_description
-        self._attr_available = False
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._attr_native_value=3.25
 
@@ -197,7 +224,14 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         self._device.set_data(self.entity_description.value_name,value)
         self._device.push_values(self._head)
         await self._device.async_request_refresh()
-        
+
+    @property
+    def available(self) -> bool:
+        if self.entity_description.dependency != None:
+            return self._device.get_data(self.entity_description.dependency)
+        else:
+            return True
+    
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""

@@ -20,8 +20,14 @@ from .const import (
     MODEL_ID,
     HW_VERSION,
     SW_VERSION,
+    MAT_MIN_ROLL_DIAMETER,
+    MAT_MAX_ROLL_DIAMETERS,
+    MAT_ROLL_THICKNESS,
+    MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
     MAT_AUTO_ADVANCE_INTERNAL_NAME,
     MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
+    MAT_MODEL_INTERNAL_NAME,
+    MAT_POSITION_INTERNAL_NAME,
     ATO_AUTO_FILL_INTERNAL_NAME,
 )
 
@@ -38,19 +44,25 @@ class ReefBeatAPI():
                                {"name":"/firmware","get_once":True,"data":""},
                                {"name":"/dashboard","get_once":False,"data":""}]}
         self.last_update_success=None
-        
+
+
+    async def _call_url(self,client,source):
+        r = await client.get(self._base_url+source.value['name'],timeout=DEFAULT_TIMEOUT)
+        if r.status_code == 200:
+            response=r.json()
+            query=parse("$.sources[?(@.name=='"+source.value["name"]+"')]")
+            s=query.find(self.data)
+            s[0].value['data']=response
+        else:
+            _LOGGER.error("Can not get data: %s"%source)
+            
     async def get_initial_data(self):
         """ Get inital datas and device information async """
         _LOGGER.debug('Reefbeat.get_initial_data')
         query=parse("$.sources[?(@.get_once==true)]")
         sources=query.find(self.data)
-        async with httpx.AsyncClient(verify=False) as client:
-            for source in range (0,len(sources)):
-                _LOGGER.info(self._base_url+sources[source].value['name'])
-                r = await client.get(self._base_url+sources[source].value['name'],timeout=DEFAULT_TIMEOUT)
-                if r.status_code == 200:
-                    response=r.json()
-                    sources[source].value['data']=response
+        async with httpx.AsyncClient(verify=False) as client:  
+            await asyncio.gather(*[self._call_url(client,sources[source]) for source in range(0,len(sources))])
         await self.fetch_data()
         _LOGGER.debug('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
         _LOGGER.debug(self.data)
@@ -61,13 +73,9 @@ class ReefBeatAPI():
         """ Get device data """
         query=parse("$.sources[?(@.get_once==false)]")
         sources=query.find(self.data)
-        async with httpx.AsyncClient(verify=False) as client:
-            for source in range (0,len(sources)):
-                r = await client.get(self._base_url+sources[source].value['name'],timeout=DEFAULT_TIMEOUT)
-                if r.status_code == 200:
-                    response=r.json()
-                    sources[source].value['data']=response
-    
+        async with httpx.AsyncClient(verify=False) as client:  
+            await asyncio.gather(*[self._call_url(client,sources[source]) for source in range(0,len(sources))])
+
     def press(self,action):
         payload=''
         _LOGGER.debug("Sending: %s"%action)
@@ -132,11 +140,37 @@ class ReefMatAPI(ReefBeatAPI):
     def __init__(self,ip) -> None:
         super().__init__(ip)
         self.data['sources'].insert(len(self.data['sources']),{"name":"/configuration","get_once": False,"data":""})
+        self.data['local']={"started_roll_diameter":MAT_MIN_ROLL_DIAMETER}
         
     def push_values(self):
-        payload={'auto_advance': self.get_data(MAT_AUTO_ADVANCE_INTERNAL_NAME),'custom_advance_value': self.get_data(MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME)}
+        payload={
+            'auto_advance': self.get_data(MAT_AUTO_ADVANCE_INTERNAL_NAME),
+            'custom_advance_value': self.get_data(MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME),
+            'model': self.get_data(MAT_MODEL_INTERNAL_NAME),
+            'position': self.get_data(MAT_POSITION_INTERNAL_NAME)}
         r = httpx.put(self._base_url+'/configuration', json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
 
+    def new_roll(self):
+        model = self.get_data("$.sources[?(@.name=='/configuration')].data.model")
+        diameter = self.get_data(MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME)
+        
+        # New roll
+        if diameter==MAT_MIN_ROLL_DIAMETER:
+            name="New Roll"
+            is_partial = False
+            diameter=MAT_MAX_ROLL_DIAMETERS[model]
+        # Started Roll
+        else :
+            name ="Started Roll"
+            is_partial = True
+        #new_length = math.pi/2*(MAT_INNER_DIAMETER+diameter)*((diameter-MAT_INNER_DIAMETER)/(2*MAT_TICKNESS))
+        payload={'external_diameter':diameter,'name':name,'thickness':MAT_ROLL_THICKNESS,'is_partial':is_partial}
+        _LOGGER.info("New roll: %s"%payload)
+        r = httpx.post(self._base_url+'/new-roll', json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
+        _LOGGER.debug(r.status_code)
+        _LOGGER.debug(r.text)
+
+        
 ################################################################################
 #ReefDose
 class ReefDoseAPI(ReefBeatAPI):
@@ -160,7 +194,7 @@ class ReefDoseAPI(ReefBeatAPI):
         r = httpx.post(self._base_url+'/head/'+str(head)+'/'+action, json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
         
     def push_values(self,head):
-        payload={'schedule':self.get_data("$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.schedule")}
+        payload=self.get_data("$.sources[?(@.name=='/head/"+str(head)+"/settings')].data")
         try:
             r = httpx.put(self._base_url+'/head/'+str(head)+'/settings', json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
         except Exception as e:

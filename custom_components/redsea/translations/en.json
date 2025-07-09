@@ -33,6 +33,9 @@
     },
     "entity": {
 	"button":{
+	    "new_roll":{
+		"name": "New Roll"
+	    },
 	    "manual_head":{
 		"name": "Manual dosing"
 	    },
@@ -48,11 +51,17 @@
 	    
 	},
 	"number":{
+	    "started_roll_diameter":{
+		"name": "Roll Diameter"
+	    },
+	    "container_volume":{
+		"name": "Container Volume"
+	    },
 	    "daily_dose":{
 		"name": "Update Daily dose"
 	    },
 	    "custom_advance_value":{
-		"name": "Valeur d'avance"
+		"name": "Advance Value"
 	    },
 	    "manual_head_volume":{
 		"name": "Manual Volume"
@@ -245,6 +254,12 @@
 	    }
 	},
 	"switch": {
+	    "slm":{
+		"name": "Container Volume Controller"
+	    },
+	    "schedule_enabled":{
+		"name": "Schedule enabled"
+	    },
 	    "daily_prog": {
 		"name": "Daily Programmation"
 	    },
@@ -255,6 +270,16 @@
 		"name": "Auto fill"
 	    }
 	    
+	},
+	"select" : {
+	    "model": {
+		"name": "Model"
+	    },
+	    "position": {
+		"name": "Position"
+	    }
+
 	}
+	
     }
 }

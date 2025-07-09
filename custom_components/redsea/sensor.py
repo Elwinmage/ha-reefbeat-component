@@ -155,6 +155,13 @@ MAT_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         icon="mdi:paper-roll-outline",
         suggested_display_precision=2,
     ),
+    ReefBeatSensorEntityDescription(
+        key="model",
+        translation_key="model",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/configuration')].data.model"),
+        icon="mdi:paper-roll-outline",
+    ),
 )
 
 
