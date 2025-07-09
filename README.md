@@ -83,6 +83,7 @@ ReefRun:
     - auto advance switch (enable/disable)
     - custom advance value: let you select the value of roll advance
     - a press button to manualy advance
+    - can now change the roll form homeassistant. For a new full rool please set roll diameter to min (4.0cm). It will adjust the size according to your RSMAT version. For a started roll enter the value in cm.
 <p align="center">                                                                                                                                                                              
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat.png" alt="Image">                                                                                       
 </p>     - 
@@ -91,6 +92,8 @@ ReefRun:
   - sensors: auto_dose_today,container_volume,daily_dose,daily_doses,manual_dosed_today,doses_today,remaining_days,supplement,calibration status
   - edit daily dose
   - manual dose
+  - change and control container volume
+  - enable/disable schedule per pump
 <p align="center">                                                                                                                                                                              
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose.png" alt="Image">                                                                                       
 </p> 
