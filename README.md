@@ -95,9 +95,7 @@ ReefRun:
   - manual dose
   - change and control container volume
   - enable/disable schedule per pump
-<p align="center">                                                                                                                                                                              
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose.png" alt="Image">                                                                                       
-</p> 
+<p align="center">                                                                                                                                                                   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose.png" alt="Image">                                                                          </p> 
 
 ## ReefATO+:
   - Sensors
