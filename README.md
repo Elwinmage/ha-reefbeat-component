@@ -33,19 +33,19 @@ Or search for "redsea" or "reefbeat" in hacs
     https://github.com/Elwinmage/ha-reefbeat-component
 
 # Hardware
-ReefLed:
+## ReefLed:
   - Test with the RESLED 160  but may work with 50, 60, 90, 115 and 175 versions let me know.
 
-ReefMat:
+## ReefMat:
   - Test with ReefMat 1200 must work with all other versions
 
-ReefDose:
+## ReefDose:
   - Test with ReefDose4 but may work with ReefdDose2
 
-ReefATO+:
+## ReefATO+:
   - Tested
 
-ReefRun:
+## ReefRun:
   - Partially tested
   
 # What works
@@ -99,7 +99,7 @@ ReefRun:
 
 ## ReefATO+:
   - Sensors
-  - Auto_fill enalbe/disable
+  - Auto_fill enable/disable
   - Manual fill
 <p align="center">                                                                                                                                                                              
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato.png" alt="Image">                                                                                       
