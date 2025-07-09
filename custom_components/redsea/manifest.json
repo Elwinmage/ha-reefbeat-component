@@ -12,5 +12,5 @@
   "requirements": [
     "jsonpath-ng>=1.7.0"
   ],
-  "version": "v0.6.2"
+  "version": "v0.7.0"
 }
