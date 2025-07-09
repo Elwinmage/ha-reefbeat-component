@@ -34,7 +34,7 @@ Or search for "redsea" or "reefbeat" in hacs
 
 # Hardware
 ## ReefLed:
-  - Test with the RESLED 160  but may work with 50, 60, 90, 115 and 175 versions let me know.
+  - Test with the RESLED 160  but may work with 50, 60, 90, 115 and 170 versions let me know.
 
 ## ReefMat:
   - Test with ReefMat 1200 must work with all other versions
