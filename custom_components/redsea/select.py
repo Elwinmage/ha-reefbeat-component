@@ -105,13 +105,15 @@ class ReefBeatSelectEntity(CoordinatorEntity,SelectEntity):
         self._attr_options = entity_description.options
         self._value_name=entity_description.value_name
         self._attr_current_option = self._device.get_data(self._value_name)
+        self._source = self.entity_description.value_name.split('\'')[1]
 
+        
     async def async_select_option(self, option: str) -> None:
         """Update the current selected option."""
         self._attr_current_option = option
         self._device.set_data(self._value_name,option)
-        self._device.push_values()
         self.async_write_ha_state()        
+        await self._device.push_values(self._source)
         
     @property
     def device_info(self) -> DeviceInfo:

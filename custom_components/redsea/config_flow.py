@@ -35,6 +35,7 @@ from .const import (
     HW_RUN_IDS,
     HW_WAVE_IDS,
     SCAN_INTERVAL,
+    VIRTUAL_LED_SCAN_INTERVAL,
     DOSE_SCAN_INTERVAL,
     MAT_SCAN_INTERVAL,
     LED_SCAN_INTERVAL,
@@ -82,7 +83,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 title=VIRTUAL_LED+'-'+str(int(time()))
                 user_input[CONFIG_FLOW_IP_ADDRESS]=title
                 user_input[CONFIG_FLOW_HW_MODEL]=VIRTUAL_LED
-                user_input[CONFIG_FLOW_SCAN_INTERVAL]=SCAN_INTERVAL
+                user_input[CONFIG_FLOW_SCAN_INTERVAL]=VIRTUAL_LED_SCAN_INTERVAL
                 _LOGGER.debug("-- ** UUID ** -- %s"%title)
                 await self.async_set_unique_id(title)
             else:
@@ -180,6 +181,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 leds={}
                 data[CONFIG_FLOW_IP_ADDRESS]=self._config_entry.data[CONFIG_FLOW_IP_ADDRESS]
                 data[CONFIG_FLOW_HW_MODEL]=VIRTUAL_LED
+                data[CONFIG_FLOW_SCAN_INTERVAL]=VIRTUAL_LED_SCAN_INTERVAL
                 for led in user_input:
                     if user_input[led]:
                         leds[led]=True

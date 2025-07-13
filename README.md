@@ -4,7 +4,7 @@
 
 
 # Overview
-RedSea Reefled, ReefMat, ReefDose and ReefATO+ Local Management (no cloud)
+RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cloud)
 
 ***If someone have reefwave I ll try to integrate them too.***
 

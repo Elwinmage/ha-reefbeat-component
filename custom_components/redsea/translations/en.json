@@ -51,6 +51,18 @@
 	    
 	},
 	"number":{
+	    "schedule_length":{
+		"name": "Schedule Length"
+	    },
+	    "acclimation_duration":{
+		"name": "Acclimation Duration"
+	    },
+	    "acclimation_start_intensity_factor":{
+		"name": "Acclimation Start Intensity Factor"
+	    },
+	    "moon_day":{
+		"name": "Moon Day"
+	    },
 	    "started_roll_diameter":{
 		"name": "Roll Diameter"
 	    },
@@ -117,6 +129,27 @@
 	    }
 	},
 	"sensor": {
+	    "water_level":{
+		"name": "Water level"
+	    },
+	    "acclimation_duration":{
+		"name": "Acclimation Duration"
+	    },
+	    "acclimation_start_intensity_factor":{
+		"name": "Acclimation Start Intensity Factor"
+	    },
+	    "moon_intensity":{
+		"name": "Moon Intensity"
+	    },
+	    "todays_moon_day":{
+		"name": "Todays Moon Day"
+	    },
+	    "next_full_moon":{
+		"name": "Next Full Moon"
+	    },
+	    "next_new_moon":{
+		"name": "Next New Moon"
+	    },
 	    "name":{
 		"name": "Name"
 	    },
@@ -254,6 +287,15 @@
 	    }
 	},
 	"switch": {
+	    "scheduled_advance":{
+		"name": "Schedule Advance"
+	    },
+	    "moon":{
+		"name":"Moon"
+	    },
+	    "acclimation":{
+		"name":"Acclimation"
+	    },
 	    "slm":{
 		"name": "Container Volume Controller"
 	    },
@@ -278,7 +320,11 @@
 	    "position": {
 		"name": "Position"
 	    }
-
+	},
+	"time" :{
+	    "schedule_time":{
+		"name": "Schedule advance time"
+	    }
 	}
 	
     }

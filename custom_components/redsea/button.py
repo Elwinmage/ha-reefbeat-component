@@ -131,14 +131,15 @@ class ReefBeatButtonEntity(ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        self.entity_description.press_fn(self._device)
+        await self.entity_description.press_fn(self._device)
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info
 
-
+################################################################################
+# DOSE
 class ReefDoseButtonEntity(ReefBeatButtonEntity):
     """Represent a ReefDose button."""
     _attr_has_entity_name = True
@@ -152,7 +153,7 @@ class ReefDoseButtonEntity(ReefBeatButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        self._device.press(self.entity_description.action,self.entity_description.head)
+        await self._device.press(self.entity_description.action,self.entity_description.head)
 
     @property
     def device_info(self) -> DeviceInfo:

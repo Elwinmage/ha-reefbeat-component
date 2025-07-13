@@ -1,6 +1,6 @@
 from homeassistant.const import Platform
 
-PLATFORMS: list[Platform] = [Platform.LIGHT,Platform.SENSOR,Platform.BINARY_SENSOR,Platform.SWITCH,Platform.NUMBER,Platform.BUTTON,Platform.SELECT]
+PLATFORMS: list[Platform] = [Platform.LIGHT,Platform.SENSOR,Platform.BINARY_SENSOR,Platform.SWITCH,Platform.NUMBER,Platform.BUTTON,Platform.SELECT,Platform.TIME]
 
 DOMAIN = "redsea"
 
@@ -21,8 +21,8 @@ DO_NOT_REFRESH_TIME=2 #in seconds
 DEFAULT_TIMEOUT=20
 
 
-HTTP_GET_MAX_RETRY=5
-HTTP_GET_DELAY_BETWEEN_RETRY=2
+HTTP_MAX_RETRY=5
+HTTP_DELAY_BETWEEN_RETRY=2
 
 ################################################################################
 
@@ -44,13 +44,25 @@ LED_WHITE_INTERNAL_NAME="$.sources[?(@.name=='/manual')].data.white"
 LED_BLUE_INTERNAL_NAME ="$.sources[?(@.name=='/manual')].data.blue"
 LED_MOON_INTERNAL_NAME ="$.sources[?(@.name=='/manual')].data.moon"
 
+LED_ACCLIMATION_ENABLED_INTERNAL_NAME="$.sources[?(@.name=='/acclimation')].data.enabled"
+LED_MOONPHASE_ENABLED_INTERNAL_NAME="$.sources[?(@.name=='/moonphase')].data.enabled"
+
+LED_MOON_DAY_INTERNAL_NAME="$.local.moonphase.moon_day"
+LED_ACCLIMATION_DURATION_INTERNAL_NAME="$.local.acclimation.duration"
+LED_ACCLIMATION_INTENSITY_INTERNAL_NAME="$.local.acclimation.start_intensity_factor"
+
 DAILY_PROG_INTERNAL_NAME="$.local.daily_prog"
+
+
+LED_CONVERSION_COEF=100/255
+
+#VIRTUAL
 
 VIRTUAL_LED="virtual_led"
 VIRTUAL_LED_MAX_WAITING_TIME=10
 LINKED_LED="linked"
+VIRTUAL_LED_SCAN_INTERVAL=10 #in seconds
 
-LED_CONVERSION_COEF=100/255
 
 ################################################################################
 # MAT
@@ -60,6 +72,7 @@ MAT_MAX_ROLL_DIAMETERS={'RSMAT1200':11.1,'RSMAT500':10.0,'RSMAT250':10.6}
 MAT_ROLL_THICKNESS=0.0237
 # MAT SWITCHES
 MAT_AUTO_ADVANCE_INTERNAL_NAME="$.sources[?(@.name=='/configuration')].data.auto_advance"
+MAT_SCHEDULE_ADVANCE_INTERNAL_NAME="$.sources[?(@.name=='/configuration')].data.schedule_enable"
 # MAT NUMBERS
 MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME="$.sources[?(@.name=='/configuration')].data.custom_advance_value"
 MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME="$.local.started_roll_diameter"
@@ -75,12 +88,12 @@ DOSE_SCAN_INTERVAL= 120 # in seconds
 
 ################################################################################
 # ATO
-ATO_SCAN_INTERVAL=10 #in seconds
+ATO_SCAN_INTERVAL=20 #in seconds
 #ATO SWITCHES
 ATO_AUTO_FILL_INTERNAL_NAME="$.sources[?(@.name=='/configuration')].data.auto_fill"
 
 ################################################################################
 # RUN
-RUN_SCAN_INTERVAL=5 #in seconds
+RUN_SCAN_INTERVAL=60 #in seconds
 
 

@@ -102,6 +102,50 @@ LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         icon="mdi:thermometer",
         suggested_display_precision=1,
     ),
+    ReefBeatSensorEntityDescription(
+        key="moon_intensity",
+        translation_key="moon_intensity",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/moonphase')].data.intensity"),
+        icon="mdi:moon-waning-crescent",
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="todays_moon_day",
+        translation_key="todays_moon_day",
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/moonphase')].data.todays_moon_day"),
+        icon="mdi:calendar-today",
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="next_full_moon",
+        translation_key="next_full_moon",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/moonphase')].data.next_full_moon"),
+        icon="mdi:moon-full",
+    ),
+    ReefBeatSensorEntityDescription(
+        key="next_new_moon",
+        translation_key="next_new_moon",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/moonphase')].data.next_new_moon"),
+        icon="mdi:moon-new",
+    ),
+    ReefBeatSensorEntityDescription(
+        key="acclimation_duration",
+        translation_key="acclimation_duration",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/acclimation')].data.duration"),
+        icon="mdi:calendar-expand-horizontal",
+    ),
+    ReefBeatSensorEntityDescription(
+        key="acclimation_start_intensity_factor",
+        translation_key="acclimation_start_intensity_factor",
+        native_unit_of_measurement=PERCENTAGE,
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/acclimation')].data.start_intensity_factor"),
+        icon="mdi:sun-wireless-outline",
+    ),
 )
 
 """ ReefMat sensors list """
@@ -179,7 +223,12 @@ for auto_id in range(1,8):
 
 """ ReefMat sensors list """
 ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
-
+    ReefBeatSensorEntityDescription(
+        key='s_water_level',
+        translation_key='water_level',
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/dashboard')].data.water_level"),
+        icon="mdi:waves-arrow-up",
+    ),
     ReefBeatSensorEntityDescription(
         key='today_fills',
         translation_key='today_fills',

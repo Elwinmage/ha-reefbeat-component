@@ -51,7 +51,6 @@ class ReefVirtualLedLightEntityDescription(LightEntityDescription):
     exists_fn: Callable[[ReefVirtualLedCoordinator], bool] = lambda _: True
     value_name: ''
 
-
 LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
     ReefLedLightEntityDescription(
         key="white",
@@ -114,7 +113,8 @@ async def async_setup_entry(
 
     async_add_entities(entities, True)
 
-
+################################################################################
+# LED
 class ReefLedLightEntity(CoordinatorEntity,LightEntity):
     """Represent an ReefLed light."""
     _attr_has_entity_name = True
@@ -171,8 +171,10 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
         self._brightness = ha_value
         self._device.set_data(self.entity_description.value_name,ha_value*LED_CONVERSION_COEF)
         self._device.force_status_update(True)
-        self._device.push_values()
-        await self._device.async_request_refresh()
+        self.async_write_ha_state()
+        await self._device.push_values('/manual','post')
+        await self._device.async_quick_request_refresh('/manual')
+        #await self._device.async_request_refresh()
 
     async def async_turn_off(self, **kwargs):
         self._old_brighness=self._brightness
@@ -181,8 +183,10 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
         self._state="off"
         self._device.set_data(self.entity_description.value_name,0)
         self._device.force_status_update()
-        self._device.push_values()
-        await self._device.async_request_refresh()
+        self.async_write_ha_state()
+        await self._device.push_values('/manual','post')
+        await self._device.async_quick_request_refresh('/manual')
+        #await self._device.async_request_refresh()
 
     @property
     def brightness(self) -> int:

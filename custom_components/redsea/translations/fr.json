@@ -50,6 +50,18 @@
 	    }
 	},
 	"number":{
+	    "schedule_length":{
+		"name": "Longeur d'avance programmée"
+	    },
+	    "acclimation_duration":{
+		"name": "Durée de l'acclimatation"
+	    },
+	    "acclimation_start_intensity_factor":{
+		"name": "Intensité de départ de l'acclimatation"
+	    },
+ 	    "moon_day":{
+		"name": "Jour de la Lune"
+	    },
 	    "started_roll_diameter":{
 		"name": "Diamètre du rouleau"
 	    },
@@ -116,6 +128,27 @@
 	    
 	},
 	"sensor": {
+	    "water_level":{
+		"name": "Niveau d'eau"
+	    },
+	    "acclimation_duration":{
+		"name": "Durée de l'acclimatation"
+	    },
+	    "acclimation_start_intensity_factor":{
+		"name": "Intensité de départ de l'acclimatation"
+	    },
+	    "moon_intensity":{
+		"name": "Intensité de la Lune"
+	    },
+	    "todays_moon_day":{
+		"name": "Lune du jour"
+	    },
+	    "next_full_moon":{
+		"name": "Prochaine pleine Lune"
+	    },
+	    "next_new_moon":{
+		"name": "Prochaine nouvelle lune"
+	    },
 	    "name":{
 		"name": "Nom"
 	    },
@@ -254,6 +287,15 @@
 	    }
 	},
 	"switch": {
+	    "scheduled_advance":{
+		"name": "Avance Programmée"
+	    },
+	    "moon":{
+		"name":"Lune"
+	    },
+	    "acclimation":{
+		"name": "Acclimatation"
+	    },
 	    "slm":{
 		"name": "Contrôleur du Volume"
 	    },
@@ -279,6 +321,11 @@
 		"name": "Position"
 	    }
 
+	},
+	"time" :{
+	    "schedule_time":{
+		"name": "Heure de l'Avance Programmée"
+	    }
 	}
 	
     }

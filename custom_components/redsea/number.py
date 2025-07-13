@@ -1,5 +1,6 @@
 """ Implements the sensor entity """
 import logging
+import asyncio
 
 from dataclasses import dataclass
 from collections.abc import Callable
@@ -22,8 +23,10 @@ from homeassistant.components.number import (
  )
 
 from homeassistant.const import (
+    PERCENTAGE,
     UnitOfLength,
     UnitOfVolume,
+    UnitOfTime,
 )
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -36,9 +39,14 @@ from .const import (
     MAT_MIN_ROLL_DIAMETER,
     MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
     MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
+    LED_MOONPHASE_ENABLED_INTERNAL_NAME,
+    LED_MOON_DAY_INTERNAL_NAME,
+    LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
+    LED_ACCLIMATION_DURATION_INTERNAL_NAME,
+    LED_ACCLIMATION_INTENSITY_INTERNAL_NAME,
 )
 
-from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
+from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator, ReefLedCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,7 +55,16 @@ class ReefBeatNumberEntityDescription(NumberEntityDescription):
     """Describes reefbeat Number entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_name: ""
+    dependency: str = None
 
+@dataclass(kw_only=True)
+class ReefLedNumberEntityDescription(NumberEntityDescription):
+    """Describes reefbeat Number entity."""
+    exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
+    value_name: ""
+    post_specific: ""
+    dependency: str = None
+    
 @dataclass(kw_only=True)
 class ReefDoseNumberEntityDescription(NumberEntityDescription):
     """Describes reefbeat Number entity."""
@@ -79,7 +96,56 @@ MAT_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         value_name=MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
         icon="mdi:arrow-expand-right",
     ),
+    ReefBeatNumberEntityDescription(
+        key='schedule_length',
+        translation_key='schedule_length',
+        native_unit_of_measurement=UnitOfLength.CENTIMETERS,
+        device_class=NumberDeviceClass.DISTANCE,
+        native_min_value=5,
+        native_max_value=45,
+        native_step=2.5,
+        value_name="$.sources[?(@.name=='/configuration')].data.schedule_length",
+        icon="mdi:arrow-expand-right",
+    ),
 
+)
+
+LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
+    ReefLedNumberEntityDescription(
+        key='moon_day',
+        translation_key='moon_day',
+        native_max_value=28,
+        native_min_value=1,
+        native_step=1,
+        value_name=LED_MOON_DAY_INTERNAL_NAME,
+        post_specific='/moonphase',
+        icon="mdi:moon-waning-crescent",
+        dependency=LED_MOONPHASE_ENABLED_INTERNAL_NAME,
+    ),
+    ReefLedNumberEntityDescription(
+        key='acclimation_duration',
+        translation_key='acclimation_duration',
+        native_max_value=99,
+        native_min_value=2,
+        native_step=1,
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_name=LED_ACCLIMATION_DURATION_INTERNAL_NAME,
+        icon="mdi:calendar-expand-horizontal",
+        post_specific='/acclimation',
+        dependency=LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
+    ),
+    ReefLedNumberEntityDescription(
+        key='acclimation_start_intensity_factor',
+        translation_key='acclimation_start_intensity_factor',
+        native_max_value=100,
+        native_min_value=1,
+        native_step=1,
+        native_unit_of_measurement=PERCENTAGE,
+        value_name=LED_ACCLIMATION_INTENSITY_INTERNAL_NAME,
+        post_specific='/acclimation',
+        icon="mdi:sun-wireless-outline",
+        dependency=LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
+    ),
 )
 
 async def async_setup_entry(
@@ -93,11 +159,14 @@ async def async_setup_entry(
     
     entities=[]
     _LOGGER.debug("NUMBERS")
+    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefVirtualLedCoordinator':
+        entities += [ReefLedNumberEntity(device, description,hass)
+                 for description in LED_NUMBERS
+                 if description.exists_fn(device)]
     if type(device).__name__=='ReefMatCoordinator':
         entities += [ReefBeatNumberEntity(device, description)
                  for description in MAT_NUMBERS
                  if description.exists_fn(device)]
-
     if type(device).__name__=='ReefDoseCoordinator':
         dn=()
         for head in range(1,device.heads_nb+1):
@@ -151,7 +220,8 @@ async def async_setup_entry(
         
     async_add_entities(entities, True)
 
-
+################################################################################
+# BEAT
 class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
     """Represent an ReefBeat number."""
     _attr_has_entity_name = True
@@ -195,16 +265,45 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
         _LOGGER.debug("Reefbeat.number.set_native_value %f"%value)
         self._attr_native_value=value
         self._device.set_data(self.entity_description.value_name,value)
-        self._device.push_values()
+        await self._device.push_values()
         await self._device.async_request_refresh()
-      
+
+    @property
+    def available(self) -> bool:
+        if self.entity_description.dependency != None:
+            return self._device.get_data(self.entity_description.dependency)
+        else:
+            return True
        
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info
 
-
+################################################################################
+# LED
+class ReefLedNumberEntity(ReefBeatNumberEntity):
+    """Represent an ReefBeat number."""
+    _attr_has_entity_name = True
+    
+    def __init__(
+            self, device, entity_description: ReefLedNumberEntityDescription,hass
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+        self.hass = hass
+            
+    async def async_set_native_value(self, value: float) -> None:
+        """Update the current value."""
+        _LOGGER.debug("Reefbeat.number.set_native_value %f"%value)
+        self._attr_native_value=value
+        self._device.set_data(self.entity_description.value_name,value)
+        self.async_write_ha_state()
+        await self._device.post_specific(self.entity_description.post_specific)
+        await self._device.async_request_refresh()
+        
+################################################################################
+# DOSE
 class ReefDoseNumberEntity(ReefBeatNumberEntity):
     """Represent an ReefBeat number."""
     _attr_has_entity_name = True
@@ -222,16 +321,10 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         _LOGGER.debug("Reefbeat.number.set_native_value %f"%value)
         self._attr_native_value=value
         self._device.set_data(self.entity_description.value_name,value)
-        self._device.push_values(self._head)
+        self.async_write_ha_state()  
+        await self._device.push_values(self._head)
         await self._device.async_request_refresh()
 
-    @property
-    def available(self) -> bool:
-        if self.entity_description.dependency != None:
-            return self._device.get_data(self.entity_description.dependency)
-        else:
-            return True
-    
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
@@ -242,3 +335,6 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         identifiers+=head
         di['identifiers']={identifiers}
         return di
+
+
+    

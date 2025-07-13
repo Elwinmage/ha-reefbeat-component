@@ -30,10 +30,13 @@ from .const import (
     DOMAIN,
     DAILY_PROG_INTERNAL_NAME,
     MAT_AUTO_ADVANCE_INTERNAL_NAME,
+    MAT_SCHEDULE_ADVANCE_INTERNAL_NAME,
     ATO_AUTO_FILL_INTERNAL_NAME,
-    )
+    LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
+    LED_MOONPHASE_ENABLED_INTERNAL_NAME,
+)
 
-from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
+from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator, ReefLedCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,23 +45,42 @@ class ReefBeatSwitchEntityDescription(SwitchEntityDescription):
     """Describes reefbeat Switch entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_name: ''
-
+    method: str = 'put'
+    
+@dataclass(kw_only=True)
+class ReefLedSwitchEntityDescription(SwitchEntityDescription):
+    """Describes reefbeat Switch entity."""
+    exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
+    value_name: ''
+    method: str ='put'
+#    delete: bool= False
+    
 @dataclass(kw_only=True)
 class ReefDoseSwitchEntityDescription(SwitchEntityDescription):
     """Describes reefbeat Switch entity."""
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
     value_name: ''
     head: 0
+    method: str = 'put'
 
     
-LED_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
-    # ReefBeatSwitchEntityDescription(
-    #     key="daily_prog",
-    #     translation_key="daily_prog",
-    #     value_name= DAILY_PROG_INTERNAL_NAME,
-    #     exists_fn=lambda _: True,
-    #     icon="mdi:calendar-range",
-    # ),
+LED_SWITCHES: tuple[ReefLedSwitchEntityDescription, ...] = (
+    ReefLedSwitchEntityDescription(
+        key="sw_acclimation_enabled",
+        translation_key="acclimation",
+        value_name= LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
+         icon="mdi:fish",
+#        delete=True,
+        method='post',
+    ),
+    ReefLedSwitchEntityDescription(
+        key="sw_moonphase_enabled",
+        translation_key="moon",
+        value_name= LED_MOONPHASE_ENABLED_INTERNAL_NAME,
+         icon="mdi:weather-night",
+#        delete=True,
+        method='post',
+    ),
 )
 
 MAT_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
@@ -69,6 +91,14 @@ MAT_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         exists_fn=lambda _: True,
         icon="mdi:auto-mode",
     ),
+    ReefBeatSwitchEntityDescription(
+        key="scheduled_advance",
+        translation_key="scheduled_advance",
+        value_name=MAT_SCHEDULE_ADVANCE_INTERNAL_NAME,
+        exists_fn=lambda _: True,
+        icon="mdi:auto-mode",
+    ),
+
 )
 
 ATO_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
@@ -77,7 +107,7 @@ ATO_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         translation_key="auto_fill",
         value_name=ATO_AUTO_FILL_INTERNAL_NAME,
         exists_fn=lambda _: True,
-        icon="mdi:water-arrow-up",
+        icon="mdi:waves-arrow-up",
     ),
 )
 
@@ -89,11 +119,11 @@ async def async_setup_entry(
 ):
     """Configuration de la plate-forme tuto_hacs à partir de la configuration graphique"""
     device = hass.data[DOMAIN][config_entry.entry_id]
-    
+        
     entities=[]
     _LOGGER.debug("SWITCHES")
     if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefVirtualLedCoordinator':
-        entities += [ReefBeatSwitchEntity(device, description)
+        entities += [ReefLedSwitchEntity(device, description, hass)
                  for description in LED_SWITCHES
                  if description.exists_fn(device)]
     elif type(device).__name__=='ReefMatCoordinator':
@@ -144,6 +174,7 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
         self.entity_description = entity_description
         self._attr_available = False
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
+        self._source = self.entity_description.value_name.split('\'')[1]
         self._state = False
 
     @callback
@@ -163,15 +194,20 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
         """Turn the switch on."""
         self._state=True
         self._device.set_data(self.entity_description.value_name,True)
-        self._device.push_values()
-        await self._device.async_request_refresh()
+        self.async_write_ha_state()
+        await self._device.push_values(self._source,self.entity_description.method)
+        #await self._device.async_request_refresh()
+        await self._device.async_quick_request_refresh(self._source)
         
         
     async def async_turn_off(self, **kwargs):
         self._state=False
         self._device.set_data(self.entity_description.value_name,False)
-        self._device.push_values()
-        await self._device.async_request_refresh()
+        self.async_write_ha_state()
+        await self._device.push_values(self._source,self.entity_description.method)
+        #await self._device.async_request_refresh()
+        await self._device.async_quick_request_refresh(self._source)
+
         
     @property
     def is_on(self) -> bool:
@@ -182,7 +218,41 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
         """Return the device info."""
         return self._device.device_info
 
+################################################################################
+# LED
+class ReefLedSwitchEntity(ReefBeatSwitchEntity):
+    """Represent an ReefBeat switch."""
+    _attr_has_entity_name = True
 
+    def __init__(
+            self, device, entity_description: ReefDoseSwitchEntityDescription,hass
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+        self.hass = hass
+
+    async def async_turn_on(self, **kwargs):
+        """Turn the switch on."""
+        self._state=True
+        self._device.set_data(self.entity_description.value_name,False)
+        self.async_write_ha_state()
+        await self._device.post_specific(self._source)
+        await self._device.async_quick_request_refresh(self._source)
+        #        await self._device.async_request_refresh()
+        #self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs):
+        self._state=False
+        self._device.set_data(self.entity_description.value_name,False)
+        self.async_write_ha_state()
+        await self._device.delete(self._source)
+        await self._device.async_quick_request_refresh(self._source)
+        #        await self._device.async_request_refresh()
+        #self.async_write_ha_state()
+
+
+###############################################################################
+# DOSE
 class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
     """Represent an ReefBeat switch."""
     _attr_has_entity_name = True
@@ -198,14 +268,19 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
         """Turn the switch on."""
         self._state=True
         self._device.set_data(self.entity_description.value_name,True)
-        self._device.push_values(self._head)
-        await self._device.async_request_refresh()
+        self.async_write_ha_state()
+        #await self._device.push_values('/head/'+str(self._head)+'/settings',self.entity_description.method)
+        await self._device.push_values(self._head)
+        await self._device.async_quick_request_refresh('/head/'+str(self._head)+'/settings')
+        #await self._device.async_request_refresh()
         
     async def async_turn_off(self, **kwargs):
         self._state=False
         self._device.set_data(self.entity_description.value_name,False)
-        self._device.push_values(self._head)
-        await self._device.async_request_refresh()
+        self.async_write_ha_state()
+        await self._device.push_values(self._head)
+        await self._device.async_quick_request_refresh('/head/'+str(self._head)+'/settings')
+        #await self._device.async_request_refresh()
 
         
     @property

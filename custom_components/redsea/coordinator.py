@@ -81,9 +81,15 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
 
     async def async_request_refresh(self):
         #wait fore device to refresh state
-        await asyncio.sleep(3)
+        await asyncio.sleep(2)
         return await super().async_request_refresh()
     
+    async def async_quick_request_refresh(self,source):
+        #wait fore device to refresh state
+        await asyncio.sleep(2)
+        self.my_api.quick_refresh=source
+        return await super().async_request_refresh()
+
     
     @property
     def device_info(self):
@@ -99,8 +105,8 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
             sw_version=self.sw_version,
         )
 
-    def push_values(self):
-        self.my_api.push_values()
+    async def push_values(self,source='/configuration',method='put'):
+        await self.my_api.push_values(source,method)
         
     def get_data(self,name):
         return self.my_api.get_data(name)
@@ -113,8 +119,8 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
             return True
         return False
 
-    def press(self,action):
-        self.my_api.press(action)
+    async def press(self,action):
+        await self.my_api.press(action)
     
     @property
     def title(self):
@@ -145,7 +151,8 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         return self._ip+' '+self._hw+' '+self._title
 
 
-    
+################################################################################
+# LED
 class ReefLedCoordinator(ReefBeatCoordinator):
 
     def __init__(
@@ -163,6 +170,12 @@ class ReefLedCoordinator(ReefBeatCoordinator):
     def daily_prog(self):
         return self.my_api.daily_prog
 
+    async def delete(self,source):
+        await self.my_api.delete(source)
+
+    async def post_specific(self,source):
+        await self.my_api.post_specific(source)
+    
 ################################################################################
 # VIRTUAL LED
 class ReefVirtualLedCoordinator(ReefLedCoordinator):
@@ -183,12 +196,18 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
                 uuid=led.split('(')[1][:-1]
                 self._linked+=[self._hass.data[DOMAIN][uuid]]
                 _LOGGER.info(" - %s"%(name))
+        if len(self._linked) == 0:
+            _LOGGER.error("%s has no led linked, please configure them"%self._title)
+        if len(self._linked) == 1:
+            _LOGGER.error("%s has only one led linked (%s), please configure one more"%(self._title,self._linked[0]._title))
 
     def force_status_update(self,state=False):
         pass
     
     async def _async_update_data(self):
         pass
+        #for led in self._linked:
+    #        await led._async_update_data()
     
     def get_data(self,name):
         if len(self._linked)>0:
@@ -205,9 +224,9 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
 
     def get_data_bool(self,name):
         for led in self._linked:
-            if led.get_data(name):
-                return True
-        return False
+            if not led.get_data(name):
+                return False
+        return True
 
     def get_data_int(self,name):
         res=0
@@ -230,10 +249,9 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         for led in self._linked:
             led.set_data(name,value)
 
-    def push_values(self):
+    async def push_values(self,source):
         for led in self._linked:
-            led.push_values()
-        
+            await led.push_values(source)
         
     def data_exist(self,name):
         for led in self._linked:
@@ -243,6 +261,26 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         _LOGGER.debug("not data_exists: %s"%name)            
         return False
 
+    async def delete(self,source):
+        for led in self._linked:
+            await led.delete(source)
+
+    async def post_specific(self,source):
+        for led in self._linked:
+            await led.post_specific(source)
+
+    async def async_request_refresh(self):
+        for led in self._linked:
+            await led.async_request_refresh()
+
+    async def async_quick_request_refresh(self,source):
+        #wait fore device to refresh state
+        #        await asyncio.sleep(2)
+        for led in self._linked:
+            #led.my_api.quick_refresh=source
+            await led.async_quick_request_refresh(source)
+
+            
     @property
     def device_info(self):
         return DeviceInfo(
@@ -267,8 +305,8 @@ class ReefMatCoordinator(ReefBeatCoordinator):
         super().__init__(hass, entry)
         self.my_api = ReefMatAPI(self._ip)
 
-    def new_roll(self):
-        self.my_api.new_roll()
+    async def new_roll(self):
+        await self.my_api.new_roll()
             
 ################################################################################
 # REEFDOSE
@@ -284,11 +322,11 @@ class ReefDoseCoordinator(ReefBeatCoordinator):
         self.heads_nb=int(entry.data[CONFIG_FLOW_HW_MODEL][-1])
         self.my_api = ReefDoseAPI(self._ip,self.heads_nb)
 
-    def press(self,action,head):
-        self.my_api.press(action,head)
+    async def press(self,action,head):
+        await self.my_api.press(action,head)
 
-    def push_values(self,head):
-        self.my_api.push_values(head)
+    async  def push_values(self,head):
+        await self.my_api.push_values(head)
         
     @property
     def hw_version(self):
