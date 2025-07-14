@@ -44,6 +44,7 @@ from .const import (
     LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
     LED_ACCLIMATION_DURATION_INTERNAL_NAME,
     LED_ACCLIMATION_INTENSITY_INTERNAL_NAME,
+    LED_MANUAL_DURATION_INTERNAL_NAME,
 )
 
 from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator, ReefLedCoordinator
@@ -62,7 +63,7 @@ class ReefLedNumberEntityDescription(NumberEntityDescription):
     """Describes reefbeat Number entity."""
     exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
     value_name: ""
-    post_specific: ""
+    post_specific: bool = False
     dependency: str = None
     
 @dataclass(kw_only=True)
@@ -146,7 +147,43 @@ LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
         icon="mdi:sun-wireless-outline",
         dependency=LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
     ),
+    ReefLedNumberEntityDescription(
+        key='manual_duration',
+        translation_key='manual_duration',
+        native_max_value=120,
+        native_min_value=0,
+        native_step=1,
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        value_name=LED_MANUAL_DURATION_INTERNAL_NAME,
+        post_specific='/timer',
+        icon="mdi:clock-start",
+    ),
 )
+
+G2_LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
+    ReefLedNumberEntityDescription(
+        key='kelvin',
+        translation_key='kelvin',
+        native_max_value=23000,
+        native_min_value=8000,
+        native_step=500,
+        value_name="$.sources[?(@.name=='/manual')].data.kelvin",
+        icon="mdi:palette",
+        post_specific=False,
+    ),
+    ReefLedNumberEntityDescription(
+        key='intensity',
+        translation_key='intensity',
+        native_max_value=100,
+        native_min_value=0,
+        native_step=1,
+        native_unit_of_measurement=PERCENTAGE,
+        post_specific=False,
+        value_name="$.sources[?(@.name=='/manual')].data.intensity",
+        icon="mdi:lightbulb-on-50",
+    ),
+)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -159,10 +196,15 @@ async def async_setup_entry(
     
     entities=[]
     _LOGGER.debug("NUMBERS")
-    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefVirtualLedCoordinator':
+    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefVirtualLedCoordinator' or type(device).__name__=='ReefLedG2Coordinator':
         entities += [ReefLedNumberEntity(device, description,hass)
                  for description in LED_NUMBERS
                  if description.exists_fn(device)]
+    if type(device).__name__=='ReefLedG2Coordinator':
+        entities += [ReefLedNumberEntity(device, description,hass)
+                 for description in G2_LED_NUMBERS
+                 if description.exists_fn(device)]
+        
     if type(device).__name__=='ReefMatCoordinator':
         entities += [ReefBeatNumberEntity(device, description)
                  for description in MAT_NUMBERS
@@ -299,7 +341,10 @@ class ReefLedNumberEntity(ReefBeatNumberEntity):
         self._attr_native_value=value
         self._device.set_data(self.entity_description.value_name,value)
         self.async_write_ha_state()
-        await self._device.post_specific(self.entity_description.post_specific)
+        if self.entity_description.post_specific==False:
+            await self._device.push_values(self.entity_description.value_name.split('\'')[1],'post')
+        else:
+            await self._device.post_specific(self.entity_description.post_specific)
         await self._device.async_request_refresh()
         
 ################################################################################

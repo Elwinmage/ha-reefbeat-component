@@ -175,7 +175,20 @@ class ReefLedCoordinator(ReefBeatCoordinator):
 
     async def post_specific(self,source):
         await self.my_api.post_specific(source)
-    
+
+
+################################################################################
+# LED G2
+class ReefLedG2Coordinator(ReefLedCoordinator):
+
+    def __init__(
+            self,
+            hass: HomeAssistant,
+            entry
+    ) -> None:
+        """Initialize coordinator."""
+        super().__init__(hass,entry)
+        
 ################################################################################
 # VIRTUAL LED
 class ReefVirtualLedCoordinator(ReefLedCoordinator):

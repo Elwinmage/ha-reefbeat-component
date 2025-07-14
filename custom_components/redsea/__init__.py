@@ -15,6 +15,8 @@ from .const import (
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_HW_MODEL,
     HW_LED_IDS,
+    HW_G1_LED_IDS,
+    HW_G2_LED_IDS,
     HW_DOSE_IDS,
     HW_MAT_IDS,
     HW_ATO_IDS,
@@ -24,7 +26,7 @@ from .const import (
     VIRTUAL_LED_MAX_WAITING_TIME,
     )
 
-from .coordinator import ReefLedCoordinator, ReefVirtualLedCoordinator,ReefMatCoordinator,ReefDoseCoordinator, ReefATOCoordinator, ReefRunCoordinator
+from .coordinator import ReefLedCoordinator, ReefLedG2Coordinator,ReefVirtualLedCoordinator,ReefMatCoordinator,ReefDoseCoordinator, ReefATOCoordinator, ReefRunCoordinator
 
 import traceback
 
@@ -61,8 +63,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     waiting_time+=1
         coordinator = ReefVirtualLedCoordinator(hass,entry)
     else:
-        if hw in HW_LED_IDS:
+        if hw in HW_G1_LED_IDS:
             coordinator = ReefLedCoordinator(hass,entry)
+        elif hw in HW_G2_LED_IDS:
+            coordinator = ReefLedG2Coordinator(hass,entry)
         elif hw in HW_DOSE_IDS:
             coordinator = ReefDoseCoordinator(hass,entry)
         elif hw in HW_MAT_IDS:

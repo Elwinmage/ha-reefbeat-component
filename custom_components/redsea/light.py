@@ -51,6 +51,16 @@ class ReefVirtualLedLightEntityDescription(LightEntityDescription):
     exists_fn: Callable[[ReefVirtualLedCoordinator], bool] = lambda _: True
     value_name: ''
 
+COMMON_LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
+    ReefLedLightEntityDescription(
+        key="moon",
+        translation_key="moon",
+        value_name=LED_MOON_INTERNAL_NAME,
+        icon="mdi:lightbulb-night-outline",
+    ),
+)
+
+    
 LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
     ReefLedLightEntityDescription(
         key="white",
@@ -64,13 +74,8 @@ LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
         value_name=LED_BLUE_INTERNAL_NAME,
         icon="mdi:lightbulb",
     ),
-    ReefLedLightEntityDescription(
-        key="moon",
-        translation_key="moon",
-        value_name=LED_MOON_INTERNAL_NAME,
-        icon="mdi:lightbulb-night-outline",
-    ),
 )
+
 
 VIRTUAL_LIGHTS: tuple[ReefVirtualLedLightEntityDescription, ...] = (
     ReefVirtualLedLightEntityDescription(
@@ -105,6 +110,13 @@ async def async_setup_entry(
     if type(device).__name__=='ReefLedCoordinator':
         entities += [ReefLedLightEntity(device, description)
                      for description in LIGHTS
+                     if description.exists_fn(device)]
+        entities += [ReefLedLightEntity(device, description)
+                     for description in COMMON_LIGHTS
+                     if description.exists_fn(device)]
+    if type(device).__name__=='ReefLedG2Coordinator':
+        entities += [ReefLedLightEntity(device, description)
+                     for description in COMMON_LIGHTS
                      if description.exists_fn(device)]
     elif type(device).__name__=='ReefVirtualLedCoordinator':
         entities += [ReefLedLightEntity(device, description)

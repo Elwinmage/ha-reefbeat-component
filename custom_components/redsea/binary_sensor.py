@@ -163,7 +163,7 @@ async def async_setup_entry(
     """ Configure binary entities """
     device = hass.data[DOMAIN][entry.entry_id]
     entities=[]
-    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefVirtualLedCoordinator':
+    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefVirtualLedCoordinator' or type(device).__name__=='ReefLedG2Coordinator':
         entities += [ReefBeatBinarySensorEntity(device, description)
                      for description in LED_SENSORS
                      if description.exists_fn(device)]

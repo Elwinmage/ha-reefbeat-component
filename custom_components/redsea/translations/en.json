@@ -51,6 +51,15 @@
 	    
 	},
 	"number":{
+	    "manual_duration":{
+		"name": "Manual Duration"
+	    },
+	    "kelvin":{
+		"name": "Kelvin"
+	    },
+	    "intensity":{
+		"name": "Intensity"
+	    },
 	    "schedule_length":{
 		"name": "Schedule Length"
 	    },

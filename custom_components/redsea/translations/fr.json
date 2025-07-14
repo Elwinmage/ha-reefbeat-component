@@ -50,6 +50,15 @@
 	    }
 	},
 	"number":{
+	    "manual_duration":{
+		"name": "Durée du mode manuel"
+	    },
+	    "kelvin":{
+		"name": "Kelvin"
+	    },
+	    "intensity":{
+		"name": "Intensité"
+	    },
 	    "schedule_length":{
 		"name": "Longeur d'avance programmée"
 	    },

@@ -17,6 +17,7 @@ from .const import (
     LED_BLUE_INTERNAL_NAME,
     LED_MOON_INTERNAL_NAME,
     LED_MOON_DAY_INTERNAL_NAME,
+    LED_MANUAL_DURATION_INTERNAL_NAME,
     DAILY_PROG_INTERNAL_NAME,
     MODEL_NAME,
     MODEL_ID,
@@ -60,7 +61,7 @@ class ReefBeatAPI():
             s[0].value['data']=response
             return True
         else:
-            _LOGGER.error("Can not get data: %s"%source)
+            _LOGGER.error("Can not get data: %s from %s"%(source,self.ip))
             return False
 
     async def _call_url(self,client,source):
@@ -75,7 +76,7 @@ class ReefBeatAPI():
             if not status_ok:
                 await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
         if not status_ok:
-            _LOGGER.error("Can not get data from %s after %s try"%(source.value['name'],HTTP_MAX_RETRY))
+            _LOGGER.error("Can not get data from %s/%s after %s try"%(self.ip,source.value['name'],HTTP_MAX_RETRY))
             
     async def get_initial_data(self):
         """ Get inital datas and device information async """
@@ -165,6 +166,7 @@ class ReefLedAPI(ReefBeatAPI):
             self.data['sources'].insert(len(self.data['sources']),{"name":"/auto/"+str(day),"get_once": False,"data":""})
             self.data['sources'].insert(len(self.data['sources']),{"name":"/clouds/"+str(day),"get_once": False,"data":""})
         self.data['local']={"status":False,
+                            "manual_duration": 0,
                             "moonphase":{"moon_day":1},
                             "acclimation":{"duration":50,"start_intensity_factor":50,"current_day":1}}
 
@@ -172,18 +174,23 @@ class ReefLedAPI(ReefBeatAPI):
         await super().fetch_data()
         self.force_status_update()
 
-    # def push_specific_values(self,source=''):
-    #         payload={"white": self.get_data(LED_WHITE_INTERNAL_NAME), "blue":self.get_data(LED_BLUE_INTERNAL_NAME),"moon": self.get_data(LED_MOON_INTERNAL_NAME)}
-    #         self._http_post(self._base_url+'/manual',payload)
-
-
     async def delete(self, source):
         await self._http_send(self._base_url+source,method='delete')
 
     async def post_specific(self, source):
-        payload_name="$.local."+source[1:]
-        payload=self.get_data(payload_name)
-        await self._http_send(self._base_url+source,payload,'post')
+        if source == '/timer' :
+            payload=self.get_data('$.sources[?(@.name=="/manual")].data')
+            if self.get_data(LED_MANUAL_DURATION_INTERNAL_NAME) > 0:
+                payload['duration']=self.get_data(LED_MANUAL_DURATION_INTERNAL_NAME)
+                await self._http_send(self._base_url+source,payload,'post')
+            else:
+                source='/manual'
+            _LOGGER.debug("/-- %s %s"%(self._base_url+source,payload))
+            await self._http_send(self._base_url+source,payload,'post')
+        else:
+            payload_name="$.local."+source[1:]
+            payload=self.get_data(payload_name)
+            await self._http_send(self._base_url+source,payload,'post')
         
     def force_status_update(self,state=False):
         if state:
@@ -194,6 +201,7 @@ class ReefLedAPI(ReefBeatAPI):
             else:
                 self.data['local']['status']=False
 
+               
 ################################################################################
 #ReefMat
 class ReefMatAPI(ReefBeatAPI):

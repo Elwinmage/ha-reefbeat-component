@@ -319,7 +319,7 @@ async def async_setup_entry(
     device = hass.data[DOMAIN][entry.entry_id]
     entities=[]
     _LOGGER.debug("SENSORS")
-    if type(device).__name__=='ReefLedCoordinator':
+    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedG2Coordinator':
         entities += [ReefBeatSensorEntity(device, description)
                      for description in LED_SENSORS
                      if description.exists_fn(device)]

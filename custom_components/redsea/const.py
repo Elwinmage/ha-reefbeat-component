@@ -26,7 +26,12 @@ HTTP_DELAY_BETWEEN_RETRY=2
 
 ################################################################################
 
-HW_LED_IDS=['RSLED50','RSLED60','RSLED90','RSLED115','RSLED160','RSLED170']
+
+HW_G1_LED_IDS=['RSLED50','RSLED90','RSLED160']
+HW_G2_LED_IDS=['RSLED60','RSLED115','RSLED170']
+
+HW_LED_IDS=HW_G1_LED_IDS+HW_G2_LED_IDS
+
 HW_DOSE_IDS=['RSDOSE2','RSDOSE4']
 HW_MAT_IDS=['RSMAT']
 HW_MAT_MODEL=['RSMAT250','RSMAT500','RSMAT1200']
@@ -51,8 +56,9 @@ LED_MOON_DAY_INTERNAL_NAME="$.local.moonphase.moon_day"
 LED_ACCLIMATION_DURATION_INTERNAL_NAME="$.local.acclimation.duration"
 LED_ACCLIMATION_INTENSITY_INTERNAL_NAME="$.local.acclimation.start_intensity_factor"
 
-DAILY_PROG_INTERNAL_NAME="$.local.daily_prog"
+LED_MANUAL_DURATION_INTERNAL_NAME="$.local.manual_duration"
 
+DAILY_PROG_INTERNAL_NAME="$.local.daily_prog"
 
 LED_CONVERSION_COEF=100/255
 
