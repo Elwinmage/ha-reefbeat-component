@@ -76,6 +76,14 @@ LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
     ),
 )
 
+G2_LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
+    ReefLedLightEntityDescription(
+        key="intensity",
+        translation_key="intensity",
+        value_name="$.sources[?(@.name=='/manual')].data.intensity",
+        icon="mdi:lightbulb-on-50",
+    ),
+)
 
 VIRTUAL_LIGHTS: tuple[ReefVirtualLedLightEntityDescription, ...] = (
     ReefVirtualLedLightEntityDescription(
@@ -117,6 +125,9 @@ async def async_setup_entry(
     if type(device).__name__=='ReefLedG2Coordinator':
         entities += [ReefLedLightEntity(device, description)
                      for description in COMMON_LIGHTS
+                     if description.exists_fn(device)]
+        entities += [ReefLedLightEntity(device, description)
+                     for description in G2_LIGHTS
                      if description.exists_fn(device)]
     elif type(device).__name__=='ReefVirtualLedCoordinator':
         entities += [ReefLedLightEntity(device, description)

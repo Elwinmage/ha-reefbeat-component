@@ -288,6 +288,9 @@
 	    }
 	},
 	"light": {
+	    "intensity":{
+		"name": "Intensity"
+	    },
 	    "white": {
 		"name": "White"
 	    },
@@ -304,6 +307,9 @@
 	    },
 	    "moon":{
 		"name":"Moon"
+	    },
+	    "moon_phase":{
+		"name":"Moon Phase"
 	    },
 	    "acclimation":{
 		"name":"Acclimation"

@@ -282,7 +282,7 @@ class ReefATOAPI(ReefBeatAPI):
 
     async def push_values(self,source='/configuration',method='put'):
         payload={'auto_fill': self.get_data(ATO_AUTO_FILL_INTERNAL_NAME)}
-        await self._http_send(self._base_url+'/configuration',payload)
+        await self._http_send(self._base_url+'/configuration',payload,method)
         #r = httpx.put(self._base_url+'/configuration', json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
 
 ################################################################################

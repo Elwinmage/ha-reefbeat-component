@@ -27,6 +27,7 @@ from homeassistant.const import (
     UnitOfLength,
     UnitOfVolume,
     UnitOfTime,
+    UnitOfTemperature,
 )
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -170,18 +171,19 @@ G2_LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
         value_name="$.sources[?(@.name=='/manual')].data.kelvin",
         icon="mdi:palette",
         post_specific=False,
+        native_unit_of_measurement=UnitOfTemperature.KELVIN,
     ),
-    ReefLedNumberEntityDescription(
-        key='intensity',
-        translation_key='intensity',
-        native_max_value=100,
-        native_min_value=0,
-        native_step=1,
-        native_unit_of_measurement=PERCENTAGE,
-        post_specific=False,
-        value_name="$.sources[?(@.name=='/manual')].data.intensity",
-        icon="mdi:lightbulb-on-50",
-    ),
+    # ReefLedNumberEntityDescription(
+    #     key='intensity',
+    #     translation_key='intensity',
+    #     native_max_value=100,
+    #     native_min_value=0,
+    #     native_step=1,
+    #     native_unit_of_measurement=PERCENTAGE,
+    #     post_specific=False,
+    #     value_name="$.sources[?(@.name=='/manual')].data.intensity",
+    #     icon="mdi:lightbulb-on-50",
+    # ),
 )
 
 

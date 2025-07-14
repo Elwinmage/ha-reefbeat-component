@@ -75,7 +75,7 @@ LED_SWITCHES: tuple[ReefLedSwitchEntityDescription, ...] = (
     ),
     ReefLedSwitchEntityDescription(
         key="sw_moonphase_enabled",
-        translation_key="moon",
+        translation_key="moon_phase",
         value_name= LED_MOONPHASE_ENABLED_INTERNAL_NAME,
          icon="mdi:weather-night",
 #        delete=True,
