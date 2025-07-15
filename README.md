@@ -20,6 +20,7 @@ Use at your own risk
 
 Just click here to directly go to the repository in HACS and click "Download": [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Elwinmage&repository=ha-reefbeat-component&category=integration)                         
 
+## Find in HACS
 Or search for "redsea" or "reefbeat" in hacs 
 
 <p align="center">                                                                                                                                                                              
@@ -34,7 +35,7 @@ Or search for "redsea" or "reefbeat" in hacs
 
 # Hardware
 ## ReefLed:
-  - Test with the RESLED 160  but may work with 50, 60, 90, 115 and 170 versions let me know.
+  - Test with the RESLED 160  but may work with 50, 60, 90, 115 and 170 versions.
 
 ## ReefMat:
   - Test with ReefMat 1200 must work with all other versions
@@ -49,7 +50,7 @@ Or search for "redsea" or "reefbeat" in hacs
   - Partially tested
   
 # What works
-## All:
+## All devices:
  - Auto detect on private network (if on same network)
  - Set scan interval for device
 
@@ -66,15 +67,23 @@ Or search for "redsea" or "reefbeat" in hacs
   - Set Manual Color Mode with or without duration
   - Get Fan and Temperature
   - Get name and value for progams (with clouds support) Only for G1 LEDS.
-  - Group and manage LED (only for G1) with a virtual device (Create a vitual device from the integration panel, then use the configure button to link the leds)
+  
 <p align="center">                                                                                                                                                                             
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_ctrl.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_sensors.png" alt="Image">
+</p>
+<p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_diag.png" alt="Image">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G2_ctrl.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_g2_ctrl.png" alt="Image">
  </p> 
 
-<p align="center">                                                                                                                                                                               <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_1.png" alt="Image">                                                                          <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_2.png" alt="Image">                                                                        </p> 
+## Virtual Led (only with G1 LEDS):
+- Group and manage LED with a virtual device (Create a vitual device from the integration panel, then use the configure button to link the leds)
+
+<p align="center">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_1.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_2.png" alt="Image">
+</p> 
       
 ## ReefMat:
   - Auto advance switch (enable/disable)
@@ -83,9 +92,10 @@ Or search for "redsea" or "reefbeat" in hacs
   - Manual Advance
   - Change the roll. <b>For a new full roll please set "roll diameter" to min (4.0cm). It will adjust the size according to your RSMAT version. For a started roll enter the value in cm.</b>
   - Two hidden parameters: model and position if you need to reconfigure your RSMAT
-<p align="center">                                                                                                                                                                               <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_ctr.png" alt="Image">
+<p align="center">                                                                                                                                                                               
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_ctr.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_sensors.png" alt="Image">
-    <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_diag.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_diag.png" alt="Image">
 </p>
 
 ## ReefDose:
@@ -93,7 +103,11 @@ Or search for "redsea" or "reefbeat" in hacs
   - Manual dose
   - Change and control container volume. Container Volume settigns is automaticaly enabled or disabled according to  volume controleur switch.
   - Enable/disable schedule per pump
-<p align="center">                                                                                                                                                                   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose.png" alt="Image">                                                                          </p> 
+<p align="center"> 
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_ctrl.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_sensors.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_diag.png" alt="Image">
+</p> 
 
 ## ReefATO+:
   - Auto_fill enable/disable
