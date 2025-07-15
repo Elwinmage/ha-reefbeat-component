@@ -8,9 +8,9 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
 
 ***If someone have reefwave I ll try to integrate them too.***
 
-***If yout need other sensors or actuators let me know.***
+***If you need other sensors or actuators let me know.***
 
-This is not an official repo of RedSea
+This is not an official RedSea repository
 
 Use at your own risk
 
@@ -50,63 +50,58 @@ Or search for "redsea" or "reefbeat" in hacs
   
 # What works
 ## All:
-  - Display device IP in diagnostics
-  - Auto detect on private network (if on same network)
+ - Auto detect on private network (if on same network)
+ - Set scan interval for device
 
-<p align="center">                                                                                                                                                                              
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/auto_detect.png" alt="Image">                                                                                       
-</p> 
-   - Set scan interval for device
-<p align="center">                                                                                                                                                                              
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_1.png" alt="Image">                                                                                       
-</p> 
-<p align="center">                                                                                                                                                                              
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_2.png" alt="Image">                                                                                       
-</p> 
+<p align="center">                                                                                                                                                                               <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/auto_detect.png" alt="Image">                                                                                 </p> 
+<p align="center">                                                                                                                                                                               <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_1.png" alt="Image">                                                                          </p> 
+<p align="center">                                                                                                                                                                               <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_2.png" alt="Image">                                                                          </p> 
    
 
 ## LED:
-  - Get and Set White, Blue and Moon values
+  - Get and Set White, Blue and Moon values (only for G1: RSLED50,RSLED90,RSLED160)
+  - Get and Set Color Temperature, Intensity and Moon (only for G2: RSLED60,RSLED115,RSLED170)
+  - Manage acclimation. Acclimation settings are automaticaly enabled or disabled according to acclimation switch.
+  - Manage moonphase. Moonphase settings are automaticaly enabled or disabled according to moonphase switch.
+  - Set Manual Color Mode with or without duration
   - Get Fan and Temperature
-  - Get name and value for progams (with clouds support)
-<p align="center">                                                                                                                                                                              
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled.png" alt="Image">                                                                                       
-</p> 
-    - Group and manage LED with a virtual device (Create a vitual device from the integration panel, then use the configure button to link the leds)
-<p align="center">                                                                                                                                                                              
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_1.png" alt="Image">                                                                                       
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_2.png" alt="Image">                                                                                       
-</p> 
+  - Get name and value for progams (with clouds support) Only for G1 LEDS.
+  - Group and manage LED (only for G1) with a virtual device (Create a vitual device from the integration panel, then use the configure button to link the leds)
+<p align="center">                                                                                                                                                                             
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_ctrl.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_sensors.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_diag.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G2_ctrl.png" alt="Image">
+ </p> 
+
+<p align="center">                                                                                                                                                                               <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_1.png" alt="Image">                                                                          <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_2.png" alt="Image">                                                                        </p> 
       
 ## ReefMat:
-- many sensors values: auto_advance, unclean_sensor, daily_avergage_usage, today_usage, remaining_length, days_till_end_of_roll and total_usage, is_ec_sensor_connected (let me know if you want some more)
-- auto advance switch (enable/disable)
-- custom advance value: let you select the value of roll advance
-- a press button to manualy advance
-- can change the roll. <b>For a new full roll please set "roll diameter" to min (4.0cm). It will adjust the size according to your RSMAT version. For a started roll enter the value in cm.</b>
-- two hidden parameters: model and position if you need to reconfigure your RSMAT
-<p align="center">                                                                                                                                                                              
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat.png" alt="Image">                                                                                       
+  - Auto advance switch (enable/disable)
+  - Schedule advance
+  - Custom advance value: let you select the value of roll advance
+  - Manual Advance
+  - Change the roll. <b>For a new full roll please set "roll diameter" to min (4.0cm). It will adjust the size according to your RSMAT version. For a started roll enter the value in cm.</b>
+  - Two hidden parameters: model and position if you need to reconfigure your RSMAT
+<p align="center">                                                                                                                                                                               <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_ctr.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_sensors.png" alt="Image">
+    <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_diag.png" alt="Image">
 </p>
 
 ## ReefDose:
-  - sensors: auto_dose_today, container_volume, daily_dose, daily_doses, manual_dosed_today, doses_today, remaining_days, supplement,calibration, status
-  - edit daily dose
-  - manual dose
-  - change and control container volume
-  - enable/disable schedule per pump
+  - Edit daily dose
+  - Manual dose
+  - Change and control container volume. Container Volume settigns is automaticaly enabled or disabled according to  volume controleur switch.
+  - Enable/disable schedule per pump
 <p align="center">                                                                                                                                                                   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose.png" alt="Image">                                                                          </p> 
 
 ## ReefATO+:
-  - Sensors
   - Auto_fill enable/disable
   - Manual fill
-<p align="center">                                                                                                                                                                              
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato.png" alt="Image">                                                                                       
+<p align="center">                                                                                                                                                                               <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato.png" alt="Image">                                                                                       
 </p> 
 
 ## ReefRun:
-  -  Sensors
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_1.png" alt="Image">
 </p>
@@ -121,7 +116,6 @@ Or search for "redsea" or "reefbeat" in hacs
 # What next?
 ## LED:
   - Set programs (and implement the daily prog button that do nothing yet)
-  - Manage manual mode timing
   - Random  program creation
   - Daily program generation according to meteo of a specific place according to geographic coordinates
 
