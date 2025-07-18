@@ -73,7 +73,7 @@ Or search for "redsea" or "reefbeat" in hacs
 
 ***
 
-The support of Color Temperature for G1 LEDS take into account the specificity of each of the tree models.
+The support of Color Temperature for G1 LEDS take into account the specificity of each of the three models.
 <p align="center">                                                                                                                                                                             
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/leds_specs.png" alt="Image">
 </p>
