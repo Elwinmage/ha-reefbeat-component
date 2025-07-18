@@ -70,7 +70,16 @@ Or search for "redsea" or "reefbeat" in hacs
   - Set Manual Color Mode with or without duration
   - Get Fan and Temperature
   - Get name and value for progams (with clouds support) Only for G1 LEDS.
-  
+
+***
+
+The support of Color Temperature for G1 LEDS take into account the specificity of each of the tree models.
+<p align="center">                                                                                                                                                                             
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/leds_specs.png" alt="Image">
+</p>
+
+***
+
 <p align="center">                                                                                                                                                                             
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_ctrl.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_sensors.png" alt="Image">
