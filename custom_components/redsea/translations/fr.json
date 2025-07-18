@@ -140,6 +140,12 @@
 	    
 	},
 	"sensor": {
+	    "white": {
+		"name": "Blanc"
+	    },
+	    "blue": {
+		"name": "Bleu"
+	    },
 	    "water_level":{
 		"name": "Niveau d'eau"
 	    },

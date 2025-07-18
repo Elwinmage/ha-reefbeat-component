@@ -36,6 +36,8 @@ from homeassistant.const import (
 
 from .const import (
     DOMAIN,
+    LED_WHITE_INTERNAL_NAME,
+    LED_BLUE_INTERNAL_NAME,
 )
 
 from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator, ReefRunCoordinator
@@ -80,7 +82,7 @@ COMMON_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
 )
     
 """ Reefbeat sensors list """
-LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
+LED_SENSORS:  tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription(
         key="fan",
         translation_key="fan",
@@ -145,6 +147,23 @@ LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         native_unit_of_measurement=PERCENTAGE,
         value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/acclimation')].data.start_intensity_factor"),
         icon="mdi:sun-wireless-outline",
+    ),
+)
+
+G2_LED_SENSORS:  tuple[ReefBeatSensorEntityDescription, ...] = (
+    ReefBeatSensorEntityDescription(
+        key="white",
+        translation_key="white",
+        value_fn=lambda device:  device.get_data(LED_WHITE_INTERNAL_NAME),
+        native_unit_of_measurement=PERCENTAGE,
+        icon="mdi:lightbulb-outline",
+    ),
+    ReefBeatSensorEntityDescription(
+        key="blue",
+        translation_key="blue",
+        value_fn=lambda device:  device.get_data(LED_BLUE_INTERNAL_NAME),
+        native_unit_of_measurement=PERCENTAGE,
+        icon="mdi:lightbulb",
     ),
 )
 
@@ -319,6 +338,11 @@ async def async_setup_entry(
     device = hass.data[DOMAIN][entry.entry_id]
     entities=[]
     _LOGGER.debug("SENSORS")
+    
+    if type(device).__name__=='ReefLedG2Coordinator' or type(device).__name__=='ReefVirtualLedCoordinator':
+        entities += [ReefBeatSensorEntity(device, description)
+                     for description in G2_LED_SENSORS
+                     if description.exists_fn(device)]
     if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedG2Coordinator':
         entities += [ReefBeatSensorEntity(device, description)
                      for description in LED_SENSORS
