@@ -32,6 +32,7 @@ from .const import (
     LED_WHITE_INTERNAL_NAME,
     LED_BLUE_INTERNAL_NAME,
     LED_MOON_INTERNAL_NAME,
+    LED_INTENSITY_INTERNAL_NAME,
     LED_CONVERSION_COEF,
 )
 
@@ -85,18 +86,25 @@ G2_LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
     ),
 )
 
+
 VIRTUAL_LIGHTS: tuple[ReefVirtualLedLightEntityDescription, ...] = (
-    ReefVirtualLedLightEntityDescription(
-        key="white",
-        translation_key="white",
-        value_name=LED_WHITE_INTERNAL_NAME,
-        icon="mdi:lightbulb-outline",
-    ),
-    ReefVirtualLedLightEntityDescription(
-        key="blue",
-        translation_key="blue",
-        value_name=LED_BLUE_INTERNAL_NAME,
-        icon="mdi:lightbulb",
+    # ReefVirtualLedLightEntityDescription(
+    #     key="white",
+    #     translation_key="white",
+    #     value_name=LED_WHITE_INTERNAL_NAME,
+    #     icon="mdi:lightbulb-outline",
+    # ),
+    # ReefVirtualLedLightEntityDescription(
+    #     key="blue",
+    #     translation_key="blue",
+    #     value_name=LED_BLUE_INTERNAL_NAME,
+    #     icon="mdi:lightbulb",
+    # ),
+    ReefLedLightEntityDescription(
+        key="intensity",
+        translation_key="intensity",
+        value_name="$.sources[?(@.name=='/manual')].data.intensity",
+        icon="mdi:lightbulb-on-50",
     ),
     ReefVirtualLedLightEntityDescription(
         key="moon",
@@ -122,7 +130,10 @@ async def async_setup_entry(
         entities += [ReefLedLightEntity(device, description)
                      for description in COMMON_LIGHTS
                      if description.exists_fn(device)]
-    if type(device).__name__=='ReefLedG2Coordinator':
+        entities += [ReefLedLightEntity(device, description)
+                     for description in G2_LIGHTS
+                     if description.exists_fn(device)]
+    elif type(device).__name__=='ReefLedG2Coordinator':
         entities += [ReefLedLightEntity(device, description)
                      for description in COMMON_LIGHTS
                      if description.exists_fn(device)]
@@ -133,7 +144,6 @@ async def async_setup_entry(
         entities += [ReefLedLightEntity(device, description)
                      for description in VIRTUAL_LIGHTS
                      if description.exists_fn(device)]
-
     async_add_entities(entities, True)
 
 ################################################################################

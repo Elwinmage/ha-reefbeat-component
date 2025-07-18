@@ -2,7 +2,7 @@ import logging
 import asyncio
 import httpx
 import time
-
+import numpy as np
 import json
 from jsonpath_ng import jsonpath
 from jsonpath_ng.ext import parse
@@ -13,11 +13,14 @@ from .const import (
     DOMAIN,
     DEFAULT_TIMEOUT,
     DO_NOT_REFRESH_TIME,
+    HW_G1_LED_IDS,
     LED_WHITE_INTERNAL_NAME,
     LED_BLUE_INTERNAL_NAME,
     LED_MOON_INTERNAL_NAME,
     LED_MOON_DAY_INTERNAL_NAME,
     LED_MANUAL_DURATION_INTERNAL_NAME,
+    LED_KELVIN_INTERNAL_NAME,
+    LED_INTENSITY_INTERNAL_NAME,
     DAILY_PROG_INTERNAL_NAME,
     MODEL_NAME,
     MODEL_ID,
@@ -113,11 +116,12 @@ class ReefBeatAPI():
         query=parse(data_name)
         res=query.find(self.data)
         if(len(res)==0):
-            _LOGGER.error("reefbeat.get_data('%s')"%data_name)
+            _LOGGER.error("reefbeat.get_data('%s') %s"%(data_name,self._base_url))
+            _LOGGER.error("%s"%self.data)
         return res[0].value
 
     def set_data(self,data_name,value):
-        """ set deivce data named data_name to value"""
+        """ set device data named data_name to value"""
         query=parse(data_name)
         try:
             res=query.update(self.data,value)
@@ -154,9 +158,19 @@ class ReefBeatAPI():
             
 ################################################################################
 #Reef LED
+################################################################################
+LEDS_CONV=[{'name':'RSLED160','kelvin': [9000,12000,15000,20000,23000], 'white_blue':[200,125,100,50,10]},
+           {'name':'RSLED90', 'kelvin': [9000,12000,15000,20000,23000], 'white_blue':[200,134,100,50,10]},
+           {'name':'RSLED50', 'kelvin': [9000,12000,15000,20000,23000], 'white_blue':[200,100,50,25,5]},
+           {'name':'RSLED60','kelvin': [],'white_blue':[]},
+           {'name':'RSLED115','kelvin': [],'white_blue':[]},
+           {'name':'RSLED170','kelvin': [],'white_blue':[]},
+           ]
+
+################################################################################
 class ReefLedAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
-    def __init__(self,ip) -> None:
+    def __init__(self,ip,hw) -> None:
         super().__init__(ip)
         self.data['sources'].insert(len(self.data['sources']),{"name":"/preset_name","get_once": False,"data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/manual","get_once": False,"data":""})
@@ -166,12 +180,107 @@ class ReefLedAPI(ReefBeatAPI):
             self.data['sources'].insert(len(self.data['sources']),{"name":"/auto/"+str(day),"get_once": False,"data":""})
             self.data['sources'].insert(len(self.data['sources']),{"name":"/clouds/"+str(day),"get_once": False,"data":""})
         self.data['local']={"status":False,
-                            "manual_duration": 0,
+                            "manual_duration":0,
                             "moonphase":{"moon_day":1},
-                            "acclimation":{"duration":50,"start_intensity_factor":50,"current_day":1}}
+                            "manual_trick":{"kelvin":None,"intensity":None},
+                            "acclimation":{"duration":50,"start_intensity_factor":50,"current_day":1},
+                            "leds_conv":LEDS_CONV}
+        self._model=hw
+        self._g1 = self._model in HW_G1_LED_IDS
+        self._kelvin_to_wb=None
+        self._wb_to_kelvin=None
 
+
+    def update_acclimation(self):
+        accli=self.get_data("$.sources[?(@.name=='/acclimation')].data")
+        variables=['duration','start_intensity_factor']
+        for var in variables:
+            self.data['local']['acclimation'][var]=accli[var]
+
+    async def get_initial_data(self):
+        """ Get inital datas and device information async """
+        _LOGGER.debug('Reefbeat.get_initial_data')
+        query=parse("$.sources[?(@.get_once==true)]")
+        sources=query.find(self.data)
+        async with httpx.AsyncClient(verify=False) as client:  
+            await asyncio.gather(*[self._call_url(client,sources[source]) for source in range(0,len(sources))])
+        #Kelvin conversion
+        led_params=self.get_data('$.local.leds_conv[?(@.name=="'+self._model+'")]')
+        _LOGGER.debug("LEDS_PARAMS: %s"%led_params)
+        if len (led_params['kelvin']) > 0:
+            self._kelvin_to_wb=np.poly1d(np.polyfit(np.array(led_params['kelvin']),np.array(led_params['white_blue']), 4))
+            self._wb_to_kelvin=np.poly1d(np.polyfit(np.array(led_params['white_blue']),np.array(led_params['kelvin']), 4))
+        await self.fetch_data()
+        self.update_acclimation()
+        _LOGGER.debug('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
+        _LOGGER.debug(self.data)
+        _LOGGER.debug('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
+        return self.data
+
+        
+    def _wb(self,value):
+        if value >= 100:
+            white=100
+            blue=200-value
+        else:
+            blue=100
+            white=value
+        return white,blue
+        
+    def kelvin_to_white_and_blue(self,kelvin,intensity=100):
+        wb=self._kelvin_to_wb(kelvin)
+        white,blue=self._wb(wb)
+        white = white * intensity / 100
+        blue= blue * intensity / 100
+        moon = self.get_data(LED_MOON_INTERNAL_NAME)
+        res={'kelvin':int(kelvin),"intensity":int(intensity),"white": int(white),"blue":int(blue),"moon":moon}
+        _LOGGER.debug("Kelvin to white and blue: %s (wb=%d)" %(res,wb))
+        return res
+        
+    def white_and_blue_to_kelvin(self,white,blue):
+        if white >= blue:
+            intensity=white
+            wb = 200-blue*100/intensity
+        else:
+            intensity=blue
+            wb= white*100/intensity
+        kelvin=self._wb_to_kelvin(wb)
+        moon = self.get_data(LED_MOON_INTERNAL_NAME)
+        res={'kelvin':int(kelvin),"intensity":int(intensity),"white": int(white),"blue":int(blue),"moon":moon}
+        _LOGGER.debug("White and blue to kelvin: %s (wb=%d)" %(res,wb))
+        return res
+
+    def update_light_wb(self):
+        _LOGGER.debug("**** update_light_wb")
+        data = self.get_data('$.sources[?(@.name=="/manual")].data')
+        new_data=self.white_and_blue_to_kelvin(data['white'],data['blue'])
+        data['kelvin']=new_data['kelvin']
+        data['intensity']=new_data['intensity']
+        # Must copy this data beacause virtual led get them before availaible in '/manual' "
+        self.data['local']['manual_trick']['kelvin']=new_data['kelvin']
+        self.data['local']['manual_trick']['intensity']=new_data['intensity']   
+
+
+    def get_data(self,data_name):
+        if self._g1 and data_name==LED_KELVIN_INTERNAL_NAME:
+            return  self.data['local']['manual_trick']['kelvin']
+        elif self._g1 and data_name==LED_INTENSITY_INTERNAL_NAME:
+            return self.data['local']['manual_trick']['intensity']
+        else :
+            return super().get_data(data_name)
+        
+    def update_light_ki(self):
+        data = self.get_data('$.sources[?(@.name=="/manual")].data')
+        new_data=self.kelvin_to_white_and_blue(data['kelvin'],data['intensity'])
+        data['white']=new_data['white']
+        data['blue']=new_data['blue']
+        
     async def fetch_data(self):
         await super().fetch_data()
+        # add kelvin and intensity to G1
+        if self._g1:
+            self.update_light_wb()
+        self.update_acclimation()
         self.force_status_update()
 
     async def delete(self, source):
@@ -191,7 +300,7 @@ class ReefLedAPI(ReefBeatAPI):
             payload_name="$.local."+source[1:]
             payload=self.get_data(payload_name)
             await self._http_send(self._base_url+source,payload,'post')
-        
+
     def force_status_update(self,state=False):
         if state:
             self.data['local']['status']=True
@@ -293,7 +402,9 @@ class ReefRunAPI(ReefBeatAPI):
         super().__init__(ip)
         self.data['sources'].insert(len(self.data['sources']),{"name":"/pump/settings","get_once": False,"data":""})
 
-    async def push_values(self):
-        pass
+    async def push_values(self,pump):
+        payload=self.get_data("$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump))
+        await self._http_send(self._base_url+'/pump/settings',payload,'put')
+
 
     

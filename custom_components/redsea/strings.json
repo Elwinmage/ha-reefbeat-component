@@ -1,4 +1,4 @@
-{
+s{
     "title": "ReefBeat",
     "config": {
         "flow_title": "ReefBeat configuration",
@@ -51,6 +51,9 @@
 	    
 	},
 	"number":{
+	    "speed":{
+		"name": "Speed"
+	    },
 	    "manual_duration":{
 		"name": "Manual Duration"
 	    },

@@ -50,6 +50,9 @@
 	    }
 	},
 	"number":{
+	    "speed":{
+		"name": "Vitesse"
+	    },
 	    "manual_duration":{
 		"name": "Durée du mode manuel"
 	    },

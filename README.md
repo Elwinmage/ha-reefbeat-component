@@ -64,7 +64,7 @@ Or search for "redsea" or "reefbeat" in hacs
 
 ## LED:
   - Get and Set White, Blue and Moon values (only for G1: RSLED50,RSLED90,RSLED160)
-  - Get and Set Color Temperature, Intensity and Moon (only for G2: RSLED60,RSLED115,RSLED170)
+  - Get and Set Color Temperature, Intensity and Moon (all LEDS)
   - Manage acclimation. Acclimation settings are automaticaly enabled or disabled according to acclimation switch.
   - Manage moonphase. Moonphase settings are automaticaly enabled or disabled according to moonphase switch.
   - Set Manual Color Mode with or without duration
@@ -80,8 +80,10 @@ Or search for "redsea" or "reefbeat" in hacs
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_g2_ctrl.png" alt="Image">
  </p> 
 
-## Virtual Led (only with G1 LEDS):
-- Group and manage LED with a virtual device (Create a vitual device from the integration panel, then use the configure button to link the leds)
+## Virtual Led :
+- Group and manage LED with a virtual device (Create a vitual device from the integration panel, then use the configure button to link the leds).
+- You can only use Kelvin and intensity to control your leds.
+
 
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_1.png" alt="Image">
@@ -119,6 +121,9 @@ Or search for "redsea" or "reefbeat" in hacs
 </p> 
 
 ## ReefRun:
+- <b>First try to set pump speed (without device it's not so simple :-) ). I use the first slot for scheduling speed pump (according to youtube they are 10). Using this probably break your scheulde if you have one.
+If your pump speed is always the same I hitnk it could do the job. If someone with a reefrun can contact me, we could propose a better support.</>
+
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_1.png" alt="Image">
 </p>

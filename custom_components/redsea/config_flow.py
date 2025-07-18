@@ -211,7 +211,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             leds={}
             for dev in self.hass.data[DOMAIN]:
                 led = self.hass.data[DOMAIN][dev]
-                if type(led).__name__=="ReefLedCoordinator":
+                if type(led).__name__=="ReefLedCoordinator" or type(led).__name__=="ReefLedG2Coordinator":
                     leds[vol.Required('LED: '+led.serial+' ('+dev+')')]=bool
             options_schema=vol.Schema(leds)
             

@@ -48,6 +48,8 @@ LED_SCAN_INTERVAL=120 #in seconds
 LED_WHITE_INTERNAL_NAME="$.sources[?(@.name=='/manual')].data.white"
 LED_BLUE_INTERNAL_NAME ="$.sources[?(@.name=='/manual')].data.blue"
 LED_MOON_INTERNAL_NAME ="$.sources[?(@.name=='/manual')].data.moon"
+LED_INTENSITY_INTERNAL_NAME="$.sources[?(@.name=='/manual')].data.intensity"
+LED_KELVIN_INTERNAL_NAME="$.sources[?(@.name=='/manual')].data.kelvin"
 
 LED_ACCLIMATION_ENABLED_INTERNAL_NAME="$.sources[?(@.name=='/acclimation')].data.enabled"
 LED_MOONPHASE_ENABLED_INTERNAL_NAME="$.sources[?(@.name=='/moonphase')].data.enabled"

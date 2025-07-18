@@ -46,9 +46,10 @@ from .const import (
     LED_ACCLIMATION_DURATION_INTERNAL_NAME,
     LED_ACCLIMATION_INTENSITY_INTERNAL_NAME,
     LED_MANUAL_DURATION_INTERNAL_NAME,
+    LED_KELVIN_INTERNAL_NAME,
 )
 
-from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator, ReefLedCoordinator
+from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator, ReefLedCoordinator, ReefRunCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,6 +59,14 @@ class ReefBeatNumberEntityDescription(NumberEntityDescription):
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_name: ""
     dependency: str = None
+
+@dataclass(kw_only=True)
+class ReefRunNumberEntityDescription(NumberEntityDescription):
+    """Describes reefbeat Number entity."""
+    exists_fn: Callable[[ReefRunCoordinator], bool] = lambda _: True
+    dependency: str = None
+    value_name: ""
+    pump: 0
 
 @dataclass(kw_only=True)
 class ReefLedNumberEntityDescription(NumberEntityDescription):
@@ -159,33 +168,18 @@ LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
         post_specific='/timer',
         icon="mdi:clock-start",
     ),
-)
-
-G2_LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
     ReefLedNumberEntityDescription(
         key='kelvin',
         translation_key='kelvin',
         native_max_value=23000,
         native_min_value=8000,
         native_step=500,
-        value_name="$.sources[?(@.name=='/manual')].data.kelvin",
+        value_name=LED_KELVIN_INTERNAL_NAME,
         icon="mdi:palette",
         post_specific=False,
         native_unit_of_measurement=UnitOfTemperature.KELVIN,
     ),
-    # ReefLedNumberEntityDescription(
-    #     key='intensity',
-    #     translation_key='intensity',
-    #     native_max_value=100,
-    #     native_min_value=0,
-    #     native_step=1,
-    #     native_unit_of_measurement=PERCENTAGE,
-    #     post_specific=False,
-    #     value_name="$.sources[?(@.name=='/manual')].data.intensity",
-    #     icon="mdi:lightbulb-on-50",
-    # ),
 )
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -202,11 +196,6 @@ async def async_setup_entry(
         entities += [ReefLedNumberEntity(device, description,hass)
                  for description in LED_NUMBERS
                  if description.exists_fn(device)]
-    if type(device).__name__=='ReefLedG2Coordinator':
-        entities += [ReefLedNumberEntity(device, description,hass)
-                 for description in G2_LED_NUMBERS
-                 if description.exists_fn(device)]
-        
     if type(device).__name__=='ReefMatCoordinator':
         entities += [ReefBeatNumberEntity(device, description)
                  for description in MAT_NUMBERS
@@ -259,6 +248,25 @@ async def async_setup_entry(
             dn+=new_head
             
         entities += [ReefDoseNumberEntity(device, description)
+                 for description in dn
+                 if description.exists_fn(device)]
+    if type(device).__name__=='ReefRunCoordinator':
+        dn=()
+        for pump in range(1,3):
+            new_pump= (ReefRunNumberEntityDescription(
+                key="pump_"+str(pump)+"_intensity",
+                translation_key="speed",
+                native_unit_of_measurement=PERCENTAGE,
+                native_min_value=0,
+                native_step=1,
+                native_max_value=100,
+                value_name="$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump)+".schedule[0].ti",
+                icon="mdi:waves",
+                pump=pump,
+            ), )
+            dn+=new_pump
+            
+        entities += [ReefRunNumberEntity(device, description)
                  for description in dn
                  if description.exists_fn(device)]
         
@@ -363,7 +371,7 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         self._head=self.entity_description.head
         self._attr_native_value=0
 
-    async def async_set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         """Update the current value."""
         _LOGGER.debug("Reefbeat.number.set_native_value %f"%value)
         self._attr_native_value=value
@@ -380,6 +388,41 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         identifiers=list(di['identifiers'])[0]
         head=("head_"+str(self._head),)
         identifiers+=head
+        di['identifiers']={identifiers}
+        return di
+
+
+################################################################################
+# RUN
+class ReefRunNumberEntity(ReefBeatNumberEntity):
+    """Represent an ReefBeat number."""
+    _attr_has_entity_name = True
+    
+    def __init__(
+        self, device, entity_description: ReefDoseNumberEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+        self._pump=self.entity_description.pump
+        self._attr_native_value=0
+
+    async def async_set_native_value(self, value: int) -> None:
+        """Update the current value."""
+        _LOGGER.debug("Reefbeat.number.set_native_value %f"%value)
+        self._attr_native_value=value
+        self._device.set_data(self.entity_description.value_name,int(value))
+        self.async_write_ha_state()  
+        await self._device.push_values(self._pump)
+        await self._device.async_request_refresh()
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        di=self._device.device_info
+        di['name']+='_pump_'+str(self._pump)
+        identifiers=list(di['identifiers'])[0]
+        pump=("pump_"+str(self._pump),)
+        identifiers+=pump
         di['identifiers']={identifiers}
         return di
 

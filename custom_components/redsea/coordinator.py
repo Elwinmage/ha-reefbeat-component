@@ -28,6 +28,11 @@ from .const import (
     DEVICE_MANUFACTURER,
     VIRTUAL_LED,
     LINKED_LED,
+    LED_MOON_INTERNAL_NAME,
+    LED_WHITE_INTERNAL_NAME,
+    LED_BLUE_INTERNAL_NAME,
+    LED_KELVIN_INTERNAL_NAME,
+    LED_INTENSITY_INTERNAL_NAME,
 )
 
 from .reefbeat import ReefBeatAPI,ReefLedAPI, ReefMatAPI, ReefDoseAPI, ReefATOAPI, ReefRunAPI
@@ -153,6 +158,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
 
 ################################################################################
 # LED
+################################################################################
 class ReefLedCoordinator(ReefBeatCoordinator):
 
     def __init__(
@@ -162,11 +168,20 @@ class ReefLedCoordinator(ReefBeatCoordinator):
     ) -> None:
         """Initialize coordinator."""
         super().__init__(hass,entry)
-        self.my_api = ReefLedAPI(self._ip)
-        
+        self.my_api = ReefLedAPI(self._ip,self._hw)
+
     def force_status_update(self,state=False):
         self.my_api.force_status_update(state)
-        
+
+    def set_data(self,name,value):
+        super().set_data(name,value)
+        if name == LED_WHITE_INTERNAL_NAME or name == LED_BLUE_INTERNAL_NAME :
+            self.my_api.update_light_wb()
+        elif name == LED_KELVIN_INTERNAL_NAME or name == LED_INTENSITY_INTERNAL_NAME:
+            self.my_api.update_light_ki()
+
+    
+            
     def daily_prog(self):
         return self.my_api.daily_prog
 
@@ -188,6 +203,9 @@ class ReefLedG2Coordinator(ReefLedCoordinator):
     ) -> None:
         """Initialize coordinator."""
         super().__init__(hass,entry)
+
+    def set_data(self,name,value):
+        self.my_api.set_data(name,value)
         
 ################################################################################
 # VIRTUAL LED
@@ -262,9 +280,9 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         for led in self._linked:
             led.set_data(name,value)
 
-    async def push_values(self,source):
+    async def push_values(self,source,method='post'):
         for led in self._linked:
-            await led.push_values(source)
+            await led.push_values(source,method)
         
     def data_exist(self,name):
         for led in self._linked:
@@ -372,3 +390,5 @@ class ReefRunCoordinator(ReefBeatCoordinator):
         super().__init__(hass,entry)
         self.my_api = ReefRunAPI(self._ip)
         
+    async  def push_values(self,pump):
+        await self.my_api.push_values(pump)
