@@ -9,14 +9,14 @@
                     "ip_address": "Adresse IP",
 		    "hw_model": "Modèle hardware",
 		    "virtual_led": "Nouvelle Led virtuelle",
-		    "platform": "Platforme",
-		    "scan_interval": "interval de rafraichissement"
+		    "platform": "Plateforme",
+		    "scan_interval": "Intervalle de rafraichissement"
                 }
             }
         },
         "abort": {
             "already_configured": "Entitée déjà existante",
-            "cannot_create": "Impossible de créer une entitié pour une ReefBeat avec ces paramètres"
+            "cannot_create": "Impossible de créer une entitée pour un ReefBeat avec ces paramètres"
         }
     },
     "options": {
@@ -63,7 +63,7 @@
 		"name": "Intensité"
 	    },
 	    "schedule_length":{
-		"name": "Longeur d'avance programmée"
+		"name": "Longueur d'avance programmé"
 	    },
 	    "acclimation_duration":{
 		"name": "Durée de l'acclimatation"
@@ -110,7 +110,7 @@
 		"name" : "Détecteur de fuite"
 	    },
 	    "status":{
-		"name":"Status"
+		"name":"Statut"
 	    },
 	    "unclean_sensor":{
 		"name": "Etat du capteur"
@@ -132,7 +132,7 @@
 		"name": "Buzzer"
 	    },
 	    "is_sensor_error":{
-		"name": "Senseur en erreur?"
+		"name": "Capteur en erreur?"
 	    },
 	    "is_temp_enabled":{
 		"name": "Capteur de température"
@@ -186,7 +186,7 @@
 		"name": "Impulsion"
 	    },
 	    "container_volume":{
-		"name": "Container Volume"
+		"name": "Volume du réservoire"
 	    },
 	    "supplement":{
 		"name": "Nom du supplément"
@@ -201,7 +201,7 @@
 		"name": "Doses du jour"
 	    },
 	    "remaining_days":{
-		"name": "Jours restant"
+		"name": "Jours restants"
 	    },
 	    "daily_doses":{
 		"name": "Doses journalière"
@@ -220,7 +220,7 @@
 		"name": "Usage Total"
 	    },
 	    "remaining_length":{
-		"name": "Longeur restante"
+		"name": "Longueur restante"
 	    },
 	    "today_usage": {
 		"name": "Usage du jour"
@@ -281,16 +281,16 @@
 	    },
 	    
 	    "status": {
-		"name": "Status"
+		"name": "Statut"
 	    },
 	    "current_level": {
-		"name": "Niveau courrant"
+		"name": "Niveau actuel"
 	    },
 	    "current_read": {
 		"name": "Température"
 	    },
 	    "temperature_probe_status": {
-		"name": "Status de la sonde de température"
+		"name": "Statut de la sonde de température"
 	    }
 	},
 	"light": {
@@ -324,7 +324,7 @@
 		"name": "Contrôleur du Volume"
 	    },
 	    "schedule_enabled":{
-		"name": "Planifcation active"
+		"name": "Planification activée"
 	    },
 	    "daily_prog": {
 		"name": "Programmation journalière"
@@ -339,7 +339,7 @@
 	},
 	"select" : {
 	    "model": {
-		"name": "Model"
+		"name": "Modèle"
 	    },
 	    "position": {
 		"name": "Position"
