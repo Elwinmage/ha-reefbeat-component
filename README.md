@@ -79,6 +79,20 @@ The support of Color Temperature for G1 LEDS take into account the specificity o
 </p>
 
 ***
+### IMPORTANT THING
+
+<b>The Kelvin/intensity interface of G2 lamps does not allow for full LED power.</b>
+
+Because this method ensures constant intensity across the entire color range, your LEDs do not utilize their full capacity in the middle. At 8.000K, the white channel is at 100% and the blue channel at 0% (the opposite at 23.000K). At 14.000K and with 100% intensity for G2 lights, the power of the white and blue channels is approximately 85%.
+
+G1 LEDS use white and blue channel control, which allows for full power across the entire range, but not constant intensity without compensation. In the current version (v0.8.1pre), the intensity factor for G1 leds is given for full capacity. In other words, an intensity of x% for 9.000K and 23.000K is identical, but at 15,000K, an intensity of x% give higher power. Currently, the intensity of the G1s is given for the luminous capacity at the given color; it is not constant. I will provide a correction, but don't be surprised to see the intensity factor exceed 100% for the G1s in White/Blue mode in future versions. This is because you can harness the full power of your LEDs!
+
+Here is the loss curve for the G2s.
+<p align="center">                                                                                                                                                                             
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/intensity_factor.png" alt="Image">
+</p>
+
+***
 
 <p align="center">                                                                                                                                                                             
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_ctrl.png" alt="Image">
