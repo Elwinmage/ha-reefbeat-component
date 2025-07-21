@@ -226,21 +226,22 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
             entry
     ) -> None:
         """Initialize coordinator."""
-        super().__init__(hass, entry)
         # only led linked to this virtual device
         self._linked = []
-        _LOGGER.info("Devices linked to %s: "%(self._title))
         if LINKED_LED in entry.data:
             for led in entry.data[LINKED_LED]:
                 name=led.split(' ')[1]
                 uuid=led.split('(')[1][:-1]
-                self._linked+=[self._hass.data[DOMAIN][uuid]]
+                self._linked+=[hass.data[DOMAIN][uuid]]
                 _LOGGER.info(" - %s"%(name))
+        super().__init__(hass, entry)
         if len(self._linked) == 0:
             _LOGGER.error("%s has no led linked, please configure them"%self._title)
         if len(self._linked) == 1:
             _LOGGER.error("%s has only one led linked (%s), please configure one more"%(self._title,self._linked[0]._title))
+        _LOGGER.info("Devices linked to %s: "%(self._title))
 
+            
     def force_status_update(self,state=False):
         pass
     
