@@ -4,6 +4,9 @@ import voluptuous as vol
 import glob
 import logging
 
+from jsonpath_ng import jsonpath
+from jsonpath_ng.ext import parse
+
 from typing import Any
 
 from functools import partial
@@ -28,6 +31,9 @@ from .const import (
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_SCAN_INTERVAL,
+    CONFIG_FLOW_INTENSITY_COMPENSATION,
+    LED_INTENSITY_INTERNAL_NAME,
+    LEDS_INTENSITY_COMPENSATION,
     HW_LED_IDS,
     HW_DOSE_IDS,
     HW_MAT_IDS,
@@ -170,6 +176,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 data[CONFIG_FLOW_IP_ADDRESS]=self._config_entry.data[CONFIG_FLOW_IP_ADDRESS]
                 data[CONFIG_FLOW_HW_MODEL]=self._config_entry.data[CONFIG_FLOW_HW_MODEL]
                 data[CONFIG_FLOW_SCAN_INTERVAL]=user_input[CONFIG_FLOW_SCAN_INTERVAL]
+                if CONFIG_FLOW_INTENSITY_COMPENSATION in user_input:
+                    data[CONFIG_FLOW_INTENSITY_COMPENSATION]=user_input[CONFIG_FLOW_INTENSITY_COMPENSATION]
                 self.hass.config_entries.async_update_entry(
                     self.config_entry, data=data, options=self.config_entry.options
                 )
@@ -198,14 +206,29 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         if not self._config_entry.title.startswith(VIRTUAL_LED+'-'):
             hw_model=self._config_entry.data[CONFIG_FLOW_HW_MODEL]
-            options_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONFIG_FLOW_SCAN_INTERVAL, default=get_scan_interval(hw_model)
-                    ): int,
- 
+            
+            query=parse('$[?(@.name=="'+hw_model+'")]')
+            res=query.find(LEDS_INTENSITY_COMPENSATION)
+            if len(res) > 0:
+                options_schema=vol.Schema(
+                    {
+                        vol.Required(
+                            CONFIG_FLOW_SCAN_INTERVAL, default=get_scan_interval(hw_model)
+                        ): int,
+                        vol.Required(
+                            CONFIG_FLOW_INTENSITY_COMPENSATION, default=False
+                        ): bool,
                 }
-            )
+                )
+            else:
+                options_schema=vol.Schema(
+                    {
+                        vol.Required(
+                            CONFIG_FLOW_SCAN_INTERVAL, default=get_scan_interval(hw_model)
+                        ): int,
+                        
+                }
+                )
 
         else:
             leds={}

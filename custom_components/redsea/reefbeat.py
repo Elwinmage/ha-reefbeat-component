@@ -21,6 +21,8 @@ from .const import (
     LED_MANUAL_DURATION_INTERNAL_NAME,
     LED_KELVIN_INTERNAL_NAME,
     LED_INTENSITY_INTERNAL_NAME,
+    LEDS_CONV,
+    LEDS_INTENSITY_COMPENSATION,
     DAILY_PROG_INTERNAL_NAME,
     MODEL_NAME,
     MODEL_ID,
@@ -111,13 +113,16 @@ class ReefBeatAPI():
         _LOGGER.debug("Sending: %s"%action)
         await self._http_send(self._base_url+'/'+action,payload)
         
-    def get_data(self,data_name):
+    def get_data(self,data_name,is_None_possible=False):
         """ get device data named data_name """
         query=parse(data_name)
         res=query.find(self.data)
-        if(len(res)==0):
+        if len(res)==0:
+           if is_None_possible==False:
             _LOGGER.error("reefbeat.get_data('%s') %s"%(data_name,self._base_url))
             _LOGGER.error("%s"%self.data)
+           else:
+               return None
         return res[0].value
 
     def set_data(self,data_name,value):
@@ -159,18 +164,10 @@ class ReefBeatAPI():
 ################################################################################
 #Reef LED
 ################################################################################
-LEDS_CONV=[{'name':'RSLED160','kelvin': [9000,12000,15000,20000,23000], 'white_blue':[200,125,100,50,10]},
-           {'name':'RSLED90', 'kelvin': [9000,12000,15000,20000,23000], 'white_blue':[200,134,100,50,10]},
-           {'name':'RSLED50', 'kelvin': [9000,12000,15000,20000,23000], 'white_blue':[200,100,50,25,5]},
-           {'name':'RSLED60','kelvin': [],'white_blue':[]},
-           {'name':'RSLED115','kelvin': [],'white_blue':[]},
-           {'name':'RSLED170','kelvin': [],'white_blue':[]},
-           ]
-
 ################################################################################
 class ReefLedAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
-    def __init__(self,ip,hw) -> None:
+    def __init__(self,ip,hw,intensity_compensation=False) -> None:
         super().__init__(ip)
         self.data['sources'].insert(len(self.data['sources']),{"name":"/preset_name","get_once": False,"data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/manual","get_once": False,"data":""})
@@ -181,15 +178,22 @@ class ReefLedAPI(ReefBeatAPI):
             self.data['sources'].insert(len(self.data['sources']),{"name":"/clouds/"+str(day),"get_once": False,"data":""})
         self.data['local']={"status":False,
                             "manual_duration":0,
+                            "constant_intensity": 0,
                             "moonphase":{"moon_day":1},
                             "manual_trick":{"kelvin":None,"intensity":None},
                             "acclimation":{"duration":50,"start_intensity_factor":50,"current_day":1},
-                            "leds_conv":LEDS_CONV}
+                            "leds_conv":LEDS_CONV,
+                            "leds_intensity_compensation":LEDS_INTENSITY_COMPENSATION}
         self._model=hw
         self._g1 = self._model in HW_G1_LED_IDS
         self._kelvin_to_wb=None
         self._wb_to_kelvin=None
-
+        #intensity compensation
+        self._must_compensate_intensity=intensity_compensation
+        _LOGGER.debug("Intensity compensation: %s"%(self._must_compensate_intensity))
+        self._intensity_compensation=None
+        #the minial intensity of a let set the maixum intensity for kelvin/intensity set
+        self._intensity_compensation_reference=None
 
     def update_acclimation(self):
         accli=self.get_data("$.sources[?(@.name=='/acclimation')].data")
@@ -210,6 +214,20 @@ class ReefLedAPI(ReefBeatAPI):
         if len (led_params['kelvin']) > 0:
             self._kelvin_to_wb=np.poly1d(np.polyfit(np.array(led_params['kelvin']),np.array(led_params['white_blue']), 4))
             self._wb_to_kelvin=np.poly1d(np.polyfit(np.array(led_params['white_blue']),np.array(led_params['kelvin']), 4))
+
+
+        # intensity compensation
+        if self._must_compensate_intensity:
+            led_params=self.get_data('$.local.leds_intensity_compensation[?(@.name=="'+self._model+'")]',True)
+            _LOGGER.debug("LEDS_INTENSITY_COMPENSATION: %s"%led_params)
+            if led_params != None:
+                self._intensity_compensation=np.poly1d(np.polyfit(np.array(led_params['white_blue']),np.array(led_params['intensity']), 5))
+                min_blue=self._intensity_compensation(0)
+                min_white=self._intensity_compensation(200)
+                if min_blue > min_white:
+                    self._intensity_compensation_reference = min_white
+                else:
+                    self._intensity_compensation_reference = min_blue
         await self.fetch_data()
         self.update_acclimation()
         _LOGGER.debug('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
@@ -230,28 +248,48 @@ class ReefLedAPI(ReefBeatAPI):
     def kelvin_to_white_and_blue(self,kelvin,intensity=100):
         wb=self._kelvin_to_wb(kelvin)
         white,blue=self._wb(wb)
-        white = white * intensity / 100
-        blue= blue * intensity / 100
+        if self._intensity_compensation != None:
+            intensity_compensation_factor=self._intensity_compensation_reference/self._intensity_compensation(wb)
+        else:
+            intensity_compensation_factor=1
+        white = white * intensity / 100 * intensity_compensation_factor
+        blue= blue * intensity / 100 *intensity_compensation_factor
+        
         moon = self.get_data(LED_MOON_INTERNAL_NAME)
         res={'kelvin':int(kelvin),"intensity":int(intensity),"white": int(white),"blue":int(blue),"moon":moon}
-        _LOGGER.debug("Kelvin to white and blue: %s (wb=%d)" %(res,wb))
+        _LOGGER.debug("Kelvin to white and blue: %s (wb=%d) whit compensation %s" %(res,wb,intensity_compensation_factor))
         return res
         
     def white_and_blue_to_kelvin(self,white,blue):
-        if white >= blue:
-            intensity=white
-            wb = 200-blue*100/intensity
+
+        if white != 0 or blue != 0:
+            if white >= blue:
+                intensity=white
+                wb = 200-blue*100/intensity
+            else:
+                intensity=blue
+                wb= white*100/intensity
+            kelvin=self._wb_to_kelvin(wb)
+            moon = self.get_data(LED_MOON_INTERNAL_NAME)
+
+            if self._intensity_compensation != None:
+                intensity_compensation_factor=self._intensity_compensation_reference/self._intensity_compensation(wb)
+            else:
+                intensity_compensation_factor=1
+
+            intensity=intensity/intensity_compensation_factor
+
+            res={'kelvin':int(kelvin),"intensity":int(intensity),"white": int(white),"blue":int(blue),"moon":moon}
         else:
-            intensity=blue
-            wb= white*100/intensity
-        kelvin=self._wb_to_kelvin(wb)
-        moon = self.get_data(LED_MOON_INTERNAL_NAME)
-        res={'kelvin':int(kelvin),"intensity":int(intensity),"white": int(white),"blue":int(blue),"moon":moon}
+            moon = self.get_data(LED_MOON_INTERNAL_NAME)
+            kelvin=self.get_data(LED_KELVIN_INTERNAL_NAME)
+            if kelvin == None or kelvin < 8000:
+                kelvin=9000
+            res={'kelvin':kelvin,"intensity":0,"white": 0,"blue":0,"moon":moon}
         _LOGGER.debug("White and blue to kelvin: %s (wb=%d)" %(res,wb))
         return res
 
     def update_light_wb(self):
-        _LOGGER.debug("**** update_light_wb")
         data = self.get_data('$.sources[?(@.name=="/manual")].data')
         new_data=self.white_and_blue_to_kelvin(data['white'],data['blue'])
         data['kelvin']=new_data['kelvin']
@@ -261,19 +299,21 @@ class ReefLedAPI(ReefBeatAPI):
         self.data['local']['manual_trick']['intensity']=new_data['intensity']   
 
 
-    def get_data(self,data_name):
+    def get_data(self,data_name,is_None_possible=False):
         if self._g1 and data_name==LED_KELVIN_INTERNAL_NAME:
             return  self.data['local']['manual_trick']['kelvin']
         elif self._g1 and data_name==LED_INTENSITY_INTERNAL_NAME:
             return self.data['local']['manual_trick']['intensity']
         else :
-            return super().get_data(data_name)
+            return super().get_data(data_name,is_None_possible)
         
     def update_light_ki(self):
-        data = self.get_data('$.sources[?(@.name=="/manual")].data')
+        f_data = self.get_data('$.sources[?(@.name=="/manual")].data')
+        data = {'kelvin':int(self.get_data(LED_KELVIN_INTERNAL_NAME)),'intensity':int(self.get_data(LED_INTENSITY_INTERNAL_NAME))}
+        _LOGGER.debug("Update KI: %s"%data)
         new_data=self.kelvin_to_white_and_blue(data['kelvin'],data['intensity'])
-        data['white']=new_data['white']
-        data['blue']=new_data['blue']
+        f_data['white']=new_data['white']
+        f_data['blue']=new_data['blue']
         
     async def fetch_data(self):
         await super().fetch_data()

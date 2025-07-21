@@ -14,6 +14,7 @@ SW_VERSION="version"
 CONFIG_FLOW_IP_ADDRESS="ip_address"
 CONFIG_FLOW_HW_MODEL="hw_model"
 CONFIG_FLOW_SCAN_INTERVAL="scan_interval"
+CONFIG_FLOW_INTENSITY_COMPENSATION="intensity_compensation"
 
 SCAN_INTERVAL=120 #in seconds
 DO_NOT_REFRESH_TIME=2 #in seconds
@@ -63,6 +64,18 @@ LED_MANUAL_DURATION_INTERNAL_NAME="$.local.manual_duration"
 DAILY_PROG_INTERNAL_NAME="$.local.daily_prog"
 
 LED_CONVERSION_COEF=100/255
+
+
+LEDS_CONV=[{'name':'RSLED160','kelvin': [9000,12000,15000,20000,23000], 'white_blue':[200,125,100,50,10]},
+           {'name':'RSLED90', 'kelvin': [9000,12000,15000,20000,23000], 'white_blue':[200,134,100,50,10]},
+           {'name':'RSLED50', 'kelvin': [9000,12000,15000,20000,23000], 'white_blue':[200,100,50,25,5]},
+           {'name':'RSLED60','kelvin': [],'white_blue':[]},
+           {'name':'RSLED115','kelvin': [],'white_blue':[]},
+           {'name':'RSLED170','kelvin': [],'white_blue':[]},
+           ]
+
+LEDS_INTENSITY_COMPENSATION=[{'name':'RSLED160','intensity':[10320,14300,17240,20575,23100,22260,20190,18070,13370],'white_blue':[200,170,150,125,100,75,50,30,0]}
+]
 
 #VIRTUAL
 

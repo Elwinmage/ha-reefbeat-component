@@ -1,6 +1,10 @@
 """ Implements the light entity """
 import logging
 
+from jsonpath_ng import jsonpath
+from jsonpath_ng.ext import parse
+
+
 from dataclasses import dataclass
 from collections.abc import Callable
 
@@ -61,6 +65,15 @@ COMMON_LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
     ),
 )
 
+CONSTANT_INTENSITY: tuple[ReefLedLightEntityDescription, ...] = (
+    ReefLedLightEntityDescription(
+        key="constant_intensity",
+        translation_key="constant_intensity",
+        value_name="$.local.constant_intensity",
+        icon="mdi:lightbulb-on-50",
+    ),
+)
+
     
 LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
     ReefLedLightEntityDescription(
@@ -88,18 +101,6 @@ G2_LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
 
 
 VIRTUAL_LIGHTS: tuple[ReefVirtualLedLightEntityDescription, ...] = (
-    # ReefVirtualLedLightEntityDescription(
-    #     key="white",
-    #     translation_key="white",
-    #     value_name=LED_WHITE_INTERNAL_NAME,
-    #     icon="mdi:lightbulb-outline",
-    # ),
-    # ReefVirtualLedLightEntityDescription(
-    #     key="blue",
-    #     translation_key="blue",
-    #     value_name=LED_BLUE_INTERNAL_NAME,
-    #     icon="mdi:lightbulb",
-    # ),
     ReefLedLightEntityDescription(
         key="intensity",
         translation_key="intensity",

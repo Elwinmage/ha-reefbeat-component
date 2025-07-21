@@ -168,17 +168,6 @@ LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
         post_specific='/timer',
         icon="mdi:clock-start",
     ),
-    ReefLedNumberEntityDescription(
-        key='kelvin',
-        translation_key='kelvin',
-        native_max_value=23000,
-        native_min_value=8000,
-        native_step=500,
-        value_name=LED_KELVIN_INTERNAL_NAME,
-        icon="mdi:palette",
-        post_specific=False,
-        native_unit_of_measurement=UnitOfTemperature.KELVIN,
-    ),
 )
 
 async def async_setup_entry(
@@ -193,9 +182,28 @@ async def async_setup_entry(
     entities=[]
     _LOGGER.debug("NUMBERS")
     if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefVirtualLedCoordinator' or type(device).__name__=='ReefLedG2Coordinator':
+        min_kelvin=9000
+        if  type(device).__name__=='ReefLedG2Coordinator':
+            min_kelvin=8000
+        KELVIN_LED: tuple[ReefLedNumberEntityDescription, ...] = (
+            ReefLedNumberEntityDescription(
+            key='kelvin',
+            translation_key='kelvin',
+            native_max_value=23000,
+            native_min_value=min_kelvin,
+            native_step=500,
+            value_name=LED_KELVIN_INTERNAL_NAME,
+            icon="mdi:palette",
+            post_specific=False,
+            native_unit_of_measurement=UnitOfTemperature.KELVIN,
+        ),)
         entities += [ReefLedNumberEntity(device, description,hass)
                  for description in LED_NUMBERS
                  if description.exists_fn(device)]
+        entities += [ReefLedNumberEntity(device, description,hass)
+                    for description in KELVIN_LED
+                     if description.exists_fn(device)]
+
     if type(device).__name__=='ReefMatCoordinator':
         entities += [ReefBeatNumberEntity(device, description)
                  for description in MAT_NUMBERS

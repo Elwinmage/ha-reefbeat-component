@@ -70,7 +70,6 @@ LED_SWITCHES: tuple[ReefLedSwitchEntityDescription, ...] = (
         translation_key="acclimation",
         value_name= LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
          icon="mdi:fish",
-#        delete=True,
         method='post',
     ),
     ReefLedSwitchEntityDescription(
@@ -78,7 +77,6 @@ LED_SWITCHES: tuple[ReefLedSwitchEntityDescription, ...] = (
         translation_key="moon_phase",
         value_name= LED_MOONPHASE_ENABLED_INTERNAL_NAME,
          icon="mdi:weather-night",
-#        delete=True,
         method='post',
     ),
 )

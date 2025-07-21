@@ -20,6 +20,7 @@ from .const import (
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_SCAN_INTERVAL,
+    CONFIG_FLOW_INTENSITY_COMPENSATION,
     SCAN_INTERVAL,
     MODEL_NAME,
     MODEL_ID,
@@ -168,7 +169,11 @@ class ReefLedCoordinator(ReefBeatCoordinator):
     ) -> None:
         """Initialize coordinator."""
         super().__init__(hass,entry)
-        self.my_api = ReefLedAPI(self._ip,self._hw)
+        intensity_compensation=False
+        if CONFIG_FLOW_INTENSITY_COMPENSATION in entry.data:
+            intensity_compensation=entry.data[CONFIG_FLOW_INTENSITY_COMPENSATION]
+        self.my_api = ReefLedAPI(self._ip,self._hw,intensity_compensation)
+        _LOGGER.info("%s intensity compensation :%s"%(self._title,intensity_compensation))
 
     def force_status_update(self,state=False):
         self.my_api.force_status_update(state)
@@ -178,6 +183,10 @@ class ReefLedCoordinator(ReefBeatCoordinator):
         if name == LED_WHITE_INTERNAL_NAME or name == LED_BLUE_INTERNAL_NAME :
             self.my_api.update_light_wb()
         elif name == LED_KELVIN_INTERNAL_NAME or name == LED_INTENSITY_INTERNAL_NAME:
+            if name == LED_KELVIN_INTERNAL_NAME :
+                self.my_api.data['local']['manual_trick']['kelvin']=value
+            else:
+                self.my_api.data['local']['manual_trick']['intensity']=value
             self.my_api.update_light_ki()
 
     

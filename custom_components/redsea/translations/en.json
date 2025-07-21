@@ -294,6 +294,10 @@
 	    }
 	},
 	"light": {
+	    "constant_intensity":{
+		"name": "Compensate Intensity"
+	    },
+	    
 	    "intensity":{
 		"name": "Intensity"
 	    },
