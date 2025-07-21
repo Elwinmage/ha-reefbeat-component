@@ -111,7 +111,7 @@ Here is the power curve for the RSLED160 (0 is for full blue to  full white 200)
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled160_power_curve.png" alt="Image">
 </p>
 
-If you enable intentisty compensation, the intensity of your light will be constant accross all kelvin value but in the middle of the range you will not use the full capacity of your LED (like G2 models). For RSL160, that's more than a 50% loss.
+If you enable intentisty compensation, the intensity of your light will be constant accross all kelvin values but in the middle of the range you will not use the full capacity of your LED (like G2 models). For RSL160, that's more than a 50% loss.
 
 Also, don't be surprised to see the intensity factor exceed 100% for the G1s in White/Blue mode if you enable compensation. This is because you can harness the full power of your LEDs!
 
