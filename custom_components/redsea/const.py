@@ -77,6 +77,10 @@ LEDS_CONV=[{'name':'RSLED160','kelvin': [9000,12000,15000,20000,23000], 'white_b
 LEDS_INTENSITY_COMPENSATION=[{'name':'RSLED160','intensity':[10320,14300,17240,20575,23100,22260,20190,18070,13370],'white_blue':[200,170,150,125,100,75,50,30,0]}
 ]
 
+
+LED_MODE_INTERNAL_NAME="$.sources[?(@.name=='/mode')].data.mode"
+LED_MODES=["auto","timer","manual"]
+
 #VIRTUAL
 
 VIRTUAL_LED="virtual_led"

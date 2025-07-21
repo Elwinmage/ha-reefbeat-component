@@ -64,8 +64,6 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
 
     async def _async_update_data(self):
         try:
-            # Note: asyncio.TimeoutError and aiohttp.ClientError are already
-            # handled by the data update coordinator.
             async with async_timeout.timeout(DEFAULT_TIMEOUT*2):
                 return await self.my_api.fetch_data()
         except Exception as e:

@@ -149,10 +149,10 @@ class ReefBeatAPI():
             except Exception as e:
                 error_count += 1
                 _LOGGER.debug("Can not post data: %s to %s, retry nb %d/%d"%(payload,url,error_count,HTTP_MAX_RETRY))
-            if not status_ok:
+            if status_ok==False:
                 await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
-        if not status_ok:
-            _LOGGER.error("Can not get data from %s after %s try"%(source.value['name'],HTTP_MAX_RETRY))
+        if status_ok==False:
+            _LOGGER.error("Can not push data from %s after %s try"%(source.value['name'],HTTP_MAX_RETRY))
 
 
     async def push_values(self,source,method='post'):
@@ -173,6 +173,7 @@ class ReefLedAPI(ReefBeatAPI):
         self.data['sources'].insert(len(self.data['sources']),{"name":"/manual","get_once": False,"data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/acclimation","get_once": False,"data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/moonphase","get_once": False,"data":""})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/mode","get_once": False,"data":""})
         for day in range(1,8):
             self.data['sources'].insert(len(self.data['sources']),{"name":"/auto/"+str(day),"get_once": False,"data":""})
             self.data['sources'].insert(len(self.data['sources']),{"name":"/clouds/"+str(day),"get_once": False,"data":""})
@@ -284,6 +285,7 @@ class ReefLedAPI(ReefBeatAPI):
         else:
             moon = self.get_data(LED_MOON_INTERNAL_NAME)
             kelvin=self.get_data(LED_KELVIN_INTERNAL_NAME)
+            wb=200
             if kelvin == None or kelvin < 8000:
                 kelvin=9000
             res={'kelvin':kelvin,"intensity":0,"white": 0,"blue":0,"moon":moon}

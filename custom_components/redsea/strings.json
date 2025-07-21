@@ -344,6 +344,9 @@
 	    }
 	},
 	"select" : {
+	    "mode":{
+		"name": "Mode"
+	    },
 	    "model": {
 		"name": "Model"
 	    },

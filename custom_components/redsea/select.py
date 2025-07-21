@@ -25,6 +25,11 @@ from homeassistant.helpers.device_registry import  DeviceInfo
 
 from homeassistant.helpers.typing import StateType
 
+from homeassistant.const import (
+    EntityCategory,
+)
+
+
 from .const import (
     DOMAIN,
     DAILY_PROG_INTERNAL_NAME,
@@ -33,6 +38,8 @@ from .const import (
     HW_MAT_MODEL,
     MAT_MODEL_INTERNAL_NAME,
     MAT_POSITION_INTERNAL_NAME,
+    LED_MODE_INTERNAL_NAME,
+    LED_MODES
     )
 
 from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
@@ -46,6 +53,7 @@ class ReefBeatSelectEntityDescription(SelectEntityDescription):
     entity_registry_visible_default: bool = True
     value_name: ''
     options: []
+    method: str = 'put'
     
 MAT_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
     ReefBeatSelectEntityDescription(
@@ -66,8 +74,19 @@ MAT_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
         options=['left','right'],
         entity_registry_visible_default=False,
     ),
+)
 
-    
+LED_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
+    ReefBeatSelectEntityDescription(
+        key="mode",
+        translation_key="mode",
+        value_name=LED_MODE_INTERNAL_NAME,
+        exists_fn=lambda _: True,
+        icon="mdi:auto-mode",
+        options=LED_MODES,
+        entity_category=EntityCategory.CONFIG,
+        method='post',
+    ),
 )
 
 
@@ -85,6 +104,10 @@ async def async_setup_entry(
     if type(device).__name__=='ReefMatCoordinator':
         entities += [ReefBeatSelectEntity(device, description)
                  for description in MAT_SELECTS
+                 if description.exists_fn(device)]
+    elif type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedG2Coordinator' or type(device).__name__=='ReefVirtualLedCoordinator' :
+        entities += [ReefBeatSelectEntity(device, description)
+                 for description in LED_SELECTS
                  if description.exists_fn(device)]
 
     async_add_entities(entities, True)
@@ -106,14 +129,23 @@ class ReefBeatSelectEntity(CoordinatorEntity,SelectEntity):
         self._value_name=entity_description.value_name
         self._attr_current_option = self._device.get_data(self._value_name)
         self._source = self.entity_description.value_name.split('\'')[1]
+        self._method=entity_description.method
 
-        
+
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_available = True
+        self._attr_current_option = self._device.get_data(self._value_name)
+        self.async_write_ha_state()
+
     async def async_select_option(self, option: str) -> None:
         """Update the current selected option."""
         self._attr_current_option = option
         self._device.set_data(self._value_name,option)
         self.async_write_ha_state()        
-        await self._device.push_values(self._source)
+        await self._device.push_values(self._source,self._method)
         
     @property
     def device_info(self) -> DeviceInfo:
