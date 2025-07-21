@@ -106,7 +106,7 @@ If you want to use the full power of your LED then disable intensity compensatio
 
 In other words, an intensity of x% for 9.000K is not the same than at 23.000K or 15,000K.
 
-Here is the power curve for the RSLED160 (0 is for full blue, 200 for full white).
+Here is the power curve for the RSLED160 (0 is for full blue to  full white 200).
 <p align="center">                                                                                                                                                                             
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled160_power_curve.png" alt="Image">
 </p>
