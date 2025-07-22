@@ -63,6 +63,7 @@ MAT_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
         exists_fn=lambda _: True,
         icon="mdi:movie-roll",
         options=HW_MAT_MODEL,
+        entity_category=EntityCategory.CONFIG,
         entity_registry_visible_default=False,
     ),
     ReefBeatSelectEntityDescription(
@@ -72,6 +73,7 @@ MAT_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
         exists_fn=lambda _: True,
         icon="mdi:set-left-right",
         options=['left','right'],
+        entity_category=EntityCategory.CONFIG,
         entity_registry_visible_default=False,
     ),
 )
@@ -130,8 +132,6 @@ class ReefBeatSelectEntity(CoordinatorEntity,SelectEntity):
         self._attr_current_option = self._device.get_data(self._value_name)
         self._source = self.entity_description.value_name.split('\'')[1]
         self._method=entity_description.method
-
-
 
     @callback
     def _handle_coordinator_update(self) -> None:

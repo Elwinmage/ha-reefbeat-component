@@ -32,6 +32,7 @@ from .const import (
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_SCAN_INTERVAL,
     CONFIG_FLOW_INTENSITY_COMPENSATION,
+    CONFIG_FLOW_CONFIG_TYPE,
     LED_INTENSITY_INTERNAL_NAME,
     LEDS_INTENSITY_COMPENSATION,
     HW_LED_IDS,
@@ -102,6 +103,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input[CONFIG_FLOW_HW_MODEL]=user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')[1]
                 user_input[CONFIG_FLOW_IP_ADDRESS]=user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')[0]
                 user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(user_input[CONFIG_FLOW_HW_MODEL])
+                user_input[CONFIG_FLOW_CONFIG_TYPE]=False
                 _LOGGER.info("-- ** TITLE ** -- %s"%title)
     
             return self.async_create_entry(
@@ -176,6 +178,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 data[CONFIG_FLOW_IP_ADDRESS]=self._config_entry.data[CONFIG_FLOW_IP_ADDRESS]
                 data[CONFIG_FLOW_HW_MODEL]=self._config_entry.data[CONFIG_FLOW_HW_MODEL]
                 data[CONFIG_FLOW_SCAN_INTERVAL]=user_input[CONFIG_FLOW_SCAN_INTERVAL]
+                data[CONFIG_FLOW_CONFIG_TYPE]=user_input[CONFIG_FLOW_CONFIG_TYPE]
                 if CONFIG_FLOW_INTENSITY_COMPENSATION in user_input:
                     data[CONFIG_FLOW_INTENSITY_COMPENSATION]=user_input[CONFIG_FLOW_INTENSITY_COMPENSATION]
                 self.hass.config_entries.async_update_entry(
@@ -216,6 +219,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                             CONFIG_FLOW_SCAN_INTERVAL, default=get_scan_interval(hw_model)
                         ): int,
                         vol.Required(
+                            CONFIG_FLOW_CONFIG_TYPE, default=False
+                        ): bool,
+                        vol.Required(
                             CONFIG_FLOW_INTENSITY_COMPENSATION, default=False
                         ): bool,
                 }
@@ -226,6 +232,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         vol.Required(
                             CONFIG_FLOW_SCAN_INTERVAL, default=get_scan_interval(hw_model)
                         ): int,
+                        vol.Required(
+                            CONFIG_FLOW_CONFIG_TYPE, default=False
+                        ): bool,
                         
                 }
                 )

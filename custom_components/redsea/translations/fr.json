@@ -25,7 +25,8 @@
 		"title": "Configuration",
 		"data":{
 		    "slaves": "LED",
-		    "not_virtual": "Pas de configuration disponible"
+		    "not_virtual": "Pas de configuration disponible",
+		    "live_config_update": "MAJ de la configuration en direct"
 		}
 		
 	    }
@@ -33,6 +34,9 @@
     },
     "entity": {
 	"button":{
+	    "fetch_config":{
+		"name": "MAJ données de configuration"
+	    },
 	    "new_roll":{
 		"name": "Nouveau Rouleau"
 	    },

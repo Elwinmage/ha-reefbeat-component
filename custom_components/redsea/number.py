@@ -28,6 +28,7 @@ from homeassistant.const import (
     UnitOfVolume,
     UnitOfTime,
     UnitOfTemperature,
+    EntityCategory,
 )
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -95,6 +96,7 @@ MAT_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         native_step=0.5,
         value_name=MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
         icon="mdi:arrow-expand-right",
+        entity_category=EntityCategory.CONFIG,
     ),
     ReefBeatNumberEntityDescription(
         key='started_roll_diameter',
@@ -106,6 +108,7 @@ MAT_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         native_step=0.1,
         value_name=MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
         icon="mdi:arrow-expand-right",
+        entity_category=EntityCategory.CONFIG,
     ),
     ReefBeatNumberEntityDescription(
         key='schedule_length',
@@ -117,6 +120,7 @@ MAT_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         native_step=2.5,
         value_name="$.sources[?(@.name=='/configuration')].data.schedule_length",
         icon="mdi:arrow-expand-right",
+        entity_category=EntityCategory.CONFIG,
     ),
 
 )
@@ -131,6 +135,7 @@ LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
         value_name=LED_MOON_DAY_INTERNAL_NAME,
         post_specific='/moonphase',
         icon="mdi:moon-waning-crescent",
+        entity_category=EntityCategory.CONFIG,
         dependency=LED_MOONPHASE_ENABLED_INTERNAL_NAME,
     ),
     ReefLedNumberEntityDescription(
@@ -144,6 +149,7 @@ LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
         icon="mdi:calendar-expand-horizontal",
         post_specific='/acclimation',
         dependency=LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
+        entity_category=EntityCategory.CONFIG,
     ),
     ReefLedNumberEntityDescription(
         key='acclimation_start_intensity_factor',
@@ -156,6 +162,7 @@ LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
         post_specific='/acclimation',
         icon="mdi:sun-wireless-outline",
         dependency=LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
+        entity_category=EntityCategory.CONFIG,
     ),
     ReefLedNumberEntityDescription(
         key='manual_duration',
@@ -167,6 +174,7 @@ LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
         value_name=LED_MANUAL_DURATION_INTERNAL_NAME,
         post_specific='/timer',
         icon="mdi:clock-start",
+        entity_category=EntityCategory.CONFIG,
     ),
 )
 
@@ -223,6 +231,7 @@ async def async_setup_entry(
                 value_name="$.local.head."+str(head)+".manual_dose",
                 icon="mdi:cup-water",
                 head=head,
+                entity_category=EntityCategory.CONFIG, 
             ), )
             dn+=new_head
             new_head= (ReefDoseNumberEntityDescription(
@@ -237,6 +246,7 @@ async def async_setup_entry(
                 value_name="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.schedule.dd",
                 icon="mdi:cup-water",
                 head=head,
+                entity_category=EntityCategory.CONFIG, 
             ), )
             dn+=new_head
             new_head= (ReefDoseNumberEntityDescription(
@@ -251,6 +261,7 @@ async def async_setup_entry(
                 value_name="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.container_volume",
                 icon="mdi:cup-water",
                 head=head,
+                entity_category=EntityCategory.CONFIG, 
                 dependency="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.slm",
             ), )
             dn+=new_head
@@ -299,22 +310,23 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._attr_available = True
+        self._attr_available = self.available
         self._attr_native_value=self._device.get_data(self.entity_description.value_name)
         self.async_write_ha_state()
 
         
-    async def async_update(self) -> None:
-        """Update entity state."""
-        self._attr_available = True
-        self._attr_native_value=self._device.get_data(self.entity_description.value_name)
+    # async def async_update(self) -> None:
+    #     _LOGGER.error("number.async_update")
+    #     """Update entity state."""
+    #     self._attr_available = True
+    #     self._attr_native_value=self._device.get_data(self.entity_description.value_name)
 
 
-    @callback
-    def _async_update_attrs(self) -> None:
-        """Update attrs from device."""
-        _LOGGER.error("number.async_update_attrs")
-        self._attr_native_value=self._device.get_data(self.entity_description.value_name)
+    # @callback
+    # def _async_update_attrs(self) -> None:
+    #     """Update attrs from device."""
+    #     self._attr_native_value=self._device.get_data(self.entity_description.value_name)
+    #     self._attr_available = self.available
         
     @property
     def native_value(self) -> float:

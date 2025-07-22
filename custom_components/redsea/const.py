@@ -15,6 +15,7 @@ CONFIG_FLOW_IP_ADDRESS="ip_address"
 CONFIG_FLOW_HW_MODEL="hw_model"
 CONFIG_FLOW_SCAN_INTERVAL="scan_interval"
 CONFIG_FLOW_INTENSITY_COMPENSATION="intensity_compensation"
+CONFIG_FLOW_CONFIG_TYPE="live_config_update"
 
 SCAN_INTERVAL=120 #in seconds
 DO_NOT_REFRESH_TIME=2 #in seconds

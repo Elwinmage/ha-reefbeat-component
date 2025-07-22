@@ -20,6 +20,11 @@ from homeassistant.components.time import (
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import  DeviceInfo
 
+
+from homeassistant.const import (
+    EntityCategory,
+)
+
 from homeassistant.helpers.typing import StateType
 
 from .const import (
@@ -42,6 +47,7 @@ MAT_TIMES: tuple[ReefMatTimeEntityDescription, ...] = (
         translation_key='schedule_time',
         value_name="$.sources[?(@.name=='/configuration')].data.schedule_time",
         icon="mdi:update",
+        entity_category=EntityCategory.CONFIG,
     ),
 
 )

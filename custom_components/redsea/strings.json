@@ -25,7 +25,8 @@
 		"title": "Configuration",
 		"data":{
 		    "slaves": "LED",
-		    "not_virtual": "Not configurable"
+		    "not_virtual": "Not configurable",
+		    "live_config_update": "Live Configuration Update"
 		}
 		
 	    }
@@ -33,6 +34,9 @@
     },
     "entity": {
 	"button":{
+	    "fetch_config":{
+		"name": "Fetch Config"
+	    },
 	    "new_roll":{
 		"name": "New Roll"
 	    },

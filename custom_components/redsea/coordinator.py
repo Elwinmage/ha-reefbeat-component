@@ -21,6 +21,7 @@ from .const import (
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_SCAN_INTERVAL,
     CONFIG_FLOW_INTENSITY_COMPENSATION,
+    CONFIG_FLOW_CONFIG_TYPE,
     SCAN_INTERVAL,
     MODEL_NAME,
     MODEL_ID,
@@ -57,8 +58,13 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         self._ip = entry.data[CONFIG_FLOW_IP_ADDRESS]
         self._hw = entry.data[CONFIG_FLOW_HW_MODEL]
         self._title = entry.title
-        self.my_api = ReefBeatAPI(self._ip)
+        if CONFIG_FLOW_CONFIG_TYPE not in entry.data:
+            self._live_config_update= False
+        else:
+            self._live_config_update = entry.data[CONFIG_FLOW_CONFIG_TYPE]
+        self.my_api = ReefBeatAPI(self._ip,self._live_config_update)
         _LOGGER.info("%s scan interval set to %d"%(self._title,scan_interval))
+        _LOGGER.info("%s live configuration update %s"%(self._title,self._live_config_update))
         self._boot=True
         
 
@@ -67,13 +73,15 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
             async with async_timeout.timeout(DEFAULT_TIMEOUT*2):
                 return await self.my_api.fetch_data()
         except Exception as e:
-            # Raising ConfigEntryAuthFailed will cancel future updates
-            # and start a config flow with SOURCE_REAUTH (async_step_reauth)
             _LOGGER.error("Error communicating with API: %s"%self._title)
             _LOGGER.error(e)
 
     async def update(self):
         await self.my_api.fetch_data() 
+
+    async def fetch_config(self,config_path=None):
+        await self.my_api.fetch_config(config_path)
+        self.async_update_listeners()
         
     async def _async_setup(self) -> None:
         """Do initialization logic."""
@@ -170,7 +178,7 @@ class ReefLedCoordinator(ReefBeatCoordinator):
         intensity_compensation=False
         if CONFIG_FLOW_INTENSITY_COMPENSATION in entry.data:
             intensity_compensation=entry.data[CONFIG_FLOW_INTENSITY_COMPENSATION]
-        self.my_api = ReefLedAPI(self._ip,self._hw,intensity_compensation)
+        self.my_api = ReefLedAPI(self._ip,self._live_config_update,self._hw,intensity_compensation)
         _LOGGER.info("%s intensity compensation :%s"%(self._title,intensity_compensation))
 
     def force_status_update(self,state=False):
@@ -342,7 +350,7 @@ class ReefMatCoordinator(ReefBeatCoordinator):
     ) -> None:
         """Initialize coordinator."""
         super().__init__(hass, entry)
-        self.my_api = ReefMatAPI(self._ip)
+        self.my_api = ReefMatAPI(self._ip,self._live_config_update)
 
     async def new_roll(self):
         await self.my_api.new_roll()
@@ -359,7 +367,7 @@ class ReefDoseCoordinator(ReefBeatCoordinator):
         """Initialize coordinator."""
         super().__init__(hass,entry)
         self.heads_nb=int(entry.data[CONFIG_FLOW_HW_MODEL][-1])
-        self.my_api = ReefDoseAPI(self._ip,self.heads_nb)
+        self.my_api = ReefDoseAPI(self._ip,self._live_config_update,self.heads_nb)
 
     async def press(self,action,head):
         await self.my_api.press(action,head)
@@ -383,7 +391,7 @@ class ReefATOCoordinator(ReefBeatCoordinator):
     ) -> None:
         """Initialize coordinator."""
         super().__init__(hass,entry)
-        self.my_api = ReefATOAPI(self._ip)
+        self.my_api = ReefATOAPI(self._ip,self._live_config_update)
         
 ################################################################################
 # REERUN
@@ -396,7 +404,7 @@ class ReefRunCoordinator(ReefBeatCoordinator):
     ) -> None:
         """Initialize coordinator."""
         super().__init__(hass,entry)
-        self.my_api = ReefRunAPI(self._ip)
+        self.my_api = ReefRunAPI(self._ip,self._live_config_update)
         
     async  def push_values(self,pump):
         await self.my_api.push_values(pump)

@@ -47,17 +47,20 @@ _LOGGER = logging.getLogger(__name__)
 # Reef beat API
 class ReefBeatAPI():
     """ Access to Reefled informations and commands """
-    def __init__(self,ip) -> None:
+    def __init__(self,ip,live_config_update) -> None:
+        self.ip=ip
         self._base_url = "http://"+ip
-        self.data={"sources": [{"name":"/","get_once":True,"data":""},
-                               {"name":"/device-info","get_once":True,"data":""},
-                               {"name":"/firmware","get_once":True,"data":""},
-                               {"name":"/dashboard","get_once":False,"data":""}]}
+        self.data={"sources": [{"name":"/","type": "device-info","data":""},
+                               {"name":"/device-info","type": "device-info","data":""},
+                               {"name":"/firmware","type": "device-info","data":""},
+                               {"name":"/dashboard","type": "data","data":""}]}
         self.last_update_success=None
         self.quick_refresh=None
+        self._live_config_update=live_config_update
 
 
     async def _http_get(self,client,source):
+        _LOGGER.debug("_http_get: %s"%self._base_url+source.value['name'])
         r = await client.get(self._base_url+source.value['name'],timeout=DEFAULT_TIMEOUT)
         if r.status_code == 200:
             response=r.json()
@@ -66,7 +69,7 @@ class ReefBeatAPI():
             s[0].value['data']=response
             return True
         else:
-            _LOGGER.error("Can not get data: %s from %s"%(source,self.ip))
+            _LOGGER.error("Can not get data: %s from %s"%(source.value['name'],self.ip))
             return False
 
     async def _call_url(self,client,source):
@@ -76,26 +79,41 @@ class ReefBeatAPI():
             try:
                 status_ok=await self._http_get(client,source)
             except Exception as e:
-                error_count += 1
                 _LOGGER.debug("Can not get data: %s, retry nb %d/%d"%(source.value['name'],error_count,HTTP_MAX_RETRY))
+                _LOGGER.debug(e)
+                error_count += 1
             if not status_ok:
                 await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
         if not status_ok:
-            _LOGGER.error("Can not get data from %s/%s after %s try"%(self.ip,source.value['name'],HTTP_MAX_RETRY))
+            _LOGGER.error("Can not get data from %s%s after %s try"%(self.ip,source.value['name'],HTTP_MAX_RETRY))
             
     async def get_initial_data(self):
         """ Get inital datas and device information async """
         _LOGGER.debug('Reefbeat.get_initial_data')
-        query=parse("$.sources[?(@.get_once==true)]")
+        query=parse("$.sources[?(@.type=='device-info')]")
         sources=query.find(self.data)
         async with httpx.AsyncClient(verify=False) as client:  
             await asyncio.gather(*[self._call_url(client,sources[source]) for source in range(0,len(sources))])
+
+        if self._live_config_update == False:
+            await self.fetch_config()
         await self.fetch_data()
         _LOGGER.debug('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
         _LOGGER.debug(self.data)
         _LOGGER.debug('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
         return self.data
 
+
+    async def fetch_config(self,config_path=None):
+        _LOGGER.debug("reefbeat.fetch_config")
+        if config_path==None:
+            query=parse("$.sources[?(@.type=='config')]")
+        else:
+            query=parse("$.sources[?(@.name=='"+config_path+"')]")
+        sources=query.find(self.data)
+        async with httpx.AsyncClient(verify=False) as client:  
+            await asyncio.gather(*[self._call_url(client,sources[source]) for source in range(0,len(sources))])
+        
     async def fetch_data(self):
         """ Get device data """
         if self.quick_refresh!= None:
@@ -103,7 +121,11 @@ class ReefBeatAPI():
             sources=query.find(self.data)
             self.quick_refresh=None
         else:
-            query=parse("$.sources[?(@.get_once==false)]")
+            if self._live_config_update:
+                query=parse("$.sources[?(@.type!='device-info')]")
+            else:
+                query=parse("$.sources[?(@.type=='data')]")
+                
             sources=query.find(self.data)
         async with httpx.AsyncClient(verify=False) as client:  
             await asyncio.gather(*[self._call_url(client,sources[source]) for source in range(0,len(sources))])
@@ -164,19 +186,18 @@ class ReefBeatAPI():
 ################################################################################
 #Reef LED
 ################################################################################
-################################################################################
 class ReefLedAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
-    def __init__(self,ip,hw,intensity_compensation=False) -> None:
-        super().__init__(ip)
-        self.data['sources'].insert(len(self.data['sources']),{"name":"/preset_name","get_once": False,"data":""})
-        self.data['sources'].insert(len(self.data['sources']),{"name":"/manual","get_once": False,"data":""})
-        self.data['sources'].insert(len(self.data['sources']),{"name":"/acclimation","get_once": False,"data":""})
-        self.data['sources'].insert(len(self.data['sources']),{"name":"/moonphase","get_once": False,"data":""})
-        self.data['sources'].insert(len(self.data['sources']),{"name":"/mode","get_once": False,"data":""})
+    def __init__(self,ip,live_config_update,hw,intensity_compensation=False) -> None:
+        super().__init__(ip,live_config_update)
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/preset_name","type": "config","data":""})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/manual","type": "config","data":""})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/acclimation","type": "config","data":""})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/moonphase","type": "config","data":""})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/mode","type": "config","data":""})
         for day in range(1,8):
-            self.data['sources'].insert(len(self.data['sources']),{"name":"/auto/"+str(day),"get_once": False,"data":""})
-            self.data['sources'].insert(len(self.data['sources']),{"name":"/clouds/"+str(day),"get_once": False,"data":""})
+            self.data['sources'].insert(len(self.data['sources']),{"name":"/auto/"+str(day),"type": "config","data":""})
+            self.data['sources'].insert(len(self.data['sources']),{"name":"/clouds/"+str(day),"type": "config","data":""})
         self.data['local']={"status":False,
                             "manual_duration":0,
                             "constant_intensity": 0,
@@ -206,7 +227,7 @@ class ReefLedAPI(ReefBeatAPI):
     async def get_initial_data(self):
         """ Get inital datas and device information async """
         _LOGGER.debug('Reefbeat.get_initial_data')
-        query=parse("$.sources[?(@.get_once==true)]")
+        query=parse("$.sources[?(@.type=='device-info')]")
         sources=query.find(self.data)
         async with httpx.AsyncClient(verify=False) as client:  
             await asyncio.gather(*[self._call_url(client,sources[source]) for source in range(0,len(sources))])
@@ -230,6 +251,8 @@ class ReefLedAPI(ReefBeatAPI):
                     self._intensity_compensation_reference = min_white
                 else:
                     self._intensity_compensation_reference = min_blue
+        if self._live_config_update == False:
+            await self.fetch_config()
         await self.fetch_data()
         self.update_acclimation()
         _LOGGER.debug('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
@@ -237,7 +260,6 @@ class ReefLedAPI(ReefBeatAPI):
         _LOGGER.debug('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
         return self.data
 
-        
     def _wb(self,value):
         if value >= 100:
             white=100
@@ -358,19 +380,11 @@ class ReefLedAPI(ReefBeatAPI):
 #ReefMat
 class ReefMatAPI(ReefBeatAPI):
     """ Access to Reefmat informations and commands """
-    def __init__(self,ip) -> None:
-        super().__init__(ip)
-        self.data['sources'].insert(len(self.data['sources']),{"name":"/configuration","get_once": False,"data":""})
+    def __init__(self,ip,live_config_update) -> None:
+        super().__init__(ip,live_config_update)
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/configuration","type": "config","data":""})
         self.data['local']={"started_roll_diameter":MAT_MIN_ROLL_DIAMETER}
         
-    # async def push_values(self,source):
-    #     #TODO: set put retry on failure
-    #     payload={
-    #         'auto_advance': self.get_data(MAT_AUTO_ADVANCE_INTERNAL_NAME),
-    #         'custom_advance_value': self.get_data(MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME),
-    #         'model': self.get_data(MAT_MODEL_INTERNAL_NAME),
-    #         'position': self.get_data(MAT_POSITION_INTERNAL_NAME)}
-    #     await self._http_send(self._base_url+'/configuration',payload,'put')
 
     async def new_roll(self):
         model = self.get_data("$.sources[?(@.name=='/configuration')].data.model")
@@ -385,10 +399,8 @@ class ReefMatAPI(ReefBeatAPI):
         else :
             name ="Started Roll"
             is_partial = True
-        #new_length = math.pi/2*(MAT_INNER_DIAMETER+diameter)*((diameter-MAT_INNER_DIAMETER)/(2*MAT_TICKNESS))
         payload={'external_diameter':diameter,'name':name,'thickness':MAT_ROLL_THICKNESS,'is_partial':is_partial}
         _LOGGER.info("New roll: %s"%payload)
-        #r = httpx.post(self._base_url+'/new-roll', json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
         await self._http_send(self._base_url+'/new-roll',payload)
 
         
@@ -396,8 +408,8 @@ class ReefMatAPI(ReefBeatAPI):
 #ReefDose
 class ReefDoseAPI(ReefBeatAPI):
     """ Access to ReefDose informations and commands """
-    def __init__(self,ip,heads_nb) -> None:
-        super().__init__(ip)
+    def __init__(self,ip,live_config_update,heads_nb) -> None:
+        super().__init__(ip,live_config_update)
         self._heads_nb=heads_nb
         if self._heads_nb == 2:
             self.data['local']={"head":{"1":"","2":""}}
@@ -406,7 +418,7 @@ class ReefDoseAPI(ReefBeatAPI):
         else:
             _LOGGER.error("redsea.reefbeat.ReefDoseAPI.__init__() unkown head number: %d"%self._heads_nb)
         for head in range(1,self._heads_nb+1):
-            self.data['sources'].insert(len(self.data['sources']),{"name":"/head/"+str(head)+"/settings","get_once": False,"data":""})
+            self.data['sources'].insert(len(self.data['sources']),{"name":"/head/"+str(head)+"/settings","type": "config","data":""})
             self.data['local']["head"][str(head)]={"manual_dose":0}
             
     async def press(self,action,head):
@@ -428,9 +440,9 @@ class ReefDoseAPI(ReefBeatAPI):
 # ReefATO+
 class ReefATOAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
-    def __init__(self,ip) -> None:
-        super().__init__(ip)
-        self.data['sources'].insert(len(self.data['sources']),{"name":"/configuration","get_once": False,"data":""})
+    def __init__(self,ip,live_config_update) -> None:
+        super().__init__(ip,live_config_update)
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/configuration","type": "config","data":""})
 
     async def push_values(self,source='/configuration',method='put'):
         payload={'auto_fill': self.get_data(ATO_AUTO_FILL_INTERNAL_NAME)}
@@ -441,9 +453,9 @@ class ReefATOAPI(ReefBeatAPI):
 # ReefRun
 class ReefRunAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
-    def __init__(self,ip) -> None:
-        super().__init__(ip)
-        self.data['sources'].insert(len(self.data['sources']),{"name":"/pump/settings","get_once": False,"data":""})
+    def __init__(self,ip,live_config_update) -> None:
+        super().__init__(ip,live_config_update)
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/pump/settings","type": "config","data":""})
 
     async def push_values(self,pump):
         payload=self.get_data("$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump))
