@@ -49,6 +49,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
             entry,
     ) -> None:
         """Initialize coordinator."""
+
         if CONFIG_FLOW_SCAN_INTERVAL in entry.data:
             scan_interval=entry.data[CONFIG_FLOW_SCAN_INTERVAL]
         else:
@@ -122,7 +123,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         
     def get_data(self,name):
         return self.my_api.get_data(name)
-
+    
     def set_data(self,name,value):
         self.my_api.set_data(name,value)
     
@@ -144,19 +145,19 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
     
     @property
     def model(self):
-        return self.my_api.get_data("$.sources[?(@.name=='/device-info')].data.hw_model")
+        return self.get_data("$.sources[?(@.name=='/device-info')].data.hw_model")
 
     @property
     def model_id(self):
-        return self.my_api.get_data("$.sources[?(@.name=='/device-info')].data.hwid")
+        return self.get_data("$.sources[?(@.name=='/device-info')].data.hwid")
 
     @property
     def hw_version(self):
-        return self.my_api.get_data("$.sources[?(@.name=='/device-info')].data.hw_revision")
+        return self.get_data("$.sources[?(@.name=='/device-info')].data.hw_revision")
 
     @property
     def sw_version(self):
-        return self.my_api.get_data("$.sources[?(@.name=='/firmware')].data.version")
+        return self.get_data("$.sources[?(@.name=='/firmware')].data.version")
 
     @property
     def detected_id(self):

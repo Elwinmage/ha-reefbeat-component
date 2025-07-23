@@ -54,6 +54,8 @@ class ReefBeatAPI():
                                {"name":"/device-info","type": "device-info","data":""},
                                {"name":"/firmware","type": "device-info","data":""},
                                {"name":"/dashboard","type": "data","data":""}]}
+        #store object paht according to jsonpath
+        self._data_db = {}
         self.last_update_success=None
         self.quick_refresh=None
         self._live_config_update=live_config_update
@@ -134,8 +136,46 @@ class ReefBeatAPI():
         payload=''
         _LOGGER.debug("Sending: %s"%action)
         await self._http_send(self._base_url+'/'+action,payload)
+
         
-    def get_data(self,data_name,is_None_possible=False):
+    def get_path(self,obj):
+        res=''
+        if hasattr(obj,'context') and obj.context!=None:
+            res+=self.get_path(obj.context)
+        if hasattr(obj,'path') :
+            if str(obj.path)=='$':
+                pass
+            else:
+                if str(obj.path)[0]!='[' :
+                    res+='["'+str(obj.path)+'"]'
+                else:
+                    res+=str(obj.path)
+        return res
+        
+    def get_data_link(self,data_name):
+        query=parse(data_name)
+        res=query.find(self.data)
+        if len(res)==0:
+               return None
+        path=self.get_path(res[0])
+        return "data"+path
+
+    #Cache the pointer to data object from jsonpath
+    def get_data(self,name,is_None_possible=False):
+        if name not in self._data_db:
+            r=self.get_data_link(name)
+            if r != None:
+                self._data_db[name]="self."+r
+            else:
+                if is_None_possible==False:
+                    _LOGGER.error("reefbeat.get_data('%s') %s"%(data_name,self._base_url))
+                    _LOGGER.error("%s"%self.data)
+                else:
+                    return None
+        return eval(self._data_db[name])
+
+    #get data from jsonpath (slow)
+    def _get_data(self,data_name,is_None_possible=False):
         """ get device data named data_name """
         query=parse(data_name)
         res=query.find(self.data)
@@ -191,7 +231,7 @@ class ReefLedAPI(ReefBeatAPI):
     def __init__(self,ip,live_config_update,hw,intensity_compensation=False) -> None:
         super().__init__(ip,live_config_update)
         self.data['sources'].insert(len(self.data['sources']),{"name":"/preset_name","type": "config","data":""})
-        self.data['sources'].insert(len(self.data['sources']),{"name":"/manual","type": "config","data":""})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/manual","type": "data","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/acclimation","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/moonphase","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/mode","type": "config","data":""})
@@ -311,7 +351,6 @@ class ReefLedAPI(ReefBeatAPI):
             if kelvin == None or kelvin < 8000:
                 kelvin=9000
             res={'kelvin':kelvin,"intensity":0,"white": 0,"blue":0,"moon":moon}
-        _LOGGER.debug("White and blue to kelvin: %s (wb=%d)" %(res,wb))
         return res
 
     def update_light_wb(self):
@@ -319,7 +358,7 @@ class ReefLedAPI(ReefBeatAPI):
         new_data=self.white_and_blue_to_kelvin(data['white'],data['blue'])
         data['kelvin']=new_data['kelvin']
         data['intensity']=new_data['intensity']
-        # Must copy this data beacause virtual led get them before availaible in '/manual' "
+        # Must copy this data beacause virtual led get them before available in '/manual' "
         self.data['local']['manual_trick']['kelvin']=new_data['kelvin']
         self.data['local']['manual_trick']['intensity']=new_data['intensity']   
 
@@ -430,11 +469,6 @@ class ReefDoseAPI(ReefBeatAPI):
     async def push_values(self,head):
         payload=self.get_data("$.sources[?(@.name=='/head/"+str(head)+"/settings')].data")
         await self._http_send(self._base_url+'/head/'+str(head)+'/settings',payload,'put')
-    #     try:
-    #         r = httpx.put(self._base_url+'/head/'+str(head)+'/settings', json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
-    #     except Exception as e:
-    #         _LOGGER.error("readsea.reefbeat.ReefDoseAPI.push_value failed")
-    #         _LOGGER.error(e)
     
 ################################################################################
 # ReefATO+
@@ -447,7 +481,6 @@ class ReefATOAPI(ReefBeatAPI):
     async def push_values(self,source='/configuration',method='put'):
         payload={'auto_fill': self.get_data(ATO_AUTO_FILL_INTERNAL_NAME)}
         await self._http_send(self._base_url+'/configuration',payload,method)
-        #r = httpx.put(self._base_url+'/configuration', json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
 
 ################################################################################
 # ReefRun
