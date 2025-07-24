@@ -77,13 +77,13 @@ class ReefBeatAPI():
     async def _call_url(self,client,source):
         status_ok=False
         error_count=0
-        while status_ok == False and error_count <= HTTP_MAX_RETRY:
+        while status_ok == False and error_count < HTTP_MAX_RETRY:
             try:
                 status_ok=await self._http_get(client,source)
             except Exception as e:
+                error_count += 1
                 _LOGGER.debug("Can not get data: %s, retry nb %d/%d"%(source.value['name'],error_count,HTTP_MAX_RETRY))
                 _LOGGER.debug(e)
-                error_count += 1
             if not status_ok:
                 await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
         if not status_ok:
