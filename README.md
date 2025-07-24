@@ -57,11 +57,14 @@ Or search for "redsea" or "reefbeat" in hacs
  - Auto detect on private network (if on same network)
  - Set scan interval for device
 
-<p align="center">                                                                                                                                                                               <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/auto_detect.png" alt="Image">
+<p align="center">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/auto_detect.png" alt="Image">
 </p> 
-<p align="center">                                                                                                                                                                               <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_1.png" alt="Image">
+<p align="center"> 
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_1.png" alt="Image">
 </p> 
-<p align="center">                                                                                                                                                                               <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_2.png" alt="Image">
+<p align="center">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_2.png" alt="Image">
 </p> 
  
  - It is possible to choose whether to enable live_update_config or not. In this mode (old default), configuration data is continuously retrieved along with normal data. For RSDOSE or RSLED, these large http requests can take a long time (7-9 seconds). Sometimes the device does not respond to the request, so I had to coded a retry function. When live_update_config is disabled, configuration data is only retrieved at startup and when requested via the "fetch configuration" button. This new mode is activated by default. You can change it in the device configuration.
@@ -139,7 +142,8 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
 
 ## Virtual Led :
 - Group and manage LED with a virtual device (Create a vitual device from the integration panel, then use the configure button to link the leds).
-- You can only use Kelvin and intensity to control your leds.
+- You can only use Kelvin and intensity to control your leds if you have G2 or a mix of G1 and G2.
+- You can use both Kelvin/Intensity and White&Blue  if you have only G1
 
 
 <p align="center">
@@ -174,12 +178,13 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
 ## ReefATO+:
   - Auto_fill enable/disable
   - Manual fill
-<p align="center">                                                                                                                                                                               <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato.png" alt="Image">                                                                                       
+<p align="center">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato.png" alt="Image">                                                                                       
 </p> 
 
 ## ReefRun:
 - <b>First try to set pump speed (without device it's not so simple :-) ). I use the first slot for scheduling speed pump (according to youtube they are 10). Using this probably break your scheulde if you have one.
-If your pump speed is always the same I hitnk it could do the job. If someone with a reefrun can contact me, we could propose a better support.</b>
+If your pump speed is always the same I think it could do the job. If someone with a reefrun can contact me, we could propose a better support.</b>
 
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_1.png" alt="Image">
@@ -194,7 +199,7 @@ If your pump speed is always the same I hitnk it could do the job. If someone wi
 
 # What next?
 ## LED:
-  - Set programs (and implement the daily prog button that do nothing yet)
+  - Set programs
   - Random  program creation
   - Daily program generation according to meteo of a specific place according to geographic coordinates
 
