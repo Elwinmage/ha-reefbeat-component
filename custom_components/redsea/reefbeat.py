@@ -450,6 +450,8 @@ class ReefDoseAPI(ReefBeatAPI):
     def __init__(self,ip,live_config_update,heads_nb) -> None:
         super().__init__(ip,live_config_update)
         self._heads_nb=heads_nb
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/device-settings","type": "config","data":""})
+
         if self._heads_nb == 2:
             self.data['local']={"head":{"1":"","2":""}}
         elif self._heads_nb == 4:
@@ -467,8 +469,16 @@ class ReefDoseAPI(ReefBeatAPI):
         await self._http_send(self._base_url+'/head/'+str(head)+'/'+action,payload)
         
     async def push_values(self,head):
-        payload=self.get_data("$.sources[?(@.name=='/head/"+str(head)+"/settings')].data")
-        await self._http_send(self._base_url+'/head/'+str(head)+'/settings',payload,'put')
+        _LOGGER.debug("type: %s"%type(head))
+        if type(head) == 'int':
+            payload=self.get_data("$.sources[?(@.name=='/head/"+str(head)+"/settings')].data")
+            await self._http_send(self._base_url+'/head/'+str(head)+'/settings',payload,'put')
+        else:
+            payload=self.get_data("$.sources[?(@.name=='"+head+"')].data")
+            await self._http_send(self._base_url+head,payload,'put')
+            
+
+            
     
 ################################################################################
 # ReefATO+

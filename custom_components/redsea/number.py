@@ -218,6 +218,33 @@ async def async_setup_entry(
                  if description.exists_fn(device)]
     if type(device).__name__=='ReefDoseCoordinator':
         dn=()
+        new_head= (ReefDoseNumberEntityDescription(
+            key="stock_alert_days",
+            translation_key="stock_alert_days",
+            native_unit_of_measurement=UnitOfTime.DAYS,
+            native_min_value=1,
+            native_step=1,
+            native_max_value=45,
+            value_name="$.sources[?(@.name=='/device-settings')].data.stock_alert_days",
+            icon="mdi:hydraulic-oil-level",
+            head=0,
+            entity_category=EntityCategory.CONFIG, 
+        ), )
+        dn+=new_head
+        new_head= (ReefDoseNumberEntityDescription(
+            key="dosing_waiting_period",
+            translation_key="dosing_waiting_period",
+            native_unit_of_measurement=UnitOfTime.SECONDS,
+            native_min_value=15,
+            native_step=1,
+            native_max_value=600,
+            value_name="$.sources[?(@.name=='/device-settings')].data.dosing_waiting_period",
+            icon="mdi:sleep",
+            head=0,
+            entity_category=EntityCategory.CONFIG, 
+        ), )
+        dn+=new_head
+        
         for head in range(1,device.heads_nb+1):
             new_head= (ReefDoseNumberEntityDescription(
                 key="manual_head_"+str(head)+"_volume",
@@ -314,20 +341,6 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
         self._attr_native_value=self._device.get_data(self.entity_description.value_name)
         self.async_write_ha_state()
 
-        
-    # async def async_update(self) -> None:
-    #     _LOGGER.error("number.async_update")
-    #     """Update entity state."""
-    #     self._attr_available = True
-    #     self._attr_native_value=self._device.get_data(self.entity_description.value_name)
-
-
-    # @callback
-    # def _async_update_attrs(self) -> None:
-    #     """Update attrs from device."""
-    #     self._attr_native_value=self._device.get_data(self.entity_description.value_name)
-    #     self._attr_available = self.available
-        
     @property
     def native_value(self) -> float:
         return self._device.get_data(self.entity_description.value_name)
@@ -397,19 +410,25 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         self._attr_native_value=value
         self._device.set_data(self.entity_description.value_name,value)
         self.async_write_ha_state()  
-        await self._device.push_values(self._head)
+        if self._head > 0:
+            await self._device.push_values(self._head)
+        else:
+            await self._device.push_values("/device-settings")
         await self._device.async_request_refresh()
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
-        di=self._device.device_info
-        di['name']+='_head_'+str(self._head)
-        identifiers=list(di['identifiers'])[0]
-        head=("head_"+str(self._head),)
-        identifiers+=head
-        di['identifiers']={identifiers}
-        return di
+        if self._head > 0:
+            di=self._device.device_info
+            di['name']+='_head_'+str(self._head)
+            identifiers=list(di['identifiers'])[0]
+            head=("head_"+str(self._head),)
+            identifiers+=head
+            di['identifiers']={identifiers}
+            return di
+        else:
+            return self._device.device_info
 
 
 ################################################################################

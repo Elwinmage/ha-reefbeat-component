@@ -55,6 +55,12 @@
 	    
 	},
 	"number":{
+	    "stock_alert_days":{
+		"name": "Stock Alert Days"
+	    },
+	    "dosing_waiting_period":{
+		"name": "Dosing Waiting Period"
+	    },
 	    "speed":{
 		"name": "Speed"
 	    },

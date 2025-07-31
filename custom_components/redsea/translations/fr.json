@@ -54,6 +54,12 @@
 	    }
 	},
 	"number":{
+	    "stock_alert_days":{
+		"name": "Jour d'alertes du stock"
+	    },
+	    "dosing_waiting_period":{
+		"name": "Délais d'attente entre têtes différentes"
+	    },
 	    "speed":{
 		"name": "Vitesse"
 	    },
