@@ -49,7 +49,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
             entry,
     ) -> None:
         """Initialize coordinator."""
-
+        self._entry = entry
         if CONFIG_FLOW_SCAN_INTERVAL in entry.data:
             scan_interval=entry.data[CONFIG_FLOW_SCAN_INTERVAL]
         else:
@@ -103,6 +103,8 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         self.my_api.quick_refresh=source
         return await super().async_request_refresh()
 
+
+    
     
     @property
     def device_info(self):
@@ -162,7 +164,6 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
     @property
     def detected_id(self):
         return self._ip+' '+self._hw+' '+self._title
-
 
 ################################################################################
 # LED

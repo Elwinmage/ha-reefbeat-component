@@ -228,7 +228,7 @@ async def async_setup_entry(
             value_name="$.sources[?(@.name=='/device-settings')].data.stock_alert_days",
             icon="mdi:hydraulic-oil-level",
             head=0,
-            entity_category=EntityCategory.CONFIG, 
+            entity_category=EntityCategory.CONFIG,
         ), )
         dn+=new_head
         new_head= (ReefDoseNumberEntityDescription(
@@ -258,7 +258,7 @@ async def async_setup_entry(
                 value_name="$.local.head."+str(head)+".manual_dose",
                 icon="mdi:cup-water",
                 head=head,
-                entity_category=EntityCategory.CONFIG, 
+                entity_category=EntityCategory.CONFIG,
             ), )
             dn+=new_head
             new_head= (ReefDoseNumberEntityDescription(
@@ -273,7 +273,7 @@ async def async_setup_entry(
                 value_name="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.schedule.dd",
                 icon="mdi:cup-water",
                 head=head,
-                entity_category=EntityCategory.CONFIG, 
+                entity_category=EntityCategory.CONFIG,
             ), )
             dn+=new_head
             new_head= (ReefDoseNumberEntityDescription(

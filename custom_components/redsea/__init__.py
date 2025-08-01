@@ -76,7 +76,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         elif hw in HW_RUN_IDS:
             coordinator = ReefRunCoordinator(hass,entry)
         else:
-            _LOGGER.error('Unknown hardware %s'%hw)
+            _LOGGER.error('Unknown or not supported hardware %s'%hw)
         await coordinator._async_setup()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
     

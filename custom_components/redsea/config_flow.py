@@ -3,6 +3,7 @@
 import voluptuous as vol
 import glob
 import logging
+import copy
 
 from jsonpath_ng import jsonpath
 from jsonpath_ng.ext import parse
@@ -14,7 +15,11 @@ from time import time
 
 from homeassistant import config_entries
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigEntryStore,
+    ConfigEntryItems
+)
 
 from homeassistant.core import callback
 
@@ -24,6 +29,7 @@ from .auto_detect import (
     get_reefbeats,
     get_unique_id
 )
+
 
 from .const import (
     PLATFORMS,
@@ -113,29 +119,31 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         detected_devices = await self.hass.async_add_executor_job(get_reefbeats)
         def device_to_string(d):
             return d['ip']+' '+d['hw_model']+' '+d['friendly_name']
-        detected_devices_s =list(map(device_to_string,detected_devices))
-        available_devices=detected_devices_s
+        available_devices=copy.deepcopy(detected_devices)
         _LOGGER.info("Detected devices: %s"%detected_devices)
-        if DOMAIN in self.hass.data:
-            for device in self.hass.data[DOMAIN]:
-                coordinator=self.hass.data[DOMAIN][device]
-                if (type(coordinator).__name__=='ReefLedCoordinator' or
-                    type(coordinator).__name__=='ReefMatCoordinator' or
-                    type(coordinator).__name__=='ReefDoseCoordinator' or
-                    type(coordinator).__name__=='ReefATOCoordinator') and coordinator.detected_id in detected_devices_s:
-                    _LOGGER.info("%s skipped (already configured)"%coordinator.detected_id)
-                    available_devices.remove(coordinator.detected_id)
-        _LOGGER.info("Available devices: %s"%detected_devices)
-        available_devices += [VIRTUAL_LED]
-        _LOGGER.info("Available devices string: %s"%available_devices)
-        if len(available_devices) > 1 :
+
+
+        _store = ConfigEntryStore(self.hass)
+        
+        data= await _store.async_load()
+        
+        for device in detected_devices:
+            if any (d['unique_id'] == device['uuid'] for d in data['entries']):
+                _LOGGER.info("%s skipped (already configured)"%device['friendly_name'])
+                available_devices.remove(device)
+        
+        _LOGGER.info("Available devices: %s"%available_devices)
+        available_devices_s =list(map(device_to_string,available_devices))
+        available_devices_s += [VIRTUAL_LED]
+        _LOGGER.info("Available devices string: %s"%available_devices_s)
+        if len(available_devices_s) > 1 :
             return self.async_show_form(
                 step_id="user",
                 data_schema=vol.Schema(
                     {
                         vol.Required(
                             CONFIG_FLOW_IP_ADDRESS
-                        ): vol.In(available_devices),
+                        ): vol.In(available_devices_s),
                     }
                      ),
                 )

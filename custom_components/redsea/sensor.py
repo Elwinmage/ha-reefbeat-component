@@ -73,7 +73,7 @@ class ReefLedScheduleSensorEntityDescription(SensorEntityDescription):
     
 COMMON_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription( 
-       key="ip",
+        key="ip",
         translation_key="ip",
         value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/')].data.wifi_ip"),
         icon="mdi:check-network-outline",

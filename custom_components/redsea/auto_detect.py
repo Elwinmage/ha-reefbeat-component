@@ -50,7 +50,8 @@ def get_reefbeats(nb_of_threads=64):
         for device in res:
             status,ip,hw_model,friendly_name=device
             if status == True:
-                reefbeats+=[{"ip":ip,"hw_model":hw_model,"friendly_name":friendly_name}]
+                uuid=get_unique_id(ip)
+                reefbeats+=[{"ip":ip,"hw_model":hw_model,"friendly_name":friendly_name,"uuid":uuid}]
     return reefbeats
                 
 
