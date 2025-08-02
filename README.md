@@ -2,10 +2,11 @@
 [![GH-release](https://img.shields.io/github/v/release/Elwinmage/ha-reefbeat-component.svg?style=flat-square)](https://github.com/Elwinmage/ha-reefbeat-component/releases)
 [![GH-last-commit](https://img.shields.io/github/last-commit/Elwinmage/ha-reefbeat-component.svg?style=flat-square)](https://github.com/Elwinmage/ha-reefbeat-component/commits/master)
 
-[![GitHub Clones](https://img.shields.io/badge/dynamic/json?color=success&label=uniques-clones&query=uniques&url=https://gist.githubusercontent.com/Elwinmage/cd478ead8334b09d3d4f7dc0041981cb/raw/clone.json&logo=github)](https://github.com/MShawon/github-clone-count-badge)
+[![GitHub Clones](https://img.shields.io/badge/dynamic/json?color=success&label=clones&query=count&url=https://gist.githubusercontent.com/Elwinmage/cd478ead8334b09d3d4f7dc0041981cb/raw/clone.json&logo=github)](https://github.com/MShawon/github-clone-count-badge)
 [![GH-code-size](https://img.shields.io/github/languages/code-size/Elwinmage/ha-reefbeat-component.svg?color=red&style=flat-square)](https://github.com/Elwinmage/ha-reefbeat-component) 
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
+<!-- [![GitHub Clones](https://img.shields.io/badge/dynamic/json?color=success&label=uniques-clones&query=uniques&url=https://gist.githubusercontent.com/Elwinmage/cd478ead8334b09d3d4f7dc0041981cb/raw/clone.json&logo=github)](https://github.com/MShawon/github-clone-count-badge) -->
 # Overview
 RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cloud)
 
@@ -38,7 +39,7 @@ Or search for "redsea" or "reefbeat" in hacs
 
 # Hardware
 ## ReefLed:
-  - Test with the RESLED 160  but may work with 50, 60, 90, 115 and 170 versions.
+  - Test with the RESLED 160  and 115 but may work with 50, 60, 90, and 170 versions.
 
 ## ReefMat:
   - Test with ReefMat 1200 must work with all other versions
