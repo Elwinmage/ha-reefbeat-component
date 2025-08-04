@@ -168,7 +168,7 @@ class ReefBeatAPI():
                 self._data_db[name]="self."+r
             else:
                 if is_None_possible==False:
-                    _LOGGER.error("reefbeat.get_data('%s') %s"%(data_name,self._base_url))
+                    _LOGGER.error("reefbeat.get_data('%s') %s"%(name,self._base_url))
                     _LOGGER.error("%s"%self.data)
                 else:
                     return None

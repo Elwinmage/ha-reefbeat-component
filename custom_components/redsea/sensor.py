@@ -362,6 +362,15 @@ async def async_setup_entry(
                 head=head,
             ),)
             ds+=new_head
+            new_head= (ReefDoseSensorEntityDescription(
+                key="supplement_uuid_head_"+str(head),
+                translation_key="supplement_uid",
+                icon="mdi:identifier",
+                value_name="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.supplement.uid",
+                entity_registry_visible_default= False,
+                head=head,
+            ),)
+            ds+=new_head
             new_head=(ReefDoseSensorEntityDescription(
                 key="auto_dosed_today_head_"+str(head),
                 translation_key="auto_dosed_today",

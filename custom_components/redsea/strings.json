@@ -151,6 +151,9 @@
 	    }
 	},
 	"sensor": {
+			"supplement_uid":{
+					"name": "Supplement Unique ID"
+			},
 	    "white": {
 		"name": "White"
 	    },

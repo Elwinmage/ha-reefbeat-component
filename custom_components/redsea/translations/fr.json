@@ -150,6 +150,9 @@
 	    
 	},
 	"sensor": {
+			"supplement_uid":{
+					"name": "Identifiant du supplément"
+			},
 	    "white": {
 		"name": "Blanc"
 	    },
