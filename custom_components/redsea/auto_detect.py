@@ -37,10 +37,11 @@ def is_reefbeat(ip):
             hw_model=data["hw_model"]
             name=data["name"]
             if hw_model in HW_DEVICES_IDS:
-                return True,ip,hw_model,name
+                uuid=get_unique_id(ip)
+                return True,ip,hw_model,name,uuid
     except:
         pass
-    return False,ip,None,None
+    return False,ip,None,None,None
 
 def get_reefbeats(nb_of_threads=64):
     ips=get_local_ips()
@@ -48,9 +49,8 @@ def get_reefbeats(nb_of_threads=64):
     with Pool(nb_of_threads) as p:
         res=p.map(is_reefbeat,ips)
         for device in res:
-            status,ip,hw_model,friendly_name=device
+            status,ip,hw_model,friendly_name,uuid=device
             if status == True:
-                uuid=get_unique_id(ip)
                 reefbeats+=[{"ip":ip,"hw_model":hw_model,"friendly_name":friendly_name,"uuid":uuid}]
     return reefbeats
                 

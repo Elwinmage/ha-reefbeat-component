@@ -27,7 +27,8 @@ from homeassistant.data_entry_flow import FlowResult
 
 from .auto_detect import (
     get_reefbeats,
-    get_unique_id
+    get_unique_id,
+    is_reefbeat
 )
 
 
@@ -90,6 +91,8 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Create a new entity from UI."""
+        def device_to_string(d):
+            return d['ip']+' '+d['hw_model']+' '+d['friendly_name']
         if user_input is not None:
             _LOGGER.debug(user_input)
             if user_input[CONFIG_FLOW_IP_ADDRESS] == VIRTUAL_LED:
@@ -100,14 +103,28 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.debug("-- ** UUID ** -- %s"%title)
                 await self.async_set_unique_id(title)
             else:
-                #Identify device with unique ID
-                uuid = await self._unique_id(user_input)
+                # enter by ip, not on same network
+                configuration=user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')
+                if len(configuration) < 2:
+                    f_kwargs = {}
+                    f_kwargs["ip"] = configuration[0]
+                    status,ip,hw_model,friendly_name,uuid=await self.hass.async_add_executor_job(partial(is_reefbeat,**f_kwargs))
+                    _LOGGER.info("MANUAL IP DETECTED: %s %s %s %s"%(ip,hw_model,friendly_name,uuid))
+                    if status==True:
+                        conf=device_to_string({"ip":ip,"hw_model":hw_model,"friendly_name":friendly_name})
+                        configuration=conf.split(' ')
+                    _LOGGER.debug("MANUAL IP info: %s"%(configuration))
+                    _LOGGER.debug("MANUAL IP array info: %s"%(configuration))
+                else:
+                    #Identify device with unique ID
+                    uuid = await self._unique_id(user_input)
                 _LOGGER.info("-- ** UUID ** -- %s"%uuid)
                 await self.async_set_unique_id(str(uuid))
                 self._abort_if_unique_id_configured()
-                title=user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')[2]
-                user_input[CONFIG_FLOW_HW_MODEL]=user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')[1]
-                user_input[CONFIG_FLOW_IP_ADDRESS]=user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')[0]
+                #
+                title=configuration[2]
+                user_input[CONFIG_FLOW_HW_MODEL]=configuration[1]
+                user_input[CONFIG_FLOW_IP_ADDRESS]=configuration[0]
                 user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(user_input[CONFIG_FLOW_HW_MODEL])
                 user_input[CONFIG_FLOW_CONFIG_TYPE]=False
                 _LOGGER.info("-- ** TITLE ** -- %s"%title)
@@ -117,8 +134,6 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data=user_input,
             )
         detected_devices = await self.hass.async_add_executor_job(get_reefbeats)
-        def device_to_string(d):
-            return d['ip']+' '+d['hw_model']+' '+d['friendly_name']
         available_devices=copy.deepcopy(detected_devices)
         _LOGGER.info("Detected devices: %s"%detected_devices)
 
