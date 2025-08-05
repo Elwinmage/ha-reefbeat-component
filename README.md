@@ -23,13 +23,13 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
 
 # Summary
 - [Installation via hacs](#installation-via-hacs)
-- [What works](#what-works)
-  - [All devices](#all-devices)
-  - [LED](#led)
-  - [ReefMat](#reefmat)
-  - [ReefDose](#reefdose)
-  - [ReefATO+](#reefato)
-  - [ReefRun](#reefrun)
+- [Common functions](#common-functions)
+- [LED](#led)
+- [Virtual LED](#virtual-led)
+- [ReefMat](#reefmat)
+- [ReefDose](#reefdose)
+- [ReefATO+](#reefato)
+- [ReefRun](#reefrun)
 - [FAQ](#faq)
 
 # Installation via hacs 
@@ -45,9 +45,7 @@ Or search for "redsea" or "reefbeat" in hacs
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/hacs_search.png" alt="Image">                                                                                       
 </p> 
  
-# What works
-
-## All devices:
+# Common functions
  - Auto detect on private network (if on same network if not read  [this](#my-device-is-not-detected) )
 
 <p align="center">
@@ -72,7 +70,7 @@ Or search for "redsea" or "reefbeat" in hacs
 
 
  
-## LED:
+# LED:
   - Get and Set White, Blue and Moon values (only for G1: RSLED50,RSLED90,RSLED160)
   - Get and Set Color Temperature, Intensity and Moon (all LEDS)
   - Manage acclimation. Acclimation settings are automaticaly enabled or disabled according to acclimation switch.
@@ -139,7 +137,7 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
 
 
 
-## Virtual Led :
+# Virtual Led
 - Group and manage LED with a virtual device (Create a vitual device from the integration panel, then use the configure button to link the leds).
 - You can only use Kelvin and intensity to control your leds if you have G2 or a mix of G1 and G2.
 - You can use both Kelvin/Intensity and White&Blue  if you have only G1
@@ -150,7 +148,7 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_2.png" alt="Image">
 </p> 
       
-## ReefMat:
+# ReefMat:
   - Auto advance switch (enable/disable)
   - Schedule advance
   - Custom advance value: let you select the value of roll advance
@@ -165,7 +163,7 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_diag.png" alt="Image">
 </p>
 
-## ReefDose:
+# ReefDose:
   - Edit daily dose
   - Manual dose
   - Change and control container volume. Container Volume settigns is automaticaly enabled or disabled according to  volume controleur switch.
@@ -178,14 +176,14 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_diag.png" alt="Image">
 </p> 
 
-## ReefATO:
+# ReefATO:
   - Auto_fill enable/disable
   - Manual fill
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato.png" alt="Image">                                                                                       
 </p> 
 
-## ReefRun:
+# ReefRun:
 > [!NOTE]
 > Partially tested. First try to set pump speed (without device it's not so simple :-) ). I use the first slot for scheduling speed pump (according to youtube they are 10). Using this probably break your scheulde if you have one.
 If your pump speed is always the same I think it could do the job. If someone with a reefrun can contact me, we could propose a better support.
