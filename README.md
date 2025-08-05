@@ -14,11 +14,23 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
 
 ***If you need other sensors or actuators let me know.***
 
-***If your devices are not on the same subnetwork than your Home Assistant please Read [this](#my-device-is-not-detected)***
+> [!IMPORTANT]
+> If your devices are not on the same subnetwork than your Home Assistant please Read [this](#my-device-is-not-detected)
 
-This is not an official RedSea repository
+> [!CAUTION]
+> This is not an official RedSea repository. Use at your own risk
 
-Use at your own risk
+
+# Summary
+- [Installation via hacs](#installation-via-hacs)
+- [What works](#what-works)
+  - [All devices](#all-devices)
+  - [LED](#led)
+  - [ReefMat](#reefmat)
+  - [ReefDose](#reefdose)
+  - [ReefATO+](#reefato)
+  - [ReefRun](#reefrun)
+- [FAQ](#faq)
 
 # Installation via hacs 
 
@@ -32,38 +44,18 @@ Or search for "redsea" or "reefbeat" in hacs
 <p align="center">                                                                                                                                                                              
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/hacs_search.png" alt="Image">                                                                                       
 </p> 
-
-
-## Old way, manual installation in hacs
-1) open HACS
-2) go to custom repositories and add:
-    https://github.com/Elwinmage/ha-reefbeat-component
-
-# Hardware
-## ReefLed:
-  - Test with the RESLED 160  and 115 but may work with 50, 60, 90, and 170 versions.
-
-## ReefMat:
-  - Test with ReefMat 1200 must work with all other versions
-
-## ReefDose:
-  - Test with ReefDose4 but may work with ReefdDose2
-
-## ReefATO+:
-  - Tested
-
-## ReefRun:
-  - Partially tested
-  
+ 
 # What works
 
 ## All devices:
  - Auto detect on private network (if on same network if not read  [this](#my-device-is-not-detected) )
- - Set scan interval for device
 
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/auto_detect.png" alt="Image">
 </p> 
+
+ - Set scan interval for device
+   
 <p align="center"> 
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_1.png" alt="Image">
 </p> 
@@ -71,7 +63,8 @@ Or search for "redsea" or "reefbeat" in hacs
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_2.png" alt="Image">
 </p> 
  
- - It is possible to choose whether to enable live_update_config or not. In this mode (old default), configuration data is continuously retrieved along with normal data. For RSDOSE or RSLED, these large http requests can take a long time (7-9 seconds). Sometimes the device does not respond to the request, so I had to coded a retry function. When live_update_config is disabled, configuration data is only retrieved at startup and when requested via the "fetch configuration" button. This new mode is activated by default. You can change it in the device configuration.
+> [!NOTE]
+>  It is possible to choose whether to enable live_update_config or not. In this mode (old default), configuration data is continuously retrieved along with normal data. For RSDOSE or RSLED, these large http requests can take a long time (7-9 seconds). Sometimes the device does not respond to the request, so I had to coded a retry function. When live_update_config is disabled, configuration data is only retrieved at startup and when requested via the "fetch configuration" button. This new mode is activated by default. You can change it in the device configuration.
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_live_update_config.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/fetch_config_button.png" alt="Image">
@@ -88,6 +81,15 @@ Or search for "redsea" or "reefbeat" in hacs
   - Get Fan and Temperature
   - Get name and value for progams (with clouds support) Only for G1 LEDS.
 
+<p align="center">                                                                                                                                                                             
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_ctrl.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_sensors.png" alt="Image">
+</p>
+<p align="center">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_diag.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_g2_ctrl.png" alt="Image">
+ </p> 
+
 ***
 
 The support of Color Temperature for G1 LEDS take into account the specificity of each of the three models.
@@ -96,7 +98,7 @@ The support of Color Temperature for G1 LEDS take into account the specificity o
 </p>
 
 ***
-## IMPORTANT THING
+## IMPORTANT THINGS for G1 and G2 LIGHTS
 
 <b>The Kelvin/intensity interface of G2 lamps does not allow for full LED power.</b>
 
@@ -135,14 +137,7 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
 
 ***
 
-<p align="center">                                                                                                                                                                             
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_ctrl.png" alt="Image">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_sensors.png" alt="Image">
-</p>
-<p align="center">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_diag.png" alt="Image">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_g2_ctrl.png" alt="Image">
- </p> 
+
 
 ## Virtual Led :
 - Group and manage LED with a virtual device (Create a vitual device from the integration panel, then use the configure button to link the leds).
@@ -160,7 +155,9 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
   - Schedule advance
   - Custom advance value: let you select the value of roll advance
   - Manual Advance
-  - Change the roll. <b>For a new full roll please set "roll diameter" to min (4.0cm). It will adjust the size according to your RSMAT version. For a started roll enter the value in cm.</b>
+  - Change the roll.
+>[!TIP]
+> For a new full roll please set "roll diameter" to min (4.0cm). It will adjust the size according to your RSMAT version. For a started roll enter the value in cm.
   - Two hidden parameters: model and position if you need to reconfigure your RSMAT
 <p align="center">                                                                                                                                                                               
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_ctr.png" alt="Image">
@@ -173,13 +170,15 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
   - Manual dose
   - Change and control container volume. Container Volume settigns is automaticaly enabled or disabled according to  volume controleur switch.
   - Enable/disable schedule per pump
+  - Stock alert configuration
+  - Dosing delay between supplements
 <p align="center"> 
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_ctrl.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_sensors.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_diag.png" alt="Image">
 </p> 
 
-## ReefATO+:
+## ReefATO:
   - Auto_fill enable/disable
   - Manual fill
 <p align="center">
@@ -187,8 +186,9 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
 </p> 
 
 ## ReefRun:
-- <b>First try to set pump speed (without device it's not so simple :-) ). I use the first slot for scheduling speed pump (according to youtube they are 10). Using this probably break your scheulde if you have one.
-If your pump speed is always the same I think it could do the job. If someone with a reefrun can contact me, we could propose a better support.</b>
+> [!NOTE]
+> Partially tested. First try to set pump speed (without device it's not so simple :-) ). I use the first slot for scheduling speed pump (according to youtube they are 10). Using this probably break your scheulde if you have one.
+If your pump speed is always the same I think it could do the job. If someone with a reefrun can contact me, we could propose a better support.
 
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_1.png" alt="Image">
@@ -199,16 +199,7 @@ If your pump speed is always the same I think it could do the job. If someone wi
 <p align="center">                                                                                                                                                                                <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_3.png" alt="Image">
 </p>
 
-
-# What next?
-## LED:
-  - Set programs
-  - Random  program creation
-  - Daily program generation according to meteo of a specific place according to geographic coordinates
-
-## ReefDose:
-  - Implement scheduling edition
-  
+ 
 ***
 # FAQ
 
