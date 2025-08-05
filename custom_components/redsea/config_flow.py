@@ -4,6 +4,7 @@ import voluptuous as vol
 import glob
 import logging
 import copy
+import ipaddress
 
 from jsonpath_ng import jsonpath
 from jsonpath_ng.ext import parse
@@ -89,10 +90,22 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         uuid=await self.hass.async_add_executor_job(partial(get_unique_id,**f_kwargs))
         return uuid
 
+    def is_network(self, address):
+        addr=address.split('/')
+        if len(addr) < 2:
+            return False
+        try:
+            ipaddress.ip_address(addr[0])
+            ipaddress.ip_address(addr[1])
+        except:
+            return False
+        return True
+
     async def async_step_user(self, user_input=None):
         """Create a new entity from UI."""
         def device_to_string(d):
             return d['ip']+' '+d['hw_model']+' '+d['friendly_name']
+        subnetwork=None
         if user_input is not None:
             _LOGGER.debug(user_input)
             if user_input[CONFIG_FLOW_IP_ADDRESS] == VIRTUAL_LED:
@@ -102,6 +115,12 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input[CONFIG_FLOW_SCAN_INTERVAL]=VIRTUAL_LED_SCAN_INTERVAL
                 _LOGGER.debug("-- ** UUID ** -- %s"%title)
                 await self.async_set_unique_id(title)
+                return self.async_create_entry(
+                    title=title,
+                    data=user_input,
+                )
+            elif self.is_network(user_input[CONFIG_FLOW_IP_ADDRESS]):
+                subnetwork=user_input[CONFIG_FLOW_IP_ADDRESS]
             else:
                 # enter by ip, not on same network
                 configuration=user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')
@@ -128,12 +147,17 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(user_input[CONFIG_FLOW_HW_MODEL])
                 user_input[CONFIG_FLOW_CONFIG_TYPE]=False
                 _LOGGER.info("-- ** TITLE ** -- %s"%title)
-    
-            return self.async_create_entry(
-                title=title,
-                data=user_input,
-            )
-        detected_devices = await self.hass.async_add_executor_job(get_reefbeats)
+                return self.async_create_entry(
+                    title=title,
+                    data=user_input,
+                )
+
+        #detected_devices = await self.hass.async_add_executor_job(get_reefbeats)
+
+        f_kwargs = {}
+        f_kwargs["subnetwork"] = subnetwork
+        detected_devices = await self.hass.async_add_executor_job(partial(get_reefbeats,**f_kwargs))
+
         available_devices=copy.deepcopy(detected_devices)
         _LOGGER.info("Detected devices: %s"%detected_devices)
 
@@ -188,6 +212,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self,config_entry):
         self._config_entry=config_entry
+
+
         
     async def async_step_init(
             self, user_input: dict[str, Any] | None = None

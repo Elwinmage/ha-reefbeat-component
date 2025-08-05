@@ -8,25 +8,34 @@ from lxml import objectify
 from multiprocessing import Pool
 
 if __name__ == '__main__':
-    from const import HW_DEVICES_IDS
+    from const import (
+        HW_DEVICES_IDS,
+    )
 else:
-    from .const import HW_DEVICES_IDS
+    from .const import (
+        HW_DEVICES_IDS,
+        )
+        
     
-def get_local_ips():
-    # Get local IP
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    ip=s.getsockname()[0]
-    s.close()
-    #get subnetwork address and mask
-    for netif in netifaces.interfaces():
-        try:
-            addr=netifaces.ifaddresses(netif)[2][0]
-            if addr['addr'] == ip:
-                net = ipaddress.ip_network(ip+'/'+addr['netmask'], strict=False)        
-                return [str(ip) for ip in ipaddress.IPv4Network(str(net))]
-        except:
-            pass
+def get_local_ips(subnetwork=None):
+    if subnetwork != None:
+        net = ipaddress.ip_network(subnetwork, strict=False)        
+        return [str(ip) for ip in ipaddress.IPv4Network(str(net))]
+    else:
+        # Get local IP
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip=s.getsockname()[0]
+        s.close()
+        #get subnetwork address and mask
+        for netif in netifaces.interfaces():
+            try:
+                addr=netifaces.ifaddresses(netif)[2][0]
+                if addr['addr'] == ip:
+                    net = ipaddress.ip_network(ip+'/'+addr['netmask'], strict=False)        
+                    return [str(ip) for ip in ipaddress.IPv4Network(str(net))]
+            except:
+                pass
 
 
 def is_reefbeat(ip):
@@ -43,8 +52,8 @@ def is_reefbeat(ip):
         pass
     return False,ip,None,None,None
 
-def get_reefbeats(nb_of_threads=64):
-    ips=get_local_ips()
+def get_reefbeats(subnetwork=None,nb_of_threads=64):
+    ips=get_local_ips(subnetwork)
     reefbeats=[]
     with Pool(nb_of_threads) as p:
         res=p.map(is_reefbeat,ips)

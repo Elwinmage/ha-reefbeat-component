@@ -14,6 +14,8 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
 
 ***If you need other sensors or actuators let me know.***
 
+*** If your devices are not and the same subnetwork than Home Assistant please Read [this](#my-device-is-not-detected)
+
 This is not an official RedSea repository
 
 Use at your own risk
@@ -54,6 +56,7 @@ Or search for "redsea" or "reefbeat" in hacs
   - Partially tested
   
 # What works
+
 ## All devices:
  - Auto detect on private network (if on same network)
  - Set scan interval for device
@@ -107,7 +110,7 @@ Here is the loss curve for the G2s.
 
 ### G1 LIGHTS
 
-G1 LEDS use white and blue channel control, which allows for full power across the entire range, but not constant intensity without compensation.
+G1 LEDS use white and blue channels control, which allows for full power across the entire range, but not constant intensity without compensation.
 That's why I implent intensity compensation. Because I only have RESL160, you can enable this option only for this kind of LEDS. 
 
 If you want this option for RSLED50 or RSLED90 let me known but be aware that you have to make some measures.
@@ -193,8 +196,7 @@ If your pump speed is always the same I think it could do the job. If someone wi
 <p align="center">                                                                                                                                                                              
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_2.png" alt="Image">
 </p>
-<p align="center">                                                                                                                                                                              
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_3.png" alt="Image">
+<p align="center">                                                                                                                                                                                <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_3.png" alt="Image">
 </p>
 
 
@@ -208,6 +210,17 @@ If your pump speed is always the same I think it could do the job. If someone wi
   - Implement scheduling edition
   
 ***
+# FAQ
+
+## My device is not detected
+ - try to relaunch the auto-detection with the "add entry" button. Sometimes devices do not respond beacause they are busy.
+ - If your redsea devices are not on the same subnetwork than your Home Assistant, auto-detection will first fail and propose you to enter the ip of your device or the address of the subnetwork where your devices are. For subnetwork detection please use the format IP/MASK like this example : 192.168.14.0/255.255.255.0.
+
+<p align="center">                                                                                                                                                                                <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/subnetwork.png" alt="Image">
+</p>
+
+
+
 
 [buymecoffee]: https://paypal.me/Elwinmage
 [buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=flat-square
