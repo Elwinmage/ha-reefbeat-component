@@ -14,7 +14,7 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
 
 ***If you need other sensors or actuators let me know.***
 
-*** If your devices are not and the same subnetwork than Home Assistant please Read [this](#my-device-is-not-detected)
+***If your devices are not on the same subnetwork than your Home Assistant please Read [this](#my-device-is-not-detected)***
 
 This is not an official RedSea repository
 
@@ -58,7 +58,7 @@ Or search for "redsea" or "reefbeat" in hacs
 # What works
 
 ## All devices:
- - Auto detect on private network (if on same network)
+ - Auto detect on private network (if on same network if not read  [this](#my-device-is-not-detected) )
  - Set scan interval for device
 
 <p align="center">
