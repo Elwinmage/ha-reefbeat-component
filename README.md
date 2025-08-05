@@ -15,10 +15,10 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
 ***If you need other sensors or actuators let me know.***
 
 > [!IMPORTANT]
-> If your devices are not on the same subnetwork than your Home Assistant please [read this](#my-device-is-not-detected)
+> If your devices are not on the same subnetwork than your Home Assistant please [read this](#my-device-is-not-detected).
 
 > [!CAUTION]
-> This is not an official RedSea repository. Use at your own risk
+> This is not an official RedSea repository. Use at your own risk.
 
 
 # Summary
