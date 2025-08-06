@@ -202,7 +202,7 @@ If your pump speed is always the same I think it could do the job. If someone wi
 # FAQ
 
 ## My device is not detected
- - try to relaunch the auto-detection with the "add entry" button. Sometimes devices do not respond beacause they are busy.
+ - try to relaunch the auto-detection with the "add entry" button. Sometimes devices do not respond because they are busy.
  - If your redsea devices are not on the same subnetwork than your Home Assistant, auto-detection will first fail and propose you to enter the ip of your device or the address of the subnetwork where your devices are. For subnetwork detection please use the format IP/MASK like this example : 192.168.14.0/255.255.255.0.
 
 <p align="center">                                                                                                                                                                                <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/subnetwork.png" alt="Image">
