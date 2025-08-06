@@ -12,7 +12,7 @@ RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local 
 
 ***If someone have reefwave I ll try to integrate them too.***
 
-***If you need other sensors or actuators let me know.***
+***If you need other sensors or actuators let me know [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions).***
 
 > [!IMPORTANT]
 > If your devices are not on the same subnet as your Home Assistant please [read this](#my-device-is-not-detected).
