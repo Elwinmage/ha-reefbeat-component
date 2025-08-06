@@ -22,7 +22,7 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
 
 # Compatibility
 
-:white_check_mark: Fully Tested :ballot_box_with_check: Must Work   :x: Not Implemented Yet
+:white_check_mark: Fully Tested :ballot_box_with_check: Must Work (If you have one, can you confirm it's working [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) )  :x: Not Implemented Yet
 <table>
   <th>
     <td colspan="2">Model</td>
