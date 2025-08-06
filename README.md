@@ -22,6 +22,7 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
 
 # Compatibility
 
+:white_check_mark: Fully Tested :ballot_box_with_check: Must Work   :x: Not Implemented Yet
 <table>
   <th>
     <td colspan="2">Model</td>
@@ -32,67 +33,68 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
     <td rowspan="6"> <a href="#led">ReefLed</a></td>
     <td rowspan="3">G1</td>
     <td>RSLED50</td>
-    <td>X</td>
+    <td>:ballot_box_with_check:</td>
     <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/rsled_g1.png"/></td>
   </tr>
   <tr>
-    <td>RSLED90</td><td>X</td>
+    <td>RSLED90</td>
+    <td>:ballot_box_with_check:</td>
   </tr>
   <tr>
-    <td>RSLED160</td><td>X</td>
+    <td>RSLED160</td><td>:white_check_mark:</td>
   </tr>
   <tr>
     <td rowspan="3">G2</td>
     <td>RSLED60</td>
-    <td>X</td>
+    <td>:ballot_box_with_check:</td>
     <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/rsled_g2.png"/></td>
   </tr>
   <tr>
-    <td>RSLED115</td><td>X</td>
+    <td>RSLED115</td><td>:white_check_mark:</td>
   </tr>
   <tr>
-    <td>RSLED170</td><td>X</td>
+    <td>RSLED170</td><td>:ballot_box_with_check:</td>
   </tr>  
   <tr>
     <td rowspan="3"><a href="#reefmat">ReefMat</a></td>
     <td colspan="2">RSMAT250</td>
-    <td>X</td>
+    <td>:ballot_box_with_check:</td>
     <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSMAT.png"/></td>
   </tr>
   <tr>
-    <td colspan="2">RSMAT500</td><td>X</td>
+    <td colspan="2">RSMAT500</td><td>:ballot_box_with_check:</td>
   </tr>
   <tr>
-    <td colspan="2">RSMAT1200</td><td>X</td>
+    <td colspan="2">RSMAT1200</td><td>:white_check_mark:</td>
   </tr>
   <tr>
     <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
     <td colspan="2">RSDOSE2</td>
-    <td>X</td>
+    <td>:ballot_box_with_check:</td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSDOSE2.png"/></td>
   </tr>
   <tr>
-    <td colspan="2">RSDOSE4</td><td>X</td>
+    <td colspan="2">RSDOSE4</td><td>:white_check_mark:</td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSDOSE4.png"/></td>
   </tr>
   <tr>
     <td><a href="#reefato">ReefATO+</a></td>
-    <td colspan="2">RSATO+</td><td>X</td>
+    <td colspan="2">RSATO+</td><td>:white_check_mark:</td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSATO+.png"/></td>
   </tr>
   <tr>
     <td><a href="#reefrun">ReefRun & DC Skimmer</a></td>
-    <td colspan="2">RSRUN</td><td>X</td>
+    <td colspan="2">RSRUN</td><td>:ballot_box_with_check:</td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSRUN.png"/></td>
   </tr>  
   <tr>
     <td rowspan="2"><a href="#reefwave">ReefWave</a></td>
     <td colspan="2">RSWAVE25</td>
-    <td></td>
+    <td>:x:</td>
     <td width="200px" rowspan="2"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSWAVE.png"/></td>
   </tr>
   <tr>
-    <td colspan="2">RSWAVE45</td><td></td>
+    <td colspan="2">RSWAVE45</td><td>:x:</td>
   </tr>  
 </table>
 
