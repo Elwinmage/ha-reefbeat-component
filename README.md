@@ -54,7 +54,7 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
     <td>RSLED170</td><td>X</td>
   </tr>  
   <tr>
-    <td rowspan="3">ReefMat</td>
+    <td rowspan="3"><a href="#reefmat">ReefMat</a></td>
     <td colspan="2">RSMAT250</td>
     <td>X</td>
     <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSMAT.png"/></td>
@@ -66,7 +66,7 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
     <td colspan="2">RSMAT1200</td><td>X</td>
   </tr>
   <tr>
-    <td rowspan="2">ReefDose</td>
+    <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
     <td colspan="2">RSDOSE2</td>
     <td>X</td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSDOSE2.png"/></td>
@@ -76,17 +76,17 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSDOSE4.png"/></td>
   </tr>
   <tr>
-    <td>ReefATO+</td>
+    <td><a href="#reefato">ReefATO+</a></td>
     <td colspan="2">RSATO+</td><td>X</td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSATO+.png"/></td>
   </tr>
   <tr>
-    <td>ReefRun & DC Skimmer</td>
+    <td><a href="#reefrun">ReefRun & DC Skimmer</a></td>
     <td colspan="2">RSRUN</td><td>X</td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSRUN.png"/></td>
   </tr>  
   <tr>
-    <td rowspan="2">ReefWave</td>
+    <td rowspan="2"><a href="#reefwave">ReefWave</a></td>
     <td colspan="2">RSWAVE25</td>
     <td></td>
     <td width="200px" rowspan="2"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSWAVE.png"/></td>
@@ -105,6 +105,7 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
 - [ReefDose](#reefdose)
 - [ReefATO+](#reefato)
 - [ReefRun](#reefrun)
+- [ReefWave](#reewave)
 - [FAQ](#faq)
 
 # Installation via hacs 
@@ -274,6 +275,8 @@ If your pump speed is always the same I think it could do the job. If someone wi
 <p align="center">                                                                                                                                                                                <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_3.png" alt="Image">
 </p>
 
+# ReefWave:
+Not Implemented Yet
  
 ***
 # FAQ
