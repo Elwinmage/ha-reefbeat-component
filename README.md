@@ -20,6 +20,81 @@ RedSea: Reefled, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cl
 > [!CAUTION]
 > This is not an official RedSea repository. Use at your own risk.
 
+# Compatibility
+
+<table>
+  <th>
+    <td colspan="2">Model</td>
+  <td></td>
+    <td>Status</td>
+  </th>
+  <tr>
+    <td rowspan="6"> <a href="#led">ReefLed</a></td>
+    <td rowspan="3">G1</td>
+    <td>RSLED50</td>
+    <td>X</td>
+    <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/rsled_g1.png"/></td>
+  </tr>
+  <tr>
+    <td>RSLED90</td><td>X</td>
+  </tr>
+  <tr>
+    <td>RSLED160</td><td>X</td>
+  </tr>
+  <tr>
+    <td rowspan="3">G2</td>
+    <td>RSLED60</td>
+    <td>X</td>
+    <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/rsled_g2.png"/></td>
+  </tr>
+  <tr>
+    <td>RSLED115</td><td>X</td>
+  </tr>
+  <tr>
+    <td>RSLED170</td><td>X</td>
+  </tr>  
+  <tr>
+    <td rowspan="3">ReefMat</td>
+    <td colspan="2">RSMAT250</td>
+    <td>X</td>
+    <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSMAT.png"/></td>
+  </tr>
+  <tr>
+    <td colspan="2">RSMAT500</td><td>X</td>
+  </tr>
+  <tr>
+    <td colspan="2">RSMAT1200</td><td>X</td>
+  </tr>
+  <tr>
+    <td rowspan="2">ReefDose</td>
+    <td colspan="2">RSDOSE2</td>
+    <td>X</td>
+    <td width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSDOSE2.png"/></td>
+  </tr>
+  <tr>
+    <td colspan="2">RSDOSE4</td><td>X</td>
+    <td width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSDOSE4.png"/></td>
+  </tr>
+  <tr>
+    <td>ReefATO+</td>
+    <td colspan="2">RSATO+</td><td>X</td>
+    <td width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSATO+.png"/></td>
+  </tr>
+  <tr>
+    <td>ReefRun & DC Skimmer</td>
+    <td colspan="2">RSRUN</td><td>X</td>
+    <td width="200px"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSRUN.png"/></td>
+  </tr>  
+  <tr>
+    <td rowspan="2">ReefWave</td>
+    <td colspan="2">RSWAVE25</td>
+    <td></td>
+    <td width="200px" rowspan="2"><img src="https://github.com/Elwinmage/ha-reef-card/blob/main/dist/devices/img/RSWAVE.png"/></td>
+  </tr>
+  <tr>
+    <td colspan="2">RSWAVE45</td><td></td>
+  </tr>  
+</table>
 
 # Summary
 - [Installation via hacs](#installation-via-hacs)
@@ -71,6 +146,8 @@ Or search for "redsea" or "reefbeat" in hacs
 
  
 # LED:
+
+  
   - Get and Set White, Blue and Moon values (only for G1: RSLED50,RSLED90,RSLED160)
   - Get and Set Color Temperature, Intensity and Moon (all LEDS)
   - Manage acclimation. Acclimation settings are automaticaly enabled or disabled according to acclimation switch.
