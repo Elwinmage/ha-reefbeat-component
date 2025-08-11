@@ -474,8 +474,8 @@ class ReefDoseAPI(ReefBeatAPI):
             payload=self.get_data("$.sources[?(@.name=='/head/"+str(head)+"/settings')].data")
             await self._http_send(self._base_url+'/head/'+str(head)+'/settings',payload,'put')
         else:
-            payload=self.get_data("$.sources[?(@.name=='"+head+"')].data")
-            await self._http_send(self._base_url+head,payload,'put')
+            payload=self.get_data("$.sources[?(@.name=='"+str(head)+"')].data")
+            await self._http_send(self._base_url+str(head),payload,'put')
             
 
             
