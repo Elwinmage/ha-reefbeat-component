@@ -46,7 +46,7 @@ RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local 
   <tr>
     <td rowspan="3">G2</td>
     <td>RSLED60</td>
-    <td>☑️</td>
+    <td>✅</td>
     <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_g2.png"/></td>
   </tr>
   <tr>
