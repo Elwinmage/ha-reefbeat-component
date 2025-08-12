@@ -15,14 +15,14 @@ RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local 
 ***If you need other sensors or actuators let me know [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions).***
 
 > [!IMPORTANT]
-> If your devices are not on the same subnet as your Home Assistant please [read this](#my-device-is-not-detected).
+> If your devices are not on the same subnet as your Home Assistant please [read this](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected).
 
 > [!CAUTION]
-> This is not an official RedSea repository. Use at your own risk.
+> ⚠️ This is not an official RedSea repository. Use at your own risk.⚠️
 
 # Compatibility
 
-:white_check_mark: Fully Tested :ballot_box_with_check: Must Work (If you have one, can you confirm it's working [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) )  :x: Not Implemented Yet
+✅  Fully Tested  ☑️ Must Work (If you have one, can you confirm it's working [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) )  ❌ Not Implemented Yet
 <table>
   <th>
     <td colspan="2">Model</td>
@@ -33,24 +33,24 @@ RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local 
     <td rowspan="6"> <a href="#led">ReefLed</a></td>
     <td rowspan="3">G1</td>
     <td>RSLED50</td>
-    <td>:ballot_box_with_check:</td>
+    <td>☑️</td>
     <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_g1.png"/></td>
   </tr>
   <tr>
     <td>RSLED90</td>
-    <td>:ballot_box_with_check:</td>
+    <td>☑️</td>
   </tr>
   <tr>
-    <td>RSLED160</td><td>:white_check_mark:</td>
+    <td>RSLED160</td><td>✅ </td>
   </tr>
   <tr>
     <td rowspan="3">G2</td>
     <td>RSLED60</td>
-    <td>:ballot_box_with_check:</td>
+    <td>☑️</td>
     <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_g2.png"/></td>
   </tr>
   <tr>
-    <td>RSLED115</td><td>:white_check_mark:</td>
+    <td>RSLED115</td><td>✅ </td>
   </tr>
   <tr>
     <td>RSLED170</td><td>:ballot_box_with_check:</td>
@@ -58,57 +58,57 @@ RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local 
   <tr>
     <td rowspan="3"><a href="#reefmat">ReefMat</a></td>
     <td colspan="2">RSMAT250</td>
-    <td>:ballot_box_with_check:</td>
+    <td>☑️</td>
     <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSMAT.png"/></td>
   </tr>
   <tr>
-    <td colspan="2">RSMAT500</td><td>:ballot_box_with_check:</td>
+    <td colspan="2">RSMAT500</td><td>☑️</td>
   </tr>
   <tr>
-    <td colspan="2">RSMAT1200</td><td>:white_check_mark:</td>
+    <td colspan="2">RSMAT1200</td><td>✅ </td>
   </tr>
   <tr>
     <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
     <td colspan="2">RSDOSE2</td>
-    <td>:ballot_box_with_check:</td>
+    <td>☑️</td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSDOSE2.png"/></td>
   </tr>
   <tr>
-    <td colspan="2">RSDOSE4</td><td>:white_check_mark:</td>
+    <td colspan="2">RSDOSE4</td><td>✅ </td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSDOSE4.png"/></td>
   </tr>
   <tr>
     <td><a href="#reefato">ReefATO+</a></td>
-    <td colspan="2">RSATO+</td><td>:white_check_mark:</td>
+    <td colspan="2">RSATO+</td><td>✅ </td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img//RSATO+.png"/></td>
   </tr>
   <tr>
     <td><a href="#reefrun">ReefRun & DC Skimmer</a></td>
-    <td colspan="2">RSRUN</td><td>:ballot_box_with_check:</td>
+    <td colspan="2">RSRUN</td><td>☑️</td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSRUN.png"/></td>
   </tr>  
   <tr>
     <td rowspan="2"><a href="#reefwave">ReefWave</a></td>
     <td colspan="2">RSWAVE25</td>
-    <td>:x:</td>
+    <td>❌</td>
     <td width="200px" rowspan="2"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSWAVE.png"/></td>
   </tr>
   <tr>
-    <td colspan="2">RSWAVE45</td><td>:x:</td>
+    <td colspan="2">RSWAVE45</td><td>❌</td>
   </tr>  
 </table>
 
 # Summary
-- [Installation via hacs](#installation-via-hacs)
-- [Common functions](#common-functions)
-- [LED](#led)
-- [Virtual LED](#virtual-led)
-- [ReefMat](#reefmat)
-- [ReefDose](#reefdose)
-- [ReefATO+](#reefato)
-- [ReefRun](#reefrun)
-- [ReefWave](#reewave)
-- [FAQ](#faq)
+- [Installation via hacs](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#installation-via-hacs)
+- [Common functions](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#common-functions)
+- [LED](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#led)
+- [Virtual LED](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#virtual-led)
+- [ReefMat](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#reefmat)
+- [ReefDose](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#reefdose)
+- [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#reefato)
+- [ReefRun](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#reefrun)
+- [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#reewave)
+- [FAQ](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#faq)
 
 # Installation via hacs 
 
