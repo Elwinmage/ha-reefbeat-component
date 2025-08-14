@@ -62,7 +62,7 @@ RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local 
     <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSMAT.png"/></td>
   </tr>
   <tr>
-    <td colspan="2">RSMAT500</td><td>☑️</td>
+    <td colspan="2">RSMAT500</td><td>✅</td>
   </tr>
   <tr>
     <td colspan="2">RSMAT1200</td><td>✅ </td>
