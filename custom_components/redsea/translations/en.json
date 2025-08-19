@@ -366,11 +366,10 @@
 	    }
 	    
 	},
-	"model_skimmer":{
-	    "name": "Model"
-	},
-
 	"select" : {
+	    "model_skimmer":{
+		"name": "Model"
+	    },
 	    "mode":{
 		"name": "Mode"
 	    },
