@@ -55,6 +55,9 @@
 	    
 	},
 	"number":{
+	    "overskimming_threshold":{
+		"name": "Overskimming Threshold"
+	    },
 	    "stock_alert_days":{
 		"name": "Stock Alert Days"
 	    },
@@ -103,6 +106,9 @@
 	    
 	} ,
 	"binary_sensor": {
+	    "sensor_controlled":{
+		"name" : "Controlled by Sensor"
+	    },
 	    "missing_pump":{
 		"name": "Missing Pump"
 	    },
@@ -328,6 +334,12 @@
 	    }
 	},
 	"switch": {
+	    "fullcup_enabled":{
+		"name": "Full Cup Detection"
+	    },
+	    "overskimming_enabled":{
+		"name": "Overskimming"
+	    },
 	    "scheduled_advance":{
 		"name": "Schedule Advance"
 	    },
@@ -357,6 +369,9 @@
 	    }
 	},
 	"select" : {
+	    "model_skimmer":{
+		"name": "Model"
+	    },
 	    "mode":{
 		"name": "Mode"
 	    },

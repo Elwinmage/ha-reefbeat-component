@@ -121,5 +121,7 @@ ATO_AUTO_FILL_INTERNAL_NAME="$.sources[?(@.name=='/configuration')].data.auto_fi
 ################################################################################
 # RUN
 RUN_SCAN_INTERVAL=60 #in seconds
-
-
+RETURN_MODELS=['return-6','return-7','return-9','return-4000','return-6000','return-8000','return-12000']
+SKIMMER_MODELS=['rsk-300','rsk-600','rsk-900']
+FULLCUP_ENABLED_INTERNAL_NAME="$.sources[?(@.name=='/pump/settings')].data.fullcup_enabled"
+OVERSKIMMING_ENABLED_INTERNAL_NAME="$.sources[?(@.name=='/pump/settings')].data.overskimming.enabled"

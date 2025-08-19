@@ -408,5 +408,5 @@ class ReefRunCoordinator(ReefBeatCoordinator):
         super().__init__(hass,entry)
         self.my_api = ReefRunAPI(self._ip,self._live_config_update)
         
-    async  def push_values(self,pump):
+    async  def push_values(self,pump=None):
         await self.my_api.push_values(pump)

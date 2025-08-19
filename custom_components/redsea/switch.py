@@ -39,6 +39,8 @@ from .const import (
     ATO_AUTO_FILL_INTERNAL_NAME,
     LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
     LED_MOONPHASE_ENABLED_INTERNAL_NAME,
+    OVERSKIMMING_ENABLED_INTERNAL_NAME,
+    FULLCUP_ENABLED_INTERNAL_NAME,
 )
 
 from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator, ReefLedCoordinator
@@ -120,6 +122,26 @@ ATO_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
     ),
 )
 
+RUN_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
+    ReefBeatSwitchEntityDescription(
+        key="fullcup_enabled",
+        translation_key="fullcup_enabled",
+        value_name=FULLCUP_ENABLED_INTERNAL_NAME,
+        exists_fn=lambda _: True,
+        icon="mdi:cup",
+        entity_category=EntityCategory.CONFIG,
+    ),
+    ReefBeatSwitchEntityDescription(
+        key="overskimming_enabled",
+        translation_key="overskimming_enabled",
+        value_name=OVERSKIMMING_ENABLED_INTERNAL_NAME,
+        exists_fn=lambda _: True,
+        icon="mdi:stack-overflow",
+        entity_category=EntityCategory.CONFIG,
+    ),
+)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -142,6 +164,10 @@ async def async_setup_entry(
     elif type(device).__name__=='ReefATOCoordinator':
         entities += [ReefBeatSwitchEntity(device, description)
                  for description in ATO_SWITCHES
+                 if description.exists_fn(device)]
+    elif type(device).__name__=='ReefRunCoordinator':
+        entities += [ReefBeatSwitchEntity(device, description)
+                 for description in RUN_SWITCHES
                  if description.exists_fn(device)]
     elif type(device).__name__=='ReefDoseCoordinator':
         dn=()

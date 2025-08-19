@@ -39,7 +39,9 @@ from .const import (
     MAT_MODEL_INTERNAL_NAME,
     MAT_POSITION_INTERNAL_NAME,
     LED_MODE_INTERNAL_NAME,
-    LED_MODES
+    LED_MODES,
+    SKIMMER_MODELS,
+    RETURN_MODELS,
     )
 
 from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
@@ -54,7 +56,17 @@ class ReefBeatSelectEntityDescription(SelectEntityDescription):
     value_name: ''
     options: []
     method: str = 'put'
-    
+
+@dataclass(kw_only=True)
+class ReefRunSelectEntityDescription(SelectEntityDescription):
+    """Describes reefbeat Select entity."""
+    exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
+    entity_registry_visible_default: bool = True
+    value_name: ''
+    pump: int = 0 
+    options: []
+    method: str = 'put'
+
 MAT_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
     ReefBeatSelectEntityDescription(
         key="model",
@@ -91,7 +103,6 @@ LED_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
     ),
 )
 
-
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -111,7 +122,27 @@ async def async_setup_entry(
         entities += [ReefBeatSelectEntity(device, description)
                  for description in LED_SELECTS
                  if description.exists_fn(device)]
-
+    elif type(device).__name__=='ReefRunCoordinator':
+        ds=()
+        for pump in range (1,3):
+            if(device.get_data("$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump)+".type")=="skimmer"):
+                new_pump=(
+                    ReefRunSelectEntityDescription(
+                        key="model_skimmer_pump_"+str(pump),
+                        translation_key="model",
+                        value_name="$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump)+".model",
+                        exists_fn=lambda _: True,
+                        icon="mdi:raspberry-pi",
+                        options=SKIMMER_MODELS,
+                        entity_category=EntityCategory.CONFIG,
+                        pump=pump,
+                        method='put',
+                    ),)
+                ds+=new_pump
+            entities += [ReefRunSelectEntity(device, description)
+                     for description in ds
+                     if description.exists_fn(device)]
+        
     async_add_entities(entities, True)
 
 
@@ -151,3 +182,33 @@ class ReefBeatSelectEntity(CoordinatorEntity,SelectEntity):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info
+
+class ReefRunSelectEntity(ReefBeatSelectEntity):
+    """Represent an ReefBeat sensor."""
+    _attr_has_entity_name = True
+    
+    def __init__(
+        self, device, entity_description: ReefRunSelectEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+        self._pump=self.entity_description.pump
+
+    async def async_select_option(self, option: str) -> None:
+        """Update the current selected option."""
+        self._attr_current_option = option
+        self._device.set_data(self._value_name,option)
+        self.async_write_ha_state()        
+        await self._device.push_values(self._pump)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        di=self._device.device_info
+        di['name']+='_pump_'+str(self._pump)
+        identifiers=list(di['identifiers'])[0]
+        pump=("pump_"+str(self._pump),)
+        identifiers+=pump
+        di['identifiers']={identifiers}
+        return di
+    

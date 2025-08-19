@@ -500,9 +500,12 @@ class ReefRunAPI(ReefBeatAPI):
         super().__init__(ip,live_config_update)
         self.data['sources'].insert(len(self.data['sources']),{"name":"/pump/settings","type": "config","data":""})
 
-    async def push_values(self,pump):
-        payload=self.get_data("$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump))
-        await self._http_send(self._base_url+'/pump/settings',payload,'put')
 
+    async def push_values(self,pump=None):
+        if pump:
+            payload={"pump_"+str(pump): self.get_data("$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump))}
+        else :
+            payload={"overskimming": self.get_data("$.sources[?(@.name=='/pump/settings')].data.overskimming")}
+        await self._http_send(self._base_url+'/pump/settings',payload,'put')
 
     

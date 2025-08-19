@@ -7,10 +7,10 @@
                 "title": "Définir une nouvelle entitée",
                 "data": {
                     "ip_address": "Adresse IP ou du reseau (ex: 192.168.20.0/255.255.255.0)",
-										"hw_model": "Modèle hardware",
-										"virtual_led": "Nouvelle Led virtuelle",
-										"platform": "Plateforme",
-										"scan_interval": "Intervalle de rafraichissement"
+		    "hw_model": "Modèle hardware",
+		    "virtual_led": "Nouvelle Led virtuelle",
+		    "platform": "Plateforme",
+		    "scan_interval": "Intervalle de rafraichissement"
                 }
             }
         },
@@ -20,357 +20,372 @@
         }
     },
     "options": {
-				"step":{
-						"init":{
-								"title": "Configuration",
-								"data":{
-										"slaves": "LED",
-										"not_virtual": "Pas de configuration disponible",
-										"live_config_update": "MAJ de la configuration en direct"
-								}
-								
-						}
-				}
+	"step":{
+	    "init":{
+		"title": "Configuration",
+		"data":{
+		    "slaves": "LED",
+		    "not_virtual": "Pas de configuration disponible",
+		    "live_config_update": "MAJ de la configuration en direct"
+		}
+		
+	    }
+	}
     },
     "entity": {
-				"button":{
-						"fetch_config":{
-								"name": "MAJ données de configuration"
-						},
-						"new_roll":{
-								"name": "Nouveau Rouleau"
-						},
-						"manual_head":{
-								"name": "Dosage manuel"
-						},
-						"advance":{
-								"name": "Faire dérouler"
-						},
-						"fill":{
-								"name": "Remplissage"
-						},
-						"stop_fill":{
-								"name": "Arrêt du remplissage"
-						}
-				},
-				"number":{
-						"stock_alert_days":{
-								"name": "Jour d'alertes du stock"
-						},
-						"dosing_waiting_period":{
-								"name": "Délais d'attente entre têtes différentes"
-						},
-						"speed":{
-								"name": "Vitesse"
-						},
-						"manual_duration":{
-								"name": "Durée du mode manuel"
-						},
-						"kelvin":{
-								"name": "Kelvin"
-						},
-						"intensity":{
-								"name": "Intensité"
-						},
-						"schedule_length":{
-								"name": "Longueur d'avance programmé"
-						},
-						"acclimation_duration":{
-								"name": "Durée de l'acclimatation"
-						},
-						"acclimation_start_intensity_factor":{
-								"name": "Intensité de départ de l'acclimatation"
-						},
- 						"moon_day":{
-								"name": "Jour de la Lune"
-						},
-						"started_roll_diameter":{
-								"name": "Diamètre du rouleau"
-						},
-						"container_volume":{
-								"name": "Volume restant"
-						},
-						"daily_dose":{
-								"name": "MAJ Dose journalière"
-						},
-						"custom_advance_value":{
-								"name": "Valeur d'avance"
-						},
-						"manual_head_volume":{
-								"name": "Volume Manuel"
-						}
-				} ,
-				"binary_sensor": {
-						"ec_sensor_connected":{
-								"name": "Détecteur"
-						},
-						"missing_pump":{
-								"name": "Pompe"
-						},
-						"missing_sensor":{
-								"name": "Détecteur"
-						},
-						"schedule_enabled":{
-								"name": "Planification Activée"
-						},
-						"recalibration_required":{
-								"name": "Calibration"
-						},
-						"enabled":{
-								"name" : "Détecteur de fuite"
-						},
-						"status":{
-								"name":"Statut"
-						},
-						"unclean_sensor":{
-								"name": "Etat du capteur"
-						},
-						"is_ec_sensor_connected":{
-								"name": "Capteur connecté?"
-						},
+	"button":{
+	    "fetch_config":{
+		"name": "MAJ données de configuration"
+	    },
+	    "new_roll":{
+		"name": "Nouveau Rouleau"
+	    },
+	    "manual_head":{
+		"name": "Dosage manuel"
+	    },
+	    "advance":{
+		"name": "Faire dérouler"
+	    },
+	    "fill":{
+		"name": "Remplissage"
+	    },
+	    "stop_fill":{
+		"name": "Arrêt du remplissage"
+	    }
+	},
+	"number":{
+	    "overskimming_threshold":{
+		"name": "Humidité dans l'écume"
+	    },
+	    "stock_alert_days":{
+		"name": "Jour d'alertes du stock"
+	    },
+	    "dosing_waiting_period":{
+		"name": "Délais d'attente entre têtes différentes"
+	    },
+	    "speed":{
+		"name": "Vitesse"
+	    },
+	    "manual_duration":{
+		"name": "Durée du mode manuel"
+	    },
+	    "kelvin":{
+		"name": "Kelvin"
+	    },
+	    "intensity":{
+		"name": "Intensité"
+	    },
+	    "schedule_length":{
+		"name": "Longueur d'avance programmé"
+	    },
+	    "acclimation_duration":{
+		"name": "Durée de l'acclimatation"
+	    },
+	    "acclimation_start_intensity_factor":{
+		"name": "Intensité de départ de l'acclimatation"
+	    },
+ 	    "moon_day":{
+		"name": "Jour de la Lune"
+	    },
+	    "started_roll_diameter":{
+		"name": "Diamètre du rouleau"
+	    },
+	    "container_volume":{
+		"name": "Volume restant"
+	    },
+	    "daily_dose":{
+		"name": "MAJ Dose journalière"
+	    },
+	    "custom_advance_value":{
+		"name": "Valeur d'avance"
+	    },
+	    "manual_head_volume":{
+		"name": "Volume Manuel"
+	    }
+	} ,
+	"binary_sensor": {
+	    "sensor_controlled":{
+		"name" : "Contrôlé par capteur"
+	    },
+	    "ec_sensor_connected":{
+		"name": "Détecteur"
+	    },
+	    "missing_pump":{
+		"name": "Pompe"
+	    },
+	    "missing_sensor":{
+		"name": "Détecteur"
+	    },
+	    "schedule_enabled":{
+		"name": "Planification Activée"
+	    },
+	    "recalibration_required":{
+		"name": "Calibration"
+	    },
+	    "enabled":{
+		"name" : "Détecteur de fuite"
+	    },
+	    "status":{
+		"name":"Statut"
+	    },
+	    "unclean_sensor":{
+		"name": "Etat du capteur"
+	    },
+	    "is_ec_sensor_connected":{
+		"name": "Capteur connecté?"
+	    },
 
-						"water_level":{
-								"name": "Niveau d'eau"
-						},
-						"is_pump_on":{
-								"name": "Pompe"
-						},
-						"connected":{
-								"name": "Détecteur de fuite connecté"
-						},
-						"buzzer_enabled":{
-								"name": "Buzzer"
-						},
-						"is_sensor_error":{
-								"name": "Capteur en erreur?"
-						},
-						"is_temp_enabled":{
-								"name": "Capteur de température"
-						}
-						
-				},
-				"sensor": {
-						"supplement_uid":{
-								"name": "Identifiant du supplément"
-						},
-						"white": {
-								"name": "Blanc"
-						},
-						"blue": {
-								"name": "Bleu"
-						},
-						"water_level":{
-								"name": "Niveau d'eau"
-						},
-						"acclimation_duration":{
-								"name": "Durée de l'acclimatation"
-						},
-						"acclimation_start_intensity_factor":{
-								"name": "Intensité de départ de l'acclimatation"
-						},
-						"moon_intensity":{
-								"name": "Intensité de la Lune"
-						},
-						"todays_moon_day":{
-								"name": "Lune du jour"
-						},
-						"next_full_moon":{
-								"name": "Prochaine pleine Lune"
-						},
-						"next_new_moon":{
-								"name": "Prochaine nouvelle lune"
-						},
-						"name":{
-								"name": "Nom"
-						},
-						"type":{
-								"name": "Type"
-						},
-						"model":{
-								"name": "Modèle"
-						},
-						"state":{
-								"name": "Etat"
-						},
-						"intensity":{
-								"name": "Intensité"
-						},
-						"pulse":{
-								"name": "Impulsion"
-						},
-						"container_volume":{
-								"name": "Volume du réservoire"
-						},
-						"supplement":{
-								"name": "Nom du supplément"
-						},
-						"auto_dosed_today":{
-								"name": "Dose automatique du jour"
-						},
-						"manual_dosed_today":{
-								"name": "Dose manuelle du jour"
-						},
-						"doses_today":{
-								"name": "Doses du jour"
-						},
-						"remaining_days":{
-								"name": "Jours restants"
-						},
-						"daily_doses":{
-								"name": "Doses journalière"
-						},
-						"daily_dose":{
-								"name": "Dose journalière"
-						},
+	    "water_level":{
+		"name": "Niveau d'eau"
+	    },
+	    "is_pump_on":{
+		"name": "Pompe"
+	    },
+	    "connected":{
+		"name": "Détecteur de fuite connecté"
+	    },
+	    "buzzer_enabled":{
+		"name": "Buzzer"
+	    },
+	    "is_sensor_error":{
+		"name": "Capteur en erreur?"
+	    },
+	    "is_temp_enabled":{
+		"name": "Capteur de température"
+	    }
+	    
+	},
+	"sensor": {
+	    "supplement_uid":{
+		"name": "Identifiant du supplément"
+	    },
+	    "white": {
+		"name": "Blanc"
+	    },
+	    "blue": {
+		"name": "Bleu"
+	    },
+	    "water_level":{
+		"name": "Niveau d'eau"
+	    },
+	    "acclimation_duration":{
+		"name": "Durée de l'acclimatation"
+	    },
+	    "acclimation_start_intensity_factor":{
+		"name": "Intensité de départ de l'acclimatation"
+	    },
+	    "moon_intensity":{
+		"name": "Intensité de la Lune"
+	    },
+	    "todays_moon_day":{
+		"name": "Lune du jour"
+	    },
+	    "next_full_moon":{
+		"name": "Prochaine pleine Lune"
+	    },
+	    "next_new_moon":{
+		"name": "Prochaine nouvelle lune"
+	    },
+	    "name":{
+		"name": "Nom"
+	    },
+	    "type":{
+		"name": "Type"
+	    },
+	    "model":{
+		"name": "Modèle"
+	    },
+	    "state":{
+		"name": "Etat"
+	    },
+	    "intensity":{
+		"name": "Intensité"
+	    },
+	    "pulse":{
+		"name": "Impulsion"
+	    },
+	    "container_volume":{
+		"name": "Volume du réservoire"
+	    },
+	    "supplement":{
+		"name": "Nom du supplément"
+	    },
+	    "auto_dosed_today":{
+		"name": "Dose automatique du jour"
+	    },
+	    "manual_dosed_today":{
+		"name": "Dose manuelle du jour"
+	    },
+	    "doses_today":{
+		"name": "Doses du jour"
+	    },
+	    "remaining_days":{
+		"name": "Jours restants"
+	    },
+	    "daily_doses":{
+		"name": "Doses journalière"
+	    },
+	    "daily_dose":{
+		"name": "Dose journalière"
+	    },
 
-						"days_till_end_of_roll":{
-								"name": "Jours avant la fin du rouleau"
-						},
-						"daily_average_usage":{
-								"name": "Moyenne journalière d'utilisation"
-						},
-						"total_usage":{
-								"name": "Usage Total"
-						},
-						"remaining_length":{
-								"name": "Longueur restante"
-						},
-						"today_usage": {
-								"name": "Usage du jour"
-						},
-						"fan": {
-								"name": "Ventilateur"
-						},
-						"temperature": {
-								"name": "Température"
-						},
-						"ip": {
-								"name": "Adresse IP"
-						},
-						"auto_1": {
-								"name": "Dimanche"
-						},
-						"auto_2": {
-								"name": "Lundi"
-						},
-						"auto_3": {
-								"name": "Mardi"
-						},
-						"auto_4": {
-								"name": "Mercredi"
-						},
-						"auto_5": {
-								"name": "Jeudi"
-						},
-						"auto_6": {
-								"name": "Vendredi"
-						},
-						"auto_7": {
-								"name": "Samedi"
-						},
-						"today_fills": {
-								"name": "Remplissages du jour"
-						},
-						"today_volume_usage": {
-								"name": "Volume utilisé aujourd'hui"
-						},
-						"total_volume_usage": {
-								"name": "Volume total utilisé"
-						},
-						"total_fills": {
-								"name": "Nombre de remplissages total"
-						},
-						"daily_fills_average": {
-								"name": "Moyenne journalière de remplissage"
-						},
-						"daily_volume_average": {
-								"name": "Volume journalier moyen"
-						},
-						"volume_left": {
-								"name": "Volume restant"
-						},
-						"days_till_empty": {
-								"name": "Nombre de jours restant"
-						},
-						
-						"status": {
-								"name": "Statut"
-						},
-						"current_level": {
-								"name": "Niveau actuel"
-						},
-						"current_read": {
-								"name": "Température"
-						},
-						"temperature_probe_status": {
-								"name": "Statut de la sonde de température"
-						}
-				},
-				"light": {
-						"constant_intensity":{
-								"name": "Intensité compensée"
-						},
-						
-						"intensity":{
-								"name": "Intensité"
-						},
-						"white": {
-								"name": "Blanc"
-						},
-						"blue": {
-								"name": "Bleu"
-						},
-						"moon": {
-								"name": "Lune"
-						}
-				},
-				"switch": {
-						"scheduled_advance":{
-								"name": "Avance Programmée"
-						},
-						"moon":{
-								"name":"Lune"
-						},
-						"moon_phase":{
-								"name":"Phase lunaire"
-						},
-						"acclimation":{
-								"name": "Acclimatation"
-						},
-						"slm":{
-								"name": "Contrôleur du Volume"
-						},
-						"schedule_enabled":{
-								"name": "Planification activée"
-						},
-						"daily_prog": {
-								"name": "Programmation journalière"
-						},
-						"auto_advance":{
-								"name": "Avance automatique"
-						},
-						"auto_fill":{
-								"name" :"Remplissage automatique"
-						}
-						
-				},
-				"select" : {
-						"mode":{
-								"name": "Mode"
-						},
-						"model": {
-								"name": "Modèle"
-						},
-						"position": {
-								"name": "Position"
-						}
+	    "days_till_end_of_roll":{
+		"name": "Jours avant la fin du rouleau"
+	    },
+	    "daily_average_usage":{
+		"name": "Moyenne journalière d'utilisation"
+	    },
+	    "total_usage":{
+		"name": "Usage Total"
+	    },
+	    "remaining_length":{
+		"name": "Longueur restante"
+	    },
+	    "today_usage": {
+		"name": "Usage du jour"
+	    },
+	    "fan": {
+		"name": "Ventilateur"
+	    },
+	    "temperature": {
+		"name": "Température"
+	    },
+	    "ip": {
+		"name": "Adresse IP"
+	    },
+	    "auto_1": {
+		"name": "Dimanche"
+	    },
+	    "auto_2": {
+		"name": "Lundi"
+	    },
+	    "auto_3": {
+		"name": "Mardi"
+	    },
+	    "auto_4": {
+		"name": "Mercredi"
+	    },
+	    "auto_5": {
+		"name": "Jeudi"
+	    },
+	    "auto_6": {
+		"name": "Vendredi"
+	    },
+	    "auto_7": {
+		"name": "Samedi"
+	    },
+	    "today_fills": {
+		"name": "Remplissages du jour"
+	    },
+	    "today_volume_usage": {
+		"name": "Volume utilisé aujourd'hui"
+	    },
+	    "total_volume_usage": {
+		"name": "Volume total utilisé"
+	    },
+	    "total_fills": {
+		"name": "Nombre de remplissages total"
+	    },
+	    "daily_fills_average": {
+		"name": "Moyenne journalière de remplissage"
+	    },
+	    "daily_volume_average": {
+		"name": "Volume journalier moyen"
+	    },
+	    "volume_left": {
+		"name": "Volume restant"
+	    },
+	    "days_till_empty": {
+		"name": "Nombre de jours restant"
+	    },
+	    
+	    "status": {
+		"name": "Statut"
+	    },
+	    "current_level": {
+		"name": "Niveau actuel"
+	    },
+	    "current_read": {
+		"name": "Température"
+	    },
+	    "temperature_probe_status": {
+		"name": "Statut de la sonde de température"
+	    }
+	},
+	"light": {
+	    "constant_intensity":{
+		"name": "Intensité compensée"
+	    },
+	    
+	    "intensity":{
+		"name": "Intensité"
+	    },
+	    "white": {
+		"name": "Blanc"
+	    },
+	    "blue": {
+		"name": "Bleu"
+	    },
+	    "moon": {
+		"name": "Lune"
+	    }
+	},
+	"switch": {
+	    "fullcup_enabled":{
+		"name": "Détection du Bol Plein"
+	    },
+	    "overskimming_enabled":{
+		"name": "AUto Régulation Ecummage"
+	    },
+	    "scheduled_advance":{
+		"name": "Avance Programmée"
+	    },
+	    "moon":{
+		"name":"Lune"
+	    },
+	    "moon_phase":{
+		"name":"Phase lunaire"
+	    },
+	    "acclimation":{
+		"name": "Acclimatation"
+	    },
+	    "slm":{
+		"name": "Contrôleur du Volume"
+	    },
+	    "schedule_enabled":{
+		"name": "Planification activée"
+	    },
+	    "daily_prog": {
+		"name": "Programmation journalière"
+	    },
+	    "auto_advance":{
+		"name": "Avance automatique"
+	    },
+	    "auto_fill":{
+		"name" :"Remplissage automatique"
+	    }
+	    
+	},
+	"select" : {
+	    "model_skimmer":{
+		"name": "Modèle"
+	    },
+	    "mode":{
+		"name": "Mode"
+	    },
+	    "model": {
+		"name": "Modèle"
+	    },
+	    "position": {
+		"name": "Position"
+	    }
 
-				},
-				"time" :{
-						"schedule_time":{
-								"name": "Heure de l'Avance Programmée"
-						}
-				}
-				
+	},
+	"time" :{
+	    "schedule_time":{
+		"name": "Heure de l'Avance Programmée"
+	    }
+	}
+	
     }
 }

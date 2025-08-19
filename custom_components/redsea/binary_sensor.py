@@ -193,8 +193,18 @@ async def async_setup_entry(
                      for description in ds
                      if description.exists_fn(device)]
     elif  type(device).__name__=='ReefRunCoordinator':
+
         ds=()
         for pump in range (1,3):
+
+            new_pump= (ReefRunBinarySensorEntityDescription(
+                key="sensor_controlled_pump_"+str(pump),
+                translation_key="sensor_controlled",
+                icon="mdi:car-cruise-control",
+                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".sensor_controlled",
+                pump=pump,
+            ),)
+            ds+=new_pump
             new_pump= (ReefRunBinarySensorEntityDescription(
                 key="schedule_enabled_pump_"+str(pump),
                 translation_key="schedule_enabled",

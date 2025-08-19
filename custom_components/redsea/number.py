@@ -298,6 +298,21 @@ async def async_setup_entry(
                  if description.exists_fn(device)]
     if type(device).__name__=='ReefRunCoordinator':
         dn=()
+        new_pump= (ReefBeatNumberEntityDescription(
+            key="overskimming_threshold",
+            translation_key="overskimming_threshold",
+            native_unit_of_measurement=PERCENTAGE,
+            native_min_value=0,
+            native_step=1,
+            native_max_value=100,
+            value_name="$.sources[?(@.name=='/pump/settings')].data.overskimming.threshold",
+            icon="mdi:cloud-percent-outline",
+         ), )
+        dn+=new_pump
+        entities += [ReefBeatNumberEntity(device, description)
+                 for description in dn
+                 if description.exists_fn(device)]
+        dn=()
         for pump in range(1,3):
             new_pump= (ReefRunNumberEntityDescription(
                 key="pump_"+str(pump)+"_intensity",

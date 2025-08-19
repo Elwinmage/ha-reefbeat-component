@@ -502,14 +502,6 @@ async def async_setup_entry(
             ),)
             ds+=new_pump
             new_pump= (ReefRunSensorEntityDescription(
-                key="pulse_pump_"+str(pump),
-                translation_key="pulse",
-                icon="mdi:pulse",
-                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".pulse",
-                pump=pump,
-            ),)
-            ds+=new_pump
-            new_pump= (ReefRunSensorEntityDescription(
                 key="temperature_pump_"+str(pump),
                 translation_key="temperature",
                 icon="mdi:thermometer",
