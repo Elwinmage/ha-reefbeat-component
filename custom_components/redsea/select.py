@@ -182,7 +182,8 @@ class ReefBeatSelectEntity(CoordinatorEntity,SelectEntity):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info
-
+################################################################################
+# RUN
 class ReefRunSelectEntity(ReefBeatSelectEntity):
     """Represent an ReefBeat sensor."""
     _attr_has_entity_name = True
@@ -199,7 +200,7 @@ class ReefRunSelectEntity(ReefBeatSelectEntity):
         self._attr_current_option = option
         self._device.set_data(self._value_name,option)
         self.async_write_ha_state()        
-        await self._device.push_values(self._pump)
+        await self._device.push_values(pump=self._pump)
 
     @property
     def device_info(self) -> DeviceInfo:

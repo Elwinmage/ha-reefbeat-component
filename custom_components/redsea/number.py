@@ -466,7 +466,7 @@ class ReefRunNumberEntity(ReefBeatNumberEntity):
         self._attr_native_value=value
         self._device.set_data(self.entity_description.value_name,int(value))
         self.async_write_ha_state()  
-        await self._device.push_values(self._pump)
+        await self._device.push_values(pump=self._pump)
         await self._device.async_request_refresh()
 
     @property

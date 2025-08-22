@@ -505,7 +505,73 @@ class ReefRunAPI(ReefBeatAPI):
         if pump:
             payload={"pump_"+str(pump): self.get_data("$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump))}
         else :
-            payload={"overskimming": self.get_data("$.sources[?(@.name=='/pump/settings')].data.overskimming")}
+            #payload={"overskimming": self.get_data("$.sources[?(@.name=='/pump/settings')].data.overskimming")}
+            payload=self.get_data("$.sources[?(@.name=='/pump/settings')].data").copy()
+            del payload['pump_1']
+            del payload['pump_2']
         await self._http_send(self._base_url+'/pump/settings',payload,'put')
 
+################################################################################
+# ReeWave
+  # public static class Waves {
+  #   public static int NO_WAVE(boolean param1Boolean) {
+  #     int i;
+  #     if (param1Boolean) {
+  #       i = 2131166622;
+  #     } else {
+  #       i = 2131166623;
+  #     } 
+  #     return i;
+  #   }
+    
+  #   public static int RANDOM(boolean param1Boolean) {
+  #     int i;
+  #     if (param1Boolean) {
+  #       i = 2131166624;
+  #     } else {
+  #       i = 2131166625;
+  #     } 
+  #     return i;
+  #   }
+    
+  #   public static int REGULAR(boolean param1Boolean) {
+  #     int i;
+  #     if (param1Boolean) {
+  #       i = 2131166626;
+  #     } else {
+  #       i = 2131166627;
+  #     } 
+  #     return i;
+  #   }
+    
+  #   public static int STEP(boolean param1Boolean) {
+  #     int i;
+  #     if (param1Boolean) {
+  #       i = 2131166628;
+  #     } else {
+  #       i = 2131166629;
+  #     } 
+  #     return i;
+  #   }
+    
+  #   public static int SURFACE(boolean param1Boolean) {
+  #     int i;
+  #     if (param1Boolean) {
+  #       i = 2131166630;
+  #     } else {
+  #       i = 2131166631;
+  #     } 
+  #     return i;
+  #   }
+    
+  #   public static int UNIFORM(boolean param1Boolean) {
+  #     int i;
+  #     if (param1Boolean) {
+  #       i = 2131166632;
+  #     } else {
+  #       i = 2131166633;
+  #     } 
+  #     return i;
+  #   }
+  # }
     

@@ -102,9 +102,6 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         await asyncio.sleep(2)
         self.my_api.quick_refresh=source
         return await super().async_request_refresh()
-
-
-    
     
     @property
     def device_info(self):
@@ -120,7 +117,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
             sw_version=self.sw_version,
         )
 
-    async def push_values(self,source='/configuration',method='put'):
+    async def push_values(self,source:str='/configuration',method:str='put'):
         await self.my_api.push_values(source,method)
         
     def get_data(self,name):
@@ -408,5 +405,8 @@ class ReefRunCoordinator(ReefBeatCoordinator):
         super().__init__(hass,entry)
         self.my_api = ReefRunAPI(self._ip,self._live_config_update)
         
-    async  def push_values(self,pump=None):
+    # async  def push_values(self,pump:int=None):
+    #     await self.my_api.push_values(pump)
+
+    async  def push_values(self,source:str=None,method:str=None,pump:int=None):
         await self.my_api.push_values(pump)
