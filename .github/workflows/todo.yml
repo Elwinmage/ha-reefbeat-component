@@ -1,0 +1,15 @@
+name: TODO List
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  generate-issues:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: TODO to Issue
+        uses: alstr/todo-to-issue-action@v5.1.13
