@@ -11,7 +11,7 @@
 RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cloud)
 
 > [!TIP]
-> The list of future implementation can be found [here](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)
+> The list of future implementations can be found [here](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)
 
 ***If you need other sensors or actuators let me know [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions).***
 
