@@ -71,6 +71,7 @@ class ReefLedScheduleSensorEntityDescription(SensorEntityDescription):
     value_name: ''
     id_name: 0
 # TODO : Add battery level monitoring. Values can be High or Low
+#  labels: enhancement, all 
 COMMON_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription( 
         key="ip",

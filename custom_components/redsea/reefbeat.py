@@ -445,9 +445,7 @@ class ReefMatAPI(ReefBeatAPI):
         
 ################################################################################
 #ReefDose
-# TODO : RSDOSE - Add speed change management
-#  labels: enhancement, rsdose
-# TODO : RSDOSE - Add priming
+# TODO : Add priming
 #  labels: enhancement, rsdose
 class ReefDoseAPI(ReefBeatAPI):
     """ Access to ReefDose informations and commands """
@@ -518,7 +516,8 @@ class ReefRunAPI(ReefBeatAPI):
 ################################################################################
 # ReeWave
 # TODO : Add reefwave support
-  # public static class Waves {
+#  labels: enhancement, rswave
+# public static class Waves {
   #   public static int NO_WAVE(boolean param1Boolean) {
   #     int i;
   #     if (param1Boolean) {

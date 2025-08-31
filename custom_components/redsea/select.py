@@ -103,6 +103,9 @@ LED_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
     ),
 )
 
+# TODO : Add speed change management
+#  labels: enhancement, rsdose
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
