@@ -1,15 +1,11 @@
-name: TODO List
-
-on:
-  push:
-  pull_request:
-  workflow_dispatch:
-
-permissions: {}
-
+name: "Run TODO to Issue"
+on: [ "push" ]
 jobs:
-  generate-issues:
+  build:
     runs-on: "ubuntu-latest"
+    permissions:
+      issues: write
     steps:
-      - name: TODO to Issue
-        uses: alstr/todo-to-issue-action@v5.1.13
+      - uses: "actions/checkout@v4"
+      - name: "TODO to Issue"
+        uses: "alstr/todo-to-issue-action@v5"
