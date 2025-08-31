@@ -70,7 +70,7 @@ class ReefLedScheduleSensorEntityDescription(SensorEntityDescription):
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
     value_name: ''
     id_name: 0
-# TODO : Add battery level monitoring    
+# TODO : Add battery level monitoring. Values can be High or Low
 COMMON_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription( 
         key="ip",
