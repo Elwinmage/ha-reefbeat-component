@@ -104,6 +104,9 @@
 	    }
 	} ,
 	"binary_sensor": {
+	    "battery_level":{
+		"name": "Batterie"
+	    },
 	    "sensor_controlled":{
 		"name" : "Contrôlé par capteur"
 	    },

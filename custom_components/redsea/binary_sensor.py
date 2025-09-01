@@ -56,6 +56,19 @@ class ReefRunBinarySensorEntityDescription(BinarySensorEntityDescription):
     value_name: ""
     pump: 0
 
+
+""" Reefbeat device common binary_sesors """
+COMMON_SENSORS:tuple[ReefBeatBinarySensorEntityDescription, ...] = (
+    ReefBeatBinarySensorEntityDescription(
+        key="battery_level",
+        translation_key="battery_level",
+        device_class=BinarySensorDeviceClass.BATTERY,
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.battery_level")=='low',
+        icon="mdi:battery-outline",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+)
+
     
 """ ReefLed Binary Sensor List """    
 LED_SENSORS: tuple[ReefBeatBinarySensorEntityDescription, ...] = (
@@ -240,7 +253,10 @@ async def async_setup_entry(
                      for description in RUN_SENSORS
                      if description.exists_fn(device)]
 
-            
+    entities += [ReefBeatBinarySensorEntity(device, description)
+                 for description in  COMMON_SENSORS
+                 if description.exists_fn(device)]
+        
     async_add_entities(entities, True)
 
 class ReefBeatBinarySensorEntity(CoordinatorEntity,BinarySensorEntity):
