@@ -163,11 +163,12 @@ Or search for "redsea" or "reefbeat" in hacs
 
 <p align="center">                                                                                                                                                                             
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_ctrl.png" alt="Image">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_sensors.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_diag.png" alt="Image">
+
 </p>
 <p align="center">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_diag.png" alt="Image">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_g2_ctrl.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_G1_sensors.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_conf.png" alt="Image">
  </p> 
 
 ***
@@ -252,6 +253,19 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
   - Enable/disable schedule per pump
   - Stock alert configuration
   - Dosing delay between supplements
+
+
+<p align="center"> 
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_devices.png" alt="Image">
+</p>
+
+### Main
+<p align="center"> 
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_main_conf.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_main_diag.png" alt="Image">
+</p> 
+
+### Heads
 <p align="center"> 
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_ctrl.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_sensors.png" alt="Image">
@@ -262,7 +276,9 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
   - Auto_fill enable/disable
   - Manual fill
 <p align="center">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato.png" alt="Image">                                                                                       
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato_sensors.png" alt="Image">                                                                                       
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato_conf.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato_diag.png" alt="Image">                                                                                       
 </p> 
 
 # ReefRun:
@@ -272,12 +288,28 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
   - Can change skimmer model
 
 <p align="center">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_1.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_devices.png" alt="Image">
 </p>
+
+### Main
 <p align="center">                                                                                                                                                                              
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_2.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_main_sensors.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_main_ctrl.png" alt="Image">
 </p>
-<p align="center">                                                                                                                                                                                <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_3.png" alt="Image">
+<p align="center">     
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_main_conf.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_main_diag.png" alt="Image">
+</p>
+
+### Pumps
+<p align="center">                                                                                                                                                                              
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_ctrl.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_conf.png" alt="Image">
+</p>
+<p align="center">     
+  
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_sensors.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_diag.png" alt="Image">
 </p>
 
 # ReefWave:
