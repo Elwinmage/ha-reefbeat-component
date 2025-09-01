@@ -101,16 +101,16 @@ RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local 
 </table>
 
 # Summary
-- [Installation via hacs](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#installation-via-hacs)
-- [Common functions](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#common-functions)
-- [LED](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#led)
-- [Virtual LED](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#virtual-led)
-- [ReefMat](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#reefmat)
-- [ReefDose](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#reefdose)
-- [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#reefato)
-- [ReefRun](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#reefrun)
-- [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#reewave)
-- [FAQ](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected#faq)
+- [Installation via hacs](https://github.com/Elwinmage/ha-reefbeat-component/#installation-via-hacs)
+- [Common functions](https://github.com/Elwinmage/ha-reefbeat-component/#common-functions)
+- [LED](https://github.com/Elwinmage/ha-reefbeat-component/#led)
+- [Virtual LED](https://github.com/Elwinmage/ha-reefbeat-component/#virtual-led)
+- [ReefMat](https://github.com/Elwinmage/ha-reefbeat-component/#reefmat)
+- [ReefDose](https://github.com/Elwinmage/ha-reefbeat-component/#reefdose)
+- [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/#reefato)
+- [ReefRun](https://github.com/Elwinmage/ha-reefbeat-component/#reefrun)
+- [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/#reewave)
+- [FAQ](https://github.com/Elwinmage/ha-reefbeat-component/#faq)
 
 # Installation via hacs 
 
