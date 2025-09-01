@@ -86,7 +86,7 @@ RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local 
   </tr>
   <tr>
     <td><a href="#reefrun">ReefRun & DC Skimmer</a></td>
-    <td colspan="2">RSRUN</td><td>☑️</td>
+    <td colspan="2">RSRUN</td><td>✅</td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSRUN.png"/></td>
   </tr>  
   <tr>

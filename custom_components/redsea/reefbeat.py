@@ -502,7 +502,6 @@ class ReefRunAPI(ReefBeatAPI):
         super().__init__(ip,live_config_update)
         self.data['sources'].insert(len(self.data['sources']),{"name":"/pump/settings","type": "config","data":""})
 
-
     async def push_values(self,pump=None):
         if pump:
             payload={"pump_"+str(pump): self.get_data("$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump))}

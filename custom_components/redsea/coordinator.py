@@ -2,7 +2,7 @@ import logging
 import asyncio
 import async_timeout
 
-from datetime import  timedelta
+from datetime import  timedelta, datetime
 
 from homeassistant.core import HomeAssistant
 
@@ -393,7 +393,9 @@ class ReefATOCoordinator(ReefBeatCoordinator):
         self.my_api = ReefATOAPI(self._ip,self._live_config_update)
         
 ################################################################################
-# REERUN
+# REEFRUN
+# TODO : Implement preview
+#  labels: enhancement, rsrun
 class ReefRunCoordinator(ReefBeatCoordinator):
 
     def __init__(
@@ -404,9 +406,22 @@ class ReefRunCoordinator(ReefBeatCoordinator):
         """Initialize coordinator."""
         super().__init__(hass,entry)
         self.my_api = ReefRunAPI(self._ip,self._live_config_update)
-        
-    # async  def push_values(self,pump:int=None):
-    #     await self.my_api.push_values(pump)
 
-    async  def push_values(self,source:str=None,method:str=None,pump:int=None):
+    async def set_pump_intensity(self,pump:int,intensity:int):
+        _LOGGER.debug("coordinator.ReefRunCoordinator.set_pump_intensity")
+        await self.my_api.fetch_config()
+        schedule=self.my_api.get_data("$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump)+".schedule")
+        _LOGGER.debug(schedule)
+        now= datetime.now()
+        now_minutes=now.hour*60+now.minute
+        to_update=schedule[0]
+        for prog in schedule[1:]:
+            if int(prog['st']) < now_minutes:
+                to_update=prog
+            else:
+                break
+        to_update['ti']=intensity
+        _LOGGER.debug(schedule)
+    
+    async def push_values(self,source:str=None,method:str=None,pump:int=None):
         await self.my_api.push_values(pump)

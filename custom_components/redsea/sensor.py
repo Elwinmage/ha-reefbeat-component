@@ -490,18 +490,6 @@ async def async_setup_entry(
             ),)
             ds+=new_pump
             new_pump= (ReefRunSensorEntityDescription(
-                key="intensity_pump_"+str(pump),
-                translation_key="intensity",
-                icon="mdi:waves",
-                native_unit_of_measurement=PERCENTAGE,
-                device_class=SensorDeviceClass.POWER_FACTOR,
-                state_class=SensorStateClass.MEASUREMENT,
-                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".intensity",
-                pump=pump,
-                suggested_display_precision=0,
-            ),)
-            ds+=new_pump
-            new_pump= (ReefRunSensorEntityDescription(
                 key="temperature_pump_"+str(pump),
                 translation_key="temperature",
                 icon="mdi:thermometer",

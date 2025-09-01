@@ -106,6 +106,9 @@
 	    
 	} ,
 	"binary_sensor": {
+	    "constant_speed":{
+		"name": "Constant speed"
+	    },
 	    "battery_level":{
 		"name": "Battery Level"
 	    },

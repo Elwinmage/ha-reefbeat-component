@@ -314,9 +314,6 @@ async def async_setup_entry(
                  if description.exists_fn(device)]
         dn=()
         for pump in range(1,3):
-            # TODO : Same implementation for pump speed than reefbeat.
-            #  When there is a pump schedule do not override to constant value but change current slot value to keep schedule.
-            # labels: enhancement, rsrun
             new_pump= (ReefRunNumberEntityDescription(
                 key="pump_"+str(pump)+"_intensity",
                 translation_key="speed",
@@ -324,7 +321,7 @@ async def async_setup_entry(
                 native_min_value=0,
                 native_step=1,
                 native_max_value=100,
-                value_name="$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump)+".schedule[0].ti",
+                value_name="$.sources[?(@.name=='/dashboard')].data.pump_"+str(pump)+".intensity",
                 icon="mdi:waves",
                 pump=pump,
             ), )
@@ -467,7 +464,10 @@ class ReefRunNumberEntity(ReefBeatNumberEntity):
         """Update the current value."""
         _LOGGER.debug("Reefbeat.number.set_native_value %f"%value)
         self._attr_native_value=value
-        self._device.set_data(self.entity_description.value_name,int(value))
+        if self.entity_description.key=='pump_'+str(self._pump)+'_intensity':
+            await self._device.set_pump_intensity(self._pump,int(value))
+        else:
+            self._device.set_data(self.entity_description.value_name,int(value))
         self.async_write_ha_state()  
         await self._device.push_values(pump=self._pump)
         await self._device.async_request_refresh()
