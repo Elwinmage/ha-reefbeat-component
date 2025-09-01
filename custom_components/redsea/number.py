@@ -314,6 +314,9 @@ async def async_setup_entry(
                  if description.exists_fn(device)]
         dn=()
         for pump in range(1,3):
+            # TODO : Same implementation for pump speed than reefbeat.
+            #  When there is a pump schedule do not override to constant value but change current slot value to keep schedule.
+            # labels: enhancement, rsrun
             new_pump= (ReefRunNumberEntityDescription(
                 key="pump_"+str(pump)+"_intensity",
                 translation_key="speed",
