@@ -82,7 +82,7 @@ RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local 
   <tr>
     <td><a href="#reefato">ReefATO+</a></td>
     <td colspan="2">RSATO+</td><td>✅ </td>
-    <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img//RSATO+.png"/></td>
+    <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSATO+.png"/></td>
   </tr>
   <tr>
     <td><a href="#reefrun">ReefRun & DC Skimmer</a></td>
@@ -109,7 +109,7 @@ RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local 
 - [ReefDose](https://github.com/Elwinmage/ha-reefbeat-component/#reefdose)
 - [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/#reefato)
 - [ReefRun](https://github.com/Elwinmage/ha-reefbeat-component/#reefrun)
-- [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/#reewave)
+- [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)
 - [FAQ](https://github.com/Elwinmage/ha-reefbeat-component/#faq)
 
 # Installation via hacs 
