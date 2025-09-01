@@ -266,9 +266,10 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
 </p> 
 
 # ReefRun:
-> [!NOTE]
-> Partially tested. First try to set pump speed (without device it's not so simple :-) ). I use the first slot for scheduling speed pump (according to youtube they are 10). Using this probably break your scheulde if you have one.
-If your pump speed is always the same I think it could do the job. If someone with a reefrun can contact me, we could propose a better support.
+  - Set pump speed
+  - Manage overskimming
+  - Manage full cup detection
+  - Can change skimmer model
 
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_1.png" alt="Image">
