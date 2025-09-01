@@ -313,7 +313,7 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
 </p>
 
 # ReefWave:
-Not Implemented Yet see [#12](#12)
+Not Implemented Yet see [#12](https://github.com/Elwinmage/ha-reefbeat-component/issues/12)
  
 ***
 # FAQ
