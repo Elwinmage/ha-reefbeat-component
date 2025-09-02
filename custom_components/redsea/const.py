@@ -1,6 +1,9 @@
-from homeassistant.const import Platform
+try:
+    from homeassistant.const import Platform
 
-PLATFORMS: list[Platform] = [Platform.LIGHT,Platform.SENSOR,Platform.BINARY_SENSOR,Platform.SWITCH,Platform.NUMBER,Platform.BUTTON,Platform.SELECT,Platform.TIME]
+    PLATFORMS: list[Platform] = [Platform.LIGHT,Platform.SENSOR,Platform.BINARY_SENSOR,Platform.SWITCH,Platform.NUMBER,Platform.BUTTON,Platform.SELECT,Platform.TIME]
+except:
+    pass
 
 DOMAIN = "redsea"
 
@@ -41,7 +44,7 @@ HW_ATO_IDS=['RSATO+']
 HW_RUN_IDS=['RSRUN']
 HW_WAVE_IDS=['RSWAVE25','RSWAVE45']
 
-HW_DEVICES_IDS=HW_LED_IDS+HW_DOSE_IDS+HW_MAT_IDS+HW_RUN_IDS+HW_ATO_IDS
+HW_DEVICES_IDS=HW_LED_IDS+HW_DOSE_IDS+HW_MAT_IDS+HW_RUN_IDS+HW_ATO_IDS+HW_WAVE_IDS
 
 ################################################################################
 # LED

@@ -1,5 +1,5 @@
 #!/usr/local/bin/python
-
+import json
 import socket
 import netifaces
 import ipaddress
@@ -36,7 +36,6 @@ def get_local_ips(subnetwork=None):
                     return [str(ip) for ip in ipaddress.IPv4Network(str(net))]
             except:
                 pass
-
 
 def is_reefbeat(ip):
     try:
@@ -76,9 +75,9 @@ def get_unique_id(ip):
         return str(e)
      
 if __name__ == '__main__':
-    print(HW_DEVICES_IDS)
+#    print(HW_DEVICES_IDS)
     res=get_reefbeats()
-    print(res)
+    print(json.dumps(res,sort_keys=True, indent=4))
 
 
     
