@@ -516,65 +516,9 @@ class ReefRunAPI(ReefBeatAPI):
 # ReeWave
 # TODO : Add reefwave support
 #  labels: enhancement, rswave
-# public static class Waves {
-  #   public static int NO_WAVE(boolean param1Boolean) {
-  #     int i;
-  #     if (param1Boolean) {
-  #       i = 2131166622;
-  #     } else {
-  #       i = 2131166623;
-  #     } 
-  #     return i;
-  #   }
-    
-  #   public static int RANDOM(boolean param1Boolean) {
-  #     int i;
-  #     if (param1Boolean) {
-  #       i = 2131166624;
-  #     } else {
-  #       i = 2131166625;
-  #     } 
-  #     return i;
-  #   }
-    
-  #   public static int REGULAR(boolean param1Boolean) {
-  #     int i;
-  #     if (param1Boolean) {
-  #       i = 2131166626;
-  #     } else {
-  #       i = 2131166627;
-  #     } 
-  #     return i;
-  #   }
-    
-  #   public static int STEP(boolean param1Boolean) {
-  #     int i;
-  #     if (param1Boolean) {
-  #       i = 2131166628;
-  #     } else {
-  #       i = 2131166629;
-  #     } 
-  #     return i;
-  #   }
-    
-  #   public static int SURFACE(boolean param1Boolean) {
-  #     int i;
-  #     if (param1Boolean) {
-  #       i = 2131166630;
-  #     } else {
-  #       i = 2131166631;
-  #     } 
-  #     return i;
-  #   }
-    
-  #   public static int UNIFORM(boolean param1Boolean) {
-  #     int i;
-  #     if (param1Boolean) {
-  #       i = 2131166632;
-  #     } else {
-  #       i = 2131166633;
-  #     } 
-  #     return i;
-  #   }
-  # }
-    
+class ReefWaveAPI(ReefBeatAPI):
+    """ Access to Reefled informations and commands """
+    def __init__(self,ip,live_config_update) -> None:
+        super().__init__(ip,live_config_update)
+        self.data['sources'].pop() # Remove /dashboard, the last added element
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/feeding/schedule","type": "config","data":""})

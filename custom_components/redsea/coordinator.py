@@ -37,7 +37,7 @@ from .const import (
     LED_INTENSITY_INTERNAL_NAME,
 )
 
-from .reefbeat import ReefBeatAPI,ReefLedAPI, ReefMatAPI, ReefDoseAPI, ReefATOAPI, ReefRunAPI
+from .reefbeat import ReefBeatAPI,ReefLedAPI, ReefMatAPI, ReefDoseAPI, ReefATOAPI, ReefRunAPI, ReefWaveAPI
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -425,3 +425,17 @@ class ReefRunCoordinator(ReefBeatCoordinator):
     
     async def push_values(self,source:str=None,method:str=None,pump:int=None):
         await self.my_api.push_values(pump)
+
+################################################################################
+# REEFWAVE
+class ReefWaveCoordinator(ReefBeatCoordinator):
+
+    def __init__(
+            self,
+            hass: HomeAssistant,
+            entry
+    ) -> None:
+        """Initialize coordinator."""
+        super().__init__(hass,entry)
+        self.my_api = ReefWaveAPI(self._ip,self._live_config_update)
+        

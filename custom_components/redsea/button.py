@@ -171,7 +171,6 @@ async def async_setup_entry(
         entities += [ReefDoseButtonEntity(device, description)
                  for description in db
                  if description.exists_fn(device)]
-        
     if device.my_api._live_config_update == False:
         entities += [ReefBeatButtonEntity(device, description)
                  for description in FETCH_CONFIG_BUTTON 

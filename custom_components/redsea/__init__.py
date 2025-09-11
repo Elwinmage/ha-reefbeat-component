@@ -21,12 +21,13 @@ from .const import (
     HW_MAT_IDS,
     HW_ATO_IDS,
     HW_RUN_IDS,
+    HW_WAVE_IDS,
     VIRTUAL_LED,
     LINKED_LED,
     VIRTUAL_LED_MAX_WAITING_TIME,
     )
 
-from .coordinator import ReefLedCoordinator, ReefLedG2Coordinator,ReefVirtualLedCoordinator,ReefMatCoordinator,ReefDoseCoordinator, ReefATOCoordinator, ReefRunCoordinator
+from .coordinator import ReefLedCoordinator, ReefLedG2Coordinator,ReefVirtualLedCoordinator,ReefMatCoordinator,ReefDoseCoordinator, ReefATOCoordinator, ReefRunCoordinator, ReefWaveCoordinator
 
 import traceback
 
@@ -36,7 +37,6 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the ReefBeat component."""
     hass.data.setdefault(DOMAIN, {})
     return True
-
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Creation des entités à partir d'une configEntry"""
@@ -75,6 +75,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             coordinator = ReefATOCoordinator(hass,entry)
         elif hw in HW_RUN_IDS:
             coordinator = ReefRunCoordinator(hass,entry)
+        elif hw in HW_WAVE_IDS:
+            coordinator = ReefWaveCoordinator(hass,entry)
         else:
             _LOGGER.error('Unknown or not supported hardware %s'%hw)
         await coordinator._async_setup()

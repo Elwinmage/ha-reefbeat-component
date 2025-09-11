@@ -147,6 +147,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(user_input[CONFIG_FLOW_HW_MODEL])
                 user_input[CONFIG_FLOW_CONFIG_TYPE]=False
                 _LOGGER.info("-- ** TITLE ** -- %s"%title)
+                
                 return self.async_create_entry(
                     title=title,
                     data=user_input,
