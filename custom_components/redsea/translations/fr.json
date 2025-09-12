@@ -54,6 +54,9 @@
 	    }
 	},
 	"number":{
+	    "shortcut_off_delay":{
+		"name":"Temporisation de reprise d'actions"
+	    },
 	    "overskimming_threshold":{
 		"name": "Humidité dans l'écume"
 	    },

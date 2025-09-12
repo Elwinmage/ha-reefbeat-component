@@ -48,9 +48,10 @@ from .const import (
     LED_ACCLIMATION_INTENSITY_INTERNAL_NAME,
     LED_MANUAL_DURATION_INTERNAL_NAME,
     LED_KELVIN_INTERNAL_NAME,
+    WAVE_SHORTCUT_OFF_DELAY,
 )
 
-from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator, ReefLedCoordinator, ReefRunCoordinator
+from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator, ReefLedCoordinator, ReefRunCoordinator, ReefWaveCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -84,6 +85,22 @@ class ReefDoseNumberEntityDescription(NumberEntityDescription):
     value_name: ""
     head: 0
     dependency: str = None
+    
+WAVE_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
+    ReefBeatNumberEntityDescription(
+        key='shortcut_off_delay',
+        translation_key='shortcut_off_delay',
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        device_class=NumberDeviceClass.DURATION,
+        native_max_value=600,
+        native_min_value=0,
+        native_step=1,
+        value_name=WAVE_SHORTCUT_OFF_DELAY,
+        icon="mdi:arrow-expand-right",
+        entity_category=EntityCategory.CONFIG,
+    ),
+)
+
     
 MAT_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
     ReefBeatNumberEntityDescription(
@@ -212,11 +229,11 @@ async def async_setup_entry(
                     for description in KELVIN_LED
                      if description.exists_fn(device)]
 
-    if type(device).__name__=='ReefMatCoordinator':
+    elif type(device).__name__=='ReefMatCoordinator':
         entities += [ReefBeatNumberEntity(device, description)
                  for description in MAT_NUMBERS
                  if description.exists_fn(device)]
-    if type(device).__name__=='ReefDoseCoordinator':
+    elif type(device).__name__=='ReefDoseCoordinator':
         dn=()
         new_head= (ReefDoseNumberEntityDescription(
             key="stock_alert_days",
@@ -296,7 +313,7 @@ async def async_setup_entry(
         entities += [ReefDoseNumberEntity(device, description)
                  for description in dn
                  if description.exists_fn(device)]
-    if type(device).__name__=='ReefRunCoordinator':
+    elif type(device).__name__=='ReefRunCoordinator':
         dn=()
         new_pump= (ReefBeatNumberEntityDescription(
             key="overskimming_threshold",
@@ -330,6 +347,10 @@ async def async_setup_entry(
         entities += [ReefRunNumberEntity(device, description)
                  for description in dn
                  if description.exists_fn(device)]
+    elif type(device).__name__=='ReefWaveCoordinator':
+        entities += [ReefBeatNumberEntity(device, description)
+                 for description in WAVE_NUMBERS
+                 if description.exists_fn(device)]
         
     async_add_entities(entities, True)
 
@@ -346,6 +367,10 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
         super().__init__(device,entity_description)
         self._device = device
         self.entity_description = entity_description
+        try:
+            self._source = self.entity_description.value_name.split('\'')[1]
+        except:
+            self._source='/configuration'
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._attr_native_value=3.25
 
@@ -363,9 +388,13 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
         _LOGGER.debug("Reefbeat.number.set_native_value %f"%value)
-        self._attr_native_value=value
-        self._device.set_data(self.entity_description.value_name,value)
-        await self._device.push_values()
+        if self.entity_description.native_unit_of_measurement==UnitOfTime.SECONDS:
+            f_value=int(value)
+        else:
+            f_value=value
+        self._attr_native_value=f_value
+        self._device.set_data(self.entity_description.value_name,f_value)
+        await self._device.push_values(self._source)
         await self._device.async_request_refresh()
 
     @property

@@ -132,3 +132,7 @@ RETURN_MODELS=['return-6','return-7','return-9','return-4000','return-6000','ret
 SKIMMER_MODELS=['rsk-300','rsk-600','rsk-900']
 FULLCUP_ENABLED_INTERNAL_NAME="$.sources[?(@.name=='/pump/settings')].data.fullcup_enabled"
 OVERSKIMMING_ENABLED_INTERNAL_NAME="$.sources[?(@.name=='/pump/settings')].data.overskimming.enabled"
+
+################################################################################
+# WAVE
+WAVE_SHORTCUT_OFF_DELAY="$.sources[?(@.name=='/device-settings')].data.shortcut_off_delay"

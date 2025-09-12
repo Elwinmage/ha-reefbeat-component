@@ -240,7 +240,6 @@ class ReefLedAPI(ReefBeatAPI):
         self.data['sources'].insert(len(self.data['sources']),{"name":"/manual","type": "data","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/acclimation","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/moonphase","type": "config","data":""})
-        self.data['sources'].insert(len(self.data['sources']),{"name":"/mode","type": "config","data":""})
         for day in range(1,8):
             self.data['sources'].insert(len(self.data['sources']),{"name":"/auto/"+str(day),"type": "config","data":""})
             self.data['sources'].insert(len(self.data['sources']),{"name":"/clouds/"+str(day),"type": "config","data":""})
@@ -530,8 +529,7 @@ class ReefWaveAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
     def __init__(self,ip,live_config_update) -> None:
         super().__init__(ip,live_config_update)
-        #self.data['sources'].pop() # Remove /dashboard, the last added element
-        #self.data['sources'].remove({"name":"/","type": "device-info","data":""})
         self.data['sources'].remove({"name":"/dashboard","type": "data","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/feeding/schedule","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/auto","type": "config","data":""})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/device-settings","type": "config","data":""})

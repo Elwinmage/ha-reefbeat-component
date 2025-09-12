@@ -55,6 +55,9 @@
 	    
 	},
 	"number":{
+	    "shortcut_off_delay":{
+		"name":"Shortcut OFF delay"
+	    },
 	    "overskimming_threshold":{
 		"name": "Overskimming Threshold"
 	    },
