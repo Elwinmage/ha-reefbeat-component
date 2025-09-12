@@ -59,7 +59,18 @@ class ReefRunBinarySensorEntityDescription(BinarySensorEntityDescription):
     pump: 0
 
 
-""" Reefbeat device common binary_sesors """
+""" Reefbeat device common binary_sensors """
+COMMON_SENSORS:tuple[ReefBeatBinarySensorEntityDescription, ...] = (
+    ReefBeatBinarySensorEntityDescription(
+        key="cloud_state",
+        translation_key="cloud_state",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        value_fn=lambda device: device.get_data("$.sources[?(@.name=='/cloud')].data.connected"),
+        icon="mdi:cloud-check-variant-outline",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+)
+
 BATTERY_SENSORS:tuple[ReefBeatBinarySensorEntityDescription, ...] = (
     ReefBeatBinarySensorEntityDescription(
         key="battery_level",
@@ -268,6 +279,9 @@ async def async_setup_entry(
          entities += [ReefBeatBinarySensorEntity(device, description)
                       for description in  BATTERY_SENSORS
                       if description.exists_fn(device)]
+    entities += [ReefBeatBinarySensorEntity(device, description)
+                 for description in  COMMON_SENSORS
+                 if description.exists_fn(device)]
         
     async_add_entities(entities, True)
 

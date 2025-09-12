@@ -104,6 +104,9 @@
 	    }
 	} ,
 	"binary_sensor": {
+	    "cloud_state":{
+		"name": "Connecté au Cloud"
+	    },
 	    "constant_speed":{
 		"name": "Vitesse constante"
 	    },
@@ -162,6 +165,15 @@
 	    
 	},
 	"sensor": {
+	    "wifi_quality":{
+		"name": "Qualité du signal Wifi"
+	    },
+	    "wifi_ssid":{
+		"name": "WIFI SSID"
+	    },
+	    "wifi_signal":{
+		"name": "Signal WIFI"
+	    },
 	    "supplement_uid":{
 		"name": "Identifiant du supplément"
 	    },
@@ -337,6 +349,12 @@
 	    }
 	},
 	"switch": {
+	    "cloud_connect":{
+		"name": "Connexion au cloud"
+	    },
+	    "device_state":{
+		"name": "Etat du périphérique"
+	    },
 	    "fullcup_enabled":{
 		"name": "Détection du Bol Plein"
 	    },

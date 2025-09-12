@@ -13,6 +13,8 @@ from .const import (
     DOMAIN,
     DEFAULT_TIMEOUT,
     DO_NOT_REFRESH_TIME,
+    COMMON_ON_OFF_SWITCH,
+    COMMON_CLOUD_CONNECTION,
     HW_G1_LED_IDS,
     LED_WHITE_INTERNAL_NAME,
     LED_BLUE_INTERNAL_NAME,
@@ -50,9 +52,13 @@ class ReefBeatAPI():
     def __init__(self,ip,live_config_update) -> None:
         self.ip=ip
         self._base_url = "http://"+ip
-        self.data={"sources": [{"name":"/","type": "device-info","data":""},
+        self.data={"sources": [
+            #{"name":"/","type": "device-info","data":""},
                                {"name":"/device-info","type": "device-info","data":""},
                                {"name":"/firmware","type": "device-info","data":""},
+                               {"name":"/mode","type": "config","data":""},
+                               {"name":"/cloud","type": "config","data":""},
+                               {"name":"/wifi","type": "data","data":""},
                                {"name":"/dashboard","type": "data","data":""}]}
         #store object paht according to jsonpath
         self._data_db = {}
@@ -502,15 +508,19 @@ class ReefRunAPI(ReefBeatAPI):
         super().__init__(ip,live_config_update)
         self.data['sources'].insert(len(self.data['sources']),{"name":"/pump/settings","type": "config","data":""})
 
-    async def push_values(self,pump=None):
-        if pump:
-            payload={"pump_"+str(pump): self.get_data("$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump))}
-        else :
-            #payload={"overskimming": self.get_data("$.sources[?(@.name=='/pump/settings')].data.overskimming")}
-            payload=self.get_data("$.sources[?(@.name=='/pump/settings')].data").copy()
-            del payload['pump_1']
-            del payload['pump_2']
-        await self._http_send(self._base_url+'/pump/settings',payload,'put')
+    async def push_values(self,source,method,pump=None):
+        if source=='pump/settings':
+            if pump:
+                payload={"pump_"+str(pump): self.get_data("$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump))}
+            else :
+                #payload={"overskimming": self.get_data("$.sources[?(@.name=='/pump/settings')].data.overskimming")}
+                payload=self.get_data("$.sources[?(@.name=='/pump/settings')].data").copy()
+                del payload['pump_1']
+                del payload['pump_2']
+            await self._http_send(self._base_url+'/pump/settings',payload,'put')
+        else:
+            payload=self.get_data("$.sources[?(@.name=='"+source+"')].data")
+            await self._http_send(self._base_url+source,payload,method)
 
 ################################################################################
 # ReeWave
@@ -520,5 +530,8 @@ class ReefWaveAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
     def __init__(self,ip,live_config_update) -> None:
         super().__init__(ip,live_config_update)
-        self.data['sources'].pop() # Remove /dashboard, the last added element
+        #self.data['sources'].pop() # Remove /dashboard, the last added element
+        #self.data['sources'].remove({"name":"/","type": "device-info","data":""})
+        self.data['sources'].remove({"name":"/dashboard","type": "data","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/feeding/schedule","type": "config","data":""})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/auto","type": "config","data":""})

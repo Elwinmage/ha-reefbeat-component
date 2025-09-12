@@ -33,6 +33,8 @@ from homeassistant.helpers.typing import StateType
 
 from .const import (
     DOMAIN,
+    COMMON_ON_OFF_SWITCH,
+    COMMON_CLOUD_CONNECTION,
     DAILY_PROG_INTERNAL_NAME,
     MAT_AUTO_ADVANCE_INTERNAL_NAME,
     MAT_SCHEDULE_ADVANCE_INTERNAL_NAME,
@@ -70,6 +72,25 @@ class ReefDoseSwitchEntityDescription(SwitchEntityDescription):
     head: 0
     method: str = 'put'
 
+COMMON_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
+    ReefBeatSwitchEntityDescription(
+        key="device_state",#on/off
+        translation_key="device_state",
+        value_name= COMMON_ON_OFF_SWITCH,
+        icon="mdi:toggle-switch",
+        method='post',
+        entity_category=EntityCategory.CONFIG,
+    ),
+    ReefBeatSwitchEntityDescription(
+        key="cloud_connect",#on/off
+        translation_key="cloud_connect",
+        value_name= COMMON_CLOUD_CONNECTION,
+        icon="mdi:cloud-check-variant-outline",
+        method='post',
+        entity_category=EntityCategory.CONFIG,
+    ),
+)
+    
     
 LED_SWITCHES: tuple[ReefLedSwitchEntityDescription, ...] = (
     ReefLedSwitchEntityDescription(
@@ -194,10 +215,14 @@ async def async_setup_entry(
         entities += [ReefDoseSwitchEntity(device, description)
                  for description in dn
                  if description.exists_fn(device)]
+    entities += [ReefBeatSwitchEntity(device, description)
+            for description in COMMON_SWITCHES
+            if description.exists_fn(device)]
 
     async_add_entities(entities, True)
 
-
+################################################################################
+# BEAT
 class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
     """Represent an ReefBeat switch."""
     _attr_has_entity_name = True
@@ -218,19 +243,32 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._attr_available = True
-        self._state = self._device.get_data(self.entity_description.value_name)
+        if self.entity_description.key=="device_state":
+            self._state=self._device.get_data(self.entity_description.value_name)!="off"
+        else:
+            self._state = self._device.get_data(self.entity_description.value_name)
         self.async_write_ha_state()
-
         
     async def async_update(self) -> None:
         """Update entity state."""
         self._attr_available = True
-        self._state = self._device.get_data(self.entity_description.value_name)
-
+        if self.entity_description.key=="device_state":
+            self._state=self._device.get_data(self.entity_description.value_name)!="off"
+        else:
+            self._state = self._device.get_data(self.entity_description.value_name)
+        
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
         self._state=True
-        self._device.set_data(self.entity_description.value_name,True)
+        if self.entity_description.key=="device_state":
+            self._device.set_data(self.entity_description.value_name,"auto")
+        elif self.entity_description.key=="cloud_connect":
+            await self._device.press('cloud/enable')
+            self._device.set_data(self.entity_description.value_name,True)
+            self.async_write_ha_state()
+            return
+        else:
+            self._device.set_data(self.entity_description.value_name,True)
         self._device.async_update_listeners()
         self.async_write_ha_state()
 
@@ -238,10 +276,23 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
         #await self._device.async_request_refresh()
         await self._device.async_quick_request_refresh(self._source)
         
-        
     async def async_turn_off(self, **kwargs):
         self._state=False
-        self._device.set_data(self.entity_description.value_name,False)
+        if self.entity_description.key=="device_state":
+            self._device.set_data(self.entity_description.value_name,"off")
+            self._device.async_update_listeners()
+            self.async_write_ha_state()
+            await self._device.press('off')
+            return
+        elif self.entity_description.key=="cloud_connect":
+            # self._device.async_update_listeners()
+            # self.async_write_ha_state()
+            self._device.set_data(self.entity_description.value_name,False)
+            await self._device.press('cloud/disable')
+            self.async_write_ha_state()
+            return
+        else:
+            self._device.set_data(self.entity_description.value_name,False)
         self._device.async_update_listeners()
         self.async_write_ha_state()
         await self._device.push_values(self._source,self.entity_description.method)

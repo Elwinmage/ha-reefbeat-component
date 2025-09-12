@@ -32,6 +32,7 @@ from homeassistant.const import (
     UnitOfVolume,
     UnitOfTime,
     EntityCategory,
+    SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
 )
 
 from .const import (
@@ -75,8 +76,32 @@ COMMON_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription( 
         key="ip",
         translation_key="ip",
-        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/')].data.wifi_ip"),
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/wifi')].data.ip"),
         icon="mdi:check-network-outline",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription( 
+        key="wifi_ssid",
+        translation_key="wifi_ssid",
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/wifi')].data.ssid"),
+        icon="mdi:wifi-star",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription( 
+        key="wifi_signal",
+        translation_key="wifi_signal",
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/wifi')].data.signal_dBm"),
+        device_class=SensorDeviceClass.SIGNAL_STRENGTH,
+        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+        icon="mdi:signal",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    ReefBeatSensorEntityDescription( 
+        key="wifi_quality",
+        translation_key="wifi_quality",
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/wifi')].data.signal_dBm"),
+        icon="mdi:signal",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
 )
@@ -532,22 +557,37 @@ class ReefBeatSensorEntity(CoordinatorEntity,SensorEntity):
         self.entity_description = entity_description
         self._attr_available = False  
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
-        
+
+
+
+    def _update_val(self) -> str:
+        self._attr_available = True
+        if self.entity_description.key=="wifi_quality":
+            signal_strength=self._device.get_data("$.sources[?(@.name=='/wifi')].data.signal_dBm")
+            if signal_strength < -80:
+                signal_val='Poor'
+            elif signal_strength < -70:
+                signal_val='Low'
+            elif signal_strength < -60:
+                signal_val='Medium'
+            elif signal_strength < -50:
+                signal_val='Good'
+            else:
+                signal_val='Excellent'
+            self._attr_native_value=signal_val
+        else:
+            self._attr_native_value =  self._get_value()
+    
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._attr_available = True
-        # We don't need to check if device available here
-        self._attr_native_value =  self._get_value()
+        self._update_val()
         self.async_write_ha_state()
 
-        
     async def async_update(self) -> None:
         """Update entity state."""
-        self._attr_available = True
-        # We don't need to check if device available here
-        self._attr_native_value =  self._get_value()
+        self._update_val()
         
     def _get_value(self):
         if hasattr(self.entity_description, 'value_fn'):

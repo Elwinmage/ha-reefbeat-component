@@ -120,8 +120,8 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
     async def push_values(self,source:str='/configuration',method:str='put'):
         await self.my_api.push_values(source,method)
         
-    def get_data(self,name):
-        return self.my_api.get_data(name)
+    def get_data(self,name, is_None_possible=False):
+        return self.my_api.get_data(name,is_None_possible)
     
     def set_data(self,name,value):
         self.my_api.set_data(name,value)
@@ -152,7 +152,10 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
 
     @property
     def hw_version(self):
-        return self.get_data("$.sources[?(@.name=='/device-info')].data.hw_revision")
+        hw_vers=self.get_data("$.sources[?(@.name=='/device-info')].data.hw_revision",True)
+        if hw_vers==None:
+            hw_vers=self.get_data("$.sources[?(@.name=='/firmware')].data.chip_version",True)
+        return hw_vers
 
     @property
     def sw_version(self):
@@ -424,7 +427,7 @@ class ReefRunCoordinator(ReefBeatCoordinator):
         _LOGGER.debug(schedule)
     
     async def push_values(self,source:str=None,method:str=None,pump:int=None):
-        await self.my_api.push_values(pump)
+        await self.my_api.push_values(source,method,pump)
 
 ################################################################################
 # REEFWAVE
