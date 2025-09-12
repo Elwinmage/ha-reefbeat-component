@@ -126,13 +126,13 @@ Or search for "redsea" or "reefbeat" in hacs
 </p> 
  
 # Common functions
- - Auto detect on private network (if on same network if not read  [this](#my-device-is-not-detected) )
+ ### Auto detect on private network (if on same network if not read  [this](#my-device-is-not-detected) )
 
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/auto_detect.png" alt="Image">
 </p> 
 
- - Set scan interval for device
+ ### Set scan interval for device
    
 <p align="center"> 
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_1.png" alt="Image">
@@ -140,7 +140,9 @@ Or search for "redsea" or "reefbeat" in hacs
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_2.png" alt="Image">
 </p> 
- 
+
+###  Live update
+
 > [!NOTE]
 >  It is possible to choose whether to enable live_update_config or not. In this mode (old default), configuration data is continuously retrieved along with normal data. For RSDOSE or RSLED, these large http requests can take a long time (7-9 seconds). Sometimes the device does not respond to the request, so I had to coded a retry function. When live_update_config is disabled, configuration data is only retrieved at startup and when requested via the "fetch configuration" button. This new mode is activated by default. You can change it in the device configuration.
 <p align="center">
