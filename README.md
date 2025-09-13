@@ -8,7 +8,7 @@
 
 <!-- [![GitHub Clones](https://img.shields.io/badge/dynamic/json?color=success&label=uniques-clones&query=uniques&url=https://gist.githubusercontent.com/Elwinmage/cd478ead8334b09d3d4f7dc0041981cb/raw/clone.json&logo=github)](https://github.com/MShawon/github-clone-count-badge) -->
 # Overview
-RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local Management (no cloud)
+***RedSea Reefbeat devices: ReefATO+, ReefDose, ReefLed, ReefMat, ReefRun and ReefWave Local Management (no cloud)***
 
 > [!TIP]
 > The list of future implementations can be found [here](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)
@@ -24,7 +24,7 @@ RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local 
 
 # Compatibility
 
-✅  Fully Tested  ☑️ Must Work (If you have one, can you confirm it's working [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) )  ❌ Not Implemented Yet
+✅  Fully Tested  ☑️ Must Work (If you have one, can you confirm it's working [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) ) 
 <table>
   <th>
     <td colspan="2">Model</td>
@@ -90,13 +90,13 @@ RedSea Reefbeat devices: ReefLed, ReefMat, ReefDose, ReefRun and ReefATO+ Local 
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSRUN.png"/></td>
   </tr>  
   <tr>
-    <td rowspan="2"><a href="#reefwave">ReefWave</a></td>
+    <td rowspan="2"><a href="#reefwave">ReefWave (*) [Minimal](#reefwave)</a></td>
     <td colspan="2">RSWAVE25</td>
-    <td>❌</td>
+    <td>☑️</td>
     <td width="200px" rowspan="2"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSWAVE.png"/></td>
   </tr>
   <tr>
-    <td colspan="2">RSWAVE45</td><td>❌</td>
+    <td colspan="2">RSWAVE45</td><td>✅</td>
   </tr>  
 </table>
 
@@ -149,11 +149,8 @@ Or search for "redsea" or "reefbeat" in hacs
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_live_update_config.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/fetch_config_button.png" alt="Image">
 </p> 
-
-
  
 # LED:
-
   
   - Get and Set White, Blue and Moon values (only for G1: RSLED50,RSLED90,RSLED160)
   - Get and Set Color Temperature, Intensity and Moon (all LEDS)
@@ -309,13 +306,17 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_conf.png" alt="Image">
 </p>
 <p align="center">     
-  
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_sensors.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsrun_diag.png" alt="Image">
 </p>
 
 # ReefWave:
-Not Implemented Yet see [#12](https://github.com/Elwinmage/ha-reefbeat-component/issues/12)
+First step: minimal implementation with only local API (no cloud)[#21](https://github.com/Elwinmage/ha-reefbeat-component/issues/21).
+<p align="center">     
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rswave_conf.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rswave_diag.png" alt="Image">
+</p>
+
  
 ***
 # FAQ
