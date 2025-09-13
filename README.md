@@ -90,7 +90,7 @@
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSRUN.png"/></td>
   </tr>  
   <tr>
-    <td rowspan="2"><a href="#reefwave">ReefWave (*) [Minimal](#reefwave)</a></td>
+    <td rowspan="2"><a href="#reefwave">ReefWave (*)</a></td>
     <td colspan="2">RSWAVE25</td>
     <td>☑️</td>
     <td width="200px" rowspan="2"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSWAVE.png"/></td>
@@ -99,6 +99,7 @@
     <td colspan="2">RSWAVE45</td><td>✅</td>
   </tr>  
 </table>
+* Minimal implementation for now
 
 # Summary
 - [Installation via hacs](https://github.com/Elwinmage/ha-reefbeat-component/#installation-via-hacs)
