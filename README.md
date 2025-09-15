@@ -326,9 +326,17 @@ First step: minimal implementation with only local API (no cloud)[#21](https://g
  - try to relaunch the auto-detection with the "add entry" button. Sometimes devices do not respond because they are busy.
  - If your redsea devices are not on the same subnetwork than your Home Assistant, auto-detection will first fail and propose you to enter the ip of your device or the address of the subnetwork where your devices are. For subnetwork detection please use the format IP/MASK like this example : 192.168.14.0/255.255.255.0.
 
-<p align="center">                                                                                                                                                                                <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/subnetwork.png" alt="Image">
+<p align="center">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/subnetwork.png" alt="Image">
 </p>
 
+## Some data are refreshed well  but others are not
+Datas are divided in three parts: data, config and device-info:
+ - Data are regulary updated
+ - Config datas are only updated at startup and when you press the fecth-config button
+ - Device-info datas are only updated at boot
+
+To ensure that the Config datas are updated regularly, please enable the ["Live configuration Update" ](#live-update)
 
 ***
 
