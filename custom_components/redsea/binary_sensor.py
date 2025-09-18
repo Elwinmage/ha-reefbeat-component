@@ -76,6 +76,7 @@ BATTERY_SENSORS:tuple[ReefBeatBinarySensorEntityDescription, ...] = (
         key="battery_level",
         translation_key="battery_level",
         device_class=BinarySensorDeviceClass.BATTERY,
+        exists_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.battery_level",True)!=None,
         value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.battery_level")=='low',
         icon="mdi:battery-outline",
         entity_category=EntityCategory.DIAGNOSTIC,

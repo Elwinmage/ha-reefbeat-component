@@ -41,7 +41,7 @@ from .const import (
     LED_BLUE_INTERNAL_NAME,
 )
 
-from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator, ReefRunCoordinator
+from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator, ReefRunCoordinator, ReefLedCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,14 +61,14 @@ class ReefDoseSensorEntityDescription(SensorEntityDescription):
 @dataclass(kw_only=True)
 class ReefRunSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
-    exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
+    exists_fn: Callable[[ReefRunCoordinator], bool] = lambda _: True
     value_name: ''
     pump: 0
 
 @dataclass(kw_only=True)
 class ReefLedScheduleSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
-    exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
+    exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
     value_name: ''
     id_name: 0
 
@@ -260,6 +260,15 @@ for auto_id in range(1,8):
         key="auto_"+str(auto_id),
         translation_key="auto_"+str(auto_id),
         value_name="$.sources[?(@.name=='/preset_name')].data[?(@.day=="+str(auto_id)+")].name",
+        exists_fn=lambda device: device.get_data("$.sources[?(@.name=='/preset_name')].data",True)!=None ,
+        id_name=auto_id,
+        icon="mdi:calendar",
+    ),
+    ReefLedScheduleSensorEntityDescription(
+        key="auto_"+str(auto_id),
+        translation_key="auto_"+str(auto_id),
+        value_name="$.sources[?(@.name=='/preset_name/"+str(auto_id)+"')].data.name",
+        exists_fn=lambda device: device.get_data("$.sources[?(@.name=='/preset_name/"+str(auto_id)+"')].data.name",True)!=None ,
         id_name=auto_id,
         icon="mdi:calendar",
     ),)
@@ -543,7 +552,8 @@ async def async_setup_entry(
 
     async_add_entities(entities, True)
 
-
+################################################################################
+# BEAT
 class ReefBeatSensorEntity(CoordinatorEntity,SensorEntity):
     """Represent an ReefBeat sensor."""
     _attr_has_entity_name = True
@@ -602,7 +612,8 @@ class ReefBeatSensorEntity(CoordinatorEntity,SensorEntity):
         """Return the device info."""
         return self._device.device_info
 
-
+################################################################################
+# LED SCHEDULE
 class ReefLedScheduleSensorEntity(ReefBeatSensorEntity):
     """Represent an ReefBeat number."""
     _attr_has_entity_name = True
@@ -621,6 +632,8 @@ class ReefLedScheduleSensorEntity(ReefBeatSensorEntity):
         cloud_data=self._device.get_data("$.sources[?(@.name=='/clouds/"+str(self.entity_description.id_name)+"')].data")
         self._attr_extra_state_attributes={'data':prog_data,'clouds':cloud_data}    
 
+################################################################################
+# DOSE
 class ReefDoseSensorEntity(ReefBeatSensorEntity):
     """Represent an ReefBeat number."""
     _attr_has_entity_name = True
@@ -643,7 +656,8 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
         di['identifiers']={identifiers}
         return di
 
-    
+################################################################################
+# RUN
 class ReefRunSensorEntity(ReefBeatSensorEntity):
     """Represent an ReefBeat sensor."""
     _attr_has_entity_name = True

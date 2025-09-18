@@ -236,7 +236,24 @@ class ReefLedAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
     def __init__(self,ip,live_config_update,hw,intensity_compensation=False) -> None:
         super().__init__(ip,live_config_update)
-        self.data['sources'].insert(len(self.data['sources']),{"name":"/preset_name","type": "config","data":""})
+        #patch for olf RSLED
+        status_code=404
+        try :
+            status_code=httpx.get("http://"+ip+"/dashboard",verify=False).status_code
+        except:
+            pass
+        if status_code!=200:
+            self.data['sources'].remove({"name":"/dashboard","type": "data","data":""})
+        status_code=404
+        try :
+            status_code=httpx.get("http://"+ip+"/preset_name",verify=False).status_code
+        except:
+            pass
+        if status_code==200:
+            self.data['sources'].insert(len(self.data['sources']),{"name":"/preset_name","type": "config","data":""})
+        else:
+            for day in range(1,8):
+                self.data['sources'].insert(len(self.data['sources']),{"name":"/preset_name/"+str(day),"type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/manual","type": "data","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/acclimation","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/moonphase","type": "config","data":""})
@@ -282,8 +299,6 @@ class ReefLedAPI(ReefBeatAPI):
         if len (led_params['kelvin']) > 0:
             self._kelvin_to_wb=np.poly1d(np.polyfit(np.array(led_params['kelvin']),np.array(led_params['white_blue']), 4))
             self._wb_to_kelvin=np.poly1d(np.polyfit(np.array(led_params['white_blue']),np.array(led_params['kelvin']), 4))
-
-
         # intensity compensation
         if self._must_compensate_intensity:
             led_params=self.get_data('$.local.leds_intensity_compensation[?(@.name=="'+self._model+'")]',True)

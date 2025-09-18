@@ -362,7 +362,7 @@
 		"name": "Détection du Bol Plein"
 	    },
 	    "overskimming_enabled":{
-		"name": "AUto Régulation Ecummage"
+		"name": "Auto Régulation Ecummage"
 	    },
 	    "scheduled_advance":{
 		"name": "Avance Programmée"
