@@ -31,6 +31,7 @@ jobs:
         uses: actions/github-script@v5
         id: create_tag
         with:
+          prerelease: "true"
           script: |
             github.rest.git.createRef({
               owner: context.repo.owner,
