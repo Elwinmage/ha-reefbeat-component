@@ -54,7 +54,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 name=led.split(' ')[1]
                 uuid=led.split('(')[1][:-1]
                 waiting_time=0
-                while uuid not in hass.data[DOMAIN]:
+                while DOMAIN not in hass.data or uuid not in hass.data[DOMAIN]:
                     _LOGGER.info("Waiting for LED  %s (needed by virtual led) to be ready!"%name)
                     if waiting_time > VIRTUAL_LED_MAX_WAITING_TIME:
                         _LOGGER.error("Virtual LED need %s, but this led is not ready!"%name)

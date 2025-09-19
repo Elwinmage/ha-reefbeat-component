@@ -258,9 +258,9 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         #for led in self._linked:
     #        await led._async_update_data()
     
-    def get_data(self,name):
+    def get_data(self,name,is_None_possible=False):
         if len(self._linked)>0:
-            data=self._linked[0].get_data(name)
+            data=self._linked[0].get_data(name,is_None_possible)
             match type(data).__name__:
                 case 'bool':
                     return self.get_data_bool(name)
