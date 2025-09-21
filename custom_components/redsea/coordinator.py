@@ -134,6 +134,9 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
     async def press(self,action):
         await self.my_api.press(action)
     
+    async def delete(self,source):
+        await self.my_api.delete(source)
+
     @property
     def title(self):
         return self._title
@@ -201,9 +204,6 @@ class ReefLedCoordinator(ReefBeatCoordinator):
             
     def daily_prog(self):
         return self.my_api.daily_prog
-
-    async def delete(self,source):
-        await self.my_api.delete(source)
 
     async def post_specific(self,source):
         await self.my_api.post_specific(source)
@@ -371,7 +371,7 @@ class ReefDoseCoordinator(ReefBeatCoordinator):
         self.heads_nb=int(entry.data[CONFIG_FLOW_HW_MODEL][-1])
         self.my_api = ReefDoseAPI(self._ip,self._live_config_update,self.heads_nb)
 
-    async def press(self,action,head):
+    async def press(self,action,head=None):
         await self.my_api.press(action,head)
 
     async  def push_values(self,head):

@@ -262,6 +262,10 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
         self._state=True
         if self.entity_description.key=="device_state":
             self._device.set_data(self.entity_description.value_name,"auto")
+            self._device.async_update_listeners()
+            self.async_write_ha_state()
+            await self._device.delete('/off')
+            return
         elif self.entity_description.key=="cloud_connect":
             await self._device.press('cloud/enable')
             self._device.set_data(self.entity_description.value_name,True)

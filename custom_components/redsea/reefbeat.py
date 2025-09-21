@@ -143,6 +143,9 @@ class ReefBeatAPI():
         _LOGGER.debug("Sending: %s"%action)
         await self._http_send(self._base_url+'/'+action,payload)
 
+    async def delete(self, source):
+        await self._http_send(self._base_url+source,method='delete')
+        
         
     def get_path(self,obj):
         res=''
@@ -201,7 +204,7 @@ class ReefBeatAPI():
         except:
             _LOGGER.error("reefbeat.set_data('%s')"%data_name)
 
-    async def _http_send(self,url,payload='',method='post'):
+    async def _http_send(self,url,payload={},method='post'):
         status_ok=False
         error_count=0
         _LOGGER.debug("%s data: %s to %s"%(method,payload,url))
@@ -213,14 +216,17 @@ class ReefBeatAPI():
                     r = httpx.put(url, json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
                 elif method=='delete':
                     r = httpx.delete(url,verify=False,timeout=DEFAULT_TIMEOUT)
-                status_ok=(r.status_code==200)
+                status_ok=(r.status_code==200 or r.status_code==202)
+                if not status_ok:
+                    _LOGGER.error("%d: %s"%(r.status_code,r.text))
             except Exception as e:
                 error_count += 1
-                _LOGGER.debug("Can not post data: %s to %s, retry nb %d/%d"%(payload,url,error_count,HTTP_MAX_RETRY))
+                _LOGGER.debug("Can not %s data: %s to %s, retry nb %d/%d"%(method,payload,url,error_count,HTTP_MAX_RETRY))
+                _LOGGER.debug(e)
             if status_ok==False:
                 await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
         if status_ok==False:
-            _LOGGER.error("Can not push data from %s after %s try"%(source.value['name'],HTTP_MAX_RETRY))
+            _LOGGER.error("Can not push data from %s after %s try"%(url,HTTP_MAX_RETRY))
 
 
     async def push_values(self,source,method='post'):
@@ -407,8 +413,8 @@ class ReefLedAPI(ReefBeatAPI):
         self.update_acclimation()
         self.force_status_update()
 
-    async def delete(self, source):
-        await self._http_send(self._base_url+source,method='delete')
+    # async def delete(self, source):
+    #     await self._http_send(self._base_url+source,method='delete')
 
     async def post_specific(self, source):
         if source == '/timer' :
@@ -485,10 +491,15 @@ class ReefDoseAPI(ReefBeatAPI):
             self.data['local']["head"][str(head)]={"manual_dose":0}
             
     async def press(self,action,head):
-        manual_dose=self.get_data("$.local.head."+str(head)+".manual_dose")
-        payload={'manual_dose_scheduled': True,'volume': manual_dose}
-        #r = httpx.post(self._base_url+'/head/'+str(head)+'/'+action, json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
-        await self._http_send(self._base_url+'/head/'+str(head)+'/'+action,payload)
+        if head != None:
+            manual_dose=self.get_data("$.local.head."+str(head)+".manual_dose")
+            payload={'manual_dose_scheduled': True,'volume': manual_dose}
+            #r = httpx.post(self._base_url+'/head/'+str(head)+'/'+action, json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
+            await self._http_send(self._base_url+'/head/'+str(head)+'/'+action,payload)
+        else:
+            payload={}
+            await self._http_send(self._base_url+'/'+action,payload)
+            
         
     async def push_values(self,head):
         _LOGGER.debug("type: %s"%type(head).__name__)
