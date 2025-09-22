@@ -32,6 +32,21 @@
     <td>Status</td>
   </th>
   <tr>
+    <td><a href="#reefato">ReefATO+</a></td>
+    <td colspan="2">RSATO+</td><td>✅ </td>
+    <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSATO+.png"/></td>
+  </tr>
+  <tr>
+    <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
+    <td colspan="2">RSDOSE2</td>
+    <td>✅</td>
+    <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSDOSE2.png"/></td>
+  </tr>
+  <tr>
+    <td colspan="2">RSDOSE4</td><td>✅ </td>
+    <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSDOSE4.png"/></td>
+  </tr>
+  <tr>
     <td rowspan="6"> <a href="#led">ReefLed</a></td>
     <td rowspan="3">G1</td>
     <td>RSLED50</td>
@@ -70,21 +85,6 @@
     <td colspan="2">RSMAT1200</td><td>✅ </td>
   </tr>
   <tr>
-    <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
-    <td colspan="2">RSDOSE2</td>
-    <td>✅</td>
-    <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSDOSE2.png"/></td>
-  </tr>
-  <tr>
-    <td colspan="2">RSDOSE4</td><td>✅ </td>
-    <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSDOSE4.png"/></td>
-  </tr>
-  <tr>
-    <td><a href="#reefato">ReefATO+</a></td>
-    <td colspan="2">RSATO+</td><td>✅ </td>
-    <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSATO+.png"/></td>
-  </tr>
-  <tr>
     <td><a href="#reefrun">ReefRun & DC Skimmer</a></td>
     <td colspan="2">RSRUN</td><td>✅</td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSRUN.png"/></td>
@@ -104,11 +104,11 @@
 # Summary
 - [Installation via hacs](https://github.com/Elwinmage/ha-reefbeat-component/#installation-via-hacs)
 - [Common functions](https://github.com/Elwinmage/ha-reefbeat-component/#common-functions)
+- [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/#reefato)
+- [ReefDose](https://github.com/Elwinmage/ha-reefbeat-component/#reefdose)
 - [LED](https://github.com/Elwinmage/ha-reefbeat-component/#led)
 - [Virtual LED](https://github.com/Elwinmage/ha-reefbeat-component/#virtual-led)
 - [ReefMat](https://github.com/Elwinmage/ha-reefbeat-component/#reefmat)
-- [ReefDose](https://github.com/Elwinmage/ha-reefbeat-component/#reefdose)
-- [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/#reefato)
 - [ReefRun](https://github.com/Elwinmage/ha-reefbeat-component/#reefrun)
 - [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)
 - [FAQ](https://github.com/Elwinmage/ha-reefbeat-component/#faq)
@@ -149,6 +149,41 @@ Or search for "redsea" or "reefbeat" in hacs
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_live_update_config.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/fetch_config_button.png" alt="Image">
+</p> 
+
+# ReefATO:
+  - Auto_fill enable/disable
+  - Manual fill
+<p align="center">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato_sensors.png" alt="Image">                                                                                       
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato_conf.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato_diag.png" alt="Image">                                                                                       
+</p> 
+
+# ReefDose:
+  - Edit daily dose
+  - Manual dose
+  - Change and control container volume. Container Volume settigns is automaticaly enabled or disabled according to  volume controleur switch.
+  - Enable/disable schedule per pump
+  - Stock alert configuration
+  - Dosing delay between supplements
+
+
+<p align="center"> 
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_devices.png" alt="Image">
+</p>
+
+### Main
+<p align="center"> 
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_main_conf.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_main_diag.png" alt="Image">
+</p> 
+
+### Heads
+<p align="center"> 
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_ctrl.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_sensors.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_diag.png" alt="Image">
 </p> 
  
 # LED:
@@ -245,41 +280,6 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_sensors.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_diag.png" alt="Image">
 </p>
-
-# ReefDose:
-  - Edit daily dose
-  - Manual dose
-  - Change and control container volume. Container Volume settigns is automaticaly enabled or disabled according to  volume controleur switch.
-  - Enable/disable schedule per pump
-  - Stock alert configuration
-  - Dosing delay between supplements
-
-
-<p align="center"> 
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_devices.png" alt="Image">
-</p>
-
-### Main
-<p align="center"> 
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_main_conf.png" alt="Image">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_main_diag.png" alt="Image">
-</p> 
-
-### Heads
-<p align="center"> 
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_ctrl.png" alt="Image">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_sensors.png" alt="Image">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_diag.png" alt="Image">
-</p> 
-
-# ReefATO:
-  - Auto_fill enable/disable
-  - Manual fill
-<p align="center">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato_sensors.png" alt="Image">                                                                                       
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato_conf.png" alt="Image">
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato_diag.png" alt="Image">                                                                                       
-</p> 
 
 # ReefRun:
   - Set pump speed
