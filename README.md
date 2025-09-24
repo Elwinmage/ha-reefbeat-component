@@ -28,8 +28,7 @@
 <table>
   <th>
     <td colspan="2">Model</td>
-  <td></td>
-    <td>Status</td>
+    <td colspan="2">Status</td>
   </th>
   <tr>
     <td><a href="#reefato">ReefATO+</a></td>
