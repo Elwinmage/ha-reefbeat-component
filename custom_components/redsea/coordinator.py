@@ -430,6 +430,7 @@ class ReefRunCoordinator(ReefBeatCoordinator):
 ################################################################################
 # REEFWAVE
 # TODO: Add preview
+# Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/23
 #  labels: enhancement, rswave
 class ReefWaveCoordinator(ReefBeatCoordinator):
 
