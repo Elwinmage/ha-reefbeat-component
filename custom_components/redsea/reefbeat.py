@@ -46,6 +46,11 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 ################################################################################
+# source type: device-info, config, data and preview
+################################################################################
+
+
+################################################################################
 # Reef beat API
 class ReefBeatAPI():
     """ Access to Reefled informations and commands """
@@ -130,7 +135,7 @@ class ReefBeatAPI():
             self.quick_refresh=None
         else:
             if self._live_config_update:
-                query=parse("$.sources[?(@.type!='device-info')]")
+                query=parse("$.sources[?(@.type!='device-info' && @.type!='preview')]")
             else:
                 query=parse("$.sources[?(@.type=='data')]")
                 
@@ -219,21 +224,22 @@ class ReefBeatAPI():
                 status_ok=(r.status_code==200 or r.status_code==202)
                 if not status_ok:
                     _LOGGER.error("%d: %s"%(r.status_code,r.text))
+                    error_count +=1
+                else:
+                    _LOGGER.debug("%d: %s"%(r.status_code,r.text))
             except Exception as e:
                 error_count += 1
                 _LOGGER.debug("Can not %s data: %s to %s, retry nb %d/%d"%(method,payload,url,error_count,HTTP_MAX_RETRY))
                 _LOGGER.debug(e)
             if status_ok==False:
                 await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
+                
         if status_ok==False:
             _LOGGER.error("Can not push data from %s after %s try"%(url,HTTP_MAX_RETRY))
-
 
     async def push_values(self,source,method='post'):
         payload=self.get_data("$.sources[?(@.name=='"+source+"')].data")
         await self._http_send(self._base_url+source,payload,method)
-            
-            
             
 ################################################################################
 #Reef LED
@@ -531,18 +537,26 @@ class ReefRunAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
     def __init__(self,ip,live_config_update) -> None:
         super().__init__(ip,live_config_update)
+        # TODO : add feeding, maintenance, emergency, shortcut_off_delay, and pump_on_delayed.
+        #  labels: enhancement, rsrun  
+        #self.data['sources'].insert(len(self.data['sources']),{"name":"/pump/shortcuts","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/pump/settings","type": "config","data":""})
-
-    async def push_values(self,source,method,pump=None):
-        if source=='pump/settings':
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/preview","type": "preview","data":{"pump_1":{"pd":0,"ti":100},"pump_2":{"pd":0,"ti":100}}})
+        # TODO :  calibration
+        #  labels: enhancement, rsrun  
+        #self.data['sources'].insert(len(self.data['sources']),{"name":"/pump/shortcuts","type": "config","data":""})
+        #self.data['sources'].insert(len(self.data['sources']),{"name":"/pump/calibration","type": "config","data":""})
+        
+    async def push_values(self,source,method='put',pump=None):
+        _LOGGER.info("push_value(%s %s %s)"%(source,method,str(pump)))
+        if source=='/pump/settings' or source=='/preview':
             if pump:
-                payload={"pump_"+str(pump): self.get_data("$.sources[?(@.name=='/pump/settings')].data.pump_"+str(pump))}
+                payload={"pump_"+str(pump): self.get_data("$.sources[?(@.name=='"+source+"')].data.pump_"+str(pump))}
             else :
-                #payload={"overskimming": self.get_data("$.sources[?(@.name=='/pump/settings')].data.overskimming")}
                 payload=self.get_data("$.sources[?(@.name=='/pump/settings')].data").copy()
                 del payload['pump_1']
                 del payload['pump_2']
-            await self._http_send(self._base_url+'/pump/settings',payload,'put')
+            await self._http_send(self._base_url+source,payload,method)
         else:
             payload=self.get_data("$.sources[?(@.name=='"+source+"')].data")
             await self._http_send(self._base_url+source,payload,method)

@@ -343,6 +343,19 @@ async def async_setup_entry(
                 pump=pump,
             ), )
             dn+=new_pump
+            new_pump= (ReefRunNumberEntityDescription(
+                key="preview_pump_"+str(pump)+"_intensity",
+                translation_key="preview_speed",
+                native_unit_of_measurement=PERCENTAGE,
+                native_min_value=1,
+                native_step=1,
+                native_max_value=100,
+                value_name="$.sources[?(@.name=='/preview')].data.pump_"+str(pump)+".ti",
+                icon="mdi:waves",
+                pump=pump,
+                entity_category=EntityCategory.CONFIG,
+            ), )
+            dn+=new_pump
             
         entities += [ReefRunNumberEntity(device, description)
                  for description in dn
@@ -491,14 +504,18 @@ class ReefRunNumberEntity(ReefBeatNumberEntity):
 
     async def async_set_native_value(self, value: int) -> None:
         """Update the current value."""
-        _LOGGER.debug("Reefbeat.number.set_native_value %f"%value)
+        _LOGGER.debug("Reefbeat.number.set_native_value %d"%int(value))
         self._attr_native_value=value
-        if self.entity_description.key=='pump_'+str(self._pump)+'_intensity':
+        if self.entity_description.key=="preview_pump_"+str(self._pump)+"_intensity":
+            # do not send push request for changin speed preview. It's done by the preview start button
+            self._device.set_data(self.entity_description.value_name,int(value))
+            return 
+        elif self.entity_description.key=='pump_'+str(self._pump)+'_intensity':
             await self._device.set_pump_intensity(self._pump,int(value))
         else:
             self._device.set_data(self.entity_description.value_name,int(value))
         self.async_write_ha_state()  
-        await self._device.push_values(pump=self._pump)
+        await self._device.push_values(source=self._source,pump=self._pump)
         await self._device.async_request_refresh()
 
     @property

@@ -34,6 +34,12 @@
     },
     "entity": {
 	"button":{
+	    "preview_start":{
+		"name": "Start preview"
+	    },
+	    "preview_stop":{
+		"name": "Stop preview"
+	    },
 	    "fetch_config":{
 		"name": "Fetch Config"
 	    },
@@ -55,6 +61,9 @@
 	    
 	},
 	"number":{
+	    "preview_speed":{
+		"name": "Preview Speed"
+	    },
 	    "shortcut_off_delay":{
 		"name":"Shortcut OFF delay"
 	    },

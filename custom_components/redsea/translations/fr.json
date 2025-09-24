@@ -34,6 +34,12 @@
     },
     "entity": {
 	"button":{
+	    "preview_stop":{
+		"name": "Stopper la prévisualisation"
+	    },
+	    "preview_start":{
+		"name": "Démarrer la prévisualisation"
+	    },
 	    "fetch_config":{
 		"name": "MAJ données de configuration"
 	    },
@@ -54,6 +60,9 @@
 	    }
 	},
 	"number":{
+	    "preview_speed":{
+		"name": "Vitesse de previsualisation"
+	    },
 	    "shortcut_off_delay":{
 		"name":"Temporisation de reprise d'actions"
 	    },

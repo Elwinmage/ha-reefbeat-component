@@ -51,6 +51,7 @@ class ReefDoseButtonEntityDescription(ButtonEntityDescription):
 class ReefRunButtonEntityDescription(ButtonEntityDescription):
     """Describes reefbeat Button entity."""
     exists_fn: Callable[[ReefRunCoordinator], bool] = lambda _: True
+    press_fn: Callable[[ReefRunCoordinator], bool] = lambda _: None
     pump: 0
 
     
@@ -65,6 +66,24 @@ FETCH_CONFIG_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
     ),
 )
     
+PREVIEW_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
+    ReefBeatButtonEntityDescription(
+        key='preview_start',
+        translation_key='preview_start',
+        exists_fn=lambda _: True,
+        press_fn=lambda device: device.push_values(source='/preview',method='post'),
+        icon="mdi:play-speed",
+        entity_category=EntityCategory.CONFIG,
+    ),
+    ReefBeatButtonEntityDescription(
+        key='preview_stop',
+        translation_key='preview_stop',
+        exists_fn=lambda _: True,
+        press_fn=lambda device: device.delete('/preview'),
+        icon="mdi:stop-circle-outline",
+        entity_category=EntityCategory.CONFIG,
+    ),
+)
     
 MAT_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
@@ -124,10 +143,14 @@ async def async_setup_entry(
         entities += [ReefBeatButtonEntity(device, description)
                  for description in ATO_BUTTONS
                  if description.exists_fn(device)]
+    elif type(device).__name__=='ReefWaveCoordinator':
+        entities += [ReefBeatButtonEntity(device, description)
+                 for description in PREVIEW_BUTTONS
+                 if description.exists_fn(device)]
     elif type(device).__name__=='ReefRunCoordinator':
         if device.my_api._live_config_update == False:
             for pump in range(1,3):
-                CONFIG_BUTTONS: tuple[ReefRunButtonEntityDescription, ...] =(
+                CONFIG_PREVIEW_BUTTONS: tuple[ReefRunButtonEntityDescription, ...] =(
                     ReefRunButtonEntityDescription(
                         key="fetch_config_"+str(pump),
                         translation_key="fetch_config",
@@ -135,10 +158,30 @@ async def async_setup_entry(
                         entity_category=EntityCategory.CONFIG,
                         pump=pump,
                     ),
+                    ReefRunButtonEntityDescription(
+                        key='preview_start_'+str(pump),
+                        translation_key='preview_start',
+                        exists_fn=lambda _: True,
+                        press_fn=lambda device: device.push_values(source='/preview',method='post',pump=pump),
+                        icon="mdi:play-speed",
+                        entity_category=EntityCategory.CONFIG,
+                        pump=pump,
+                    ),
+                    ReefRunButtonEntityDescription(
+                        key='preview_stop_'+str(pump),
+                        translation_key='preview_stop',
+                        exists_fn=lambda _: True,
+                        press_fn=lambda device: device.delete('/preview'),
+                        icon="mdi:stop-circle-outline",
+                        entity_category=EntityCategory.CONFIG,
+                        pump=pump,
+                    ),
+
                 )
                 entities += [ReefRunButtonEntity(device, description)
-                             for description in CONFIG_BUTTONS
+                             for description in CONFIG_PREVIEW_BUTTONS
                              if description.exists_fn(device)]
+                
     elif type(device).__name__=='ReefDoseCoordinator':
         db=()
         for head in range(1,device.heads_nb+1):
@@ -250,7 +293,10 @@ class ReefRunButtonEntity(ReefBeatButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        await self._device.fetch_config()
+        if self.entity_description.press_fn != None:
+            await self.entity_description.press_fn(self._device)
+        else:
+            await self._device.fetch_config()
 
         
     @property

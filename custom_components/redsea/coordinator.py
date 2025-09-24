@@ -397,8 +397,6 @@ class ReefATOCoordinator(ReefBeatCoordinator):
         
 ################################################################################
 # REEFRUN
-# TODO : Implement preview
-#  labels: enhancement, rsrun
 class ReefRunCoordinator(ReefBeatCoordinator):
 
     def __init__(
@@ -431,6 +429,8 @@ class ReefRunCoordinator(ReefBeatCoordinator):
 
 ################################################################################
 # REEFWAVE
+# TODO: Add preview
+#  labels: enhancement, rswave
 class ReefWaveCoordinator(ReefBeatCoordinator):
 
     def __init__(
