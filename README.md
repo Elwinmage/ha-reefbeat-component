@@ -27,23 +27,34 @@
 ✅  Fully Tested  ☑️ Must Work (If you have one, can you confirm it's working [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) ) 
 <table>
   <th>
-    <td colspan="2">Model</td>
-    <td colspan="2">Status</td>
+    <td colspan="2"><b>Model</b></td>
+    <td colspan="2"><b>Status</b></td>
+      <td><b>Issues</b>  <br/>📆(Planned) <br/> 🐛(Bugs)</td>
   </th>
   <tr>
     <td><a href="#reefato">ReefATO+</a></td>
     <td colspan="2">RSATO+</td><td>✅ </td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSATO+.png"/></td>
+    <td>
+      <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsato,all label:enhancement" style="text-decoration:none">📆</a>
+      <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsato,all label:bug" style="text-decoration:none">🐛</a>
+    </td>
+
   </tr>
   <tr>
     <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
     <td colspan="2">RSDOSE2</td>
     <td>✅</td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSDOSE2.png"/></td>
+      <td rowspan="2">
+      <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsdose,all label:enhancement" style="text-decoration:none">📆</a>
+      <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsdose,all label:bug" style="text-decoration:none">🐛</a>
+    </td>
   </tr>
   <tr>
     <td colspan="2">RSDOSE4</td><td>✅ </td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSDOSE4.png"/></td>
+  
   </tr>
   <tr>
     <td rowspan="6"> <a href="#led">ReefLed</a></td>
@@ -51,6 +62,10 @@
     <td>RSLED50</td>
     <td>☑️</td>
     <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_g1.png"/></td>
+<td rowspan="6">   
+    <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsled,RSLED90,all label:enhancement" style="text-decoration:none">📆</a>
+      <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsled,all label:bug" style="text-decoration:none">🐛</a>
+</td>
   </tr>
   <tr>
     <td>RSLED90</td>
@@ -69,13 +84,17 @@
     <td>RSLED115</td><td>✅ </td>
   </tr>
   <tr>
-    <td>RSLED170</td><td>:ballot_box_with_check:</td>
+    <td>RSLED170</td><td>☑️</td>
   </tr>  
   <tr>
     <td rowspan="3"><a href="#reefmat">ReefMat</a></td>
     <td colspan="2">RSMAT250</td>
     <td>✅</td>
     <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSMAT.png"/></td>
+    <td rowspan="3">   
+    <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsmat,all label:enhancement" style="text-decoration:none">📆</a>
+      <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsmat,all label:bug" style="text-decoration:none">🐛</a>
+</td>
   </tr>
   <tr>
     <td colspan="2">RSMAT500</td><td>✅</td>
@@ -87,12 +106,20 @@
     <td><a href="#reefrun">ReefRun & DC Skimmer</a></td>
     <td colspan="2">RSRUN</td><td>✅</td>
     <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSRUN.png"/></td>
+    <td>   
+    <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsrun,all label:enhancement" style="text-decoration:none">📆</a>
+      <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsrun,all label:bug" style="text-decoration:none">🐛</a>
+</td>
   </tr>  
   <tr>
     <td rowspan="2"><a href="#reefwave">ReefWave (*)</a></td>
     <td colspan="2">RSWAVE25</td>
     <td>☑️</td>
     <td width="200px" rowspan="2"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSWAVE.png"/></td>
+     <td rowspan="2">   
+    <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rswabe,all label:enhancement" style="text-decoration:none">📆</a>
+      <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rwave,all label:bug" style="text-decoration:none">🐛</a>
+</td>
   </tr>
   <tr>
     <td colspan="2">RSWAVE45</td><td>✅</td>
