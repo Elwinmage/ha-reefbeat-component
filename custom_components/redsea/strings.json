@@ -13,7 +13,7 @@
 		    "virtual_led": "New virtual LED Controler",
                     "platform": "Platform",
 		    "scan_interval": "scan interval"
-                },
+                }
             }
         },
         "abort": {
