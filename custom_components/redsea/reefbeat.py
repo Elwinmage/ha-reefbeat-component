@@ -569,6 +569,8 @@ class ReefRunAPI(ReefBeatAPI):
 ################################################################################
 # ReefWave
 # TODO : Add reefwave support
+# Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/27
+# Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/26
 #  labels: enhancement, rswave
 class ReefWaveAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
