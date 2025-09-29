@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant
 
 from .const import (
     DOMAIN,
+    LIGHTS_LIBRARY,
     DEFAULT_TIMEOUT,
     DO_NOT_REFRESH_TIME,
     COMMON_ON_OFF_SWITCH,
@@ -54,9 +55,12 @@ _LOGGER = logging.getLogger(__name__)
 # Reef beat API
 class ReefBeatAPI():
     """ Access to Reefled informations and commands """
-    def __init__(self,ip,live_config_update) -> None:
+    def __init__(self,ip,live_config_update,secure=False) -> None:
         self.ip=ip
-        self._base_url = "http://"+ip
+        if secure:
+            self._base_url = "https://"+ip
+        else:
+            self._base_url = "http://"+ip
         self.data={"sources": [
             #{"name":"/","type": "device-info","data":""},
                                {"name":"/device-info","type": "device-info","data":""},
@@ -70,11 +74,11 @@ class ReefBeatAPI():
         self.last_update_success=None
         self.quick_refresh=None
         self._live_config_update=live_config_update
-
+        self._header={}
 
     async def _http_get(self,client,source):
         _LOGGER.debug("_http_get: %s"%self._base_url+source.value['name'])
-        r = await client.get(self._base_url+source.value['name'],timeout=DEFAULT_TIMEOUT)
+        r = await client.get(self._base_url+source.value['name'],timeout=DEFAULT_TIMEOUT,headers=self._header)
         if r.status_code == 200:
             response=r.json()
             query=parse("$.sources[?(@.name=='"+source.value["name"]+"')]")
@@ -150,7 +154,6 @@ class ReefBeatAPI():
 
     async def delete(self, source):
         await self._http_send(self._base_url+source,method='delete')
-        
         
     def get_path(self,obj):
         res=''
@@ -564,7 +567,7 @@ class ReefRunAPI(ReefBeatAPI):
             await self._http_send(self._base_url+source,payload,method)
 
 ################################################################################
-# ReeWave
+# ReefWave
 # TODO : Add reefwave support
 #  labels: enhancement, rswave
 class ReefWaveAPI(ReefBeatAPI):
@@ -575,3 +578,48 @@ class ReefWaveAPI(ReefBeatAPI):
         self.data['sources'].insert(len(self.data['sources']),{"name":"/feeding/schedule","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/auto","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/device-settings","type": "config","data":""})
+
+################################################################################
+# Cloud
+# /user
+# /aquarium
+# /device
+
+class ReefBeatCloudAPI(ReefBeatAPI):
+    """ Reefbeat cloud API """
+    def __init__(self,username,password,live_config_update,ip) -> None:
+        super().__init__(ip,live_config_update,secure=True)
+        self._username=username
+        self._password=password
+        self._token=None
+        self.data["sources"]=[
+            {"name":"/user","type":"config","data":""},
+            {"name":"/aquarium","type":"config","data":""},
+            {"name":"/device","type":"config","data":""},
+            {"name":LIGHTS_LIBRARY,"type":"config","data":""},
+            {"name":"/reef-wave/library?include=all","type":"config","data":""}
+        ]
+        
+    async def connect(self):
+        _LOGGER.debug("Init cloud connection with username: %s"%self._username)
+        header={
+            "Authorization": "Basic Z0ZqSHRKcGE6Qzlmb2d3cmpEV09SVDJHWQ==",
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        payload="grant_type=password&username=" + self._username+ "&password=" + self._password
+        _LOGGER.debug(payload)
+        r= httpx.post("https://"+self.ip+"/oauth/token",data=payload,headers=header,verify=False)
+        _LOGGER.debug(str(r.status_code))
+        _LOGGER.debug(r.text)
+        _LOGGER.debug(r.json)
+        self._token=r.json()["access_token"]
+        self._header={"Authorization": "Bearer %s"%self._token}
+        _LOGGER.debug("Token : %s"%self._token)
+        
+        
+    def get_devices(self,device_name):
+        query=parse("$.sources[?(@.name=='/device')].data[?(@.type=='"+device_name+"')]")
+        res=query.find(self.data)
+        if len(res)==0:
+            return []
+        return res

@@ -8,6 +8,8 @@ from homeassistant.core import HomeAssistant
 
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
+from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
+
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
@@ -17,6 +19,8 @@ from typing import Any
 from .const import (
     DOMAIN,
     DEFAULT_TIMEOUT,
+    CONFIG_FLOW_CLOUD_USERNAME,
+    CONFIG_FLOW_CLOUD_PASSWORD,
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_SCAN_INTERVAL,
@@ -37,10 +41,12 @@ from .const import (
     LED_INTENSITY_INTERNAL_NAME,
 )
 
-from .reefbeat import ReefBeatAPI,ReefLedAPI, ReefMatAPI, ReefDoseAPI, ReefATOAPI, ReefRunAPI, ReefWaveAPI
+from .reefbeat import ReefBeatAPI,ReefLedAPI, ReefMatAPI, ReefDoseAPI, ReefATOAPI, ReefRunAPI, ReefWaveAPI, ReefBeatCloudAPI
 
 _LOGGER = logging.getLogger(__name__)
 
+################################################################################
+# REEFBEAT
 class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
 
     def __init__(
@@ -169,9 +175,51 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         return self._ip+' '+self._hw+' '+self._title
 
 ################################################################################
+# CLOUD LINKED
+# Enable cloud connection for some devices (like waves and lights)
+class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
+
+    def __init__(
+            self,
+            hass: HomeAssistant,
+            entry
+    ) -> None:
+        """Initialize coordinator."""
+        super().__init__(hass,entry)
+        self._cloud_link=None
+        self._hass.bus.async_listen(EVENT_HOMEASSISTANT_STARTED, self._handle_ask_for_link)
+
+    async def _async_setup(self) -> None:
+        """Do initialization logic."""
+        _LOGGER.debug("async_setup...")
+        if(self._boot==True):
+            self._boot=False
+            res=await self.my_api.get_initial_data()
+            if str(self._hass.state)=='RUNNING':
+                self._ask_for_link()
+            return res
+        return None
+            
+    def _handle_ask_for_link(self,event):
+        self._ask_for_link()
+        
+    def _ask_for_link(self):
+        _LOGGER.info("%s ask for clound link"%self._title)
+        self._hass.bus.fire("redsea_ask_for_cloud_link", {"device_id": self._entry.entry_id})
+
+    def set_cloud_link(self,cloud):
+        _LOGGER.info("%s linked to cloud %s"%(self._title,cloud._title))
+        self._cloud_link=cloud
+
+    def cloud_link(self):
+        if self._cloud_link!=None:
+            return self._cloud_link._title
+        return "None"
+    
+################################################################################
 # LED
 ################################################################################
-class ReefLedCoordinator(ReefBeatCoordinator):
+class ReefLedCoordinator(ReefBeatCloudLinkedCoordinator):
 
     def __init__(
             self,
@@ -200,7 +248,9 @@ class ReefLedCoordinator(ReefBeatCoordinator):
                 self.my_api.data['local']['manual_trick']['intensity']=value
             self.my_api.update_light_ki()
 
-    
+    def set_cloud_link(self,cloud):
+        _LOGGER.info("%s linked to cloud %s"%(self._title,cloud._title))
+        self._cloud_link=cloud
             
     def daily_prog(self):
         return self.my_api.daily_prog
@@ -432,7 +482,7 @@ class ReefRunCoordinator(ReefBeatCoordinator):
 # TODO: Add preview
 # Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/23
 #  labels: enhancement, rswave
-class ReefWaveCoordinator(ReefBeatCoordinator):
+class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
 
     def __init__(
             self,
@@ -443,3 +493,59 @@ class ReefWaveCoordinator(ReefBeatCoordinator):
         super().__init__(hass,entry)
         self.my_api = ReefWaveAPI(self._ip,self._live_config_update)
         
+################################################################################
+# CLOUD
+class ReefBeatCloudCoordinator(ReefBeatCoordinator):
+    def __init__(
+            self,
+            hass: HomeAssistant,
+            entry
+    ) -> None:
+        """Initialize coordinator."""
+        super().__init__(hass, entry)
+        self.my_api = ReefBeatCloudAPI(self._entry.data[CONFIG_FLOW_CLOUD_USERNAME],self._entry.data[CONFIG_FLOW_CLOUD_PASSWORD],self._entry.data[CONFIG_FLOW_CONFIG_TYPE],self._ip )
+        
+    async def _async_setup(self) -> None:
+        """Do initialization logic."""
+        if(self._boot==True):
+            self._boot=False
+            await self.my_api.connect()
+            res=await self.my_api.get_initial_data()
+            self._hass.bus.async_listen("redsea_ask_for_cloud_link", self._handle_link_requests)
+        return None
+
+    def _handle_link_requests(self,event):
+        device=self._hass.data[DOMAIN][event.data.get('device_id')]
+        device.set_cloud_link(self)
+        
+    @property
+    def title(self):
+        return self._entry.title
+
+    @property
+    def serial(self):
+        return self._entry.title
+    
+    @property
+    def model(self):
+        return "ReefBeat"
+
+    @property
+    def model_id(self):
+        return "ReefBeat"
+
+
+    @property
+    def detected_id(self):
+        return self._entry.title 
+
+    @property
+    def device_info(self):
+        return DeviceInfo(
+            identifiers={
+                (DOMAIN, self.title)
+            },
+            name=self.title,
+            manufacturer=DEVICE_MANUFACTURER,
+        )
+    

@@ -215,9 +215,10 @@ async def async_setup_entry(
         entities += [ReefDoseSwitchEntity(device, description)
                  for description in dn
                  if description.exists_fn(device)]
-    entities += [ReefBeatSwitchEntity(device, description)
-            for description in COMMON_SWITCHES
-            if description.exists_fn(device)]
+    if type(device).__name__!='ReefBeatCloudCoordinator':
+        entities += [ReefBeatSwitchEntity(device, description)
+                for description in COMMON_SWITCHES
+                if description.exists_fn(device)]
 
     async_add_entities(entities, True)
 

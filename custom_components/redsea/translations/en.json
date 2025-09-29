@@ -6,18 +6,33 @@
             "user": {
                 "title": "Add new Device",
                 "data": {
-                    "ip_address": "IP or network address (ex: 192.168.20.0/255.255.255.0)",
+                    "ip_address": "IP or subnet Addr. (ex:10.0.1.0/255.255.255.0)",
+		    "add_type": "Choose your adding method",
 		    "hw_model": "Hardware Model",
 		    "virtual_led": "New virtual LED Controler",
                     "platform": "Platform",
-		    "scan_interval": "Scan interval"
+		    "scan_interval": "scan interval"
                 }
-            }
+	    }
         },
         "abort": {
             "already_configured": "Device Already configured",
             "cannot_create": "Unable to create ReefBeat device with specified parameters"
         }
+    },
+    "selector": {
+	"add_type": {
+	    "options":{
+		"cloud_api": "Cloud API",
+		"local_detect": "Local detection",
+		"manual_mode": "Manual Mode"
+	    }
+	},
+	"ip_address":{
+	    "options":{
+		"virtual_led": "Add Virtual LED"
+	    }
+	}
     },
     "options": {
 	"step":{
@@ -34,11 +49,11 @@
     },
     "entity": {
 	"button":{
-	    "preview_stop":{
-		"name": "Stop preview"
-	    },
 	    "preview_start":{
 		"name": "Start preview"
+	    },
+	    "preview_stop":{
+		"name": "Stop preview"
 	    },
 	    "fetch_config":{
 		"name": "Fetch Config"
@@ -110,7 +125,7 @@
 		"name": "Update Daily dose"
 	    },
 	    "custom_advance_value":{
-		"name": "Advance Value"
+		"name": "Valeur d'avance"
 	    },
 	    "manual_head_volume":{
 		"name": "Manual Volume"
@@ -130,14 +145,11 @@
 	    "sensor_controlled":{
 		"name" : "Controlled by Sensor"
 	    },
-	    "ec_sensor_connected":{
-		"name": "EC sensor Connected"
-	    },
 	    "missing_pump":{
-		"name": "Pump"
+		"name": "Missing Pump"
 	    },
 	    "missing_sensor":{
-		"name": "Sensor"
+		"name": "Missing Sensor"
 	    },
 	    "schedule_enabled":{
 		"name": "Schedule Enabled"
@@ -156,6 +168,9 @@
 	    },
 	    "is_ec_sensor_connected":{
 		"name": "Is EC sensor Connected"
+	    },
+	    "ec_sensor_connected":{
+		"name": "EC sensor Connected"
 	    },
 
 	    "water_level":{
@@ -178,6 +193,39 @@
 	    }
 	},
 	"sensor": {
+	    "cloud_account":{
+		"name": "Linked to account"
+	    },
+	    "email":{
+		"name": "Email"
+	    },
+	    "backup_email":{
+		"name": "Backup Email"
+	    },
+	    "first_name":{
+		"name":"First Name"
+	    },
+	    "last_name":{
+		"name":"Last Name"
+	    },
+	    "mobile_number":{
+		"name":"Mobile Number"
+	    },
+	    "language":{
+		"name":"Language"
+	    },
+	    "country":{
+		"name":"Country"
+	    },
+	    "zip_code":{
+		"name":"ZIP Code"
+	    },
+	    "led_program":{
+		"name": "LED Program"
+	    },
+	    "wave_program":{
+		"name": "Wave Program"
+	    },
 	    "wifi_quality":{
 		"name": "WIFI signal quality"
 	    },
@@ -185,7 +233,7 @@
 		"name": "WIFI SSID"
 	    },
 	    "wifi_signal":{
-		"name": "WIFI signal strength"
+		"name": "WIFI Signal Strength"
 	    },
 	    "supplement_uid":{
 		"name": "Supplement Unique ID"
@@ -223,9 +271,11 @@
 	    "type":{
 		"name": "Type"
 	    },
+	    
 	    "model":{
 		"name": "Model"
 	    },
+	    
 	    "state":{
 		"name": "State"
 	    },
@@ -235,6 +285,7 @@
 	    "pulse":{
 		"name": "Pulse"
 	    },
+	    
 	    "container_volume":{
 		"name": "Container Volume"
 	    },
@@ -386,7 +437,7 @@
 		"name":"Acclimation"
 	    },
 	    "slm":{
-		"name": "Container Volume Controller"
+		"name": "Volume Controller"
 	    },
 	    "schedule_enabled":{
 		"name": "Schedule enabled"
@@ -400,7 +451,6 @@
 	    "auto_fill":{
 		"name": "Auto fill"
 	    }
-	    
 	},
 	"select" : {
 	    "model_skimmer":{
@@ -415,12 +465,12 @@
 	    "position": {
 		"name": "Position"
 	    }
+
 	},
 	"time" :{
 	    "schedule_time":{
-		"name": "Schedule advance time"
+		"name": "Schedule Time"
 	    }
 	}
-	
     }
 }

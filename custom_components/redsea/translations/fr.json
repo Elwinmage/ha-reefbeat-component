@@ -6,7 +6,8 @@
             "user": {
                 "title": "Définir une nouvelle entitée",
                 "data": {
-                    "ip_address": "Adresse IP ou du reseau (ex: 192.168.20.0/255.255.255.0)",
+                    "ip_address": "Adr. IP ou reseau (ex:10.0.1.0/255.255.255.0)",
+		    "add_type": "Méthode d'ajout",
 		    "hw_model": "Modèle hardware",
 		    "virtual_led": "Nouvelle Led virtuelle",
 		    "platform": "Plateforme",
@@ -18,6 +19,20 @@
             "already_configured": "Entitée déjà existante",
             "cannot_create": "Impossible de créer une entitée pour un ReefBeat avec ces paramètres"
         }
+    },
+    "selector": {
+	"add_type": {
+	    "options":{
+		"cloud_api": "API Cloud ",
+		"local_detect": "Détection locale",
+		"manual_mode": "Mode Manuel"
+	    }
+	},
+	"ip_address":{
+	    "options":{
+		"virtual_led": "Ajouter une LED virtuelle"
+	    }
+	}
     },
     "options": {
 	"step":{
@@ -177,6 +192,39 @@
 	    
 	},
 	"sensor": {
+	    "cloud_account":{
+		"name": "Lié au compte"
+	    },
+	    "email":{
+		"name": "Email"
+	    },
+	    "backup_email":{
+		"name": "Email de secour"
+	    },
+	    "first_name":{
+		"name":"Prénom"
+	    },
+	    "last_name":{
+		"name":"Nom"
+	    },
+	    "mobile_number":{
+		"name":"Numéro de mobile"
+	    },
+	    "language":{
+		"name":"Langue"
+	    },
+	    "country":{
+		"name":"Pays"
+	    },
+	    "zip_code":{
+		"name":"Code Postal"
+	    },
+	    "led_program":{
+		"name": "Programme LED"
+	    },
+	    "wave_program":{
+		"name": "Programme vague"
+	    },
 	    "wifi_quality":{
 		"name": "Qualité du signal Wifi"
 	    },

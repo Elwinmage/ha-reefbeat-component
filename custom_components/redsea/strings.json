@@ -4,20 +4,36 @@
         "flow_title": "ReefBeat configuration",
         "step": {
             "user": {
-                "title": "Add new Led",
+                "title": "Add new Device",
+		"description": "Choose your adding method",
                 "data": {
                     "ip_address": "IP Address",
+		    "add_type": "Add method",
 		    "hw_model": "Hardware Model",
 		    "virtual_led": "New virtual LED Controler",
                     "platform": "Platform",
 		    "scan_interval": "scan interval"
-                }
+                },
             }
         },
         "abort": {
             "already_configured": "Device Already configured",
             "cannot_create": "Unable to create ReefBeat device with specified parameters"
         }
+    },
+    "selector": {
+	"add_type": {
+	    "options":{
+		"cloud_api": "Cloud API",
+		"local_detect": "Local detection",
+		"manual_mode": "Manual Mode"
+	    }
+	},
+	"ip_address":{
+	    "options":{
+		"virtual_led": "Add Virtual LED"
+	    }
+	}
     },
     "options": {
 	"step":{
@@ -178,6 +194,39 @@
 	    }
 	},
 	"sensor": {
+	    "cloud_account":{
+		"name": "Linked to account"
+	    },
+	    "email":{
+		"name": "Email"
+	    },
+	    "backup_email":{
+		"name": "Backup Email"
+	    },
+	    "first_name":{
+		"name":"First Name"
+	    },
+	    "last_name":{
+		"name":"Last Name"
+	    },
+	    "mobile_number":{
+		"name":"Mobile Number"
+	    },
+	    "language":{
+		"name":"Language"
+	    },
+	    "country":{
+		"name":"Country"
+	    },
+	    "zip_code":{
+		"name":"ZIP Code"
+	    },
+	    "led_program":{
+		"name": "LED Program"
+	    },
+	    "wave_program":{
+		"name": "Wave Program"
+	    },	    
 	    "wifi_quality":{
 		"name": "WIFI signal quality"
 	    },

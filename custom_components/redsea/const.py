@@ -14,7 +14,22 @@ MODEL_ID="hwid"
 HW_VERSION="hw_revision"
 SW_VERSION="version"
 
+CLOUD_SERVER_ADDR="cloud.reef-beat.com"
+
 CONFIG_FLOW_IP_ADDRESS="ip_address"
+
+CONFIG_FLOW_ADD_TYPE="add_type"
+ADD_CLOUD_API="cloud_api"
+ADD_LOCAL_DETECT="local_detect"
+ADD_MANUAL_MODE="manual_mode"
+ADD_TYPES=[ADD_CLOUD_API,ADD_LOCAL_DETECT,ADD_MANUAL_MODE]
+
+#CLOUD
+CONFIG_FLOW_CLOUD_USERNAME="username"
+CONFIG_FLOW_CLOUD_PASSWORD="password"
+
+
+CONFIG_FLOW_CLOUD_ACCOUNT="cloud_account"
 CONFIG_FLOW_HW_MODEL="hw_model"
 CONFIG_FLOW_SCAN_INTERVAL="scan_interval"
 CONFIG_FLOW_INTENSITY_COMPENSATION="intensity_compensation"
@@ -136,3 +151,8 @@ OVERSKIMMING_ENABLED_INTERNAL_NAME="$.sources[?(@.name=='/pump/settings')].data.
 ################################################################################
 # WAVE
 WAVE_SHORTCUT_OFF_DELAY="$.sources[?(@.name=='/device-settings')].data.shortcut_off_delay"
+
+################################################################################
+# LIBRARIES
+LIGHTS_LIBRARY="/reef-lights/library?include=all"
+WAVES_LIBRARY="/reef-wave/library?include=all"

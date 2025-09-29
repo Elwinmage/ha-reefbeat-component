@@ -36,6 +36,14 @@ from .auto_detect import (
 from .const import (
     PLATFORMS,
     DOMAIN,
+    CONFIG_FLOW_ADD_TYPE,
+    CONFIG_FLOW_CLOUD_USERNAME,
+    CONFIG_FLOW_CLOUD_PASSWORD,
+    ADD_TYPES,
+    ADD_CLOUD_API,
+    ADD_LOCAL_DETECT,
+    ADD_MANUAL_MODE,
+    CLOUD_SERVER_ADDR,
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_SCAN_INTERVAL,
@@ -103,102 +111,108 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Create a new entity from UI."""
-        def device_to_string(d):
-            return d['ip']+' '+d['hw_model']+' '+d['friendly_name']
         subnetwork=None
-        if user_input is not None:
-            _LOGGER.debug(user_input)
-            if user_input[CONFIG_FLOW_IP_ADDRESS] == VIRTUAL_LED:
-                title=VIRTUAL_LED+'-'+str(int(time()))
-                user_input[CONFIG_FLOW_IP_ADDRESS]=title
-                user_input[CONFIG_FLOW_HW_MODEL]=VIRTUAL_LED
-                user_input[CONFIG_FLOW_SCAN_INTERVAL]=VIRTUAL_LED_SCAN_INTERVAL
-                _LOGGER.debug("-- ** UUID ** -- %s"%title)
-                await self.async_set_unique_id(title)
-                return self.async_create_entry(
-                    title=title,
-                    data=user_input,
-                )
-            elif self.is_network(user_input[CONFIG_FLOW_IP_ADDRESS]):
-                subnetwork=user_input[CONFIG_FLOW_IP_ADDRESS]
-            else:
-                # enter by ip, not on same network
-                configuration=user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')
-                if len(configuration) < 2:
-                    f_kwargs = {}
-                    f_kwargs["ip"] = configuration[0]
-                    status,ip,hw_model,friendly_name,uuid=await self.hass.async_add_executor_job(partial(is_reefbeat,**f_kwargs))
-                    _LOGGER.info("MANUAL IP DETECTED: %s %s %s %s"%(ip,hw_model,friendly_name,uuid))
-                    if status==True:
-                        conf=device_to_string({"ip":ip,"hw_model":hw_model,"friendly_name":friendly_name})
-                        configuration=conf.split(' ')
-                    _LOGGER.debug("MANUAL IP info: %s"%(configuration))
-                    _LOGGER.debug("MANUAL IP array info: %s"%(configuration))
-                else:
-                    #Identify device with unique ID
-                    uuid = await self._unique_id(user_input)
-                _LOGGER.info("-- ** UUID ** -- %s"%uuid)
-                await self.async_set_unique_id(str(uuid))
-                self._abort_if_unique_id_configured()
-                #
-                title=configuration[2]
-                user_input[CONFIG_FLOW_HW_MODEL]=configuration[1]
-                user_input[CONFIG_FLOW_IP_ADDRESS]=configuration[0]
-                user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(user_input[CONFIG_FLOW_HW_MODEL])
-                user_input[CONFIG_FLOW_CONFIG_TYPE]=False
-                _LOGGER.info("-- ** TITLE ** -- %s"%title)
-                
-                return self.async_create_entry(
-                    title=title,
-                    data=user_input,
-                )
-
-        #detected_devices = await self.hass.async_add_executor_job(get_reefbeats)
-
-        f_kwargs = {}
-        f_kwargs["subnetwork"] = subnetwork
-        detected_devices = await self.hass.async_add_executor_job(partial(get_reefbeats,**f_kwargs))
-
-        available_devices=copy.deepcopy(detected_devices)
-        _LOGGER.info("Detected devices: %s"%detected_devices)
-
-
-        _store = ConfigEntryStore(self.hass)
-        
-        data= await _store.async_load()
-        
-        for device in detected_devices:
-            if any (d['unique_id'] == device['uuid'] for d in data['entries']):
-                _LOGGER.info("%s skipped (already configured)"%device['friendly_name'])
-                available_devices.remove(device)
-        
-        _LOGGER.info("Available devices: %s"%available_devices)
-        available_devices_s =list(map(device_to_string,available_devices))
-        available_devices_s += [VIRTUAL_LED]
-        _LOGGER.info("Available devices string: %s"%available_devices_s)
-        if len(available_devices_s) > 1 :
+        # FIRST STEP
+        if user_input == None:
             return self.async_show_form(
                 step_id="user",
                 data_schema=vol.Schema(
                     {
-                        vol.Required(
-                            CONFIG_FLOW_IP_ADDRESS
-                        ): vol.In(available_devices_s),
-                    }
-                     ),
-                )
-
-        else:
-            return self.async_show_form(
-                step_id="user",
-                data_schema=vol.Schema(
-                    {
-                        vol.Required(
-                            CONFIG_FLOW_IP_ADDRESS, default=VIRTUAL_LED
-                        ): str,
+                        vol.Required(CONFIG_FLOW_ADD_TYPE, default=ADD_CLOUD_API): vol.In(ADD_TYPES),
                     }
                 ),
             )
+        else:
+            # SECOND_STEP
+            if CONFIG_FLOW_ADD_TYPE in user_input:
+                #CLOUD
+                if user_input[CONFIG_FLOW_ADD_TYPE]==ADD_CLOUD_API:
+                    _LOGGER.info("Adding Reebeat Cloud Account")
+                    return self.async_show_form(
+                        step_id="user",
+                        data_schema=vol.Schema(
+                            {
+                                vol.Required(CONFIG_FLOW_CLOUD_USERNAME):str,
+                                vol.Required(CONFIG_FLOW_CLOUD_PASSWORD):str,
+                            }
+                        ),
+                    )
+                #DETECT
+                elif user_input[CONFIG_FLOW_ADD_TYPE]==ADD_LOCAL_DETECT:
+                    return await self.auto_detect(subnetwork)
+                # MANUAL
+                elif user_input[CONFIG_FLOW_ADD_TYPE]==ADD_MANUAL_MODE:
+                    _LOGGER.debug(user_input)
+                    return self.async_show_form(
+                        step_id="user",
+                        data_schema=vol.Schema(
+                            {
+                                vol.Required(CONFIG_FLOW_IP_ADDRESS):str
+                            }
+                        )
+                    )
+            # Third step create entry
+            else:
+                _LOGGER.debug(user_input)
+                # CLOUD
+                if CONFIG_FLOW_CLOUD_USERNAME in user_input:
+                    user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(None)
+                    user_input[CONFIG_FLOW_CONFIG_TYPE]=False
+                    user_input[CONFIG_FLOW_IP_ADDRESS]=CLOUD_SERVER_ADDR
+                    user_input[CONFIG_FLOW_HW_MODEL]="Smartphone App"
+                    title=user_input[CONFIG_FLOW_CLOUD_USERNAME]
+                    await self.async_set_unique_id(title)
+                    return self.async_create_entry(
+                        title=title,
+                        data=user_input,
+                    )
+                # DETECT and MANUAL
+                elif CONFIG_FLOW_IP_ADDRESS in user_input:
+                    #Add Virtual LED
+                    if user_input[CONFIG_FLOW_IP_ADDRESS] == VIRTUAL_LED:
+                        title=VIRTUAL_LED+'-'+str(int(time()))
+                        user_input[CONFIG_FLOW_IP_ADDRESS]=title
+                        user_input[CONFIG_FLOW_HW_MODEL]=VIRTUAL_LED
+                        user_input[CONFIG_FLOW_SCAN_INTERVAL]=VIRTUAL_LED_SCAN_INTERVAL
+                        _LOGGER.debug("-- ** UUID ** -- %s"%title)
+                        await self.async_set_unique_id(title)
+                        return self.async_create_entry(
+                            title=title,
+                            data=user_input,
+                        )
+                    if self.is_network(user_input[CONFIG_FLOW_IP_ADDRESS]):
+                        subnetwork=user_input[CONFIG_FLOW_IP_ADDRESS]
+                        return await self.auto_detect(subnetwork)
+                    else:
+                        configuration=user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')
+                        # manual device
+                        if len(configuration) < 2:
+                            f_kwargs = {}
+                            f_kwargs["ip"] = configuration[0]
+                            status,ip,hw_model,friendly_name,uuid=await self.hass.async_add_executor_job(partial(is_reefbeat,**f_kwargs))
+                            _LOGGER.info("MANUAL IP DETECTED: %s %s %s %s"%(ip,hw_model,friendly_name,uuid))
+                            if status==True:
+                                conf=self.device_to_string({"ip":ip,"hw_model":hw_model,"friendly_name":friendly_name})
+                                configuration=conf.split(' ')
+                            _LOGGER.debug("MANUAL IP info: %s"%(configuration))
+                            _LOGGER.debug("MANUAL IP array info: %s"%(configuration))
+                            # detected device
+                        else:
+                            uuid = await self._unique_id(user_input)
+                        _LOGGER.info("-- ** UUID ** -- %s"%uuid)
+                        await self.async_set_unique_id(str(uuid))
+                        self._abort_if_unique_id_configured()
+                        #
+                        title=configuration[2]
+                        user_input[CONFIG_FLOW_HW_MODEL]=configuration[1]
+                        user_input[CONFIG_FLOW_IP_ADDRESS]=configuration[0]
+                        user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(user_input[CONFIG_FLOW_HW_MODEL])
+                        user_input[CONFIG_FLOW_CONFIG_TYPE]=False
+                        _LOGGER.info("-- ** TITLE ** -- %s"%title)
+                        return self.async_create_entry(
+                            title=title,
+                            data=user_input,
+                        )
         
     @staticmethod
     @callback
@@ -208,13 +222,45 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create the options flow."""
         return OptionsFlowHandler(config_entry)
 
+    @staticmethod
+    def device_to_string(d):
+        return d['ip']+' '+d['hw_model']+' '+d['friendly_name']
 
+    # AUTO detect reeefbeat device on specified subnetwork
+    async def auto_detect(self,subnetwork):
+        f_kwargs = {}
+        f_kwargs["subnetwork"] = subnetwork
+        detected_devices = await self.hass.async_add_executor_job(partial(get_reefbeats,**f_kwargs))
+        available_devices=copy.deepcopy(detected_devices)
+        _LOGGER.info("Detected devices: %s"%detected_devices)
+        _store = ConfigEntryStore(self.hass)
+        data= await _store.async_load()
+        for device in detected_devices:
+            if any (d['unique_id'] == device['uuid'] for d in data['entries']):
+                _LOGGER.info("%s skipped (already configured)"%device['friendly_name'])
+                available_devices.remove(device)
+
+        _LOGGER.info("Available devices: %s"%available_devices)
+        available_devices_s =list(map(self.device_to_string,available_devices))
+        available_devices_s += [VIRTUAL_LED]
+        _LOGGER.info("Available devices string: %s"%available_devices_s)
+        return self.async_show_form(
+            step_id="user",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONFIG_FLOW_IP_ADDRESS
+                    ): vol.In(available_devices_s),
+                }
+                 ),
+            )
+
+################################################################################
+# Entity options
 class OptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self,config_entry):
         self._config_entry=config_entry
-
-
         
     async def async_step_init(
             self, user_input: dict[str, Any] | None = None
@@ -258,10 +304,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         options_schema=None
 
         if not self._config_entry.title.startswith(VIRTUAL_LED+'-'):
-            hw_model=self._config_entry.data[CONFIG_FLOW_HW_MODEL]
-            
-            query=parse('$[?(@.name=="'+hw_model+'")]')
-            res=query.find(LEDS_INTENSITY_COMPENSATION)
+            try:
+                hw_model=self._config_entry.data[CONFIG_FLOW_HW_MODEL]
+                query=parse('$[?(@.name=="'+hw_model+'")]')
+                res=query.find(LEDS_INTENSITY_COMPENSATION)
+            except:
+                hw_model=None
+                res=[]
             if len(res) > 0:
                 options_schema=vol.Schema(
                     {

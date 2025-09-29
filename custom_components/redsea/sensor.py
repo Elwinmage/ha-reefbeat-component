@@ -37,6 +37,8 @@ from homeassistant.const import (
 
 from .const import (
     DOMAIN,
+    LIGHTS_LIBRARY,
+    WAVES_LIBRARY,
     LED_WHITE_INTERNAL_NAME,
     LED_BLUE_INTERNAL_NAME,
 )
@@ -50,6 +52,12 @@ class ReefBeatSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_fn: Callable[[ReefBeatCoordinator], StateType]
+
+@dataclass(kw_only=True)
+class ReefBeatCloudSensorEntityDescription(SensorEntityDescription):
+    """Describes reefbeat sensor entity."""
+    exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
+    value_name: ''
 
 @dataclass(kw_only=True)
 class ReefDoseSensorEntityDescription(SensorEntityDescription):
@@ -72,6 +80,66 @@ class ReefLedScheduleSensorEntityDescription(SensorEntityDescription):
     value_name: ''
     id_name: 0
 
+CLOUD_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
+    ReefBeatSensorEntityDescription( 
+        key="cloud_account",
+        translation_key="cloud_account",
+        value_fn=lambda device: device.cloud_link(),
+        icon="mdi:cloud-sync-outline",
+    ),
+)
+
+USER_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
+    ReefBeatCloudSensorEntityDescription( 
+        key="email",
+        translation_key="email",
+        value_name="$.sources[?(@.name=='/user')].data.email",
+        icon="mdi:at",
+    ),
+    ReefBeatCloudSensorEntityDescription( 
+        key="backup_email",
+        translation_key="backup_email",
+        value_name="$.sources[?(@.name=='/user')].data.backup_email",
+        icon="mdi:at",
+    ),
+    ReefBeatCloudSensorEntityDescription( 
+        key="first_name",
+        translation_key="first_name",
+        value_name="$.sources[?(@.name=='/user')].data.first_name",
+        icon="mdi:account",
+    ),
+    ReefBeatCloudSensorEntityDescription( 
+        key="last_name",
+        translation_key="last_name",
+        value_name="$.sources[?(@.name=='/user')].data.last_name",
+        icon="mdi:account-outline",
+    ),
+    ReefBeatCloudSensorEntityDescription( 
+        key="mobile_number",
+        translation_key="mobile_number",
+        value_name="$.sources[?(@.name=='/user')].data.mobile_number",
+        icon="mdi:phone",
+    ),
+    ReefBeatCloudSensorEntityDescription( 
+        key="language",
+        translation_key="language",
+        value_name="$.sources[?(@.name=='/user')].data.language",
+        icon="mdi:translate",
+    ),
+    ReefBeatCloudSensorEntityDescription( 
+        key="country",
+        translation_key="country",
+        value_name="$.sources[?(@.name=='/user')].data.country",
+        icon="mdi:earth",
+    ),
+    ReefBeatCloudSensorEntityDescription( 
+        key="zip_code",
+        translation_key="zip_code",
+        value_name="$.sources[?(@.name=='/user')].data.zip_code",
+        icon="mdi:mailbox",
+    ),
+)
+    
 COMMON_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription( 
         key="ip",
@@ -101,7 +169,7 @@ COMMON_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
         key="wifi_quality",
         translation_key="wifi_quality",
         value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/wifi')].data.signal_dBm"),
-        icon="mdi:signal",
+        icon="mdi:wifi-strength-4",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
 )
@@ -372,7 +440,11 @@ async def async_setup_entry(
     device = hass.data[DOMAIN][entry.entry_id]
     entities=[]
     _LOGGER.debug("SENSORS")
-    
+    # Display account cloud link 
+    if device.__class__.__bases__[0].__name__=='ReefBeatCloudLinkedCoordinator':
+        entities += [ReefBeatSensorEntity(device, description)
+                     for description in CLOUD_SENSORS
+                     if description.exists_fn(device)]
     if type(device).__name__=='ReefLedG2Coordinator' or type(device).__name__=='ReefVirtualLedCoordinator':
         entities += [ReefBeatSensorEntity(device, description)
                      for description in G2_LED_SENSORS
@@ -545,11 +617,41 @@ async def async_setup_entry(
                      for description in LED_SCHEDULES
                      if description.exists_fn(device)]
 
-        
-    entities += [ReefBeatSensorEntity(device, description)
-                 for description in  COMMON_SENSORS
-                 if description.exists_fn(device)]
+    if type(device).__name__!='ReefBeatCloudCoordinator' and type(device).__name__!='ReefVirtualLedCoordinator':
+        entities += [ReefBeatSensorEntity(device, description)
+                     for description in  COMMON_SENSORS
+                     if description.exists_fn(device)]
 
+    if type(device).__name__=='ReefBeatCloudCoordinator':
+        # user
+        entities += [ReefBeatCloudSensorEntity(device, description)
+             for description in  USER_SENSORS
+             if description.exists_fn(device)]
+        # LED
+        progs=device.my_api.get_data("$.sources[?(@.name=='"+LIGHTS_LIBRARY+"')].data")
+        ds=[]
+        for prog in progs:
+            new_prog= (ReefBeatCloudSensorEntityDescription(
+                key="prog_"+str(prog['uid']),
+                translation_key="led_program",
+                icon="mdi:chart-bell-curve",
+                value_name="$.sources[?(@.name=='"+LIGHTS_LIBRARY+"')].data[?(@.uid=='"+str(prog['uid'])+"')].name",
+            ),)
+            ds+=new_prog
+        # WAVES
+        waves=device.my_api.get_data("$.sources[?(@.name=='"+WAVES_LIBRARY+"')].data")
+        for wave in waves:
+            new_wave= (ReefBeatCloudSensorEntityDescription(
+                key="wave_"+str(wave['uid']),
+                translation_key="wave_program",
+                icon="mdi:sine-wave",
+                value_name="$.sources[?(@.name=='"+WAVES_LIBRARY+"')].data[?(@.uid=='"+str(wave['uid'])+"')].name",
+            ),)
+            ds+=new_wave
+        entities += [ReefBeatCloudSensorEntity(device, description)
+                     for description in  ds
+                     if description.exists_fn(device)]
+        
     async_add_entities(entities, True)
 
 ################################################################################
@@ -568,26 +670,27 @@ class ReefBeatSensorEntity(CoordinatorEntity,SensorEntity):
         self._attr_available = False  
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
 
-
-
     def _update_val(self) -> str:
         self._attr_available = True
         if self.entity_description.key=="wifi_quality":
             signal_strength=self._device.get_data("$.sources[?(@.name=='/wifi')].data.signal_dBm")
             if signal_strength < -80:
                 signal_val='Poor'
+                self.icon="mdi:wifi-outline"
             elif signal_strength < -70:
                 signal_val='Low'
+                self.icon="mdi:wifi-strength-1"
             elif signal_strength < -60:
                 signal_val='Medium'
+                self.icon="mdi:wifi-strength-2"
             elif signal_strength < -50:
                 signal_val='Good'
+                self.icon="mdi:wifi-strength-3"
             else:
                 signal_val='Excellent'
             self._attr_native_value=signal_val
         else:
             self._attr_native_value =  self._get_value()
-    
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -679,3 +782,36 @@ class ReefRunSensorEntity(ReefBeatSensorEntity):
         identifiers+=pump
         di['identifiers']={identifiers}
         return di
+
+################################################################################
+# CLOUD
+class ReefBeatCloudSensorEntity(ReefBeatSensorEntity):
+    """Represent an ReefBeat sensor."""
+    _attr_has_entity_name = True
+    
+    def __init__(
+        self, device, entity_description: ReefBeatCloudSensorEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+        self._entity_description=entity_description
+        self._aquarium_name=device.get_data("$.sources[?(@.name=='/aquarium')].data[?(@.uid=='"+device.get_data(self._entity_description.value_name.replace('].name','].aquarium_uid'))+"')].name",True)
+        self._library_name=""
+
+    def _get_value(self):
+        if self._aquarium_name!=None:
+            return self._device.get_data(self._entity_description.value_name)+"-"+self._aquarium_name
+        else:
+            return self._device.get_data(self._entity_description.value_name)
+        
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        di=self._device.device_info
+        if self._aquarium_name!=None:
+            di['name']=self._aquarium_name
+            identifiers=list(di['identifiers'])[0]
+            identifiers+=(self._aquarium_name,)
+            di['identifiers']={identifiers} 
+        return di
+    

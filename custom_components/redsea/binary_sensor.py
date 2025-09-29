@@ -280,7 +280,8 @@ async def async_setup_entry(
          entities += [ReefBeatBinarySensorEntity(device, description)
                       for description in  BATTERY_SENSORS
                       if description.exists_fn(device)]
-    entities += [ReefBeatBinarySensorEntity(device, description)
+    if type(device).__name__!='ReefBeatCloudCoordinator':
+         entities += [ReefBeatBinarySensorEntity(device, description)
                  for description in  COMMON_SENSORS
                  if description.exists_fn(device)]
         
