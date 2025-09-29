@@ -800,7 +800,9 @@ class ReefBeatCloudSensorEntity(ReefBeatSensorEntity):
 
     def _get_value(self):
         if self._aquarium_name!=None:
+            self._attr_extra_state_attributes=self._device.get_data(self._entity_description.value_name.replace('].name',']'))
             return self._device.get_data(self._entity_description.value_name)+"-"+self._aquarium_name
+        
         else:
             return self._device.get_data(self._entity_description.value_name)
         
