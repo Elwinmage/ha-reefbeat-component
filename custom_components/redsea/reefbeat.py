@@ -553,7 +553,6 @@ class ReefRunAPI(ReefBeatAPI):
         #self.data['sources'].insert(len(self.data['sources']),{"name":"/pump/calibration","type": "config","data":""})
         
     async def push_values(self,source,method='put',pump=None):
-        _LOGGER.info("push_value(%s %s %s)"%(source,method,str(pump)))
         if source=='/pump/settings' or source=='/preview':
             if pump:
                 payload={"pump_"+str(pump): self.get_data("$.sources[?(@.name=='"+source+"')].data.pump_"+str(pump))}

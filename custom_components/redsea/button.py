@@ -65,7 +65,18 @@ FETCH_CONFIG_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
     ),
 )
-    
+
+LED_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
+    ReefBeatButtonEntityDescription(
+        key='led_identify',
+        translation_key='led_identify',
+        exists_fn=lambda _: True,
+        press_fn=lambda device: device.press("identify"),
+        icon="mdi:lightbulb-question-outline",
+        entity_category=EntityCategory.CONFIG,
+    ),
+)
+
 PREVIEW_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
         key='preview_start',
@@ -135,6 +146,10 @@ async def async_setup_entry(
     
     entities=[]
     _LOGGER.debug("BUTTONS")
+    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedG2Coordinator':
+        entities += [ReefBeatButtonEntity(device, description)
+                 for description in LED_BUTTONS
+                 if description.exists_fn(device)]
     if type(device).__name__=='ReefMatCoordinator':
         entities += [ReefBeatButtonEntity(device, description)
                  for description in MAT_BUTTONS
@@ -155,6 +170,7 @@ async def async_setup_entry(
                         key="fetch_config_"+str(pump),
                         translation_key="fetch_config",
                         icon="mdi:update",
+                        press_fn=lambda device: device.fetch_config(),
                         entity_category=EntityCategory.CONFIG,
                         pump=pump,
                     ),
@@ -173,6 +189,15 @@ async def async_setup_entry(
                         exists_fn=lambda _: True,
                         press_fn=lambda device: device.delete('/preview'),
                         icon="mdi:stop-circle-outline",
+                        entity_category=EntityCategory.CONFIG,
+                        pump=pump,
+                    ),
+                    ReefRunButtonEntityDescription(
+                        key='preview_save_'+str(pump),
+                        translation_key='preview_save',
+                        exists_fn=lambda _: True,
+                        press_fn=lambda device: device.delete('/preview'),
+                        icon="mdi:content-save-cog",
                         entity_category=EntityCategory.CONFIG,
                         pump=pump,
                     ),
@@ -293,11 +318,25 @@ class ReefRunButtonEntity(ReefBeatButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        if self.entity_description.press_fn != None:
+        if self.entity_description.key.startswith('preview_save_'):
+            _LOGGER.debug("Saving current preview in prog")
+            preview_intensity=self._device.get_data("$.sources[?(@.name=='/preview')].data.pump_"+str(self._pump)+".ti")
+            # stop preview
+            if self._device.get_data("$.sources[?(@.name=='/dashboard')].data.pump_"+str(self._pump)+".state")=='preview':
+                _LOGGER.debug('Stopping preview')
+                await self._device.delete('/preview')
+            # set intensity
+            await self._device.set_pump_intensity(self._pump,int(preview_intensity))
+            self.async_write_ha_state()  
+            await self._device.push_values(source='/pump/settings',pump=self._pump)
+            await self._device.async_request_refresh()
+        elif self.entity_description.key != 'fetch_config':
             await self.entity_description.press_fn(self._device)
         else:
             await self._device.fetch_config()
-
+        if self.entity_description.key.startswith('preview_start_') or self.entity_description.key.startswith('preview_stop_'):
+            _LOGGER.debug("Refresh preview state")
+            await self._device.async_quick_request_refresh('/dashboard')
         
     @property
     def device_info(self) -> DeviceInfo:

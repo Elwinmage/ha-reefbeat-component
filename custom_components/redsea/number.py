@@ -507,16 +507,19 @@ class ReefRunNumberEntity(ReefBeatNumberEntity):
         _LOGGER.debug("Reefbeat.number.set_native_value %d"%int(value))
         self._attr_native_value=value
         if self.entity_description.key=="preview_pump_"+str(self._pump)+"_intensity":
-            # do not send push request for changin speed preview. It's done by the preview start button
+            # do not send push request for changing speed preview. It's done by the preview start button
             self._device.set_data(self.entity_description.value_name,int(value))
             return 
         elif self.entity_description.key=='pump_'+str(self._pump)+'_intensity':
             await self._device.set_pump_intensity(self._pump,int(value))
+            self.async_write_ha_state()  
+            await self._device.push_values(source='/pump/settings',pump=self._pump)
+            await self._device.async_request_refresh()
         else:
             self._device.set_data(self.entity_description.value_name,int(value))
-        self.async_write_ha_state()  
-        await self._device.push_values(source=self._source,pump=self._pump)
-        await self._device.async_request_refresh()
+            self.async_write_ha_state()  
+            await self._device.push_values(source=self._source,pump=self._pump)
+            await self._device.async_request_refresh()
 
     @property
     def device_info(self) -> DeviceInfo:

@@ -49,6 +49,12 @@
     },
     "entity": {
 	"button":{
+	    "led_identify":{
+		"name": "Identifier"
+	    },
+	    "preview_save":{
+		"name": "Sauvegarder la prévisualisation"
+	    },
 	    "preview_stop":{
 		"name": "Stopper la prévisualisation"
 	    },

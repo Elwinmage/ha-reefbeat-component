@@ -474,7 +474,7 @@ class ReefRunCoordinator(ReefBeatCoordinator):
         to_update['ti']=intensity
         _LOGGER.debug(schedule)
     
-    async def push_values(self,source:str=None,method:str=None,pump:int=None):
+    async def push_values(self,source:str=None,method:str='put',pump:int=None):
         await self.my_api.push_values(source,method,pump)
 
 ################################################################################
