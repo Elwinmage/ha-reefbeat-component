@@ -197,12 +197,16 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
             res=await self.my_api.get_initial_data()
             if str(self._hass.state)=='RUNNING':
                 self._ask_for_link()
+            self._hass.bus.async_listen("redsea_ask_for_cloud_link_ready", self._handle_ask_for_link_ready)
             return res
         return None
             
     def _handle_ask_for_link(self,event):
         self._ask_for_link()
-        
+
+    def _handle_ask_for_link_ready(self,event):
+        self._ask_for_link()
+
     def _ask_for_link(self):
         _LOGGER.info("%s ask for clound link"%self._title)
         self._hass.bus.fire("redsea_ask_for_cloud_link", {"device_id": self._entry.entry_id})
@@ -512,6 +516,8 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
             await self.my_api.connect()
             res=await self.my_api.get_initial_data()
             self._hass.bus.async_listen("redsea_ask_for_cloud_link", self._handle_link_requests)
+            self._hass.bus.fire("redsea_ask_for_cloud_link_ready", {})
+
         return None
 
     def _handle_link_requests(self,event):
