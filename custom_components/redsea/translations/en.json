@@ -82,6 +82,21 @@
 	    
 	},
 	"number":{
+	    "wave_forward_time":{
+		"name": "Prev. Fwd Time"
+	    },
+	    "wave_backward_time":{
+		"name": "Prev. Bwd Time"
+	    },
+	    "wave_forward_intensity":{
+		"name": "Prev. Fwd Intensity"
+	    },
+	    "wave_backward_intensity":{
+		"name": "Prev. Bwd Intensity"
+	    },
+	    "wave_preview_duration":{
+		"name": "Preview  Duration"
+	    },
 	    "preview_speed":{
 		"name": "Preview Speed"
 	    },
@@ -199,6 +214,27 @@
 	    }
 	},
 	"sensor": {
+	    "mode":{
+		"name": "mode"
+	    },
+	    "wave_type":{
+		"name": "Waves Type"
+	    },
+	    "wave_direction":{
+		"name": "Waves Direction"
+	    },
+	    "wave_forward_time":{
+		"name": "Forward Time"
+	    },
+	    "wave_backward_time":{
+		"name": "Backward Time"
+	    },
+	    "wave_forward_intensity":{
+		"name": "Forward Intensity"
+	    },
+	    "wave_backward_intensity":{
+		"name": "Backward Intensity"
+	    },
 	    "cloud_account":{
 		"name": "Linked to account"
 	    },
@@ -459,6 +495,12 @@
 	    }
 	},
 	"select" : {
+	    "preview_wave_type":{
+		"name": "Preview Waves Type"
+	    },
+	    "preview_wave_direction":{
+		"name": "Preview Waves Direction"
+	    },
 	    "model_skimmer":{
 		"name": "Model"
 	    },

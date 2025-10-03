@@ -225,6 +225,8 @@ class ReefBeatAPI():
                 elif method=='delete':
                     r = httpx.delete(url,verify=False,timeout=DEFAULT_TIMEOUT)
                 status_ok=(r.status_code==200 or r.status_code==202)
+                if r.status_code==400 or r.status_code==404:
+                    error_count=HTTP_MAX_RETRY
                 if not status_ok:
                     _LOGGER.error("%d: %s"%(r.status_code,r.text))
                     error_count +=1
@@ -238,7 +240,7 @@ class ReefBeatAPI():
                 await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
                 
         if status_ok==False:
-            _LOGGER.error("Can not push data from %s after %s try"%(url,HTTP_MAX_RETRY))
+            _LOGGER.error("Can not push data to %s"%(url))
 
     async def push_values(self,source,method='post'):
         payload=self.get_data("$.sources[?(@.name=='"+source+"')].data")
@@ -575,10 +577,13 @@ class ReefWaveAPI(ReefBeatAPI):
     def __init__(self,ip,live_config_update) -> None:
         super().__init__(ip,live_config_update)
         self.data['sources'].remove({"name":"/dashboard","type": "data","data":""})
+        self.data['sources'].remove({"name":"/mode","type": "config","data":""})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/mode","type": "data","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/feeding/schedule","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/auto","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/device-settings","type": "config","data":""})
-
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/preview","type": "preview","data":{"type":"ra","direction":"fw","frt":10,"rrt":2,"fti":100,"rti":100,"duration":300000}})
+        
 ################################################################################
 # Cloud
 # /user

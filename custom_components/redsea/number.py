@@ -61,7 +61,7 @@ class ReefBeatNumberEntityDescription(NumberEntityDescription):
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_name: ""
     dependency: str = None
-
+    
 @dataclass(kw_only=True)
 class ReefRunNumberEntityDescription(NumberEntityDescription):
     """Describes reefbeat Number entity."""
@@ -85,7 +85,7 @@ class ReefDoseNumberEntityDescription(NumberEntityDescription):
     value_name: ""
     head: 0
     dependency: str = None
-    
+
 WAVE_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
     ReefBeatNumberEntityDescription(
         key='shortcut_off_delay',
@@ -97,6 +97,69 @@ WAVE_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         native_step=1,
         value_name=WAVE_SHORTCUT_OFF_DELAY,
         icon="mdi:arrow-expand-right",
+        entity_category=EntityCategory.CONFIG,
+    ),
+)
+
+WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
+    ReefBeatNumberEntityDescription(
+        key='wave_forward_time',
+        translation_key='wave_forward_time',
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        device_class=NumberDeviceClass.DURATION,
+        native_max_value=60,
+        native_min_value=2,
+        native_step=1,
+        value_name="$.sources[?(@.name=='/preview')].data.frt",
+        icon="mdi:waves-arrow-right",
+        entity_category=EntityCategory.CONFIG,
+    ),
+    ReefBeatNumberEntityDescription(
+        key='wave_backward_time',
+        translation_key='wave_backward_time',
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        device_class=NumberDeviceClass.DURATION,
+        native_max_value=60,
+        native_min_value=2,
+        native_step=1,
+        value_name="$.sources[?(@.name=='/preview')].data.rrt",
+        icon="mdi:waves-arrow-left",
+        entity_category=EntityCategory.CONFIG,
+    ),
+    ReefBeatNumberEntityDescription(
+        key='wave_forward_intensity',
+        translation_key='wave_forward_intensity',
+        native_unit_of_measurement=PERCENTAGE,
+        device_class=NumberDeviceClass.POWER_FACTOR,
+        native_max_value=100,
+        native_min_value=10,
+        native_step=10,
+        value_name="$.sources[?(@.name=='/preview')].data.fti",
+        icon="mdi:waves-arrow-right",
+        entity_category=EntityCategory.CONFIG,
+    ),
+    ReefBeatNumberEntityDescription(
+        key='wave_backward_intensity',
+        translation_key='wave_backward_intensity',
+        native_unit_of_measurement=PERCENTAGE,
+        device_class=NumberDeviceClass.POWER_FACTOR,
+        native_max_value=100,
+        native_min_value=10,
+        native_step=10,
+        value_name="$.sources[?(@.name=='/preview')].data.rti",
+        icon="mdi:waves-arrow-left",
+        entity_category=EntityCategory.CONFIG,
+    ),
+    ReefBeatNumberEntityDescription(
+        key='wave_preview_duration',
+        translation_key='wave_preview_duration',
+        native_unit_of_measurement=UnitOfTime.MILLISECONDS,
+        device_class=NumberDeviceClass.DURATION,
+        native_max_value=600000,
+        native_min_value=60000,
+        native_step=60000,
+        value_name="$.sources[?(@.name=='/preview')].data.duration",
+        icon="mdi:timer-sand",
         entity_category=EntityCategory.CONFIG,
     ),
 )
@@ -127,19 +190,18 @@ MAT_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:arrow-expand-right",
         entity_category=EntityCategory.CONFIG,
     ),
-    ReefBeatNumberEntityDescription(
-        key='schedule_length',
-        translation_key='schedule_length',
-        native_unit_of_measurement=UnitOfLength.CENTIMETERS,
-        device_class=NumberDeviceClass.DISTANCE,
-        native_min_value=5,
-        native_max_value=45,
-        native_step=2.5,
-        value_name="$.sources[?(@.name=='/configuration')].data.schedule_length",
-        icon="mdi:arrow-expand-right",
-        entity_category=EntityCategory.CONFIG,
-    ),
-
+   ReefBeatNumberEntityDescription(
+       key='schedule_length',
+       translation_key='schedule_length',
+       native_unit_of_measurement=UnitOfLength.CENTIMETERS,
+       device_class=NumberDeviceClass.DISTANCE,
+       native_min_value=5,
+       native_max_value=45,
+       native_step=2.5,
+       value_name="$.sources[?(@.name=='/configuration')].data.schedule_length",
+       icon="mdi:arrow-expand-right",
+       entity_category=EntityCategory.CONFIG,
+   ),
 )
 
 LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
@@ -364,6 +426,9 @@ async def async_setup_entry(
         entities += [ReefBeatNumberEntity(device, description)
                  for description in WAVE_NUMBERS
                  if description.exists_fn(device)]
+        entities += [ReefWaveNumberEntity(device, description)
+                 for description in WAVE_PREVIEW_NUMBERS
+                 if description.exists_fn(device)]
         
     async_add_entities(entities, True)
 
@@ -533,4 +598,30 @@ class ReefRunNumberEntity(ReefBeatNumberEntity):
         return di
 
 
+    
+################################################################################
+# WAVE
+class ReefWaveNumberEntity(ReefBeatNumberEntity):
+    """Represent an ReefBeat number."""
+    _attr_has_entity_name = True
+    
+    def __init__(
+        self, device, entity_description: ReefBeatNumberEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_available = self.available
+        value=self._device.get_data(self.entity_description.value_name)
+        self._attr_native_value=int(value)
+        self.async_write_ha_state()
+
+        
+    async def async_set_native_value(self, value: int) -> None:
+        self._attr_native_value=value
+        self._device.set_data(self.entity_description.value_name,int(value)) 
+        self.async_write_ha_state()
     

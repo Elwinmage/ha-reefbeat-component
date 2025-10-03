@@ -1,4 +1,3 @@
-
 """ Implements the sensor entity """
 import logging
 
@@ -159,8 +158,21 @@ async def async_setup_entry(
                  for description in ATO_BUTTONS
                  if description.exists_fn(device)]
     elif type(device).__name__=='ReefWaveCoordinator':
-        entities += [ReefBeatButtonEntity(device, description)
+        entities += [ReefWaveButtonEntity(device, description)
                  for description in PREVIEW_BUTTONS
+                 if description.exists_fn(device)]
+        WAVE_SAVE_PREVIEW_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] =(
+            ReefBeatButtonEntityDescription(
+                key='preview_save',
+                translation_key='preview_save',
+                exists_fn=lambda _: True,
+                press_fn=lambda device: device.delete('/preview'),
+                icon="mdi:content-save-cog",
+                entity_category=EntityCategory.CONFIG,
+            ),
+        )
+        entities += [ReefWaveButtonEntity(device, description)
+                 for description in WAVE_SAVE_PREVIEW_BUTTONS
                  if description.exists_fn(device)]
     elif type(device).__name__=='ReefRunCoordinator':
         if device.my_api._live_config_update == False:
@@ -349,5 +361,39 @@ class ReefRunButtonEntity(ReefBeatButtonEntity):
         di['identifiers']={identifiers}
         return di
 
+################################################################################
+# WAVE
+class ReefWaveButtonEntity(ReefBeatButtonEntity):
+    """Represent a ReefWave button."""
+    _attr_has_entity_name = True
+    
+    def __init__(
+        self, device, entity_description: ReefBeatButtonEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+
+    async def async_press(self) -> None:
+        """Handle the button press."""
+        if self.entity_description.key == 'preview_start' and self._device.get_data("$.sources[?(@.name=='/preview')].data.type")=="nw":
+            _LOGGER.info("Sorry, 'No wave' is not supported in preview")
+        elif self.entity_description.key == 'preview_save':
+            # stop preview
+            if self._device.get_data("$.sources[?(@.name=='/mode')].data.mode")=='preview':
+                _LOGGER.debug('Stopping preview')
+                await self._device.delete('/preview')
+                self._device.set_data("$.sources[?(@.name=='/mode')].data.mode",'auto')
+            # set current wave
+            await self._device.set_wave()
+            self.async_write_ha_state()  
+            
+            _LOGGER.info('RSWAVE Save preview Not implemented yet')
+        else:
+            await self.entity_description.press_fn(self._device)
+            await self._device.async_request_refresh()
+        if self.entity_description.key == 'preview_start':
+            self._device.set_data("$.sources[?(@.name=='/mode')].data.mode",'preview')
+        elif self.entity_description.key == 'preview_stop':
+            self._device.set_data("$.sources[?(@.name=='/mode')].data.mode",'auto')
 
 

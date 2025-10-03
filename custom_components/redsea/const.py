@@ -152,6 +152,48 @@ OVERSKIMMING_ENABLED_INTERNAL_NAME="$.sources[?(@.name=='/pump/settings')].data.
 # WAVE
 WAVE_SHORTCUT_OFF_DELAY="$.sources[?(@.name=='/device-settings')].data.shortcut_off_delay"
 
+
+WAVE_TYPES=[
+    {"id":"nw",
+     "en":"No Wave",
+     "fr":"Pas de vague"
+     },
+    {"id":"ra",
+     "en":"Random",
+     "fr":"Aléatoire"
+     },
+    {"id":"re",
+     "en":"Regular",
+     "fr":"Régulier"
+     },
+    {"id":"st",
+     "en":"Step",
+     "fr":"Paliers"
+     },
+    {"id":"su",
+     "en":"Surface",
+     "fr":"Surface"
+     },
+    {"id":"un",
+     "en":"Uniform",
+     "fr":"Uniforme"
+     },
+    ]
+
+WAVE_DIRECTIONS=[
+    {"id":"alt",
+     "en": "Alternate",
+     "fr": "Alternatif"
+     },
+     {"id":"fw",
+      "en": "Forward",
+      "fr": "Marche Avant"
+      },
+     {"id":"rw",
+      "en": "Reward",
+      "fr": "Marche Arrière"
+      }]
+
 ################################################################################
 # LIBRARIES
 LIGHTS_LIBRARY="/reef-lights/library?include=all"

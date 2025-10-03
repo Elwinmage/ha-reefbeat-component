@@ -29,7 +29,6 @@ from homeassistant.const import (
     EntityCategory,
 )
 
-
 from .const import (
     DOMAIN,
     DAILY_PROG_INTERNAL_NAME,
@@ -42,12 +41,16 @@ from .const import (
     LED_MODES,
     SKIMMER_MODELS,
     RETURN_MODELS,
-    )
+    WAVE_TYPES,
+    WAVE_DIRECTIONS
+)
 
 from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
 
-_LOGGER = logging.getLogger(__name__)
+from .i18n import translate_list,translate
 
+_LOGGER = logging.getLogger(__name__)
+       
 @dataclass(kw_only=True)
 class ReefBeatSelectEntityDescription(SelectEntityDescription):
     """Describes reefbeat Select entity."""
@@ -67,6 +70,16 @@ class ReefRunSelectEntityDescription(SelectEntityDescription):
     options: []
     method: str = 'put'
 
+
+@dataclass(kw_only=True)
+class ReefWaveSelectEntityDescription(SelectEntityDescription):
+    """Describes reefbeat Select entity."""
+    exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
+    value_name: ''
+    options: []
+    method: str = 'post'
+    i18n_options: []
+    
 MAT_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
     ReefBeatSelectEntityDescription(
         key="model",
@@ -125,6 +138,33 @@ async def async_setup_entry(
         entities += [ReefBeatSelectEntity(device, description)
                  for description in LED_SELECTS
                  if description.exists_fn(device)]
+    elif type(device).__name__=='ReefWaveCoordinator':
+        waves=(
+            ReefWaveSelectEntityDescription(
+                key="preview_wave_type",
+                translation_key="preview_wave_type",
+                value_name="$.sources[?(@.name=='/preview')].data.type",
+                exists_fn=lambda _: True,
+                icon="mdi:wave",
+                i18n_options=WAVE_TYPES,
+                options=translate_list(WAVE_TYPES,hass.config.language),
+                entity_category=EntityCategory.CONFIG,
+            ),
+            ReefWaveSelectEntityDescription(
+                key="preview_wave_direction",
+                translation_key="preview_wave_direction",
+                value_name="$.sources[?(@.name=='/preview')].data.direction",
+                exists_fn=lambda _: True,
+                icon="mdi:waves-arrow-right",
+                i18n_options=WAVE_DIRECTIONS,
+                options=translate_list(WAVE_DIRECTIONS,hass.config.language),
+                entity_category=EntityCategory.CONFIG,
+            ),
+        )
+        entities += [ReefWaveSelectEntity(device, description)
+                     for description in waves
+                     if description.exists_fn(device)]
+
     elif type(device).__name__=='ReefRunCoordinator':
         ds=()
         for pump in range (1,3):
@@ -148,7 +188,8 @@ async def async_setup_entry(
         
     async_add_entities(entities, True)
 
-
+################################################################################
+# BEAT
 class ReefBeatSelectEntity(CoordinatorEntity,SelectEntity):
     """Represent an ReefBeat select."""
     _attr_has_entity_name = True
@@ -185,6 +226,7 @@ class ReefBeatSelectEntity(CoordinatorEntity,SelectEntity):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info
+    
 ################################################################################
 # RUN
 class ReefRunSelectEntity(ReefBeatSelectEntity):
@@ -216,3 +258,32 @@ class ReefRunSelectEntity(ReefBeatSelectEntity):
         di['identifiers']={identifiers}
         return di
     
+################################################################################
+# WAVE
+class ReefWaveSelectEntity(ReefBeatSelectEntity):
+    """Represent an ReefBeat sensor."""
+    _attr_has_entity_name = True
+    
+    def __init__(
+        self, device, entity_description: ReefWaveSelectEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+        self._attr_current_option = translate(self.entity_description.i18n_options,self._device.get_data(self._value_name),'id',self._device._hass.config.language)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_available = True
+        self._attr_current_option = translate(self.entity_description.i18n_options,self._device.get_data(self._value_name),'id',self._device._hass.config.language)
+        self.async_write_ha_state()
+
+    async def async_select_option(self, option: str) -> None:
+        """Update the current selected option."""
+        self._attr_current_option = option
+        _LOGGER.debug("current option: %s"%option)
+        value=translate(self.entity_description.i18n_options,option,self._device._hass.config.language,'id')
+        _LOGGER.debug("current value: %s"%value)
+        self._device.set_data(self._value_name,value)
+        self.async_write_ha_state()        
+

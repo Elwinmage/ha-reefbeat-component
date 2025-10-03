@@ -483,9 +483,6 @@ class ReefRunCoordinator(ReefBeatCoordinator):
 
 ################################################################################
 # REEFWAVE
-# TODO: Add preview
-# Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/23
-#  labels: enhancement, rswave
 class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
 
     def __init__(
@@ -496,6 +493,25 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
         """Initialize coordinator."""
         super().__init__(hass,entry)
         self.my_api = ReefWaveAPI(self._ip,self._live_config_update)
+
+    def set_wave(self):
+        pass
+
+    def get_current_value(self,value_basename,value_name):
+        now= datetime.now()
+        now_minutes=now.hour*60+now.minute
+        data_name=value_name.split('.')[:-1]
+        schedule=self.my_api.get_data(value_basename)
+        cur_prog=schedule[0]
+        for prog in schedule[1:]:
+            if int(prog['st']) < now_minutes:
+                cur_prog=prog
+            else:
+                break
+        if value_name in cur_prog:
+            return cur_prog[value_name]
+        else:
+            return None
         
 ################################################################################
 # CLOUD

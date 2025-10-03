@@ -19,7 +19,6 @@ from homeassistant.components.sensor import (
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     )
-    
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -41,9 +40,14 @@ from .const import (
     WAVES_LIBRARY,
     LED_WHITE_INTERNAL_NAME,
     LED_BLUE_INTERNAL_NAME,
+    WAVE_DIRECTIONS,
+    WAVE_TYPES,
 )
 
-from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator, ReefRunCoordinator, ReefLedCoordinator
+from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator, ReefRunCoordinator, ReefLedCoordinator, ReefWaveCoordinator
+
+from .i18n import translate_list,translate
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -73,6 +77,13 @@ class ReefRunSensorEntityDescription(SensorEntityDescription):
     value_name: ''
     pump: 0
 
+@dataclass(kw_only=True)
+class ReefWaveSensorEntityDescription(SensorEntityDescription):
+    """Describes reefbeat sensor entity."""
+    exists_fn: Callable[[ReefWaveCoordinator], bool] = lambda _: True
+    value_basename: str = "$.sources[?(@.name=='/auto')].data.intervals"
+    value_name: ''
+    
 @dataclass(kw_only=True)
 class ReefLedScheduleSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
@@ -342,6 +353,62 @@ for auto_id in range(1,8):
     ),)
 
 
+WAVE_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
+    ReefBeatSensorEntityDescription(
+        key='mode',
+        translation_key='mode',
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/mode')].data.mode"),
+        icon="mdi:play",
+    ),
+)
+
+WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (   
+    ReefWaveSensorEntityDescription(
+        key='wave_type',
+        translation_key='wave_type',
+        value_name="type",
+        icon="mdi:wave",
+    ),
+    ReefWaveSensorEntityDescription(
+        key='wave_direction',
+        translation_key='wave_direction',
+        value_name="direction",
+        icon="mdi:waves-arrow-right",
+    ),
+    ReefWaveSensorEntityDescription(
+        key='wave_forward_time',
+        translation_key='wave_forward_time',
+        value_name="frt",
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        device_class=SensorDeviceClass.DURATION,
+        icon="mdi:waves-arrow-right",
+    ),
+    ReefWaveSensorEntityDescription(
+        key='wave_backward_time',
+        translation_key='wave_backward_time',
+        value_name="rrt",
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        device_class=SensorDeviceClass.DURATION,
+        icon="mdi:waves-arrow-left",
+    ),
+    ReefWaveSensorEntityDescription(
+        key='wave_forward_intensity',
+        translation_key='wave_forward_intensity',
+        value_name="fti",
+        native_unit_of_measurement=PERCENTAGE,
+        #device_class=SensorDeviceClass.POWER_FACTOR,
+        icon="mdi:waves-arrow-right",
+    ),
+    ReefWaveSensorEntityDescription(
+        key='wave_backward_intensity',
+        translation_key='wave_backward_intensity',
+        value_name="rti",
+        native_unit_of_measurement=PERCENTAGE,
+        #device_class=SensorDeviceClass.POWER_FACTOR,
+        icon="mdi:waves-arrow-left",
+    ),
+)
+    
 """ ReefMat sensors list """
 ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription(
@@ -456,6 +523,13 @@ async def async_setup_entry(
     elif type(device).__name__=='ReefMatCoordinator':
         entities += [ReefBeatSensorEntity(device, description)
                      for description in MAT_SENSORS
+                     if description.exists_fn(device)]
+    elif type(device).__name__=='ReefWaveCoordinator':
+        entities += [ReefBeatSensorEntity(device, description)
+                     for description in WAVE_SENSORS
+                     if description.exists_fn(device)]
+        entities += [ReefWaveSensorEntity(device, description)
+                     for description in WAVE_SCHEDULE_SENSORS
                      if description.exists_fn(device)]
     elif type(device).__name__=='ReefDoseCoordinator':
         ds=()
@@ -783,6 +857,26 @@ class ReefRunSensorEntity(ReefBeatSensorEntity):
         di['identifiers']={identifiers}
         return di
 
+################################################################################
+# WAVE
+class ReefWaveSensorEntity(ReefBeatSensorEntity):
+    """Represent an ReefBeat sensor."""
+    _attr_has_entity_name = True
+    
+    def __init__(
+        self, device, entity_description: ReefBeatSensorEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+
+    def _get_value(self):
+        val=self._device.get_current_value(self.entity_description.value_basename,self.entity_description.value_name)
+        if self.entity_description.value_name=="type":
+            val=translate(WAVE_TYPES,val,'id',self._device._hass.config.language)
+        elif self.entity_description.value_name=="direction":
+            val=translate(WAVE_DIRECTIONS,val,'id',self._device._hass.config.language)
+        return val
+        
 ################################################################################
 # CLOUD
 class ReefBeatCloudSensorEntity(ReefBeatSensorEntity):
