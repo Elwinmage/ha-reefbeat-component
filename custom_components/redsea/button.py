@@ -1,6 +1,11 @@
 """ Implements the sensor entity """
 import logging
 
+import uuid
+
+from datetime import  timedelta, datetime
+from time import time
+
 from dataclasses import dataclass
 from collections.abc import Callable
 
@@ -27,9 +32,14 @@ from homeassistant.helpers.typing import StateType
 
 from .const import (
     DOMAIN,
-    )
+    WAVE_TYPES,
+    WAVE_DIRECTIONS,
+    WAVE_SCHEDULE_PATH,
+)
 
 from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator,ReefRunCoordinator
+
+from .i18n import translate_list,translate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -376,7 +386,7 @@ class ReefWaveButtonEntity(ReefBeatButtonEntity):
     async def async_press(self) -> None:
         """Handle the button press."""
         if self.entity_description.key == 'preview_start' and self._device.get_data("$.sources[?(@.name=='/preview')].data.type")=="nw":
-            _LOGGER.info("Sorry, 'No wave' is not supported in preview")
+            _LOGGER.info("'No Wave' is the only type of waves that can't be previewed")
         elif self.entity_description.key == 'preview_save':
             # stop preview
             if self._device.get_data("$.sources[?(@.name=='/mode')].data.mode")=='preview':
@@ -384,9 +394,45 @@ class ReefWaveButtonEntity(ReefBeatButtonEntity):
                 await self._device.delete('/preview')
                 self._device.set_data("$.sources[?(@.name=='/mode')].data.mode",'auto')
             # set current wave
-            await self._device.set_wave()
+            #init
+            payload={"uid": str(uuid.uuid4())}
+            await self._device.my_api.http_send('/auto/init',payload)
+            #set wave
+            auto=self._device.get_data("$.sources[?(@.name=='/auto')].data")
+            waves=auto['intervals']
+            auto.pop("uid")
+            _LOGGER.debug(auto)
+            now= datetime.now()
+            now_minutes=now.hour*60+now.minute
+            cur_wave_place=0
+            # Find current wave
+            for i in range(0,len(waves)):
+                if int(waves[i]['st']) < now_minutes:
+                    cur_wave_place=i
+                else:
+                    break
+            #Edit values
+            new_wave={"wave_uid": str(uuid.uuid4()),
+                      "type": self._device.get_data("$.sources[?(@.name=='/preview')].data.type"),
+                      "direction": self._device.get_data("$.sources[?(@.name=='/preview')].data.direction"),
+                      "name": translate(WAVE_TYPES,self._device.get_data("$.sources[?(@.name=='/preview')].data.type"),"id",self._device._hass.config.language)+'-'+str(int(time())),
+                      "frt": self._device.get_data("$.sources[?(@.name=='/preview')].data.frt",True),
+                      "rrt": self._device.get_data("$.sources[?(@.name=='/preview')].data.rrt",True),
+                      "fti": self._device.get_data("$.sources[?(@.name=='/preview')].data.fti",True),
+                      "rti": self._device.get_data("$.sources[?(@.name=='/preview')].data.rti",True),
+                      "sync": True,
+                      "st": auto['intervals'][cur_wave_place]['st']
+                      }
+            auto['intervals'][cur_wave_place]=new_wave
+            _LOGGER.error('*********')
+            _LOGGER.debug(auto)
+            _LOGGER.error('*********')            
+            await self._device.my_api.http_send('/auto',auto)
+            #complete
+            await self._device.my_api.http_send('/auto/complete',payload)
+            #apply
+            await self._device.my_api.http_send('/auto/apply',payload)
             self.async_write_ha_state()  
-            
             _LOGGER.info('RSWAVE Save preview Not implemented yet')
         else:
             await self.entity_description.press_fn(self._device)

@@ -500,7 +500,6 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
     def get_current_value(self,value_basename,value_name):
         now= datetime.now()
         now_minutes=now.hour*60+now.minute
-        data_name=value_name.split('.')[:-1]
         schedule=self.my_api.get_data(value_basename)
         cur_prog=schedule[0]
         for prog in schedule[1:]:

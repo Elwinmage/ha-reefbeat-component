@@ -212,6 +212,9 @@ class ReefBeatAPI():
         except:
             _LOGGER.error("reefbeat.set_data('%s')"%data_name)
 
+    async def http_send(self,action,payload={},method='post'):
+        await self._http_send(self._base_url+action,payload,method)
+            
     async def _http_send(self,url,payload={},method='post'):
         status_ok=False
         error_count=0

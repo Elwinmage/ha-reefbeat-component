@@ -42,6 +42,7 @@ from .const import (
     LED_BLUE_INTERNAL_NAME,
     WAVE_DIRECTIONS,
     WAVE_TYPES,
+    WAVE_SCHEDULE_PATH,
 )
 
 from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator, ReefRunCoordinator, ReefLedCoordinator, ReefWaveCoordinator
@@ -81,7 +82,7 @@ class ReefRunSensorEntityDescription(SensorEntityDescription):
 class ReefWaveSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
     exists_fn: Callable[[ReefWaveCoordinator], bool] = lambda _: True
-    value_basename: str = "$.sources[?(@.name=='/auto')].data.intervals"
+    value_basename: str = WAVE_SCHEDULE_PATH
     value_name: ''
     
 @dataclass(kw_only=True)
