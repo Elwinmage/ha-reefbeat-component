@@ -69,7 +69,8 @@ class ReefBeatAPI():
                                {"name":"/cloud","type": "config","data":""},
                                {"name":"/wifi","type": "data","data":""},
                                {"name":"/dashboard","type": "data","data":""}]}
-        #store object paht according to jsonpath
+        self.data['local']={}
+        #store object path according to jsonpath
         self._data_db = {}
         self.last_update_success=None
         self.quick_refresh=None
@@ -213,12 +214,13 @@ class ReefBeatAPI():
             _LOGGER.error("reefbeat.set_data('%s')"%data_name)
 
     async def http_send(self,action,payload={},method='post'):
-        await self._http_send(self._base_url+action,payload,method)
+        return await self._http_send(self._base_url+action,payload,method)
             
     async def _http_send(self,url,payload={},method='post'):
         status_ok=False
         error_count=0
         _LOGGER.debug("%s data: %s to %s"%(method,payload,url))
+        r=None
         while status_ok == False and error_count <= HTTP_MAX_RETRY:
             try:
                 if method=='post':
@@ -241,9 +243,9 @@ class ReefBeatAPI():
                 _LOGGER.debug(e)
             if status_ok==False:
                 await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
-                
         if status_ok==False:
             _LOGGER.error("Can not push data to %s"%(url))
+        return r
 
     async def push_values(self,source,method='post'):
         payload=self.get_data("$.sources[?(@.name=='"+source+"')].data")
@@ -426,9 +428,6 @@ class ReefLedAPI(ReefBeatAPI):
             self.update_light_wb()
         self.update_acclimation()
         self.force_status_update()
-
-    # async def delete(self, source):
-    #     await self._http_send(self._base_url+source,method='delete')
 
     async def post_specific(self, source):
         if source == '/timer' :

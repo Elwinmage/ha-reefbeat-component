@@ -203,7 +203,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         await self.async_set_unique_id(str(uuid))
                         self._abort_if_unique_id_configured()
                         #
-                        title=configuration[2]
+                        title="-".join(configuration[2:])
                         user_input[CONFIG_FLOW_HW_MODEL]=configuration[1]
                         user_input[CONFIG_FLOW_IP_ADDRESS]=configuration[0]
                         user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(user_input[CONFIG_FLOW_HW_MODEL])

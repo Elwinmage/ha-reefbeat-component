@@ -174,6 +174,10 @@ async def async_setup_entry(
         
     entities=[]
     _LOGGER.debug("SWITCHES")
+    # if device.__class__.__bases__[0].__name__=='ReefBeatCloudLinkedCoordinator':
+    #     entities += [ReefBeatSwitchEntity(device, description)
+    #                  for description in CLOUD_SWITCH
+    #                  if description.exists_fn(device)]
     if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefVirtualLedCoordinator'or type(device).__name__=='ReefLedG2Coordinator':
         entities += [ReefLedSwitchEntity(device, description, hass)
                  for description in LED_SWITCHES

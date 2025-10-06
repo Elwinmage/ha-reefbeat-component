@@ -538,6 +538,9 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
     def _handle_link_requests(self,event):
         device=self._hass.data[DOMAIN][event.data.get('device_id')]
         device.set_cloud_link(self)
+
+    async def send_cmd(self,action,payload,method='post'):
+        return await self.my_api.http_send(action,payload,method)
         
     @property
     def title(self):
