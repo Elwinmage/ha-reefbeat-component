@@ -5,6 +5,7 @@ import glob
 import logging
 import copy
 import ipaddress
+import asyncio
 
 from jsonpath_ng import jsonpath
 from jsonpath_ng.ext import parse
@@ -66,6 +67,8 @@ from .const import (
     RUN_SCAN_INTERVAL,
     VIRTUAL_LED,
     LINKED_LED,
+    HTTP_MAX_RETRY,
+    HTTP_DELAY_BETWEEN_RETRY,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -95,8 +98,17 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def _unique_id(self, user_input):
         f_kwargs = {}
         f_kwargs["ip"] = user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')[0]
-        uuid=await self.hass.async_add_executor_job(partial(get_unique_id,**f_kwargs))
-        return uuid
+        retry = HTTP_MAX_RETRY
+        while retry > 0:
+            
+            uuid=await self.hass.async_add_executor_job(partial(get_unique_id,**f_kwargs))
+            if uuid != None:
+                return uuid
+            retry -= 1
+            await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
+            _LOGGER.warning("Could not get UUId for %s, retry in progress"%f_kwargs["ip"] )
+        _LOGGER.error("Could not get UUId for %s"%f_kwargs["ip"])
+        return f_kwargs["ip"]
 
     def is_network(self, address):
         addr=address.split('/')

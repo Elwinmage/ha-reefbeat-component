@@ -72,7 +72,7 @@ def get_unique_id(ip):
             uuid=udn.replace("uuid:","")
             return uuid
     except Exception as e :
-        return str(e)
+        return None
      
 if __name__ == '__main__':
 #    print(HW_DEVICES_IDS)
