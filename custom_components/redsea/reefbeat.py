@@ -453,7 +453,6 @@ class ReefLedAPI(ReefBeatAPI):
 
         
     async def post_specific(self, source):
-        _LOGGER.error("post_specific")
         if source == '/timer' :
             payload=self.get_data('$.sources[?(@.name=="/manual")].data')
             if self._rsled90_patch:
