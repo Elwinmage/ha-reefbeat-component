@@ -22,7 +22,9 @@ CONFIG_FLOW_ADD_TYPE="add_type"
 ADD_CLOUD_API="cloud_api"
 ADD_LOCAL_DETECT="local_detect"
 ADD_MANUAL_MODE="manual_mode"
-ADD_TYPES=[ADD_CLOUD_API,ADD_LOCAL_DETECT,ADD_MANUAL_MODE]
+VIRTUAL_LED="virtual_led"
+
+ADD_TYPES=[ADD_CLOUD_API,ADD_LOCAL_DETECT,ADD_MANUAL_MODE,VIRTUAL_LED]
 
 #CLOUD
 CONFIG_FLOW_CLOUD_USERNAME="username"
@@ -106,7 +108,6 @@ LED_MODES=["auto","timer","manual"]
 
 #VIRTUAL
 
-VIRTUAL_LED="virtual_led"
 VIRTUAL_LED_MAX_WAITING_TIME=15
 LINKED_LED="linked"
 VIRTUAL_LED_SCAN_INTERVAL=10 #in seconds
@@ -197,5 +198,5 @@ WAVE_DIRECTIONS=[
 ################################################################################
 # LIBRARIES
 LIGHTS_LIBRARY="/reef-lights/library?include=all"
-WAVES_LIBRARY="/reef-wave/library?include=all"
+WAVES_LIBRARY="/reef-wave/library"
 WAVE_SCHEDULE_PATH="$.sources[?(@.name=='/auto')].data.intervals"

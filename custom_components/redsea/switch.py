@@ -21,13 +21,15 @@ from homeassistant.components.switch import (
     SwitchDeviceClass,
  )
 
+
+
 from homeassistant.const import (
     EntityCategory,
 )
 
-
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import  DeviceInfo
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from homeassistant.helpers.typing import StateType
 
@@ -72,6 +74,30 @@ class ReefDoseSwitchEntityDescription(SwitchEntityDescription):
     head: 0
     method: str = 'put'
 
+@dataclass(kw_only=True)
+class SaveStateSwitchEntityDescription(SwitchEntityDescription):
+    """Describes reefbeat Switch entity."""
+    exists_fn: Callable[[], bool] = lambda _: True
+    
+    icon_off: ''
+
+SAVE_STATE_SWITCHES: tuple[SaveStateSwitchEntityDescription, ...] = (
+    SaveStateSwitchEntityDescription(
+        key="use_cloud_api",
+        translation_key="use_cloud_api",
+        icon="mdi:cloud-check-variant",
+        icon_off="mdi:cloud-cancel-outline",
+        entity_category=EntityCategory.CONFIG,
+    ),
+    SaveStateSwitchEntityDescription(
+        key="local_api_fallback",
+        translation_key="local_api_fallback",
+        icon="mdi:lan-check",
+        icon_off="mdi:lan-disconnect",
+        entity_category=EntityCategory.CONFIG,
+    ),
+)
+    
 COMMON_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
     ReefBeatSwitchEntityDescription(
         key="device_state",#on/off
@@ -174,10 +200,10 @@ async def async_setup_entry(
         
     entities=[]
     _LOGGER.debug("SWITCHES")
-    # if device.__class__.__bases__[0].__name__=='ReefBeatCloudLinkedCoordinator':
-    #     entities += [ReefBeatSwitchEntity(device, description)
-    #                  for description in CLOUD_SWITCH
-    #                  if description.exists_fn(device)]
+    if device.__class__.__bases__[0].__name__=='ReefBeatCloudLinkedCoordinator':
+        entities += [SaveStateSwitchEntity(device, description)
+                     for description in SAVE_STATE_SWITCHES
+                     if description.exists_fn(device)]
     if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefVirtualLedCoordinator'or type(device).__name__=='ReefLedG2Coordinator':
         entities += [ReefLedSwitchEntity(device, description, hass)
                  for description in LED_SWITCHES
@@ -226,6 +252,58 @@ async def async_setup_entry(
 
     async_add_entities(entities, True)
 
+
+################################################################################
+# SaveState Switches
+class SaveStateSwitchEntity(SwitchEntity,RestoreEntity):
+    _attr_has_entity_name = True
+
+    def __init__(self,device,entity_description: SaveStateSwitchEntityDescription) -> None:
+        super().__init__()
+        self._device = device
+        self.entity_description = entity_description
+        self._attr_available = True
+        self._attr_unique_id = f"{device.serial}_{entity_description.key}"
+
+    async def async_turn_on(self, **kwargs):
+        """Turn the switch on."""
+        self._state=True
+        self.icon=self.entity_description.icon
+        self._device.set_data("$.local."+self.entity_description.key,self._state)
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs):
+        """Turn the switch off."""
+        self._state=False
+        self.icon=self.entity_description.icon_off
+        self._device.set_data("$.local."+self.entity_description.key,self._state)
+        self.async_write_ha_state()
+
+    async def async_added_to_hass(self) -> None:
+        """Handle entity which will be added."""
+        await super().async_added_to_hass()
+        state = await self.async_get_last_state()
+        if state==None:
+            self._state = True
+            self.icon=self.entity_description.icon
+            self._device.set_data("$.local."+self.entity_description.key,self._state)
+            self.async_write_ha_state()
+            return
+        self._state = (state.state=='on')
+        if self._state == False:
+            self.icon=self.entity_description.icon_off 
+        self._device.set_data("$.local."+self.entity_description.key,self._state)
+        self.async_write_ha_state()
+        
+    @property
+    def is_on(self) -> bool:
+        return self._state
+        
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return self._device.device_info
+    
 ################################################################################
 # BEAT
 class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):

@@ -25,7 +25,8 @@
 	    "options":{
 		"cloud_api": "API Cloud ",
 		"local_detect": "Détection locale",
-		"manual_mode": "Mode Manuel"
+		"manual_mode": "Mode Manuel",
+		"virtual_led": "Led virtuelle"
 	    }
 	},
 	"ip_address":{
@@ -81,6 +82,12 @@
 	    }
 	},
 	"number":{
+	    "wave_preview_wave_duration":{
+		"name": "Prev. durée vague"
+	    },
+	    "wave_preview_step":{
+		"name": "Prev. palier"
+	    },
 	    "wave_forward_time":{
 		"name": "Prev. Durée en Marche Avant"
 	    },
@@ -213,6 +220,9 @@
 	    
 	},
 	"sensor": {
+	    "wave_step":{
+		"name": "Paliers"
+	    },
 	    "mode":{
 		"name": "mode"
 	    },
@@ -451,6 +461,12 @@
 	    }
 	},
 	"switch": {
+	    "use_cloud_api":{
+		"name": "Utiliser l'API cloud"
+	    },
+	    "local_api_fallback":{
+		"name": "API Local Si Cloud en erreur"
+	    },
 	    "cloud_connect":{
 		"name": "Connexion au cloud"
 	    },

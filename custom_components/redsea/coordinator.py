@@ -2,6 +2,9 @@ import logging
 import asyncio
 import async_timeout
 
+import uuid
+from time import time
+
 from datetime import  timedelta, datetime
 
 from homeassistant.core import HomeAssistant
@@ -10,9 +13,17 @@ from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 
+from homeassistant.exceptions import ServiceValidationError
+
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
+
+from homeassistant.components.websocket_api import (
+    ActiveConnection,
+)
+
+
 
 from typing import Any
 
@@ -39,9 +50,13 @@ from .const import (
     LED_BLUE_INTERNAL_NAME,
     LED_KELVIN_INTERNAL_NAME,
     LED_INTENSITY_INTERNAL_NAME,
+    WAVE_TYPES,
+    WAVES_LIBRARY,
 )
 
 from .reefbeat import ReefBeatAPI,ReefLedAPI, ReefMatAPI, ReefDoseAPI, ReefATOAPI, ReefRunAPI, ReefWaveAPI, ReefBeatCloudAPI
+
+from .i18n import translate_list,translate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -157,7 +172,10 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
 
     @property
     def model_id(self):
-        return self.get_data("$.sources[?(@.name=='/device-info')].data.hwid")
+        res=self.get_data("$.sources[?(@.name=='/device-info')].data.hwid")
+        if res=='null':
+            res=self.get_data("$.sources[?(@.name=='/')].data.uuid")
+        return res
 
     @property
     def hw_version(self):
@@ -174,6 +192,10 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
     def detected_id(self):
         return self._ip+' '+self._hw+' '+self._title
 
+    def unload(self):
+        pass
+
+    
 ################################################################################
 # CLOUD LINKED
 # Enable cloud connection for some devices (like waves and lights)
@@ -205,7 +227,11 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
         self._ask_for_link()
 
     def _handle_ask_for_link_ready(self,event):
-        self._ask_for_link()
+        if event.data.get('state')=='off' and self._cloud_link and self._cloud_link._title==event.data.get('account'):
+            _LOGGER.info("Link to cloud %s closed for %s"%(event.data.get('account'),self._title))
+            self._cloud_link=None
+        else:
+            self._ask_for_link()
 
     def _ask_for_link(self):
         _LOGGER.info("%s ask for clound link"%self._title)
@@ -214,7 +240,7 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
     def set_cloud_link(self,cloud):
         _LOGGER.info("%s linked to cloud %s"%(self._title,cloud._title))
         self._cloud_link=cloud
-
+        
     def cloud_link(self):
         if self._cloud_link!=None:
             return self._cloud_link._title
@@ -494,8 +520,95 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
         super().__init__(hass,entry)
         self.my_api = ReefWaveAPI(self._ip,self._live_config_update)
 
-    def set_wave(self):
-        pass
+        
+    async def set_wave(self):
+        if self.get_data("$.sources[?(@.name=='/mode')].data.mode")=='preview':
+            _LOGGER.debug('Stop preview')
+            await self.delete('/preview')
+            self.set_data("$.sources[?(@.name=='/mode')].data.mode",'auto')
+
+        cur_schedule=await self._get_current_schedule()
+        new_wave=await self._create_new_wave_from_preview(cur_schedule['cur_wave'])
+ 
+        if self.get_data("$.local.use_cloud_api")==True:
+            await self._set_wave_cloud_api(cur_schedule,new_wave)
+        else:
+            await self._set_wave_local_api(cur_schedule,new_wave)
+            # TODO :  update local library
+            
+            # auto_copy=auto.copy()
+            # _LOGGER.debug("USE CLOUD API")
+            # # for cloud api "start" replace "st" key
+            # for wave in auto_copy['intervals']:
+            #     wave['start']=wave['st']
+            # res=await self._cloud_link.send_cmd('/reef-wave/schedule/'+self.model_id,auto_copy)
+            # return 
+
+          
+    async def _create_new_wave_from_preview(self,cur_wave):
+            new_wave={"wave_uid": cur_wave['wave_uid'],
+              "type": self.get_data("$.sources[?(@.name=='/preview')].data.type"),
+              "direction": self.get_data("$.sources[?(@.name=='/preview')].data.direction"),
+              "name": translate(WAVE_TYPES,self.get_data("$.sources[?(@.name=='/preview')].data.type"),"id",self._hass.config.language)+'-'+str(int(time())),
+              "frt": self.get_data("$.sources[?(@.name=='/preview')].data.frt",True),
+              "rrt": self.get_data("$.sources[?(@.name=='/preview')].data.rrt",True),
+              "fti": self.get_data("$.sources[?(@.name=='/preview')].data.fti",True),
+              "rti": self.get_data("$.sources[?(@.name=='/preview')].data.rti",True),
+              "sync": True,
+              "st": cur_wave['st']
+              }
+            return new_wave
+            
+    async def _get_current_schedule(self):
+        auto=self.get_data("$.sources[?(@.name=='/auto')].data")
+        waves=auto['intervals']
+        _LOGGER.debug(auto)
+        now= datetime.now()
+        now_minutes=now.hour*60+now.minute
+        cur_wave_place=0
+        # Find current wave
+        for i in range(0,len(waves)):
+            if int(waves[i]['st']) < now_minutes:
+                cur_wave_place=i
+            else:
+                break
+        cur_wave=auto['intervals'][cur_wave_place]
+        return {'schedule':auto,'cur_wave':waves[cur_wave_place]}
+
+    async def _set_wave_cloud_api(self,cur_schedule,new_wave):
+        try:
+            if self._cloud_link==None:
+                raise TypeError("%s - Not linked to cloud account"%self._title)
+            is_cur_wave_default=self._cloud_link.get_data("$.sources[?(@.name=='"+WAVES_LIBRARY+"')].data[?(@.uid=='"+new_wave['wave_uid']+"')].default",True)
+            if is_cur_wave_default==True or is_cur_wave_default==None:
+                #create new wave
+                _LOGGER.debug("must create new wave")
+            else:
+                _LOGGER.debug("must update wave")
+            return
+        except Exception as e:
+            _LOGGER.error(e)
+        if self.get_data("$.local.local_api_fallback")==True:
+            _LOGGER.warning("Falling back to local API")
+            await self._set_wave_local_api(cur_schedule,new_wave)
+        if self._cloud_link==None:
+            raise ServiceValidationError("%s - Not linked to a cloud account"%self._title)
+
+            
+    async def _set_wave_local_api(self,cur_schedule,new_wave):
+        cur_schedule['cur_wave']=new_wave
+        payload={"uid": str(uuid.uuid4())}
+        await self.my_api.http_send('/auto/init',payload)
+        _LOGGER.debug(cur_schedule)
+        # LOCAL API
+        _LOGGER.debug("USE LOCAL API")
+        auto_copy=cur_schedule['schedule'].copy()
+        auto_copy.pop("uid")
+        await self.my_api.http_send('/auto',auto_copy)
+        #complete
+        await self.my_api.http_send('/auto/complete',payload)
+        #apply
+        await self.my_api.http_send('/auto/apply',payload)
 
     def get_current_value(self,value_basename,value_name):
         now= datetime.now()
@@ -523,6 +636,7 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
         """Initialize coordinator."""
         super().__init__(hass, entry)
         self.my_api = ReefBeatCloudAPI(self._entry.data[CONFIG_FLOW_CLOUD_USERNAME],self._entry.data[CONFIG_FLOW_CLOUD_PASSWORD],self._entry.data[CONFIG_FLOW_CONFIG_TYPE],self._ip )
+
         
     async def _async_setup(self) -> None:
         """Do initialization logic."""
@@ -537,11 +651,16 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
 
     def _handle_link_requests(self,event):
         device=self._hass.data[DOMAIN][event.data.get('device_id')]
-        device.set_cloud_link(self)
+        if self.get_data("$.sources[?(@.name=='/device')].data[?(@.hwid=='"+device.model_id+"')].hwid",True)!=None:
+            device.set_cloud_link(self)
 
     async def send_cmd(self,action,payload,method='post'):
         return await self.my_api.http_send(action,payload,method)
         
+
+    def unload(self):
+        self._hass.bus.fire("redsea_ask_for_cloud_link_ready", {'state': 'off', 'account':self._title})
+
     @property
     def title(self):
         return self._entry.title

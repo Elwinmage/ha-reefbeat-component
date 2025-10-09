@@ -363,12 +363,20 @@ WAVE_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
     ),
 )
 
+# TODO : set availability depending of wave type
+#  labels: enhancement, rswave
 WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (   
     ReefWaveSensorEntityDescription(
         key='wave_type',
         translation_key='wave_type',
         value_name="type",
         icon="mdi:wave",
+    ),
+    ReefWaveSensorEntityDescription(
+        key='wave_name',
+        translation_key='name',
+        value_name="name",
+        icon="mdi:identifier",
     ),
     ReefWaveSensorEntityDescription(
         key='wave_direction',
@@ -397,7 +405,6 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
         translation_key='wave_forward_intensity',
         value_name="fti",
         native_unit_of_measurement=PERCENTAGE,
-        #device_class=SensorDeviceClass.POWER_FACTOR,
         icon="mdi:waves-arrow-right",
     ),
     ReefWaveSensorEntityDescription(
@@ -405,8 +412,13 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
         translation_key='wave_backward_intensity',
         value_name="rti",
         native_unit_of_measurement=PERCENTAGE,
-        #device_class=SensorDeviceClass.POWER_FACTOR,
         icon="mdi:waves-arrow-left",
+    ),
+    ReefWaveSensorEntityDescription(
+        key='wave_step',
+        translation_key='wave_step',
+        value_name="st",
+        icon="mdi:stairs",
     ),
 )
     

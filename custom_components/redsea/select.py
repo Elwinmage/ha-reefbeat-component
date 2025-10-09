@@ -281,9 +281,9 @@ class ReefWaveSelectEntity(ReefBeatSelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Update the current selected option."""
         self._attr_current_option = option
-        _LOGGER.debug("current option: %s"%option)
         value=translate(self.entity_description.i18n_options,option,self._device._hass.config.language,'id')
-        _LOGGER.debug("current value: %s"%value)
         self._device.set_data(self._value_name,value)
+        self._device.async_update_listeners()
         self.async_write_ha_state()        
 
+        

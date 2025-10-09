@@ -152,6 +152,18 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 #DETECT
                 elif user_input[CONFIG_FLOW_ADD_TYPE]==ADD_LOCAL_DETECT:
                     return await self.auto_detect(subnetwork)
+                # VIRTUAL LED
+                elif user_input[CONFIG_FLOW_ADD_TYPE]==VIRTUAL_LED:
+                    title=VIRTUAL_LED+'-'+str(int(time()))
+                    user_input[CONFIG_FLOW_IP_ADDRESS]=title
+                    user_input[CONFIG_FLOW_HW_MODEL]=VIRTUAL_LED
+                    user_input[CONFIG_FLOW_SCAN_INTERVAL]=VIRTUAL_LED_SCAN_INTERVAL
+                    _LOGGER.debug("-- ** UUID ** -- %s"%title)
+                    await self.async_set_unique_id(title)
+                    return self.async_create_entry(
+                        title=title,
+                        data=user_input,
+                    )                    
                 # MANUAL
                 elif user_input[CONFIG_FLOW_ADD_TYPE]==ADD_MANUAL_MODE:
                     _LOGGER.debug(user_input)

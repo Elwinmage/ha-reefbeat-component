@@ -49,9 +49,12 @@ from .const import (
     LED_MANUAL_DURATION_INTERNAL_NAME,
     LED_KELVIN_INTERNAL_NAME,
     WAVE_SHORTCUT_OFF_DELAY,
+    WAVE_TYPES,
 )
 
 from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator, ReefLedCoordinator, ReefRunCoordinator, ReefWaveCoordinator
+
+from .i18n import translate_list,translate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,12 +64,16 @@ class ReefBeatNumberEntityDescription(NumberEntityDescription):
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_name: ""
     dependency: str = None
+    dependency_values: [] = None
+    translate: [] = None
     
 @dataclass(kw_only=True)
 class ReefRunNumberEntityDescription(NumberEntityDescription):
     """Describes reefbeat Number entity."""
     exists_fn: Callable[[ReefRunCoordinator], bool] = lambda _: True
     dependency: str = None
+    dependency_values: [] = None
+    translate: [] = None
     value_name: ""
     pump: 0
 
@@ -77,6 +84,8 @@ class ReefLedNumberEntityDescription(NumberEntityDescription):
     value_name: ""
     post_specific: bool = False
     dependency: str = None
+    dependency_values: [] = None
+    translate: [] = None
     
 @dataclass(kw_only=True)
 class ReefDoseNumberEntityDescription(NumberEntityDescription):
@@ -85,6 +94,8 @@ class ReefDoseNumberEntityDescription(NumberEntityDescription):
     value_name: ""
     head: 0
     dependency: str = None
+    dependency_values: [] = None
+    translate: [] = None
 
 WAVE_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
     ReefBeatNumberEntityDescription(
@@ -113,6 +124,9 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         value_name="$.sources[?(@.name=='/preview')].data.frt",
         icon="mdi:waves-arrow-right",
         entity_category=EntityCategory.CONFIG,
+        dependency="$.sources[?(@.name=='/preview')].data.type",
+        translate=WAVE_TYPES,
+        dependency_values=["st","ra","re","un"],
     ),
     ReefBeatNumberEntityDescription(
         key='wave_backward_time',
@@ -125,6 +139,9 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         value_name="$.sources[?(@.name=='/preview')].data.rrt",
         icon="mdi:waves-arrow-left",
         entity_category=EntityCategory.CONFIG,
+        dependency="$.sources[?(@.name=='/preview')].data.type",
+        translate=WAVE_TYPES,
+        dependency_values=["st","ra","re","un"],
     ),
     ReefBeatNumberEntityDescription(
         key='wave_forward_intensity',
@@ -137,6 +154,9 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         value_name="$.sources[?(@.name=='/preview')].data.fti",
         icon="mdi:waves-arrow-right",
         entity_category=EntityCategory.CONFIG,
+        dependency="$.sources[?(@.name=='/preview')].data.type",
+        translate=WAVE_TYPES,
+        dependency_values=["st","ra","re","su","un"],
     ),
     ReefBeatNumberEntityDescription(
         key='wave_backward_intensity',
@@ -149,6 +169,9 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         value_name="$.sources[?(@.name=='/preview')].data.rti",
         icon="mdi:waves-arrow-left",
         entity_category=EntityCategory.CONFIG,
+        dependency="$.sources[?(@.name=='/preview')].data.type",
+        translate=WAVE_TYPES,
+        dependency_values=["st","ra","re","su","un"],
     ),
     ReefBeatNumberEntityDescription(
         key='wave_preview_duration',
@@ -162,6 +185,36 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:timer-sand",
         entity_category=EntityCategory.CONFIG,
     ),
+    ReefBeatNumberEntityDescription(
+        key='wave_preview_step',
+        translation_key='wave_preview_step',
+        device_class=NumberDeviceClass.DURATION,
+        native_max_value=10,
+        native_min_value=3,
+        native_step=1,
+        value_name="$.sources[?(@.name=='/preview')].data.st",
+        icon="mdi:stairs",
+        entity_category=EntityCategory.CONFIG,
+        dependency="$.sources[?(@.name=='/preview')].data.type",
+        translate=WAVE_TYPES,
+        dependency_values=["st"],
+    ),
+    ReefBeatNumberEntityDescription(
+        key='wave_preview_wave_duration',
+        translation_key='wave_preview_wave_duration',
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        device_class=NumberDeviceClass.DURATION,
+        native_max_value=25,
+        native_min_value=2,
+        native_step=1,
+        value_name="$.sources[?(@.name=='/preview')].data.pd",
+        icon="mdi:stairs",
+        entity_category=EntityCategory.CONFIG,
+        dependency="$.sources[?(@.name=='/preview')].data.type",
+        translate=WAVE_TYPES,
+        dependency_values=["st","un","su"],
+    ),
+
 )
 
     
@@ -478,7 +531,13 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
     @property
     def available(self) -> bool:
         if self.entity_description.dependency != None:
-            return self._device.get_data(self.entity_description.dependency)
+            if self.entity_description.dependency_values != None:
+                val=self._device.get_data(self.entity_description.dependency)
+                if self.entity_description.translate !=None:
+                    val=translate(self.entity_description.translate,val,self._device._hass.config.language,"id")
+                return val in self.entity_description.dependency_values
+            else:
+                return self._device.get_data(self.entity_description.dependency)
         else:
             return True
        
@@ -614,9 +673,13 @@ class ReefWaveNumberEntity(ReefBeatNumberEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._attr_available = self.available
-        value=self._device.get_data(self.entity_description.value_name)
-        self._attr_native_value=int(value)
+        value=self._device.get_data(self.entity_description.value_name,True)
+        if value==None:
+            self._attr_available = False
+            self._attr_native_value = None
+        else:
+            self._attr_available = self.available
+            self._attr_native_value=int(value)
         self.async_write_ha_state()
 
         

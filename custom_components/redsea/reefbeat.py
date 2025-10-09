@@ -57,6 +57,7 @@ class ReefBeatAPI():
     """ Access to Reefled informations and commands """
     def __init__(self,ip,live_config_update,secure=False) -> None:
         self.ip=ip
+        self._secure=secure
         if secure:
             self._base_url = "https://"+ip
         else:
@@ -77,6 +78,10 @@ class ReefBeatAPI():
         self._live_config_update=live_config_update
         self._header={}
 
+    async def connect():
+        pass
+
+        
     async def _http_get(self,client,source):
         _LOGGER.debug("_http_get: %s"%self._base_url+source.value['name'])
         r = await client.get(self._base_url+source.value['name'],timeout=DEFAULT_TIMEOUT,headers=self._header)
@@ -86,6 +91,9 @@ class ReefBeatAPI():
             s=query.find(self.data)
             s[0].value['data']=response
             return True
+        elif r.status_code==401:
+            _LOGGER.warning("Authorization failed, try to renew token")
+            self.connect()
         else:
             _LOGGER.error("Can not get data: %s from %s"%(source.value['name'],self.ip))
             return False
@@ -224,11 +232,11 @@ class ReefBeatAPI():
         while status_ok == False and error_count <= HTTP_MAX_RETRY:
             try:
                 if method=='post':
-                    r = httpx.post(url, json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
+                    r = httpx.post(url, json = payload,verify=False,timeout=DEFAULT_TIMEOUT,headers=self._header)
                 elif method=='put':
-                    r = httpx.put(url, json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
+                    r = httpx.put(url, json = payload,verify=False,timeout=DEFAULT_TIMEOUT,headers=self._header)
                 elif method=='delete':
-                    r = httpx.delete(url,verify=False,timeout=DEFAULT_TIMEOUT)
+                    r = httpx.delete(url,verify=False,timeout=DEFAULT_TIMEOUT,headers=self._header)
                 status_ok=(r.status_code==200 or r.status_code==202)
                 if r.status_code==400 or r.status_code==404:
                     error_count=HTTP_MAX_RETRY
@@ -258,14 +266,18 @@ class ReefLedAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
     def __init__(self,ip,live_config_update,hw,intensity_compensation=False) -> None:
         super().__init__(ip,live_config_update)
-        #patch for olf RSLED
+        #patch for old RSLED
+        self._rsled90_patch=False
         status_code=404
         try :
             status_code=httpx.get("http://"+ip+"/dashboard",verify=False).status_code
         except:
             pass
         if status_code!=200:
+            self._rsled90_patch=True
+            _LOGGER.info("USE patch version for RSLED90 ")
             self.data['sources'].remove({"name":"/dashboard","type": "data","data":""})
+            self.data['sources'].insert(len(self.data['sources']),{"name":"/","type": "device-info","data":""})
         status_code=404
         try :
             status_code=httpx.get("http://"+ip+"/preset_name",verify=False).status_code
@@ -282,7 +294,10 @@ class ReefLedAPI(ReefBeatAPI):
         for day in range(1,8):
             self.data['sources'].insert(len(self.data['sources']),{"name":"/auto/"+str(day),"type": "config","data":""})
             self.data['sources'].insert(len(self.data['sources']),{"name":"/clouds/"+str(day),"type": "config","data":""})
-        self.data['local']={"status":False,
+
+        self.data['local']={"use_cloud_api": None,
+                            "local_api_fallback": None,
+                            "status":False,
                             "manual_duration":0,
                             "constant_intensity": 0,
                             "moonphase":{"moon_day":1},
@@ -429,9 +444,21 @@ class ReefLedAPI(ReefBeatAPI):
         self.update_acclimation()
         self.force_status_update()
 
+    async def push_values(self,source,method='post'):
+        payload=self.get_data("$.sources[?(@.name=='"+source+"')].data")
+        if self._rsled90_patch:
+            payload_copy={"white": int(payload['white']),"blue":int(payload['blue']),"moon":int(payload['moon'])}
+            payload=payload_copy
+        await self._http_send(self._base_url+source,payload,method)
+
+        
     async def post_specific(self, source):
+        _LOGGER.error("post_specific")
         if source == '/timer' :
             payload=self.get_data('$.sources[?(@.name=="/manual")].data')
+            if self._rsled90_patch:
+                payload_copy={"white": int(payload['white']),"blue":int(payload['blue']),"moon":int(payload['moon'])}
+                payload=payload_copy
             if self.get_data(LED_MANUAL_DURATION_INTERNAL_NAME) > 0:
                 payload['duration']=self.get_data(LED_MANUAL_DURATION_INTERNAL_NAME)
                 await self._http_send(self._base_url+source,payload,'post')
@@ -584,7 +611,8 @@ class ReefWaveAPI(ReefBeatAPI):
         self.data['sources'].insert(len(self.data['sources']),{"name":"/feeding/schedule","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/auto","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/device-settings","type": "config","data":""})
-        self.data['sources'].insert(len(self.data['sources']),{"name":"/preview","type": "preview","data":{"type":"ra","direction":"fw","frt":10,"rrt":2,"fti":100,"rti":100,"duration":300000}})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/preview","type": "preview","data":{"type":"ra","direction":"fw","frt":10,"rrt":2,"fti":100,"rti":100,"duration":300000,"st":3,"pd":1}})
+        self.data['local']={'use_cloud_api':None,'local_api_fallback':None}
         
 ################################################################################
 # Cloud
@@ -604,9 +632,19 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             {"name":"/aquarium","type":"config","data":""},
             {"name":"/device","type":"config","data":""},
             {"name":LIGHTS_LIBRARY,"type":"config","data":""},
-            {"name":"/reef-wave/library?include=all","type":"config","data":""}
+            {"name":"/reef-wave/library","type":"config","data":""}
         ]
+
+
+    async def http_send(self,action,payload,method):
+        res=await self._http_send(self._base_url+action,payload,method)
+        if res.status_code==401:
+            _LOGGER.warning("Try to renew token")
+            await self.connect()
+        res=await self._http_send(self._base_url+action,payload,method)
+        return res
         
+    ##
     async def connect(self):
         _LOGGER.debug("Init cloud connection with username: %s"%self._username)
         header={
@@ -616,9 +654,6 @@ class ReefBeatCloudAPI(ReefBeatAPI):
         payload="grant_type=password&username=" + self._username+ "&password=" + self._password
         _LOGGER.debug(payload)
         r= httpx.post("https://"+self.ip+"/oauth/token",data=payload,headers=header,verify=False)
-        _LOGGER.debug(str(r.status_code))
-        _LOGGER.debug(r.text)
-        _LOGGER.debug(r.json)
         self._token=r.json()["access_token"]
         self._header={"Authorization": "Bearer %s"%self._token}
         _LOGGER.debug("Token : %s"%self._token)
