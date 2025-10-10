@@ -363,8 +363,6 @@ WAVE_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
     ),
 )
 
-# TODO : set availability depending of wave type
-#  labels: enhancement, rswave
 WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (   
     ReefWaveSensorEntityDescription(
         key='wave_type',
@@ -417,7 +415,7 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
     ReefWaveSensorEntityDescription(
         key='wave_step',
         translation_key='wave_step',
-        value_name="st",
+        value_name="sn",
         icon="mdi:stairs",
     ),
 )
@@ -796,7 +794,12 @@ class ReefBeatSensorEntity(CoordinatorEntity,SensorEntity):
             return self._device.get_data(self.entity_description.value_name)
         else:
             _LOGGER.error("redsea.binary_sensor.ReefBeatBinarySensorEntity._get_value: no method to get value")
-        
+
+    @property
+    def available(self) -> bool:
+        return self._attr_native_value!=None
+
+            
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
