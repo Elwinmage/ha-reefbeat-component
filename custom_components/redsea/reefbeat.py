@@ -533,13 +533,11 @@ class ReefDoseAPI(ReefBeatAPI):
         if head != None:
             manual_dose=self.get_data("$.local.head."+str(head)+".manual_dose")
             payload={'manual_dose_scheduled': True,'volume': manual_dose}
-            #r = httpx.post(self._base_url+'/head/'+str(head)+'/'+action, json = payload,verify=False,timeout=DEFAULT_TIMEOUT)
             await self._http_send(self._base_url+'/head/'+str(head)+'/'+action,payload)
         else:
             payload={}
             await self._http_send(self._base_url+'/'+action,payload)
             
-        
     async def push_values(self,head):
         _LOGGER.debug("type: %s"%type(head).__name__)
         if type(head).__name__ == 'int':
@@ -548,9 +546,6 @@ class ReefDoseAPI(ReefBeatAPI):
         else:
             payload=self.get_data("$.sources[?(@.name=='"+head+"')].data")
             await self._http_send(self._base_url+head,payload,'put')
-            
-
-            
     
 ################################################################################
 # ReefATO+
@@ -597,9 +592,6 @@ class ReefRunAPI(ReefBeatAPI):
 
 ################################################################################
 # ReefWave
-# TODO : Add reefwave support
-# Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/12
-#  labels: enhancement, rswave
 class ReefWaveAPI(ReefBeatAPI):
     """ Access to Reefled informations and commands """
     def __init__(self,ip,live_config_update) -> None:
@@ -608,7 +600,7 @@ class ReefWaveAPI(ReefBeatAPI):
         self.data['sources'].remove({"name":"/mode","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/mode","type": "data","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/feeding/schedule","type": "config","data":""})
-        self.data['sources'].insert(len(self.data['sources']),{"name":"/auto","type": "config","data":""})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/auto","type": "data","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/device-settings","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/preview","type": "preview","data":{"type":"ra","direction":"fw","frt":10,"rrt":2,"fti":100,"rti":100,"duration":300000,"st":3,"pd":2,"sn":3}})
         self.data['local']={'use_cloud_api':None,'local_api_fallback':None}
@@ -634,7 +626,6 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             {"name":"/reef-wave/library","type":"config","data":""}
         ]
 
-
     async def http_send(self,action,payload,method):
         res=await self._http_send(self._base_url+action,payload,method)
         if res.status_code==401:
@@ -643,7 +634,6 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             res=await self._http_send(self._base_url+action,payload,method)
         return res
         
-    ##
     async def connect(self):
         _LOGGER.debug("Init cloud connection with username: %s"%self._username)
         header={
@@ -656,7 +646,6 @@ class ReefBeatCloudAPI(ReefBeatAPI):
         self._token=r.json()["access_token"]
         self._header={"Authorization": "Bearer %s"%self._token}
         _LOGGER.debug("Token : %s"%self._token)
-        
         
     def get_devices(self,device_name):
         query=parse("$.sources[?(@.name=='/device')].data[?(@.type=='"+device_name+"')]")
