@@ -178,6 +178,14 @@ async def async_setup_entry(
                 icon="mdi:content-save-cog",
                 entity_category=EntityCategory.CONFIG,
             ),
+            ReefBeatButtonEntityDescription(
+                key='preview_set_from_current',
+                translation_key='preview_set_from_current',
+                exists_fn=lambda _: True,
+                press_fn= None,
+                icon="mdi:content-save-cog",
+                entity_category=EntityCategory.CONFIG,
+            ),
         )
         entities += [ReefWaveButtonEntity(device, description)
                  for description in WAVE_SAVE_PREVIEW_BUTTONS
@@ -385,8 +393,31 @@ class ReefWaveButtonEntity(ReefBeatButtonEntity):
         """Handle the button press."""
         if self.entity_description.key == 'preview_start' and self._device.get_data("$.sources[?(@.name=='/preview')].data.type")=="nw":
             _LOGGER.info("'No Wave' is the only type of waves that can't be previewed")
+        elif self.entity_description.key == 'preview_set_from_current':
+            _LOGGER.debug('Set Preview from Current values')
+            data_names=['type','direction','frt','rrt','fti','rti','sn','pd']
+            # self._device.set_data("$.sources[?(@.name=='/preview')].data.type",self._device.get_current_value(WAVE_SCHEDULE_PATH,"type"))
+            # self._device.set_data("$.sources[?(@.name=='/preview')].data.direction",self._device.get_current_value(WAVE_SCHEDULE_PATH,"direction"))
+            # self._device.set_data("$.sources[?(@.name=='/preview')].data.frt",self._device.get_current_value(WAVE_SCHEDULE_PATH,"frt"))
+            # self._device.set_data("$.sources[?(@.name=='/preview')].data.rrt",self._device.get_current_value(WAVE_SCHEDULE_PATH,"rrt"))
+            # self._device.set_data("$.sources[?(@.name=='/preview')].data.fti",self._device.get_current_value(WAVE_SCHEDULE_PATH,"fti"))
+            # self._device.set_data("$.sources[?(@.name=='/preview')].data.rti",self._device.get_current_value(WAVE_SCHEDULE_PATH,"rti"))
+            # self._device.set_data("$.sources[?(@.name=='/preview')].data.sn",self._device.get_current_value(WAVE_SCHEDULE_PATH,"sn"))
+            # self._device.set_data("$.sources[?(@.name=='/preview')].data.pd",self._device.get_current_value(WAVE_SCHEDULE_PATH,"pd"))
+
+            for dn in data_names:
+                v=self._device.get_current_value(WAVE_SCHEDULE_PATH,dn)
+                if v != None:
+                    self._device.set_data("$.sources[?(@.name=='/preview')].data."+dn,v)
+                                                 
+            
+            self._device.async_update_listeners()
+            self.async_write_ha_state()
+            _LOGGER.debug(self._device.get_data("$.sources[?(@.name=='/preview')].data"))
         elif self.entity_description.key == 'preview_save':
             await self._device.set_wave()
+            await self._device.async_quick_request_refresh('/auto',4)
+            self._device.async_update_listeners()
             self.async_write_ha_state()  
         else:
             await self.entity_description.press_fn(self._device)

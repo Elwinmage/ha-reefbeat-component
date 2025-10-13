@@ -50,6 +50,9 @@
     },
     "entity": {
 	"button":{
+	    "preview_set_from_current":{
+		"name": "Valeurs Prev. depuis courantes"
+	    },
 	    "led_identify":{
 		"name": "Identifier"
 	    },

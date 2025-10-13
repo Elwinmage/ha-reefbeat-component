@@ -23,8 +23,6 @@ from homeassistant.components.websocket_api import (
     ActiveConnection,
 )
 
-
-
 from typing import Any
 
 from .const import (
@@ -119,9 +117,9 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
             await asyncio.sleep(wait)
         return await super().async_request_refresh()
     
-    async def async_quick_request_refresh(self,source):
+    async def async_quick_request_refresh(self,source,wait=2):
         #wait fore device to refresh state
-        await asyncio.sleep(2)
+        await asyncio.sleep(wait)
         self.my_api.quick_refresh=source
         return await super().async_request_refresh()
     
@@ -530,27 +528,17 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
 
         cur_schedule=await self._get_current_schedule()
         new_wave=await self._create_new_wave_from_preview(cur_schedule['cur_wave'])
- 
         if self.get_data("$.local.use_cloud_api")==True:
             await self._set_wave_cloud_api(cur_schedule,new_wave)
         else:
             await self._set_wave_local_api(cur_schedule,new_wave)
-            # TODO :  update local library
         await self.async_request_refresh()
-            # auto_copy=auto.copy()
-            # _LOGGER.debug("USE CLOUD API")
-            # # for cloud api "start" replace "st" key
-            # for wave in auto_copy['intervals']:
-            #     wave['start']=wave['st']
-            # res=await self._cloud_link.send_cmd('/reef-wave/schedule/'+self.model_id,auto_copy)
-            # return 
 
-          
     async def _create_new_wave_from_preview(self,cur_wave):
             new_wave={"wave_uid": cur_wave['wave_uid'],
               "type": self.get_data("$.sources[?(@.name=='/preview')].data.type"),
+              "name":  'ha-'+str(int(time())),
               "direction": self.get_data("$.sources[?(@.name=='/preview')].data.direction"),
-              "name": 'ha-'+str(int(time())),
               "frt": self.get_data("$.sources[?(@.name=='/preview')].data.frt",True),
               "rrt": self.get_data("$.sources[?(@.name=='/preview')].data.rrt",True),
               "fti": self.get_data("$.sources[?(@.name=='/preview')].data.fti",True),
@@ -585,8 +573,8 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
             c_wave=self._cloud_link.get_data("$.sources[?(@.name=='"+WAVES_LIBRARY+"')].data[?(@.uid=='"+new_wave['wave_uid']+"')]",True)
             is_cur_wave_default=c_wave['default']
             payload={
-                "type": new_wave['type'],
                 "name": new_wave['name'],
+                "type": new_wave['type'],
                 "frt": new_wave['frt'],
                 "rrt": new_wave['rrt'],
                 "pd": new_wave['pd'],
@@ -601,9 +589,9 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
                     }
                 ]
             }
-            if is_cur_wave_default==True or is_cur_wave_default==None:
+            if is_cur_wave_default==True or is_cur_wave_default==None or new_wave['type']!=c_wave['type']:
+                _LOGGER.debug("Create New Wave")
                 #create new wave
-                _LOGGER.debug("Must create new wave")
                 payload['aquarium_uid']=c_wave['aquarium_uid']
                 _LOGGER.debug("POST new wave: %s"%payload)
                 res=await self._cloud_link.send_cmd("/reef-wave/library",payload,'post')
@@ -626,13 +614,16 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
                 res=await self._cloud_link.send_cmd("/reef-wave/schedule/"+self.model_id,cur_schedule['schedule'],'post')
             else:
                 #edit wave
+                payload['name']=c_wave['name']
                 _LOGGER.debug("Edit wave %s"%new_wave['wave_uid'])
+                _LOGGER.debug("%s to %s"%(c_wave,payload))
                 res=await self._cloud_link.send_cmd("/reef-wave/library/"+new_wave['wave_uid'],payload,'put')
                 await self.fetch_config()
             _LOGGER.debug(res.text)
             #get 
             return
         except Exception as e:
+            _LOGGER.error("Can not set wave:")
             _LOGGER.error(e)
         if self.get_data("$.local.local_api_fallback")==True:
             _LOGGER.warning("Falling back to local API")
@@ -640,7 +631,6 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
         if self._cloud_link==None:
             raise ServiceValidationError("%s - Not linked to a cloud account"%self._title)
 
-            
     async def _set_wave_local_api(self,cur_schedule,new_wave):
         pos=0
         for wave in cur_schedule['schedule']['intervals']:
@@ -649,7 +639,6 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
             pos += 1
         payload={"uid": str(uuid.uuid4())}
         await self.my_api.http_send('/auto/init',payload)
-        _LOGGER.debug(cur_schedule)
         # LOCAL API
         _LOGGER.debug("USE LOCAL API")
         auto_copy=cur_schedule['schedule'].copy()
@@ -707,7 +696,6 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
     async def send_cmd(self,action,payload,method='post'):
         return await self.my_api.http_send(action,payload,method)
         
-
     def unload(self):
         self._hass.bus.fire("redsea_ask_for_cloud_link_ready", {'state': 'off', 'account':self._title})
 
@@ -726,7 +714,6 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
     @property
     def model_id(self):
         return "ReefBeat"
-
 
     @property
     def detected_id(self):

@@ -674,12 +674,24 @@ class ReefWaveNumberEntity(ReefBeatNumberEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         value=self._device.get_data(self.entity_description.value_name,True)
+        if self.entity_description.key=='wave_preview_wave_duration' and self._device.get_data("$.sources[?(@.name=='/preview')].data.type") == 'su':
+            # limite values for surface 
+            self._attr_native_min_value=0.5
+            self._attr_native_max_value=5.9
+            self._attr_native_step=0.1
+        else:
+            self._attr_native_min_value=self.entity_description.native_min_value
+            self._attr_native_max_value=self.entity_description.native_max_value
+            self._attr_native_step=self.entity_description.native_step
+            if value != None:
+                value=int(value)
         if value==None:
+            _LOGGER.debug("%s is None!!!"%self.entity_description.value_name)
             self._attr_available = False
             self._attr_native_value = None
         else:
             self._attr_available = self.available
-            self._attr_native_value=int(value)
+            self._attr_native_value=value
         self.async_write_ha_state()
 
         
