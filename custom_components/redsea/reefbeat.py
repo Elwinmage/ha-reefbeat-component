@@ -237,7 +237,7 @@ class ReefBeatAPI():
                     r = httpx.put(url, json = payload,verify=False,timeout=DEFAULT_TIMEOUT,headers=self._header)
                 elif method=='delete':
                     r = httpx.delete(url,verify=False,timeout=DEFAULT_TIMEOUT,headers=self._header)
-                status_ok=(r.status_code==200 or r.status_code==202)
+                status_ok=(r.status_code==200 or r.status_code==201 or r.status_code==202)
                 if r.status_code==400 or r.status_code==404:
                     error_count=HTTP_MAX_RETRY
                 if not status_ok:
@@ -640,7 +640,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
         if res.status_code==401:
             _LOGGER.warning("Try to renew token")
             await self.connect()
-        res=await self._http_send(self._base_url+action,payload,method)
+            res=await self._http_send(self._base_url+action,payload,method)
         return res
         
     ##
