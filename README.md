@@ -446,7 +446,7 @@ The behavior is the same as of ReefBeat mobile App. All waves with the same id i
 </p>
 
 # Cloud API
-The cloud API permits to get user informations, waves and leds libraries and to send command to ReefWave when "[Cloud](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)" mode is selected.
+The cloud API permits to get user informations, waves and leds libraries and to send commands to ReefWave when "[Cloud](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)" mode is selected.
 Waves and Leds parameters ares sorted by Tanks.
 <p align="center">     
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_api_devices.png" alt="Image">
