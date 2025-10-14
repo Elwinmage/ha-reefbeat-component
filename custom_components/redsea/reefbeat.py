@@ -296,7 +296,6 @@ class ReefLedAPI(ReefBeatAPI):
             self.data['sources'].insert(len(self.data['sources']),{"name":"/clouds/"+str(day),"type": "config","data":""})
 
         self.data['local']={"use_cloud_api": None,
-                            "local_api_fallback": None,
                             "status":False,
                             "manual_duration":0,
                             "constant_intensity": 0,
@@ -603,7 +602,7 @@ class ReefWaveAPI(ReefBeatAPI):
         self.data['sources'].insert(len(self.data['sources']),{"name":"/auto","type": "data","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/device-settings","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/preview","type": "preview","data":{"type":"ra","direction":"fw","frt":10,"rrt":2,"fti":100,"rti":100,"duration":300000,"st":3,"pd":2,"sn":3}})
-        self.data['local']={'use_cloud_api':None,'local_api_fallback':None}
+        self.data['local']={'use_cloud_api':None}
         
 ################################################################################
 # Cloud

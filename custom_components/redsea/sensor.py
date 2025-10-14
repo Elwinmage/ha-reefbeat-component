@@ -890,7 +890,10 @@ class ReefWaveSensorEntity(ReefBeatSensorEntity):
         if self.entity_description.value_name=="type":
             val=translate(WAVE_TYPES,val,'id',self._device._hass.config.language)
         elif self.entity_description.value_name=="direction":
-            val=translate(WAVE_DIRECTIONS,val,'id',self._device._hass.config.language)
+            if val==None:
+                val="fw"
+            else:
+                val=translate(WAVE_DIRECTIONS,val,'id',self._device._hass.config.language)
         return val
         
 ################################################################################

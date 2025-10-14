@@ -200,3 +200,4 @@ WAVE_DIRECTIONS=[
 LIGHTS_LIBRARY="/reef-lights/library?include=all"
 WAVES_LIBRARY="/reef-wave/library"
 WAVE_SCHEDULE_PATH="$.sources[?(@.name=='/auto')].data.intervals"
+WAVES_DATA_NAMES=['type','direction','frt','rrt','fti','rti','sn','pd']

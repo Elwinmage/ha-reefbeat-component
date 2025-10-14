@@ -33,6 +33,7 @@ from .const import (
     WAVE_TYPES,
     WAVE_DIRECTIONS,
     WAVE_SCHEDULE_PATH,
+    WAVES_DATA_NAMES,
 )
 
 from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator,ReefRunCoordinator
@@ -395,28 +396,26 @@ class ReefWaveButtonEntity(ReefBeatButtonEntity):
             _LOGGER.info("'No Wave' is the only type of waves that can't be previewed")
         elif self.entity_description.key == 'preview_set_from_current':
             _LOGGER.debug('Set Preview from Current values')
-            data_names=['type','direction','frt','rrt','fti','rti','sn','pd']
-            # self._device.set_data("$.sources[?(@.name=='/preview')].data.type",self._device.get_current_value(WAVE_SCHEDULE_PATH,"type"))
-            # self._device.set_data("$.sources[?(@.name=='/preview')].data.direction",self._device.get_current_value(WAVE_SCHEDULE_PATH,"direction"))
-            # self._device.set_data("$.sources[?(@.name=='/preview')].data.frt",self._device.get_current_value(WAVE_SCHEDULE_PATH,"frt"))
-            # self._device.set_data("$.sources[?(@.name=='/preview')].data.rrt",self._device.get_current_value(WAVE_SCHEDULE_PATH,"rrt"))
-            # self._device.set_data("$.sources[?(@.name=='/preview')].data.fti",self._device.get_current_value(WAVE_SCHEDULE_PATH,"fti"))
-            # self._device.set_data("$.sources[?(@.name=='/preview')].data.rti",self._device.get_current_value(WAVE_SCHEDULE_PATH,"rti"))
-            # self._device.set_data("$.sources[?(@.name=='/preview')].data.sn",self._device.get_current_value(WAVE_SCHEDULE_PATH,"sn"))
-            # self._device.set_data("$.sources[?(@.name=='/preview')].data.pd",self._device.get_current_value(WAVE_SCHEDULE_PATH,"pd"))
-
-            for dn in data_names:
+            for dn in WAVES_DATA_NAMES:
                 v=self._device.get_current_value(WAVE_SCHEDULE_PATH,dn)
                 if v != None:
                     self._device.set_data("$.sources[?(@.name=='/preview')].data."+dn,v)
-                                                 
-            
             self._device.async_update_listeners()
             self.async_write_ha_state()
-            _LOGGER.debug(self._device.get_data("$.sources[?(@.name=='/preview')].data"))
+            #_LOGGER.debug(self._device.get_data("$.sources[?(@.name=='/preview')].data"))
         elif self.entity_description.key == 'preview_save':
             await self._device.set_wave()
-            await self._device.async_quick_request_refresh('/auto',4)
+            for dn in WAVES_DATA_NAMES:
+                v=self._device.get_data("$.sources[?(@.name=='/preview')].data."+dn)
+                if v != None:
+                    self._device.set_current_value(WAVE_SCHEDULE_PATH,dn,v)
+            if self._device.get_data("$.sources[?(@.name=='/preview')].data.type")=="nw":
+                self._device.set_current_value(WAVE_SCHEDULE_PATH,'name','No Wave')
+            _LOGGER.debug(self._device.get_data("$.sources[?(@.name=='/auto')].data"))
+            self._device.async_update_listeners()
+            self.async_write_ha_state()
+            
+            #            await self._device.async_quick_request_refresh('/auto',4)
             self._device.async_update_listeners()
             self.async_write_ha_state()  
         else:

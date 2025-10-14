@@ -56,20 +56,22 @@ class ReefBeatSwitchEntityDescription(SwitchEntityDescription):
     """Describes reefbeat Switch entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_name: ''
+    icon_off:  str = ''
     method: str = 'put'
     
 @dataclass(kw_only=True)
 class ReefLedSwitchEntityDescription(SwitchEntityDescription):
     """Describes reefbeat Switch entity."""
     exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
+    icon_off:  str = ''
     value_name: ''
     method: str ='put'
-#    delete: bool= False
     
 @dataclass(kw_only=True)
 class ReefDoseSwitchEntityDescription(SwitchEntityDescription):
     """Describes reefbeat Switch entity."""
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
+    icon_off:  str = ''
     value_name: ''
     head: 0
     method: str = 'put'
@@ -78,22 +80,14 @@ class ReefDoseSwitchEntityDescription(SwitchEntityDescription):
 class SaveStateSwitchEntityDescription(SwitchEntityDescription):
     """Describes reefbeat Switch entity."""
     exists_fn: Callable[[], bool] = lambda _: True
-    
-    icon_off: ''
+    icon_off:  str = ''
 
 SAVE_STATE_SWITCHES: tuple[SaveStateSwitchEntityDescription, ...] = (
     SaveStateSwitchEntityDescription(
         key="use_cloud_api",
         translation_key="use_cloud_api",
         icon="mdi:cloud-check-variant",
-        icon_off="mdi:cloud-cancel-outline",
-        entity_category=EntityCategory.CONFIG,
-    ),
-    SaveStateSwitchEntityDescription(
-        key="local_api_fallback",
-        translation_key="local_api_fallback",
-        icon="mdi:lan-check",
-        icon_off="mdi:lan-disconnect",
+        icon_off="mdi:cloud-cancel",
         entity_category=EntityCategory.CONFIG,
     ),
 )
@@ -103,7 +97,8 @@ COMMON_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         key="device_state",#on/off
         translation_key="device_state",
         value_name= COMMON_ON_OFF_SWITCH,
-        icon="mdi:toggle-switch",
+        icon="mdi:power-plug",
+        icon_off="mdi:power-plug-off",
         method='post',
         entity_category=EntityCategory.CONFIG,
     ),
@@ -112,6 +107,7 @@ COMMON_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         translation_key="cloud_connect",
         value_name= COMMON_CLOUD_CONNECTION,
         icon="mdi:cloud-check-variant-outline",
+        icon_off="mdi:cloud-cancel-outline",
         method='post',
         entity_category=EntityCategory.CONFIG,
     ),
@@ -176,6 +172,7 @@ RUN_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         value_name=FULLCUP_ENABLED_INTERNAL_NAME,
         exists_fn=lambda _: True,
         icon="mdi:cup",
+        icon_off="mdi:cup-off",
         entity_category=EntityCategory.CONFIG,
     ),
     ReefBeatSwitchEntityDescription(
@@ -227,6 +224,7 @@ async def async_setup_entry(
                 key="schedule_enabled_head_"+str(head),
                 translation_key="schedule_enabled",
                 icon="mdi:pump",
+                icon_off="mdi:pump-off",
                 value_name="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.schedule_enabled",
                 head=head,
                 entity_category=EntityCategory.CONFIG,
@@ -265,6 +263,12 @@ class SaveStateSwitchEntity(SwitchEntity,RestoreEntity):
         self._attr_available = True
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
 
+    def set_icon(self):
+        if self._state==False and self.entity_description.icon_off!='':
+            self.icon=self.entity_description.icon_off
+        else:
+            self.icon=self.entity_description.icon
+            
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
         self._state=True
@@ -275,7 +279,8 @@ class SaveStateSwitchEntity(SwitchEntity,RestoreEntity):
     async def async_turn_off(self, **kwargs):
         """Turn the switch off."""
         self._state=False
-        self.icon=self.entity_description.icon_off
+        #self.icon=self.entity_description.icon_off
+        self.set_icon()
         self._device.set_data("$.local."+self.entity_description.key,self._state)
         self.async_write_ha_state()
 
@@ -290,8 +295,9 @@ class SaveStateSwitchEntity(SwitchEntity,RestoreEntity):
             self.async_write_ha_state()
             return
         self._state = (state.state=='on')
-        if self._state == False:
-            self.icon=self.entity_description.icon_off 
+        # if self._state == False:
+        #     self.icon=self.entity_description.icon_off
+        self.set_icon()            
         self._device.set_data("$.local."+self.entity_description.key,self._state)
         self.async_write_ha_state()
         
@@ -330,6 +336,7 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
             self._state=self._device.get_data(self.entity_description.value_name)!="off"
         else:
             self._state = self._device.get_data(self.entity_description.value_name)
+        self.set_icon()
         self.async_write_ha_state()
         
     async def async_update(self) -> None:
@@ -339,10 +346,17 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
             self._state=self._device.get_data(self.entity_description.value_name)!="off"
         else:
             self._state = self._device.get_data(self.entity_description.value_name)
-        
+
+    def set_icon(self):
+        if self._state:
+            self.icon=self.entity_description.icon
+        elif self.entity_description.icon_off!='':
+            self.icon=self.entity_description.icon_off
+            
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
         self._state=True
+        self.set_icon()
         if self.entity_description.key=="device_state":
             self._device.set_data(self.entity_description.value_name,"auto")
             self._device.async_update_listeners()
@@ -365,6 +379,7 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
         
     async def async_turn_off(self, **kwargs):
         self._state=False
+        self.set_icon()
         if self.entity_description.key=="device_state":
             self._device.set_data(self.entity_description.value_name,"off")
             self._device.async_update_listeners()
