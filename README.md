@@ -11,6 +11,9 @@
 ***RedSea Reefbeat devices: ReefATO+, ReefDose, ReefLed, ReefMat, ReefRun and ReefWave Local Management (no cloud)***
 
 > [!TIP]
+> ***To edit advanced schedule for ReefDose, ReefLed, ReefRun and ReefWave, you need to use the [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) (currently under development)***
+
+> [!TIP]
 > The list of future implementations can be found [here](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
 > The list of bugs can be found [here](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug)
 
@@ -25,7 +28,7 @@
 
 # Compatibility
 
-✅  Fully Tested  ☑️ Must Work (If you have one, can you confirm it's working [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) ) 
+✅  Tested  ☑️ Must Work (If you have one, can you confirm it's working [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) ) 
 <table>
   <th>
     <td colspan="2"><b>Model</b></td>
@@ -70,7 +73,7 @@
   </tr>
   <tr>
     <td>RSLED90</td>
-    <td>☑️</td>
+    <td>✅</td>
   </tr>
   <tr>
     <td>RSLED160</td><td>✅ </td>
@@ -126,7 +129,8 @@
     <td colspan="2">RSWAVE45</td><td>✅</td>
   </tr>  
 </table>
-* Minimal implementation for now
+
+(*) ReefWave user please read [this](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)
 
 # Summary
 - [Installation via hacs](https://github.com/Elwinmage/ha-reefbeat-component/#installation-via-hacs)
@@ -138,6 +142,7 @@
 - [ReefMat](https://github.com/Elwinmage/ha-reefbeat-component/#reefmat)
 - [ReefRun](https://github.com/Elwinmage/ha-reefbeat-component/#reefrun)
 - [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)
+- [Cloud API](https://github.com/Elwinmage/ha-reefbeat-component/#cloudapi)
 - [FAQ](https://github.com/Elwinmage/ha-reefbeat-component/#faq)
 
 # Installation via hacs 
@@ -154,11 +159,37 @@ Or search for "redsea" or "reefbeat" in hacs
 </p> 
  
 # Common functions
- ### Auto detect on private network (if on same network if not read  [this](#my-device-is-not-detected) )
+ 
+ ## Add device
+When adding a new device you have 4 choices:
 
+<p align="center">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/add_devices_main.png" alt="Image">
+</p>  
+
+### Add Cloud API
+ ***Mandatory for ReefWave*** (Read [this](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)).
+  - Get user informations
+  - Get aquariums
+    - Get Waves library
+    - Get Led library
+
+<p align="center">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/add_devices_cloud_api.png" alt="Image">
+</p>  
+      
+ ### Auto detect on private network
+If on same network if not read  [this](#my-device-is-not-detected) and user Manual Mode
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/auto_detect.png" alt="Image">
 </p> 
+
+### Manual Mode
+You can put your device IP or the network address to have auto detection.
+
+<p align="center">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/add_devices_manual.png" alt="Image">
+</p>  
 
  ### Set scan interval for device
    
@@ -169,7 +200,7 @@ Or search for "redsea" or "reefbeat" in hacs
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_2.png" alt="Image">
 </p> 
 
-###  Live update
+##  Live update
 
 > [!NOTE]
 >  It is possible to choose whether to enable live_update_config or not. In this mode (old default), configuration data is continuously retrieved along with normal data. For RSDOSE or RSLED, these large http requests can take a long time (7-9 seconds). Sometimes the device does not respond to the request, so I had to code a retry function. When live_update_config is disabled, configuration data is only retrieved at startup and when requested via the "fetch configuration" button. This new mode is activated by default. You can change it in the device configuration.
@@ -339,10 +370,89 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
 </p>
 
 # ReefWave:
-First step: minimal implementation with only local API (no cloud)[#21](https://github.com/Elwinmage/ha-reefbeat-component/issues/21).
+> [!IMPORTANT]
+> ReefWave devices are different from other ReefBeat devices. They are the only devices that are slaves to the ReefBeat cloud.<br/>
+> When you launch the ReefBeat mobile app, the status of all devices is queried and data from the ReefBeat app is retrieved from device state.<br/>
+> For ReefWave, it's the opposite: there is no local control point (as you can see in the ReefBeat app, you can't add a ReefWave to a disconnected aquarium).<br/>
+> <center ><img width="20%" src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/reefbeat_rswave.jpg" alt="Image"></center><br />
+> Waves are stored in the cloud user library. When you change a wave's value, it is changed in the cloud library and applied to the new schedule.<br/>
+> So there's no local mode? Not so simple. There's a hidden local API to control ReefWave, but the ReefBeat app won't detect the changes, so the device and HomeAssistant on one side and the ReefBeat mobile App on the other side will be out of sync. Device and HomeAssisant will always be synchronized.<br/>
+> Now that you know, make your choice!
+
+> [!NOTE]
+> ReefWave waves have many linked parameters, and the range of some parameters depends on other parameters. I was not able to test all possible combinations. If you find a bug, you can create an issue [here](https://github.com/Elwinmage/ha-reefbeat-component/issues).
+
+
+## ReefWave Modes
+As explain before, ReefWave devices are the only devices that can be unsychronize with reefbeat App if you use local API.
+Three modes are availabled: Cloud, Local, Hybride. 
+You can change the mode settings "Connect To Cloud" and "Use Cloud API" switches as described in the table below.
+
+<table>
+  <tr>
+    <td>Mode name</td>
+    <td>Connect To Cloud Switch</td>
+    <td>Use Cloud API Switch</td>
+    <td>Behavior</td>
+    <td>ReefBeat and HA are synchronized</td>
+  </tr>
+  <tr>
+    <td>Cloud (Default)</td>
+    <td>✅</td>
+    <td>✅</td>
+    <td>Data are fetch via the local api. <br />Commands are sent via the cloud api</td>
+    <td>✅</td>
+  </tr>
+  <tr>
+    <td>Local</td>
+    <td>❌</td>
+    <td>❌</td>
+    <td>Data are fetch via the local api. <br />Commands are sent via the local api<br />Device is seen as 'off' in ReefBeat App.</td>
+    <td>❌</td>
+  </tr>
+  <tr>
+    <td>Hybride</td>
+    <td>✅</td>
+    <td>❌</td>
+    <td>Data are fetch via the local api. <br />Commands are sent via the local api.<br /> The ReefBeat mobile APP does not represent the good waves values.<br/> Home Assitant always represent the good waves values. <br/> You can change values from ReefBeat APP and Home Assistant.</td>
+    <td>❌</td>
+  </tr>
+</table>
+
+For Cloud and Hybride mode you must linked your ReefBeat cloud account ().
+First create a ["cloud api"](https://github.com/Elwinmage/ha-reefbeat-component/#addcloudapi) device with your credential, and that's all!
+The "Linked to account" sensor will updated with the name of your reefbeat account if connection is established.
+<p align="center">     
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rswave_linked.png" alt="Image">
+</p>
+
+
+## Changing current values
+To load current wave values in preview fields, use the "Set Prev. From Current" Button.
+<p align="center">     
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rswave_set_preview.png" alt="Image">
+</p>
+To change current wave values, set preview values and use the "Save Preview" Button. 
+
+The behavior is the same as of ReefBeat mobile App. All waves with the same id in the current schedule will be updated.
+<p align="center">     
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rswave_save_preview.png" alt="Image">
+</p>
+
 <p align="center">     
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rswave_conf.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rswave_sensors.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rswave_diag.png" alt="Image">
+</p>
+
+# Cloud API
+The cloud API permits to get user informations, waves and leds libraries and to send command to ReefWave when "[Cloud](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)" mode is selected.
+Waves and Leds parameters ares sorted by Tanks.
+<p align="center">     
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_api_devices.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_api_conf.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_api_sensors.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_api_led_and_waves.png" alt="Image">
 </p>
 
  
