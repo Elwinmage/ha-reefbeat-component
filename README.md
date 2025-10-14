@@ -462,6 +462,7 @@ Waves and Leds parameters ares sorted by Tanks.
 ## My device is not detected
  - try to relaunch the auto-detection with the "add entry" button. Sometimes devices do not respond because they are busy.
  - If your redsea devices are not on the same subnetwork than your Home Assistant, auto-detection will first fail and propose you to enter the ip of your device or the address of the subnetwork where your devices are. For subnetwork detection please use the format IP/MASK like this example : 192.168.14.0/255.255.255.0.
+ - You can also use the [manual mode ](https://github.com/Elwinmage/ha-reefbeat-component?tab=readme-ov-file#manual-mode)
 
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/subnetwork.png" alt="Image">
