@@ -142,7 +142,7 @@
 - [ReefMat](https://github.com/Elwinmage/ha-reefbeat-component/#reefmat)
 - [ReefRun](https://github.com/Elwinmage/ha-reefbeat-component/#reefrun)
 - [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)
-- [Cloud API](https://github.com/Elwinmage/ha-reefbeat-component/#cloudapi)
+- [Cloud API](https://github.com/Elwinmage/ha-reefbeat-component/#cloud-api)
 - [FAQ](https://github.com/Elwinmage/ha-reefbeat-component/#faq)
 
 # Installation via hacs 
@@ -179,7 +179,7 @@ When adding a new device you have 4 choices:
 </p>  
       
  ### Auto detect on private network
-If on same network if not read  [this](#my-device-is-not-detected) and user Manual Mode
+If not on same network read  [this](#my-device-is-not-detected) and use the  ["Manual Mode"](https://github.com/Elwinmage/ha-reefbeat-component/#manual-mode))
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/auto_detect.png" alt="Image">
 </p> 
@@ -419,8 +419,8 @@ You can change the mode settings "Connect To Cloud" and "Use Cloud API" switches
   </tr>
 </table>
 
-For Cloud and Hybride mode you must linked your ReefBeat cloud account ().
-First create a ["cloud api"](https://github.com/Elwinmage/ha-reefbeat-component/#addcloudapi) device with your credential, and that's all!
+For Cloud and Hybride mode you must link your ReefBeat cloud account.
+First create a ["cloud api"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) device with your credential, and that's all!
 The "Linked to account" sensor will updated with the name of your reefbeat account if connection is established.
 <p align="center">     
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rswave_linked.png" alt="Image">
