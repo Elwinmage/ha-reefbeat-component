@@ -223,6 +223,9 @@
 	    
 	},
 	"sensor": {
+	    "supplement_program":{
+		"name" : "Supplément"
+	    },
 	    "wave_step":{
 		"name": "Paliers"
 	    },

@@ -12,6 +12,8 @@ from homeassistant.core import HomeAssistant
 from .const import (
     DOMAIN,
     LIGHTS_LIBRARY,
+    WAVES_LIBRARY,
+    SUPPLEMENTS_LIBRARY,
     DEFAULT_TIMEOUT,
     DO_NOT_REFRESH_TIME,
     COMMON_ON_OFF_SWITCH,
@@ -148,7 +150,7 @@ class ReefBeatAPI():
             self.quick_refresh=None
         else:
             if self._live_config_update:
-                query=parse("$.sources[?(@.type!='device-info' && @.type!='preview')]")
+                query=parse("$.sources[?(@.type!='device-info' & @.type!='preview')]")
             else:
                 query=parse("$.sources[?(@.type=='data')]")
                 
@@ -622,7 +624,8 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             {"name":"/aquarium","type":"config","data":""},
             {"name":"/device","type":"config","data":""},
             {"name":LIGHTS_LIBRARY,"type":"config","data":""},
-            {"name":"/reef-wave/library","type":"config","data":""}
+            {"name":WAVES_LIBRARY,"type":"config","data":""},
+            {"name":SUPPLEMENTS_LIBRARY,"type":"config","data":""}
         ]
 
     async def http_send(self,action,payload,method):

@@ -224,6 +224,9 @@
 	    }
 	},
 	"sensor": {
+	    "supplement_program":{
+		"name" : "Supplement"
+	    },
 	    "wave_step":{
 		"name": "Steps"
 	    },

@@ -38,6 +38,7 @@ from .const import (
     DOMAIN,
     LIGHTS_LIBRARY,
     WAVES_LIBRARY,
+    SUPPLEMENTS_LIBRARY,
     LED_WHITE_INTERNAL_NAME,
     LED_BLUE_INTERNAL_NAME,
     WAVE_DIRECTIONS,
@@ -733,6 +734,16 @@ async def async_setup_entry(
                 value_name="$.sources[?(@.name=='"+WAVES_LIBRARY+"')].data[?(@.uid=='"+str(wave['uid'])+"')].name",
             ),)
             ds+=new_wave
+        # SUPPLEMENTS
+        supplements=device.my_api.get_data("$.sources[?(@.name=='"+SUPPLEMENTS_LIBRARY+"')].data")
+        for supplement in supplements:
+            new_supplement= (ReefBeatCloudSensorEntityDescription(
+                key="supplement_"+str(supplement['uid']),
+                translation_key="supplement_program",
+                icon="mdi:sine-supplement",
+                value_name="$.sources[?(@.name=='"+SUPPLEMENTS_LIBRARY+"')].data[?(@.uid=='"+str(supplement['uid'])+"')].name",
+            ),)
+            ds+=new_supplement
         entities += [ReefBeatCloudSensorEntity(device, description)
                      for description in  ds
                      if description.exists_fn(device)]
@@ -908,14 +919,20 @@ class ReefBeatCloudSensorEntity(ReefBeatSensorEntity):
         """Set up the instance."""
         super().__init__(device,entity_description)
         self._entity_description=entity_description
-        self._aquarium_name=device.get_data("$.sources[?(@.name=='/aquarium')].data[?(@.uid=='"+device.get_data(self._entity_description.value_name.replace('].name','].aquarium_uid'))+"')].name",True)
+        #        self._aquarium_name=device.get_data("$.sources[?(@.name=='/aquarium')].data[?(@.uid=='"+device.get_data(self._entity_description.value_name.replace('].name','].aquarium_uid'))+"')].name",True)
+        aquarium_uid=device.get_data(self._entity_description.value_name.replace('].name','].aquarium_uid'),True)
+        if aquarium_uid!=None:
+            self._aquarium_name=device.get_data("$.sources[?(@.name=='/aquarium')].data[?(@.uid=='"+aquarium_uid+"')].name",True)
+        elif self._entity_description.key.startswith("supplement_"):
+            self._aquarium_name='Supplements'
+        else:
+            self._aquarium_name=None
         self._library_name=""
 
     def _get_value(self):
         if self._aquarium_name!=None:
             self._attr_extra_state_attributes=self._device.get_data(self._entity_description.value_name.replace('].name',']'))
             return self._device.get_data(self._entity_description.value_name)+"-"+self._aquarium_name
-        
         else:
             return self._device.get_data(self._entity_description.value_name)
         
