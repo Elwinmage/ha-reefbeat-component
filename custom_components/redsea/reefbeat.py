@@ -88,7 +88,8 @@ class ReefBeatAPI():
     async def _http_get(self,client,source):
         _LOGGER.debug("_http_get: %s"%self._base_url+source.value['name'])
         r = await client.get(self._base_url+source.value['name'],timeout=DEFAULT_TIMEOUT,headers=self._header)
-        if r.status_code == 200:
+        #403 patch for rswave
+        if r.status_code == 200 or (r.status_code==503 and source.value['name']=='/'):
             response=r.json()
             query=parse("$.sources[?(@.name=='"+source.value["name"]+"')]")
             s=query.find(self.data)
@@ -601,6 +602,7 @@ class ReefWaveAPI(ReefBeatAPI):
         super().__init__(ip,live_config_update)
         self.data['sources'].remove({"name":"/dashboard","type": "data","data":""})
         self.data['sources'].remove({"name":"/mode","type": "config","data":""})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/","type": "device-info","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/mode","type": "data","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/feeding/schedule","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/auto","type": "data","data":""})

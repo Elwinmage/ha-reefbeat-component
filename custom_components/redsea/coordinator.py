@@ -738,7 +738,7 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
     def _handle_link_requests(self,event):
         device=self._hass.data[DOMAIN][event.data.get('device_id')]
         s_device=self.get_data("$.sources[?(@.name=='/device')].data[?(@.hwid=='"+device.model_id+"')]",True)
-        if s_device['hwid']!=None:
+        if s_device!=None:
             device.set_cloud_link(self)
 
     async def send_cmd(self,action,payload,method='post'):
