@@ -50,18 +50,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         ip = entry.data[CONFIG_FLOW_IP_ADDRESS]
         hw = entry.data[CONFIG_FLOW_HW_MODEL]
         if ip.startswith(VIRTUAL_LED):
-            if LINKED_LED in entry.data:
-                for led in entry.data[LINKED_LED]:
-                    name=led.split(' ')[1]
-                    uuid=led.split('(')[1][:-1]
-                    waiting_time=0
-                    while DOMAIN not in hass.data or uuid not in hass.data[DOMAIN]:
-                        _LOGGER.info("Waiting for LED  %s (needed by virtual led) to be ready!"%name)
-                        if waiting_time > VIRTUAL_LED_MAX_WAITING_TIME:
-                            _LOGGER.error("Virtual LED need %s, but this led is not ready!"%name)
-                            break
-                        await asyncio.sleep(1)
-                        waiting_time+=1
             coordinator = ReefVirtualLedCoordinator(hass,entry)
         else:
             if hw in HW_G1_LED_IDS:

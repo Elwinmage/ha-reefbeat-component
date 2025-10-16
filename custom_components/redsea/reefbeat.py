@@ -44,6 +44,7 @@ from .const import (
     ATO_AUTO_FILL_INTERNAL_NAME,
     HTTP_MAX_RETRY,
     HTTP_DELAY_BETWEEN_RETRY,
+    VIRTUAL_LED,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -308,7 +309,8 @@ class ReefLedAPI(ReefBeatAPI):
                             "leds_intensity_compensation":LEDS_INTENSITY_COMPENSATION}
         self._model=hw
         self._g1 = self._model in HW_G1_LED_IDS
-        _LOGGER.info("G1 protocol: %s"%(self._g1))
+        if self._model!= VIRTUAL_LED:
+            _LOGGER.info("G1 protocol: %s"%(self._g1))
         self._kelvin_to_wb=None
         self._wb_to_kelvin=None
         #intensity compensation

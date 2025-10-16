@@ -145,15 +145,8 @@ async def async_setup_entry(
         entities += [ReefLedLightEntity(device, description)
                      for description in VIRTUAL_LIGHTS
                      if description.exists_fn(device)]
-        # IF only G1 then activate White and Blue
-        only_g1 = True
-        for led in device._linked:
-            _LOGGER.debug("%s => %s"%(led.title,led.my_api._g1))
-            if led.my_api._g1 == False:
-                only_g1=False
-                break;
-        if only_g1:
-            _LOGGER.info("%s as only G1 LEDS linked, Blue and White management enabled"%device.title)
+        if device._only_g1:
+            _LOGGER.info("G1 protocol activated for %s. White and Blue lights can be set."%device._title)
             entities += [ReefLedLightEntity(device, description)
                          for description in LIGHTS
                          if description.exists_fn(device)]
@@ -235,6 +228,13 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
         await self._device.async_quick_request_refresh('/manual')
         #await self._device.async_request_refresh()
 
+    @property
+    def available(self) -> bool:
+        if type(self._device).__name__=='ReefVirtualLedCoordinator' and (self.entity_description.key=='white' or self.entity_description.key=='blue'):
+            return self._device._only_g1
+        else:
+            return True
+        
     @property
     def brightness(self) -> int:
         """Return the current brightness"""

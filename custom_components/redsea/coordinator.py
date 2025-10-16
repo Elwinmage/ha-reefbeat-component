@@ -53,6 +53,7 @@ from .const import (
     LED_INTENSITY_INTERNAL_NAME,
     WAVE_TYPES,
     WAVES_LIBRARY,
+    HW_G2_LED_IDS,
 )
 
 from .reefbeat import ReefBeatAPI,ReefLedAPI, ReefMatAPI, ReefDoseAPI, ReefATOAPI, ReefRunAPI, ReefWaveAPI, ReefBeatCloudAPI
@@ -89,8 +90,8 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         _LOGGER.info("%s scan interval set to %d"%(self._title,scan_interval))
         _LOGGER.info("%s live configuration update %s"%(self._title,self._live_config_update))
         self._boot=True
-        
 
+        
     async def _async_update_data(self):
         try:
             async with async_timeout.timeout(DEFAULT_TIMEOUT*2):
@@ -111,7 +112,8 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         _LOGGER.debug("async_setup...")
         if(self._boot==True):
             self._boot=False
-            return await self.my_api.get_initial_data()
+            res= await self.my_api.get_initial_data()
+            return res
         return None
 
     async def async_request_refresh(self,wait=2):
@@ -318,19 +320,35 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         """Initialize coordinator."""
         # only led linked to this virtual device
         self._linked = []
-        if LINKED_LED in entry.data:
-            for led in entry.data[LINKED_LED]:
+        self._only_g1 = True
+        for led in entry.data[LINKED_LED]:
+            if led.split('-')[1] in HW_G2_LED_IDS:
+                _LOGGER.debug("G2 light detected")
+                self._only_g1 = False
+                break
+        super().__init__(hass, entry)
+        if str(self._hass.state)=='RUNNING':
+            self._link_leds()
+        else:
+            self._hass.bus.async_listen(EVENT_HOMEASSISTANT_STARTED,self._link_leds)
+        
+    def _link_leds(self,event=None):
+        if LINKED_LED in self._entry.data:
+            _LOGGER.info("Linking leds to %s"%self._title)
+            for led in self._entry.data[LINKED_LED]:
                 name=led.split(' ')[1]
                 uuid=led.split('(')[1][:-1]
-                self._linked+=[hass.data[DOMAIN][uuid]]
+                self._linked+=[self._hass.data[DOMAIN][uuid]]
                 _LOGGER.info(" - %s"%(name))
-        super().__init__(hass, entry)
+        else:
+            _LOGGER.error("%s has no led linked, please configure them"%self._title)
+            return
         if len(self._linked) == 0:
             _LOGGER.error("%s has no led linked, please configure them"%self._title)
-        if len(self._linked) == 1:
+        elif len(self._linked) == 1:
             _LOGGER.error("%s has only one led linked (%s), please configure one more"%(self._title,self._linked[0]._title))
-        _LOGGER.info("Devices linked to %s: "%(self._title))
-
+        else:
+            pass
             
     def force_status_update(self,state=False):
         pass
