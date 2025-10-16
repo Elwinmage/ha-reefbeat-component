@@ -773,6 +773,7 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
             identifiers={
                 (DOMAIN, self.title)
             },
+            model=self.model,
             name=self.title,
             manufacturer=DEVICE_MANUFACTURER,
         )
