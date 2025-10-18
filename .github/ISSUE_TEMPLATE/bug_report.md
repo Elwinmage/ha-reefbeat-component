@@ -11,11 +11,11 @@ assignees: Elwinmage
 A clear and concise description of what the bug is.
 
 **Activate debug log**
-1. Activate the debug mode in ReefBeat Integration <img width="1341" height="429" alt="image" src="https://github.com/user-attachments/assets/2f7e8ae6-bca4-4dbb-8550-5796263b6807" />
+1. Activate the debug mode in ReefBeat Integration (How ti enalbe debug log: https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/ISSUES.md#you-find-a-bug)
+
 2. Do the actions to reproduce the bug
-3. Stop debug mode <img width="1072" height="366" alt="image" src="https://github.com/user-attachments/assets/01a6cb17-ad63-4d33-8f38-07225a37051f" />
+3. Stop debug mode attachments/assets/01a6cb17-ad63-4d33-8f38-07225a37051f" />
 4. Attach the debug log to the issue
-<img width="1031" height="699" alt="image" src="https://github.com/user-attachments/assets/1e191cae-4054-4d9e-b4c0-9c9dd56ab0cc" />
 
 **To Reproduce**
 Steps to reproduce the behavior:
