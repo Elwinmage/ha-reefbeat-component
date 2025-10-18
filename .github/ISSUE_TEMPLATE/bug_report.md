@@ -12,9 +12,8 @@ A clear and concise description of what the bug is.
 
 **Activate debug log**
 1. Activate the debug mode in ReefBeat Integration (How ti enalbe debug log: https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/ISSUES.md#you-find-a-bug)
-
 2. Do the actions to reproduce the bug
-3. Stop debug mode attachments/assets/01a6cb17-ad63-4d33-8f38-07225a37051f" />
+3. Stop debug mode 
 4. Attach the debug log to the issue
 
 **To Reproduce**
