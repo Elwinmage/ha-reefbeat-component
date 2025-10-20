@@ -401,7 +401,7 @@ You can change the mode settings "Connect To Cloud" and "Use Cloud API" switches
     <td>Cloud (Default)</td>
     <td>✅</td>
     <td>✅</td>
-    <td>Data are fetch via the local api. <br />Commands are sent via the cloud api</td>
+    <td>Data are fetch via the local api. <br />on/off commands are also sent via local API. <br />Commands are sent via the cloud api</td>
     <td>✅</td>
   </tr>
   <tr>
