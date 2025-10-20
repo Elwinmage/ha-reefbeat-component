@@ -408,7 +408,7 @@ You can change the mode settings "Connect To Cloud" and "Use Cloud API" switches
     <td>Local</td>
     <td>❌</td>
     <td>❌</td>
-    <td>Data are fetch via the local api. <br />Commands are sent via the local api. (Except on/off that are always sent via local API)<br />Device is seen as 'off' in ReefBeat App.</td>
+    <td>Data are fetch via the local api. <br />Commands are sent via the local api. <br />Device is seen as 'off' in ReefBeat App.</td>
     <td>❌</td>
   </tr>
   <tr>
