@@ -7,8 +7,12 @@
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 <!-- [![GitHub Clones](https://img.shields.io/badge/dynamic/json?color=success&label=uniques-clones&query=uniques&url=https://gist.githubusercontent.com/Elwinmage/cd478ead8334b09d3d4f7dc0041981cb/raw/clone.json&logo=github)](https://github.com/MShawon/github-clone-count-badge) -->
+# Supported Languages: 🇫🇷 🇬🇧 
+You want to help with translation, follow this [guide](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/TRANSLATION.md).
+
 # Overview
 ***HomeAssitant RedSea Reefbeat devices Local Management (no cloud): ReefATO+, ReefDose, ReefLed, ReefMat, ReefRun and ReefWave***
+
 
 > [!TIP]
 > ***To edit advanced schedule for ReefDose, ReefLed, ReefRun and ReefWave, you need to use the [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) (currently under development)***
@@ -16,7 +20,7 @@
 > [!TIP]
 > The list of future implementations can be found [here](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
 > The list of bugs can be found [here](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug)<br />
-> You want to help with translation, follow this [guide](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/TRANSLATION.md)
+
 
 ***If you need other sensors or actuators let me know [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions).***
 
