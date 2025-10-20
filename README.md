@@ -385,7 +385,7 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s in 
 
 
 ## ReefWave Modes
-As explain before, ReefWave devices are the only devices that can be unsychronize with reefbeat App if you use local API.
+As explain before, ReefWave devices are the only devices that can be unsychronized with reefbeat App if you use local API.
 Three modes are availabled: Cloud, Local, Hybride. 
 You can change the mode settings "Connect To Cloud" and "Use Cloud API" switches as described in the table below.
 
