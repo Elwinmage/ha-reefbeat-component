@@ -419,7 +419,7 @@ You can change the mode settings "Connect To Cloud" and "Use Cloud API" switches
     <td>Hybride</td>
     <td>✅</td>
     <td>❌</td>
-    <td>Data are fetch via the local api. <br />Commands are sent via the local api.<br /> The ReefBeat mobile APP does not represent the good waves values.<br/> Home Assitant always represent the good waves values. <br/> You can change values from ReefBeat APP and Home Assistant.</td>
+    <td>Data are fetch via the local api. <br />Commands are sent via the local api.<br /> The ReefBeat mobile APP does not represent the good waves values if values changed via HA.<br/> Home Assitant always represent the good waves values. <br/> You can change values from ReefBeat APP and Home Assistant.</td>
     <td>❌</td>
   </tr>
 </table>
