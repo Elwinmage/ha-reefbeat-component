@@ -23,7 +23,7 @@ Pour nous aider à traduire, suivez ce lien [guide](https://github.com/Elwinmage
 ***Si vous avez besoin d'autres capteurs ou actionneurs, n'hésitez pas à me contacter [ici](https://github.com/Elwinmage/ha-reefbeat-component/discussions).***
 
 > [!IMPORTANT]
-> Si vos appareils ne sont pas sur le même sous-réseau que votre Home Assistant, veuillez [lire ceci](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected).
+> Si vos appareils ne sont pas sur le même sous-réseau que votre Home Assistant, veuillez [lire ceci](README.fr.md#mon-appareil-nest-pas-d%C3%A9tect%C3%A9).
 
 > [!CAUTION]
 > ⚠️ Ceci n'est pas un dépôt RedSea officiel. À utiliser à vos risques et périls.⚠️
@@ -132,20 +132,20 @@ Pour nous aider à traduire, suivez ce lien [guide](https://github.com/Elwinmage
 </tr>
 </table>
 
-(*) Utilisateurs de ReefWave, veuillez lire ceci : [ceci](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)
+(*) Utilisateurs de ReefWave, veuillez lire ceci : [ceci](README.fr.md#reefwave)
 
 # Résumé
-- [Installation via hacs](https://github.com/Elwinmage/ha-reefbeat-component/#installation-via-hacs)
-- [Fonctions communes](https://github.com/Elwinmage/ha-reefbeat-component/#fonctions-communes)
-- [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/#reefato)
-- [ReefDose](https://github.com/Elwinmage/ha-reefbeat-component/#reefdose)
-- [LED](https://github.com/Elwinmage/ha-reefbeat-component/#led)
-- [LED virtuelle](https://github.com/Elwinmage/ha-reefbeat-component/#virtual-led)
-- [ReefMat](https://github.com/Elwinmage/ha-reefbeat-component/#reefmat)
-- [ReefRun](https://github.com/Elwinmage/ha-reefbeat-component/#reefrun)
-- [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)
-- [API Cloud](https://github.com/Elwinmage/ha-reefbeat-component/#cloud-api)
-- [FAQ](https://github.com/Elwinmage/ha-reefbeat-component/#faq)
+- [Installation via hacs](README.fr.md#installation-via-hacs)
+- [Fonctions communes](README.fr.md#fonctions-communes)
+- [ReefATO+](README.fr.md#reefato)
+- [ReefDose](README.fr.md#reefdose)
+- [LED](README.fr.md#led)
+- [LED virtuelle](README.fr.md#led-virtuelle)
+- [ReefMat](README.fr.md#reefmat)
+- [ReefRun](README.fr.md#reefrun)
+- [ReefWave](README.fr.md#reefwave)
+- [API Cloud](README.fr.md#cloud-api)
+- [FAQ](README.fr.md#faq)
 
 # Installation via HACS
 
@@ -170,7 +170,7 @@ Lors de l'ajout d'un nouvel appareil, quatre options s'offrent à vous :
 </p>
 
 ### Ajout de l'API Cloud
-***Obligatoire pour ReefWave*** (Lire [ceci](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)).
+***Obligatoire pour ReefWave*** (Lire [ceci](README.fr.md#reefwave)).
 - Informations utilisateur
 - Aquariums
 - Bibliothèque Waves
@@ -181,7 +181,7 @@ Lors de l'ajout d'un nouvel appareil, quatre options s'offrent à vous :
 </p>
 
 ### Détection automatique sur réseau privé
-Si vous n'êtes pas sur le même réseau, lisez [ceci](#mon-appareil-n'est-pas-détecté) et utilisez le mode ["Manuel"](https://github.com/Elwinmage/ha-reefbeat-component/#manual-mode)
+Si vous n'êtes pas sur le même réseau, lisez [ceci](README.fr.md#mon-appareil-n'est-pas-détecté) et utilisez le mode ["Manuel"](README.fr.md#mode-manuel)
 <p align="center">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/auto_detect.png" alt="Image">
 </p>
@@ -204,8 +204,8 @@ Vous pouvez saisir l'adresse IP ou l'adresse réseau de votre appareil pour une 
 
 ## Mise à jour en direct
 
-> [!REMARQUE]
-> Il est possible de choisir d'activer ou non Live_update_config ou non. Dans ce mode (ancien mode par défaut), les données de configuration sont récupérées en continu avec les données normales. Pour RSDOSE ou RSLED, ces requêtes http volumineuses peuvent prendre beaucoup de temps (7 à 9 secondes). Il arrive que l'appareil ne réponde pas à la requête ; j'ai donc dû coder une fonction de nouvelle tentative. Lorsque Live_update_config est désactivé, les données de configuration ne sont récupérées qu'au démarrage et sur demande via le bouton « Récupérer la configuration ». Ce nouveau mode est activé par défaut. Vous pouvez le modifier dans la configuration de l'appareil. <p align="center">
+> [!NOTE]
+> Il est possible de choisir d'activer ou non le mode Live_update_config. Dans ce mode (ancien mode par défaut), les données de configuration sont récupérées en continu avec les données normales. Pour RSDOSE ou RSLED, ces requêtes http volumineuses peuvent prendre beaucoup de temps (7 à 9 secondes). Il arrive que l'appareil ne réponde pas à la requête ; j'ai donc dû coder une fonction de nouvelle tentative. Lorsque Live_update_config est désactivé, les données de configuration ne sont récupérées qu'au démarrage et sur demande via le bouton « Récupérer la configuration ». Ce nouveau mode est activé par défaut. Vous pouvez le modifier dans la configuration de l'appareil. <p align="center">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_live_update_config.png" alt="Image">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/fetch_config_button.png" alt="Image">
 </p>
@@ -278,7 +278,7 @@ La prise en charge de la température de couleur pour les LED G1 tient compte de
 
 ### LAMPES G2
 
-Cette méthode garantissant une intensité constante sur toute la gamme de couleurs, vos LED n'exploitent pas pleinement leur capacité.Milieu. À 8 000 K, le canal blanc est à 100 % et le canal bleu à 0 % (l'inverse à 23 000 K). À 14 000 K et avec une intensité de 100 % pour les lampes G2, la puissance des canaux blanc et bleu est d'environ 85 %.
+Cette méthode garantissant une intensité constante sur toute la gamme de couleurs, vos LED n'exploitent pas pleinement leur capacité au milieu du spectre. À 8 000 K, le canal blanc est à 100 % et le canal bleu à 0 % (l'inverse à 23 000 K). À 14 000 K et avec une intensité de 100 % pour les lampes G2, la puissance des canaux blanc et bleu est d'environ 85 %.
 Voici la courbe de perte des G2.
 
 <p align="center">
@@ -290,7 +290,7 @@ Voici la courbe de perte des G2.
 Les LED G1 utilisent le contrôle des canaux blanc et bleu, ce qui permet une pleine puissance sur toute la plage, mais pas une intensité constante sans compensation.
 C'est pourquoi j'ai mis en place une compensation d'intensité. Comme je ne dispose que de RESL160, vous ne pouvez activer cette option que pour ce type de LED.
 
-Si vous souhaitez cette option pour la RSLED50 ou la RSLED90, n'hésitez pas à me le faire savoir, mais sachez que vous devrez prendre certaines mesures.
+Si vous souhaitez cette option pour la RSLED50 ou la RSLED90, n'hésitez pas à me le faire savoir, mais sachez que vous devrez mesure la puissance lumineuse de votre LED afin d'entrer ses paramètres.
 
 <p align="center">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/intensity_compensation.png" alt="Image">
@@ -307,14 +307,14 @@ Voici la courbe de puissance de la RSLED160 (de 0 pour un bleu intense à 200 po
 
 Si vous activez la compensation d'intensité, l'intensité lumineuse sera constante sur toutes les valeurs Kelvin, mais en milieu de plage, vous n'utiliserez pas la pleine capacité de vos LED (comme sur les modèles G2). Pour les RSL160, cela représente une perte de plus de 50 %.
 
-N'oubliez pas non plus que le facteur d'intensité dépasse 100 % pour les G1 en mode Blanc/Bleu si vous activez la compensation. Vous pouvez ainsi exploiter toute la puissance de vos LED !
+N'oubliez pas non plus que, si vous acvtivre le mode compensation, le facteur d'intensité peut dépasser les 100% pour les G1 si vous touchez manuellement aux canaux mode Blanc/Bleu s. Vous pouvez ainsi exploiter toute la puissance de vos LED !
 
 ***
 
 # LED virtuelle
 - Regroupez et gérez les LED avec un périphérique virtuel (créez un périphérique virtuel depuis le panneau d'intégration, puis utilisez le bouton de configuration pour lier les LED).
-- Vous ne pouvez utiliser les Kelvin et l'intensité pour contrôler vos LED que si vous avez un G2 ou un mix de G1 et G2.
-- Vous pouvez utiliser à la fois les Kelvin/Intensité et Blanc&Bleu si vous n'avez qu'un G1.
+- Vous ne pouvez utiliser les Kelvin et l'intensité pour contrôler vos LED que si vous avez une G2 ou un mix de G1 et G2.
+- Vous pouvez utiliser à la fois les Kelvin/Intensité et Blanc&Bleu si vous n'avez que des G1.
 
 <p align="center">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/virtual_led_config_1.png" alt="Image">
@@ -328,7 +328,8 @@ N'oubliez pas non plus que le facteur d'intensité dépasse 100 % pour les G1 en
 - Avance manuelle
 - Modifier le roulis.
 >[!TIP]
-> Pour un nouveau rouleau complet, veuillez régler le « diamètre du rouleau » sur minimum (4,0 cm). La taille sera ajustée en fonction de votre version RSMAT. Pour un rouleau déjà utilisé, saisissez la valeur en cm. - Deux paramètres cachés : modèle et position, si vous devez reconfigurer votre RSMAT
+> Pour un nouveau rouleau complet, veuillez régler le « diamètre du rouleau » sur minimum (4,0 cm). La taille sera ajustée en fonction de votre version RSMAT. Pour un rouleau déjà utilisé, saisissez la valeur en cm.
+- Deux paramètres cachés : modèle et position, si vous devez reconfigurer votre RSMAT
 <p align="center">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_ctr.png" alt="Image">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsmat_sensors.png" alt="Image">
@@ -374,7 +375,7 @@ N'oubliez pas non plus que le facteur d'intensité dépasse 100 % pour les G1 en
 > Il n'y a donc pas de mode local ? Pas si simple. Il existe une API locale cachée pour contrôler ReefWave, mais l'application ReefBeat ne détecte pas les modifications. Ainsi, l'appareil et HomeAssistant d'un côté, et l'application mobile ReefBeat de l'autre, seront désynchronisés. L'appareil et HomeAssistant seront toujours synchronisés.<br/>
 > Maintenant que vous savez, faites votre choix !
 
-> [!REMARQUE]
+> [!NOTE]
 > Les vagues ReefWave ont de nombreux paramètres liés, et la plage de certains paramètres dépend d'autres paramètres. Je n'ai pas pu tester toutes les combinaisons possibles. Si vous trouvez un bug, vous pouvez créer un ticket [ici](https://github.com/Elwinmage/ha-reefbeat-component/issues).
 
 ## Modes ReefWave
@@ -408,20 +409,20 @@ Vous pouvez modifier les paramètres de mode « Connexion au Cloud » et « U
 <td>Hybride</td>
 <td>✅</td>
 <td>❌</td>
-<td>Les données sont récupérées via l'API locale. <br />Les commandes sont envoyées via l'API locale.<br />L'application mobile ReefBeat ne représente pas les valeurs des bonnes vagues.<br/>Home Assistant les représente toujours.<br/>Vous pouvez modifier les valeurs depuis l'application ReefBeat et Home Assistant.</td>
+<td>Les données sont récupérées via l'API locale. <br />Les commandes sont envoyées via l'API locale.<br />L'application mobile ReefBeat ne représente pas les valeurs des bonnes vagues si elles ont été modifiées via HA.<br/>Home Assistant les représente toujours.<br/>Vous pouvez modifier les valeurs depuis l'application ReefBeat et Home Assistant.</td>
 <td>❌</td>
 </tr>
 </table>
 
 Pour les modes Cloud et Hybride, vous devez lier votre compte cloud ReefBeat.
-Créez d'abord une ["API cloud"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) avec vos identifiants, et c'est tout !
+Créez d'abord une ["API cloud"](README.fr.md#ajout-de-lapi-cloud) avec vos identifiants, et c'est tout !
 Le capteur « Lié au compte » sera mis à jour avec le nom de votre compte ReefBeat une fois la connexion établie.
 <p align="center">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rswave_linked.png" alt="Image">
 </p>
 
 ## Modification des valeurs actuelles
-Pour charger les valeurs des vagues actuelles dans les champs d'aperçu, utilisez le bouton « Définir la précédente à partir de la vague actuelle ».
+Pour charger les valeurs des vagues actuelles dans les champs d'aperçu, utilisez le bouton « Définir l'aperçu à partir de la vague actuelle ».
 <p align="center">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rswave_set_preview.png" alt="Image">
 </p>
@@ -439,8 +440,8 @@ Le fonctionnement est identique à celui de l'application mobile ReefBeat. Toute
 </p>
 
 # API Cloud
-L'API Cloud permet d'obtenir des informations utilisateur, des bibliothèques de vagues, de suppléments et de LEDs, et d'envoyer des commandes à ReefWave lorsque le mode « [Cloud](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave) » est sélectionné.
-Les paramètres des vagues et des LEDs sont triés par bassin.
+L'API Cloud permet d'obtenir les informations utilisateur, la bibliothèque de vagues, de suppléments et de LEDs, et d'envoyer des commandes à ReefWave lorsque le mode « [Cloud](README.fr.md#reefwave) » est sélectionné.
+Les paramètres des vagues et des LEDs sont triés par aquarium.
 <p align="center">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_api_devices.png" alt="Image">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_api_supplements.png" alt="Image">
@@ -455,7 +456,7 @@ Les paramètres des vagues et des LEDs sont triés par bassin.
 ## Mon appareil n'est pas détecté
 - Essayez de relancer la détection automatique avec le bouton « Ajouter une entrée ». Il arrive que les appareils ne répondent pas car ils sont occupés.
 - Si vos appareils Redsea ne sont pas sur le même sous-réseau que votre Home Assistant, la détection automatique échouera d'abord et vous proposera de saisir l'adresse IP de votre appareil ou l'adresse du sous-réseau où se trouvent vos appareils. Pour la détection de sous-réseau, veuillez utiliser le format IP/MASK, comme dans cet exemple : 192.168.14.0/255.255.255.0.
-- Vous pouvez également utiliser le mode manuel. ](https://github.com/Elwinmage/ha-reefbeat-component?tab=readme-ov-file#manual-mode)
+- Vous pouvez également utiliser le mode [manuel](README.fr.md#mode-manuel).
 
 <p align="center">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/subnetwork.png" alt="Image">
@@ -467,9 +468,11 @@ Les données sont divisées en trois parties : données, configuration et infor
 - Les données de configuration sont mises à jour uniquement au démarrage et lorsque vous appuyez sur le bouton « fecth-config ».
 - Les informations sur l'appareil sont mises à jour uniquement au démarrage.
 
-Pour garantir la mise à jour régulière des données de configuration, veuillez activer la [mise à jour de la configuration en direct ](#live-update).
+Pour garantir la mise à jour régulière des données de configuration, veuillez activer la [mise à jour de la configuration en direct ](README.fr.md#mise-%C3%A0-jour-en-direct).
 
 ***
 
-[buymecoffee] : https://paypal.me/Elwinmage
-[buymecoffeebadge] : https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=flat-square
+[buymecoffee]: https://paypal.me/Elwinmage
+[buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=flat-square
+
+
