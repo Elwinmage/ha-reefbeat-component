@@ -440,7 +440,7 @@ Le fonctionnement est identique à celui de l'application mobile ReefBeat. Toute
 </p>
 
 # API Cloud
-L'API Cloud permet d'obtenir les informations utilisateur, la bibliothèque de vagues, de suppléments et de LEDs, et d'envoyer des commandes à ReefWave lorsque le mode « [Cloud](README.fr.md#reefwave) » est sélectionné.
+L'API Cloud permet d'obtenir les informations utilisateur, la bibliothèque de vagues, de suppléments et de LEDs, et d'envoyer des commandes à ReefWave lorsque le mode « [Cloud ou Hybride](README.fr.md#reefwave) » est sélectionné.
 Les paramètres des vagues et des LEDs sont triés par aquarium.
 <p align="center">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_api_devices.png" alt="Image">
