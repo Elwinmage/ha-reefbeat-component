@@ -7,7 +7,7 @@
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 <!-- [![GitHub Clones](https://img.shields.io/badge/dynamic/json?color=success&label=uniques-clones&query=uniques&url=https://gist.githubusercontent.com/Elwinmage/cd478ead8334b09d3d4f7dc0041981cb/raw/clone.json&logo=github)](https://github.com/MShawon/github-clone-count-badge) -->
-# Supported Languages: 🇫🇷 🇬🇧 
+# Supported Languages: [🇫🇷](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/fr/README.fr.md) 🇬🇧 
 You want to help with translation, follow this [guide](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/TRANSLATION.md).
 
 # Overview
