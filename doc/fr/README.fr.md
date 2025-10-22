@@ -8,7 +8,7 @@
 
 <!-- [![Clones GitHub](https://img.shields.io/badge/dynamic/json?color=success&label=uniques-clones&query=uniques&url=https://gist.githubusercontent.com/Elwinmage/cd478ead8334b09d3d4f7dc0041981cb/raw/clone.json&logo=github)](https://github.com/MShawon/github-clone-count-badge) -->
 # Langues prises en charge : 🇫🇷 [🇬🇧](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/README.md)
-Pour nous aider à traduire, suivez ce lien [guide](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/TRANSLATION.md).
+Pour nous aider à traduire, suivez ce [guide](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/TRANSLATION.md).
 
 # Présentation
 ***Gestion locale des appareils HomeAssitant RedSea Reefbeat (hors cloud) : ReefATO+, ReefDose, ReefLed, ReefMat, ReefRun et ReefWave***
