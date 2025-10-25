@@ -449,15 +449,18 @@ class ReefLedAPI(ReefBeatAPI):
         self.force_status_update()
 
     async def push_values(self,source,method='post'):
+        if (source=="/mode" and self.get_data('$.sources[?(@.name=="/mode")].data.mode')=='timer'):
+            await self.post_specific("/timer")
+            return
         payload=self.get_data("$.sources[?(@.name=='"+source+"')].data")
-        if self._rsled90_patch:
+        if self._rsled90_patch and source=="/manual":
             payload_copy={"white": int(payload['white']),"blue":int(payload['blue']),"moon":int(payload['moon'])}
             payload=payload_copy
         await self._http_send(self._base_url+source,payload,method)
 
         
     async def post_specific(self, source):
-        if source == '/timer' :
+        if source == '/timer':
             payload=self.get_data('$.sources[?(@.name=="/manual")].data')
             if self._rsled90_patch:
                 payload_copy={"white": int(payload['white']),"blue":int(payload['blue']),"moon":int(payload['moon'])}

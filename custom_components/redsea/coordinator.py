@@ -368,9 +368,17 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
                     return self.get_data_int(name)
                 case 'float':
                     return self.get_data_float(name)
+                case 'str':
+                    return self.get_data_str(name)
                 case _:
-                    pass #_LOGGER.warning("Not implemented %s: %s"%(name,data))
+                    # _LOGGER.warning("Not implemented %s: %s (%s)"%(name,data,type(data).__name__))
+                    pass 
 
+    def get_data_str(self,name):
+        if len(self._linked)>0:
+            return self._linked[0].get_data(name)
+        return 'Error'
+                
     def get_data_bool(self,name):
         for led in self._linked:
             if not led.get_data(name):
@@ -410,6 +418,10 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         _LOGGER.debug("not data_exists: %s"%name)            
         return False
 
+    async def fetch_config(self,config_path=None):
+        for led in self._linked:
+            await led.my_api.fetch_config(config_path)
+    
     async def delete(self,source):
         for led in self._linked:
             await led.delete(source)
