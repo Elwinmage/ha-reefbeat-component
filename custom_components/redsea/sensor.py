@@ -629,6 +629,7 @@ async def async_setup_entry(
                 translation_key="container_volume",
                 native_unit_of_measurement=UnitOfVolume.MILLILITERS,
                 device_class=SensorDeviceClass.VOLUME,
+                state_class=SensorStateClass.MEASUREMENT,
                 icon="mdi:hydraulic-oil-level",
                 suggested_display_precision=0,
                 value_name="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.container_volume",
