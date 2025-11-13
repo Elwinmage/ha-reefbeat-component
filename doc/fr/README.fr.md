@@ -30,7 +30,7 @@ Pour nous aider à traduire, suivez ce [guide](https://github.com/Elwinmage/ha-r
 
 # Compatibilité
 
-✅ Testé ☑️ Doit fonctionner (Si vous en possédez un, pouvez-vous confirmer son fonctionnement [ici](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8))
+✅ Testé ☑️ Doit fonctionner (Si vous en possédez un, pouvez-vous confirmer son fonctionnement [ici](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8))❌ No Supported Yet 
 <table>
 <th>
 <td colspan="2"><b>Modèle</b></td>
@@ -45,8 +45,17 @@ Pour nous aider à traduire, suivez ce [guide](https://github.com/Elwinmage/ha-r
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsato,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsato,all label:bug" style="text-decoration:none">🐛</a>
 </td>
-
 </tr>
+    <tr>
+    <td><a href="#reefcontrol">ReefControl</a></td>
+    <td colspan="2">RSCONTROL<br />Vous en avez un, contactez-moi <a href="https://github.com/Elwinmage/ha-reefbeat-component/discussions/8">ici</a> pour que je l'ajoute.</td><td>❌</td>
+    <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSCONTROL.png"/></td>
+    <td>
+      <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:enhancement" style="text-decoration:none">📆</a>
+      <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:bug" style="text-decoration:none">🐛</a>
+    </td>
+
+  </tr>  
 <tr>
 <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
 <td colspan="2">RSDOSE2</td>
@@ -138,6 +147,7 @@ Pour nous aider à traduire, suivez ce [guide](https://github.com/Elwinmage/ha-r
 - [Installation via hacs](README.fr.md#installation-via-hacs)
 - [Fonctions communes](README.fr.md#fonctions-communes)
 - [ReefATO+](README.fr.md#reefato)
+- [ReefControl](README.fr.md#reefcontrol)
 - [ReefDose](README.fr.md#reefdose)
 - [LED](README.fr.md#led)
 - [LED virtuelle](README.fr.md#led-virtuelle)
@@ -218,6 +228,9 @@ Vous pouvez saisir l'adresse IP ou l'adresse réseau de votre appareil pour une 
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato_conf.png" alt="Image">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato_diag.png" alt="Image">
 </p>
+
+# ReefControl:
+Non supporté pour l'instant. Si vous en avez un, contactez-moi [ici](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) pour que je l'ajoute.
 
 # ReefDose :
 - Modification de la dose quotidienne
