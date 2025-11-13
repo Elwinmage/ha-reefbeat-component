@@ -35,7 +35,7 @@ You want to help with translation, follow this [guide](https://github.com/Elwinm
 
 # Compatibility
 
-✅  Tested  ☑️ Must Work (If you have one, can you confirm it's working [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) ) 
+✅  Tested  ☑️ Must Work (If you have one, can you confirm it's working [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) ) ❌ No Supported Yet 
 <table>
   <th>
     <td colspan="2"><b>Model</b></td>
@@ -49,6 +49,16 @@ You want to help with translation, follow this [guide](https://github.com/Elwinm
     <td>
       <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsato,all label:enhancement" style="text-decoration:none">📆</a>
       <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsato,all label:bug" style="text-decoration:none">🐛</a>
+    </td>
+
+  </tr>
+    <tr>
+    <td><a href="#reefcontrol">ReefControl</a></td>
+    <td colspan="2">RSCONTROL<br /> If you have one, you can contact me <a href="https://github.com/Elwinmage/ha-reefbeat-component/discussions/8">here</a> and I will add its support.</td><td>❌</td>
+    <td width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/RSCONTROL.png"/></td>
+    <td>
+      <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:enhancement" style="text-decoration:none">📆</a>
+      <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:bug" style="text-decoration:none">🐛</a>
     </td>
 
   </tr>
@@ -143,6 +153,7 @@ You want to help with translation, follow this [guide](https://github.com/Elwinm
 - [Installation via hacs](https://github.com/Elwinmage/ha-reefbeat-component/#installation-via-hacs)
 - [Common functions](https://github.com/Elwinmage/ha-reefbeat-component/#common-functions)
 - [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/#reefato)
+- [ReefControl](https://github.com/Elwinmage/ha-reefbeat-component/#reefcontrol)
 - [ReefDose](https://github.com/Elwinmage/ha-reefbeat-component/#reefdose)
 - [LED](https://github.com/Elwinmage/ha-reefbeat-component/#led)
 - [Virtual LED](https://github.com/Elwinmage/ha-reefbeat-component/#virtual-led)
@@ -224,6 +235,9 @@ You can put your device IP or the network address to have auto detection.
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato_conf.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsato_diag.png" alt="Image">                                                                                       
 </p> 
+
+# ReefControl:
+No supported yet. If you have one you can contact me [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8).
 
 # ReefDose:
   - Edit daily dose
