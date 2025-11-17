@@ -78,7 +78,7 @@ You want to help with translation, follow this [guide](https://github.com/Elwinm
   
   </tr>
   <tr>
-    <td rowspan="6"> <a href="#led">ReefLed</a></td>
+    <td rowspan="6"> <a href="#reefled">ReefLed</a></td>
     <td rowspan="3">G1</td>
     <td>RSLED50</td>
     <td>☑️</td>
