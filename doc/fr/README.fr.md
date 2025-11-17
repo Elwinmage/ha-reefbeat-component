@@ -72,7 +72,7 @@ Pour nous aider à traduire, suivez ce [guide](https://github.com/Elwinmage/ha-r
 
 </tr>
 <tr>
-<td rowspan="6"> <a href="#led">ReefLed</a></td>
+<td rowspan="6"> <a href="#reefled">ReefLed</a></td>
 <td rowspan="3">G1</td>
 <td>RSLED50</td>
 <td>☑️</td>
