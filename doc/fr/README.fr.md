@@ -149,7 +149,7 @@ Pour nous aider à traduire, suivez ce [guide](https://github.com/Elwinmage/ha-r
 - [ReefATO+](README.fr.md#reefato)
 - [ReefControl](README.fr.md#reefcontrol)
 - [ReefDose](README.fr.md#reefdose)
-- [LED](README.fr.md#led)
+- [ReefLED](README.fr.md#reefled)
 - [LED virtuelle](README.fr.md#led-virtuelle)
 - [ReefMat](README.fr.md#reefmat)
 - [ReefRun](README.fr.md#reefrun)
@@ -257,7 +257,7 @@ Non supporté pour l'instant. Si vous en avez un, contactez-moi [ici](https://gi
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_diag.png" alt="Image">
 </p>
 
-# LED :
+# ReefLED :
 
 - Récupération et définition des valeurs de blanc, de bleu et de lune (uniquement pour G1 : RSLED50, RSLED90, RSLED160)
 - Récupération et définition de la température de couleur, de l'intensité et de la lune (toutes les LED)
