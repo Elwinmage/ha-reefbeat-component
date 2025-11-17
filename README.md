@@ -155,7 +155,7 @@ You want to help with translation, follow this [guide](https://github.com/Elwinm
 - [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/#reefato)
 - [ReefControl](https://github.com/Elwinmage/ha-reefbeat-component/#reefcontrol)
 - [ReefDose](https://github.com/Elwinmage/ha-reefbeat-component/#reefdose)
-- [LED](https://github.com/Elwinmage/ha-reefbeat-component/#led)
+- [ReefLED](https://github.com/Elwinmage/ha-reefbeat-component/#reefled)
 - [Virtual LED](https://github.com/Elwinmage/ha-reefbeat-component/#virtual-led)
 - [ReefMat](https://github.com/Elwinmage/ha-reefbeat-component/#reefmat)
 - [ReefRun](https://github.com/Elwinmage/ha-reefbeat-component/#reefrun)
@@ -265,7 +265,7 @@ No supported yet. If you have one you can contact me [here](https://github.com/E
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_diag.png" alt="Image">
 </p> 
  
-# LED:
+# ReefLED:
   
   - Get and Set White, Blue and Moon values (only for G1: RSLED50,RSLED90,RSLED160)
   - Get and Set Color Temperature, Intensity and Moon (all LEDS)
