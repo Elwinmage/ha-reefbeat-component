@@ -7,7 +7,7 @@ import requests
 from lxml import objectify
 from multiprocessing import Pool
 
-if __name__ == '__main__':
+if __name__ == '__main__' or __name__=='auto_detect':
     from const import (
         HW_DEVICES_IDS,
     )
@@ -75,7 +75,6 @@ def get_unique_id(ip):
         return None
      
 if __name__ == '__main__':
-#    print(HW_DEVICES_IDS)
     res=get_reefbeats()
     print(json.dumps(res,sort_keys=True, indent=4))
 
