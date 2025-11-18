@@ -10,7 +10,7 @@
 
 1. Go to HACS, search for ReefBeat, then click on the three dots at the right and "Update Information" <img width="1893" height="669" alt="image" src="https://github.com/user-attachments/assets/a7ea261c-033b-44d4-8bb2-9f7c38f1c2bd" />
 2. Re-click on the three dots at the right and "Redownload" <img width="1893" height="573" alt="image" src="https://github.com/user-attachments/assets/1ad4e7a3-6d5d-4ca3-98d3-0722f8a64f46" />
-3. Choose the wanted release version and click download <img width="561" height="525" alt="image" src="https://github.com/user-attachments/assets/a35e99fc-6547-41ff-89cc-ec303bf53818" />
+3. Choose the desired release version and click "download" <br />  <img width="561" height="525" alt="image" src="https://github.com/user-attachments/assets/a35e99fc-6547-41ff-89cc-ec303bf53818" />
 
 
 
