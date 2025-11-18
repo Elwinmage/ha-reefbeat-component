@@ -295,8 +295,6 @@ The support of Color Temperature for G1 LEDS take into account the specificity o
 ***
 ## IMPORTANT THINGS for G1 and G2 LIGHTS
 
-<b>The Kelvin/intensity interface of G2 lamps does not allow for full LED power.</b>
-
 ### G2 LIGHTS
 
 #### Intensity
