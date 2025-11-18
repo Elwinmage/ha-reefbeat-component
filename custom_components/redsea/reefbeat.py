@@ -302,7 +302,6 @@ class ReefLedAPI(ReefBeatAPI):
         self.data['local']={"use_cloud_api": None,
                             "status":False,
                             "manual_duration":0,
-                            "constant_intensity": 0,
                             "moonphase":{"moon_day":1},
                             "manual_trick":{"kelvin":None,"intensity":None},
                             "acclimation":{"duration":50,"start_intensity_factor":50,"current_day":1},
@@ -347,7 +346,7 @@ class ReefLedAPI(ReefBeatAPI):
             if led_params != None:
                 self._intensity_compensation=np.poly1d(np.polyfit(np.array(led_params['white_blue']),np.array(led_params['intensity']), 5))
                 min_blue=self._intensity_compensation(0)
-                min_white=self._intensity_compensation(200)
+                min_white=self._intensity_compensation(125)
                 if min_blue > min_white:
                     self._intensity_compensation_reference = min_white
                 else:
@@ -372,9 +371,12 @@ class ReefLedAPI(ReefBeatAPI):
         
     def kelvin_to_white_and_blue(self,kelvin,intensity=100):
         wb=self._kelvin_to_wb(kelvin)
+        _LOGGER.debug("kelvin to wb %s"%wb)
         white,blue=self._wb(wb)
-        if self._intensity_compensation != None:
+        _LOGGER.debug("white: %d, blue %s"%(white,blue))
+        if self._intensity_compensation != None and kelvin >= 12000:
             intensity_compensation_factor=self._intensity_compensation_reference/self._intensity_compensation(wb)
+            _LOGGER.debug("Intensity factor %s"%intensity_compensation_factor)
         else:
             intensity_compensation_factor=1
         white = white * intensity / 100 * intensity_compensation_factor
@@ -397,8 +399,9 @@ class ReefLedAPI(ReefBeatAPI):
             kelvin=self._wb_to_kelvin(wb)
             moon = self.get_data(LED_MOON_INTERNAL_NAME)
 
-            if self._intensity_compensation != None:
+            if self._intensity_compensation != None and kelvin >= 12000:
                 intensity_compensation_factor=self._intensity_compensation_reference/self._intensity_compensation(wb)
+                _LOGGER.debug("Intensity factor %s"%intensity_compensation_factor)
             else:
                 intensity_compensation_factor=1
 
@@ -417,6 +420,7 @@ class ReefLedAPI(ReefBeatAPI):
     def update_light_wb(self):
         data = self.get_data('$.sources[?(@.name=="/manual")].data')
         new_data=self.white_and_blue_to_kelvin(data['white'],data['blue'])
+        _LOGGER.debug("reefbeat.update_light_wb %s => %s"%(data,new_data))
         data['kelvin']=new_data['kelvin']
         data['intensity']=new_data['intensity']
         # Must copy this data beacause virtual led get them before available in '/manual' "

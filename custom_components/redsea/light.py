@@ -24,7 +24,11 @@ from homeassistant.components.light import (
     LightEntityDescription,
     ColorMode,
     ATTR_BRIGHTNESS,
+    ATTR_COLOR_TEMP_KELVIN,
     )
+
+from homeassistant.util import color as color_util
+
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import  DeviceInfo
@@ -64,16 +68,6 @@ COMMON_LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
         icon="mdi:lightbulb-night-outline",
     ),
 )
-
-CONSTANT_INTENSITY: tuple[ReefLedLightEntityDescription, ...] = (
-    ReefLedLightEntityDescription(
-        key="constant_intensity",
-        translation_key="constant_intensity",
-        value_name="$.local.constant_intensity",
-        icon="mdi:lightbulb-on-50",
-    ),
-)
-
     
 LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
     ReefLedLightEntityDescription(
@@ -90,22 +84,34 @@ LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
     ),
 )
 
+G1_LIGHTS:tuple[ReefLedLightEntityDescription, ...] = (
+    ReefLedLightEntityDescription(
+        key="kelvin_intensity",
+        translation_key="kelvin_intensity",
+        value_name="$.local.manual_trick",
+        icon="mdi:palette",
+    ),
+)
+
+
 G2_LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
     ReefLedLightEntityDescription(
-        key="intensity",
-        translation_key="intensity",
-        value_name="$.sources[?(@.name=='/manual')].data.intensity",
-        icon="mdi:lightbulb-on-50",
+        key="kelvin_intensity",
+        translation_key="kelvin_intensity",
+        value_name="$.sources[?(@.name=='/manual')].data",
+        icon="mdi:palette",
     ),
 )
 
 
 VIRTUAL_LIGHTS: tuple[ReefVirtualLedLightEntityDescription, ...] = (
-    ReefLedLightEntityDescription(
-        key="intensity",
-        translation_key="intensity",
-        value_name="$.sources[?(@.name=='/manual')].data.intensity",
-        icon="mdi:lightbulb-on-50",
+    ReefVirtualLedLightEntityDescription(
+        key="kelvin_intensity",
+        translation_key="kelvin_intensity",
+        #value_name="$.sources[?(@.name=='/manual')].data",
+        # specific two values first for G1 second for G2
+        value_name="$.local.manual_trick $.sources[?(@.name=='/manual')].data",
+        icon="mdi:palette",
     ),
     ReefVirtualLedLightEntityDescription(
         key="moon",
@@ -129,10 +135,10 @@ async def async_setup_entry(
                      for description in LIGHTS
                      if description.exists_fn(device)]
         entities += [ReefLedLightEntity(device, description)
-                     for description in COMMON_LIGHTS
+                     for description in G1_LIGHTS
                      if description.exists_fn(device)]
         entities += [ReefLedLightEntity(device, description)
-                     for description in G2_LIGHTS
+                     for description in COMMON_LIGHTS
                      if description.exists_fn(device)]
     elif type(device).__name__=='ReefLedG2Coordinator':
         entities += [ReefLedLightEntity(device, description)
@@ -171,8 +177,18 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
         self._attr_available = False
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._brighness = 0
-        self._old_brighness=0
+        self._turned_on_avoid_echo=False
+        #        self._old_brighness=0
         self._state = "off"
+        if self.entity_description.key=="kelvin_intensity":
+            self._attr_supported_color_modes = [ColorMode.COLOR_TEMP]
+            self._attr_color_mode = ColorMode.COLOR_TEMP
+            if self._device.my_api._g1:
+                self._attr_min_color_temp_kelvin= 9000
+            else:
+                self._attr_min_color_temp_kelvin= 8000
+            self._attr_max_color_temp_kelvin= 23000
+            self._attr_color_temp_kelvin= 15000
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -185,14 +201,24 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
         self._update()
         
     def _update(self):
+
         self._attr_available = True
+        if (self._turned_on_avoid_echo):
+            _LOGGER.debug("AVOID Echo")
+            self._turned_on_avoid_echo=False
+            return
         raw_data=self._device.get_data(self.entity_description.value_name)
         if (raw_data != None):
-            self._brightness =  self._device.get_data(self.entity_description.value_name)/LED_CONVERSION_COEF
+            if self.entity_description.key=="kelvin_intensity":
+                self._brightness= raw_data['intensity']/LED_CONVERSION_COEF
+                self._attr_color_temp_kelvin= raw_data['kelvin']
+            else:
+                self._brightness =  self._device.get_data(self.entity_description.value_name)/LED_CONVERSION_COEF
         else:
             self._attr_available = False
             self._brightness = 0
-        if self.brightness > 0:
+            
+        if self._brightness > 0:
             self._state='on'
             self._attr_is_on=True
         else:
@@ -202,26 +228,63 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
     async def async_turn_on(self, **kwargs):
         """Turn the light on."""
         _LOGGER.debug("Reefled.light.async_turn_on %s"%kwargs)
+        self._turned_on_avoid_echo=True
+        if ATTR_COLOR_TEMP_KELVIN in kwargs:
+            kelvin=int(kwargs[ATTR_COLOR_TEMP_KELVIN])
+            if not self._device.my_api._g1:
+                if kelvin > self._attr_color_temp_kelvin:
+                    if self._attr_color_temp_kelvin < 10000:
+                        kelvin = kelvin//200*200
+                    else:
+                        kelvin = kelvin//500*500
+                    if kelvin > 23000:
+                        kelvin=23000
+                elif kelvin < self._attr_color_temp_kelvin:
+                    if self._attr_color_temp_kelvin > 10000:
+                        if(kelvin//500*500)<10000:
+                            kelvin = kelvin//200*200
+                        else:
+                            kelvin = kelvin//500*500
+                    else:
+                        kelvin = kelvin//200*200
+                    if kelvin < 8000:
+                        kelvin = 8000
+            self._attr_color_temp_kelvin=kelvin
+            self._device.set_data(self.entity_description.value_name+'.kelvin',self._attr_color_temp_kelvin)
         if ATTR_BRIGHTNESS in kwargs:
             ha_value = int(kwargs[ATTR_BRIGHTNESS])
+            self._brightness = ha_value
+            #            self._old_brighness=ha_value
         else:
-            ha_value = self._old_brighness
+#            ha_value = self._old_brighness
+#            _LOGGER.debug("set ha_value %s %s with conversion %s"%(ha_value,self._old_brighness,LED_CONVERSION_COEF))
+            pass
+            _LOGGER.debug("no brigthness change")
         self._state='on'
         self._attr_is_on=True
-        self._brightness = ha_value
-        self._device.set_data(self.entity_description.value_name,ha_value*LED_CONVERSION_COEF)
-        self._device.force_status_update(True)
+#        self._brightness = ha_value
+        if self.entity_description.key=='kelvin_intensity':
+            if ATTR_BRIGHTNESS in kwargs:
+                #ha_value = int(kwargs[ATTR_BRIGHTNESS])
+                self._device.set_data(self.entity_description.value_name+'.intensity', round(ha_value*LED_CONVERSION_COEF))
+        else:
+            self._device.set_data(self.entity_description.value_name,round(ha_value*LED_CONVERSION_COEF))
+        #self._device.force_status_update(True)
         self.async_write_ha_state()
         await self._device.push_values('/manual','post')
-        await self._device.async_quick_request_refresh('/manual')
+        #await self._device.async_quick_request_refresh('/manual')
         #await self._device.async_request_refresh()
 
     async def async_turn_off(self, **kwargs):
-        self._old_brighness=self._brightness
+        _LOGGER.debug("redsea.light.async_turn_off")
+#        self._old_brighness=self._brightness
         self._brightness=0
         self._attr_is_on=False
         self._state="off"
-        self._device.set_data(self.entity_description.value_name,0)
+        if self.entity_description.key=='kelvin_intensity':
+            self._device.set_data(self.entity_description.value_name+'.intensity',0)
+        else:
+            self._device.set_data(self.entity_description.value_name,0)
         self._device.force_status_update()
         self.async_write_ha_state()
         await self._device.push_values('/manual','post')

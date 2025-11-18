@@ -275,11 +275,9 @@ class ReefLedCoordinator(ReefBeatCoordinator):
         super().set_data(name,value)
         if name == LED_WHITE_INTERNAL_NAME or name == LED_BLUE_INTERNAL_NAME :
             self.my_api.update_light_wb()
-        elif name == LED_KELVIN_INTERNAL_NAME or name == LED_INTENSITY_INTERNAL_NAME:
-            if name == LED_KELVIN_INTERNAL_NAME :
-                self.my_api.data['local']['manual_trick']['kelvin']=value
-            else:
-                self.my_api.data['local']['manual_trick']['intensity']=value
+        elif name.startswith('$.local.manual_trick.'):
+            _LOGGER.debug("set_data: %s"%self.my_api.data['local']["manual_trick"])
+            self.my_api.data['local']['manual_trick'][name.split('.')[-1]]=value
             self.my_api.update_light_ki()
 
     def set_cloud_link(self,cloud):
@@ -360,7 +358,12 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
     
     def get_data(self,name,is_None_possible=False):
         if len(self._linked)>0:
+            # Kelvin name for G1 or G2
+            names=name.split(' ')
+            if len(names)>1:
+                return self.get_data_kelvin(name)
             data=self._linked[0].get_data(name,is_None_possible)
+            
             match type(data).__name__:
                 case 'bool':
                     return self.get_data_bool(name)
@@ -371,9 +374,30 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
                 case 'str':
                     return self.get_data_str(name)
                 case _:
-                    # _LOGGER.warning("Not implemented %s: %s (%s)"%(name,data,type(data).__name__))
+                    _LOGGER.warning("Not implemented %s: %s (%s)"%(name,data,type(data).__name__))
                     pass 
 
+    def get_data_kelvin(self, name):
+        names=name.split(' ')
+        kelvin=0
+        intensity=0
+        count= 0
+        for led in self._linked:
+            # For kelvin with G1 or G2
+            if led.my_api._g1:
+                name=names[0]
+            else:
+                name= names[1]
+            kelvin+=led.get_data(name+'.kelvin')
+            intensity+=led.get_data(name+'.intensity')
+            count +=1
+        if count > 0:    
+            return {"kelvin":kelvin/count,"intensity":intensity/count}
+        else:
+            _LOGGER.warning("coordinator.virtualled.get_data_kelvin no light")
+            return {"kelvin":23000,"intensity":0}
+        
+                
     def get_data_str(self,name):
         if len(self._linked)>0:
             return self._linked[0].get_data(name)
@@ -403,7 +427,15 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         return res/count
 
     def set_data(self,name,value):
+        names=name.split(' ')
         for led in self._linked:
+            _LOGGER.debug("Setting DATA for vitual led %s"%names)
+            if len(names)>1:
+                v_name=names[1].split('.')[-1]
+                if led.my_api._g1:
+                    name=names[0]+'.'+v_name
+                else:
+                    name= names[1]
             led.set_data(name,value)
 
     async def push_values(self,source,method='post'):
@@ -418,6 +450,14 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         _LOGGER.debug("not data_exists: %s"%name)            
         return False
 
+    async def press(self,action):
+        for led in self._linked:
+            await led.press(action)
+
+    async def delete(self,source):
+        for led in self._linked:
+            await led.delete(source)
+            
     async def fetch_config(self,config_path=None):
         for led in self._linked:
             await led.my_api.fetch_config(config_path)
@@ -435,12 +475,8 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
             await led.async_request_refresh()
 
     async def async_quick_request_refresh(self,source):
-        #wait fore device to refresh state
-        #        await asyncio.sleep(2)
         for led in self._linked:
-            #led.my_api.quick_refresh=source
             await led.async_quick_request_refresh(source)
-
             
     @property
     def device_info(self):

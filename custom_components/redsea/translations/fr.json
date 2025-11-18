@@ -449,8 +449,8 @@
 	    }
 	},
 	"light": {
-	    "constant_intensity":{
-		"name": "Intensité compensée"
+	    "kelvin_intensity":{
+		"name": "Kelvin"
 	    },
 	    
 	    "intensity":{

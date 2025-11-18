@@ -47,7 +47,6 @@ from .const import (
     LED_ACCLIMATION_DURATION_INTERNAL_NAME,
     LED_ACCLIMATION_INTENSITY_INTERNAL_NAME,
     LED_MANUAL_DURATION_INTERNAL_NAME,
-    LED_KELVIN_INTERNAL_NAME,
     WAVE_SHORTCUT_OFF_DELAY,
     WAVE_TYPES,
 )
@@ -322,28 +321,9 @@ async def async_setup_entry(
     entities=[]
     _LOGGER.debug("NUMBERS")
     if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefVirtualLedCoordinator' or type(device).__name__=='ReefLedG2Coordinator':
-        min_kelvin=9000
-        if  type(device).__name__=='ReefLedG2Coordinator':
-            min_kelvin=8000
-        KELVIN_LED: tuple[ReefLedNumberEntityDescription, ...] = (
-            ReefLedNumberEntityDescription(
-            key='kelvin',
-            translation_key='kelvin',
-            native_max_value=23000,
-            native_min_value=min_kelvin,
-            native_step=500,
-            value_name=LED_KELVIN_INTERNAL_NAME,
-            icon="mdi:palette",
-            post_specific=False,
-            native_unit_of_measurement=UnitOfTemperature.KELVIN,
-        ),)
         entities += [ReefLedNumberEntity(device, description,hass)
                  for description in LED_NUMBERS
                  if description.exists_fn(device)]
-        entities += [ReefLedNumberEntity(device, description,hass)
-                    for description in KELVIN_LED
-                     if description.exists_fn(device)]
-
     elif type(device).__name__=='ReefMatCoordinator':
         entities += [ReefBeatNumberEntity(device, description)
                  for description in MAT_NUMBERS
@@ -373,7 +353,7 @@ async def async_setup_entry(
             value_name="$.sources[?(@.name=='/device-settings')].data.dosing_waiting_period",
             icon="mdi:sleep",
             head=0,
-            entity_category=EntityCategory.CONFIG, 
+            entity_category=EntityCategory.CONFIG,
         ), )
         dn+=new_head
         
