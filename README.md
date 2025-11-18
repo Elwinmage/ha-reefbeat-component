@@ -299,36 +299,39 @@ The support of Color Temperature for G1 LEDS take into account the specificity o
 
 ### G2 LIGHTS
 
-Because this method ensures constant intensity across the entire color range, your LEDs do not utilize their full capacity in the middle. At 8.000K, the white channel is at 100% and the blue channel at 0% (the opposite at 23.000K). At 14.000K and with 100% intensity for G2 lights, the power of the white and blue channels is approximately 85%.
+#### Intensity
+Because G2 leds ensures constant intensity across the entire color range, your LEDs do not utilize their full capacity in the middle. At 8.000K, the white channel is at 100% and the blue channel at 0% (the opposite at 23.000K). At 14.000K and with 100% intensity for G2 lights, the power of the white and blue channels is approximately 85%.
 Here is the loss curve for the G2s.
 <p align="center">                                                                                                                                                                             
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/intensity_factor.png" alt="Image">
 </p>
 
+#### Kelvin values
+The G2 interface does not support the entire Kelvin temperature range. From 8,000 K to 10,000K, values ​​are incremented in 200K steps, and from 10,000K to 23,000K, in 500K steps. This behavior is taken into account: if you set an invalid value for your G2 lamp (8,300K, for example), a valid value is automatically selected (8,200K in this example). This is why you may sometimes observe a slight movement of the cursor when setting the Kelvin temperature for G2: the cursor is then positioned at an available Kelvin temperature value.
+
 ### G1 LIGHTS
 
-G1 LEDS use white and blue channels control, which allows for full power across the entire range, but not constant intensity without compensation.
-That's why I implent intensity compensation. Because I only have RESL160, you can enable this option only for this kind of LEDS. 
-
-If you want this option for RSLED50 or RSLED90 let me known but be aware that you have to make some measures.
+G1 LEDs use white and blue channels control, which allows for full power across the entire range, but not constant intensity without compensation (like G2).
+That's why I implent intensity compensation. This compensation ensure you will have the same [PAR](https://en.wikipedia.org/wiki/Photosynthetically_active_radiation) (light intensity intensity) for different Color temperature (from 12,000K to 23,000K).
+> [!NOTE]
+> Because Redsea do not published PAR values under 12000K, compensation is only available in the 12,000 to 15,000K range. If you have a G1 RSLED and a PARmeter you can [contact me](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) to also add compensation for range 9,000 to 12,000K.
 
 <p align="center">                                                                                                                                                                             
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/intensity_compensation.png" alt="Image">
 </p>
 
-If you want to use the full power of your LED then disable intensity compensation (default).
+In other words, without compensation, an intensity of x% for 12,000K do not provide the same PAR as for 23,000K or 15,000K.
 
-In other words, an intensity of x% for 9.000K is not the same than at 23.000K or 15,000K.
-
-Here is the power curve for the RSLED160 (0 is for full blue to  full white 200).
+Here are the power curve:
 <p align="center">                                                                                                                                                                             
-  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled160_power_curve.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/PAR_curves.png" alt="Image">
 </p>
 
-If you enable intentisty compensation, the intensity of your light will be constant accross all kelvin values but in the middle of the range you will not use the full capacity of your LED (like G2 models). For RSL160, that's more than a 50% loss.
+If you want to use the full power of your LED then disable intensity compensation (default).
 
-Also, don't be surprised to see the intensity factor exceed 100% for the G1s in White/Blue mode if you enable compensation. This is because you can harness the full power of your LEDs!
+If you enable intentisty compensation, the intensity of your light will be constant accross all kelvin values in the 12,000 to 23,000K range but in the middle of the range you will not use the full capacity of your LED (like G2 models).
 
+Also, don't be surprised to see the intensity factor exceed 100% for the G1s if you change White or Blue channel manually and if compensation is enabled. This is because you can harness the full power of your LEDs!
 
 ***
 
