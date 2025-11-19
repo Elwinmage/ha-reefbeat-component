@@ -508,6 +508,8 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
         await self._device.push_values(self._source)
         await self._device.async_request_refresh()
 
+    # TODO : Use events  to manage entity state dependency
+    #  labels: enhancement, rswave, rsled, rfdose
     @property
     def available(self) -> bool:
         if self.entity_description.dependency != None:

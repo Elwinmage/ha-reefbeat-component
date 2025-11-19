@@ -90,7 +90,6 @@ DAILY_PROG_INTERNAL_NAME="$.local.daily_prog"
 
 LED_CONVERSION_COEF=100/255
 
-
 LEDS_CONV=[{'name':'RSLED160','kelvin': [9000,12000,15000,20000,23000], 'white_blue':[200,125,100,50,10]},
            {'name':'RSLED90', 'kelvin': [9000,12000,15000,20000,23000], 'white_blue':[200,134,100,50,10]},
            {'name':'RSLED50', 'kelvin': [9000,12000,15000,20000,23000], 'white_blue':[200,100,50,25,5]},
@@ -105,6 +104,9 @@ LEDS_INTENSITY_COMPENSATION=[{'name':'RSLED160','intensity':[10320,14300,17240,2
 
 LED_MODE_INTERNAL_NAME="$.sources[?(@.name=='/mode')].data.mode"
 LED_MODES=["auto","timer","manual"]
+
+EVENT_KELVIN_LIGHT_UPDATED='Kelvin_light_updated'
+EVENT_WB_LIGHT_UPDATED='Kelvin_wb_updated'
 
 #VIRTUAL
 

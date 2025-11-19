@@ -460,6 +460,7 @@ class ReefLedAPI(ReefBeatAPI):
         if self._rsled90_patch and source=="/manual":
             payload_copy={"white": int(payload['white']),"blue":int(payload['blue']),"moon":int(payload['moon'])}
             payload=payload_copy
+        _LOGGER.debug('PUSH VALUE::::%s'%payload)
         await self._http_send(self._base_url+source,payload,method)
 
         
@@ -474,7 +475,6 @@ class ReefLedAPI(ReefBeatAPI):
                 await self._http_send(self._base_url+source,payload,'post')
             else:
                 source='/manual'
-            _LOGGER.debug("/-- %s %s"%(self._base_url+source,payload))
             await self._http_send(self._base_url+source,payload,'post')
         else:
             payload_name="$.local."+source[1:]

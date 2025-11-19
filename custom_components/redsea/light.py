@@ -42,6 +42,8 @@ from .const import (
     LED_MOON_INTERNAL_NAME,
     LED_INTENSITY_INTERNAL_NAME,
     LED_CONVERSION_COEF,
+    EVENT_KELVIN_LIGHT_UPDATED,
+    EVENT_WB_LIGHT_UPDATED,
 )
 
 from .coordinator import ReefLedCoordinator, ReefVirtualLedCoordinator
@@ -177,7 +179,7 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
         self._attr_available = False
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._brighness = 0
-        self._turned_on_avoid_echo=False
+        #self._turned_on_avoid_echo=False
         #        self._old_brighness=0
         self._state = "off"
         if self.entity_description.key=="kelvin_intensity":
@@ -189,9 +191,13 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
                 self._attr_min_color_temp_kelvin= 8000
             self._attr_max_color_temp_kelvin= 23000
             self._attr_color_temp_kelvin= 15000
+            self._device._hass.bus.async_listen(EVENT_WB_LIGHT_UPDATED, self._handle_coordinator_update)
+        else:
+            self._device._hass.bus.async_listen(EVENT_KELVIN_LIGHT_UPDATED, self._handle_coordinator_update)
+
 
     @callback
-    def _handle_coordinator_update(self) -> None:
+    def _handle_coordinator_update(self,event=None) -> None:
         """Handle updated data from the coordinator."""
         self._update()
         self.async_write_ha_state()
@@ -199,14 +205,13 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
     async def async_update(self) -> None:
         """Update entity state."""
         self._update()
-        
-    def _update(self):
 
+    def _update(self):
         self._attr_available = True
-        if (self._turned_on_avoid_echo):
-            _LOGGER.debug("AVOID Echo")
-            self._turned_on_avoid_echo=False
-            return
+        # if (self._turned_on_avoid_echo):
+        #     _LOGGER.debug("AVOID Echo")
+        #     self._turned_on_avoid_echo=False
+        #     return
         raw_data=self._device.get_data(self.entity_description.value_name)
         if (raw_data != None):
             if self.entity_description.key=="kelvin_intensity":
@@ -228,7 +233,7 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
     async def async_turn_on(self, **kwargs):
         """Turn the light on."""
         _LOGGER.debug("Reefled.light.async_turn_on %s"%kwargs)
-        self._turned_on_avoid_echo=True
+        #self._turned_on_avoid_echo=True
         if ATTR_COLOR_TEMP_KELVIN in kwargs:
             kelvin=int(kwargs[ATTR_COLOR_TEMP_KELVIN])
             if not self._device.my_api._g1:
@@ -256,10 +261,10 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
             self._brightness = ha_value
             #            self._old_brighness=ha_value
         else:
-#            ha_value = self._old_brighness
-#            _LOGGER.debug("set ha_value %s %s with conversion %s"%(ha_value,self._old_brighness,LED_CONVERSION_COEF))
-            pass
-            _LOGGER.debug("no brigthness change")
+            if self.entity_description.key=='kelvin_intensity':
+                ha_value = self._device.get_data(self.entity_description.value_name+'.intensity')
+            else:
+                ha_value = self._device.get_data(self.entity_description.value_name)
         self._state='on'
         self._attr_is_on=True
 #        self._brightness = ha_value
@@ -267,8 +272,12 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
             if ATTR_BRIGHTNESS in kwargs:
                 #ha_value = int(kwargs[ATTR_BRIGHTNESS])
                 self._device.set_data(self.entity_description.value_name+'.intensity', round(ha_value*LED_CONVERSION_COEF))
+            self._device._hass.bus.fire(EVENT_KELVIN_LIGHT_UPDATED, {})
+
         else:
             self._device.set_data(self.entity_description.value_name,round(ha_value*LED_CONVERSION_COEF))
+            self._device._hass.bus.fire(EVENT_WB_LIGHT_UPDATED, {})
+                        
         #self._device.force_status_update(True)
         self.async_write_ha_state()
         await self._device.push_values('/manual','post')
@@ -283,8 +292,10 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
         self._state="off"
         if self.entity_description.key=='kelvin_intensity':
             self._device.set_data(self.entity_description.value_name+'.intensity',0)
+            self._device._hass.bus.fire(EVENT_KELVIN_LIGHT_UPDATED, {})
         else:
             self._device.set_data(self.entity_description.value_name,0)
+            self._device._hass.bus.fire(EVENT_WB_LIGHT_UPDATED, {})
         self._device.force_status_update()
         self.async_write_ha_state()
         await self._device.push_values('/manual','post')
