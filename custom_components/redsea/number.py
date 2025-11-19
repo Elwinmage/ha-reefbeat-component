@@ -510,7 +510,7 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
 
     # TODO : Use events  to manage entity state dependency
     # Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/40
-    #  labels: enhancement, rswave, rsled, rfdose
+    #  labels: enhancement, rswave, rsled, rsdose
     @property
     def available(self) -> bool:
         if self.entity_description.dependency != None:
