@@ -509,6 +509,7 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
         await self._device.async_request_refresh()
 
     # TODO : Use events  to manage entity state dependency
+    # Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/40
     #  labels: enhancement, rswave, rsled, rfdose
     @property
     def available(self) -> bool:
