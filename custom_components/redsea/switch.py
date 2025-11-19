@@ -58,6 +58,7 @@ class ReefBeatSwitchEntityDescription(SwitchEntityDescription):
     value_name: ''
     icon_off:  str = ''
     method: str = 'put'
+    notify: bool=False
     
 @dataclass(kw_only=True)
 class ReefLedSwitchEntityDescription(SwitchEntityDescription):
@@ -66,6 +67,7 @@ class ReefLedSwitchEntityDescription(SwitchEntityDescription):
     icon_off:  str = ''
     value_name: ''
     method: str ='put'
+    notify: bool=False
     
 @dataclass(kw_only=True)
 class ReefDoseSwitchEntityDescription(SwitchEntityDescription):
@@ -75,12 +77,14 @@ class ReefDoseSwitchEntityDescription(SwitchEntityDescription):
     value_name: ''
     head: 0
     method: str = 'put'
+    notify: bool=False
 
 @dataclass(kw_only=True)
 class SaveStateSwitchEntityDescription(SwitchEntityDescription):
     """Describes reefbeat Switch entity."""
     exists_fn: Callable[[], bool] = lambda _: True
     icon_off:  str = ''
+    notify: bool=False
 
 SAVE_STATE_SWITCHES: tuple[SaveStateSwitchEntityDescription, ...] = (
     SaveStateSwitchEntityDescription(
@@ -122,6 +126,7 @@ LED_SWITCHES: tuple[ReefLedSwitchEntityDescription, ...] = (
         icon="mdi:fish",
         method='post',
         entity_category=EntityCategory.CONFIG,
+        notify=True,
     ),
     ReefLedSwitchEntityDescription(
         key="sw_moonphase_enabled",
@@ -130,6 +135,7 @@ LED_SWITCHES: tuple[ReefLedSwitchEntityDescription, ...] = (
         icon="mdi:weather-night",
         method='post',
         entity_category=EntityCategory.CONFIG,
+        notify=True,
     ),
 )
 
@@ -236,7 +242,8 @@ async def async_setup_entry(
                 icon="mdi:hydraulic-oil-level",
                 value_name="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.slm",
                 head=head,
-                entity_category=EntityCategory.CONFIG, 
+                entity_category=EntityCategory.CONFIG,
+                notify=True,
             ), )
             dn+=new_head
             
@@ -466,15 +473,21 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
         self._device.async_update_listeners()
         self.async_write_ha_state()
         #await self._device.push_values('/head/'+str(self._head)+'/settings',self.entity_description.method)
+        if self.entity_description.notify:
+            self._device._hass.bus.fire(self.entity_description.value_name, {})
+
         await self._device.push_values(self._head)
         await self._device.async_quick_request_refresh('/head/'+str(self._head)+'/settings')
         #await self._device.async_request_refresh()
+        
         
     async def async_turn_off(self, **kwargs):
         self._state=False
         self._device.set_data(self.entity_description.value_name,False)
         self._device.async_update_listeners()
         self.async_write_ha_state()
+        if self.entity_description.notify:
+            self._device._hass.bus.fire(self.entity_description.value_name, {})
         await self._device.push_values(self._head)
         await self._device.async_quick_request_refresh('/head/'+str(self._head)+'/settings')
         #await self._device.async_request_refresh()

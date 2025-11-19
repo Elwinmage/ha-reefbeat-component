@@ -484,9 +484,12 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
             self._source='/configuration'
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._attr_native_value=3.25
+        if self.entity_description.dependency!=None:
+            self._device._hass.bus.async_listen(self.entity_description.dependency, self._handle_coordinator_update)
+
 
     @callback
-    def _handle_coordinator_update(self) -> None:
+    def _handle_coordinator_update(self,event=None) -> None:
         """Handle updated data from the coordinator."""
         self._attr_available = self.available
         self._attr_native_value=self._device.get_data(self.entity_description.value_name)
@@ -508,9 +511,6 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
         await self._device.push_values(self._source)
         await self._device.async_request_refresh()
 
-    # TODO : Use events  to manage entity state dependency
-    # Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/40
-    #  labels: enhancement, rswave, rsled, rsdose
     @property
     def available(self) -> bool:
         if self.entity_description.dependency != None:
@@ -541,6 +541,7 @@ class ReefLedNumberEntity(ReefBeatNumberEntity):
         """Set up the instance."""
         super().__init__(device,entity_description)
         self.hass = hass
+        
             
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
