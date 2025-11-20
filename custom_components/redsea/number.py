@@ -396,7 +396,7 @@ async def async_setup_entry(
                 device_class=NumberDeviceClass.VOLUME,
                 native_min_value=0,
                 native_step=1,
-                native_max_value=2000,
+                native_max_value=6000,
                 value_name="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.container_volume",
                 icon="mdi:cup-water",
                 head=head,
