@@ -186,7 +186,7 @@ When adding a new device you have 4 choices:
 </p>  
 
 ### Add Cloud API
- ***Mandatory for ReefWave if you want to keep synchronized with ReefBeat Mobile App*** (Read [this](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)).
+ ***Mandatory for ReefWave if you want to keep it synchronized with ReefBeat Mobile App*** (Read [this](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)).
   - Get user informations
   - Get aquariums
     - Get Waves library
