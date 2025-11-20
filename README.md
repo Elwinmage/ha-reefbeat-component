@@ -197,7 +197,7 @@ When adding a new device you have 4 choices:
 </p>  
       
  ### Auto detect on private network
-If not on same network read  [this](#my-device-is-not-detected) and use the  ["Manual Mode"](https://github.com/Elwinmage/ha-reefbeat-component/#manual-mode))
+If not on same network read  [this](#my-device-is-not-detected) and use the  ["Manual Mode"](https://github.com/Elwinmage/ha-reefbeat-component/#manual-mode)
 <p align="center">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/auto_detect.png" alt="Image">
 </p> 
@@ -267,7 +267,7 @@ No supported yet. If you have one you can contact me [here](https://github.com/E
  
 # ReefLED:
   
-  - Get and Set White, Blue and Moon values (only for G1: RSLED50,RSLED90,RSLED160)
+  - Get and Set White and Blue channels (only for G1: RSLED50,RSLED90,RSLED160)
   - Get and Set Color Temperature, Intensity and Moon (all LEDS)
   - Manage acclimation. Acclimation settings are automaticaly enabled or disabled according to acclimation switch.
   - Manage moonphase. Moonphase settings are automaticaly enabled or disabled according to moonphase switch.
@@ -310,7 +310,7 @@ The G2 interface does not support the entire Kelvin temperature range. From 8,00
 ### G1 LIGHTS
 
 G1 LEDs use white and blue channels control, which allows for full power across the entire range, but not constant intensity without compensation (like G2).
-That's why I implent intensity compensation. This compensation ensure you will have the same [PAR](https://en.wikipedia.org/wiki/Photosynthetically_active_radiation) (light intensity intensity) for different Color temperature (from 12,000K to 23,000K).
+That's why I implent intensity compensation. This compensation ensure you will have the same [PAR](https://en.wikipedia.org/wiki/Photosynthetically_active_radiation) (light intensity) for different Color temperature (from 12,000K to 23,000K).
 > [!NOTE]
 > Because Redsea do not published PAR values under 12000K, compensation is only available in the 12,000 to 15,000K range. If you have a G1 RSLED and a PARmeter you can [contact me](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) to also add compensation for range 9,000 to 12,000K.
 
@@ -408,7 +408,7 @@ Also, don't be surprised to see the intensity factor exceed 100% for the G1s if 
 ## ReefWave Modes
 As explain before, ReefWave devices are the only devices that can be unsychronized with reefbeat App if you use local API.
 Three modes are availabled: Cloud, Local, Hybride. 
-You can change the mode settings "Connect To Cloud" and "Use Cloud API" switches as described in the table below.
+You can change the mode setting "Connect To Cloud" and "Use Cloud API" switches as described in the table below.
 
 <table>
   <tr>
@@ -436,7 +436,7 @@ You can change the mode settings "Connect To Cloud" and "Use Cloud API" switches
     <td>Hybride</td>
     <td>✅</td>
     <td>❌</td>
-    <td>Data are fetch via the local api. <br />Commands are sent via the local api.<br /> The ReefBeat mobile APP does not represent the good waves values if values changed via HA.<br/> Home Assitant always represent the good waves values. <br/> You can change values from ReefBeat APP and Home Assistant.</td>
+    <td>Data are fetch via the local api. <br />Commands are sent via the local api.<br /> The ReefBeat mobile APP does not represent the good waves values if values are changed via HA.<br/> Home Assitant always represent the good waves values. <br/> You can change values from ReefBeat APP and Home Assistant.</td>
     <td>❌</td>
   </tr>
 </table>
