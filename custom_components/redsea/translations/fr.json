@@ -311,7 +311,7 @@
 		"name": "Intensité de départ de l'acclimatation"
 	    },
 	    "moon_intensity":{
-		"name": "Intensité de la Lune"
+		"name": "Intensité de la Lune dans ce cycle"
 	    },
 	    "todays_moon_day":{
 		"name": "Lune du jour"

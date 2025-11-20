@@ -312,7 +312,7 @@
 		"name": "Acclimation Start Intensity Factor"
 	    },
 	    "moon_intensity":{
-		"name": "Moon Intensity"
+		"name": "Moon Phase Intensity"
 	    },
 	    "todays_moon_day":{
 		"name": "Todays Moon Day"
