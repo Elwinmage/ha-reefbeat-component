@@ -10,6 +10,7 @@ jobs:
     steps:
       - uses: actions/stale@v9
         with:
+          any-of-labels: 'bug'
           stale-issue-message: 'This issue is stale because it has not been updated in a while.'
           close-issue-message: 'Closing this issue due to inactivity.'
           days-before-stale: 30
