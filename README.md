@@ -60,6 +60,7 @@ Your language is not supported yet, you want to help with translation, follow th
       <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:enhancement" style="text-decoration:none">📆</a>
       <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:bug" style="text-decoration:none">🐛</a>
     </td>
+      </tr>
   <tr>
     <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
     <td colspan="2">RSDOSE2</td>
