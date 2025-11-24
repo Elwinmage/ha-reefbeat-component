@@ -185,7 +185,8 @@ When adding a new device you have 4 choices:
 </p>  
 
 ### Add Cloud API
- ***Mandatory for ReefWave if you want to keep it synchronized with ReefBeat Mobile App*** (Read [this](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)).
+ ***Mandatory for ReefWave if you want to keep it synchronized with ReefBeat Mobile App*** (Read [this](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)). <br />
+ ***Mandatory for [firmware update](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/README.md#firmware-update) if you want to be notify when new version is available*** <br />
   - Get user informations
   - Get aquariums
     - Get Waves library
@@ -477,7 +478,7 @@ The behavior is the same as of ReefBeat mobile App. All waves with the same id i
 </p>
 
 # Cloud API
-The cloud API permits to get user informations, waves, supplements and leds libraries and to send commands to ReefWave when "[Cloud or Hybride](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)" mode is selected.
+The cloud API permits to get user informations, waves, supplements and leds libraries, notify when a new [firmware](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/README.md#firmware-update) is available and to send commands to ReefWave when "[Cloud or Hybride](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)" mode is selected.
 Waves and Leds parameters ares sorted by Tanks.
 <p align="center">     
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_api_devices.png" alt="Image">
