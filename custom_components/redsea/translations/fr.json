@@ -542,9 +542,9 @@
 	    "schedule_time":{
 		"name": "Heure de l'Avance Programmée"
 	    }
-	}
+	},
 	"update" :{
-	    "firmware_update":{
+	    "firmware_update": {
 		"name": "Mise à jour du Microgiciel"
 	    }
 	}
