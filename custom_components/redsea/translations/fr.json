@@ -51,7 +51,7 @@
     "entity": {
 	"button":{
 	    "firmware_update":{
-		"name": "MAJ de Microgiciel"
+		"name": "Forcer la MAJ de Microgiciel"
 	    },
 	    "preview_set_from_current":{
 		"name": "Valeurs Prev. depuis courantes"
@@ -543,6 +543,8 @@
 		"name": "Heure de l'Avance Programmée"
 	    }
 	}
-	
+	"update" :{
+	    "firmware_update": "Mise à jour du Microgiciel"
+	}
     }
 }

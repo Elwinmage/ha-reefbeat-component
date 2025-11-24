@@ -545,6 +545,9 @@
 	    "schedule_time":{
 		"name": "Schedule Time"
 	    }
+	},
+	"update" :{
+	    "firmware_update": "Firmware update"
 	}
     }
 }

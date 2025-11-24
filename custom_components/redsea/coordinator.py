@@ -54,6 +54,12 @@ from .const import (
     WAVE_TYPES,
     WAVES_LIBRARY,
     HW_G2_LED_IDS,
+    HW_LED_IDS,
+    HW_WAVE_IDS,
+    HW_RUN_IDS,
+    HW_ATO_IDS,
+    HW_MAT_IDS,
+    HW_DOSE_IDS,
 )
 
 from .reefbeat import ReefBeatAPI,ReefLedAPI, ReefMatAPI, ReefDoseAPI, ReefATOAPI, ReefRunAPI, ReefWaveAPI, ReefBeatCloudAPI
@@ -182,6 +188,21 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         return res
 
     @property
+    def board(self):
+        b=self.get_data("$.sources[?(@.name=='/firmware')].data.board",True)
+        if not b:
+            b="esp32"
+        return b
+    
+    @property
+    def framework(self):
+        fwork=self.get_data("$.sources[?(@.name=='/firmware')].data.framework",True)
+        if not fwork:
+            fwork="i"
+        return fwork
+
+    
+    @property
     def hw_version(self):
         hw_vers=self.get_data("$.sources[?(@.name=='/device-info')].data.hw_revision",True)
         if hw_vers==None:
@@ -213,6 +234,7 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
         """Initialize coordinator."""
         super().__init__(hass,entry)
         self._cloud_link=None
+        self.latest_firmware_url=None
         self._hass.bus.async_listen(EVENT_HOMEASSISTANT_STARTED, self._handle_ask_for_link)
 
     async def _async_setup(self) -> None:
@@ -240,10 +262,32 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
     def _ask_for_link(self):
         _LOGGER.info("%s ask for clound link"%self._title)
         self._hass.bus.fire("redsea_ask_for_cloud_link", {"device_id": self._entry.entry_id})
-
-    def set_cloud_link(self,cloud):
+        
+    def get_model_type(self,model):
+        stype=None
+        if model in HW_LED_IDS:
+            stype="reef-lights"
+        elif model in HW_DOSE_IDS:
+            stype="reef-dosing"
+        elif model in HW_MAT_IDS:
+            stype="reef-mat"
+        elif model in HW_ATO_IDS:
+            stype="reef-ato"
+        elif model in HW_RUN_IDS:
+            stype="reef-run"
+        elif model in HW_WAVE_IDS:
+            stype="reef-wave"
+        else:
+            _LOGGER.error("unknown model: %s"%model)
+            return None
+        return stype
+        
+    async def set_cloud_link(self,cloud):
         _LOGGER.info("%s linked to cloud %s"%(self._title,cloud._title))
         self._cloud_link=cloud
+        # listen for firmware update
+        self.latest_firmware_url="/firmware/api/"+self.get_model_type(self.model)+"/latest?board="+self.board+"&framework="+self.framework
+        await self._cloud_link.listen_for_firmware(self.latest_firmware_url,self._title)
 
     def cloud_link(self):
         if self._cloud_link!=None:
@@ -253,7 +297,7 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
 ################################################################################
 # LED
 ################################################################################
-class ReefLedCoordinator(ReefBeatCoordinator):
+class ReefLedCoordinator(ReefBeatCloudLinkedCoordinator):
 
     def __init__(
             self,
@@ -280,7 +324,7 @@ class ReefLedCoordinator(ReefBeatCoordinator):
             self.my_api.data['local']['manual_trick'][name.split('.')[-1]]=value
             self.my_api.update_light_ki()
 
-    def set_cloud_link(self,cloud):
+    async def set_cloud_link(self,cloud):
         _LOGGER.info("%s linked to cloud %s"%(self._title,cloud._title))
         self._cloud_link=cloud
             
@@ -491,7 +535,7 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
 
 ################################################################################
 ## REEFMAT
-class ReefMatCoordinator(ReefBeatCoordinator):
+class ReefMatCoordinator(ReefBeatCloudLinkedCoordinator):
 
     def __init__(
             self,
@@ -507,7 +551,7 @@ class ReefMatCoordinator(ReefBeatCoordinator):
             
 ################################################################################
 # REEFDOSE
-class ReefDoseCoordinator(ReefBeatCoordinator):
+class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
 
     def __init__(
             self,
@@ -532,7 +576,7 @@ class ReefDoseCoordinator(ReefBeatCoordinator):
         
 ################################################################################
 # REEFATO+
-class ReefATOCoordinator(ReefBeatCoordinator):
+class ReefATOCoordinator(ReefBeatCloudLinkedCoordinator):
 
     def __init__(
             self,
@@ -545,7 +589,7 @@ class ReefATOCoordinator(ReefBeatCoordinator):
         
 ################################################################################
 # REEFRUN
-class ReefRunCoordinator(ReefBeatCoordinator):
+class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
 
     def __init__(
             self,
@@ -783,11 +827,11 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
                 return nw.value
         return None
         
-    def _handle_link_requests(self,event):
+    async def _handle_link_requests(self,event):
         device=self._hass.data[DOMAIN][event.data.get('device_id')]
         s_device=self.get_data("$.sources[?(@.name=='/device')].data[?(@.hwid=='"+device.model_id+"')]",True)
         if s_device!=None:
-            device.set_cloud_link(self)
+            await device.set_cloud_link(self)
 
     async def send_cmd(self,action,payload,method='post'):
         return await self.my_api.http_send(action,payload,method)
@@ -795,6 +839,13 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
     def unload(self):
         self._hass.bus.fire("redsea_ask_for_cloud_link_ready", {'state': 'off', 'account':self._title})
 
+    async def listen_for_firmware(self,url,device_name):
+        _LOGGER.debug("Listen for %s"%url)
+        self.my_api.data['sources'].insert(len(self.my_api.data['sources']),{"name":url,"type":"data","data":""})
+        await self.my_api.fetch_data()
+        self._hass.bus.fire("request_latest_firmware",{"device_name":device_name})
+
+        
     @property
     def title(self):
         return self._entry.title
