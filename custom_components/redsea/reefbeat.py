@@ -4,6 +4,7 @@ import httpx
 import time
 import numpy as np
 import json
+import datetime
 from jsonpath_ng import jsonpath
 from jsonpath_ng.ext import parse
 
@@ -63,6 +64,7 @@ class ReefBeatAPI():
     def __init__(self,ip,live_config_update,secure=False) -> None:
         self.ip=ip
         self._secure=secure
+        self._auth_date=None
         if secure:
             self._base_url = "https://"+ip
         else:
@@ -89,6 +91,9 @@ class ReefBeatAPI():
         
     async def _http_get(self,client,source):
         _LOGGER.debug("_http_get: %s"%self._base_url+source.value['name'])
+        now=time.time()
+        if self._secure and (int(now-self._auth_date) > 2700):
+            self.connect()
         r = await client.get(self._base_url+source.value['name'],timeout=DEFAULT_TIMEOUT,headers=self._header)
         #403 patch for rswave
         if r.status_code == 200 or (r.status_code==503 and source.value['name']=='/'):
@@ -651,7 +656,10 @@ class ReefBeatCloudAPI(ReefBeatAPI):
         return res
         
     async def connect(self):
-        _LOGGER.debug("Init cloud connection with username: %s"%self._username)
+        if self._auth_date==None:
+            _LOGGER.debug("Init cloud connection with username: %s"%self._username)
+        else:
+            _LOGGER.debug("Renew cloud authentification %s"%self._username)
         header={
             "Authorization": "Basic Z0ZqSHRKcGE6Qzlmb2d3cmpEV09SVDJHWQ==",
             "Content-Type": "application/x-www-form-urlencoded"
@@ -664,7 +672,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             return
         self._token=r.json()["access_token"]
         self._header={"Authorization": "Bearer %s"%self._token}
-        _LOGGER.debug("Token : %s"%self._token)
+        self._auth_date=time.time()
         
     def get_devices(self,device_name):
         query=parse("$.sources[?(@.name=='/device')].data[?(@.type=='"+device_name+"')]")

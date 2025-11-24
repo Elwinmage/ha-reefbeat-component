@@ -103,6 +103,8 @@ def get_scan_interval(hw_model):
         default_scan_interval=LED_SCAN_INTERVAL
     elif hw_model in HW_RUN_IDS:
         default_scan_interval=RUN_SCAN_INTERVAL
+    elif hw_model == CLOUD_DEVICE_TYPE:
+        default_scan_interval=CLOUD_SCAN_INTERVAL
     return default_scan_interval
 
 
@@ -210,7 +212,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             step_id="user", data_schema=schema, errors=errors
                         )
 
-                    user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(None)
+                    user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(CLOUD_DEVICE_TYPE)
                     user_input[CONFIG_FLOW_CONFIG_TYPE]=False
                     user_input[CONFIG_FLOW_IP_ADDRESS]=CLOUD_SERVER_ADDR
                     user_input[CONFIG_FLOW_HW_MODEL]=CLOUD_DEVICE_TYPE
