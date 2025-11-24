@@ -6,6 +6,7 @@ import logging
 import copy
 import ipaddress
 import asyncio
+import httpx
 
 from jsonpath_ng import jsonpath
 from jsonpath_ng.ext import parse
@@ -65,13 +66,29 @@ from .const import (
     LED_SCAN_INTERVAL,
     ATO_SCAN_INTERVAL,
     RUN_SCAN_INTERVAL,
-    VIRTUAL_LED,
+    CLOUD_SCAN_INTERVAL,
+    CLOUD_DEVICE_TYPE,
+VIRTUAL_LED,
     LINKED_LED,
     HTTP_MAX_RETRY,
     HTTP_DELAY_BETWEEN_RETRY,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def validate_cloud_input(username,password):
+    _LOGGER.debug("Test credentials for %s"%username)
+    header={
+        "Authorization": "Basic Z0ZqSHRKcGE6Qzlmb2d3cmpEV09SVDJHWQ==",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    payload="grant_type=password&username=" + username+ "&password=" + password
+    r= httpx.post("https://"+CLOUD_SERVER_ADDR+"/oauth/token",data=payload,headers=header,verify=False)
+    if r.status_code!= 200:
+        _LOGGER.error("Authentification fail. %s"%r.text)
+        return False
+    return True
 
 
 def get_scan_interval(hw_model):
@@ -180,10 +197,23 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.debug(user_input)
                 # CLOUD
                 if CONFIG_FLOW_CLOUD_USERNAME in user_input:
+                    valid=await validate_cloud_input(user_input[CONFIG_FLOW_CLOUD_USERNAME],user_input[CONFIG_FLOW_CLOUD_PASSWORD])
+                    errors={}
+                    if not valid:
+                        errors['base']="Authentification fail, check your crendentials"
+                        schema=vol.Schema(
+                        {
+                            vol.Required(CONFIG_FLOW_CLOUD_USERNAME,default=user_input[CONFIG_FLOW_CLOUD_USERNAME]):str,
+                            vol.Required(CONFIG_FLOW_CLOUD_PASSWORD,default=user_input[CONFIG_FLOW_CLOUD_PASSWORD]):str,
+                    })
+                        return self.async_show_form(
+                            step_id="user", data_schema=schema, errors=errors
+                        )
+
                     user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(None)
                     user_input[CONFIG_FLOW_CONFIG_TYPE]=False
                     user_input[CONFIG_FLOW_IP_ADDRESS]=CLOUD_SERVER_ADDR
-                    user_input[CONFIG_FLOW_HW_MODEL]="Smartphone App"
+                    user_input[CONFIG_FLOW_HW_MODEL]=CLOUD_DEVICE_TYPE
                     title=user_input[CONFIG_FLOW_CLOUD_USERNAME]
                     await self.async_set_unique_id(title)
                     return self.async_create_entry(
@@ -285,13 +315,45 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self,config_entry):
         self._config_entry=config_entry
-        
+
+       
     async def async_step_init(
             self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Manage the options."""
         if user_input is not None:
-            if CONFIG_FLOW_SCAN_INTERVAL in user_input:
+            #ReefBeatCloudAPI
+            if CONFIG_FLOW_CLOUD_USERNAME in user_input:
+                user_input[CONFIG_FLOW_IP_ADDRESS]=self._config_entry.data[CONFIG_FLOW_IP_ADDRESS]
+                user_input[CONFIG_FLOW_HW_MODEL]=self._config_entry.data[CONFIG_FLOW_HW_MODEL]
+                user_input[CONFIG_FLOW_CONFIG_TYPE]=False
+                errors={}
+                valid=await validate_cloud_input(user_input[CONFIG_FLOW_CLOUD_USERNAME],user_input[CONFIG_FLOW_CLOUD_PASSWORD])
+                if not valid:
+                    errors['base']="Authentification fail, check your crendentials"
+                    schema=vol.Schema(
+                    {
+                        vol.Required(CONFIG_FLOW_CLOUD_USERNAME,default=user_input[CONFIG_FLOW_CLOUD_USERNAME]):str,
+                        vol.Required(CONFIG_FLOW_CLOUD_PASSWORD,default=user_input[CONFIG_FLOW_CLOUD_PASSWORD]):str,
+                        vol.Required(
+                            CONFIG_FLOW_SCAN_INTERVAL, default=user_input[CONFIG_FLOW_SCAN_INTERVAL]
+                        ): int,
+                        vol.Required(
+                            CONFIG_FLOW_CONFIG_TYPE, default=False
+                        ): bool,
+                    })
+                    return self.async_show_form(
+                        step_id="init", data_schema=schema, errors=errors
+                    )
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry, data=user_input, options=self.config_entry.options
+                )
+                res=self.async_create_entry(data=user_input)
+                _LOGGER.debug("RELOAD %s"%res)
+                self.hass.config_entries.async_schedule_reload(res['handler'])
+                return res
+                #return self.async_create_entry(data=user_input)
+            elif CONFIG_FLOW_SCAN_INTERVAL in user_input:
                 _LOGGER.debug("user input")
                 _LOGGER.debug(user_input)
                 data={}
@@ -349,6 +411,21 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         ): bool,
                 }
                 )
+            elif hw_model==CLOUD_DEVICE_TYPE:
+                options_schema=vol.Schema(
+                    {
+                        vol.Required(CONFIG_FLOW_CLOUD_USERNAME,default=self._config_entry.data[CONFIG_FLOW_CLOUD_USERNAME]):str,
+                        vol.Required(CONFIG_FLOW_CLOUD_PASSWORD,default=self._config_entry.data[CONFIG_FLOW_CLOUD_PASSWORD]):str,
+                        vol.Required(
+                            CONFIG_FLOW_SCAN_INTERVAL, default=get_scan_interval(hw_model)
+                        ): int,
+                        vol.Required(
+                            CONFIG_FLOW_CONFIG_TYPE, default=False
+                        ): bool,
+                        
+                }
+                )
+                
             else:
                 options_schema=vol.Schema(
                     {

@@ -7,6 +7,8 @@ import json
 from jsonpath_ng import jsonpath
 from jsonpath_ng.ext import parse
 
+from homeassistant.exceptions import HomeAssistantError
+
 from homeassistant.core import HomeAssistant
 
 from .const import (
@@ -96,8 +98,8 @@ class ReefBeatAPI():
             s[0].value['data']=response
             return True
         elif r.status_code==401:
-            _LOGGER.warning("Authorization failed, try to renew token")
-            self.connect()
+            _LOGGER.warning("Authorization failed for %s, try to renew token"%source)
+            await self.connect()
         else:
             _LOGGER.error("Can not get data: %s from %s"%(source.value['name'],self.ip))
             return False
@@ -630,6 +632,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
         self._username=username
         self._password=password
         self._token=None
+        self._header=None
         self.data["sources"]=[
             {"name":"/user","type":"config","data":""},
             {"name":"/aquarium","type":"config","data":""},
@@ -654,8 +657,11 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             "Content-Type": "application/x-www-form-urlencoded"
         }
         payload="grant_type=password&username=" + self._username+ "&password=" + self._password
-        _LOGGER.debug(payload)
         r= httpx.post("https://"+self.ip+"/oauth/token",data=payload,headers=header,verify=False)
+        if r.status_code!= 200:
+            _LOGGER.error("Authentification fail. Verify your credentials")
+            raise InvalidAuth(r.text)
+            return
         self._token=r.json()["access_token"]
         self._header={"Authorization": "Bearer %s"%self._token}
         _LOGGER.debug("Token : %s"%self._token)
@@ -666,3 +672,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
         if len(res)==0:
             return []
         return res
+
+class InvalidAuth(HomeAssistantError):
+    """Error to indicate there is invalid auth."""
+    

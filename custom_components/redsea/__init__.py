@@ -44,7 +44,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     # CLOUD
     if CONFIG_FLOW_CLOUD_USERNAME in entry.data:
-        coordinator = ReefBeatCloudCoordinator(hass,entry)
+        try:
+            coordinator = ReefBeatCloudCoordinator(hass,entry)
+        except:
+            return False
         await coordinator._async_setup()
     else:
         ip = entry.data[CONFIG_FLOW_IP_ADDRESS]
@@ -66,8 +69,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 coordinator = ReefRunCoordinator(hass,entry)
             elif hw in HW_WAVE_IDS:
                 coordinator = ReefWaveCoordinator(hass,entry)
-            else:
-                _LOGGER.error('Unknown or not supported hardware %s'%hw)
             await coordinator._async_setup()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
