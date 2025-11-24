@@ -95,7 +95,6 @@ class ReefBeatUpdateEntity(UpdateEntity):
         return self._device.sw_version
 
     def _handle_ask_for_latest_firmware(self,event):
-        _LOGGER.debug("Ask for latest firmware: %s ==  %s"%(event.data.get('device_name'),self._device._title))
         if event.data.get('device_name')==self._device._title:
             temp=self.latest_version
             _LOGGER.info("Last firmware version for %s is %s. Current installed versions is: %s"%(self._device._title,temp,self.installed_version))
