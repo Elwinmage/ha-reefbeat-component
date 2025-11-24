@@ -50,6 +50,9 @@
     },
     "entity": {
 	"button":{
+	    "firmware_update":{
+		"name": "Update Firmware"
+	    },
 	    "preview_set_from_current":{
 		"name": "Set Prev. from Current"
 	    },

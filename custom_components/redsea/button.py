@@ -68,9 +68,21 @@ FETCH_CONFIG_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
         key='fetch_config',
         translation_key='fetch_config',
         exists_fn=lambda _: True,
-        press_fn=lambda device: device.fetch_config(),
+        press_fn=lambda device: device.fetch_config(),        
         icon="mdi:update",
         entity_category=EntityCategory.CONFIG,
+    ),
+)
+
+FIRMWARE_UPDATE_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
+    ReefBeatButtonEntityDescription(
+        key='firmware_update',
+        translation_key='firmware_update',
+        exists_fn=lambda _: True,
+        press_fn=lambda device: device.press('firmware'),
+        icon="mdi:update",
+        entity_category=EntityCategory.CONFIG,
+        entity_registry_visible_default=False,
     ),
 )
 
@@ -271,6 +283,9 @@ async def async_setup_entry(
     if device.my_api._live_config_update == False:
         entities += [ReefBeatButtonEntity(device, description)
                  for description in FETCH_CONFIG_BUTTON 
+                 if description.exists_fn(device)]
+        entities += [ReefBeatButtonEntity(device, description)
+                 for description in FIRMWARE_UPDATE_BUTTON
                  if description.exists_fn(device)]
 
     async_add_entities(entities, True)
