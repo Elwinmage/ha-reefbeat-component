@@ -544,7 +544,9 @@
 	    }
 	}
 	"update" :{
-	    "firmware_update": "Mise à jour du Microgiciel"
+	    "firmware_update":{
+		"name": "Mise à jour du Microgiciel"
+	    }
 	}
     }
 }

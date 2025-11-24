@@ -546,7 +546,9 @@
 	    }
 	},
 	"update" :{
-	    "firmware_update": "Firmware update"
+	    "firmware_update": {
+		"name": "Firmware update"
+	    }
 	}
     }
 }
