@@ -180,7 +180,8 @@ Lors de l'ajout d'un nouvel appareil, quatre options s'offrent à vous :
 </p>
 
 ### Ajout de l'API Cloud
-***Obligatoire pour ReefWave*** (Lire [ceci](README.fr.md#reefwave)).
+***Fortement recommandé pour ReefWave*** (Lire [ceci](README.fr.md#reefwave)).
+***Fortement recommandé pour la mise à jour des microgiciels*** (Lire [ceci](README.fr.md#)).
 - Informations utilisateur
 - Aquariums
 - Bibliothèque Waves
@@ -219,6 +220,17 @@ Vous pouvez saisir l'adresse IP ou l'adresse réseau de votre appareil pour une 
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/configure_device_live_update_config.png" alt="Image">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/fetch_config_button.png" alt="Image">
 </p>
+
+## Mise à jour du Microgiciel
+Vous pouvez être notifié et mettre à jour votre appareil lorsqu'une nouvelle version du firmware. Vous devez disposer d'un composant actif ["cloud api"](README.fr.md#ajout-de-lapi-cloud) avec vos identifiants et l'interrupteur « Utiliser l'API cloud » doit être activé. 
+> [!TIP]
+> L'« API cloud » est uniquement nécessaire pour obtenir le numéro de version de la nouvelle version et le comparer à la version installée. Pour mettre à jour votre firmware, l'API cloud n'est pas indispensable.
+> Si vous n'utilisez pas l'« API cloud » (option désactivée ou composant API cloud non installé), vous ne serez pas averti lorsqu'une nouvelle version sera disponible, mais vous pourrez toujours utiliser le bouton caché « Forcer la mise à jour du firmware ». Si une nouvelle version est disponible, elle sera installée.
+<p align="center">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/firmware_update_1.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/firmware_update_2.png" alt="Image">
+</p> 
+
 
 # ReefATO :
 - Activation/désactivation du remplissage automatique
@@ -455,7 +467,7 @@ Le fonctionnement est identique à celui de l'application mobile ReefBeat. Toute
 </p>
 
 # API Cloud
-L'API Cloud permet d'obtenir les informations utilisateur, la bibliothèque de vagues, de suppléments et de LEDs, et d'envoyer des commandes à ReefWave lorsque le mode « [Cloud ou Hybride](README.fr.md#reefwave) » est sélectionné.
+L'API Cloud permet d'obtenir les informations utilisateur, la bibliothèque de vagues, de suppléments et de LEDs, d'être notifié en cas de nouvelle version d'un mircogiciel et d'envoyer des commandes à ReefWave lorsque le mode « [Cloud ou Hybride](README.fr.md#reefwave) » est sélectionné.
 Les paramètres des vagues et des LEDs sont triés par aquarium.
 <p align="center">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_api_devices.png" alt="Image">
