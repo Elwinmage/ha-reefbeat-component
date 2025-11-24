@@ -154,7 +154,7 @@ Pour nous aider à traduire, suivez ce [guide](https://github.com/Elwinmage/ha-r
 - [ReefMat](README.fr.md#reefmat)
 - [ReefRun](README.fr.md#reefrun)
 - [ReefWave](README.fr.md#reefwave)
-- [API Cloud](README.fr.md#cloud-api)
+- [API Cloud](README.fr.md#api-cloud)
 - [FAQ](README.fr.md#faq)
 
 # Installation via HACS
@@ -180,7 +180,7 @@ Lors de l'ajout d'un nouvel appareil, quatre options s'offrent à vous :
 </p>
 
 ### Ajout de l'API Cloud
-***Fortement recommandé pour ReefWave*** (Lire [ceci](README.fr.md#reefwave)).
+***Fortement recommandé pour ReefWave*** (Lire [ceci](README.fr.md#reefwave)). <br />
 ***Fortement recommandé pour la mise à jour des microgiciels*** (Lire [ceci](README.fr.md#mise-%C3%A0-jour-du-microgiciel)).
 - Informations utilisateur
 - Aquariums
