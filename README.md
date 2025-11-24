@@ -226,6 +226,16 @@ You can put your device IP or the network address to have auto detection.
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/fetch_config_button.png" alt="Image">
 </p> 
 
+## Firmware Update
+You can be notified and update when a new firmware version is available for your device. You must have a ["cloud api"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) device with your credential and the "Use cloud API" switch must be enabled.
+> [!TIP]
+> The "cloud api" is only needed to get the version number of the new version and compare it to the installed version. To update your firmware you don't really need the cloud API.
+> If you don't use the "cloud api" (switch disabled or no cloud api device), you will not be alerted when a new version is available but you can still use the hidden "Force Firmware update" button. If a new version is available it will be install.
+<p align="center">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/firmware_update_1.png" alt="Image">
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/firmware_update_2.png" alt="Image">
+</p> 
+
 # ReefATO:
   - Auto_fill enable/disable
   - Manual fill
