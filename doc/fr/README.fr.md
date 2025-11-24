@@ -180,8 +180,8 @@ Lors de l'ajout d'un nouvel appareil, quatre options s'offrent à vous :
 </p>
 
 ### Ajout de l'API Cloud
-***Fortement recommandé pour ReefWave*** (Lire [ceci](README.fr.md#reefwave)). <br />
-***Fortement recommandé pour la mise à jour des microgiciels*** (Lire [ceci](README.fr.md#mise-%C3%A0-jour-du-microgiciel)).
+***Obligatoire pour garder les Reefwave synchronisées avec l'application mobile ReefBeat*** (Lire [ceci](README.fr.md#reefwave)). <br />
+***Obligatoire pour être notifié d'une nouvelle vesion de microgiciels*** (Lire [ceci](README.fr.md#mise-%C3%A0-jour-du-microgiciel)).
 - Informations utilisateur
 - Aquariums
 - Bibliothèque Waves
