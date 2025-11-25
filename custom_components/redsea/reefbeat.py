@@ -93,7 +93,7 @@ class ReefBeatAPI():
         _LOGGER.debug("_http_get: %s"%self._base_url+source.value['name'])
         now=time.time()
         if self._secure and (int(now-self._auth_date) > 2700):
-            self.connect()
+            await self.connect()
         r = await client.get(self._base_url+source.value['name'],timeout=DEFAULT_TIMEOUT,headers=self._header)
         #403 patch for rswave
         if r.status_code == 200 or (r.status_code==503 and source.value['name']=='/'):
