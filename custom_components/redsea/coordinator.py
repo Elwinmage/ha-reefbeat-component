@@ -563,6 +563,9 @@ class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
         self.heads_nb=int(entry.data[CONFIG_FLOW_HW_MODEL][-1])
         self.my_api = ReefDoseAPI(self._ip,self._live_config_update,self.heads_nb)
 
+    async def calibration(self,action,head,param):
+        await self.my_api.calibration(action,head,param)
+        
     async def press(self,action,head=None):
         await self.my_api.press(action,head)
 

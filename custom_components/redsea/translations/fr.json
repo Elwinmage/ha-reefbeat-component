@@ -50,6 +50,18 @@
     },
     "entity": {
 	"button":{
+	    "start_calibration":{
+		"name": "Démarrer la  Calibration"
+	    },
+	    "set_calibration_value":{
+		"name": "Volume de la Calibration"
+	    },
+	    "test_calibration":{
+		"name": "Tester la Calibration"
+	    },
+	    "end_calibration":{
+		"name": "Arréter et Sauvegarder la  Calibration"
+	    },
 	    "start_priming":{
 		"name": "Démarrer Amorçage"
 	    },
@@ -94,6 +106,9 @@
 	    }
 	},
 	"number":{
+	    "calibration_dose_value":{
+		"name": "Dose de calibration"
+	    },
 	    "wave_preview_wave_duration":{
 		"name": "Prev. durée vague"
 	    },
@@ -232,6 +247,12 @@
 	    
 	},
 	"sensor": {
+	    "head_state":{
+		"name": "Statut"
+	    },
+	    "last_calibration":{
+		"name": "Dernière Calibration"
+	    },
 	    "supplement_program":{
 		"name" : "Supplément"
 	    },

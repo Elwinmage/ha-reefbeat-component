@@ -1,5 +1,6 @@
 """ Implements the sensor entity """
 import logging
+import datetime
 
 from dataclasses import dataclass
 from collections.abc import Callable
@@ -547,6 +548,23 @@ async def async_setup_entry(
         ds=()
         for head in range (1,device.heads_nb+1):
             new_head= (ReefDoseSensorEntityDescription(
+                key="state_head_"+str(head),
+                translation_key="head_state",
+                icon="mdi:cog-play",
+                value_name="$.sources[?(@.name=='/dashboard')].data.heads."+str(head)+".state",
+                head=head,
+            ),)
+            ds+=new_head
+            new_head= (ReefDoseSensorEntityDescription(
+                key="last_calibration_head_"+str(head),
+                translation_key="last_calibration",
+                icon="mdi:calendar-start",
+                value_name="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.last_calibrated",
+                device_class=SensorDeviceClass.DATE,
+                head=head,
+            ),)
+            ds+=new_head
+            new_head= (ReefDoseSensorEntityDescription(
                 key="supplement_head_"+str(head),
                 translation_key="supplement",
                 icon="mdi:shaker",
@@ -850,6 +868,12 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
         super().__init__(device,entity_description)
         self._head=self.entity_description.head
 
+    def _get_value(self):
+        if self.entity_description.translation_key=="last_calibration":
+            return datetime.datetime.fromtimestamp(int(self._device.get_data(self.entity_description.value_name))).date()
+        else:
+            return self._device.get_data(self.entity_description.value_name)   
+        
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""

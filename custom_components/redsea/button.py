@@ -252,6 +252,46 @@ async def async_setup_entry(
         db=()
         for head in range(1,device.heads_nb+1):
             new_head= (ReefDoseButtonEntityDescription(
+                key="start_calibration_head_"+str(head),
+                translation_key="start_calibration",
+                icon="mdi:play-box-edit-outline",
+                action=["start-calibration","calibration/start"],
+                entity_category=EntityCategory.CONFIG,
+                head=head,
+            ),
+            )
+            db+=new_head
+            new_head= (ReefDoseButtonEntityDescription(
+                key="set_calibration_value_head_"+str(head),
+                translation_key="set_calibration_value",
+                icon="mdi:vector-polyline-edit",
+                action="end-calibration",
+                entity_category=EntityCategory.CONFIG,
+                head=head,
+            ),
+            )
+            db+=new_head
+            new_head= (ReefDoseButtonEntityDescription(
+                key="test_calibration_head_"+str(head),
+                translation_key="test_calibration",
+                icon="mdi:test-tube",
+                action="calibration-manual",
+                entity_category=EntityCategory.CONFIG,
+                head=head,
+            ),
+            )
+            db+=new_head
+            new_head= (ReefDoseButtonEntityDescription(
+                key="end_calibration_head_"+str(head),
+                translation_key="end_calibration",
+                icon="mdi:stop-circle-outline",
+                action="end-setup",
+                entity_category=EntityCategory.CONFIG,
+                head=head,
+            ),
+            )
+            db+=new_head
+            new_head= (ReefDoseButtonEntityDescription(
                 key="manual_head_"+str(head),
                 translation_key="manual_head",
                 icon="mdi:cup-water",
@@ -274,7 +314,7 @@ async def async_setup_entry(
             new_head= (ReefDoseButtonEntityDescription(
                 key="stop_priming_"+str(head),
                 translation_key="stop_priming",
-                icon="mdi:cup-water",
+                icon="mdi:cup-off",
                 action=["priming/stop","end-priming","end-setup"],
                 entity_category=EntityCategory.CONFIG,
                 head=head,
@@ -350,13 +390,20 @@ class ReefDoseButtonEntity(ReefBeatButtonEntity):
     async def async_press(self) -> None:
         """Handle the button press."""
         if self.entity_description.action == 'fetch_config':
-            await self._device.fetch_config('/head/'+str(self.entity_description.head)+'/settings')
+            await self._device.fetch_config('/head/'+str(self._head)+'/settings')
+        elif self.entity_description.action == 'end-calibration':
+            payload={"volume":self._device.get_data("$.local.head."+str(self._head)+".calibration_dose")}
+            await self._device.calibration(self.entity_description.action,self._head,payload)
+        elif self.entity_description.action == 'calibration-manual':
+            await self._device.calibration(self.entity_description.action,self._head,{'volume':4})
         elif type(self.entity_description.action).__name__=="list":
             for act in self.entity_description.action:
-                await self._device.press(act,self.entity_description.head)
+                await self._device.press(act,self._head)
         else:
-            await self._device.press(self.entity_description.action,self.entity_description.head)
+            await self._device.press(self.entity_description.action,self._head)
+        await self._device.async_request_refresh()
 
+            
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""

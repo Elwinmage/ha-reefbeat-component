@@ -50,6 +50,18 @@
     },
     "entity": {
 	"button":{
+	    "start_calibration":{
+		"name": "Start  Calibration"
+	    },
+	    "set_calibration_value":{
+		"name": "Set Calibration volume"
+	    },
+	    "test_calibration":{
+		"name": "Test new Calibration"
+	    },
+	    "end_calibration":{
+		"name": "Stop and Save Calibration"
+	    },
 	    "start_priming":{
 		"name": "Start Priming"
 	    },
@@ -95,6 +107,9 @@
 	    
 	},
 	"number":{
+	    "calibration_dose_value":{
+		"name": "Dose of Calibration"
+	    },
 	    "wave_preview_wave_duration":{
 		"name": "Prev. wave duration"
 	    },
@@ -233,6 +248,12 @@
 	    }
 	},
 	"sensor": {
+	    "head_state":{
+		"name": "Status"
+	    },
+	    "last_calibration":{
+		"name": "Last Calibration"
+	    },
 	    "supplement_program":{
 		"name" : "Supplement"
 	    },

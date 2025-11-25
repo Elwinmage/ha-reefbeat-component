@@ -356,7 +356,6 @@ async def async_setup_entry(
             entity_category=EntityCategory.CONFIG,
         ), )
         dn+=new_head
-        
         for head in range(1,device.heads_nb+1):
             new_head= (ReefDoseNumberEntityDescription(
                 key="manual_head_"+str(head)+"_volume",
@@ -369,6 +368,19 @@ async def async_setup_entry(
                 native_max_value=300,
                 value_name="$.local.head."+str(head)+".manual_dose",
                 icon="mdi:cup-water",
+                head=head,
+                entity_category=EntityCategory.CONFIG,
+            ), )
+            dn+=new_head
+            new_head= (ReefDoseNumberEntityDescription(
+                key="calibration_dose_value_head_"+str(head),
+                translation_key="calibration_dose_value",
+                native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+                native_min_value=4.5,
+                native_step=0.05,
+                native_max_value=5.5,
+                value_name="$.local.head."+str(head)+".calibration_dose",
+                icon="mdi:test-tube-empty",
                 head=head,
                 entity_category=EntityCategory.CONFIG,
             ), )
@@ -576,7 +588,8 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         self._device.set_data(self.entity_description.value_name,value)
         self.async_write_ha_state()  
         if self._head > 0:
-            await self._device.push_values(self._head)
+            if self.entity_description.translation_key!='calibration_dose_value':
+                await self._device.push_values(self._head)
         else:
             await self._device.push_values("/device-settings")
         await self._device.async_request_refresh()

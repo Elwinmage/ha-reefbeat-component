@@ -543,7 +543,10 @@ class ReefDoseAPI(ReefBeatAPI):
             _LOGGER.error("redsea.reefbeat.ReefDoseAPI.__init__() unkown head number: %d"%self._heads_nb)
         for head in range(1,self._heads_nb+1):
             self.data['sources'].insert(len(self.data['sources']),{"name":"/head/"+str(head)+"/settings","type": "config","data":""})
-            self.data['local']["head"][str(head)]={"manual_dose":5}
+            self.data['local']["head"][str(head)]={"manual_dose":5,"calibration_dose":5}
+
+    async def calibration(self,action,head,param):
+        await self._http_send(self._base_url+'/head/'+str(head)+'/'+action,param)
             
     async def press(self,action,head):
         if head != None:
