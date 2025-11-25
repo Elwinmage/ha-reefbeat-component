@@ -261,6 +261,26 @@ async def async_setup_entry(
             ),
             )
             db+=new_head
+            new_head= (ReefDoseButtonEntityDescription(
+                key="start_priming_"+str(head),
+                translation_key="start_priming",
+                icon="mdi:cup-water",
+                action=["start-calibration","priming/start"],
+                entity_category=EntityCategory.CONFIG,
+                head=head,
+            ),
+            )
+            db+=new_head
+            new_head= (ReefDoseButtonEntityDescription(
+                key="stop_priming_"+str(head),
+                translation_key="stop_priming",
+                icon="mdi:cup-water",
+                action=["priming/stop","end-priming","end-setup"],
+                entity_category=EntityCategory.CONFIG,
+                head=head,
+            ),
+            )
+            db+=new_head
             if device.my_api._live_config_update == False:
                 CONFIG_BUTTONS: tuple[ReefDoseButtonEntityDescription, ...] =(
                     ReefDoseButtonEntityDescription(
@@ -331,6 +351,9 @@ class ReefDoseButtonEntity(ReefBeatButtonEntity):
         """Handle the button press."""
         if self.entity_description.action == 'fetch_config':
             await self._device.fetch_config('/head/'+str(self.entity_description.head)+'/settings')
+        elif type(self.entity_description.action).__name__=="list":
+            for act in self.entity_description.action:
+                await self._device.press(act,self.entity_description.head)
         else:
             await self._device.press(self.entity_description.action,self.entity_description.head)
 

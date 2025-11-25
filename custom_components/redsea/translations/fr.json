@@ -50,6 +50,12 @@
     },
     "entity": {
 	"button":{
+	    "start_priming":{
+		"name": "Démarrer Amorçage"
+	    },
+	    "stop_priming":{
+		"name": "Arréter Amorçage"
+	    },
 	    "firmware_update":{
 		"name": "Forcer la MAJ de Microgiciel"
 	    },

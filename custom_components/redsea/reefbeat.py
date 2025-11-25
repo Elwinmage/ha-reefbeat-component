@@ -528,8 +528,6 @@ class ReefMatAPI(ReefBeatAPI):
         
 ################################################################################
 #ReefDose
-# TODO : Add priming
-#  labels: enhancement, rsdose
 class ReefDoseAPI(ReefBeatAPI):
     """ Access to ReefDose informations and commands """
     def __init__(self,ip,live_config_update,heads_nb) -> None:

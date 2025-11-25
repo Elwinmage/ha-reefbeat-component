@@ -51,6 +51,12 @@
     },
     "entity": {
 	"button":{
+	    "start_priming":{
+		"name": "Start Priming"
+	    },
+	    "stop_priming":{
+		"name": "Stop Priming"
+	    },
 	    "firmware_update":{
 		"name": "Update Firmware"
 	    },
