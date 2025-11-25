@@ -247,6 +247,9 @@
 	    
 	},
 	"sensor": {
+	    "schedule_head":{
+		"name": "Programme de la pompe"
+	    },
 	    "head_state":{
 		"name": "Statut"
 	    },
@@ -266,7 +269,7 @@
 		"name": "Type de vagues"
 	    },
 	    "wave_direction":{
-		"name": "Directio ndes vagues"
+		"name": "Direction des vagues"
 	    },
 	    "wave_forward_time":{
 		"name": "Durée en Marche Avant"

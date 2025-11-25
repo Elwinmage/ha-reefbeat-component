@@ -71,6 +71,8 @@ class ReefDoseSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
     value_name: ''
+    with_attr_name: str=None
+    with_attr_value: str=None
     head: 0
 
 @dataclass(kw_only=True)
@@ -79,6 +81,8 @@ class ReefRunSensorEntityDescription(SensorEntityDescription):
     exists_fn: Callable[[ReefRunCoordinator], bool] = lambda _: True
     value_name: ''
     pump: 0
+    with_attr_name: str=None
+    with_attr_value: str=None
 
 @dataclass(kw_only=True)
 class ReefWaveSensorEntityDescription(SensorEntityDescription):
@@ -93,6 +97,8 @@ class ReefLedScheduleSensorEntityDescription(SensorEntityDescription):
     exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
     value_name: ''
     id_name: 0
+    with_attr_name: str=None
+    with_attr_value: str=None
 
 CLOUD_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription( 
@@ -654,6 +660,16 @@ async def async_setup_entry(
                 head=head,
             ),)
             ds+=new_head
+            new_head=( ReefDoseSensorEntityDescription(
+                key="schedule_head_"+str(head),
+                translation_key="schedule_head",
+                icon="mdi:chart-timeline",
+                value_name="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.schedule.type",
+                with_attr_name="schedule",
+                with_attr_value="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.schedule",
+                head=head,
+            ),)
+            ds+=new_head
 
         entities += [ReefDoseSensorEntity(device, description)
                      for description in ds
@@ -806,6 +822,9 @@ class ReefBeatSensorEntity(CoordinatorEntity,SensorEntity):
             self._attr_native_value=signal_val
         else:
             self._attr_native_value =  self._get_value()
+            if hasattr(self.entity_description, 'with_attr_name') and self.entity_description.with_attr_name:
+                self._attr_extra_state_attributes={self.entity_description.with_attr_name:self._device.get_data(self.entity_description.with_attr_value)}    
+
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -853,6 +872,8 @@ class ReefLedScheduleSensorEntity(ReefBeatSensorEntity):
         self._attr_native_value =  self._device.get_data(self.entity_description.value_name)
         prog_data=self._device.get_data("$.sources[?(@.name=='/auto/"+str(self.entity_description.id_name)+"')].data")
         cloud_data=self._device.get_data("$.sources[?(@.name=='/clouds/"+str(self.entity_description.id_name)+"')].data")
+        # TODO: Use generic function of ReefBeatSensorEntity to add extrat attribute to sensor
+        # labels: enhancement, rsled
         self._attr_extra_state_attributes={'data':prog_data,'clouds':cloud_data}    
 
 ################################################################################

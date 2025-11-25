@@ -249,6 +249,9 @@
 	    }
 	},
 	"sensor": {
+	    "schedule_head":{
+		"name": "Head Schedule"
+	    },
 	    "head_state":{
 		"name": "status"
 	    },
