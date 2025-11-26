@@ -50,6 +50,9 @@
     },
     "entity": {
 	"button":{
+	    "reset":{
+		"name": "Redémarrer"
+	    },
 	    "start_calibration":{
 		"name": "Démarrer la  Calibration"
 	    },
@@ -247,6 +250,9 @@
 	    
 	},
 	"sensor": {
+	    "save_initial_container_volume":{
+		"name": "Volume intial"
+	    },
 	    "schedule_head":{
 		"name": "Programme de la pompe"
 	    },

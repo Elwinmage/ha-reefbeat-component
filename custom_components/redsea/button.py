@@ -84,6 +84,15 @@ FIRMWARE_UPDATE_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
         entity_registry_visible_default=False,
     ),
+    ReefBeatButtonEntityDescription(
+        key='reset',
+        translation_key='reset',
+        exists_fn=lambda _: True,
+        press_fn=lambda device: device.press('reset'),
+        icon="mdi:restart",
+        entity_category=EntityCategory.CONFIG,
+    ),
+    
 )
 
 LED_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
@@ -258,6 +267,7 @@ async def async_setup_entry(
                 action=["start-calibration","calibration/start"],
                 entity_category=EntityCategory.CONFIG,
                 head=head,
+                entity_registry_visible_default=False,
             ),
             )
             db+=new_head
@@ -268,6 +278,7 @@ async def async_setup_entry(
                 action="end-calibration",
                 entity_category=EntityCategory.CONFIG,
                 head=head,
+                entity_registry_visible_default=False,
             ),
             )
             db+=new_head
@@ -278,6 +289,7 @@ async def async_setup_entry(
                 action="calibration-manual",
                 entity_category=EntityCategory.CONFIG,
                 head=head,
+                entity_registry_visible_default=False,
             ),
             )
             db+=new_head
@@ -285,9 +297,10 @@ async def async_setup_entry(
                 key="end_calibration_head_"+str(head),
                 translation_key="end_calibration",
                 icon="mdi:stop-circle-outline",
-                action="end-setup",
+                action=["end-setup"],
                 entity_category=EntityCategory.CONFIG,
                 head=head,
+                entity_registry_visible_default=False,
             ),
             )
             db+=new_head
@@ -308,6 +321,8 @@ async def async_setup_entry(
                 action=["start-calibration","priming/start"],
                 entity_category=EntityCategory.CONFIG,
                 head=head,
+                entity_registry_visible_default=False,
+
             ),
             )
             db+=new_head
@@ -315,9 +330,10 @@ async def async_setup_entry(
                 key="stop_priming_"+str(head),
                 translation_key="stop_priming",
                 icon="mdi:cup-off",
-                action=["priming/stop","end-priming","end-setup"],
+                action=["priming/stop","end-priming"],
                 entity_category=EntityCategory.CONFIG,
                 head=head,
+                entity_registry_visible_default=False,
             ),
             )
             db+=new_head
@@ -344,9 +360,9 @@ async def async_setup_entry(
         entities += [ReefBeatButtonEntity(device, description)
                  for description in FETCH_CONFIG_BUTTON 
                  if description.exists_fn(device)]
-        entities += [ReefBeatButtonEntity(device, description)
-                 for description in FIRMWARE_UPDATE_BUTTON
-                 if description.exists_fn(device)]
+    entities += [ReefBeatButtonEntity(device, description)
+                for description in FIRMWARE_UPDATE_BUTTON
+                if description.exists_fn(device)]
 
     async_add_entities(entities, True)
 
@@ -398,7 +414,7 @@ class ReefDoseButtonEntity(ReefBeatButtonEntity):
             await self._device.calibration(self.entity_description.action,self._head,{'volume':4})
         elif type(self.entity_description.action).__name__=="list":
             for act in self.entity_description.action:
-                await self._device.press(act,self._head)
+                await self._device.calibration(act,self._head,{})
         else:
             await self._device.press(self.entity_description.action,self._head)
         await self._device.async_request_refresh()

@@ -10,6 +10,8 @@ from homeassistant.core import callback
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
+from homeassistant.components.sensor import RestoreSensor
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -75,6 +77,14 @@ class ReefDoseSensorEntityDescription(SensorEntityDescription):
     with_attr_value: str=None
     head: 0
 
+@dataclass(kw_only=True)
+class RestoreSensorEntityDescription(SensorEntityDescription):
+    """Describes reefbeat sensor entity."""
+    exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
+    head: 0
+    value_name: str=None
+    dependency: str=None
+  
 @dataclass(kw_only=True)
 class ReefRunSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
@@ -553,6 +563,21 @@ async def async_setup_entry(
     elif type(device).__name__=='ReefDoseCoordinator':
         ds=()
         for head in range (1,device.heads_nb+1):
+            new_head= (RestoreSensorEntityDescription(
+                key="save_initial_container_volume_head_"+str(head),
+                translation_key="save_initial_container_volume",
+                native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+                device_class=SensorDeviceClass.VOLUME,
+                suggested_display_precision=0,
+                value_name="$.local.head."+str(head)+".initial_volume",
+                icon="mdi:content-save-cog",
+                dependency="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.container_volume",
+                head=head,
+            ),)
+            init_sensor=(new_head)
+            entities += [RestoreSensorEntity(device, description)
+                     for description in init_sensor
+                     if description.exists_fn(device)]
             new_head= (ReefDoseSensorEntityDescription(
                 key="state_head_"+str(head),
                 translation_key="head_state",
@@ -872,9 +897,12 @@ class ReefLedScheduleSensorEntity(ReefBeatSensorEntity):
         self._attr_native_value =  self._device.get_data(self.entity_description.value_name)
         prog_data=self._device.get_data("$.sources[?(@.name=='/auto/"+str(self.entity_description.id_name)+"')].data")
         cloud_data=self._device.get_data("$.sources[?(@.name=='/clouds/"+str(self.entity_description.id_name)+"')].data")
+<<<<<<< HEAD
         # TODO: Use generic function of ReefBeatSensorEntity to add extrat attribute to sensor
         # Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/42
         # labels: enhancement, rsled
+=======
+>>>>>>> 18ca1b7 (ALL: Add restart button, Firmware correct . RSDOSE: Correct priming and calibration. Add initial container volume for percentage use.)
         self._attr_extra_state_attributes={'data':prog_data,'clouds':cloud_data}    
 
 ################################################################################
@@ -890,6 +918,14 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
         super().__init__(device,entity_description)
         self._head=self.entity_description.head
 
+    def _update_val(self) -> str:
+        new_value=self._get_value()
+        if self.entity_description.translation_key=="container_volume":
+            if new_value!=None and ( self._attr_native_value==None or self._attr_native_value < new_value):
+                self._device._hass.bus.fire(self.entity_description.value_name, {"value":new_value})
+        self._attr_native_value =  new_value
+
+        
     def _get_value(self):
         if self.entity_description.translation_key=="last_calibration":
             return datetime.datetime.fromtimestamp(int(self._device.get_data(self.entity_description.value_name))).date()
@@ -907,6 +943,41 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
         di['identifiers']={identifiers}
         return di
 
+#-------------------------------------------------------------------------------
+# RestoreSensor
+class RestoreSensorEntity( ReefDoseSensorEntity, RestoreSensor):
+
+    _attr_has_entity_name = True
+
+    def __init__(self,device,entity_description: ReefDoseSensorEntityDescription) -> None:
+        super().__init__(device,entity_description)
+        # self._device = device
+        # self.entity_description = entity_description
+        # self._attr_available = True
+        # self._attr_unique_id = f"{device.serial}_{entity_description.key}"
+        self._device._hass.bus.async_listen(self.entity_description.dependency, self._handle_coordinator_update)
+
+    @callback
+    def _handle_coordinator_update(self,event=None) -> None:
+        self._attr_available = True
+        if event:
+            new_val=event.data.get('value')
+            self._device.set_data(self.entity_description.value_name,new_val)  
+            self._attr_native_value=new_val
+            self.async_write_ha_state()
+            #self._handle_coordinator_update()
+        
+    async def async_added_to_hass(self) -> None:
+        res=await self.async_get_last_sensor_data()
+        if res!=None:
+            self._attr_native_value=res.native_value
+            self._device.set_data(self.entity_description.value_name,res.native_value)
+        else:
+            self._attr_native_value=None
+        await super().async_added_to_hass()
+        #        self.async_write_ha_state()
+        
+        
 ################################################################################
 # RUN
 class ReefRunSensorEntity(ReefBeatSensorEntity):
@@ -993,4 +1064,6 @@ class ReefBeatCloudSensorEntity(ReefBeatSensorEntity):
             identifiers+=(self._aquarium_name,)
             di['identifiers']={identifiers} 
         return di
+    
+
     

@@ -50,6 +50,9 @@
     },
     "entity": {
 	"button":{
+	    "reset":{
+		"name": "Restart"
+	    },
 	    "start_calibration":{
 		"name": "Start  Calibration"
 	    },
@@ -248,6 +251,9 @@
 	    }
 	},
 	"sensor": {
+	    "save_initial_container_volume":{
+		"name": "Container Initial Volume"
+	    },
 	    "schedule_head":{
 		"name": "Head Schedule"
 	    },

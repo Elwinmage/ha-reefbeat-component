@@ -383,6 +383,7 @@ async def async_setup_entry(
                 icon="mdi:test-tube-empty",
                 head=head,
                 entity_category=EntityCategory.CONFIG,
+                entity_registry_visible_default=False,
             ), )
             dn+=new_head
             new_head= (ReefDoseNumberEntityDescription(
