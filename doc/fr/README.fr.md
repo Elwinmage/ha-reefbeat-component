@@ -251,6 +251,8 @@ Non supporté pour l'instant. Si vous en avez un, contactez-moi [ici](https://gi
 - Activation/désactivation de la programmation par pompe
 - Configuration des alertes de stock
 - Délai de dosage entre les compléments
+- Amorçage (Veuillez lire [ceci](README.fr.md#calibration-et-amor%C3%A7age))
+- Calibration (Veuillez lire [ceci](README.fr.md#calibration-et-amor%C3%A7age))
 
 <p align="center">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_devices.png" alt="Image">
@@ -267,6 +269,32 @@ Non supporté pour l'instant. Si vous en avez un, contactez-moi [ici](https://gi
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_ctrl.png" alt="Image">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_sensors.png" alt="Image">
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_diag.png" alt="Image">
+</p>
+
+#### Calibration et amorçage
+
+> [!CAUTION]
+> Vous devez suivre précisement l'ordre suivant (L'utilisation de [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) est plus sécuritaire).<br /><br />
+> <ins>Calibration</ins>:
+>  1. Positionnez l'éprouvette et pressez "Start Calibration"
+>  2. Indiquez la valeur mesure à l'aide du champ "Dose of Calibration"
+>  3. Pressez "Set Calibration Value"
+>  4. Videz l'éprouvette et pressez "Test new Calibration". Si la valeur obtenue est différente de 4mL, revenez à l'étape 1.
+>  5. Pressez "Stop and Save Graduation"
+> 
+> <ins>For priming</ins>:
+>  1. (a) Pressez "Start Priming"
+>  2. (b) Lorsque le liquide coule pressez "Stop Priming"
+>  3. (1) Positionnez l'éprouvette et pressez "Start Calibration"
+>  4. (2) Indiquez la valeur mesure à l'aide du champ "Dose of Calibration"
+>  5. (3) Pressez "Set Calibration Value"
+>  6. (4) Videz l'éprouvette et pressez "Test new Calibration". Si la valeur obtenue est différente de 4mL, revenez à l'étape 1.
+>  7. (5) Pressez "Stop and Save Graduation"
+>        
+> ⚠️ Un amroçage doit forcément être suivi d'une calibration (étapes 1 à 5)!⚠️
+
+<p align="center"> 
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/calibration.png" alt="Image">
 </p>
 
 # ReefLED :
