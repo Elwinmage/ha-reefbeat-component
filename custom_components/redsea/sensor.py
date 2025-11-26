@@ -897,12 +897,6 @@ class ReefLedScheduleSensorEntity(ReefBeatSensorEntity):
         self._attr_native_value =  self._device.get_data(self.entity_description.value_name)
         prog_data=self._device.get_data("$.sources[?(@.name=='/auto/"+str(self.entity_description.id_name)+"')].data")
         cloud_data=self._device.get_data("$.sources[?(@.name=='/clouds/"+str(self.entity_description.id_name)+"')].data")
-<<<<<<< HEAD
-        # TODO: Use generic function of ReefBeatSensorEntity to add extrat attribute to sensor
-        # Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/42
-        # labels: enhancement, rsled
-=======
->>>>>>> 18ca1b7 (ALL: Add restart button, Firmware correct . RSDOSE: Correct priming and calibration. Add initial container volume for percentage use.)
         self._attr_extra_state_attributes={'data':prog_data,'clouds':cloud_data}    
 
 ################################################################################
