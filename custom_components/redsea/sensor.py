@@ -600,15 +600,8 @@ async def async_setup_entry(
                 translation_key="supplement",
                 icon="mdi:shaker",
                 value_name="$.sources[?(@.name=='/dashboard')].data.heads."+str(head)+".supplement",
-                head=head,
-            ),)
-            ds+=new_head
-            new_head= (ReefDoseSensorEntityDescription(
-                key="supplement_uuid_head_"+str(head),
-                translation_key="supplement_uid",
-                icon="mdi:identifier",
-                value_name="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.supplement.uid",
-                entity_registry_visible_default= False,
+                with_attr_name="supplement",
+                with_attr_value="$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.supplement",
                 head=head,
             ),)
             ds+=new_head
@@ -913,12 +906,14 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
         self._head=self.entity_description.head
 
     def _update_val(self) -> str:
+        old_value=self._attr_native_value
         new_value=self._get_value()
+        super()._update_val()
         if self.entity_description.translation_key=="container_volume":
-            if new_value!=None and ( self._attr_native_value==None or self._attr_native_value < new_value):
+            if new_value!=None and old_value!=None and old_value < new_value:
                 self._device._hass.bus.fire(self.entity_description.value_name, {"value":new_value})
-        self._attr_native_value =  new_value
-
+        #super()._update_val()
+        #self._attr_native_value =  new_value
         
     def _get_value(self):
         if self.entity_description.translation_key=="last_calibration":
@@ -945,16 +940,13 @@ class RestoreSensorEntity( ReefDoseSensorEntity, RestoreSensor):
 
     def __init__(self,device,entity_description: ReefDoseSensorEntityDescription) -> None:
         super().__init__(device,entity_description)
-        # self._device = device
-        # self.entity_description = entity_description
-        # self._attr_available = True
-        # self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._device._hass.bus.async_listen(self.entity_description.dependency, self._handle_coordinator_update)
 
     @callback
     def _handle_coordinator_update(self,event=None) -> None:
         self._attr_available = True
         if event:
+            _LOGGER.debug("Update %s"%event)
             new_val=event.data.get('value')
             self._device.set_data(self.entity_description.value_name,new_val)  
             self._attr_native_value=new_val
@@ -966,6 +958,7 @@ class RestoreSensorEntity( ReefDoseSensorEntity, RestoreSensor):
         if res!=None:
             self._attr_native_value=res.native_value
             self._device.set_data(self.entity_description.value_name,res.native_value)
+            _LOGGER.debug("Restore %s: %s"%(self.entity_description.value_name,res.native_value))
         else:
             self._attr_native_value=None
         await super().async_added_to_hass()
