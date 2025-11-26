@@ -291,7 +291,7 @@ Non supporté pour l'instant. Si vous en avez un, contactez-moi [ici](https://gi
 >  6. (4) Videz l'éprouvette et pressez "Test new Calibration". Si la valeur obtenue est différente de 4mL, revenez à l'étape 1.
 >  7. (5) Pressez "Stop and Save Graduation"
 >        
-> ⚠️ Un amroçage doit forcément être suivi d'une calibration (étapes 1 à 5)!⚠️
+> ⚠️ Un amorçage doit forcément être suivi d'une calibration (étapes 1 à 5)!⚠️
 
 <p align="center"> 
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/calibration.png" alt="Image">
