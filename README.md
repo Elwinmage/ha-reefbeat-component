@@ -256,8 +256,8 @@ No supported yet. If you have one you can contact me [here](https://github.com/E
   - Enable/disable schedule per pump
   - Stock alert configuration
   - Dosing delay between supplements
-
-
+  - Calibration(Please Read [this](https://github.com/Elwinmage/ha-reefbeat-component/edit/main/README.md#calibration-and-priming)).
+  - Priming (Please Read [this](https://github.com/Elwinmage/ha-reefbeat-component/edit/main/README.md#calibration-and-priming)).
 <p align="center"> 
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_devices.png" alt="Image">
 </p>
@@ -274,7 +274,33 @@ No supported yet. If you have one you can contact me [here](https://github.com/E
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_sensors.png" alt="Image">
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsdose_diag.png" alt="Image">
 </p> 
- 
+
+#### Calibration and Priming
+
+> [!CAUTION]
+> You must strictly follow the order (It will be more secure with the [ha-reef-card](https://github.com/Elwinmage/ha-reef-card)).<br /><br />
+> <ins>For calibration</ins>:
+>  1. Put the graduated container and press "Start Calibration"
+>  2. Set the mesured value
+>  3. Press "Set Calibration Value"
+>  4. Empty the gratuated container and press "Test new Calibration". If value ist not 4mL, empty the graduated container and go back to 1.
+>  5. Press "Stop and Save Graduation"
+> 
+> <ins>For priming</ins>:
+>  1. (a) press "Start Priming"
+>  2. (b) when the liquid goes out press "Stop Priming"
+>  3. (1) Put the graduated container and press "Start Calibration"
+>  4. (2) Set the mesured value
+>  5. (3) Press "Set Calibration Value"
+>  6. (4) Empty the gratuated container and press "Test new Calibration". If value ist not 4mL, empty the graduated container and go back to 1.
+>  7. (5) Press "Stop and Save Calibration"
+>        
+> ⚠️ When priming you must also do a calibration (steps 1 to 5)!⚠️
+
+<p align="center"> 
+  <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/calibration.png" alt="Image">
+</p>
+
 # ReefLED:
   
   - Get and Set White and Blue channels (only for G1: RSLED50,RSLED90,RSLED160)
