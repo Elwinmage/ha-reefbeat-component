@@ -72,7 +72,7 @@ class ReefBeatAPI():
         self.data={"sources": [
             #{"name":"/","type": "device-info","data":""},
                                {"name":"/device-info","type": "device-info","data":""},
-                               {"name":"/firmware","type": "device-info","data":""},
+                               {"name":"/firmware","type": "config","data":""},
                                {"name":"/mode","type": "config","data":""},
                                {"name":"/cloud","type": "config","data":""},
                                {"name":"/wifi","type": "data","data":""},
