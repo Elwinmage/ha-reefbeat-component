@@ -552,6 +552,7 @@ class ReefMatCoordinator(ReefBeatCloudLinkedCoordinator):
 ################################################################################
 # REEFDOSE
 # TODO: add bundle for supplement
+# Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/43
 # labels: enhancement, rsdose
 class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
 
