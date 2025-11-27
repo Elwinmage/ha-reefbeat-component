@@ -110,6 +110,7 @@ class ReefBeatUpdateEntity(UpdateEntity):
         
     async def async_install(self, version: str | None, backup: bool, **kwargs) -> None:
         await self.my_api.press("firmware")
+        self._attr_installed_version = self._attr_latest_version
 
     @property
     def device_info(self) -> DeviceInfo:
