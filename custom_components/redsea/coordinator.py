@@ -551,6 +551,8 @@ class ReefMatCoordinator(ReefBeatCloudLinkedCoordinator):
             
 ################################################################################
 # REEFDOSE
+# TODO: add bundle for supplement
+# labels: enhancement, rsdose
 class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
 
     def __init__(

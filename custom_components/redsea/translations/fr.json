@@ -50,6 +50,9 @@
     },
     "entity": {
 	"button":{
+	    "delete_supplement":{
+		"name": "Supprimer le Suplément"
+	    },
 	    "reset":{
 		"name": "Redémarrer"
 	    },
@@ -250,6 +253,12 @@
 	    
 	},
 	"sensor": {
+	    "last_alert_message":{
+		"name": "Dernier Message d'Alarme"
+	    },
+	    "last_message":{
+		"name": "Dernier Message"
+	    },
 	    "save_initial_container_volume":{
 		"name": "Volume intial"
 	    },

@@ -53,6 +53,7 @@ class ReefDoseButtonEntityDescription(ButtonEntityDescription):
     """Describes reefbeat Button entity."""
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
     action: str = "manual"
+    delete: bool= False
     head: 0
 
 @dataclass(kw_only=True)
@@ -337,6 +338,17 @@ async def async_setup_entry(
             ),
             )
             db+=new_head
+            new_head= (ReefDoseButtonEntityDescription(
+                key="delete_supplement_"+str(head),
+                translation_key="delete_supplement",
+                icon="mdi:delete",
+                action="/head/"+str(head)+"/settings",
+                delete=True,
+                entity_category=EntityCategory.CONFIG,
+                head=head,
+            ),
+            )
+            db+=new_head
             if device.my_api._live_config_update == False:
                 CONFIG_BUTTONS: tuple[ReefDoseButtonEntityDescription, ...] =(
                     ReefDoseButtonEntityDescription(
@@ -405,7 +417,9 @@ class ReefDoseButtonEntity(ReefBeatButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        if self.entity_description.action == 'fetch_config':
+        if self.entity_description.delete:
+            await self._device.delete(self.entity_description.action)
+        elif self.entity_description.action == 'fetch_config':
             await self._device.fetch_config('/head/'+str(self._head)+'/settings')
         elif self.entity_description.action == 'end-calibration':
             payload={"volume":self._device.get_data("$.local.head."+str(self._head)+".calibration_dose")}

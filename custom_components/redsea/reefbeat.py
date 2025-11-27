@@ -78,6 +78,7 @@ class ReefBeatAPI():
                                {"name":"/wifi","type": "data","data":""},
                                {"name":"/dashboard","type": "data","data":""}]}
         self.data['local']={}
+        self.data['message']={}
         #store object path according to jsonpath
         self._data_db = {}
         self.last_update_success=None
@@ -88,10 +89,10 @@ class ReefBeatAPI():
     async def connect():
         pass
 
-        
     async def _http_get(self,client,source):
         _LOGGER.debug("_http_get: %s"%self._base_url+source.value['name'])
         now=time.time()
+        # renew authentification token
         if self._secure and (int(now-self._auth_date) > 2700):
             await self.connect()
         r = await client.get(self._base_url+source.value['name'],timeout=DEFAULT_TIMEOUT,headers=self._header)
@@ -256,6 +257,7 @@ class ReefBeatAPI():
                     error_count +=1
                 else:
                     _LOGGER.debug("%d: %s"%(r.status_code,r.text))
+                    self.data['message']=r.json()
             except Exception as e:
                 error_count += 1
                 _LOGGER.debug("Can not %s data: %s to %s, retry nb %d/%d"%(method,payload,url,error_count,HTTP_MAX_RETRY))

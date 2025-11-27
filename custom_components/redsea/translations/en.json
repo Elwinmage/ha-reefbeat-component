@@ -50,6 +50,9 @@
     },
     "entity": {
 	"button":{
+	    "delete_supplement":{
+		"name": "Delete Supplement"
+	    },
 	    "reset":{
 		"name": "Restart"
 	    },
@@ -251,6 +254,12 @@
 	    }
 	},
 	"sensor": {
+	    "last_alert_message":{
+		"name": "Last Alert Message"
+	    },
+	    "last_message":{
+		"name": "Last Message"
+	    },
 	    "save_initial_container_volume":{
 		"name": "Container Initial Volume"
 	    },

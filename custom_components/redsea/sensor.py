@@ -172,6 +172,20 @@ USER_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
     
 COMMON_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription( 
+        key="last_alert_message",
+        translation_key="last_alert_message",
+        value_fn=lambda device:  device.get_data("$.message.alert.message",True),
+        icon="mdi:alert",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription( 
+        key="last_message",
+        translation_key="last_message",
+        value_fn=lambda device:  device.get_data("$.message.message",True),
+        icon="mdi:note-check",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription( 
         key="ip",
         translation_key="ip",
         value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/wifi')].data.ip"),
