@@ -210,7 +210,14 @@ class ReefBeatAPI():
                     _LOGGER.error("%s"%self.data)
                 else:
                     return None
-        return eval(self._data_db[name])
+        try:
+            val=eval(self._data_db[name])
+        except Exception as e:
+            if is_None_possible:
+                return None
+            else:
+                raise e
+        return val
 
     #get data from jsonpath (slow)
     def _get_data(self,data_name,is_None_possible=False):
@@ -258,6 +265,8 @@ class ReefBeatAPI():
                 else:
                     _LOGGER.debug("%d: %s"%(r.status_code,r.text))
                     self.data['message']=r.json()
+                    if 'alert' not in self.data['message']:
+                        self.data['message']['alert']=''
             except Exception as e:
                 error_count += 1
                 _LOGGER.debug("Can not %s data: %s to %s, retry nb %d/%d"%(method,payload,url,error_count,HTTP_MAX_RETRY))
@@ -536,6 +545,7 @@ class ReefDoseAPI(ReefBeatAPI):
         super().__init__(ip,live_config_update)
         self._heads_nb=heads_nb
         self.data['sources'].insert(len(self.data['sources']),{"name":"/device-settings","type": "config","data":""})
+        self.data['sources'].insert(len(self.data['sources']),{"name":"/dosing-queue","type": "data","data":""})
 
         if self._heads_nb == 2:
             self.data['local']={"head":{"1":"","2":""}}

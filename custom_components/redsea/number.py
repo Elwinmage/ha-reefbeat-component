@@ -530,7 +530,7 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
             if self.entity_description.dependency_values != None:
                 val=self._device.get_data(self.entity_description.dependency)
                 if self.entity_description.translate !=None:
-                    val=translate(self.entity_description.translate,val,self._device._hass.config.language,"id")
+                    val=translate(val,"id",dictionnary=self.entity_description.translate,src_lang=self._device._hass.config.language)
                 return val in self.entity_description.dependency_values
             else:
                 return self._device.get_data(self.entity_description.dependency)

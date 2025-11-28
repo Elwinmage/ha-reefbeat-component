@@ -253,6 +253,9 @@
 	    
 	},
 	"sensor": {
+	    "dosing_queue":{
+		"name": "File d'attente"
+	    },
 	    "last_alert_message":{
 		"name": "Dernier Message d'Alarme"
 	    },

@@ -255,6 +255,9 @@
 	    }
 	},
 	"sensor": {
+	    "dosing_queue":{
+		"name": "Dosing Queue"
+	    },
 	    "last_alert_message":{
 		"name": "Last Alert Message"
 	    },

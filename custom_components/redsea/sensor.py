@@ -51,7 +51,7 @@ from .const import (
 
 from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator, ReefRunCoordinator, ReefLedCoordinator, ReefWaveCoordinator
 
-from .i18n import translate_list,translate
+from .i18n import translate
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -174,7 +174,7 @@ COMMON_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription( 
         key="last_alert_message",
         translation_key="last_alert_message",
-        value_fn=lambda device:  device.get_data("$.message.alert.message",True),
+        value_fn=lambda device: device.get_data("$.message.alert.message",True),
         icon="mdi:alert",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
@@ -576,6 +576,21 @@ async def async_setup_entry(
                      if description.exists_fn(device)]
     elif type(device).__name__=='ReefDoseCoordinator':
         ds=()
+        new_head= (ReefDoseSensorEntityDescription(
+            key="dosing_queue",
+            translation_key="dosing_queue",
+            icon="mdi:tray-full",
+            value_name="$.sources[?(@.name=='/dosing-queue')].data",
+            with_attr_name="queue",
+            with_attr_value="$.sources[?(@.name=='/dosing-queue')].data",
+            head=0,
+        ),)
+        ds+=new_head
+        entities += [ReefBeatSensorEntity(device, description)
+                     for description in  ds
+                     if description.exists_fn(device)]
+
+        ds=()
         for head in range (1,device.heads_nb+1):
             new_head= (RestoreSensorEntityDescription(
                 key="save_initial_container_volume_head_"+str(head),
@@ -869,7 +884,13 @@ class ReefBeatSensorEntity(CoordinatorEntity,SensorEntity):
         self._update_val()
         
     def _get_value(self):
-        if hasattr(self.entity_description, 'value_fn'):
+        if self.entity_description.translation_key=="dosing_queue":
+            data=self._device.get_data(self.entity_description.value_name);
+            if len(data)>0:
+                return data[0]["head"];
+            else:
+                return translate("Empty",self._device._hass.config.language);
+        elif hasattr(self.entity_description, 'value_fn'):
             return self.entity_description.value_fn(self._device)
         elif hasattr(self.entity_description, 'value_name'):
             return self._device.get_data(self.entity_description.value_name)
@@ -1018,12 +1039,12 @@ class ReefWaveSensorEntity(ReefBeatSensorEntity):
     def _get_value(self):
         val=self._device.get_current_value(self.entity_description.value_basename,self.entity_description.value_name)
         if self.entity_description.value_name=="type":
-            val=translate(WAVE_TYPES,val,'id',self._device._hass.config.language)
+            val=translate(val,self._device._hass.config.language,dictionnary=WAVE_TYPES,src_lang='id')
         elif self.entity_description.value_name=="direction":
             if val==None:
                 val="fw"
             else:
-                val=translate(WAVE_DIRECTIONS,val,'id',self._device._hass.config.language)
+                val=translate(val,self._device._hass.config.language,dictionnary=WAVE_DIRECTIONS,src_lang='id')
         return val
         
 ################################################################################
@@ -1065,6 +1086,3 @@ class ReefBeatCloudSensorEntity(ReefBeatSensorEntity):
             identifiers+=(self._aquarium_name,)
             di['identifiers']={identifiers} 
         return di
-    
-
-    

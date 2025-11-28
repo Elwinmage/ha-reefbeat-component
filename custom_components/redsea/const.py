@@ -207,3 +207,12 @@ WAVES_LIBRARY="/reef-wave/library"
 SUPPLEMENTS_LIBRARY="/reef-dosing/supplement"
 WAVE_SCHEDULE_PATH="$.sources[?(@.name=='/auto')].data.intervals"
 WAVES_DATA_NAMES=['type','direction','frt','rrt','fti','rti','sn','pd']
+
+################################################################################
+# DICTIONNARY
+
+DICTIONNARY=[
+    {"id":"Empty",
+     "en" : "Empty",
+     "fr" : "Vide"
+    }]

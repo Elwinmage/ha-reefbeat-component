@@ -269,19 +269,19 @@ class ReefWaveSelectEntity(ReefBeatSelectEntity):
     ) -> None:
         """Set up the instance."""
         super().__init__(device,entity_description)
-        self._attr_current_option = translate(self.entity_description.i18n_options,self._device.get_data(self._value_name),'id',self._device._hass.config.language)
+        self._attr_current_option = translate(self._device.get_data(self._value_name),self._device._hass.config.language,dictionnary=self.entity_description.i18n_options)
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._attr_available = True
-        self._attr_current_option = translate(self.entity_description.i18n_options,self._device.get_data(self._value_name),'id',self._device._hass.config.language)
+        self._attr_current_option = translate(self._device.get_data(self._value_name),self._device._hass.config.language,dictionnary=self.entity_description.i18n_options)
         self.async_write_ha_state()
 
     async def async_select_option(self, option: str) -> None:
         """Update the current selected option."""
         self._attr_current_option = option
-        value=translate(self.entity_description.i18n_options,option,self._device._hass.config.language,'id')
+        value=translate(option,"id",dictionnary=self.entity_description.i18n_options,src_lang=self._device._hass.config.language)
         self._device.set_data(self._value_name,value)
         self._device.async_update_listeners()
         self.async_write_ha_state()        
