@@ -50,6 +50,9 @@
     },
     "entity": {
 	"button":{
+	    "set_supplement":{
+		"name": "Set new Supplement"
+	    },
 	    "delete_supplement":{
 		"name": "Delete Supplement"
 	    },
@@ -568,6 +571,9 @@
 	    }
 	},
 	"select" : {
+	    "supplements":{
+		"name": "Supplements"
+	    },
 	    "preview_wave_type":{
 		"name": "Preview Waves Type"
 	    },
@@ -596,6 +602,17 @@
 	"update" :{
 	    "firmware_update": {
 		"name": "Firmware update"
+	    }
+	},
+	"text":{
+	    "new_supplement_brand_name":{
+		"name": "Brand Name"
+	    },
+	    "new_supplement_name":{
+		"name": "Supplement Name"
+	    },
+	    "new_supplement_short_name":{
+		"name": "Supplement Short Name"
 	    }
 	}
     }

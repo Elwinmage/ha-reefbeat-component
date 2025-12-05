@@ -551,9 +551,6 @@ class ReefMatCoordinator(ReefBeatCloudLinkedCoordinator):
             
 ################################################################################
 # REEFDOSE
-# TODO: add bundle for supplement
-# Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/43
-# labels: enhancement, rsdose
 class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
 
     def __init__(
@@ -568,6 +565,9 @@ class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
 
     async def calibration(self,action,head,param):
         await self.my_api.calibration(action,head,param)
+
+    async def set_bundle(self,param):
+        await self.my_api.set_bundle(param)
         
     async def press(self,action,head=None):
         await self.my_api.press(action,head)

@@ -586,6 +586,14 @@ async def async_setup_entry(
             head=0,
         ),)
         ds+=new_head
+        new_head= (ReefDoseSensorEntityDescription(
+            key="bundled_heads",
+            translation_key="buledel_heads",
+            icon="mdi:link",
+            value_name="$.sources[?(@.name=='/dashboard')].data.bundled_heads",
+            head=0,
+        ),)
+        ds+=new_head
         entities += [ReefBeatSensorEntity(device, description)
                      for description in  ds
                      if description.exists_fn(device)]
@@ -993,7 +1001,6 @@ class RestoreSensorEntity( ReefDoseSensorEntity, RestoreSensor):
         if res!=None:
             self._attr_native_value=res.native_value
             self._device.set_data(self.entity_description.value_name,res.native_value)
-            _LOGGER.debug("Restore %s: %s"%(self.entity_description.value_name,res.native_value))
         else:
             self._attr_native_value=None
         await super().async_added_to_hass()

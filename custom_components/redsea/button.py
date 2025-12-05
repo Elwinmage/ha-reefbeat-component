@@ -4,6 +4,8 @@ import logging
 from datetime import  timedelta, datetime
 from time import time
 
+import uuid
+
 from dataclasses import dataclass
 from collections.abc import Callable
 
@@ -39,6 +41,8 @@ from .const import (
 from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator,ReefRunCoordinator
 
 from .i18n import translate_list,translate
+
+from .supplements_list import (SUPPLEMENTS)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -262,6 +266,17 @@ async def async_setup_entry(
         db=()
         for head in range(1,device.heads_nb+1):
             new_head= (ReefDoseButtonEntityDescription(
+                key="set_supplement_head_"+str(head),
+                translation_key="set_supplement",
+                icon="mdi:bottle-soda",
+                action="setup-supplement",
+                entity_category=EntityCategory.CONFIG,
+                head=head,
+                entity_registry_visible_default=False,
+            ),
+            )
+            db+=new_head
+            new_head= (ReefDoseButtonEntityDescription(
                 key="start_calibration_head_"+str(head),
                 translation_key="start_calibration",
                 icon="mdi:play-box-edit-outline",
@@ -418,7 +433,13 @@ class ReefDoseButtonEntity(ReefBeatButtonEntity):
     async def async_press(self) -> None:
         """Handle the button press."""
         if self.entity_description.delete:
-            await self._device.delete(self.entity_description.action)
+            bundled_heads=self._device.get_data("$.sources[?(@.name=='/dashboard')].data.bundled_heads")
+            if bundled_heads:
+                await self._device.delete("/head/settings")
+            else:
+                await self._device.delete(self.entity_description.action)
+        elif self.entity_description.translation_key == 'set_supplement':
+            await self._set_supplement()
         elif self.entity_description.action == 'fetch_config':
             await self._device.fetch_config('/head/'+str(self._head)+'/settings')
         elif self.entity_description.action == 'end-calibration':
@@ -433,7 +454,34 @@ class ReefDoseButtonEntity(ReefBeatButtonEntity):
             await self._device.press(self.entity_description.action,self._head)
         await self._device.async_request_refresh()
 
-            
+    async def _set_supplement(self) -> None:
+        uid=self._device.get_data("$.local.head."+str(self._head)+".new_supplement")
+        _LOGGER.debug("Set supplement %s",uid)
+        if uid=="redsea-reefcare":
+            payload = next((item for item in SUPPLEMENTS if item['uid'] == uid), None)['bundle']
+            await self._device.set_bundle(payload)
+            return
+        elif uid=="other":
+            payload={
+                "uid":str(uuid.uuid4()),
+                "name":self._device.get_data("$.local.head."+str(self._head)+".new_supplement_name"),
+                "display name":None,
+                "short_name":self._device.get_data("$.local.head."+str(self._head)+".new_supplement_short_name"),
+                "brand_name":self._device.get_data("$.local.head."+str(self._head)+".new_supplement_brand_name"),
+                "type":None,
+                "concentration": None,
+                "made_by_redsea": False
+            }
+            for label in ['name','short_name','brand_name']:
+                if len(payload[label]) == 0:
+                    raise Exception("Setting supplement: "+label+" text box can not be empty")
+        else:
+            payload = next((item for item in SUPPLEMENTS if item['uid'] == uid), None)
+
+        _LOGGER.debug("_set_supplement %s %s",self.entity_description.action,payload)
+        await self._device.calibration(self.entity_description.action,self._head,payload)
+        
+        
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""

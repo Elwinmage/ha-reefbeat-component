@@ -4,9 +4,7 @@ import json
 from jsonpath_ng import jsonpath
 from jsonpath_ng.ext import parse
 
-
-from .const import (DICTIONNARY)
-
+from .dictionnary import (DICTIONNARY)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,5 +33,3 @@ def translate(word,dest_lang,dictionnary=DICTIONNARY,src_lang="id"):
                     if dest_l in w:
                         return w[dest_l]
     raise TypeError('redsea.i18n.translate can not find translation for %s from %s to %s in %s'%(word,src_langs,dest_langs,dictionnary))
-
-

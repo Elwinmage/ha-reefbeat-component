@@ -45,6 +45,10 @@ from .const import (
     WAVE_DIRECTIONS
 )
 
+from .supplements_list import (SUPPLEMENTS)
+
+SUPPLEMENTS=sorted(SUPPLEMENTS, key=lambda d: d['fullname'])
+
 from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
 
 from .i18n import translate_list,translate
@@ -79,6 +83,15 @@ class ReefWaveSelectEntityDescription(SelectEntityDescription):
     options: []
     method: str = 'post'
     i18n_options: []
+
+@dataclass(kw_only=True)
+class ReefDoseSelectEntityDescription(SelectEntityDescription):
+    """Describes reefbeat Select entity."""
+    exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
+    value_name: ''
+    options: []
+    head: int = 0
+    method: str = 'post'
     
 MAT_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
     ReefBeatSelectEntityDescription(
@@ -133,6 +146,23 @@ async def async_setup_entry(
     if type(device).__name__=='ReefMatCoordinator':
         entities += [ReefBeatSelectEntity(device, description)
                  for description in MAT_SELECTS
+                 if description.exists_fn(device)]
+    elif type(device).__name__=='ReefDoseCoordinator':
+        dn=()
+        for head in range(1,device.heads_nb+1):
+            new_head=(ReefDoseSelectEntityDescription(
+                key="supplements_"+str(head),
+                translation_key="supplements",
+                value_name="$.local.head."+str(head)+".new_supplement",
+                exists_fn=lambda _: True,
+                icon="mdi:shaker",
+                options=translate_list(SUPPLEMENTS,"fullname"),
+                entity_category=EntityCategory.CONFIG,
+                head=head,
+            ),)
+            dn+=new_head
+        entities += [ReefDoseSelectEntity(device, description)
+                 for description in dn
                  if description.exists_fn(device)]
     elif type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedG2Coordinator' or type(device).__name__=='ReefVirtualLedCoordinator' :
         entities += [ReefBeatSelectEntity(device, description)
@@ -202,11 +232,16 @@ class ReefBeatSelectEntity(CoordinatorEntity,SelectEntity):
         self._device = device
         self.entity_description = entity_description
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
-        self._attr_options = entity_description.options
+        other=translate("other",self._device.hass.config.language)
+        self._attr_options = entity_description.options+[other]
         self._value_name=entity_description.value_name
         self._attr_current_option = self._device.get_data(self._value_name)
-        self._source = self.entity_description.value_name.split('\'')[1]
-        self._method=entity_description.method
+        try: 
+            self._source = self.entity_description.value_name.split('\'')[1]
+            self._method=entity_description.method
+        except:
+            #ReefDose
+            pass
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -257,6 +292,55 @@ class ReefRunSelectEntity(ReefBeatSelectEntity):
         identifiers+=pump
         di['identifiers']={identifiers}
         return di
+################################################################################
+# DOSE
+class ReefDoseSelectEntity(ReefBeatSelectEntity):
+    """Represent an ReefBeat sensor."""
+    _attr_has_entity_name = True
+    
+    def __init__(
+        self, device, entity_description: ReefRunSelectEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device,entity_description)
+        self._head=self.entity_description.head
+        self._attr_current_option = translate(self._device.get_data(self._value_name),'fullname',dictionnary=SUPPLEMENTS,src_lang='uid')
+        
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_available = True
+        value=self._device.get_data(self._value_name)
+        if value == "other":
+            self._attr_current_option = translate("other",self._device._hass.config.language)
+        else:
+            self._attr_current_option = translate(self._device.get_data(self._value_name),'fullname',dictionnary=SUPPLEMENTS,src_lang='uid')                
+        self.async_write_ha_state()
+                
+    async def async_select_option(self, option: str) -> None:
+        """Update the current selected option."""
+        self._attr_current_option = option
+        if option==translate("other",self._device._hass.config.language):
+            value="other"
+            self._device._hass.bus.fire(self.entity_description.value_name, {"other":True})
+        else:
+            value=translate(option,"uid",dictionnary=SUPPLEMENTS,src_lang="fullname")
+            self._device._hass.bus.fire(self.entity_description.value_name, {"other":False})
+        _LOGGER.debug("Setting new supplement %s"%value)
+        self._device.set_data(self._value_name,value)
+        #self._device.async_update_listeners()
+        self.async_write_ha_state()        
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        di=self._device.device_info
+        di['name']+='_head_'+str(self._head)
+        identifiers=list(di['identifiers'])[0]
+        head=("head_"+str(self._head),)
+        identifiers+=head
+        di['identifiers']={identifiers}
+        return di
     
 ################################################################################
 # WAVE
@@ -285,5 +369,3 @@ class ReefWaveSelectEntity(ReefBeatSelectEntity):
         self._device.set_data(self._value_name,value)
         self._device.async_update_listeners()
         self.async_write_ha_state()        
-
-        

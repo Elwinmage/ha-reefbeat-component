@@ -1,6 +1,6 @@
 try:
     from homeassistant.const import Platform
-    PLATFORMS: list[Platform] = [Platform.LIGHT,Platform.SENSOR,Platform.BINARY_SENSOR,Platform.SWITCH,Platform.NUMBER,Platform.BUTTON,Platform.SELECT,Platform.TIME,Platform.UPDATE]
+    PLATFORMS: list[Platform] = [Platform.LIGHT,Platform.SENSOR,Platform.BINARY_SENSOR,Platform.SWITCH,Platform.NUMBER,Platform.BUTTON,Platform.SELECT,Platform.TIME,Platform.UPDATE,Platform.TEXT]
 except:
     pass
 
@@ -207,12 +207,3 @@ WAVES_LIBRARY="/reef-wave/library"
 SUPPLEMENTS_LIBRARY="/reef-dosing/supplement"
 WAVE_SCHEDULE_PATH="$.sources[?(@.name=='/auto')].data.intervals"
 WAVES_DATA_NAMES=['type','direction','frt','rrt','fti','rti','sn','pd']
-
-################################################################################
-# DICTIONNARY
-
-DICTIONNARY=[
-    {"id":"Empty",
-     "en" : "Empty",
-     "fr" : "Vide"
-    }]

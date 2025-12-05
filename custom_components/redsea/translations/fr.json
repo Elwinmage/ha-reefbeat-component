@@ -50,6 +50,9 @@
     },
     "entity": {
 	"button":{
+	    "set_supplement":{
+		"name": "Modifer le Supplément"
+	    },
 	    "delete_supplement":{
 		"name": "Supprimer le Suplément"
 	    },
@@ -566,6 +569,9 @@
 	    
 	},
 	"select" : {
+	    "supplements":{
+		"name": "Suppléments"
+	    },
 	    "preview_wave_type":{
 		"name": "Prev. type de vagues"
 	    },
@@ -594,6 +600,17 @@
 	"update" :{
 	    "firmware_update": {
 		"name": "Mise à jour du Microgiciel"
+	    }
+	},
+	"text":{
+	    "new_supplement_brand_name":{
+		"name": "Marque du Supplément"
+	    },
+	    "new_supplement_name":{
+		"name": "Nom du Supplément"
+	    },
+	    "new_supplement_short_name":{
+		"name": "Nom de la tête"
 	    }
 	}
     }

@@ -65,6 +65,7 @@ class ReefBeatAPI():
         self.ip=ip
         self._secure=secure
         self._auth_date=None
+        self._in_error=False
         if secure:
             self._base_url = "https://"+ip
         else:
@@ -124,6 +125,7 @@ class ReefBeatAPI():
                 await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
         if not status_ok:
             _LOGGER.error("Can not get data from %s%s after %s try"%(self.ip,source.value['name'],HTTP_MAX_RETRY))
+            self._in_error=True
             
     async def get_initial_data(self):
         """ Get inital datas and device information async """
@@ -133,6 +135,8 @@ class ReefBeatAPI():
         async with httpx.AsyncClient(verify=False) as client:  
             await asyncio.gather(*[self._call_url(client,sources[source]) for source in range(0,len(sources))])
 
+        if self._in_error:
+            raise Exception("Initialization failed, is your device on?")            
         if self._live_config_update == False:
             await self.fetch_config()
         await self.fetch_data()
@@ -546,7 +550,6 @@ class ReefDoseAPI(ReefBeatAPI):
         self._heads_nb=heads_nb
         self.data['sources'].insert(len(self.data['sources']),{"name":"/device-settings","type": "config","data":""})
         self.data['sources'].insert(len(self.data['sources']),{"name":"/dosing-queue","type": "data","data":""})
-
         if self._heads_nb == 2:
             self.data['local']={"head":{"1":"","2":""}}
         elif self._heads_nb == 4:
@@ -555,11 +558,14 @@ class ReefDoseAPI(ReefBeatAPI):
             _LOGGER.error("redsea.reefbeat.ReefDoseAPI.__init__() unkown head number: %d"%self._heads_nb)
         for head in range(1,self._heads_nb+1):
             self.data['sources'].insert(len(self.data['sources']),{"name":"/head/"+str(head)+"/settings","type": "data","data":""})
-            self.data['local']["head"][str(head)]={"manual_dose":5,"calibration_dose":5,"initial_volume":None}
+            self.data['local']["head"][str(head)]={"manual_dose":5,"calibration_dose":5,"initial_volume":None,"new_supplement":"7d67412c-fde0-44d4-882a-dc8746fd4acb","new_supplement_brand_name":"","new_supplement_name":"","new_supplement_short_name":""}
 
     async def calibration(self,action,head,param):
         await self._http_send(self._base_url+'/head/'+str(head)+'/'+action,param)
-            
+
+    async def set_bundle(self,param):
+        await self._http_send(self._base_url+'/bundle/setup',param)
+        
     async def press(self,action,head):
         if head != None:
             manual_dose=self.get_data("$.local.head."+str(head)+".manual_dose")
