@@ -256,6 +256,9 @@
 	    
 	},
 	"sensor": {
+	    "bundled_heads":{
+		"name": "Têtes liées"
+	    },
 	    "dosing_queue":{
 		"name": "File d'attente"
 	    },

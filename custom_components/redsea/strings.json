@@ -258,6 +258,9 @@
 	    }
 	},
 	"sensor": {
+	    "bundled_heads":{
+		"name": "Bundled Heads"
+	    },
 	    "dosing_queue":{
 		"name": "Dosing Queue"
 	    },

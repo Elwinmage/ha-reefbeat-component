@@ -7,6 +7,7 @@ import json
 import datetime
 from jsonpath_ng import jsonpath
 from jsonpath_ng.ext import parse
+import copy
 
 from homeassistant.exceptions import HomeAssistantError
 
@@ -562,6 +563,14 @@ class ReefDoseAPI(ReefBeatAPI):
 
     async def calibration(self,action,head,param):
         await self._http_send(self._base_url+'/head/'+str(head)+'/'+action,param)
+        uid=self.get_data("$.sources[?(@.name=='/head/"+str(head)+"/settings')].data.supplement.uid")
+        bundles=['6b7d2c15-0d25-4447-b089-854ef6ba99f2','6f6a53db-0985-47f4-92bd-cef092d97d22','18c5a293-f14d-4d40-ad43-0420e54f9a45','bb73e4c2-e366-4304-aaeb-50e4b52fa10f']
+        if action=="end-setup" and uid in bundles and not self.get_data("$.sources[?(@.name=='/dashboard')].data.bundled_heads"):
+            payload={
+                "bundled_heads": True,
+                 "auto_fill_schedule": False,
+            }
+            await self._http_send(self._base_url+'/bundle/settings',payload,'put')
 
     async def set_bundle(self,param):
         await self._http_send(self._base_url+'/bundle/setup',param)
@@ -576,9 +585,14 @@ class ReefDoseAPI(ReefBeatAPI):
             await self._http_send(self._base_url+'/'+action,payload)
             
     async def push_values(self,head):
-        _LOGGER.debug("type: %s"%type(head).__name__)
         if type(head).__name__ == 'int':
-            payload=self.get_data("$.sources[?(@.name=='/head/"+str(head)+"/settings')].data")
+            payload=copy.deepcopy(self.get_data("$.sources[?(@.name=='/head/"+str(head)+"/settings')].data"))
+            # If bundle suppress some fieds
+            if self.get_data("$.sources[?(@.name=='/dashboard')].data.bundled_heads"):
+                to_supp=['supplement','is_food_head','food_delay']
+                for field in to_supp:
+                    del payload[field]
+                _LOGGER.debug("Remove fields for bundle %s"%payload)
             await self._http_send(self._base_url+'/head/'+str(head)+'/settings',payload,'put')
         else:
             payload=self.get_data("$.sources[?(@.name=='"+head+"')].data")
