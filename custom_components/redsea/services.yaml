@@ -26,7 +26,6 @@ send_command:
       example: "post"
       selector:
         select:
-          translation_key: "method"
           options:
             - "post"
             - "put"
