@@ -115,6 +115,16 @@ COMMON_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         method='post',
         entity_category=EntityCategory.CONFIG,
     ),
+    ReefBeatSwitchEntityDescription(
+        key="maintenance",#maintenance
+        translation_key="maintenance",
+        value_name= COMMON_CLOUD_CONNECTION,
+        icon="mdi:account-wrench",
+        icon_off="mdi:account-wrench-outline",
+        method='post',
+        entity_category=EntityCategory.CONFIG,
+    ),
+
 )
     
     
@@ -370,6 +380,12 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
             self.async_write_ha_state()
             await self._device.delete('/off')
             return
+        elif self.entity_description.key=="maintenance":
+            self._device.set_data(self.entity_description.value_name,"maintenance")
+            self._device.async_update_listeners()
+            self.async_write_ha_state()
+            await self._device.press('maintenance')
+            return
         elif self.entity_description.key=="cloud_connect":
             await self._device.press('cloud/enable')
             self._device.set_data(self.entity_description.value_name,True)
@@ -391,7 +407,13 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
             self._device.set_data(self.entity_description.value_name,"off")
             self._device.async_update_listeners()
             self.async_write_ha_state()
-            await self._device.press('off')
+            await self._device.press('/off')
+            return
+        elif self.entity_description.key=="maintenance":
+            self._device.set_data(self.entity_description.value_name,"auto")
+            self.async_write_ha_state()
+            await self._device.delete('/maintenance')
+            await self._device.fetch_config('/mode')
             return
         elif self.entity_description.key=="cloud_connect":
             # self._device.async_update_listeners()

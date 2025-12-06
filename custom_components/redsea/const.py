@@ -69,6 +69,7 @@ HW_DEVICES_IDS=HW_LED_IDS+HW_DOSE_IDS+HW_MAT_IDS+HW_RUN_IDS+HW_ATO_IDS+HW_WAVE_I
 # COMMON
 COMMON_ON_OFF_SWITCH="$.sources[?(@.name=='/mode')].data.mode"
 COMMON_CLOUD_CONNECTION="$.sources[?(@.name=='/cloud')].data.enabled"
+COMMON_MAINTENANCE_SWITCH="$.sources[?(@.name=='/mode')].data.mode"
 
 ################################################################################
 # LED

@@ -528,6 +528,9 @@
 	    }
 	},
 	"switch": {
+	    "maintenance":{
+		"name": "Maintenance"
+	    },
 	    "use_cloud_api":{
 		"name": "Use cloud API"
 	    },
