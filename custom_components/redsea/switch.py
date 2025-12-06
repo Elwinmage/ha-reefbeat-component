@@ -37,6 +37,7 @@ from .const import (
     DOMAIN,
     COMMON_ON_OFF_SWITCH,
     COMMON_CLOUD_CONNECTION,
+    COMMON_MAINTENANCE_SWITCH,
     DAILY_PROG_INTERNAL_NAME,
     MAT_AUTO_ADVANCE_INTERNAL_NAME,
     MAT_SCHEDULE_ADVANCE_INTERNAL_NAME,
@@ -118,7 +119,7 @@ COMMON_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
     ReefBeatSwitchEntityDescription(
         key="maintenance",#maintenance
         translation_key="maintenance",
-        value_name= COMMON_CLOUD_CONNECTION,
+        value_name= COMMON_MAINTENANCE_SWITCH,
         icon="mdi:account-wrench",
         icon_off="mdi:account-wrench-outline",
         method='post',
@@ -351,6 +352,8 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
         self._attr_available = True
         if self.entity_description.key=="device_state":
             self._state=self._device.get_data(self.entity_description.value_name)!="off"
+        elif self.entity_description.key=="maintenance":
+            self._state=self._device.get_data(self.entity_description.value_name)=="maintenance"
         else:
             self._state = self._device.get_data(self.entity_description.value_name)
         self.set_icon()
@@ -361,6 +364,8 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
         self._attr_available = True
         if self.entity_description.key=="device_state":
             self._state=self._device.get_data(self.entity_description.value_name)!="off"
+        elif self.entity_description.key=="maintenance":
+            self._state=self._device.get_data(self.entity_description.value_name)=="maintenance"
         else:
             self._state = self._device.get_data(self.entity_description.value_name)
 

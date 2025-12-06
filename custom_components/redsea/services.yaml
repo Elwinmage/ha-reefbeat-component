@@ -1,0 +1,40 @@
+# Service ID
+send_command:
+  fields:
+    device_id:
+      name: Device ID
+      description: The ID of the device(s) to use.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea    
+        # device:
+        #   multiple: false
+        #   filter:
+        #     - integration: redsea
+    access_path:
+      required: true
+      description: Access pass
+      default: "/"
+      example: "/mode"
+      selector:
+        text:
+    method:
+      required: true
+      description: HTTP method
+      default: "post"
+      example: "post"
+      selector:
+        select:
+          translation_key: "method"
+          options:
+            - "post"
+            - "put"
+            - "delete"
+    data:
+      required: true
+      description: JSON data to send to device      
+      example: "{'mode': 'auto'}"
+      default: "{}"
+      selector:
+        text:
