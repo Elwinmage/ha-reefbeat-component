@@ -105,12 +105,15 @@ class ReefBeatUpdateEntity(UpdateEntity):
         if self._device._cloud_link!= None and self._device.latest_firmware_url!=None:
             new_version = self._device._cloud_link.get_data("$.sources[?(@.name='"+self._device.latest_firmware_url+"')].data.version",True)
             if new_version:
+                self._attr_latest_version=new_version
                 return new_version
         return self.installed_version
         
     async def async_install(self, version: str | None, backup: bool, **kwargs) -> None:
-        await self.my_api.press("firmware")
-        self._attr_installed_version = self._attr_latest_version
+        await self._device.my_api.press("firmware")
+        _LOGGER.info("Install new version for %s: %s"%(self._device._title,self.latest_version))
+        self._device.set_data("$.sources[?(@.name=='/firmware')].data.version",self.latest_version)
+        self._attr_installed_version = self.latest_version
 
     @property
     def device_info(self) -> DeviceInfo:

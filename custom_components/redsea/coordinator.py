@@ -324,10 +324,6 @@ class ReefLedCoordinator(ReefBeatCloudLinkedCoordinator):
             self.my_api.data['local']['manual_trick'][name.split('.')[-1]]=value
             self.my_api.update_light_ki()
 
-    async def set_cloud_link(self,cloud):
-        _LOGGER.info("%s linked to cloud %s"%(self._title,cloud._title))
-        self._cloud_link=cloud
-            
     def daily_prog(self):
         return self.my_api.daily_prog
 
