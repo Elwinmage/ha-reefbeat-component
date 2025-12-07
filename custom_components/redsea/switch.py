@@ -412,7 +412,7 @@ class ReefBeatSwitchEntity(CoordinatorEntity,SwitchEntity):
             self._device.set_data(self.entity_description.value_name,"off")
             self._device.async_update_listeners()
             self.async_write_ha_state()
-            await self._device.press('/off')
+            await self._device.press('off')
             return
         elif self.entity_description.key=="maintenance":
             self._device.set_data(self.entity_description.value_name,"auto")
