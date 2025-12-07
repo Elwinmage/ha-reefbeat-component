@@ -4,7 +4,7 @@ import functools
 import threading
 import time
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall, callback, ServiceResponse, SupportsResponse
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import device_registry
 from homeassistant.const import EVENT_HOMEASSISTANT_START, EVENT_HOMEASSISTANT_STOP
@@ -86,3 +86,40 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN][entry.entry_id].unload()
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
+
+#async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+async def async_setup(hass: HomeAssistant, config) -> bool:
+    """Set up my integration."""
+    @callback
+    async def handle_request(call: ServiceCall) -> ServiceResponse:
+        """Handle the service action call."""
+
+        device_id = call.data.get("device_id")
+
+        if device_id not in hass.data[DOMAIN]:
+            return {"error":"Device not enabled"}
+        device=hass.data[DOMAIN][device_id]
+        access_path = call.data.get("access_path")#, DEFAULT_NAME)
+        method = call.data.get("method")
+        if method=="get":
+            r=await device.my_api.http_get(access_path)
+        else:
+            data = call.data.get("data")
+            _LOGGER.debug("Call service send request: %s %s [%s] %s"%(device_id,access_path,method,data))
+            r=await device.my_api.http_send(access_path,data,method)
+        _LOGGER.debug('REQUEST RESPONSE %s'%r)
+        if r:
+            try:
+                r_text=json.loads(r.text)
+            except:
+                r_text=r.text
+                _LOGGER.debug(r)
+            return {"code":r.status_code,"text":r_text}
+        else:
+            _LOGGER.error("can not access to device "+device._title)
+            return {"error": "can not access to device "+device._title}
+
+            
+    _LOGGER.debug("request service REGISTERED %s"%config)
+    hass.services.async_register(DOMAIN, "request", handle_request,supports_response=SupportsResponse.OPTIONAL)
+    return True

@@ -91,6 +91,16 @@ class ReefBeatAPI():
     async def connect():
         pass
 
+    async def http_get(self,access_path):
+        try:
+            async with httpx.AsyncClient(verify=False) as client:
+                r=await client.get(self._base_url+access_path)
+                return r
+        except Exception as e:
+            _LOGGER.error(e)
+            return None
+        
+    
     async def _http_get(self,client,source):
         _LOGGER.debug("_http_get: %s"%self._base_url+source.value['name'])
         now=time.time()

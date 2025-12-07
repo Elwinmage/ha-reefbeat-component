@@ -1,5 +1,8 @@
 # Service ID
-send_command:
+request:
+  # target:
+  #   entity:
+  #    - integration: redsea
   fields:
     device_id:
       name: Device ID
@@ -30,6 +33,7 @@ send_command:
             - "post"
             - "put"
             - "delete"
+            - "get"
     data:
       required: true
       description: JSON data to send to device      

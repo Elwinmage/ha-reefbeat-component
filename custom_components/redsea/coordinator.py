@@ -12,7 +12,7 @@ from time import time
 
 from datetime import  timedelta, datetime
 
-from homeassistant.core import HomeAssistant, ServiceCall, callback, ServiceResponse, SupportsResponse
+from homeassistant.core import HomeAssistant
 
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
@@ -116,31 +116,11 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
         self.async_update_listeners()
 
 
-    def register_send_command_action(self):
-        @callback
-        async def handle_send_command(call: ServiceCall) -> ServiceResponse:
-            """Handle the service action call."""
-            device_id = call.data.get("device_id")
-            _LOGGER.debug("%s==%s"%(self._entry,device_id))
-            # if device_id== self.
-            access_path = call.data.get("access_path")#, DEFAULT_NAME)
-            method = call.data.get("method")
-            data = call.data.get("data")
-            _LOGGER.debug("Call service send command: %s %s [%s] %s"%(device_id,access_path,method,data))
-            r=await self.my_api.http_send(access_path,data,method)
-            #return {"code":r.status_code,"text":r.text.replace("\"","'")}
-            return {"code":r.status_code,"text":json.loads(r.text)}
-            
-        _LOGGER.debug("send_command service REGISTERED")
-        self.hass.services.async_register(DOMAIN, "send_command", handle_send_command,supports_response=SupportsResponse.ONLY,)
-
     async def _async_setup(self) -> None:
         """Do initialization logic."""
         _LOGGER.debug("async_setup...")
         if(self._boot==True):
             self._boot=False
-            self.register_send_command_action()
-                
             res= await self.my_api.get_initial_data()
             return res
         return None
@@ -265,7 +245,6 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
         _LOGGER.debug("async_setup...")
         if(self._boot==True):
             self._boot=False
-            self.register_send_command_action()
             res=await self.my_api.get_initial_data()
             if str(self._hass.state)=='RUNNING':
                 self._ask_for_link()
