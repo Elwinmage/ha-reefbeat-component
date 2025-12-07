@@ -247,6 +247,7 @@ Non supporté pour l'instant. Si vous en avez un, contactez-moi [ici](https://gi
 # ReefDose :
 - Modification de la dose quotidienne
 - Dose manuelle
+- Ajout et suppression de suppléments
 - Modification et contrôle du volume du récipient. Le réglage du volume du récipient est automatiquement activé ou désactivé en fonction du volume sélectionné.
 - Activation/désactivation de la programmation par pompe
 - Configuration des alertes de stock
