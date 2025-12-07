@@ -256,6 +256,7 @@ No supported yet. If you have one you can contact me [here](https://github.com/E
   - Enable/disable schedule per pump
   - Stock alert configuration
   - Dosing delay between supplements
+  - Add or remove supplements and bundles
   - Calibration(Please Read [this](https://github.com/Elwinmage/ha-reefbeat-component/edit/main/README.md#calibration-and-priming)).
   - Priming (Please Read [this](https://github.com/Elwinmage/ha-reefbeat-component/edit/main/README.md#calibration-and-priming)).
 <p align="center"> 
