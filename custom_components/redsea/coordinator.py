@@ -5,9 +5,8 @@ import async_timeout
 from jsonpath_ng import jsonpath
 from jsonpath_ng.ext import parse
 
-import json
-
 import uuid
+
 from time import time
 
 from datetime import  timedelta, datetime

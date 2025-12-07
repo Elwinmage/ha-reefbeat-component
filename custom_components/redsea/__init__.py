@@ -3,6 +3,7 @@ import asyncio
 import functools
 import threading
 import time
+import json
 
 from homeassistant.core import HomeAssistant, ServiceCall, callback, ServiceResponse, SupportsResponse
 from homeassistant.config_entries import ConfigEntry
