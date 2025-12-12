@@ -189,7 +189,7 @@
 		"name": "Update Daily dose"
 	    },
 	    "custom_advance_value":{
-		"name": "Valeur d'avance"
+		"name": "Advance Value"
 	    },
 	    "manual_head_volume":{
 		"name": "Manual Volume"
@@ -567,7 +567,7 @@
 		"name": "Schedule enabled"
 	    },
 	    "daily_prog": {
-		"name": "Daily Programmation"
+		"name": "Daily Program"
 	    },
 	    "auto_advance":{
 		"name": "Auto advance"
