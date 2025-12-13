@@ -146,6 +146,7 @@ DOSE_SCAN_INTERVAL= 120 # in seconds
 ATO_SCAN_INTERVAL=20 #in seconds
 #ATO SWITCHES
 ATO_AUTO_FILL_INTERNAL_NAME="$.sources[?(@.name=='/configuration')].data.auto_fill"
+ATO_VOLUME_LEFT_INTERNAL_NAME = "$.sources[?(@.name=='/dashboard')].data.volume_left"
 
 ################################################################################
 # RUN
