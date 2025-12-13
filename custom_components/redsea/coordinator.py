@@ -179,7 +179,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
     @property
     def serial(self):
         return self._title
-    
+
     @property
     def model(self):
         return self.get_data("$.sources[?(@.name=='/device-info')].data.hw_model")
@@ -417,6 +417,8 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
                     return self.get_data_float(name)
                 case 'str':
                     return self.get_data_str(name)
+                case 'NoneType':
+                    return None
                 case _:
                     _LOGGER.warning("Not implemented %s: %s (%s)"%(name,data,type(data).__name__))
                     pass 

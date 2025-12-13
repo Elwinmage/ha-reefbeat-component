@@ -173,6 +173,12 @@ USER_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
 )
     
 COMMON_SENSORS:tuple[ReefBeatSensorEntityDescription, ...] = (
+    ReefBeatSensorEntityDescription(
+        key='mode',
+        translation_key='mode',
+        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/mode')].data.mode"),
+        icon="mdi:play",
+    ),
     ReefBeatSensorEntityDescription( 
         key="last_alert_message",
         translation_key="last_alert_message",
@@ -388,14 +394,14 @@ for auto_id in range(1,8):
     ),)
 
 
-WAVE_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
-    ReefBeatSensorEntityDescription(
-        key='mode',
-        translation_key='mode',
-        value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/mode')].data.mode"),
-        icon="mdi:play",
-    ),
-)
+# WAVE_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
+#     ReefBeatSensorEntityDescription(
+#         key='mode',
+#         translation_key='mode',
+#         value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/mode')].data.mode"),
+#         icon="mdi:play",
+#     ),
+# )
 
 WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (   
     ReefWaveSensorEntityDescription(
