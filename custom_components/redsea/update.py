@@ -6,7 +6,6 @@ from collections.abc import Callable
 
 from homeassistant.core import (
     HomeAssistant,
-    callback,
     )
 
 from homeassistant.config_entries import ConfigEntry
@@ -26,7 +25,6 @@ from homeassistant.const import (
     EntityCategory,
 )
 
-from homeassistant.helpers.typing import StateType
 
 from .const import (
     DOMAIN,
@@ -102,7 +100,7 @@ class ReefBeatUpdateEntity(UpdateEntity):
     @property
     def latest_version(self) -> str | None:
         """Latest version available for install."""
-        if self._device._cloud_link!= None and self._device.latest_firmware_url!=None:
+        if self._device._cloud_link is not None and self._device.latest_firmware_url is not None:
             new_version = self._device._cloud_link.get_data("$.sources[?(@.name='"+self._device.latest_firmware_url+"')].data.version",True)
             if new_version:
                 self._attr_latest_version=new_version

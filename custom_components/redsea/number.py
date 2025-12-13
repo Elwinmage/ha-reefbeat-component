@@ -64,7 +64,7 @@ _LOGGER = logging.getLogger(__name__)
 class ReefBeatNumberEntityDescription(NumberEntityDescription):
     """Describes reefbeat Number entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
-    value_name: ""
+    value_name: str = ""
     dependency: str = None
     dependency_values: [] = None
     translate: [] = None
@@ -76,14 +76,14 @@ class ReefRunNumberEntityDescription(NumberEntityDescription):
     dependency: str = None
     dependency_values: [] = None
     translate: [] = None
-    value_name: ""
-    pump: 0
+    value_name: str = ""
+    pump: int = 0
 
 @dataclass(kw_only=True)
 class ReefLedNumberEntityDescription(NumberEntityDescription):
     """Describes reefbeat Number entity."""
     exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
-    value_name: ""
+    value_name: str = ""
     post_specific: bool = False
     dependency: str = None
     dependency_values: [] = None
@@ -93,8 +93,8 @@ class ReefLedNumberEntityDescription(NumberEntityDescription):
 class ReefDoseNumberEntityDescription(NumberEntityDescription):
     """Describes reefbeat Number entity."""
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
-    value_name: ""
-    head: 0
+    value_name: str =  ""
+    head: int = 0
     dependency: str = None
     dependency_values: [] = None
     translate: [] = None
@@ -517,11 +517,11 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
         self.entity_description = entity_description
         try:
             self._source = self.entity_description.value_name.split('\'')[1]
-        except:
+        except Exception:
             self._source='/configuration'
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._attr_native_value=3.25
-        if self.entity_description.dependency!=None:
+        if self.entity_description.dependency is not None:
             self._device._hass.bus.async_listen(self.entity_description.dependency, self._handle_coordinator_update)
 
 
@@ -550,10 +550,10 @@ class ReefBeatNumberEntity(CoordinatorEntity,NumberEntity):
 
     @property
     def available(self) -> bool:
-        if self.entity_description.dependency != None:
-            if self.entity_description.dependency_values != None:
+        if self.entity_description.dependency is not None:
+            if self.entity_description.dependency_values is not None:
                 val=self._device.get_data(self.entity_description.dependency)
-                if self.entity_description.translate !=None:
+                if self.entity_description.translate is not None:
                     val=translate(val,"id",dictionnary=self.entity_description.translate,src_lang=self._device._hass.config.language)
                 return val in self.entity_description.dependency_values
             else:
@@ -586,7 +586,7 @@ class ReefLedNumberEntity(ReefBeatNumberEntity):
         self._attr_native_value=value
         self._device.set_data(self.entity_description.value_name,value)
         self.async_write_ha_state()
-        if self.entity_description.post_specific==False:
+        if self.entity_description.post_specific is False:
             await self._device.push_values(self.entity_description.value_name.split('\'')[1],'post')
         else:
             await self._device.post_specific(self.entity_description.post_specific)
@@ -705,9 +705,9 @@ class ReefWaveNumberEntity(ReefBeatNumberEntity):
             self._attr_native_min_value=self.entity_description.native_min_value
             self._attr_native_max_value=self.entity_description.native_max_value
             self._attr_native_step=self.entity_description.native_step
-            if value != None:
+            if value is not None:
                 value=int(value)
-        if value==None:
+        if value is None:
             _LOGGER.debug("%s is None!!!"%self.entity_description.value_name)
             self._attr_available = False
             self._attr_native_value = None

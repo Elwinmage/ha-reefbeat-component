@@ -120,7 +120,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
     async def _async_setup(self) -> None:
         """Do initialization logic."""
         _LOGGER.debug("async_setup...")
-        if(self._boot==True):
+        if(self._boot is True):
             self._boot=False
             res= await self.my_api.get_initial_data()
             return res
@@ -209,7 +209,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str,Any]]):
     @property
     def hw_version(self):
         hw_vers=self.get_data("$.sources[?(@.name=='/device-info')].data.hw_revision",True)
-        if hw_vers==None:
+        if hw_vers is None:
             hw_vers=self.get_data("$.sources[?(@.name=='/firmware')].data.chip_version",True)
         return hw_vers
 
@@ -244,7 +244,7 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
     async def _async_setup(self) -> None:
         """Do initialization logic."""
         _LOGGER.debug("async_setup...")
-        if(self._boot==True):
+        if(self._boot is True):
             self._boot=False
             res=await self.my_api.get_initial_data()
             if str(self._hass.state)=='RUNNING':
@@ -294,7 +294,7 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
         await self._cloud_link.listen_for_firmware(self.latest_firmware_url,self._title)
 
     def cloud_link(self):
-        if self._cloud_link!=None:
+        if self._cloud_link is not None:
             return self._cloud_link._title
         return "None"
     
@@ -508,10 +508,6 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         for led in self._linked:
             await led.my_api.fetch_config(config_path)
     
-    async def delete(self,source):
-        for led in self._linked:
-            await led.delete(source)
-
     async def post_specific(self,source):
         for led in self._linked:
             await led.post_specific(source)
@@ -650,7 +646,7 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
             self.set_data("$.sources[?(@.name=='/mode')].data.mode",'auto')
         cur_schedule=await self._get_current_schedule()
         new_wave=await self._create_new_wave_from_preview(cur_schedule['cur_wave'])
-        if self.get_data("$.local.use_cloud_api")==True:
+        if self.get_data("$.local.use_cloud_api") is True:
             if self.get_data("$.sources[?(@.name=='/preview')].data.type")=='nw':
                 new_wave=self._cloud_link.get_no_wave(self)
             await self._set_wave_cloud_api(cur_schedule,new_wave)
@@ -687,11 +683,10 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
                 cur_wave_place=i
             else:
                 break
-        cur_wave=auto['intervals'][cur_wave_place]
         return {'schedule':auto,'cur_wave':waves[cur_wave_place],'cur_wave_idx':cur_wave_place}
 
     async def _set_wave_cloud_api(self,cur_schedule,new_wave):
-        if self._cloud_link==None:
+        if self._cloud_link is None:
             raise TypeError("%s - Not linked to cloud account"%self._title)
         # No Wave
         if new_wave['type']=='nw':
@@ -729,7 +724,7 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
             ]
         }
 
-        if is_cur_wave_default==True or is_cur_wave_default==None or new_wave['type']!=c_wave['type'] :
+        if is_cur_wave_default is True or is_cur_wave_default is None or new_wave['type']!=c_wave['type'] :
             _LOGGER.debug("Create New Wave")
             #create new wave
             payload['aquarium_uid']=c_wave['aquarium_uid']
@@ -820,10 +815,10 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
         
     async def _async_setup(self) -> None:
         """Do initialization logic."""
-        if(self._boot==True):
+        if(self._boot is True):
             self._boot=False
             await self.my_api.connect()
-            res=await self.my_api.get_initial_data()
+            await self.my_api.get_initial_data()
             self._hass.bus.async_listen("redsea_ask_for_cloud_link", self._handle_link_requests)
             self._hass.bus.fire("redsea_ask_for_cloud_link_ready", {})
             #set no wave shortcut
@@ -841,7 +836,7 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
     async def _handle_link_requests(self,event):
         device=self._hass.data[DOMAIN][event.data.get('device_id')]
         s_device=self.get_data("$.sources[?(@.name=='/device')].data[?(@.hwid=='"+device.model_id+"')]",True)
-        if s_device!=None:
+        if s_device is not None:
             await device.set_cloud_link(self)
 
     async def send_cmd(self,action,payload,method='post'):

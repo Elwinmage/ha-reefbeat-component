@@ -1,7 +1,7 @@
 try:
     from homeassistant.const import Platform
     PLATFORMS: list[Platform] = [Platform.LIGHT,Platform.SENSOR,Platform.BINARY_SENSOR,Platform.SWITCH,Platform.NUMBER,Platform.BUTTON,Platform.SELECT,Platform.TIME,Platform.UPDATE,Platform.TEXT]
-except:
+except Exception:
     pass
 
 DOMAIN = "redsea"

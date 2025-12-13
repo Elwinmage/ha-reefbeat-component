@@ -1,8 +1,6 @@
 """ Implements the sensor entity """
 import logging
 
-from datetime import  timedelta, datetime
-from time import time
 
 import uuid
 
@@ -11,7 +9,6 @@ from collections.abc import Callable
 
 from homeassistant.core import (
     HomeAssistant,
-    callback,
     )
 
 from homeassistant.const import (
@@ -32,15 +29,12 @@ from homeassistant.helpers.typing import StateType
 
 from .const import (
     DOMAIN,
-    WAVE_TYPES,
-    WAVE_DIRECTIONS,
     WAVE_SCHEDULE_PATH,
     WAVES_DATA_NAMES,
 )
 
 from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator,ReefRunCoordinator
 
-from .i18n import translate_list,translate
 
 from .supplements_list import (SUPPLEMENTS)
 
@@ -218,7 +212,7 @@ async def async_setup_entry(
                  for description in WAVE_SAVE_PREVIEW_BUTTONS
                  if description.exists_fn(device)]
     elif type(device).__name__=='ReefRunCoordinator':
-        if device.my_api._live_config_update == False:
+        if device.my_api._live_config_update is False:
             for pump in range(1,3):
                 CONFIG_PREVIEW_BUTTONS: tuple[ReefRunButtonEntityDescription, ...] =(
                     ReefRunButtonEntityDescription(
@@ -364,7 +358,7 @@ async def async_setup_entry(
             ),
             )
             db+=new_head
-            if device.my_api._live_config_update == False:
+            if device.my_api._live_config_update is False:
                 CONFIG_BUTTONS: tuple[ReefDoseButtonEntityDescription, ...] =(
                     ReefDoseButtonEntityDescription(
                         key="fetch_config_"+str(head),
@@ -383,7 +377,7 @@ async def async_setup_entry(
         entities += [ReefDoseButtonEntity(device, description)
                  for description in db
                  if description.exists_fn(device)]
-    if device.my_api._live_config_update == False:
+    if device.my_api._live_config_update is False:
         entities += [ReefBeatButtonEntity(device, description)
                  for description in FETCH_CONFIG_BUTTON 
                  if description.exists_fn(device)]
@@ -561,7 +555,7 @@ class ReefWaveButtonEntity(ReefBeatButtonEntity):
             _LOGGER.debug('Set Preview from Current values')
             for dn in WAVES_DATA_NAMES:
                 v=self._device.get_current_value(WAVE_SCHEDULE_PATH,dn)
-                if v != None:
+                if v is not None:
                     self._device.set_data("$.sources[?(@.name=='/preview')].data."+dn,v)
             self._device.async_update_listeners()
             self.async_write_ha_state()
@@ -570,7 +564,7 @@ class ReefWaveButtonEntity(ReefBeatButtonEntity):
             await self._device.set_wave()
             for dn in WAVES_DATA_NAMES:
                 v=self._device.get_data("$.sources[?(@.name=='/preview')].data."+dn)
-                if v != None:
+                if v is not None:
                     self._device.set_current_value(WAVE_SCHEDULE_PATH,dn,v)
             if self._device.get_data("$.sources[?(@.name=='/preview')].data.type")=="nw":
                 self._device.set_current_value(WAVE_SCHEDULE_PATH,'name','No Wave')

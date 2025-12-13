@@ -18,7 +18,7 @@ else:
         
     
 def get_local_ips(subnetwork=None):
-    if subnetwork != None:
+    if subnetwork is not None:
         net = ipaddress.ip_network(subnetwork, strict=False)        
         return [str(ip) for ip in ipaddress.IPv4Network(str(net))]
     else:
@@ -34,7 +34,7 @@ def get_local_ips(subnetwork=None):
                 if addr['addr'] == ip:
                     net = ipaddress.ip_network(ip+'/'+addr['netmask'], strict=False)        
                     return [str(ip) for ip in ipaddress.IPv4Network(str(net))]
-            except:
+            except Exception:
                 pass
 
 def is_reefbeat(ip):
@@ -47,7 +47,7 @@ def is_reefbeat(ip):
             if hw_model in HW_DEVICES_IDS:
                 uuid=get_unique_id(ip)
                 return True,ip,hw_model,name,uuid
-    except:
+    except Exception:
         pass
     return False,ip,None,None,None
 
@@ -58,7 +58,7 @@ def get_reefbeats(subnetwork=None,nb_of_threads=64):
         res=p.map(is_reefbeat,ips)
         for device in res:
             status,ip,hw_model,friendly_name,uuid=device
-            if status == True:
+            if status is True:
                 reefbeats+=[{"ip":ip,"hw_model":hw_model,"friendly_name":friendly_name,"uuid":uuid}]
     return reefbeats
                 
@@ -71,7 +71,7 @@ def get_unique_id(ip):
             udn=str(tree.device.UDN)
             uuid=udn.replace("uuid:","")
             return uuid
-    except Exception as e :
+    except Exception:
         return None
      
 if __name__ == '__main__':

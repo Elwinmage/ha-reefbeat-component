@@ -1,14 +1,12 @@
 """Config flow for Reefbeat component."""
 
 import voluptuous as vol
-import glob
 import logging
 import copy
 import ipaddress
 import asyncio
 import httpx
 
-from jsonpath_ng import jsonpath
 from jsonpath_ng.ext import parse
 
 from typing import Any
@@ -20,8 +18,7 @@ from homeassistant import config_entries
 
 from homeassistant.config_entries import (
     ConfigEntry,
-    ConfigEntryStore,
-    ConfigEntryItems
+    ConfigEntryStore
 )
 
 from homeassistant.core import callback
@@ -36,7 +33,6 @@ from .auto_detect import (
 
 
 from .const import (
-    PLATFORMS,
     DOMAIN,
     CONFIG_FLOW_ADD_TYPE,
     CONFIG_FLOW_CLOUD_USERNAME,
@@ -51,14 +47,12 @@ from .const import (
     CONFIG_FLOW_SCAN_INTERVAL,
     CONFIG_FLOW_INTENSITY_COMPENSATION,
     CONFIG_FLOW_CONFIG_TYPE,
-    LED_INTENSITY_INTERNAL_NAME,
     LEDS_INTENSITY_COMPENSATION,
     HW_LED_IDS,
     HW_DOSE_IDS,
     HW_MAT_IDS,
     HW_ATO_IDS,
     HW_RUN_IDS,
-    HW_WAVE_IDS,
     SCAN_INTERVAL,
     VIRTUAL_LED_SCAN_INTERVAL,
     DOSE_SCAN_INTERVAL,
@@ -121,7 +115,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         while retry > 0:
             
             uuid=await self.hass.async_add_executor_job(partial(get_unique_id,**f_kwargs))
-            if uuid != None:
+            if uuid is not None:
                 return uuid
             retry -= 1
             await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
@@ -136,7 +130,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         try:
             ipaddress.ip_address(addr[0])
             ipaddress.ip_address(addr[1])
-        except:
+        except Exception:
             return False
         return True
 
@@ -144,7 +138,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create a new entity from UI."""
         subnetwork=None
         # FIRST STEP
-        if user_input == None:
+        if user_input is None:
             return self.async_show_form(
                 step_id="user",
                 data_schema=vol.Schema(
@@ -247,7 +241,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             f_kwargs["ip"] = configuration[0]
                             status,ip,hw_model,friendly_name,uuid=await self.hass.async_add_executor_job(partial(is_reefbeat,**f_kwargs))
                             _LOGGER.info("MANUAL IP DETECTED: %s %s %s %s"%(ip,hw_model,friendly_name,uuid))
-                            if status==True:
+                            if status is True:
                                 conf=self.device_to_string({"ip":ip,"hw_model":hw_model,"friendly_name":friendly_name})
                                 configuration=conf.split(' ')
                             _LOGGER.debug("MANUAL IP info: %s"%(configuration))
@@ -388,7 +382,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 )
                 return self.async_create_entry(data=data)
         errors = {}
-        devices_list=[]
         options_schema=None
 
         if not self._config_entry.title.startswith(VIRTUAL_LED+'-'):
@@ -396,7 +389,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 hw_model=self._config_entry.data[CONFIG_FLOW_HW_MODEL]
                 query=parse('$[?(@.name=="'+hw_model+'")]')
                 res=query.find(LEDS_INTENSITY_COMPENSATION)
-            except:
+            except Exception:
                 hw_model=None
                 res=[]
             if len(res) > 0:

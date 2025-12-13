@@ -18,7 +18,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.switch import (
     SwitchEntity,
     SwitchEntityDescription,
-    SwitchDeviceClass,
  )
 
 
@@ -31,14 +30,12 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import  DeviceInfo
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from homeassistant.helpers.typing import StateType
 
 from .const import (
     DOMAIN,
     COMMON_ON_OFF_SWITCH,
     COMMON_CLOUD_CONNECTION,
     COMMON_MAINTENANCE_SWITCH,
-    DAILY_PROG_INTERNAL_NAME,
     MAT_AUTO_ADVANCE_INTERNAL_NAME,
     MAT_SCHEDULE_ADVANCE_INTERNAL_NAME,
     ATO_AUTO_FILL_INTERNAL_NAME,
@@ -56,7 +53,7 @@ _LOGGER = logging.getLogger(__name__)
 class ReefBeatSwitchEntityDescription(SwitchEntityDescription):
     """Describes reefbeat Switch entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
-    value_name: ''
+    value_name: str = ''
     icon_off:  str = ''
     method: str = 'put'
     notify: bool=False
@@ -66,7 +63,7 @@ class ReefLedSwitchEntityDescription(SwitchEntityDescription):
     """Describes reefbeat Switch entity."""
     exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
     icon_off:  str = ''
-    value_name: ''
+    value_name: str = ''
     method: str ='put'
     notify: bool=False
     
@@ -75,8 +72,8 @@ class ReefDoseSwitchEntityDescription(SwitchEntityDescription):
     """Describes reefbeat Switch entity."""
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
     icon_off:  str = ''
-    value_name: ''
-    head: 0
+    value_name: str = ''
+    head: int = 0
     method: str = 'put'
     notify: bool=False
 
@@ -282,7 +279,7 @@ class SaveStateSwitchEntity(SwitchEntity,RestoreEntity):
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
 
     def set_icon(self):
-        if self._state==False and self.entity_description.icon_off!='':
+        if self._state is False and self.entity_description.icon_off!='':
             self.icon=self.entity_description.icon_off
         else:
             self.icon=self.entity_description.icon
@@ -306,7 +303,7 @@ class SaveStateSwitchEntity(SwitchEntity,RestoreEntity):
         """Handle entity which will be added."""
         await super().async_added_to_hass()
         state = await self.async_get_last_state()
-        if state==None:
+        if state is None:
             self._state = True
             self.icon=self.entity_description.icon
             self._device.set_data("$.local."+self.entity_description.key,self._state)

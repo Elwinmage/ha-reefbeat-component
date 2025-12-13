@@ -1,14 +1,8 @@
 import logging
-import asyncio
-import functools
-import threading
-import time
 import json
 
 from homeassistant.core import HomeAssistant, ServiceCall, callback, ServiceResponse, SupportsResponse
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers import device_registry
-from homeassistant.const import EVENT_HOMEASSISTANT_START, EVENT_HOMEASSISTANT_STOP
 
 from .const import (
     DOMAIN,
@@ -16,7 +10,6 @@ from .const import (
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_CLOUD_USERNAME,
-    HW_LED_IDS,
     HW_G1_LED_IDS,
     HW_G2_LED_IDS,
     HW_DOSE_IDS,
@@ -25,13 +18,9 @@ from .const import (
     HW_RUN_IDS,
     HW_WAVE_IDS,
     VIRTUAL_LED,
-    LINKED_LED,
-    VIRTUAL_LED_MAX_WAITING_TIME,
     )
 
 from .coordinator import ReefLedCoordinator, ReefLedG2Coordinator,ReefVirtualLedCoordinator,ReefMatCoordinator,ReefDoseCoordinator, ReefATOCoordinator, ReefRunCoordinator, ReefWaveCoordinator, ReefBeatCloudCoordinator
-
-import traceback
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,7 +36,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if CONFIG_FLOW_CLOUD_USERNAME in entry.data:
         try:
             coordinator = ReefBeatCloudCoordinator(hass,entry)
-        except:
+        except Exception:
             return False
         await coordinator._async_setup()
     else:
@@ -112,7 +101,7 @@ async def async_setup(hass: HomeAssistant, config) -> bool:
         if r:
             try:
                 r_text=json.loads(r.text)
-            except:
+            except Exception:
                 r_text=r.text
                 _LOGGER.debug(r)
             return {"code":r.status_code,"text":r_text}

@@ -128,7 +128,7 @@ class ReefBeatAPI():
     async def _call_url(self,client,source):
         status_ok=False
         error_count=0
-        while status_ok == False and error_count < HTTP_MAX_RETRY:
+        while status_ok is False and error_count < HTTP_MAX_RETRY:
             try:
                 status_ok=await self._http_get(client,source)
             except Exception as e:
@@ -151,7 +151,7 @@ class ReefBeatAPI():
 
         if self._in_error:
             raise Exception("Initialization failed, is your device on?")            
-        if self._live_config_update == False:
+        if self._live_config_update is False:
             await self.fetch_config()
         await self.fetch_data()
         _LOGGER.debug('OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
@@ -162,7 +162,7 @@ class ReefBeatAPI():
 
     async def fetch_config(self,config_path=None):
         _LOGGER.debug("reefbeat.fetch_config")
-        if config_path==None:
+        if config_path is None:
             query=parse("$.sources[?(@.type=='config')]")
         else:
             query=parse("$.sources[?(@.name=='"+config_path+"')]")
@@ -172,7 +172,7 @@ class ReefBeatAPI():
         
     async def fetch_data(self):
         """ Get device data """
-        if self.quick_refresh!= None:
+        if self.quick_refresh is not None:
             query=parse("$.sources[?(@.name=='"+self.quick_refresh+"')]")
             sources=query.find(self.data)
             self.quick_refresh=None
@@ -196,7 +196,7 @@ class ReefBeatAPI():
         
     def get_path(self,obj):
         res=''
-        if hasattr(obj,'context') and obj.context!=None:
+        if hasattr(obj,'context') and obj.context is not None:
             res+=self.get_path(obj.context)
         if hasattr(obj,'path') :
             if str(obj.path)=='$':
@@ -220,10 +220,10 @@ class ReefBeatAPI():
     def get_data(self,name,is_None_possible=False):
         if name not in self._data_db:
             r=self.get_data_link(name)
-            if r != None:
+            if r is not None:
                 self._data_db[name]="self."+r
             else:
-                if is_None_possible==False:
+                if is_None_possible is False:
                     _LOGGER.error("reefbeat.get_data('%s') %s"%(name,self._base_url))
                     _LOGGER.error("%s"%self.data)
                 else:
@@ -243,7 +243,7 @@ class ReefBeatAPI():
         query=parse(data_name)
         res=query.find(self.data)
         if len(res)==0:
-           if is_None_possible==False:
+           if is_None_possible is False:
             _LOGGER.error("reefbeat.get_data('%s') %s"%(data_name,self._base_url))
             _LOGGER.error("%s"%self.data)
            else:
@@ -254,8 +254,8 @@ class ReefBeatAPI():
         """ set device data named data_name to value"""
         query=parse(data_name)
         try:
-            res=query.update(self.data,value)
-        except:
+            query.update(self.data,value)
+        except Exception:
             _LOGGER.error("reefbeat.set_data('%s')"%data_name)
 
     async def http_send(self,action,payload={},method='post'):
@@ -266,7 +266,7 @@ class ReefBeatAPI():
         error_count=0
         _LOGGER.debug("%s data: %s to %s"%(method,payload,url))
         r=None
-        while status_ok == False and error_count <= HTTP_MAX_RETRY:
+        while status_ok is False and error_count <= HTTP_MAX_RETRY:
             try:
                 if method=='post':
                     r = httpx.post(url, json = payload,verify=False,timeout=DEFAULT_TIMEOUT,headers=self._header)
@@ -289,9 +289,9 @@ class ReefBeatAPI():
                 error_count += 1
                 _LOGGER.debug("Can not %s data: %s to %s, retry nb %d/%d"%(method,payload,url,error_count,HTTP_MAX_RETRY))
                 _LOGGER.debug(e)
-            if status_ok==False:
+            if status_ok is False:
                 await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
-        if status_ok==False:
+        if status_ok is False:
             _LOGGER.error("Can not push data to %s"%(url))
         return r
 
@@ -311,7 +311,7 @@ class ReefLedAPI(ReefBeatAPI):
         status_code=404
         try :
             status_code=httpx.get("http://"+ip+"/dashboard",verify=False).status_code
-        except:
+        except Exception:
             pass
         if status_code!=200:
             self._rsled90_patch=True
@@ -321,7 +321,7 @@ class ReefLedAPI(ReefBeatAPI):
         status_code=404
         try :
             status_code=httpx.get("http://"+ip+"/preset_name",verify=False).status_code
-        except:
+        except Exception:
             pass
         if status_code==200:
             self.data['sources'].insert(len(self.data['sources']),{"name":"/preset_name","type": "config","data":""})
@@ -379,7 +379,7 @@ class ReefLedAPI(ReefBeatAPI):
         if self._must_compensate_intensity:
             led_params=self.get_data('$.local.leds_intensity_compensation[?(@.name=="'+self._model+'")]',True)
             _LOGGER.debug("LEDS_INTENSITY_COMPENSATION: %s"%led_params)
-            if led_params != None:
+            if led_params is not None:
                 self._intensity_compensation=np.poly1d(np.polyfit(np.array(led_params['white_blue']),np.array(led_params['intensity']), 5))
                 min_blue=self._intensity_compensation(0)
                 min_white=self._intensity_compensation(125)
@@ -387,7 +387,7 @@ class ReefLedAPI(ReefBeatAPI):
                     self._intensity_compensation_reference = min_white
                 else:
                     self._intensity_compensation_reference = min_blue
-        if self._live_config_update == False:
+        if self._live_config_update is False:
             await self.fetch_config()
         await self.fetch_data()
         self.update_acclimation()
@@ -410,7 +410,7 @@ class ReefLedAPI(ReefBeatAPI):
         _LOGGER.debug("kelvin to wb %s"%wb)
         white,blue=self._wb(wb)
         _LOGGER.debug("white: %d, blue %s"%(white,blue))
-        if self._intensity_compensation != None and kelvin >= 12000:
+        if self._intensity_compensation is not None and kelvin >= 12000:
             intensity_compensation_factor=self._intensity_compensation_reference/self._intensity_compensation(wb)
             _LOGGER.debug("Intensity factor %s"%intensity_compensation_factor)
         else:
@@ -435,7 +435,7 @@ class ReefLedAPI(ReefBeatAPI):
             kelvin=self._wb_to_kelvin(wb)
             moon = self.get_data(LED_MOON_INTERNAL_NAME)
 
-            if self._intensity_compensation != None and kelvin >= 12000:
+            if self._intensity_compensation is not None and kelvin >= 12000:
                 intensity_compensation_factor=self._intensity_compensation_reference/self._intensity_compensation(wb)
                 _LOGGER.debug("Intensity factor %s"%intensity_compensation_factor)
             else:
@@ -448,7 +448,7 @@ class ReefLedAPI(ReefBeatAPI):
             moon = self.get_data(LED_MOON_INTERNAL_NAME)
             kelvin=self.get_data(LED_KELVIN_INTERNAL_NAME)
             wb=200
-            if kelvin == None or kelvin < 8000:
+            if kelvin is None or kelvin < 8000:
                 kelvin=9000
             res={'kelvin':kelvin,"intensity":0,"white": 0,"blue":0,"moon":moon}
         return res
@@ -589,7 +589,7 @@ class ReefDoseAPI(ReefBeatAPI):
         await self._http_send(self._base_url+'/bundle/setup',param)
         
     async def press(self,action,head):
-        if head != None:
+        if head is not None:
             manual_dose=self.get_data("$.local.head."+str(head)+".manual_dose")
             payload={'manual_dose_scheduled': True,'volume': manual_dose}
             await self._http_send(self._base_url+'/head/'+str(head)+'/'+action,payload)
@@ -706,7 +706,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
         return res
         
     async def connect(self):
-        if self._auth_date==None:
+        if self._auth_date is None:
             _LOGGER.debug("Init cloud connection with username: %s"%self._username)
         else:
             _LOGGER.debug("Renew cloud authentification %s"%self._username)

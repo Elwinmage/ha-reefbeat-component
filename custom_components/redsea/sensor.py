@@ -68,22 +68,22 @@ class ReefBeatSensorEntityDescription(SensorEntityDescription):
 class ReefBeatCloudSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
-    value_name: ''
+    value_name: str = ''
 
 @dataclass(kw_only=True)
 class ReefDoseSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
-    value_name: ''
+    value_name: str = ''
     with_attr_name: str=None
     with_attr_value: str=None
-    head: 0
+    head: int = 0
 
 @dataclass(kw_only=True)
 class RestoreSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
-    head: 0
+    head: int = 0
     value_name: str=None
     dependency: str=None
   
@@ -91,8 +91,8 @@ class RestoreSensorEntityDescription(SensorEntityDescription):
 class ReefRunSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
     exists_fn: Callable[[ReefRunCoordinator], bool] = lambda _: True
-    value_name: ''
-    pump: 0
+    value_name:  str = ''
+    pump: int = 0
     with_attr_name: str=None
     with_attr_value: str=None
 
@@ -101,14 +101,14 @@ class ReefWaveSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
     exists_fn: Callable[[ReefWaveCoordinator], bool] = lambda _: True
     value_basename: str = WAVE_SCHEDULE_PATH
-    value_name: ''
+    value_name: str = ''
     
 @dataclass(kw_only=True)
 class ReefLedScheduleSensorEntityDescription(SensorEntityDescription):
     """Describes reefbeat sensor entity."""
     exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
-    value_name: ''
-    id_name: 0
+    value_name: str= ''
+    id_name: int = 0
     with_attr_name: str=None
     with_attr_value: str=None
 
@@ -380,7 +380,7 @@ for auto_id in range(1,8):
         key="auto_"+str(auto_id),
         translation_key="auto_"+str(auto_id),
         value_name="$.sources[?(@.name=='/preset_name')].data[?(@.day=="+str(auto_id)+")].name",
-        exists_fn=lambda device: device.get_data("$.sources[?(@.name=='/preset_name')].data",True)!=None ,
+        exists_fn=lambda device: device.get_data("$.sources[?(@.name=='/preset_name')].data",True) is not None ,
         id_name=auto_id,
         icon="mdi:calendar",
     ),
@@ -388,20 +388,10 @@ for auto_id in range(1,8):
         key="auto_"+str(auto_id),
         translation_key="auto_"+str(auto_id),
         value_name="$.sources[?(@.name=='/preset_name/"+str(auto_id)+"')].data.name",
-        exists_fn=lambda device: device.get_data("$.sources[?(@.name=='/preset_name/"+str(auto_id)+"')].data.name",True)!=None ,
+        exists_fn=lambda device: device.get_data("$.sources[?(@.name=='/preset_name/"+str(auto_id)+"')].data.name",True) is not None ,
         id_name=auto_id,
         icon="mdi:calendar",
     ),)
-
-
-# WAVE_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
-#     ReefBeatSensorEntityDescription(
-#         key='mode',
-#         translation_key='mode',
-#         value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/mode')].data.mode"),
-#         icon="mdi:play",
-#     ),
-# )
 
 WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (   
     ReefWaveSensorEntityDescription(
@@ -577,9 +567,6 @@ async def async_setup_entry(
                      for description in MAT_SENSORS
                      if description.exists_fn(device)]
     elif type(device).__name__=='ReefWaveCoordinator':
-        entities += [ReefBeatSensorEntity(device, description)
-                     for description in WAVE_SENSORS
-                     if description.exists_fn(device)]
         entities += [ReefWaveSensorEntity(device, description)
                      for description in WAVE_SCHEDULE_SENSORS
                      if description.exists_fn(device)]
@@ -916,7 +903,7 @@ class ReefBeatSensorEntity(CoordinatorEntity,SensorEntity):
 
     @property
     def available(self) -> bool:
-        return self._attr_native_value!=None
+        return self._attr_native_value is not None
 
             
     @property
@@ -962,7 +949,7 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
         new_value=self._get_value()
         super()._update_val()
         if self.entity_description.translation_key=="container_volume":
-            if new_value!=None and old_value!=None and old_value < new_value:
+            if new_value is not None and old_value is not None and old_value < new_value:
                 self._device._hass.bus.fire(self.entity_description.value_name, {"value":new_value})
         #super()._update_val()
         #self._attr_native_value =  new_value
@@ -1007,7 +994,7 @@ class RestoreSensorEntity( ReefDoseSensorEntity, RestoreSensor):
         
     async def async_added_to_hass(self) -> None:
         res=await self.async_get_last_sensor_data()
-        if res!=None:
+        if res is not None:
             self._attr_native_value=res.native_value
             self._device.set_data(self.entity_description.value_name,res.native_value)
         else:
@@ -1057,7 +1044,7 @@ class ReefWaveSensorEntity(ReefBeatSensorEntity):
         if self.entity_description.value_name=="type":
             val=translate(val,self._device._hass.config.language,dictionnary=WAVE_TYPES,src_lang='id')
         elif self.entity_description.value_name=="direction":
-            if val==None:
+            if val is None:
                 val="fw"
             else:
                 val=translate(val,self._device._hass.config.language,dictionnary=WAVE_DIRECTIONS,src_lang='id')
@@ -1075,9 +1062,8 @@ class ReefBeatCloudSensorEntity(ReefBeatSensorEntity):
         """Set up the instance."""
         super().__init__(device,entity_description)
         self._entity_description=entity_description
-        #        self._aquarium_name=device.get_data("$.sources[?(@.name=='/aquarium')].data[?(@.uid=='"+device.get_data(self._entity_description.value_name.replace('].name','].aquarium_uid'))+"')].name",True)
         aquarium_uid=device.get_data(self._entity_description.value_name.replace('].name','].aquarium_uid'),True)
-        if aquarium_uid!=None:
+        if aquarium_uid is not None:
             self._aquarium_name=device.get_data("$.sources[?(@.name=='/aquarium')].data[?(@.uid=='"+aquarium_uid+"')].name",True)
         elif self._entity_description.key.startswith("supplement_"):
             self._aquarium_name='Supplements'
@@ -1086,7 +1072,7 @@ class ReefBeatCloudSensorEntity(ReefBeatSensorEntity):
         self._library_name=""
 
     def _get_value(self):
-        if self._aquarium_name!=None:
+        if self._aquarium_name is not None:
             self._attr_extra_state_attributes=self._device.get_data(self._entity_description.value_name.replace('].name',']'))
             return self._device.get_data(self._entity_description.value_name)+"-"+self._aquarium_name
         else:
@@ -1096,7 +1082,7 @@ class ReefBeatCloudSensorEntity(ReefBeatSensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         di=self._device.device_info
-        if self._aquarium_name!=None:
+        if self._aquarium_name is not None:
             di['name']=self._aquarium_name
             identifiers=list(di['identifiers'])[0]
             identifiers+=(self._aquarium_name,)

@@ -23,7 +23,6 @@ from homeassistant.components.text import (
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import  DeviceInfo
 
-from homeassistant.helpers.typing import StateType
 
 from homeassistant.const import (
     EntityCategory,
@@ -33,17 +32,11 @@ from .const import (
     DOMAIN,
 )
 
-from .dictionnary import (
-    DICTIONNARY,
-)
 
-from .supplements_list import(
-    SUPPLEMENTS,
-)
 
-from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
+from .coordinator import ReefBeatCoordinator
 
-from .i18n import translate_list,translate
+from .i18n import translate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -139,10 +132,10 @@ class ReefBeatTextEntity(CoordinatorEntity,TextEntity):
 
     @property
     def available(self) -> bool:
-        if self.entity_description.dependency != None:
-            if self.entity_description.dependency_values != None:
+        if self.entity_description.dependency is not None:
+            if self.entity_description.dependency_values is not None:
                 val=self._device.get_data(self.entity_description.dependency)
-                if self.entity_description.translate !=None:
+                if self.entity_description.translate is not None:
                     val=translate(val,"id",dictionnary=self.entity_description.translate,src_lang=self._device._hass.config.language)
                 return val in self.entity_description.dependency_values
             else:

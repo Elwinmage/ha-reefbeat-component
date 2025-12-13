@@ -1,7 +1,5 @@
 import logging
 
-import json
-from jsonpath_ng import jsonpath
 from jsonpath_ng.ext import parse
 
 from .dictionnary import (DICTIONNARY)
@@ -14,8 +12,8 @@ def translate_list(lst,lang):
     res=[]
     langs=[lang.split('-')[0]]+defaults
     
-    for l in langs:
-        query=parse("$[*]."+l)
+    for lang in langs:
+        query=parse("$[*]."+lang)
         words=query.find(lst)
         if len(words)>0:
             for w in words:

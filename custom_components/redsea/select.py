@@ -23,7 +23,6 @@ from homeassistant.components.select import (
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import  DeviceInfo
 
-from homeassistant.helpers.typing import StateType
 
 from homeassistant.const import (
     EntityCategory,
@@ -31,28 +30,23 @@ from homeassistant.const import (
 
 from .const import (
     DOMAIN,
-    DAILY_PROG_INTERNAL_NAME,
-    MAT_AUTO_ADVANCE_INTERNAL_NAME,
-    ATO_AUTO_FILL_INTERNAL_NAME,
     HW_MAT_MODEL,
     MAT_MODEL_INTERNAL_NAME,
     MAT_POSITION_INTERNAL_NAME,
     LED_MODE_INTERNAL_NAME,
     LED_MODES,
     SKIMMER_MODELS,
-    RETURN_MODELS,
     WAVE_TYPES,
     WAVE_DIRECTIONS
 )
 
 from .supplements_list import (SUPPLEMENTS)
 
-SUPPLEMENTS=sorted(SUPPLEMENTS, key=lambda d: d['fullname'])
-
-from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator
+from .coordinator import ReefBeatCoordinator
 
 from .i18n import translate_list,translate
 
+SUPPLEMENTS=sorted(SUPPLEMENTS, key=lambda d: d['fullname'])
 _LOGGER = logging.getLogger(__name__)
        
 @dataclass(kw_only=True)
@@ -60,7 +54,7 @@ class ReefBeatSelectEntityDescription(SelectEntityDescription):
     """Describes reefbeat Select entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     entity_registry_visible_default: bool = True
-    value_name: ''
+    value_name: str = ''
     options: []
     method: str = 'put'
 
@@ -69,7 +63,7 @@ class ReefRunSelectEntityDescription(SelectEntityDescription):
     """Describes reefbeat Select entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     entity_registry_visible_default: bool = True
-    value_name: ''
+    value_name: str = ''
     pump: int = 0 
     options: []
     method: str = 'put'
@@ -79,7 +73,7 @@ class ReefRunSelectEntityDescription(SelectEntityDescription):
 class ReefWaveSelectEntityDescription(SelectEntityDescription):
     """Describes reefbeat Select entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
-    value_name: ''
+    value_name: str = ''
     options: []
     method: str = 'post'
     i18n_options: []
@@ -88,7 +82,7 @@ class ReefWaveSelectEntityDescription(SelectEntityDescription):
 class ReefDoseSelectEntityDescription(SelectEntityDescription):
     """Describes reefbeat Select entity."""
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
-    value_name: ''
+    value_name: str = ''
     options: []
     head: int = 0
     method: str = 'post'
@@ -239,7 +233,7 @@ class ReefBeatSelectEntity(CoordinatorEntity,SelectEntity):
         try: 
             self._source = self.entity_description.value_name.split('\'')[1]
             self._method=entity_description.method
-        except:
+        except Exception:
             #ReefDose
             pass
 

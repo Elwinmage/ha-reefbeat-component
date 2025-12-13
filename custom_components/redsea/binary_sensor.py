@@ -46,17 +46,16 @@ class ReefBeatBinarySensorEntityDescription(BinarySensorEntityDescription):
 class ReefDoseBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Describes ReefLed binary sensor entity."""
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
-    value_name: ""
-    head: 0
+    value_name: str = ''
+    head: int = 0
 
 @dataclass(kw_only=True)
 class ReefRunBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Describes ReefLed binary sensor entity."""
     exists_fn: Callable[[ReefRunCoordinator], bool] = lambda _: True
-    #value_name:  ""
     value_name: str = None
     value_fn: Callable[[ReefRunCoordinator],StateType] = None
-    pump: 0
+    pump: int = 0
 
 
 """ Reefbeat device common binary_sensors """
@@ -76,7 +75,7 @@ BATTERY_SENSORS:tuple[ReefBeatBinarySensorEntityDescription, ...] = (
         key="battery_level",
         translation_key="battery_level",
         device_class=BinarySensorDeviceClass.BATTERY,
-        exists_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.battery_level",True)!=None,
+        exists_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.battery_level",True) is not None,
         value_fn=lambda device: device.get_data("$.sources[?(@.name=='/dashboard')].data.battery_level")=='low',
         icon="mdi:battery-outline",
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -312,9 +311,9 @@ class ReefBeatBinarySensorEntity(CoordinatorEntity,BinarySensorEntity):
         self.async_write_ha_state()
 
     def _get_value(self):
-        if hasattr(self.entity_description, 'value_fn') and self.entity_description.value_fn!= None:
+        if hasattr(self.entity_description, 'value_fn') and self.entity_description.value_fn is not None:
             return self.entity_description.value_fn(self._device)
-        elif hasattr(self.entity_description, 'value_name') and self.entity_description.value_name!=None:
+        elif hasattr(self.entity_description, 'value_name') and self.entity_description.value_name is not None:
             return self._device.get_data(self.entity_description.value_name)
         else:
             _LOGGER.error("redsea.binary_sensor.ReefBeatBinarySensorEntity._get_value: no method to get value")

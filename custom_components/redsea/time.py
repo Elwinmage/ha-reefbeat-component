@@ -25,7 +25,6 @@ from homeassistant.const import (
     EntityCategory,
 )
 
-from homeassistant.helpers.typing import StateType
 
 from .const import (
     DOMAIN,
@@ -39,7 +38,7 @@ _LOGGER = logging.getLogger(__name__)
 class ReefMatTimeEntityDescription(TimeEntityDescription):
     """Describes reefbeat Time entity."""
     exists_fn: Callable[[ReefMatCoordinator], bool] = lambda _: True
-    value_name: ''
+    value_name: str = None
     
 MAT_TIMES: tuple[ReefMatTimeEntityDescription, ...] = (
     ReefMatTimeEntityDescription(

@@ -1,8 +1,6 @@
 """ Implements the light entity """
 import logging
 
-from jsonpath_ng import jsonpath
-from jsonpath_ng.ext import parse
 
 
 from dataclasses import dataclass
@@ -27,20 +25,16 @@ from homeassistant.components.light import (
     ATTR_COLOR_TEMP_KELVIN,
     )
 
-from homeassistant.util import color as color_util
 
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.device_registry import  DeviceInfo
-from homeassistant.helpers.typing import StateType
 
 from .const import (
     DOMAIN,
-    CONFIG_FLOW_IP_ADDRESS,
     LED_WHITE_INTERNAL_NAME,
     LED_BLUE_INTERNAL_NAME,
     LED_MOON_INTERNAL_NAME,
-    LED_INTENSITY_INTERNAL_NAME,
     LED_CONVERSION_COEF,
     EVENT_KELVIN_LIGHT_UPDATED,
     EVENT_WB_LIGHT_UPDATED,
@@ -54,13 +48,13 @@ _LOGGER = logging.getLogger(__name__)
 class ReefLedLightEntityDescription(LightEntityDescription):
     """Describes reefled Light entity."""
     exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
-    value_name: ''
+    value_name: str = ""
 
 @dataclass(kw_only=True)
 class ReefVirtualLedLightEntityDescription(LightEntityDescription):
     """Describes reefled Light entity."""
     exists_fn: Callable[[ReefVirtualLedCoordinator], bool] = lambda _: True
-    value_name: ''
+    value_name: str = ""
 
 COMMON_LIGHTS: tuple[ReefLedLightEntityDescription, ...] = (
     ReefLedLightEntityDescription(
@@ -213,7 +207,7 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
         #     self._turned_on_avoid_echo=False
         #     return
         raw_data=self._device.get_data(self.entity_description.value_name)
-        if (raw_data != None):
+        if (raw_data is not None):
             if self.entity_description.key=="kelvin_intensity":
                 self._brightness= raw_data['intensity']/LED_CONVERSION_COEF
                 self._attr_color_temp_kelvin= raw_data['kelvin']
@@ -286,7 +280,6 @@ class ReefLedLightEntity(CoordinatorEntity,LightEntity):
 
     async def async_turn_off(self, **kwargs):
         _LOGGER.debug("redsea.light.async_turn_off")
-#        self._old_brighness=self._brightness
         self._brightness=0
         self._attr_is_on=False
         self._state="off"
