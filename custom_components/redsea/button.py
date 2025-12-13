@@ -1,4 +1,5 @@
-""" Implements the sensor entity """
+"""Implements the sensor entity"""
+
 import logging
 
 
@@ -9,7 +10,7 @@ from collections.abc import Callable
 
 from homeassistant.core import (
     HomeAssistant,
-    )
+)
 
 from homeassistant.const import (
     EntityCategory,
@@ -20,10 +21,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.button import (
     ButtonEntity,
     ButtonEntityDescription,
- )
+)
 
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.device_registry import  DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from homeassistant.helpers.typing import StateType
 
@@ -33,41 +34,47 @@ from .const import (
     WAVES_DATA_NAMES,
 )
 
-from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator,ReefRunCoordinator
+from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator, ReefRunCoordinator
 
 
-from .supplements_list import (SUPPLEMENTS)
+from .supplements_list import SUPPLEMENTS
 
 _LOGGER = logging.getLogger(__name__)
+
 
 @dataclass(kw_only=True)
 class ReefBeatButtonEntityDescription(ButtonEntityDescription):
     """Describes reefbeat Button entity."""
+
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     press_fn: Callable[[ReefBeatCoordinator], StateType]
+
 
 @dataclass(kw_only=True)
 class ReefDoseButtonEntityDescription(ButtonEntityDescription):
     """Describes reefbeat Button entity."""
+
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
     action: str = "manual"
-    delete: bool= False
+    delete: bool = False
     head: 0
+
 
 @dataclass(kw_only=True)
 class ReefRunButtonEntityDescription(ButtonEntityDescription):
     """Describes reefbeat Button entity."""
+
     exists_fn: Callable[[ReefRunCoordinator], bool] = lambda _: True
     press_fn: Callable[[ReefRunCoordinator], bool] = lambda _: None
     pump: 0
 
-    
+
 FETCH_CONFIG_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
-        key='fetch_config',
-        translation_key='fetch_config',
+        key="fetch_config",
+        translation_key="fetch_config",
         exists_fn=lambda _: True,
-        press_fn=lambda device: device.fetch_config(),        
+        press_fn=lambda device: device.fetch_config(),
         icon="mdi:update",
         entity_category=EntityCategory.CONFIG,
     ),
@@ -75,29 +82,28 @@ FETCH_CONFIG_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
 
 FIRMWARE_UPDATE_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
-        key='firmware_update',
-        translation_key='firmware_update',
+        key="firmware_update",
+        translation_key="firmware_update",
         exists_fn=lambda _: True,
-        press_fn=lambda device: device.press('firmware'),
+        press_fn=lambda device: device.press("firmware"),
         icon="mdi:update",
         entity_category=EntityCategory.CONFIG,
         entity_registry_visible_default=False,
     ),
     ReefBeatButtonEntityDescription(
-        key='reset',
-        translation_key='reset',
+        key="reset",
+        translation_key="reset",
         exists_fn=lambda _: True,
-        press_fn=lambda device: device.press('reset'),
+        press_fn=lambda device: device.press("reset"),
         icon="mdi:restart",
         entity_category=EntityCategory.CONFIG,
     ),
-    
 )
 
 LED_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
-        key='led_identify',
-        translation_key='led_identify',
+        key="led_identify",
+        translation_key="led_identify",
         exists_fn=lambda _: True,
         press_fn=lambda device: device.press("identify"),
         icon="mdi:lightbulb-question-outline",
@@ -107,35 +113,35 @@ LED_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
 
 PREVIEW_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
-        key='preview_start',
-        translation_key='preview_start',
+        key="preview_start",
+        translation_key="preview_start",
         exists_fn=lambda _: True,
-        press_fn=lambda device: device.push_values(source='/preview',method='post'),
+        press_fn=lambda device: device.push_values(source="/preview", method="post"),
         icon="mdi:play-speed",
         entity_category=EntityCategory.CONFIG,
     ),
     ReefBeatButtonEntityDescription(
-        key='preview_stop',
-        translation_key='preview_stop',
+        key="preview_stop",
+        translation_key="preview_stop",
         exists_fn=lambda _: True,
-        press_fn=lambda device: device.delete('/preview'),
+        press_fn=lambda device: device.delete("/preview"),
         icon="mdi:stop-circle-outline",
         entity_category=EntityCategory.CONFIG,
     ),
 )
-    
+
 MAT_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
-        key='advance',
-        translation_key='advance',
+        key="advance",
+        translation_key="advance",
         exists_fn=lambda _: True,
         press_fn=lambda device: device.press("advance"),
         icon="mdi:paper-roll-outline",
         entity_category=EntityCategory.CONFIG,
     ),
     ReefBeatButtonEntityDescription(
-        key='new_roll',
-        translation_key='new_roll',
+        key="new_roll",
+        translation_key="new_roll",
         exists_fn=lambda _: True,
         press_fn=lambda device: device.new_roll(),
         icon="mdi:paper-roll-outline",
@@ -145,16 +151,16 @@ MAT_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
 
 ATO_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
-        key='fill',
-        translation_key='fill',
+        key="fill",
+        translation_key="fill",
         exists_fn=lambda _: True,
         press_fn=lambda device: device.press("manual-pump"),
         icon="mdi:water-pump",
         entity_category=EntityCategory.CONFIG,
     ),
     ReefBeatButtonEntityDescription(
-        key='stop_fill',
-        translation_key='stop_fill',
+        key="stop_fill",
+        translation_key="stop_fill",
         exists_fn=lambda _: True,
         press_fn=lambda device: device.press("stop"),
         icon="mdi:water-pump-off",
@@ -162,61 +168,74 @@ ATO_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
     ),
 )
 
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
-    discovery_info=None,  
+    discovery_info=None,
 ):
-
     """Configuration de la plate-forme tuto_hacs à partir de la configuration graphique"""
     device = hass.data[DOMAIN][config_entry.entry_id]
-    
-    entities=[]
+
+    entities = []
     _LOGGER.debug("BUTTONS")
-    if type(device).__name__=='ReefLedCoordinator' or type(device).__name__=='ReefLedG2Coordinator':
-        entities += [ReefBeatButtonEntity(device, description)
-                 for description in LED_BUTTONS
-                 if description.exists_fn(device)]
-    if type(device).__name__=='ReefMatCoordinator':
-        entities += [ReefBeatButtonEntity(device, description)
-                 for description in MAT_BUTTONS
-                 if description.exists_fn(device)]
-    elif type(device).__name__=='ReefATOCoordinator':
-        entities += [ReefBeatButtonEntity(device, description)
-                 for description in ATO_BUTTONS
-                 if description.exists_fn(device)]
-    elif type(device).__name__=='ReefWaveCoordinator':
-        entities += [ReefWaveButtonEntity(device, description)
-                 for description in PREVIEW_BUTTONS
-                 if description.exists_fn(device)]
-        WAVE_SAVE_PREVIEW_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] =(
+    if (
+        type(device).__name__ == "ReefLedCoordinator"
+        or type(device).__name__ == "ReefLedG2Coordinator"
+    ):
+        entities += [
+            ReefBeatButtonEntity(device, description)
+            for description in LED_BUTTONS
+            if description.exists_fn(device)
+        ]
+    if type(device).__name__ == "ReefMatCoordinator":
+        entities += [
+            ReefBeatButtonEntity(device, description)
+            for description in MAT_BUTTONS
+            if description.exists_fn(device)
+        ]
+    elif type(device).__name__ == "ReefATOCoordinator":
+        entities += [
+            ReefBeatButtonEntity(device, description)
+            for description in ATO_BUTTONS
+            if description.exists_fn(device)
+        ]
+    elif type(device).__name__ == "ReefWaveCoordinator":
+        entities += [
+            ReefWaveButtonEntity(device, description)
+            for description in PREVIEW_BUTTONS
+            if description.exists_fn(device)
+        ]
+        WAVE_SAVE_PREVIEW_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
             ReefBeatButtonEntityDescription(
-                key='preview_save',
-                translation_key='preview_save',
+                key="preview_save",
+                translation_key="preview_save",
                 exists_fn=lambda _: True,
-                press_fn=lambda device: device.delete('/preview'),
+                press_fn=lambda device: device.delete("/preview"),
                 icon="mdi:content-save-cog",
                 entity_category=EntityCategory.CONFIG,
             ),
             ReefBeatButtonEntityDescription(
-                key='preview_set_from_current',
-                translation_key='preview_set_from_current',
+                key="preview_set_from_current",
+                translation_key="preview_set_from_current",
                 exists_fn=lambda _: True,
-                press_fn= None,
+                press_fn=None,
                 icon="mdi:content-save-cog",
                 entity_category=EntityCategory.CONFIG,
             ),
         )
-        entities += [ReefWaveButtonEntity(device, description)
-                 for description in WAVE_SAVE_PREVIEW_BUTTONS
-                 if description.exists_fn(device)]
-    elif type(device).__name__=='ReefRunCoordinator':
+        entities += [
+            ReefWaveButtonEntity(device, description)
+            for description in WAVE_SAVE_PREVIEW_BUTTONS
+            if description.exists_fn(device)
+        ]
+    elif type(device).__name__ == "ReefRunCoordinator":
         if device.my_api._live_config_update is False:
-            for pump in range(1,3):
-                CONFIG_PREVIEW_BUTTONS: tuple[ReefRunButtonEntityDescription, ...] =(
+            for pump in range(1, 3):
+                CONFIG_PREVIEW_BUTTONS: tuple[ReefRunButtonEntityDescription, ...] = (
                     ReefRunButtonEntityDescription(
-                        key="fetch_config_"+str(pump),
+                        key="fetch_config_" + str(pump),
                         translation_key="fetch_config",
                         icon="mdi:update",
                         press_fn=lambda device: device.fetch_config(),
@@ -224,175 +243,195 @@ async def async_setup_entry(
                         pump=pump,
                     ),
                     ReefRunButtonEntityDescription(
-                        key='preview_start_'+str(pump),
-                        translation_key='preview_start',
+                        key="preview_start_" + str(pump),
+                        translation_key="preview_start",
                         exists_fn=lambda _: True,
-                        press_fn=lambda device: device.push_values(source='/preview',method='post',pump=pump),
+                        press_fn=lambda device: device.push_values(
+                            source="/preview", method="post", pump=pump
+                        ),
                         icon="mdi:play-speed",
                         entity_category=EntityCategory.CONFIG,
                         pump=pump,
                     ),
                     ReefRunButtonEntityDescription(
-                        key='preview_stop_'+str(pump),
-                        translation_key='preview_stop',
+                        key="preview_stop_" + str(pump),
+                        translation_key="preview_stop",
                         exists_fn=lambda _: True,
-                        press_fn=lambda device: device.delete('/preview'),
+                        press_fn=lambda device: device.delete("/preview"),
                         icon="mdi:stop-circle-outline",
                         entity_category=EntityCategory.CONFIG,
                         pump=pump,
                     ),
                     ReefRunButtonEntityDescription(
-                        key='preview_save_'+str(pump),
-                        translation_key='preview_save',
+                        key="preview_save_" + str(pump),
+                        translation_key="preview_save",
                         exists_fn=lambda _: True,
-                        press_fn=lambda device: device.delete('/preview'),
+                        press_fn=lambda device: device.delete("/preview"),
                         icon="mdi:content-save-cog",
                         entity_category=EntityCategory.CONFIG,
                         pump=pump,
                     ),
-
                 )
-                entities += [ReefRunButtonEntity(device, description)
-                             for description in CONFIG_PREVIEW_BUTTONS
-                             if description.exists_fn(device)]
-                
-    elif type(device).__name__=='ReefDoseCoordinator':
-        db=()
-        for head in range(1,device.heads_nb+1):
-            new_head= (ReefDoseButtonEntityDescription(
-                key="set_supplement_head_"+str(head),
-                translation_key="set_supplement",
-                icon="mdi:bottle-soda",
-                action="setup-supplement",
-                entity_category=EntityCategory.CONFIG,
-                head=head,
-                entity_registry_visible_default=False,
-            ),
-            )
-            db+=new_head
-            new_head= (ReefDoseButtonEntityDescription(
-                key="start_calibration_head_"+str(head),
-                translation_key="start_calibration",
-                icon="mdi:play-box-edit-outline",
-                action=["start-calibration","calibration/start"],
-                entity_category=EntityCategory.CONFIG,
-                head=head,
-                entity_registry_visible_default=False,
-            ),
-            )
-            db+=new_head
-            new_head= (ReefDoseButtonEntityDescription(
-                key="set_calibration_value_head_"+str(head),
-                translation_key="set_calibration_value",
-                icon="mdi:vector-polyline-edit",
-                action="end-calibration",
-                entity_category=EntityCategory.CONFIG,
-                head=head,
-                entity_registry_visible_default=False,
-            ),
-            )
-            db+=new_head
-            new_head= (ReefDoseButtonEntityDescription(
-                key="test_calibration_head_"+str(head),
-                translation_key="test_calibration",
-                icon="mdi:test-tube",
-                action="calibration-manual",
-                entity_category=EntityCategory.CONFIG,
-                head=head,
-                entity_registry_visible_default=False,
-            ),
-            )
-            db+=new_head
-            new_head= (ReefDoseButtonEntityDescription(
-                key="end_calibration_head_"+str(head),
-                translation_key="end_calibration",
-                icon="mdi:stop-circle-outline",
-                action=["end-setup"],
-                entity_category=EntityCategory.CONFIG,
-                head=head,
-                entity_registry_visible_default=False,
-            ),
-            )
-            db+=new_head
-            new_head= (ReefDoseButtonEntityDescription(
-                key="manual_head_"+str(head),
-                translation_key="manual_head",
-                icon="mdi:cup-water",
-                action="manual",
-                entity_category=EntityCategory.CONFIG,
-                head=head,
-            ),
-            )
-            db+=new_head
-            new_head= (ReefDoseButtonEntityDescription(
-                key="start_priming_"+str(head),
-                translation_key="start_priming",
-                icon="mdi:cup-water",
-                action=["start-calibration","priming/start"],
-                entity_category=EntityCategory.CONFIG,
-                head=head,
-                entity_registry_visible_default=False,
+                entities += [
+                    ReefRunButtonEntity(device, description)
+                    for description in CONFIG_PREVIEW_BUTTONS
+                    if description.exists_fn(device)
+                ]
 
-            ),
+    elif type(device).__name__ == "ReefDoseCoordinator":
+        db = ()
+        for head in range(1, device.heads_nb + 1):
+            new_head = (
+                ReefDoseButtonEntityDescription(
+                    key="set_supplement_head_" + str(head),
+                    translation_key="set_supplement",
+                    icon="mdi:bottle-soda",
+                    action="setup-supplement",
+                    entity_category=EntityCategory.CONFIG,
+                    head=head,
+                    entity_registry_visible_default=False,
+                ),
             )
-            db+=new_head
-            new_head= (ReefDoseButtonEntityDescription(
-                key="stop_priming_"+str(head),
-                translation_key="stop_priming",
-                icon="mdi:cup-off",
-                action=["priming/stop","end-priming"],
-                entity_category=EntityCategory.CONFIG,
-                head=head,
-                entity_registry_visible_default=False,
-            ),
+            db += new_head
+            new_head = (
+                ReefDoseButtonEntityDescription(
+                    key="start_calibration_head_" + str(head),
+                    translation_key="start_calibration",
+                    icon="mdi:play-box-edit-outline",
+                    action=["start-calibration", "calibration/start"],
+                    entity_category=EntityCategory.CONFIG,
+                    head=head,
+                    entity_registry_visible_default=False,
+                ),
             )
-            db+=new_head
-            new_head= (ReefDoseButtonEntityDescription(
-                key="delete_supplement_"+str(head),
-                translation_key="delete_supplement",
-                icon="mdi:delete",
-                action="/head/"+str(head)+"/settings",
-                delete=True,
-                entity_category=EntityCategory.CONFIG,
-                head=head,
-            ),
+            db += new_head
+            new_head = (
+                ReefDoseButtonEntityDescription(
+                    key="set_calibration_value_head_" + str(head),
+                    translation_key="set_calibration_value",
+                    icon="mdi:vector-polyline-edit",
+                    action="end-calibration",
+                    entity_category=EntityCategory.CONFIG,
+                    head=head,
+                    entity_registry_visible_default=False,
+                ),
             )
-            db+=new_head
+            db += new_head
+            new_head = (
+                ReefDoseButtonEntityDescription(
+                    key="test_calibration_head_" + str(head),
+                    translation_key="test_calibration",
+                    icon="mdi:test-tube",
+                    action="calibration-manual",
+                    entity_category=EntityCategory.CONFIG,
+                    head=head,
+                    entity_registry_visible_default=False,
+                ),
+            )
+            db += new_head
+            new_head = (
+                ReefDoseButtonEntityDescription(
+                    key="end_calibration_head_" + str(head),
+                    translation_key="end_calibration",
+                    icon="mdi:stop-circle-outline",
+                    action=["end-setup"],
+                    entity_category=EntityCategory.CONFIG,
+                    head=head,
+                    entity_registry_visible_default=False,
+                ),
+            )
+            db += new_head
+            new_head = (
+                ReefDoseButtonEntityDescription(
+                    key="manual_head_" + str(head),
+                    translation_key="manual_head",
+                    icon="mdi:cup-water",
+                    action="manual",
+                    entity_category=EntityCategory.CONFIG,
+                    head=head,
+                ),
+            )
+            db += new_head
+            new_head = (
+                ReefDoseButtonEntityDescription(
+                    key="start_priming_" + str(head),
+                    translation_key="start_priming",
+                    icon="mdi:cup-water",
+                    action=["start-calibration", "priming/start"],
+                    entity_category=EntityCategory.CONFIG,
+                    head=head,
+                    entity_registry_visible_default=False,
+                ),
+            )
+            db += new_head
+            new_head = (
+                ReefDoseButtonEntityDescription(
+                    key="stop_priming_" + str(head),
+                    translation_key="stop_priming",
+                    icon="mdi:cup-off",
+                    action=["priming/stop", "end-priming"],
+                    entity_category=EntityCategory.CONFIG,
+                    head=head,
+                    entity_registry_visible_default=False,
+                ),
+            )
+            db += new_head
+            new_head = (
+                ReefDoseButtonEntityDescription(
+                    key="delete_supplement_" + str(head),
+                    translation_key="delete_supplement",
+                    icon="mdi:delete",
+                    action="/head/" + str(head) + "/settings",
+                    delete=True,
+                    entity_category=EntityCategory.CONFIG,
+                    head=head,
+                ),
+            )
+            db += new_head
             if device.my_api._live_config_update is False:
-                CONFIG_BUTTONS: tuple[ReefDoseButtonEntityDescription, ...] =(
+                CONFIG_BUTTONS: tuple[ReefDoseButtonEntityDescription, ...] = (
                     ReefDoseButtonEntityDescription(
-                        key="fetch_config_"+str(head),
+                        key="fetch_config_" + str(head),
                         translation_key="fetch_config",
                         icon="mdi:update",
-                        action='fetch_config',
+                        action="fetch_config",
                         entity_category=EntityCategory.CONFIG,
                         head=head,
                     ),
                 )
-                entities += [ReefDoseButtonEntity(device, description)
-                             for description in CONFIG_BUTTONS
-                             if description.exists_fn(device)]
+                entities += [
+                    ReefDoseButtonEntity(device, description)
+                    for description in CONFIG_BUTTONS
+                    if description.exists_fn(device)
+                ]
 
-                
-        entities += [ReefDoseButtonEntity(device, description)
-                 for description in db
-                 if description.exists_fn(device)]
+        entities += [
+            ReefDoseButtonEntity(device, description)
+            for description in db
+            if description.exists_fn(device)
+        ]
     if device.my_api._live_config_update is False:
-        entities += [ReefBeatButtonEntity(device, description)
-                 for description in FETCH_CONFIG_BUTTON 
-                 if description.exists_fn(device)]
-    entities += [ReefBeatButtonEntity(device, description)
-                for description in FIRMWARE_UPDATE_BUTTON
-                if description.exists_fn(device)]
+        entities += [
+            ReefBeatButtonEntity(device, description)
+            for description in FETCH_CONFIG_BUTTON
+            if description.exists_fn(device)
+        ]
+    entities += [
+        ReefBeatButtonEntity(device, description)
+        for description in FIRMWARE_UPDATE_BUTTON
+        if description.exists_fn(device)
+    ]
 
     async_add_entities(entities, True)
+
 
 ################################################################################
 # BEAT
 class ReefBeatButtonEntity(ButtonEntity):
     """Represent an ReefBeat button."""
+
     _attr_has_entity_name = True
-    
+
     def __init__(
         self, device, entity_description: ReefBeatButtonEntityDescription
     ) -> None:
@@ -411,176 +450,221 @@ class ReefBeatButtonEntity(ButtonEntity):
         """Return the device info."""
         return self._device.device_info
 
+
 ################################################################################
 # DOSE
 class ReefDoseButtonEntity(ReefBeatButtonEntity):
     """Represent a ReefDose button."""
+
     _attr_has_entity_name = True
-    
+
     def __init__(
         self, device, entity_description: ReefDoseButtonEntityDescription
     ) -> None:
         """Set up the instance."""
-        super().__init__(device,entity_description)
-        self._head=self.entity_description.head
+        super().__init__(device, entity_description)
+        self._head = self.entity_description.head
 
     async def async_press(self) -> None:
         """Handle the button press."""
         if self.entity_description.delete:
-            bundled_heads=self._device.get_data("$.sources[?(@.name=='/dashboard')].data.bundled_heads")
+            bundled_heads = self._device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.bundled_heads"
+            )
             if bundled_heads:
                 await self._device.delete("/head/settings")
             else:
                 await self._device.delete(self.entity_description.action)
-        elif self.entity_description.translation_key == 'set_supplement':
+        elif self.entity_description.translation_key == "set_supplement":
             await self._set_supplement()
-        elif self.entity_description.action == 'fetch_config':
-            await self._device.fetch_config('/head/'+str(self._head)+'/settings')
-        elif self.entity_description.action == 'end-calibration':
-            payload={"volume":self._device.get_data("$.local.head."+str(self._head)+".calibration_dose")}
-            await self._device.calibration(self.entity_description.action,self._head,payload)
-        elif self.entity_description.action == 'calibration-manual':
-            await self._device.calibration(self.entity_description.action,self._head,{'volume':4})
-        elif type(self.entity_description.action).__name__=="list":
+        elif self.entity_description.action == "fetch_config":
+            await self._device.fetch_config("/head/" + str(self._head) + "/settings")
+        elif self.entity_description.action == "end-calibration":
+            payload = {
+                "volume": self._device.get_data(
+                    "$.local.head." + str(self._head) + ".calibration_dose"
+                )
+            }
+            await self._device.calibration(
+                self.entity_description.action, self._head, payload
+            )
+        elif self.entity_description.action == "calibration-manual":
+            await self._device.calibration(
+                self.entity_description.action, self._head, {"volume": 4}
+            )
+        elif type(self.entity_description.action).__name__ == "list":
             for act in self.entity_description.action:
-                await self._device.calibration(act,self._head,{})
+                await self._device.calibration(act, self._head, {})
         else:
-            await self._device.press(self.entity_description.action,self._head)
+            await self._device.press(self.entity_description.action, self._head)
         await self._device.async_request_refresh()
 
     async def _set_supplement(self) -> None:
-        uid=self._device.get_data("$.local.head."+str(self._head)+".new_supplement")
-        _LOGGER.debug("Set supplement %s",uid)
-        if uid=="redsea-reefcare":
-            payload = next((item for item in SUPPLEMENTS if item['uid'] == uid), None)['bundle']
+        uid = self._device.get_data(
+            "$.local.head." + str(self._head) + ".new_supplement"
+        )
+        _LOGGER.debug("Set supplement %s", uid)
+        if uid == "redsea-reefcare":
+            payload = next((item for item in SUPPLEMENTS if item["uid"] == uid), None)[
+                "bundle"
+            ]
             await self._device.set_bundle(payload)
             return
-        elif uid=="other":
-            payload={
-                "uid":str(uuid.uuid4()),
-                "name":self._device.get_data("$.local.head."+str(self._head)+".new_supplement_name"),
-                "display name":None,
-                "short_name":self._device.get_data("$.local.head."+str(self._head)+".new_supplement_short_name"),
-                "brand_name":self._device.get_data("$.local.head."+str(self._head)+".new_supplement_brand_name"),
-                "type":None,
+        elif uid == "other":
+            payload = {
+                "uid": str(uuid.uuid4()),
+                "name": self._device.get_data(
+                    "$.local.head." + str(self._head) + ".new_supplement_name"
+                ),
+                "display name": None,
+                "short_name": self._device.get_data(
+                    "$.local.head." + str(self._head) + ".new_supplement_short_name"
+                ),
+                "brand_name": self._device.get_data(
+                    "$.local.head." + str(self._head) + ".new_supplement_brand_name"
+                ),
+                "type": None,
                 "concentration": None,
-                "made_by_redsea": False
+                "made_by_redsea": False,
             }
-            for label in ['name','short_name','brand_name']:
+            for label in ["name", "short_name", "brand_name"]:
                 if len(payload[label]) == 0:
-                    raise Exception("Setting supplement: "+label+" text box can not be empty")
+                    raise Exception(
+                        "Setting supplement: " + label + " text box can not be empty"
+                    )
         else:
-            payload = next((item for item in SUPPLEMENTS if item['uid'] == uid), None)
+            payload = next((item for item in SUPPLEMENTS if item["uid"] == uid), None)
 
-        _LOGGER.debug("_set_supplement %s %s",self.entity_description.action,payload)
-        await self._device.calibration(self.entity_description.action,self._head,payload)
-        
-        
+        _LOGGER.debug("_set_supplement %s %s", self.entity_description.action, payload)
+        await self._device.calibration(
+            self.entity_description.action, self._head, payload
+        )
+
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
-        di=self._device.device_info
-        di['name']+='_head_'+str(self._head)
-        identifiers=list(di['identifiers'])[0]
-        head=("head_"+str(self._head),)
-        identifiers+=head
-        di['identifiers']={identifiers}
+        di = self._device.device_info
+        di["name"] += "_head_" + str(self._head)
+        identifiers = list(di["identifiers"])[0]
+        head = ("head_" + str(self._head),)
+        identifiers += head
+        di["identifiers"] = {identifiers}
         return di
-
 
 
 ################################################################################
 # RUN
 class ReefRunButtonEntity(ReefBeatButtonEntity):
     """Represent a ReefDose button."""
+
     _attr_has_entity_name = True
-    
+
     def __init__(
         self, device, entity_description: ReefRunButtonEntityDescription
     ) -> None:
         """Set up the instance."""
-        super().__init__(device,entity_description)
-        self._pump=self.entity_description.pump
+        super().__init__(device, entity_description)
+        self._pump = self.entity_description.pump
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        if self.entity_description.key.startswith('preview_save_'):
+        if self.entity_description.key.startswith("preview_save_"):
             _LOGGER.debug("Saving current preview in prog")
-            preview_intensity=self._device.get_data("$.sources[?(@.name=='/preview')].data.pump_"+str(self._pump)+".ti")
+            preview_intensity = self._device.get_data(
+                "$.sources[?(@.name=='/preview')].data.pump_" + str(self._pump) + ".ti"
+            )
             # stop preview
-            if self._device.get_data("$.sources[?(@.name=='/dashboard')].data.pump_"+str(self._pump)+".state")=='preview':
-                _LOGGER.debug('Stopping preview')
-                await self._device.delete('/preview')
+            if (
+                self._device.get_data(
+                    "$.sources[?(@.name=='/dashboard')].data.pump_"
+                    + str(self._pump)
+                    + ".state"
+                )
+                == "preview"
+            ):
+                _LOGGER.debug("Stopping preview")
+                await self._device.delete("/preview")
             # set intensity
-            await self._device.set_pump_intensity(self._pump,int(preview_intensity))
-            self.async_write_ha_state()  
-            await self._device.push_values(source='/pump/settings',pump=self._pump)
+            await self._device.set_pump_intensity(self._pump, int(preview_intensity))
+            self.async_write_ha_state()
+            await self._device.push_values(source="/pump/settings", pump=self._pump)
             await self._device.async_request_refresh()
-        elif self.entity_description.key != 'fetch_config':
+        elif self.entity_description.key != "fetch_config":
             await self.entity_description.press_fn(self._device)
         else:
             await self._device.fetch_config()
-        if self.entity_description.key.startswith('preview_start_') or self.entity_description.key.startswith('preview_stop_'):
+        if self.entity_description.key.startswith(
+            "preview_start_"
+        ) or self.entity_description.key.startswith("preview_stop_"):
             _LOGGER.debug("Refresh preview state")
-            await self._device.async_quick_request_refresh('/dashboard')
-        
+            await self._device.async_quick_request_refresh("/dashboard")
+
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
-        di=self._device.device_info
-        di['name']+='_pump_'+str(self._pump)
-        identifiers=list(di['identifiers'])[0]
-        pump=("pump_"+str(self._pump),)
-        identifiers+=pump
-        di['identifiers']={identifiers}
+        di = self._device.device_info
+        di["name"] += "_pump_" + str(self._pump)
+        identifiers = list(di["identifiers"])[0]
+        pump = ("pump_" + str(self._pump),)
+        identifiers += pump
+        di["identifiers"] = {identifiers}
         return di
+
 
 ################################################################################
 # WAVE
 class ReefWaveButtonEntity(ReefBeatButtonEntity):
     """Represent a ReefWave button."""
+
     _attr_has_entity_name = True
-    
+
     def __init__(
         self, device, entity_description: ReefBeatButtonEntityDescription
     ) -> None:
         """Set up the instance."""
-        super().__init__(device,entity_description)
+        super().__init__(device, entity_description)
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        if self.entity_description.key == 'preview_start' and self._device.get_data("$.sources[?(@.name=='/preview')].data.type")=="nw":
+        if (
+            self.entity_description.key == "preview_start"
+            and self._device.get_data("$.sources[?(@.name=='/preview')].data.type")
+            == "nw"
+        ):
             _LOGGER.info("'No Wave' is the only type of waves that can't be previewed")
-        elif self.entity_description.key == 'preview_set_from_current':
-            _LOGGER.debug('Set Preview from Current values')
+        elif self.entity_description.key == "preview_set_from_current":
+            _LOGGER.debug("Set Preview from Current values")
             for dn in WAVES_DATA_NAMES:
-                v=self._device.get_current_value(WAVE_SCHEDULE_PATH,dn)
+                v = self._device.get_current_value(WAVE_SCHEDULE_PATH, dn)
                 if v is not None:
-                    self._device.set_data("$.sources[?(@.name=='/preview')].data."+dn,v)
+                    self._device.set_data(
+                        "$.sources[?(@.name=='/preview')].data." + dn, v
+                    )
             self._device.async_update_listeners()
             self.async_write_ha_state()
-            #_LOGGER.debug(self._device.get_data("$.sources[?(@.name=='/preview')].data"))
-        elif self.entity_description.key == 'preview_save':
+            # _LOGGER.debug(self._device.get_data("$.sources[?(@.name=='/preview')].data"))
+        elif self.entity_description.key == "preview_save":
             await self._device.set_wave()
             for dn in WAVES_DATA_NAMES:
-                v=self._device.get_data("$.sources[?(@.name=='/preview')].data."+dn)
+                v = self._device.get_data("$.sources[?(@.name=='/preview')].data." + dn)
                 if v is not None:
-                    self._device.set_current_value(WAVE_SCHEDULE_PATH,dn,v)
-            if self._device.get_data("$.sources[?(@.name=='/preview')].data.type")=="nw":
-                self._device.set_current_value(WAVE_SCHEDULE_PATH,'name','No Wave')
+                    self._device.set_current_value(WAVE_SCHEDULE_PATH, dn, v)
+            if (
+                self._device.get_data("$.sources[?(@.name=='/preview')].data.type")
+                == "nw"
+            ):
+                self._device.set_current_value(WAVE_SCHEDULE_PATH, "name", "No Wave")
             _LOGGER.debug(self._device.get_data("$.sources[?(@.name=='/auto')].data"))
             self._device.async_update_listeners()
             self.async_write_ha_state()
-            
+
             #            await self._device.async_quick_request_refresh('/auto',4)
             self._device.async_update_listeners()
-            self.async_write_ha_state()  
+            self.async_write_ha_state()
         else:
             await self.entity_description.press_fn(self._device)
             await self._device.async_request_refresh()
-        if self.entity_description.key == 'preview_start':
-            self._device.set_data("$.sources[?(@.name=='/mode')].data.mode",'preview')
-        elif self.entity_description.key == 'preview_stop':
-            self._device.set_data("$.sources[?(@.name=='/mode')].data.mode",'auto')
-
-
+        if self.entity_description.key == "preview_start":
+            self._device.set_data("$.sources[?(@.name=='/mode')].data.mode", "preview")
+        elif self.entity_description.key == "preview_stop":
+            self._device.set_data("$.sources[?(@.name=='/mode')].data.mode", "auto")

@@ -1,7 +1,13 @@
 import logging
 import json
 
-from homeassistant.core import HomeAssistant, ServiceCall, callback, ServiceResponse, SupportsResponse
+from homeassistant.core import (
+    HomeAssistant,
+    ServiceCall,
+    callback,
+    ServiceResponse,
+    SupportsResponse,
+)
 from homeassistant.config_entries import ConfigEntry
 
 from .const import (
@@ -18,11 +24,22 @@ from .const import (
     HW_RUN_IDS,
     HW_WAVE_IDS,
     VIRTUAL_LED,
-    )
+)
 
-from .coordinator import ReefLedCoordinator, ReefLedG2Coordinator,ReefVirtualLedCoordinator,ReefMatCoordinator,ReefDoseCoordinator, ReefATOCoordinator, ReefRunCoordinator, ReefWaveCoordinator, ReefBeatCloudCoordinator
+from .coordinator import (
+    ReefLedCoordinator,
+    ReefLedG2Coordinator,
+    ReefVirtualLedCoordinator,
+    ReefMatCoordinator,
+    ReefDoseCoordinator,
+    ReefATOCoordinator,
+    ReefRunCoordinator,
+    ReefWaveCoordinator,
+    ReefBeatCloudCoordinator,
+)
 
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Creation des entités à partir d'une configEntry"""
@@ -35,7 +52,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # CLOUD
     if CONFIG_FLOW_CLOUD_USERNAME in entry.data:
         try:
-            coordinator = ReefBeatCloudCoordinator(hass,entry)
+            coordinator = ReefBeatCloudCoordinator(hass, entry)
         except Exception:
             return False
         await coordinator._async_setup()
@@ -43,27 +60,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         ip = entry.data[CONFIG_FLOW_IP_ADDRESS]
         hw = entry.data[CONFIG_FLOW_HW_MODEL]
         if ip.startswith(VIRTUAL_LED):
-            coordinator = ReefVirtualLedCoordinator(hass,entry)
+            coordinator = ReefVirtualLedCoordinator(hass, entry)
         else:
             if hw in HW_G1_LED_IDS:
-                coordinator = ReefLedCoordinator(hass,entry)
+                coordinator = ReefLedCoordinator(hass, entry)
             elif hw in HW_G2_LED_IDS:
-                coordinator = ReefLedG2Coordinator(hass,entry)
+                coordinator = ReefLedG2Coordinator(hass, entry)
             elif hw in HW_DOSE_IDS:
-                coordinator = ReefDoseCoordinator(hass,entry)
+                coordinator = ReefDoseCoordinator(hass, entry)
             elif hw in HW_MAT_IDS:
-                coordinator = ReefMatCoordinator(hass,entry)
+                coordinator = ReefMatCoordinator(hass, entry)
             elif hw in HW_ATO_IDS:
-                coordinator = ReefATOCoordinator(hass,entry)
+                coordinator = ReefATOCoordinator(hass, entry)
             elif hw in HW_RUN_IDS:
-                coordinator = ReefRunCoordinator(hass,entry)
+                coordinator = ReefRunCoordinator(hass, entry)
             elif hw in HW_WAVE_IDS:
-                coordinator = ReefWaveCoordinator(hass,entry)
+                coordinator = ReefWaveCoordinator(hass, entry)
             await coordinator._async_setup()
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(update_listener))
     return True
+
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Handle options update."""
@@ -77,9 +95,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
 
-#async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+
+# async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup(hass: HomeAssistant, config) -> bool:
     """Set up my integration."""
+
     @callback
     async def handle_request(call: ServiceCall) -> ServiceResponse:
         """Handle the service action call."""
@@ -87,29 +107,33 @@ async def async_setup(hass: HomeAssistant, config) -> bool:
         device_id = call.data.get("device_id")
 
         if device_id not in hass.data[DOMAIN]:
-            return {"error":"Device not enabled"}
-        device=hass.data[DOMAIN][device_id]
-        access_path = call.data.get("access_path")#, DEFAULT_NAME)
+            return {"error": "Device not enabled"}
+        device = hass.data[DOMAIN][device_id]
+        access_path = call.data.get("access_path")  # , DEFAULT_NAME)
         method = call.data.get("method")
-        if method=="get":
-            r=await device.my_api.http_get(access_path)
+        if method == "get":
+            r = await device.my_api.http_get(access_path)
         else:
             data = call.data.get("data")
-            _LOGGER.debug("Call service send request: %s %s [%s] %s"%(device_id,access_path,method,data))
-            r=await device.my_api.http_send(access_path,data,method)
-        _LOGGER.debug('REQUEST RESPONSE %s'%r)
+            _LOGGER.debug(
+                "Call service send request: %s %s [%s] %s"
+                % (device_id, access_path, method, data)
+            )
+            r = await device.my_api.http_send(access_path, data, method)
+        _LOGGER.debug("REQUEST RESPONSE %s" % r)
         if r:
             try:
-                r_text=json.loads(r.text)
+                r_text = json.loads(r.text)
             except Exception:
-                r_text=r.text
+                r_text = r.text
                 _LOGGER.debug(r)
-            return {"code":r.status_code,"text":r_text}
+            return {"code": r.status_code, "text": r_text}
         else:
-            _LOGGER.error("can not access to device "+device._title)
-            return {"error": "can not access to device "+device._title}
+            _LOGGER.error("can not access to device " + device._title)
+            return {"error": "can not access to device " + device._title}
 
-            
-    _LOGGER.debug("request service REGISTERED %s"%config)
-    hass.services.async_register(DOMAIN, "request", handle_request,supports_response=SupportsResponse.OPTIONAL)
+    _LOGGER.debug("request service REGISTERED %s" % config)
+    hass.services.async_register(
+        DOMAIN, "request", handle_request, supports_response=SupportsResponse.OPTIONAL
+    )
     return True

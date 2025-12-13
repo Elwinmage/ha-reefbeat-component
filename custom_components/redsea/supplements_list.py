@@ -1,4 +1,4 @@
-SUPPLEMENTS=[
+SUPPLEMENTS = [
     {
         "uid": "0e63ba83-3ec4-445e-a3dd-7f2dbdc7f964",
         "name": "Calcium (Powder)",
@@ -8,7 +8,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": True,
-        "fullname": "Red Sea - Calcium (Powder)"
+        "fullname": "Red Sea - Calcium (Powder)",
     },
     {
         "uid": "76830db3-a0bd-459a-9974-76a57d026893",
@@ -19,7 +19,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": True,
-        "fullname": "Red Sea - KH/Alkalinity (Foundation B)"
+        "fullname": "Red Sea - KH/Alkalinity (Foundation B)",
     },
     {
         "uid": "b703fc33-e777-418f-935c-319d3e0ec3c0",
@@ -30,7 +30,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": True,
-        "fullname": "Red Sea - KH/Alkalinity (Powder)"
+        "fullname": "Red Sea - KH/Alkalinity (Powder)",
     },
     {
         "uid": "f524734e-8651-496e-b09b-640b40fc8bab",
@@ -41,7 +41,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": True,
-        "fullname": "Red Sea - Magnesium (Foundation C)"
+        "fullname": "Red Sea - Magnesium (Foundation C)",
     },
     {
         "uid": "14dbb6eb-4424-4530-a94f-466fd04d07ed",
@@ -52,7 +52,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": True,
-        "fullname": "Red Sea - Magnesium (Powder)"
+        "fullname": "Red Sea - Magnesium (Powder)",
     },
     {
         "uid": "93e742b0-67c9-4800-9aa9-212e52532343",
@@ -63,7 +63,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": True,
-        "fullname": "Red Sea - Iodine (Colors A)"
+        "fullname": "Red Sea - Iodine (Colors A)",
     },
     {
         "uid": "2f386917-54bd-4dd4-aa8b-9d1fea37edc5",
@@ -74,7 +74,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": True,
-        "fullname": "Red Sea - Potassium (Colors B)"
+        "fullname": "Red Sea - Potassium (Colors B)",
     },
     {
         "uid": "c7a26034-8e40-41bb-bfb5-169089470f1e",
@@ -85,7 +85,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": True,
-        "fullname": "Red Sea - Iron (Colors C)"
+        "fullname": "Red Sea - Iron (Colors C)",
     },
     {
         "uid": "7af9b16b-9e63-488e-8c86-261ef8c4a1ce",
@@ -96,7 +96,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": True,
-        "fullname": "Red Sea - Bio Active (Colors D)"
+        "fullname": "Red Sea - Bio Active (Colors D)",
     },
     {
         "uid": "ffaf6ff8-bc6d-44eb-9e4b-e679943dc835",
@@ -107,7 +107,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": True,
-        "fullname": "Red Sea - NO3PO4-X"
+        "fullname": "Red Sea - NO3PO4-X",
     },
     {
         "uid": "bf9a7da3-741b-4c1d-8542-d9344a95fb70",
@@ -118,7 +118,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": True,
-        "fullname": "Red Sea - Reef Energy Plus"
+        "fullname": "Red Sea - Reef Energy Plus",
     },
     {
         "uid": "345a8f18-1787-47cd-87b2-a8da3a6531bc",
@@ -129,7 +129,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Aqua Forest - Calcium "
+        "fullname": "Aqua Forest - Calcium ",
     },
     {
         "uid": "9ea6c9f2-b6f3-41ee-9370-06457f286fe5",
@@ -140,7 +140,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Aqua Forest - Ca Plus"
+        "fullname": "Aqua Forest - Ca Plus",
     },
     {
         "uid": "77ce68ff-e849-499d-82c1-af8282f1af13",
@@ -151,7 +151,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Aqua Forest - Component 1+"
+        "fullname": "Aqua Forest - Component 1+",
     },
     {
         "uid": "67fb654a-e8ba-468f-b5fd-56aa04fe1f47",
@@ -162,7 +162,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Aqua Forest - KH Buffer"
+        "fullname": "Aqua Forest - KH Buffer",
     },
     {
         "uid": "e391e8d1-0d4c-4355-8887-9231500703ef",
@@ -173,7 +173,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Aqua Forest - KH Plus"
+        "fullname": "Aqua Forest - KH Plus",
     },
     {
         "uid": "4cb24357-8911-412e-a6a5-77d6ee2972fd",
@@ -184,7 +184,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Aqua Forest - Component 2+"
+        "fullname": "Aqua Forest - Component 2+",
     },
     {
         "uid": "45f40592-3db0-467d-9ae8-52897ff84623",
@@ -195,7 +195,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Aqua Forest - Magnesium"
+        "fullname": "Aqua Forest - Magnesium",
     },
     {
         "uid": "deb3a943-68a5-40a9-860b-e6d259eee947",
@@ -206,7 +206,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Aqua Forest - Mg Plus"
+        "fullname": "Aqua Forest - Mg Plus",
     },
     {
         "uid": "e493e6a7-2c84-4410-8c22-85fd4faa6c8f",
@@ -217,7 +217,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Aqua Forest - Component 3+"
+        "fullname": "Aqua Forest - Component 3+",
     },
     {
         "uid": "aff00331-3c23-4357-b6d4-6609dbc4fed1",
@@ -228,7 +228,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - All-For-Reef"
+        "fullname": "Tropic Marin - All-For-Reef",
     },
     {
         "uid": "e7ad867a-3950-43e4-844e-e71ce73c20b9",
@@ -239,7 +239,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - Balling A"
+        "fullname": "Tropic Marin - Balling A",
     },
     {
         "uid": "8cdabb9f-ebcf-4675-a10f-f9020941928f",
@@ -250,7 +250,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - Carbo Calcium"
+        "fullname": "Tropic Marin - Carbo Calcium",
     },
     {
         "uid": "c8955615-5414-43ef-987f-07a0efa1cf8b",
@@ -261,7 +261,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - Balling B"
+        "fullname": "Tropic Marin - Balling B",
     },
     {
         "uid": "4a6f1b6c-32af-46cb-bfc9-55a4f42f05ed",
@@ -272,7 +272,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - Liquid Buffer"
+        "fullname": "Tropic Marin - Liquid Buffer",
     },
     {
         "uid": "2e65687a-0570-4571-bef5-7e18ac6581c1",
@@ -283,7 +283,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - Balling C"
+        "fullname": "Tropic Marin - Balling C",
     },
     {
         "uid": "2f04f694-3743-4e12-a45f-a3eb63aef806",
@@ -294,7 +294,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - Bio-Magnesium"
+        "fullname": "Tropic Marin - Bio-Magnesium",
     },
     {
         "uid": "84c9b4b6-e055-471f-acdf-f9122ac685b8",
@@ -305,7 +305,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - A Element"
+        "fullname": "Tropic Marin - A Element",
     },
     {
         "uid": "8afdd5cf-9c3a-45f5-b579-3e7c17d04671",
@@ -316,7 +316,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - K Element"
+        "fullname": "Tropic Marin - K Element",
     },
     {
         "uid": "68af4707-6766-4792-9380-f199b790eb81",
@@ -327,7 +327,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - Elimi-NP"
+        "fullname": "Tropic Marin - Elimi-NP",
     },
     {
         "uid": "7a680713-a8d3-496b-8081-a694ce2a1f31",
@@ -338,7 +338,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - Plus-NP"
+        "fullname": "Tropic Marin - Plus-NP",
     },
     {
         "uid": "43b51c1f-0363-4ef5-be89-f129e512e25b",
@@ -349,7 +349,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - NP-Bacto-Balance"
+        "fullname": "Tropic Marin - NP-Bacto-Balance",
     },
     {
         "uid": "fddbe0a4-02eb-4903-969b-6c27c805bf6b",
@@ -360,7 +360,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - Amino Organic"
+        "fullname": "Tropic Marin - Amino Organic",
     },
     {
         "uid": "20d65a7e-d12c-4185-a809-97aac782aca1",
@@ -371,7 +371,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Seachem - Reef Calcium"
+        "fullname": "Seachem - Reef Calcium",
     },
     {
         "uid": "7711655c-fd34-4fa3-99e8-ac76403248b1",
@@ -382,7 +382,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Seachem - Reef Fusion 1"
+        "fullname": "Seachem - Reef Fusion 1",
     },
     {
         "uid": "4e3badc4-cd5b-4e79-9d91-8382ced88c17",
@@ -393,7 +393,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Seachem - Reef Complete"
+        "fullname": "Seachem - Reef Complete",
     },
     {
         "uid": "a3fb3879-ff35-4da8-b331-c0b1b673fa6b",
@@ -404,7 +404,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Seachem - Reef Carbonate"
+        "fullname": "Seachem - Reef Carbonate",
     },
     {
         "uid": "622118c6-0a11-4c1d-86de-49c92683bc2d",
@@ -415,7 +415,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Seachem - Reef Fusion 2"
+        "fullname": "Seachem - Reef Fusion 2",
     },
     {
         "uid": "59bce33d-a6e0-4753-9049-edae4c0df753",
@@ -426,7 +426,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Seachem - Reef Iodine"
+        "fullname": "Seachem - Reef Iodine",
     },
     {
         "uid": "c6ef7fdf-53eb-440e-bef4-d3f0fb8b6245",
@@ -437,7 +437,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Seachem - Reef Strontium"
+        "fullname": "Seachem - Reef Strontium",
     },
     {
         "uid": "4981b4d6-4321-46ca-8659-4f8e3f554563",
@@ -448,7 +448,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Seachem - Reef Trace"
+        "fullname": "Seachem - Reef Trace",
     },
     {
         "uid": "668eb67c-1ba7-464f-9d0c-434cc8738a47",
@@ -459,7 +459,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Seachem - Reef Plus"
+        "fullname": "Seachem - Reef Plus",
     },
     {
         "uid": "a12f1d90-51f2-4c45-a414-6a6232b37bef",
@@ -470,7 +470,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "BRS - Liquid Calcium"
+        "fullname": "BRS - Liquid Calcium",
     },
     {
         "uid": "c137a36e-69db-4934-837e-45fbc2cd56aa",
@@ -481,7 +481,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "BRS - Liquid alkalinity"
+        "fullname": "BRS - Liquid alkalinity",
     },
     {
         "uid": "6397201b-ba2a-40eb-ab08-abb953222850",
@@ -492,7 +492,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "BRS - Magnesium Mix"
+        "fullname": "BRS - Magnesium Mix",
     },
     {
         "uid": "4fb80be0-d3e4-498b-baba-83c57da8935c",
@@ -503,7 +503,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "BRS - Part C"
+        "fullname": "BRS - Part C",
     },
     {
         "uid": "d89c7032-29c9-49d1-a0ca-294dc621cefb",
@@ -514,7 +514,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "ESV - B-Ionic Component 2"
+        "fullname": "ESV - B-Ionic Component 2",
     },
     {
         "uid": "4760a92c-0974-484c-9586-e13727a8f442",
@@ -525,7 +525,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "ESV - B-Ionic Component 1"
+        "fullname": "ESV - B-Ionic Component 1",
     },
     {
         "uid": "a9ec8c96-6715-4e6e-9601-1f12675ad475",
@@ -536,7 +536,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "ESV - B-Ionic Magnesium"
+        "fullname": "ESV - B-Ionic Magnesium",
     },
     {
         "uid": "7bf0df73-50aa-4d27-8d28-2fc9c4068596",
@@ -547,7 +547,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "ESV - Transition elements "
+        "fullname": "ESV - Transition elements ",
     },
     {
         "uid": "73c23d0c-a891-4729-8474-4f809829d925",
@@ -558,7 +558,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "ESV - Transition elements plus"
+        "fullname": "ESV - Transition elements plus",
     },
     {
         "uid": "19c1c766-407f-47e3-a4ea-71cecd4c0d31",
@@ -569,7 +569,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Fauna Marine - Balling light KH"
+        "fullname": "Fauna Marine - Balling light KH",
     },
     {
         "uid": "b6f58928-69dc-49c6-b121-9c9091b29ddd",
@@ -580,7 +580,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Fauna Marine - Balling light Ca"
+        "fullname": "Fauna Marine - Balling light Ca",
     },
     {
         "uid": "06dd7de9-dcf6-421c-8c44-424a71269a3e",
@@ -591,7 +591,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Fauna Marine - Balling light Mg"
+        "fullname": "Fauna Marine - Balling light Mg",
     },
     {
         "uid": "dfb30bb0-0114-43dd-8e00-44d5324bbc0b",
@@ -602,7 +602,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Fauna Marine - Balling light  trace 1"
+        "fullname": "Fauna Marine - Balling light  trace 1",
     },
     {
         "uid": "6bd27f62-ecb9-461b-823e-fadc74d200d6",
@@ -613,7 +613,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Fauna Marine - Balling light  trace 2"
+        "fullname": "Fauna Marine - Balling light  trace 2",
     },
     {
         "uid": "d9305644-c4d5-4dfe-9aa2-305fed32bb46",
@@ -624,7 +624,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Fauna Marine - Balling light  trace 3"
+        "fullname": "Fauna Marine - Balling light  trace 3",
     },
     {
         "uid": "fbbfb246-da02-4d06-bb9d-5ee2b8d503fa",
@@ -635,7 +635,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Fauna Marine - Green trace elements"
+        "fullname": "Fauna Marine - Green trace elements",
     },
     {
         "uid": "aace8f7d-50d2-4adb-b419-2dc729ecb775",
@@ -646,7 +646,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Fauna Marine - Red trace elements"
+        "fullname": "Fauna Marine - Red trace elements",
     },
     {
         "uid": "2ad8680e-e426-4265-8c03-9180ca658bcc",
@@ -657,7 +657,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Fauna Marine - Blue trace elements"
+        "fullname": "Fauna Marine - Blue trace elements",
     },
     {
         "uid": "8fb383e0-d194-4bd4-95f6-17210f4a85cc",
@@ -668,7 +668,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Fauna Marine - Amin"
+        "fullname": "Fauna Marine - Amin",
     },
     {
         "uid": "7df1b60e-9c66-4601-ba65-3ad952610f03",
@@ -679,7 +679,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Fauna Marine - Min S"
+        "fullname": "Fauna Marine - Min S",
     },
     {
         "uid": "c857b721-1652-4b89-8c68-d14c3f14f08e",
@@ -690,7 +690,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Brightwell - Reef Code A"
+        "fullname": "Brightwell - Reef Code A",
     },
     {
         "uid": "3485b1a7-b21c-45a0-9c9d-f4d951aab16c",
@@ -701,7 +701,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Brightwell - Liquid Reef"
+        "fullname": "Brightwell - Liquid Reef",
     },
     {
         "uid": "fca74872-947b-4968-9687-e3c4a43723e1",
@@ -712,7 +712,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Brightwell - Calcion"
+        "fullname": "Brightwell - Calcion",
     },
     {
         "uid": "fb5347b5-9764-445e-ac6a-513700f6740d",
@@ -723,7 +723,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Brightwell - Reef Code B"
+        "fullname": "Brightwell - Reef Code B",
     },
     {
         "uid": "a72f14b4-7a0d-4582-b043-f0c0f9cb51eb",
@@ -734,7 +734,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Brightwell - Hydrate - MG"
+        "fullname": "Brightwell - Hydrate - MG",
     },
     {
         "uid": "2033a72f-1d00-4974-b1f5-bc7ee38858c4",
@@ -745,7 +745,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Brightwell - Potassion"
+        "fullname": "Brightwell - Potassion",
     },
     {
         "uid": "a7b45d32-e879-4bf8-9779-2d39933d104b",
@@ -756,7 +756,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Brightwell - Strontion"
+        "fullname": "Brightwell - Strontion",
     },
     {
         "uid": "bd79c239-f189-4684-9ca9-8d0ca8a9bab5",
@@ -767,7 +767,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Brightwell - Ferrion"
+        "fullname": "Brightwell - Ferrion",
     },
     {
         "uid": "4bad5f8d-3094-496c-abf6-7c773cf7f4ed",
@@ -778,7 +778,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Brightwell - Koralcolor"
+        "fullname": "Brightwell - Koralcolor",
     },
     {
         "uid": "0b2f70cb-34cf-4b0f-b238-df38ea3d1809",
@@ -789,7 +789,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Brightwell - Replenish"
+        "fullname": "Brightwell - Replenish",
     },
     {
         "uid": "9f2292c0-6681-4805-a94a-4a9168095674",
@@ -800,7 +800,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Brightwell - KoralAmino"
+        "fullname": "Brightwell - KoralAmino",
     },
     {
         "uid": "7d67412c-fde0-44d4-882a-dc8746fd4acb",
@@ -811,7 +811,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": True,
-        "fullname": "Red Sea - Calcium (Foundation A)"
+        "fullname": "Red Sea - Calcium (Foundation A)",
     },
     {
         "uid": "f1b4e562-f31a-4d71-ad04-80837511dc50",
@@ -822,7 +822,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Brightwell - Restore"
+        "fullname": "Brightwell - Restore",
     },
     {
         "uid": "69692902-dcf9-4f41-b104-402154dc348a",
@@ -833,7 +833,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "ATI - Essential Pro 1"
+        "fullname": "ATI - Essential Pro 1",
     },
     {
         "uid": "e1dbec89-2396-4269-8f28-ab7534cb2d7d",
@@ -844,7 +844,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "ATI - Essential Pro 2"
+        "fullname": "ATI - Essential Pro 2",
     },
     {
         "uid": "322c1c47-7259-4fd9-9050-f6157036ea36",
@@ -855,7 +855,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Quantum - Aragonite A"
+        "fullname": "Quantum - Aragonite A",
     },
     {
         "uid": "e6537278-0e0a-4fd7-8146-566334bb74ed",
@@ -866,7 +866,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Quantum - Aragonite B"
+        "fullname": "Quantum - Aragonite B",
     },
     {
         "uid": "5f491b59-4f54-4572-bbce-aa9b708ccb51",
@@ -877,7 +877,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Quantum - Aragonite C"
+        "fullname": "Quantum - Aragonite C",
     },
     {
         "uid": "fd8dee42-f3da-4660-b491-880d7dac869a",
@@ -888,7 +888,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Quantum - Bio enhance"
+        "fullname": "Quantum - Bio enhance",
     },
     {
         "uid": "26a4f030-e78c-459c-90cb-5c6099de10fd",
@@ -899,7 +899,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Quantum - Gbio Gen"
+        "fullname": "Quantum - Gbio Gen",
     },
     {
         "uid": "8fec18b0-adf6-4dfa-b923-c7226a6fb87d",
@@ -910,7 +910,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Quantum - Bio Kalium"
+        "fullname": "Quantum - Bio Kalium",
     },
     {
         "uid": "a1d797e3-4679-4be4-9219-22e35822ab97",
@@ -921,7 +921,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Quantum - Bio Metals"
+        "fullname": "Quantum - Bio Metals",
     },
     {
         "uid": "901b2e5e-45dd-417d-afe9-f92e1ae0bb67",
@@ -932,7 +932,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Triton - Core7 elements 1"
+        "fullname": "Triton - Core7 elements 1",
     },
     {
         "uid": "db995e31-fba1-4b65-966c-afe533937400",
@@ -943,7 +943,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Triton - Core7 elements 2"
+        "fullname": "Triton - Core7 elements 2",
     },
     {
         "uid": "b505ab85-7d5d-4122-adb3-56044342ad7a",
@@ -954,7 +954,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Triton - Core7 elements 3A"
+        "fullname": "Triton - Core7 elements 3A",
     },
     {
         "uid": "4752c0aa-35b7-45cf-8bcb-89ab11feb98e",
@@ -965,7 +965,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Triton - Core7 elements 3B"
+        "fullname": "Triton - Core7 elements 3B",
     },
     {
         "uid": "964e897e-9668-4fc8-9cd9-e8c42a27cf85",
@@ -976,7 +976,7 @@ SUPPLEMENTS=[
         "type": None,
         "concentration": None,
         "made_by_redsea": False,
-        "fullname": "Tropic Marin - Potassium"
+        "fullname": "Tropic Marin - Potassium",
     },
     {
         "uid": "redsea-reefcare",
@@ -985,7 +985,7 @@ SUPPLEMENTS=[
         "short_name": "Care",
         "brand_name": "Red Sea",
         "type": "Bundle",
-        "bundle":{
+        "bundle": {
             "1": {
                 "supplement": {
                     "uid": "6b7d2c15-0d25-4447-b089-854ef6ba99f2",
@@ -993,9 +993,9 @@ SUPPLEMENTS=[
                     "display_name": "Part 1",
                     "short_name": "P1",
                     "brand_name": "Red Sea",
-                    "made_by_redsea": True
+                    "made_by_redsea": True,
                 },
-                "ratio": 1.0
+                "ratio": 1.0,
             },
             "2": {
                 "supplement": {
@@ -1004,9 +1004,9 @@ SUPPLEMENTS=[
                     "display_name": "Part 2",
                     "short_name": "P2",
                     "brand_name": "Red Sea",
-                    "made_by_redsea": True
+                    "made_by_redsea": True,
                 },
-                "ratio": 2.0
+                "ratio": 2.0,
             },
             "3": {
                 "supplement": {
@@ -1017,7 +1017,7 @@ SUPPLEMENTS=[
                     "brand_name": "Red Sea",
                     "made_by_redsea": True,
                 },
-                "ratio": 0.5
+                "ratio": 0.5,
             },
             "4": {
                 "supplement": {
@@ -1026,13 +1026,13 @@ SUPPLEMENTS=[
                     "display_name": "Part 4",
                     "short_name": "P4",
                     "brand_name": "Red Sea",
-                    "made_by_redsea": True
+                    "made_by_redsea": True,
                 },
-                "ratio": 0.5
-            }
+                "ratio": 0.5,
+            },
         },
         "concentration": None,
         "made_by_redsea": True,
-        "fullname":"RedSea - ReefCare Program"
-    }
+        "fullname": "RedSea - ReefCare Program",
+    },
 ]

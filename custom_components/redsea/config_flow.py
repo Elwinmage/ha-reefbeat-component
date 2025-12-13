@@ -16,20 +16,13 @@ from time import time
 
 from homeassistant import config_entries
 
-from homeassistant.config_entries import (
-    ConfigEntry,
-    ConfigEntryStore
-)
+from homeassistant.config_entries import ConfigEntry, ConfigEntryStore
 
 from homeassistant.core import callback
 
 from homeassistant.data_entry_flow import FlowResult
 
-from .auto_detect import (
-    get_reefbeats,
-    get_unique_id,
-    is_reefbeat
-)
+from .auto_detect import get_reefbeats, get_unique_id, is_reefbeat
 
 
 from .const import (
@@ -62,7 +55,7 @@ from .const import (
     RUN_SCAN_INTERVAL,
     CLOUD_SCAN_INTERVAL,
     CLOUD_DEVICE_TYPE,
-VIRTUAL_LED,
+    VIRTUAL_LED,
     LINKED_LED,
     HTTP_MAX_RETRY,
     HTTP_DELAY_BETWEEN_RETRY,
@@ -71,34 +64,39 @@ VIRTUAL_LED,
 _LOGGER = logging.getLogger(__name__)
 
 
-async def validate_cloud_input(username,password):
-    _LOGGER.debug("Test credentials for %s"%username)
-    header={
+async def validate_cloud_input(username, password):
+    _LOGGER.debug("Test credentials for %s" % username)
+    header = {
         "Authorization": "Basic Z0ZqSHRKcGE6Qzlmb2d3cmpEV09SVDJHWQ==",
-        "Content-Type": "application/x-www-form-urlencoded"
+        "Content-Type": "application/x-www-form-urlencoded",
     }
-    payload="grant_type=password&username=" + username+ "&password=" + password
-    r= httpx.post("https://"+CLOUD_SERVER_ADDR+"/oauth/token",data=payload,headers=header,verify=False)
-    if r.status_code!= 200:
-        _LOGGER.error("Authentification fail. %s"%r.text)
+    payload = "grant_type=password&username=" + username + "&password=" + password
+    r = httpx.post(
+        "https://" + CLOUD_SERVER_ADDR + "/oauth/token",
+        data=payload,
+        headers=header,
+        verify=False,
+    )
+    if r.status_code != 200:
+        _LOGGER.error("Authentification fail. %s" % r.text)
         return False
     return True
 
 
 def get_scan_interval(hw_model):
-    default_scan_interval=SCAN_INTERVAL
+    default_scan_interval = SCAN_INTERVAL
     if hw_model in HW_DOSE_IDS:
-        default_scan_interval=DOSE_SCAN_INTERVAL
+        default_scan_interval = DOSE_SCAN_INTERVAL
     elif hw_model in HW_MAT_IDS:
-        default_scan_interval=MAT_SCAN_INTERVAL
+        default_scan_interval = MAT_SCAN_INTERVAL
     elif hw_model in HW_ATO_IDS:
-        default_scan_interval=ATO_SCAN_INTERVAL
+        default_scan_interval = ATO_SCAN_INTERVAL
     elif hw_model in HW_LED_IDS:
-        default_scan_interval=LED_SCAN_INTERVAL
+        default_scan_interval = LED_SCAN_INTERVAL
     elif hw_model in HW_RUN_IDS:
-        default_scan_interval=RUN_SCAN_INTERVAL
+        default_scan_interval = RUN_SCAN_INTERVAL
     elif hw_model == CLOUD_DEVICE_TYPE:
-        default_scan_interval=CLOUD_SCAN_INTERVAL
+        default_scan_interval = CLOUD_SCAN_INTERVAL
     return default_scan_interval
 
 
@@ -110,21 +108,24 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _unique_id(self, user_input):
         f_kwargs = {}
-        f_kwargs["ip"] = user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')[0]
+        f_kwargs["ip"] = user_input[CONFIG_FLOW_IP_ADDRESS].split(" ")[0]
         retry = HTTP_MAX_RETRY
         while retry > 0:
-            
-            uuid=await self.hass.async_add_executor_job(partial(get_unique_id,**f_kwargs))
+            uuid = await self.hass.async_add_executor_job(
+                partial(get_unique_id, **f_kwargs)
+            )
             if uuid is not None:
                 return uuid
             retry -= 1
             await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
-            _LOGGER.warning("Could not get UUId for %s, retry in progress"%f_kwargs["ip"] )
-        _LOGGER.error("Could not get UUId for %s"%f_kwargs["ip"])
+            _LOGGER.warning(
+                "Could not get UUId for %s, retry in progress" % f_kwargs["ip"]
+            )
+        _LOGGER.error("Could not get UUId for %s" % f_kwargs["ip"])
         return f_kwargs["ip"]
 
     def is_network(self, address):
-        addr=address.split('/')
+        addr = address.split("/")
         if len(addr) < 2:
             return False
         try:
@@ -136,229 +137,286 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Create a new entity from UI."""
-        subnetwork=None
+        subnetwork = None
         # FIRST STEP
         if user_input is None:
             return self.async_show_form(
                 step_id="user",
                 data_schema=vol.Schema(
                     {
-                        vol.Required(CONFIG_FLOW_ADD_TYPE, default=ADD_CLOUD_API): vol.In(ADD_TYPES),
+                        vol.Required(
+                            CONFIG_FLOW_ADD_TYPE, default=ADD_CLOUD_API
+                        ): vol.In(ADD_TYPES),
                     }
                 ),
             )
         else:
             # SECOND_STEP
             if CONFIG_FLOW_ADD_TYPE in user_input:
-                #CLOUD
-                if user_input[CONFIG_FLOW_ADD_TYPE]==ADD_CLOUD_API:
+                # CLOUD
+                if user_input[CONFIG_FLOW_ADD_TYPE] == ADD_CLOUD_API:
                     _LOGGER.info("Adding Reebeat Cloud Account")
                     return self.async_show_form(
                         step_id="user",
                         data_schema=vol.Schema(
                             {
-                                vol.Required(CONFIG_FLOW_CLOUD_USERNAME):str,
-                                vol.Required(CONFIG_FLOW_CLOUD_PASSWORD):str,
+                                vol.Required(CONFIG_FLOW_CLOUD_USERNAME): str,
+                                vol.Required(CONFIG_FLOW_CLOUD_PASSWORD): str,
                             }
                         ),
                     )
-                #DETECT
-                elif user_input[CONFIG_FLOW_ADD_TYPE]==ADD_LOCAL_DETECT:
+                # DETECT
+                elif user_input[CONFIG_FLOW_ADD_TYPE] == ADD_LOCAL_DETECT:
                     return await self.auto_detect(subnetwork)
                 # VIRTUAL LED
-                elif user_input[CONFIG_FLOW_ADD_TYPE]==VIRTUAL_LED:
-                    title=VIRTUAL_LED+'-'+str(int(time()))
-                    user_input[CONFIG_FLOW_IP_ADDRESS]=title
-                    user_input[CONFIG_FLOW_HW_MODEL]=VIRTUAL_LED
-                    user_input[CONFIG_FLOW_SCAN_INTERVAL]=VIRTUAL_LED_SCAN_INTERVAL
-                    _LOGGER.debug("-- ** UUID ** -- %s"%title)
+                elif user_input[CONFIG_FLOW_ADD_TYPE] == VIRTUAL_LED:
+                    title = VIRTUAL_LED + "-" + str(int(time()))
+                    user_input[CONFIG_FLOW_IP_ADDRESS] = title
+                    user_input[CONFIG_FLOW_HW_MODEL] = VIRTUAL_LED
+                    user_input[CONFIG_FLOW_SCAN_INTERVAL] = VIRTUAL_LED_SCAN_INTERVAL
+                    _LOGGER.debug("-- ** UUID ** -- %s" % title)
                     await self.async_set_unique_id(title)
                     return self.async_create_entry(
                         title=title,
                         data=user_input,
-                    )                    
+                    )
                 # MANUAL
-                elif user_input[CONFIG_FLOW_ADD_TYPE]==ADD_MANUAL_MODE:
+                elif user_input[CONFIG_FLOW_ADD_TYPE] == ADD_MANUAL_MODE:
                     _LOGGER.debug(user_input)
                     return self.async_show_form(
                         step_id="user",
                         data_schema=vol.Schema(
-                            {
-                                vol.Required(CONFIG_FLOW_IP_ADDRESS):str
-                            }
-                        )
+                            {vol.Required(CONFIG_FLOW_IP_ADDRESS): str}
+                        ),
                     )
             # Third step create entry
             else:
                 _LOGGER.debug(user_input)
                 # CLOUD
                 if CONFIG_FLOW_CLOUD_USERNAME in user_input:
-                    valid=await validate_cloud_input(user_input[CONFIG_FLOW_CLOUD_USERNAME],user_input[CONFIG_FLOW_CLOUD_PASSWORD])
-                    errors={}
+                    valid = await validate_cloud_input(
+                        user_input[CONFIG_FLOW_CLOUD_USERNAME],
+                        user_input[CONFIG_FLOW_CLOUD_PASSWORD],
+                    )
+                    errors = {}
                     if not valid:
-                        errors['base']="Authentification fail, check your crendentials"
-                        schema=vol.Schema(
-                        {
-                            vol.Required(CONFIG_FLOW_CLOUD_USERNAME,default=user_input[CONFIG_FLOW_CLOUD_USERNAME]):str,
-                            vol.Required(CONFIG_FLOW_CLOUD_PASSWORD,default=user_input[CONFIG_FLOW_CLOUD_PASSWORD]):str,
-                    })
+                        errors["base"] = (
+                            "Authentification fail, check your crendentials"
+                        )
+                        schema = vol.Schema(
+                            {
+                                vol.Required(
+                                    CONFIG_FLOW_CLOUD_USERNAME,
+                                    default=user_input[CONFIG_FLOW_CLOUD_USERNAME],
+                                ): str,
+                                vol.Required(
+                                    CONFIG_FLOW_CLOUD_PASSWORD,
+                                    default=user_input[CONFIG_FLOW_CLOUD_PASSWORD],
+                                ): str,
+                            }
+                        )
                         return self.async_show_form(
                             step_id="user", data_schema=schema, errors=errors
                         )
 
-                    user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(CLOUD_DEVICE_TYPE)
-                    user_input[CONFIG_FLOW_CONFIG_TYPE]=False
-                    user_input[CONFIG_FLOW_IP_ADDRESS]=CLOUD_SERVER_ADDR
-                    user_input[CONFIG_FLOW_HW_MODEL]=CLOUD_DEVICE_TYPE
-                    title=user_input[CONFIG_FLOW_CLOUD_USERNAME]
+                    user_input[CONFIG_FLOW_SCAN_INTERVAL] = get_scan_interval(
+                        CLOUD_DEVICE_TYPE
+                    )
+                    user_input[CONFIG_FLOW_CONFIG_TYPE] = False
+                    user_input[CONFIG_FLOW_IP_ADDRESS] = CLOUD_SERVER_ADDR
+                    user_input[CONFIG_FLOW_HW_MODEL] = CLOUD_DEVICE_TYPE
+                    title = user_input[CONFIG_FLOW_CLOUD_USERNAME]
                     await self.async_set_unique_id(title)
                     return self.async_create_entry(
                         title=title,
                         data=user_input,
                     )
-                # DETECT and MANUAL
+                # DETECT and MANUAL
                 elif CONFIG_FLOW_IP_ADDRESS in user_input:
-                    #Add Virtual LED
+                    # Add Virtual LED
                     if user_input[CONFIG_FLOW_IP_ADDRESS] == VIRTUAL_LED:
-                        title=VIRTUAL_LED+'-'+str(int(time()))
-                        user_input[CONFIG_FLOW_IP_ADDRESS]=title
-                        user_input[CONFIG_FLOW_HW_MODEL]=VIRTUAL_LED
-                        user_input[CONFIG_FLOW_SCAN_INTERVAL]=VIRTUAL_LED_SCAN_INTERVAL
-                        _LOGGER.debug("-- ** UUID ** -- %s"%title)
+                        title = VIRTUAL_LED + "-" + str(int(time()))
+                        user_input[CONFIG_FLOW_IP_ADDRESS] = title
+                        user_input[CONFIG_FLOW_HW_MODEL] = VIRTUAL_LED
+                        user_input[CONFIG_FLOW_SCAN_INTERVAL] = (
+                            VIRTUAL_LED_SCAN_INTERVAL
+                        )
+                        _LOGGER.debug("-- ** UUID ** -- %s" % title)
                         await self.async_set_unique_id(title)
                         return self.async_create_entry(
                             title=title,
                             data=user_input,
                         )
                     if self.is_network(user_input[CONFIG_FLOW_IP_ADDRESS]):
-                        subnetwork=user_input[CONFIG_FLOW_IP_ADDRESS]
+                        subnetwork = user_input[CONFIG_FLOW_IP_ADDRESS]
                         return await self.auto_detect(subnetwork)
                     else:
-                        configuration=user_input[CONFIG_FLOW_IP_ADDRESS].split(' ')
+                        configuration = user_input[CONFIG_FLOW_IP_ADDRESS].split(" ")
                         # manual device
                         if len(configuration) < 2:
                             f_kwargs = {}
                             f_kwargs["ip"] = configuration[0]
-                            status,ip,hw_model,friendly_name,uuid=await self.hass.async_add_executor_job(partial(is_reefbeat,**f_kwargs))
-                            _LOGGER.info("MANUAL IP DETECTED: %s %s %s %s"%(ip,hw_model,friendly_name,uuid))
+                            (
+                                status,
+                                ip,
+                                hw_model,
+                                friendly_name,
+                                uuid,
+                            ) = await self.hass.async_add_executor_job(
+                                partial(is_reefbeat, **f_kwargs)
+                            )
+                            _LOGGER.info(
+                                "MANUAL IP DETECTED: %s %s %s %s"
+                                % (ip, hw_model, friendly_name, uuid)
+                            )
                             if status is True:
-                                conf=self.device_to_string({"ip":ip,"hw_model":hw_model,"friendly_name":friendly_name})
-                                configuration=conf.split(' ')
-                            _LOGGER.debug("MANUAL IP info: %s"%(configuration))
-                            _LOGGER.debug("MANUAL IP array info: %s"%(configuration))
-                            # detected device
+                                conf = self.device_to_string(
+                                    {
+                                        "ip": ip,
+                                        "hw_model": hw_model,
+                                        "friendly_name": friendly_name,
+                                    }
+                                )
+                                configuration = conf.split(" ")
+                            _LOGGER.debug("MANUAL IP info: %s" % (configuration))
+                            _LOGGER.debug("MANUAL IP array info: %s" % (configuration))
+                            # detected device
                         else:
                             uuid = await self._unique_id(user_input)
-                        _LOGGER.info("-- ** UUID ** -- %s"%uuid)
+                        _LOGGER.info("-- ** UUID ** -- %s" % uuid)
                         await self.async_set_unique_id(str(uuid))
                         self._abort_if_unique_id_configured()
                         #
-                        title="-".join(configuration[2:])
-                        user_input[CONFIG_FLOW_HW_MODEL]=configuration[1]
-                        user_input[CONFIG_FLOW_IP_ADDRESS]=configuration[0]
-                        user_input[CONFIG_FLOW_SCAN_INTERVAL]=get_scan_interval(user_input[CONFIG_FLOW_HW_MODEL])
-                        user_input[CONFIG_FLOW_CONFIG_TYPE]=False
-                        _LOGGER.info("-- ** TITLE ** -- %s"%title)
+                        title = "-".join(configuration[2:])
+                        user_input[CONFIG_FLOW_HW_MODEL] = configuration[1]
+                        user_input[CONFIG_FLOW_IP_ADDRESS] = configuration[0]
+                        user_input[CONFIG_FLOW_SCAN_INTERVAL] = get_scan_interval(
+                            user_input[CONFIG_FLOW_HW_MODEL]
+                        )
+                        user_input[CONFIG_FLOW_CONFIG_TYPE] = False
+                        _LOGGER.info("-- ** TITLE ** -- %s" % title)
                         return self.async_create_entry(
                             title=title,
                             data=user_input,
                         )
-        
+
     @staticmethod
     @callback
     def async_get_options_flow(
-            config_entry: ConfigEntry,
+        config_entry: ConfigEntry,
     ):
         """Create the options flow."""
         return OptionsFlowHandler(config_entry)
 
     @staticmethod
     def device_to_string(d):
-        return d['ip']+' '+d['hw_model']+' '+d['friendly_name']
+        return d["ip"] + " " + d["hw_model"] + " " + d["friendly_name"]
 
     # AUTO detect reeefbeat device on specified subnetwork
-    async def auto_detect(self,subnetwork):
+    async def auto_detect(self, subnetwork):
         f_kwargs = {}
         f_kwargs["subnetwork"] = subnetwork
-        detected_devices = await self.hass.async_add_executor_job(partial(get_reefbeats,**f_kwargs))
-        available_devices=copy.deepcopy(detected_devices)
-        _LOGGER.info("Detected devices: %s"%detected_devices)
+        detected_devices = await self.hass.async_add_executor_job(
+            partial(get_reefbeats, **f_kwargs)
+        )
+        available_devices = copy.deepcopy(detected_devices)
+        _LOGGER.info("Detected devices: %s" % detected_devices)
         _store = ConfigEntryStore(self.hass)
-        data= await _store.async_load()
+        data = await _store.async_load()
         for device in detected_devices:
-            if any (d['unique_id'] == device['uuid'] for d in data['entries']):
-                _LOGGER.info("%s skipped (already configured)"%device['friendly_name'])
+            if any(d["unique_id"] == device["uuid"] for d in data["entries"]):
+                _LOGGER.info(
+                    "%s skipped (already configured)" % device["friendly_name"]
+                )
                 available_devices.remove(device)
 
-        _LOGGER.info("Available devices: %s"%available_devices)
-        available_devices_s =list(map(self.device_to_string,available_devices))
+        _LOGGER.info("Available devices: %s" % available_devices)
+        available_devices_s = list(map(self.device_to_string, available_devices))
         available_devices_s += [VIRTUAL_LED]
-        _LOGGER.info("Available devices string: %s"%available_devices_s)
+        _LOGGER.info("Available devices string: %s" % available_devices_s)
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(
-                        CONFIG_FLOW_IP_ADDRESS
-                    ): vol.In(available_devices_s),
+                    vol.Required(CONFIG_FLOW_IP_ADDRESS): vol.In(available_devices_s),
                 }
-                 ),
-            )
+            ),
+        )
+
 
 ################################################################################
 # Entity options
 class OptionsFlowHandler(config_entries.OptionsFlow):
+    def __init__(self, config_entry):
+        self._config_entry = config_entry
 
-    def __init__(self,config_entry):
-        self._config_entry=config_entry
-
-       
     async def async_step_init(
-            self, user_input: dict[str, Any] | None = None
+        self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Manage the options."""
         if user_input is not None:
-            #ReefBeatCloudAPI
+            # ReefBeatCloudAPI
             if CONFIG_FLOW_CLOUD_USERNAME in user_input:
-                user_input[CONFIG_FLOW_IP_ADDRESS]=self._config_entry.data[CONFIG_FLOW_IP_ADDRESS]
-                user_input[CONFIG_FLOW_HW_MODEL]=self._config_entry.data[CONFIG_FLOW_HW_MODEL]
-                user_input[CONFIG_FLOW_CONFIG_TYPE]=False
-                errors={}
-                valid=await validate_cloud_input(user_input[CONFIG_FLOW_CLOUD_USERNAME],user_input[CONFIG_FLOW_CLOUD_PASSWORD])
+                user_input[CONFIG_FLOW_IP_ADDRESS] = self._config_entry.data[
+                    CONFIG_FLOW_IP_ADDRESS
+                ]
+                user_input[CONFIG_FLOW_HW_MODEL] = self._config_entry.data[
+                    CONFIG_FLOW_HW_MODEL
+                ]
+                user_input[CONFIG_FLOW_CONFIG_TYPE] = False
+                errors = {}
+                valid = await validate_cloud_input(
+                    user_input[CONFIG_FLOW_CLOUD_USERNAME],
+                    user_input[CONFIG_FLOW_CLOUD_PASSWORD],
+                )
                 if not valid:
-                    errors['base']="Authentification fail, check your crendentials"
-                    schema=vol.Schema(
-                    {
-                        vol.Required(CONFIG_FLOW_CLOUD_USERNAME,default=user_input[CONFIG_FLOW_CLOUD_USERNAME]):str,
-                        vol.Required(CONFIG_FLOW_CLOUD_PASSWORD,default=user_input[CONFIG_FLOW_CLOUD_PASSWORD]):str,
-                        vol.Required(
-                            CONFIG_FLOW_SCAN_INTERVAL, default=user_input[CONFIG_FLOW_SCAN_INTERVAL]
-                        ): int,
-                        vol.Required(
-                            CONFIG_FLOW_CONFIG_TYPE, default=False
-                        ): bool,
-                    })
+                    errors["base"] = "Authentification fail, check your crendentials"
+                    schema = vol.Schema(
+                        {
+                            vol.Required(
+                                CONFIG_FLOW_CLOUD_USERNAME,
+                                default=user_input[CONFIG_FLOW_CLOUD_USERNAME],
+                            ): str,
+                            vol.Required(
+                                CONFIG_FLOW_CLOUD_PASSWORD,
+                                default=user_input[CONFIG_FLOW_CLOUD_PASSWORD],
+                            ): str,
+                            vol.Required(
+                                CONFIG_FLOW_SCAN_INTERVAL,
+                                default=user_input[CONFIG_FLOW_SCAN_INTERVAL],
+                            ): int,
+                            vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
+                        }
+                    )
                     return self.async_show_form(
                         step_id="init", data_schema=schema, errors=errors
                     )
                 self.hass.config_entries.async_update_entry(
-                    self.config_entry, data=user_input, options=self.config_entry.options
+                    self.config_entry,
+                    data=user_input,
+                    options=self.config_entry.options,
                 )
-                res=self.async_create_entry(data=user_input)
-                _LOGGER.debug("RELOAD %s"%res)
-                self.hass.config_entries.async_schedule_reload(res['handler'])
+                res = self.async_create_entry(data=user_input)
+                _LOGGER.debug("RELOAD %s" % res)
+                self.hass.config_entries.async_schedule_reload(res["handler"])
                 return res
-                #return self.async_create_entry(data=user_input)
+                # return self.async_create_entry(data=user_input)
             elif CONFIG_FLOW_SCAN_INTERVAL in user_input:
                 _LOGGER.debug("user input")
                 _LOGGER.debug(user_input)
-                data={}
-                data[CONFIG_FLOW_IP_ADDRESS]=self._config_entry.data[CONFIG_FLOW_IP_ADDRESS]
-                data[CONFIG_FLOW_HW_MODEL]=self._config_entry.data[CONFIG_FLOW_HW_MODEL]
-                data[CONFIG_FLOW_SCAN_INTERVAL]=user_input[CONFIG_FLOW_SCAN_INTERVAL]
-                data[CONFIG_FLOW_CONFIG_TYPE]=user_input[CONFIG_FLOW_CONFIG_TYPE]
+                data = {}
+                data[CONFIG_FLOW_IP_ADDRESS] = self._config_entry.data[
+                    CONFIG_FLOW_IP_ADDRESS
+                ]
+                data[CONFIG_FLOW_HW_MODEL] = self._config_entry.data[
+                    CONFIG_FLOW_HW_MODEL
+                ]
+                data[CONFIG_FLOW_SCAN_INTERVAL] = user_input[CONFIG_FLOW_SCAN_INTERVAL]
+                data[CONFIG_FLOW_CONFIG_TYPE] = user_input[CONFIG_FLOW_CONFIG_TYPE]
                 if CONFIG_FLOW_INTENSITY_COMPENSATION in user_input:
-                    data[CONFIG_FLOW_INTENSITY_COMPENSATION]=user_input[CONFIG_FLOW_INTENSITY_COMPENSATION]
+                    data[CONFIG_FLOW_INTENSITY_COMPENSATION] = user_input[
+                        CONFIG_FLOW_INTENSITY_COMPENSATION
+                    ]
                 self.hass.config_entries.async_update_entry(
                     self.config_entry, data=data, options=self.config_entry.options
                 )
@@ -366,15 +424,17 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             else:
                 _LOGGER.info(user_input)
                 _LOGGER.info(self._config_entry.data)
-                data={}
-                leds={}
-                data[CONFIG_FLOW_IP_ADDRESS]=self._config_entry.data[CONFIG_FLOW_IP_ADDRESS]
-                data[CONFIG_FLOW_HW_MODEL]=VIRTUAL_LED
-                data[CONFIG_FLOW_SCAN_INTERVAL]=VIRTUAL_LED_SCAN_INTERVAL
+                data = {}
+                leds = {}
+                data[CONFIG_FLOW_IP_ADDRESS] = self._config_entry.data[
+                    CONFIG_FLOW_IP_ADDRESS
+                ]
+                data[CONFIG_FLOW_HW_MODEL] = VIRTUAL_LED
+                data[CONFIG_FLOW_SCAN_INTERVAL] = VIRTUAL_LED_SCAN_INTERVAL
                 for led in user_input:
                     if user_input[led]:
-                        leds[led]=True
-                data[LINKED_LED]=leds
+                        leds[led] = True
+                data[LINKED_LED] = leds
 
                 _LOGGER.info(user_input)
                 self.hass.config_entries.async_update_entry(
@@ -382,66 +442,74 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 )
                 return self.async_create_entry(data=data)
         errors = {}
-        options_schema=None
+        options_schema = None
 
-        if not self._config_entry.title.startswith(VIRTUAL_LED+'-'):
+        if not self._config_entry.title.startswith(VIRTUAL_LED + "-"):
             try:
-                hw_model=self._config_entry.data[CONFIG_FLOW_HW_MODEL]
-                query=parse('$[?(@.name=="'+hw_model+'")]')
-                res=query.find(LEDS_INTENSITY_COMPENSATION)
+                hw_model = self._config_entry.data[CONFIG_FLOW_HW_MODEL]
+                query = parse('$[?(@.name=="' + hw_model + '")]')
+                res = query.find(LEDS_INTENSITY_COMPENSATION)
             except Exception:
-                hw_model=None
-                res=[]
+                hw_model = None
+                res = []
             if len(res) > 0:
-                options_schema=vol.Schema(
+                options_schema = vol.Schema(
                     {
                         vol.Required(
-                            CONFIG_FLOW_SCAN_INTERVAL, default=get_scan_interval(hw_model)
+                            CONFIG_FLOW_SCAN_INTERVAL,
+                            default=get_scan_interval(hw_model),
                         ): int,
-                        vol.Required(
-                            CONFIG_FLOW_CONFIG_TYPE, default=False
-                        ): bool,
+                        vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
                         vol.Required(
                             CONFIG_FLOW_INTENSITY_COMPENSATION, default=False
                         ): bool,
-                }
+                    }
                 )
-            elif hw_model==CLOUD_DEVICE_TYPE:
-                options_schema=vol.Schema(
+            elif hw_model == CLOUD_DEVICE_TYPE:
+                options_schema = vol.Schema(
                     {
-                        vol.Required(CONFIG_FLOW_CLOUD_USERNAME,default=self._config_entry.data[CONFIG_FLOW_CLOUD_USERNAME]):str,
-                        vol.Required(CONFIG_FLOW_CLOUD_PASSWORD,default=self._config_entry.data[CONFIG_FLOW_CLOUD_PASSWORD]):str,
                         vol.Required(
-                            CONFIG_FLOW_SCAN_INTERVAL, default=get_scan_interval(hw_model)
+                            CONFIG_FLOW_CLOUD_USERNAME,
+                            default=self._config_entry.data[CONFIG_FLOW_CLOUD_USERNAME],
+                        ): str,
+                        vol.Required(
+                            CONFIG_FLOW_CLOUD_PASSWORD,
+                            default=self._config_entry.data[CONFIG_FLOW_CLOUD_PASSWORD],
+                        ): str,
+                        vol.Required(
+                            CONFIG_FLOW_SCAN_INTERVAL,
+                            default=get_scan_interval(hw_model),
                         ): int,
-                        vol.Required(
-                            CONFIG_FLOW_CONFIG_TYPE, default=False
-                        ): bool,
-                        
-                }
+                        vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
+                    }
                 )
-                
+
             else:
-                options_schema=vol.Schema(
+                options_schema = vol.Schema(
                     {
                         vol.Required(
-                            CONFIG_FLOW_SCAN_INTERVAL, default=get_scan_interval(hw_model)
+                            CONFIG_FLOW_SCAN_INTERVAL,
+                            default=get_scan_interval(hw_model),
                         ): int,
-                        vol.Required(
-                            CONFIG_FLOW_CONFIG_TYPE, default=False
-                        ): bool,
-                        
-                }
+                        vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
+                    }
                 )
 
         else:
-            leds={}
+            leds = {}
             for dev in self.hass.data[DOMAIN]:
                 led = self.hass.data[DOMAIN][dev]
-                if type(led).__name__=="ReefLedCoordinator" or type(led).__name__=="ReefLedG2Coordinator":
-                    leds[vol.Required('LED-'+led.model+'-: '+led.serial+' ('+dev+')')]=bool
-            options_schema=vol.Schema(leds)
-            
+                if (
+                    type(led).__name__ == "ReefLedCoordinator"
+                    or type(led).__name__ == "ReefLedG2Coordinator"
+                ):
+                    leds[
+                        vol.Required(
+                            "LED-" + led.model + "-: " + led.serial + " (" + dev + ")"
+                        )
+                    ] = bool
+            options_schema = vol.Schema(leds)
+
         return self.async_show_form(
             step_id="init",
             data_schema=self.add_suggested_values_to_schema(
@@ -449,6 +517,3 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             ),
             errors=errors,
         )
-
-
-        
