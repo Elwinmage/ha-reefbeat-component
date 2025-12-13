@@ -1,3 +1,5 @@
+# ruff: noqa: I001
+# ruff: noqa: F401
 import logging
 import asyncio
 import async_timeout
@@ -590,6 +592,9 @@ class ReefATOCoordinator(ReefBeatCloudLinkedCoordinator):
         """Initialize coordinator."""
         super().__init__(hass,entry)
         self.my_api = ReefATOAPI(self._ip,self._live_config_update)
+
+    async def set_volume_left(self, volume_ml: int) -> None:
+        await self.my_api.set_volume_left(volume_ml)
         
 ################################################################################
 # REEFRUN

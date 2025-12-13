@@ -1,4 +1,6 @@
 """ Implements the sensor entity """
+# ruff: noqa: I001
+# ruff: noqa: F401
 import logging
 import datetime
 
@@ -452,7 +454,7 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
     ),
 )
     
-""" ReefMat sensors list """
+""" ATO sensors list """
 ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription(
         key='s_water_level',
@@ -527,6 +529,7 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         key='current_read',
         translation_key='current_read',
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda device:  device.get_data("$.sources[?(@.name=='/dashboard')].data.ato_sensor.current_read"),
         icon="mdi:water-thermometer-outline",
@@ -893,11 +896,11 @@ class ReefBeatSensorEntity(CoordinatorEntity,SensorEntity):
         
     def _get_value(self):
         if self.entity_description.translation_key=="dosing_queue":
-            data=self._device.get_data(self.entity_description.value_name);
+            data=self._device.get_data(self.entity_description.value_name)
             if len(data)>0:
-                return data[0]["head"];
+                return data[0]["head"]
             else:
-                return translate("Empty",self._device._hass.config.language);
+                return translate("Empty",self._device._hass.config.language)
         elif hasattr(self.entity_description, 'value_fn'):
             return self.entity_description.value_fn(self._device)
         elif hasattr(self.entity_description, 'value_name'):

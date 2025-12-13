@@ -1,3 +1,5 @@
+# ruff: noqa: I001
+# ruff: noqa: F401
 import logging
 import asyncio
 import httpx
@@ -46,6 +48,7 @@ from .const import (
     MAT_MODEL_INTERNAL_NAME,
     MAT_POSITION_INTERNAL_NAME,
     ATO_AUTO_FILL_INTERNAL_NAME,
+    ATO_VOLUME_LEFT_INTERNAL_NAME,
     HTTP_MAX_RETRY,
     HTTP_DELAY_BETWEEN_RETRY,
     VIRTUAL_LED,
@@ -619,6 +622,10 @@ class ReefATOAPI(ReefBeatAPI):
     async def push_values(self,source='/configuration',method='put'):
         payload={'auto_fill': self.get_data(ATO_AUTO_FILL_INTERNAL_NAME)}
         await self._http_send(self._base_url+'/configuration',payload,method)
+
+    async def set_volume_left(self, volume_ml: int) -> None:
+        payload = {"volume": int(volume_ml)}
+        await self._http_send(self._base_url + "/update-volume", payload, "post")
 
 ################################################################################
 # ReefRun

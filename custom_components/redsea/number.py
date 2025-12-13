@@ -1,4 +1,6 @@
 """ Implements the sensor entity """
+# ruff: noqa: I001
+# ruff: noqa: F401
 import logging
 import asyncio
 
@@ -37,6 +39,7 @@ from homeassistant.helpers.device_registry import  DeviceInfo
 from homeassistant.helpers.typing import StateType
 
 from .const import (
+    ATO_VOLUME_LEFT_INTERNAL_NAME,
     DOMAIN,
     MAT_MIN_ROLL_DIAMETER,
     MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
@@ -51,7 +54,7 @@ from .const import (
     WAVE_TYPES,
 )
 
-from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator, ReefLedCoordinator, ReefRunCoordinator, ReefWaveCoordinator
+from .coordinator import ReefBeatCoordinator,ReefDoseCoordinator, ReefLedCoordinator, ReefRunCoordinator, ReefWaveCoordinator, ReefATOCoordinator
 
 from .i18n import translate_list,translate
 
@@ -475,7 +478,28 @@ async def async_setup_entry(
         entities += [ReefWaveNumberEntity(device, description)
                  for description in WAVE_PREVIEW_NUMBERS
                  if description.exists_fn(device)]
-        
+
+    elif type(device).__name__ == "ReefATOCoordinator":
+        dn = ()
+        dn += (ReefBeatNumberEntityDescription(
+            key="ato_volume_left",
+            translation_key="ato_volume_left",
+            mode="box",
+            native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+            device_class=NumberDeviceClass.VOLUME,
+            native_min_value=0,
+            native_step=1,
+            native_max_value=200000,  # pick a safe ceiling
+            value_name=ATO_VOLUME_LEFT_INTERNAL_NAME,
+            icon="mdi:cup-water",
+            entity_category=EntityCategory.CONFIG,
+        ),)
+
+        entities += [ReefATOVolumeLeftNumberEntity(device, description)
+                    for description in dn
+                    if description.exists_fn(device)]
+
+
     async_add_entities(entities, True)
 
 ################################################################################
@@ -698,3 +722,12 @@ class ReefWaveNumberEntity(ReefBeatNumberEntity):
         self._device.set_data(self.entity_description.value_name,int(value)) 
         self.async_write_ha_state()
     
+
+
+################################################################################
+# ATO
+class ReefATOVolumeLeftNumberEntity(ReefBeatNumberEntity):
+    async def async_set_native_value(self, value: float) -> None:
+        volume_ml = int(value)
+        await self._device.set_volume_left(volume_ml)
+        await self._device.async_request_refresh()
