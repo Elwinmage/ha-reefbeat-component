@@ -45,7 +45,12 @@ from .const import (
     FULLCUP_ENABLED_INTERNAL_NAME,
 )
 
-from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator, ReefLedCoordinator
+from .coordinator import (
+    ReefBeatCoordinator,
+    ReefDoseCoordinator,
+    ReefLedCoordinator,
+    ReefRunCoordinator,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -80,6 +85,18 @@ class ReefDoseSwitchEntityDescription(SwitchEntityDescription):
     icon_off: str = ""
     value_name: str = ""
     head: int = 0
+    method: str = "put"
+    notify: bool = False
+
+
+@dataclass(kw_only=True)
+class ReefRunSwitchEntityDescription(SwitchEntityDescription):
+    """Describes reefbeat Switch entity."""
+
+    exists_fn: Callable[[ReefRunCoordinator], bool] = lambda _: True
+    value_name: str = ""
+    icon_off: str = ""
+    pump: int = 0
     method: str = "put"
     notify: bool = False
 
@@ -251,6 +268,28 @@ async def async_setup_entry(
             for description in RUN_SWITCHES
             if description.exists_fn(device)
         ]
+        dn = ()
+        for pump in range(1, 3):
+            new_pump = (
+                ReefRunSwitchEntityDescription(
+                    key="schedule_enabled_pump_" + str(pump),
+                    translation_key="schedule_enabled",
+                    icon="mdi:pump",
+                    icon_off="mdi:pump-off",
+                    value_name="$.sources[?(@.name=='/pump/settings')].data.pump_"
+                    + str(pump)
+                    + ".schedule_enabled",
+                    pump=pump,
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+            dn += new_pump
+        entities += [
+            ReefRunSwitchEntity(device, description)
+            for description in dn
+            if description.exists_fn(device)
+        ]
+
     elif type(device).__name__ == "ReefDoseCoordinator":
         dn = ()
         for head in range(1, device.heads_nb + 1):
@@ -282,7 +321,6 @@ async def async_setup_entry(
                 ),
             )
             dn += new_head
-
         entities += [
             ReefDoseSwitchEntity(device, description)
             for description in dn
@@ -575,5 +613,56 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
         identifiers = list(di["identifiers"])[0]
         head = ("head_" + str(self._head),)
         identifiers += head
+        di["identifiers"] = {identifiers}
+        return di
+
+
+###############################################################################
+# RUN
+class ReefRunSwitchEntity(ReefBeatSwitchEntity):
+    """Represent an ReefBeat switch."""
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self, device, entity_description: ReefRunSwitchEntityDescription
+    ) -> None:
+        """Set up the instance."""
+        super().__init__(device, entity_description)
+        self._pump = entity_description.pump
+
+    async def async_turn_on(self, **kwargs):
+        """Turn the switch on."""
+        self._state = True
+        self._device.set_data(self.entity_description.value_name, True)
+        self._device.async_update_listeners()
+        self.async_write_ha_state()
+        # await self._device.push_values('/pump/'+str(self._pump)+'/settings',self.entity_description.method)
+        if self.entity_description.notify:
+            self._device._hass.bus.fire(self.entity_description.value_name, {})
+
+        await self._device.push_values(source="/pump/settings", pump=self._pump)
+        await self._device.async_quick_request_refresh("/pump/settings")
+        # await self._device.async_request_refresh()
+
+    async def async_turn_off(self, **kwargs):
+        self._state = False
+        self._device.set_data(self.entity_description.value_name, False)
+        self._device.async_update_listeners()
+        self.async_write_ha_state()
+        if self.entity_description.notify:
+            self._device._hass.bus.fire(self.entity_description.value_name, {})
+        await self._device.push_values(source="/pump/settings", pump=self._pump)
+        await self._device.async_quick_request_refresh("/pump/settings")
+        # await self._device.async_request_refresh()
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        di = self._device.device_info
+        di["name"] += "_pump_" + str(self._pump)
+        identifiers = list(di["identifiers"])[0]
+        pump = ("pump_" + str(self._pump),)
+        identifiers += pump
         di["identifiers"] = {identifiers}
         return di
