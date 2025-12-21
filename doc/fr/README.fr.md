@@ -76,7 +76,7 @@ Pour nous aider à traduire, suivez ce [guide](https://github.com/Elwinmage/ha-r
 <td rowspan="6"> <a href="#reefled">ReefLed</a></td>
 <td rowspan="3">G1</td>
 <td>RSLED50</td>
-<td>☑️</td>
+<td>✅</td>
 <td rowspan="3" width="200px"><img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/rsled_g1.png"/></td>
 <td rowspan="6">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsled,all label:enhancement" style="text-decoration:none">📆</a>
