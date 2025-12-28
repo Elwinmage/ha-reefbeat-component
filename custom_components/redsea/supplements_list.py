@@ -20,6 +20,7 @@ SUPPLEMENTS = [
         "concentration": None,
         "made_by_redsea": True,
         "fullname": "Red Sea - KH/Alkalinity (Foundation B)",
+        "sizes": [5000, 1000, 500, 250],
     },
     {
         "uid": "b703fc33-e777-418f-935c-319d3e0ec3c0",
@@ -42,6 +43,7 @@ SUPPLEMENTS = [
         "concentration": None,
         "made_by_redsea": True,
         "fullname": "Red Sea - Magnesium (Foundation C)",
+        "sizes": [5000, 1000, 500, 250],
     },
     {
         "uid": "14dbb6eb-4424-4530-a94f-466fd04d07ed",
@@ -64,6 +66,7 @@ SUPPLEMENTS = [
         "concentration": None,
         "made_by_redsea": True,
         "fullname": "Red Sea - Iodine (Colors A)",
+        "sizes": [500, 100],
     },
     {
         "uid": "2f386917-54bd-4dd4-aa8b-9d1fea37edc5",
@@ -75,6 +78,7 @@ SUPPLEMENTS = [
         "concentration": None,
         "made_by_redsea": True,
         "fullname": "Red Sea - Potassium (Colors B)",
+        "sizes": [500, 100],
     },
     {
         "uid": "c7a26034-8e40-41bb-bfb5-169089470f1e",
@@ -86,6 +90,7 @@ SUPPLEMENTS = [
         "concentration": None,
         "made_by_redsea": True,
         "fullname": "Red Sea - Iron (Colors C)",
+        "sizes": [500, 100],
     },
     {
         "uid": "7af9b16b-9e63-488e-8c86-261ef8c4a1ce",
@@ -97,6 +102,7 @@ SUPPLEMENTS = [
         "concentration": None,
         "made_by_redsea": True,
         "fullname": "Red Sea - Bio Active (Colors D)",
+        "sizes": [500, 100],
     },
     {
         "uid": "ffaf6ff8-bc6d-44eb-9e4b-e679943dc835",
@@ -108,6 +114,7 @@ SUPPLEMENTS = [
         "concentration": None,
         "made_by_redsea": True,
         "fullname": "Red Sea - NO3PO4-X",
+        "sizes": [5000, 1000, 500],
     },
     {
         "uid": "bf9a7da3-741b-4c1d-8542-d9344a95fb70",
@@ -119,6 +126,7 @@ SUPPLEMENTS = [
         "concentration": None,
         "made_by_redsea": True,
         "fullname": "Red Sea - Reef Energy Plus",
+        "sizes": [5000, 1000, 500, 250],
     },
     {
         "uid": "345a8f18-1787-47cd-87b2-a8da3a6531bc",
@@ -812,6 +820,7 @@ SUPPLEMENTS = [
         "concentration": None,
         "made_by_redsea": True,
         "fullname": "Red Sea - Calcium (Foundation A)",
+        "sizes": [5000, 1000, 500, 250],
     },
     {
         "uid": "f1b4e562-f31a-4d71-ad04-80837511dc50",

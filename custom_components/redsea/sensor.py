@@ -11,8 +11,6 @@ from homeassistant.core import callback
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
-from homeassistant.components.sensor import RestoreSensor
-
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -714,27 +712,6 @@ async def async_setup_entry(
         ds = ()
         for head in range(1, device.heads_nb + 1):
             new_head = (
-                RestoreSensorEntityDescription(
-                    key="save_initial_container_volume_head_" + str(head),
-                    translation_key="save_initial_container_volume",
-                    native_unit_of_measurement=UnitOfVolume.MILLILITERS,
-                    device_class=SensorDeviceClass.VOLUME,
-                    suggested_display_precision=0,
-                    value_name="$.local.head." + str(head) + ".initial_volume",
-                    icon="mdi:content-save-cog",
-                    dependency="$.sources[?(@.name=='/head/"
-                    + str(head)
-                    + "/settings')].data.container_volume",
-                    head=head,
-                ),
-            )
-            init_sensor = new_head
-            entities += [
-                RestoreSensorEntity(device, description)
-                for description in init_sensor
-                if description.exists_fn(device)
-            ]
-            new_head = (
                 ReefDoseSensorEntityDescription(
                     key="state_head_" + str(head),
                     translation_key="head_state",
@@ -1236,41 +1213,6 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
         identifiers += head
         di["identifiers"] = {identifiers}
         return di
-
-
-# -------------------------------------------------------------------------------
-# RestoreSensor
-class RestoreSensorEntity(ReefDoseSensorEntity, RestoreSensor):
-    _attr_has_entity_name = True
-
-    def __init__(
-        self, device, entity_description: ReefDoseSensorEntityDescription
-    ) -> None:
-        super().__init__(device, entity_description)
-        self._device._hass.bus.async_listen(
-            self.entity_description.dependency, self._handle_coordinator_update
-        )
-
-    @callback
-    def _handle_coordinator_update(self, event=None) -> None:
-        self._attr_available = True
-        if event:
-            _LOGGER.debug("Update %s" % event)
-            new_val = event.data.get("value")
-            self._device.set_data(self.entity_description.value_name, new_val)
-            self._attr_native_value = new_val
-            self.async_write_ha_state()
-            # self._handle_coordinator_update()
-
-    async def async_added_to_hass(self) -> None:
-        res = await self.async_get_last_sensor_data()
-        if res is not None:
-            self._attr_native_value = res.native_value
-            self._device.set_data(self.entity_description.value_name, res.native_value)
-        else:
-            self._attr_native_value = None
-        await super().async_added_to_hass()
-        #        self.async_write_ha_state()
 
 
 ################################################################################

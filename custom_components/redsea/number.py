@@ -20,6 +20,7 @@ from homeassistant.components.number import (
     NumberDeviceClass,
     NumberEntity,
     NumberEntityDescription,
+    RestoreNumber,
 )
 
 from homeassistant.const import (
@@ -71,6 +72,17 @@ class ReefBeatNumberEntityDescription(NumberEntityDescription):
     dependency: str = None
     dependency_values: [] = None
     translate: [] = None
+
+
+@dataclass(kw_only=True)
+class RestoreNumberEntityDescription(NumberEntityDescription):
+    """Describes reefbeat number entity."""
+
+    exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
+    head: int = 0
+    value_name: str = None
+    dependency: str = None
+    dependency_values: str = None
 
 
 @dataclass(kw_only=True)
@@ -383,6 +395,31 @@ async def async_setup_entry(
         dn += new_head
         for head in range(1, device.heads_nb + 1):
             new_head = (
+                RestoreNumberEntityDescription(
+                    key="save_initial_container_volume_head_" + str(head),
+                    translation_key="save_initial_container_volume",
+                    native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+                    device_class=NumberDeviceClass.VOLUME_STORAGE,
+                    native_min_value=0,
+                    native_step=1,
+                    native_max_value=20000,
+                    value_name="$.local.head." + str(head) + ".initial_volume",
+                    icon="mdi:content-save-cog",
+                    dependency="$.sources[?(@.name=='/head/"
+                    + str(head)
+                    + "/settings')].data.container_volume",
+                    head=head,
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+            init_number = new_head
+            entities += [
+                RestoreNumberEntity(device, description)
+                for description in init_number
+                if description.exists_fn(device)
+            ]
+
+            new_head = (
                 ReefDoseNumberEntityDescription(
                     key="manual_head_" + str(head) + "_volume",
                     translation_key="manual_head_volume",
@@ -443,7 +480,7 @@ async def async_setup_entry(
                     device_class=NumberDeviceClass.VOLUME,
                     native_min_value=0,
                     native_step=1,
-                    native_max_value=6000,
+                    native_max_value=20000,
                     value_name="$.sources[?(@.name=='/head/"
                     + str(head)
                     + "/settings')].data.container_volume",
@@ -706,6 +743,43 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
             return di
         else:
             return self._device.device_info
+
+
+# -------------------------------------------------------------------------------
+# RestoreSensor
+class RestoreNumberEntity(ReefDoseNumberEntity, RestoreNumber):
+    _attr_has_entity_name = True
+
+    def __init__(
+        self, device, entity_description: RestoreNumberEntityDescription
+    ) -> None:
+        super().__init__(device, entity_description)
+        self._device._hass.bus.async_listen(
+            self.entity_description.dependency, self._handle_coordinator_update
+        )
+
+    @callback
+    def _handle_coordinator_update(self, event=None) -> None:
+        self._attr_available = True
+        if event:
+            _LOGGER.debug("Update %s" % event)
+            new_val = event.data.get("value")
+            self._device.set_data(self.entity_description.value_name, new_val)
+            self._attr_native_value = new_val
+            self.async_write_ha_state()
+            # self._handle_coordinator_update()
+
+    async def async_added_to_hass(self) -> None:
+        res = await self.async_get_last_extra_data()
+        if res is not None:
+            self._attr_native_value = res.as_dict()["native_value"]
+            self._device.set_data(
+                self.entity_description.value_name, self._attr_native_value
+            )
+        else:
+            self._attr_native_value = None
+        await super().async_added_to_hass()
+        #        self.async_write_ha_state()
 
 
 ################################################################################
