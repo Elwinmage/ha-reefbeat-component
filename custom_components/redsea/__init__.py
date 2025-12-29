@@ -136,4 +136,23 @@ async def async_setup(hass: HomeAssistant, config) -> bool:
     hass.services.async_register(
         DOMAIN, "request", handle_request, supports_response=SupportsResponse.OPTIONAL
     )
+
+    @callback
+    async def handle_clean_message(call: ServiceCall) -> ServiceResponse:
+        """Handle the service action call."""
+        device_id = call.data.get("device_id")
+
+        if device_id not in hass.data[DOMAIN]:
+            return {"error": "Device not enabled"}
+        device = hass.data[DOMAIN][device_id]
+        type_msg = call.data.get("msg_type")
+        device.clean_message(type_msg)
+
+    _LOGGER.debug("clean_message service REGISTERED %s" % config)
+    hass.services.async_register(
+        DOMAIN,
+        "clean_message",
+        handle_clean_message,
+        supports_response=SupportsResponse.NONE,
+    )
     return True

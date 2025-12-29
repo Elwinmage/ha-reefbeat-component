@@ -5,6 +5,7 @@ import time
 import numpy as np
 from jsonpath_ng.ext import parse
 import copy
+import datetime
 
 from homeassistant.exceptions import HomeAssistantError
 
@@ -73,6 +74,15 @@ class ReefBeatAPI:
         self.quick_refresh = None
         self._live_config_update = live_config_update
         self._header = {}
+
+    def clean_message(self, type_msg):
+        if type_msg == "All":
+            self.data["message"]["message"] = ""
+            self.data["message"]["alert"] = ""
+        elif type_msg == "last_message":
+            self.data["message"]["message"] = ""
+        elif type_msg == "last_alert_message":
+            self.data["message"]["alert"] = ""
 
     async def connect():
         pass
@@ -303,16 +313,33 @@ class ReefBeatAPI:
                 status_ok = (
                     r.status_code == 200 or r.status_code == 201 or r.status_code == 202
                 )
-                if r.status_code == 400 or r.status_code == 404:
+
+                d_now = datetime.datetime.now().strftime("%c") + " - "
+                if r.status_code == 404:
                     error_count = HTTP_MAX_RETRY
+                elif r.status_code == 400:
+                    error_count = HTTP_MAX_RETRY
+                    self.data["message"]["alert"] = {}
+                    self.data["message"]["alert"]["message"] = (
+                        d_now + r.json()["errors"][0]["message"]
+                    )
                 if not status_ok:
                     _LOGGER.error("%d: %s" % (r.status_code, r.text))
                     error_count += 1
                 else:
                     _LOGGER.debug("%d: %s" % (r.status_code, r.text))
                     self.data["message"] = r.json()
+                    self.data["message"]["message"] = (
+                        d_now + self.data["message"]["message"]
+                    )
                     if "alert" not in self.data["message"]:
+                        _LOGGER.debug("cleaning alert messages")
                         self.data["message"]["alert"] = ""
+                    else:
+                        if "message" in self.data["message"]["alert"]:
+                            self.data["message"]["alert"]["message"] = (
+                                d_now + self.data["message"]["alert"]["message"]
+                            )
             except Exception as e:
                 error_count += 1
                 _LOGGER.debug(

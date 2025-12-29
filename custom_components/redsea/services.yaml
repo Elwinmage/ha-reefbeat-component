@@ -1,8 +1,5 @@
 # Service ID
-request:
-  # target:
-  #   entity:
-  #    - integration: redsea
+clean_message:
   fields:
     device_id:
       name: Device ID
@@ -11,10 +8,27 @@ request:
       selector:
         config_entry:
           integration: redsea    
-        # device:
-        #   multiple: false
-        #   filter:
-        #     - integration: redsea
+    msg_type:
+      required: true
+      description: Type of message to clean
+      default: "All"
+      example: "last_alert_message"
+      selector:
+        select:
+          options:
+            - "All"
+            - "last_message"
+            - "last_alert_message"
+# Service ID
+request:
+  fields:
+    device_id:
+      name: Device ID
+      description: The ID of the device(s) to use.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea    
     access_path:
       required: true
       description: Access pass

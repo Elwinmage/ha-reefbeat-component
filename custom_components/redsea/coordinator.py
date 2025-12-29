@@ -96,6 +96,10 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self._boot = True
 
+    def clean_message(self, msg_type):
+        self.my_api.clean_message(msg_type)
+        self.async_update_listeners()
+
     async def _async_update_data(self):
         try:
             async with async_timeout.timeout(DEFAULT_TIMEOUT * 2):
