@@ -114,6 +114,9 @@
       }
     },
     "number": {
+	"save_initial_container_volume":{
+	    "name": "Container Capacity"
+	},
       "ato_volume_left": {
         "name": "ATO Volume Left"
       },
@@ -267,9 +270,6 @@
       },
       "last_message": {
         "name": "Last Message"
-      },
-      "save_initial_container_volume": {
-        "name": "Container Initial Volume"
       },
       "schedule_head": {
         "name": "Head Schedule"

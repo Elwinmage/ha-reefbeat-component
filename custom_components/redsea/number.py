@@ -400,14 +400,14 @@ async def async_setup_entry(
                     translation_key="save_initial_container_volume",
                     native_unit_of_measurement=UnitOfVolume.MILLILITERS,
                     device_class=NumberDeviceClass.VOLUME_STORAGE,
-                    native_min_value=0,
+                    native_min_value=25,
                     native_step=1,
                     native_max_value=20000,
                     value_name="$.local.head." + str(head) + ".initial_volume",
                     icon="mdi:content-save-cog",
                     dependency="$.sources[?(@.name=='/head/"
                     + str(head)
-                    + "/settings')].data.container_volume",
+                    + "/settings')].data.slm",
                     head=head,
                     entity_category=EntityCategory.CONFIG,
                 ),
@@ -746,7 +746,7 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
 
 
 # -------------------------------------------------------------------------------
-# RestoreSensor
+# RestoreNumber
 class RestoreNumberEntity(ReefDoseNumberEntity, RestoreNumber):
     _attr_has_entity_name = True
 
@@ -754,20 +754,19 @@ class RestoreNumberEntity(ReefDoseNumberEntity, RestoreNumber):
         self, device, entity_description: RestoreNumberEntityDescription
     ) -> None:
         super().__init__(device, entity_description)
-        self._device._hass.bus.async_listen(
-            self.entity_description.dependency, self._handle_coordinator_update
-        )
+        # self._device._hass.bus.async_listen(
+        #     self.entity_description.dependency, self._handle_coordinator_update
+        # )
 
-    @callback
-    def _handle_coordinator_update(self, event=None) -> None:
-        self._attr_available = True
-        if event:
-            _LOGGER.debug("Update %s" % event)
-            new_val = event.data.get("value")
-            self._device.set_data(self.entity_description.value_name, new_val)
-            self._attr_native_value = new_val
-            self.async_write_ha_state()
-            # self._handle_coordinator_update()
+    # def _handle_coordinator_update(self, event=None) -> None:
+    #     self._attr_available = True
+    #     if event:
+    #         _LOGGER.debug("Update %s" % event)
+    #         new_val = event.data.get("value")
+    #         self._device.set_data(self.entity_description.value_name, new_val)
+    #         self._attr_native_value = new_val
+    #         self.async_write_ha_state()
+    #         # self._handle_coordinator_update()
 
     async def async_added_to_hass(self) -> None:
         res = await self.async_get_last_extra_data()
@@ -777,7 +776,7 @@ class RestoreNumberEntity(ReefDoseNumberEntity, RestoreNumber):
                 self.entity_description.value_name, self._attr_native_value
             )
         else:
-            self._attr_native_value = None
+            self._attr_native_value = 0
         await super().async_added_to_hass()
         #        self.async_write_ha_state()
 

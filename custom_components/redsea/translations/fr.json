@@ -113,8 +113,11 @@
         "name": "Arrêt du remplissage"
       }
     },
-    "number": {
-      "ato_volume_left": {
+      "number": {
+	"save_initial_container_volume":{
+	    "name": "Capacité du conteneur"
+	},
+	"ato_volume_left": {
         "name": "Volume ATO restant"
       },
       "calibration_dose_value": {
@@ -268,9 +271,6 @@
       },
       "last_message": {
         "name": "Dernier Message"
-      },
-      "save_initial_container_volume": {
-        "name": "Volume intial"
       },
       "schedule_head": {
         "name": "Programme de la pompe"

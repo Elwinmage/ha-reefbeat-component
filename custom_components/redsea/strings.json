@@ -117,6 +117,9 @@
 	    
 	},
 	"number":{
+	    "save_initial_container_volume":{
+		"name": "Container Capacity"
+	    },
 	    "calibration_dose_value":{
 		"name": "Dose of Calibration"
 	    },
@@ -269,9 +272,6 @@
 	    },
 	    "last_message":{
 		"name": "Last Message"
-	    },
-	    "save_initial_container_volume":{
-		"name": "Container Initial Volume"
 	    },
 	    "schedule_head":{
 		"name": "Head Schedule"
