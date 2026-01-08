@@ -427,7 +427,7 @@ async def async_setup_entry(
                     native_unit_of_measurement=UnitOfVolume.MILLILITERS,
                     device_class=NumberDeviceClass.VOLUME,
                     native_min_value=0,
-                    native_step=1,
+                    native_step=0.1,
                     native_max_value=300,
                     value_name="$.local.head." + str(head) + ".manual_dose",
                     icon="mdi:cup-water",
@@ -441,7 +441,7 @@ async def async_setup_entry(
                     key="calibration_dose_value_head_" + str(head),
                     translation_key="calibration_dose_value",
                     native_unit_of_measurement=UnitOfVolume.MILLILITERS,
-                    native_min_value=4.5,
+                    native_min_value=3.5,
                     native_step=0.05,
                     native_max_value=5.5,
                     value_name="$.local.head." + str(head) + ".calibration_dose",
@@ -460,7 +460,7 @@ async def async_setup_entry(
                     native_unit_of_measurement=UnitOfVolume.MILLILITERS,
                     device_class=NumberDeviceClass.VOLUME,
                     native_min_value=0,
-                    native_step=1,
+                    native_step=0.1,
                     native_max_value=300,
                     value_name="$.sources[?(@.name=='/head/"
                     + str(head)
@@ -717,7 +717,7 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         self._head = self.entity_description.head
         self._attr_native_value = 0
 
-    async def async_set_native_value(self, value: int) -> None:
+    async def async_set_native_value(self, value) -> None:
         """Update the current value."""
         _LOGGER.debug("Reefbeat.number.set_native_value %f" % value)
         self._attr_native_value = value
