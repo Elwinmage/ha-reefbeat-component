@@ -766,7 +766,7 @@ class ReefDoseAPI(ReefBeatAPI):
             )
             self.data["local"]["head"][str(head)] = {
                 "manual_dose": 5,
-                "calibration_dose": 5,
+                "calibration_dose": 4,
                 "initial_volume": None,
                 "new_supplement": "7d67412c-fde0-44d4-882a-dc8746fd4acb",
                 "new_supplement_brand_name": "",
