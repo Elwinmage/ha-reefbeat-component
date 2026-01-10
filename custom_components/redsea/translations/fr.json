@@ -10,7 +10,7 @@
           "add_type": "Méthode d'ajout",
           "hw_model": "Modèle hardware",
           "virtual_led": "Nouvelle Led virtuelle",
-            "platform": "Plateforme",
+          "platform": "Plateforme"
         }
       }
     },
