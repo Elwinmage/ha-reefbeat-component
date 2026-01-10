@@ -516,6 +516,9 @@ Waves and Leds parameters ares sorted by Tanks.
   <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_api_conf.png" alt="Image">
 </p>
 
+>[!TIP]
+> You can disable getting the supplements list in the configuration of the Cloud API device.
+>    <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_config.png" alt="Image">
  
 ***
 # FAQ
