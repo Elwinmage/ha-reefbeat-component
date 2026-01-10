@@ -28,6 +28,7 @@ from .const import (
     DEFAULT_TIMEOUT,
     CONFIG_FLOW_CLOUD_USERNAME,
     CONFIG_FLOW_CLOUD_PASSWORD,
+    CONFIG_FLOW_DISABLE_SUPPLEMENT,
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_SCAN_INTERVAL,
@@ -370,6 +371,13 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         # only led linked to this virtual device
         self._linked = []
         self._only_g1 = True
+        if LINKED_LED not in entry.data:
+            _LOGGER.error(
+                "You have no LED setup, please add at minimum two real LEDs before configuring a virtual LED "
+            )
+            super().__init__(hass, entry)
+            return
+
         for led in entry.data[LINKED_LED]:
             if led.split("-")[1] in HW_G2_LED_IDS:
                 _LOGGER.debug("G2 light detected")
@@ -847,7 +855,9 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
             self._entry.data[CONFIG_FLOW_CLOUD_PASSWORD],
             self._entry.data[CONFIG_FLOW_CONFIG_TYPE],
             self._ip,
+            self._entry.data[CONFIG_FLOW_DISABLE_SUPPLEMENT],
         )
+        self.disable_supplement = self._entry.data[CONFIG_FLOW_DISABLE_SUPPLEMENT]
 
     async def _async_setup(self) -> None:
         """Do initialization logic."""

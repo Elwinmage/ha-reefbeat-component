@@ -12,7 +12,8 @@
 		    "hw_model": "Hardware Model",
 		    "virtual_led": "New virtual LED Controler",
                     "platform": "Platform",
-		    "scan_interval": "scan interval"
+		    "scan_interval": "scan interval",
+   		    "disable_supplements": "Disable Supplements"
                 }
             }
         },
@@ -43,9 +44,12 @@
 		"data":{
 		    "slaves": "LED",
 		    "not_virtual": "Not configurable",
-		    "live_config_update": "Live Configuration Update"
-		}
-		
+		    "live_config_update": "Live Configuration Update",
+		    "scan_interval": "Scan interval",
+   		    "disable_supplements": "Disable Supplements",
+		    "username": "Username",
+		    "password": "Password"
+		},
 	    }
 	}
     },

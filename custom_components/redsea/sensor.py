@@ -1023,23 +1023,24 @@ async def async_setup_entry(
             )
             ds += new_wave
         # SUPPLEMENTS
-        supplements = device.my_api.get_data(
-            "$.sources[?(@.name=='" + SUPPLEMENTS_LIBRARY + "')].data"
-        )
-        for supplement in supplements:
-            new_supplement = (
-                ReefBeatCloudSensorEntityDescription(
-                    key="supplement_" + str(supplement["uid"]),
-                    translation_key="supplement_program",
-                    icon="mdi:sine-supplement",
-                    value_name="$.sources[?(@.name=='"
-                    + SUPPLEMENTS_LIBRARY
-                    + "')].data[?(@.uid=='"
-                    + str(supplement["uid"])
-                    + "')].name",
-                ),
+        if not device.disable_supplement:
+            supplements = device.my_api.get_data(
+                "$.sources[?(@.name=='" + SUPPLEMENTS_LIBRARY + "')].data"
             )
-            ds += new_supplement
+            for supplement in supplements:
+                new_supplement = (
+                    ReefBeatCloudSensorEntityDescription(
+                        key="supplement_" + str(supplement["uid"]),
+                        translation_key="supplement_program",
+                        icon="mdi:sine-supplement",
+                        value_name="$.sources[?(@.name=='"
+                        + SUPPLEMENTS_LIBRARY
+                        + "')].data[?(@.uid=='"
+                        + str(supplement["uid"])
+                        + "')].name",
+                    ),
+                )
+                ds += new_supplement
         entities += [
             ReefBeatCloudSensorEntity(device, description)
             for description in ds

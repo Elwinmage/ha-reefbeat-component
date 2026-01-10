@@ -969,7 +969,9 @@ class ReefWaveAPI(ReefBeatAPI):
 class ReefBeatCloudAPI(ReefBeatAPI):
     """Reefbeat cloud API"""
 
-    def __init__(self, username, password, live_config_update, ip) -> None:
+    def __init__(
+        self, username, password, live_config_update, ip, disable_supplement
+    ) -> None:
         super().__init__(ip, live_config_update, secure=True)
         self._username = username
         self._password = password
@@ -983,6 +985,10 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             {"name": WAVES_LIBRARY, "type": "config", "data": ""},
             {"name": SUPPLEMENTS_LIBRARY, "type": "config", "data": ""},
         ]
+        if disable_supplement:
+            self.data["sources"].remove(
+                {"name": SUPPLEMENTS_LIBRARY, "type": "config", "data": ""}
+            )
 
     async def http_send(self, action, payload, method):
         res = await self._http_send(self._base_url + action, payload, method)

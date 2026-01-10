@@ -30,6 +30,7 @@ from .const import (
     CONFIG_FLOW_ADD_TYPE,
     CONFIG_FLOW_CLOUD_USERNAME,
     CONFIG_FLOW_CLOUD_PASSWORD,
+    CONFIG_FLOW_DISABLE_SUPPLEMENT,
     ADD_TYPES,
     ADD_CLOUD_API,
     ADD_LOCAL_DETECT,
@@ -481,6 +482,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                             default=get_scan_interval(hw_model),
                         ): int,
                         vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
+                        vol.Required(
+                            CONFIG_FLOW_DISABLE_SUPPLEMENT, default=True
+                        ): bool,
                     }
                 )
 
