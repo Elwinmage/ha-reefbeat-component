@@ -6,6 +6,7 @@ import numpy as np
 from jsonpath_ng.ext import parse
 import copy
 import datetime
+from urllib.parse import quote_plus
 
 from homeassistant.exceptions import HomeAssistantError
 
@@ -1002,9 +1003,9 @@ class ReefBeatCloudAPI(ReefBeatAPI):
         }
         payload = (
             "grant_type=password&username="
-            + self._username
+            + quote_plus(self._username.encode("UTF-8"))
             + "&password="
-            + self._password
+            + quote_plus(self._password.encode("UTF-8"))
         )
         r = httpx.post(
             "https://" + self.ip + "/oauth/token",

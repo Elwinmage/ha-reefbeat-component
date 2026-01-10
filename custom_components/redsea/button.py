@@ -416,11 +416,12 @@ async def async_setup_entry(
             for description in FETCH_CONFIG_BUTTON
             if description.exists_fn(device)
         ]
-    entities += [
-        ReefBeatButtonEntity(device, description)
-        for description in FIRMWARE_UPDATE_BUTTON
-        if description.exists_fn(device)
-    ]
+    if type(device).__name__ != "ReefBeatCloudCoordinator":
+        entities += [
+            ReefBeatButtonEntity(device, description)
+            for description in FIRMWARE_UPDATE_BUTTON
+            if description.exists_fn(device)
+        ]
 
     async_add_entities(entities, True)
 
