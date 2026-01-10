@@ -507,6 +507,9 @@ Les paramètres des vagues et des LEDs sont triés par aquarium.
 <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_api_conf.png" alt="Image">
 </p>
 
+>[!TIP]
+> Il est possible de désactiver la récupération de la liste des suppléments via l'interface de configuration du périphérique API Cloud.
+>    <img src="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/img/cloud_config.png" alt="Image">
 ***
 # FAQ
 
