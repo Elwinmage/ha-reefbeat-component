@@ -43,7 +43,7 @@
           "not_virtual": "Pas de configuration disponible",
             "live_config_update": "MAJ de la configuration en direct",
             "scan_interval": "Intervalle de rafraichissement",
-	    "disable_supplements": "Désactiver les Suppléments"
+	    "disable_supplements": "Désactiver les Suppléments",
 	    "username": "Nom d'utilisateur",
 	    "password": "Mot de passe"
         }
