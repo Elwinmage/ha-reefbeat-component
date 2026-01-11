@@ -24,7 +24,7 @@ from homeassistant.components.update import (
     UpdateEntityFeature,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -162,6 +162,25 @@ class ReefBeatUpdateEntity(UpdateEntity):
     async def async_added_to_hass(self) -> None:
         """Register coordinator and event listeners after added to HA."""
         await super().async_added_to_hass()
+
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            # Restore versions if we don't have anything yet.
+            if (
+                not self._attr_installed_version
+                and "installed_version" in last_state.attributes
+            ):
+                self._attr_installed_version = cast(
+                    str, last_state.attributes["installed_version"]
+                )
+            if (
+                not self._attr_latest_version
+                and "latest_version" in last_state.attributes
+            ):
+                self._attr_latest_version = cast(
+                    str, last_state.attributes["latest_version"]
+                )
+
         self.async_on_remove(
             self._device.async_add_listener(self._handle_device_update)
         )

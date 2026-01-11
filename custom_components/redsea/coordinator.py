@@ -133,7 +133,16 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except UpdateFailed:
             raise
         except Exception as err:
-            raise UpdateFailed(f"Error communicating with API: {self._title}") from err
+            _LOGGER.debug(
+                "Coordinator update failed for %s (%s): %s",
+                self._title,
+                self._ip,
+                err,
+                exc_info=True,
+            )
+            raise UpdateFailed(
+                f"{self._title} ({self._ip}) update failed: {err.__class__.__name__}: {err}"
+            ) from err
 
     async def update(self) -> None:
         """Legacy helper; prefer `async_request_refresh()`."""

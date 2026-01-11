@@ -43,13 +43,13 @@ from __future__ import annotations
 
 import datetime
 import logging
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Any, Protocol, cast, runtime_checkable
 
 from homeassistant.components.sensor import (
-    RestoreSensor,
     SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
@@ -59,6 +59,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
     EntityCategory,
     UnitOfLength,
     UnitOfTemperature,
@@ -68,6 +70,7 @@ from homeassistant.const import (
 from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import StateType
 
 from .const import (
@@ -1202,7 +1205,7 @@ async def async_setup_entry(
 # =============================================================================
 
 
-class ReefBeatSensorEntity(SensorEntity):
+class ReefBeatSensorEntity(RestoreEntity, SensorEntity):
     """Base sensor entity backed by a ReefBeat device/coordinator.
 
     Responsibilities:
@@ -1227,7 +1230,33 @@ class ReefBeatSensorEntity(SensorEntity):
         self._attr_unique_id = f"{device.serial}_{self._description.key}"
 
     async def async_added_to_hass(self) -> None:
-        """Register update listeners once added to Home Assistant."""
+        """Register listeners and restore the last state on Home Assistant restart."""
+        await super().async_added_to_hass()
+
+        # Restore previous state early so entities keep a useful value across restarts,
+        # even if the device/coordinator has not provided fresh data yet.
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            # Best-effort type coercion: keep strings, coerce numerics when sensible.
+            restored: StateType
+            try:
+                state_str = last_state.state
+
+                if self.native_unit_of_measurement and re.fullmatch(
+                    r"-?\d+(?:\.\d+)?", state_str.strip()
+                ):
+                    restored = float(state_str)
+                else:
+                    restored = state_str
+            except Exception:
+                restored = last_state.state
+
+            # Only apply if we don't have a value yet (or were marked unavailable).
+            if self._attr_native_value is None or not self._attr_available:
+                self._attr_native_value = restored
+                self._attr_available = True
+                self.async_write_ha_state()
+
         self.async_on_remove(
             self._device.async_add_listener(self._handle_device_update)
         )
@@ -1386,11 +1415,11 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
         return cast(DeviceInfo, di)
 
 
-class RestoreSensorEntity(ReefDoseSensorEntity, RestoreSensor):
+class RestoreSensorEntity(ReefDoseSensorEntity):
     """Restore-capable ReefDose sensor.
 
     This entity:
-    - Restores its last state using HA's RestoreSensor
+    - Restores its last state using HA's RestoreEntity
     - Optionally listens to a bus event (`dependency`) to update the restored value
     - Mirrors restored/updated values into the coordinator cache at `value_name`
     """
@@ -1415,13 +1444,18 @@ class RestoreSensorEntity(ReefDoseSensorEntity, RestoreSensor):
                 self._device.hass.bus.async_listen(dep, self._handle_restore_event)
             )
 
-        res = await self.async_get_last_sensor_data()
-        if res is not None:
-            self._attr_native_value = res.native_value
+        last_state = await self.async_get_last_state()
+        if last_state is not None and last_state.state not in (
+            STATE_UNKNOWN,
+            STATE_UNAVAILABLE,
+        ):
+            # Prefer native_value (if present) so numbers restore as numbers.
+            restored: StateType = cast(
+                StateType, last_state.attributes.get("native_value", last_state.state)
+            )
+            self._attr_native_value = restored
             if self._restore_description.value_name:
-                self._device.set_data(
-                    self._restore_description.value_name, res.native_value
-                )
+                self._device.set_data(self._restore_description.value_name, restored)
         else:
             self._attr_native_value = None
 

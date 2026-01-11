@@ -17,9 +17,10 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -386,7 +387,7 @@ TDevice = TypeVar("TDevice", bound=ReefBeatCoordinator)
 # REEFBEAT
 # -------------------------------------
 class ReefBeatBinarySensorEntity(  # pyright: ignore[reportIncompatibleVariableOverride]
-    CoordinatorEntity[TDevice], BinarySensorEntity, Generic[TDevice]
+    RestoreEntity, CoordinatorEntity[TDevice], BinarySensorEntity, Generic[TDevice]
 ):
     """Binary sensor backed by a ReefBeat coordinator."""
 
@@ -404,6 +405,14 @@ class ReefBeatBinarySensorEntity(  # pyright: ignore[reportIncompatibleVariableO
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._attr_device_info = device.device_info
         self._attr_is_on = self._coerce_bool(self._get_value())
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the last state on Home Assistant restart."""
+        await super().async_added_to_hass()
+
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            self._attr_is_on = last_state.state == "on"
 
     @property
     def desc(self) -> ReefBeatBinarySensorEntityDescription[TDevice]:

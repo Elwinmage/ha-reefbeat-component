@@ -33,7 +33,7 @@ from typing import Any, Protocol, cast, runtime_checkable
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -485,7 +485,7 @@ class SaveStateSwitchEntity(RestoreEntity, SwitchEntity):
         return self._device.device_info
 
 
-class ReefBeatSwitchEntity(SwitchEntity):
+class ReefBeatSwitchEntity(RestoreEntity, SwitchEntity):
     """Base switch entity backed by the ReefBeat coordinator cache."""
 
     _attr_has_entity_name = True
@@ -512,7 +512,16 @@ class ReefBeatSwitchEntity(SwitchEntity):
             self._source = ""
 
     async def async_added_to_hass(self) -> None:
-        """Register update listeners once added to Home Assistant."""
+        """Register listeners and restore the last state on Home Assistant restart."""
+        await super().async_added_to_hass()
+
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            if self._attr_is_on is None or not self._attr_available:
+                self._attr_is_on = last_state.state == "on"
+                self._attr_available = True
+                self.async_write_ha_state()
+
         self.async_on_remove(
             self._device.async_add_listener(self._handle_device_update)
         )

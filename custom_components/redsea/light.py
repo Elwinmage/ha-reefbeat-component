@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Final
+from typing import Any, Final, cast
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -24,8 +24,10 @@ from homeassistant.components.light import (
 )
 from homeassistant.components.light.const import ColorMode
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
     DOMAIN,
@@ -194,7 +196,7 @@ async def async_setup_entry(
 # -----------------------------------------------------------------------------
 # Entities
 # -----------------------------------------------------------------------------
-class ReefLedLightEntity(LightEntity):
+class ReefLedLightEntity(RestoreEntity, LightEntity):
     """Light entity for a ReefBeat LED channel.
 
     Reads state from the device coordinator and writes changes back via the
@@ -226,6 +228,24 @@ class ReefLedLightEntity(LightEntity):
 
     async def async_added_to_hass(self) -> None:
         """Register listeners and initialize state once added to Home Assistant."""
+        await super().async_added_to_hass()
+
+        # Restore previous state across restarts (best-effort).
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            try:
+                self._attr_is_on = last_state.state == "on"
+                if "brightness" in last_state.attributes:
+                    self._attr_brightness = cast(
+                        int, last_state.attributes["brightness"]
+                    )
+                if "color_temp_kelvin" in last_state.attributes:
+                    self._attr_color_temp_kelvin = cast(
+                        int, last_state.attributes["color_temp_kelvin"]
+                    )
+            except Exception:
+                pass
+
         # Coordinator listener => update entity when coordinator refreshes.
         self.async_on_remove(
             self._device.async_add_listener(self._handle_coordinator_update)

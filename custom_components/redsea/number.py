@@ -23,6 +23,8 @@ from homeassistant.components.number import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
     EntityCategory,
     UnitOfLength,
     UnitOfTime,
@@ -31,6 +33,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
     ATO_VOLUME_LEFT_INTERNAL_NAME,
@@ -604,7 +607,7 @@ async def async_setup_entry(
 # -------------------------------------
 # REEFBEAT
 # -------------------------------------
-class ReefBeatNumberEntity(NumberEntity):
+class ReefBeatNumberEntity(RestoreEntity, NumberEntity):
     """Base number entity backed by a ReefBeat coordinator.
 
     We intentionally do not subclass `CoordinatorEntity` to avoid conflicts between
@@ -632,7 +635,21 @@ class ReefBeatNumberEntity(NumberEntity):
             pass
 
     async def async_added_to_hass(self) -> None:
-        """Register listeners and initialize state once added to HA."""
+        """Register listeners and restore the last state on Home Assistant restart."""
+        await super().async_added_to_hass()
+
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            if self._attr_native_value is None or not self._attr_available:
+                try:
+                    self._attr_native_value = float(last_state.state)
+                except Exception:
+                    # Fall back to leaving it unset if it is not numeric
+                    self._attr_native_value = None
+                else:
+                    self._attr_available = True
+                    self.async_write_ha_state()
+
         self.async_on_remove(
             self._device.async_add_listener(self._handle_device_update)
         )
