@@ -25,10 +25,10 @@ from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import DOMAIN
 from .coordinator import ReefMatCoordinator
+from .entity import ReefBeatRestoreEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ async def async_setup_entry(
 # =============================================================================
 
 
-class ReefMatTimeEntity(RestoreEntity, TimeEntity):
+class ReefMatTimeEntity(ReefBeatRestoreEntity, TimeEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """ReefMat time entity backed by the coordinator cache."""
 
     _attr_has_entity_name = True
@@ -97,10 +97,9 @@ class ReefMatTimeEntity(RestoreEntity, TimeEntity):
         device: ReefMatCoordinator,
         entity_description: ReefMatTimeEntityDescription,
     ) -> None:
-        super().__init__()
+        ReefBeatRestoreEntity.__init__(self, device)
         self._device = device
 
-        # Keep HA typing for entity_description; store typed description separately.
         self.entity_description = cast(TimeEntityDescription, entity_description)
         self._desc: ReefMatTimeEntityDescription = entity_description
 
@@ -125,10 +124,11 @@ class ReefMatTimeEntity(RestoreEntity, TimeEntity):
                 else:
                     self._attr_available = True
                     self.async_write_ha_state()
+        # CoordinatorEntity already listens for coordinator updates.
+        self._handle_device_update()
 
-        self.async_on_remove(
-            self._device.async_add_listener(self._handle_device_update)
-        )
+    @callback
+    def _handle_coordinator_update(self) -> None:
         self._handle_device_update()
 
     @callback
@@ -159,7 +159,7 @@ class ReefMatTimeEntity(RestoreEntity, TimeEntity):
         # ReefMatCoordinator uses a parameterless push for its configuration.
         await self._device.push_values()
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info

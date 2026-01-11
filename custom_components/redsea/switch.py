@@ -64,6 +64,7 @@ from .coordinator import (
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
 )
+from .entity import ReefBeatRestoreEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -480,12 +481,12 @@ class SaveStateSwitchEntity(RestoreEntity, SwitchEntity):
         self._device.set_data("$.local." + self._desc.key, bool(self._attr_is_on))
         self.async_write_ha_state()
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         return self._device.device_info
 
 
-class ReefBeatSwitchEntity(RestoreEntity, SwitchEntity):
+class ReefBeatSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Base switch entity backed by the ReefBeat coordinator cache."""
 
     _attr_has_entity_name = True
@@ -495,8 +496,9 @@ class ReefBeatSwitchEntity(RestoreEntity, SwitchEntity):
         device: ReefBeatCoordinator,
         entity_description: ReefBeatSwitchEntityDescription,
     ) -> None:
-        super().__init__()
+        ReefBeatRestoreEntity.__init__(self, device)
         self._device = device
+
         self.entity_description = cast(SwitchEntityDescription, entity_description)
         self._desc: ReefBeatSwitchEntityDescription = entity_description
 
@@ -521,10 +523,11 @@ class ReefBeatSwitchEntity(RestoreEntity, SwitchEntity):
                 self._attr_is_on = last_state.state == "on"
                 self._attr_available = True
                 self.async_write_ha_state()
+        # CoordinatorEntity already listens for coordinator updates.
+        self._handle_device_update()
 
-        self.async_on_remove(
-            self._device.async_add_listener(self._handle_device_update)
-        )
+    @callback
+    def _handle_coordinator_update(self) -> None:
         self._handle_device_update()
 
     @callback
@@ -617,7 +620,7 @@ class ReefBeatSwitchEntity(RestoreEntity, SwitchEntity):
             await pusher.push_values(self._source, self._desc.method)
             await pusher.async_quick_request_refresh(self._source)
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         return self._device.device_info
 
@@ -716,7 +719,7 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
         await dose.push_values(self._head)
         await dose.async_quick_request_refresh("/head/" + str(self._head) + "/settings")
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         di = dict(self._device.device_info)
         di["name"] = f"{di.get('name', '')}_head_{self._head}"
@@ -775,7 +778,7 @@ class ReefRunSwitchEntity(ReefBeatSwitchEntity):
         await run.push_values("/pump/settings", self._typed_desc.method)
         await run.async_quick_request_refresh("/pump/settings")
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         di = dict(self._device.device_info)
         di["name"] = f"{di.get('name', '')}_pump_{self._pump}"

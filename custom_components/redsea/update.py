@@ -31,6 +31,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .coordinator import ReefBeatCoordinator
+from .entity import ReefBeatRestoreEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -120,7 +121,7 @@ async def async_setup_entry(
 # =============================================================================
 
 
-class ReefBeatUpdateEntity(UpdateEntity):
+class ReefBeatUpdateEntity(ReefBeatRestoreEntity, UpdateEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Firmware update entity backed by coordinator + cloud version discovery."""
 
     _attr_has_entity_name = True
@@ -128,11 +129,11 @@ class ReefBeatUpdateEntity(UpdateEntity):
 
     def __init__(
         self,
-        device: _CloudLinkedCoordinator,
+        device: ReefBeatCoordinator,
         entity_description: ReefBeatUpdateEntityDescription,
     ) -> None:
-        super().__init__()
-        self._device = device
+        ReefBeatRestoreEntity.__init__(self, device)
+        self._device = cast(_CloudLinkedCoordinator, device)
 
         self.entity_description = cast(UpdateEntityDescription, entity_description)
         self._desc: ReefBeatUpdateEntityDescription = entity_description
@@ -180,10 +181,7 @@ class ReefBeatUpdateEntity(UpdateEntity):
                 self._attr_latest_version = cast(
                     str, last_state.attributes["latest_version"]
                 )
-
-        self.async_on_remove(
-            self._device.async_add_listener(self._handle_device_update)
-        )
+        # CoordinatorEntity already listens for coordinator updates.
         self.async_on_remove(
             self.hass.bus.async_listen(
                 "request_latest_firmware", self._handle_ask_for_latest_firmware
@@ -194,6 +192,10 @@ class ReefBeatUpdateEntity(UpdateEntity):
     def _get_installed_from_cache(self) -> str | None:
         raw = self._device.get_data(self._desc.version_path, True)
         return cast(str | None, raw) if raw else self._device.sw_version
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._handle_device_update()
 
     @callback
     def _handle_device_update(self) -> None:
@@ -236,7 +238,7 @@ class ReefBeatUpdateEntity(UpdateEntity):
         self._attr_installed_version = self.latest_version
         self.async_write_ha_state()
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info

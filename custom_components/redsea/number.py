@@ -33,7 +33,6 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
     ATO_VOLUME_LEFT_INTERNAL_NAME,
@@ -52,6 +51,7 @@ from .const import (
 )
 from .coordinator import (
     ReefATOCoordinator,
+    ReefBeatCoordinator,
     ReefDoseCoordinator,
     ReefLedCoordinator,
     ReefLedG2Coordinator,
@@ -60,6 +60,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
+from .entity import ReefBeatRestoreEntity
 from .i18n import translate
 
 _LOGGER = logging.getLogger(__name__)
@@ -607,7 +608,7 @@ async def async_setup_entry(
 # -------------------------------------
 # REEFBEAT
 # -------------------------------------
-class ReefBeatNumberEntity(RestoreEntity, NumberEntity):
+class ReefBeatNumberEntity(ReefBeatRestoreEntity, NumberEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Base number entity backed by a ReefBeat coordinator.
 
     We intentionally do not subclass `CoordinatorEntity` to avoid conflicts between
@@ -619,7 +620,7 @@ class ReefBeatNumberEntity(RestoreEntity, NumberEntity):
 
     def __init__(self, device: _HasDeviceInfo, description: DescriptionT) -> None:
         """Initialize the entity."""
-        super().__init__()
+        ReefBeatRestoreEntity.__init__(self, cast(ReefBeatCoordinator, device))
         self._device: _HasDeviceInfo = device
         self._description: DescriptionT = description
 
@@ -649,10 +650,11 @@ class ReefBeatNumberEntity(RestoreEntity, NumberEntity):
                 else:
                     self._attr_available = True
                     self.async_write_ha_state()
+        # CoordinatorEntity already listens for coordinator updates.
+        self._handle_device_update()
 
-        self.async_on_remove(
-            self._device.async_add_listener(self._handle_device_update)
-        )
+    @callback
+    def _handle_coordinator_update(self) -> None:
         self._handle_device_update()
 
     @callback
@@ -856,6 +858,10 @@ class ReefRunNumberEntity(ReefBeatNumberEntity):
 # -------------------------------------
 class ReefWaveNumberEntity(ReefBeatNumberEntity):
     """Wave preview number entity (dynamic min/max/step depending on wave type)."""
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._handle_device_update()
 
     @callback
     def _handle_device_update(self) -> None:

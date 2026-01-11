@@ -22,7 +22,6 @@ from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
     DOMAIN,
@@ -45,6 +44,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
+from .entity import ReefBeatRestoreEntity
 from .i18n import translate, translate_list
 from .supplements_list import SUPPLEMENTS as SUPPLEMENTS_LIST
 
@@ -282,7 +282,7 @@ async def async_setup_entry(
 # -------------------------------------
 # REEFBEAT
 # -------------------------------------
-class ReefBeatSelectEntity(RestoreEntity, SelectEntity):
+class ReefBeatSelectEntity(ReefBeatRestoreEntity, SelectEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Generic ReefBeat-backed select entity.
 
     We intentionally do not subclass `CoordinatorEntity` (see number.py rationale).
@@ -297,7 +297,7 @@ class ReefBeatSelectEntity(RestoreEntity, SelectEntity):
         entity_description: DescriptionT,
     ) -> None:
         """Initialize the select entity."""
-        super().__init__()
+        super().__init__(device)
         self._device = device
         self.entity_description = entity_description
         self._description: DescriptionT = entity_description
@@ -326,10 +326,11 @@ class ReefBeatSelectEntity(RestoreEntity, SelectEntity):
                 self._attr_current_option = last_state.state
                 self._attr_available = True
                 self.async_write_ha_state()
+        # CoordinatorEntity already listens for coordinator updates.
+        self._handle_device_update()
 
-        self.async_on_remove(
-            self._device.async_add_listener(self._handle_device_update)
-        )
+    @callback
+    def _handle_coordinator_update(self) -> None:
         self._handle_device_update()
 
     @callback
@@ -368,7 +369,7 @@ class ReefBeatSelectEntity(RestoreEntity, SelectEntity):
         if callable(refresh):
             await cast(Callable[[], Awaitable[None]], refresh)()
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info
@@ -402,7 +403,7 @@ class ReefRunSelectEntity(ReefBeatSelectEntity):
             source="/pump/settings", method="put", pump=self._pump
         )
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the pump identifier."""
         di = dict(self._device.device_info)
@@ -459,7 +460,7 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
         self._device.set_data(self._value_name, value)
         self.async_write_ha_state()
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the head identifier."""
         di = dict(self._device.device_info)
@@ -495,6 +496,10 @@ class ReefWaveSelectEntity(ReefBeatSelectEntity):
             hass.config.language,
             dictionary=self._i18n_options,
         )
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._handle_device_update()
 
     @callback
     def _handle_device_update(self) -> None:

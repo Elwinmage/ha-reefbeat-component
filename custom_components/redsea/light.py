@@ -27,7 +27,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
     DOMAIN,
@@ -43,6 +42,7 @@ from .coordinator import (
     ReefLedG2Coordinator,
     ReefVirtualLedCoordinator,
 )
+from .entity import ReefBeatRestoreEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -196,7 +196,7 @@ async def async_setup_entry(
 # -----------------------------------------------------------------------------
 # Entities
 # -----------------------------------------------------------------------------
-class ReefLedLightEntity(RestoreEntity, LightEntity):
+class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Light entity for a ReefBeat LED channel.
 
     Reads state from the device coordinator and writes changes back via the
@@ -209,7 +209,7 @@ class ReefLedLightEntity(RestoreEntity, LightEntity):
 
     def __init__(self, device: ReefLedCoordinator, description: DescriptionT) -> None:
         """Initialize the entity."""
-        super().__init__()
+        super().__init__(coordinator=device)
         self._device = device
         self._description = description
 
@@ -247,9 +247,7 @@ class ReefLedLightEntity(RestoreEntity, LightEntity):
                 pass
 
         # Coordinator listener => update entity when coordinator refreshes.
-        self.async_on_remove(
-            self._device.async_add_listener(self._handle_coordinator_update)
-        )
+        # CoordinatorEntity already listens for coordinator updates.
 
         # Integration-local events => fast UI update after write operations.
         event = (

@@ -25,10 +25,10 @@ from homeassistant.core import HomeAssistant, callback
 # (keep callback import; we’ll use it on the listener)
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import DOMAIN
 from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator
+from .entity import ReefBeatRestoreEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -125,7 +125,7 @@ async def async_setup_entry(
 # =============================================================================
 
 
-class ReefBeatTextEntity(RestoreEntity, TextEntity):
+class ReefBeatTextEntity(ReefBeatRestoreEntity, TextEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """A ReefBeat text entity backed by the coordinator cache.
 
     This entity listens to the coordinator's internal listener mechanism rather
@@ -139,7 +139,8 @@ class ReefBeatTextEntity(RestoreEntity, TextEntity):
         device: ReefBeatCoordinator,
         entity_description: ReefBeatTextEntityDescription,
     ) -> None:
-        super().__init__()
+        ReefBeatRestoreEntity.__init__(self, device)
+        self._device = device
 
         # Keep HA's expected type for `entity_description`, store typed description separately.
         self.entity_description = cast(TextEntityDescription, entity_description)
@@ -164,10 +165,11 @@ class ReefBeatTextEntity(RestoreEntity, TextEntity):
                 self._attr_native_value = last_state.state
                 self._attr_available = True
                 self.async_write_ha_state()
+        # CoordinatorEntity already listens for coordinator updates.
+        self._handle_device_update()
 
-        self.async_on_remove(
-            self._device.async_add_listener(self._handle_device_update)
-        )
+    @callback
+    def _handle_coordinator_update(self) -> None:
         self._handle_device_update()
 
     @callback
@@ -186,7 +188,7 @@ class ReefBeatTextEntity(RestoreEntity, TextEntity):
         self._device.async_update_listeners()
         self.async_write_ha_state()
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info
@@ -239,7 +241,7 @@ class ReefDoseTextEntity(ReefBeatTextEntity):
             self._attr_available = bool(other)
         self.async_write_ha_state()
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the head identifier (non-mutating)."""
         di = dict(self._device.device_info)

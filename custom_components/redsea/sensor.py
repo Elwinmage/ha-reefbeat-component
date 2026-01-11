@@ -70,7 +70,6 @@ from homeassistant.const import (
 from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import StateType
 
 from .const import (
@@ -96,6 +95,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
+from .entity import ReefBeatRestoreEntity
 from .i18n import translate
 
 _LOGGER = logging.getLogger(__name__)
@@ -1205,7 +1205,7 @@ async def async_setup_entry(
 # =============================================================================
 
 
-class ReefBeatSensorEntity(RestoreEntity, SensorEntity):
+class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Base sensor entity backed by a ReefBeat device/coordinator.
 
     Responsibilities:
@@ -1221,8 +1221,9 @@ class ReefBeatSensorEntity(RestoreEntity, SensorEntity):
     def __init__(
         self, device: ReefBeatCoordinator, entity_description: DescriptionT
     ) -> None:
-        super().__init__()
+        ReefBeatRestoreEntity.__init__(self, device)
         self._device = device
+
         self.entity_description = cast(SensorEntityDescription, entity_description)
         self._description: DescriptionT = entity_description
 
@@ -1256,10 +1257,11 @@ class ReefBeatSensorEntity(RestoreEntity, SensorEntity):
                 self._attr_native_value = restored
                 self._attr_available = True
                 self.async_write_ha_state()
+        # CoordinatorEntity already listens for coordinator updates.
+        self._handle_device_update()
 
-        self.async_on_remove(
-            self._device.async_add_listener(self._handle_device_update)
-        )
+    @callback
+    def _handle_coordinator_update(self) -> None:
         self._handle_device_update()
 
     @callback
@@ -1328,7 +1330,7 @@ class ReefBeatSensorEntity(RestoreEntity, SensorEntity):
         _LOGGER.error("No method to get value for %s", self._description.key)
         return None
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return base device info for the coordinator device."""
         return self._device.device_info
@@ -1402,7 +1404,7 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
             ):
                 self._device.hass.bus.fire(desc.value_name, {"value": new_value})
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the head identifier."""
         di = dict(self._device.device_info)
@@ -1488,7 +1490,7 @@ class ReefRunSensorEntity(ReefBeatSensorEntity):
         super().__init__(device, entity_description)
         self._pump: int = entity_description.pump
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the pump identifier."""
         di = dict(self._device.device_info)
@@ -1581,7 +1583,7 @@ class ReefBeatCloudSensorEntity(ReefBeatSensorEntity):
             return f"{name}-{self._aquarium_name}"
         return self._device.get_data(self._cloud_desc.value_name)
 
-    @cached_property  # type: ignore[override]
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info adjusted for aquarium/library grouping."""
         di = dict(self._device.device_info)
