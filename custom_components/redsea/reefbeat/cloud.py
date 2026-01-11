@@ -135,13 +135,16 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             _LOGGER.error("Authentification fail. Verify your credentials")
             raise InvalidAuth(r_text)
 
-        raw = r_json if r_json is not None else {}
+        data: dict[str, Any] = {}
+        if isinstance(r_json, dict):
+            # r_json is parsed from JSON and may contain non-str keys at type level;
+            # normalize to a dict[str, Any] for safe access.
+            data = {str(k): v for k, v in cast(dict[Any, Any], r_json).items()}
+
         token: str | None = None
-        if isinstance(raw, dict):
-            data = cast(dict[str, Any], raw)
-            val = data.get("access_token")
-            if isinstance(val, str):
-                token = val
+        val = data.get("access_token")
+        if isinstance(val, str):
+            token = val
         if not token:
             raise InvalidAuth("No access_token returned by cloud")
 

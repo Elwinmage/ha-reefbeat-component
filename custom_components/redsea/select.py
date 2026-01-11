@@ -18,7 +18,7 @@ from typing import Any, cast
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -44,7 +44,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
-from .entity import ReefBeatRestoreEntity
+from .entity import ReefBeatRestoreEntity, RestoreSpec
 from .i18n import translate, translate_list
 from .supplements_list import SUPPLEMENTS as SUPPLEMENTS_LIST
 
@@ -291,13 +291,20 @@ class ReefBeatSelectEntity(ReefBeatRestoreEntity, SelectEntity):  # type: ignore
 
     _attr_has_entity_name = True
 
+    @staticmethod
+    def _restore_value(state: str) -> str:
+        return state
+
     def __init__(
         self,
         device: ReefBeatCoordinator,
         entity_description: DescriptionT,
     ) -> None:
         """Initialize the select entity."""
-        super().__init__(device)
+        super().__init__(
+            device,
+            restore=RestoreSpec("_attr_current_option", self._restore_value),
+        )
         self._device = device
         self.entity_description = entity_description
         self._description: DescriptionT = entity_description
@@ -317,27 +324,24 @@ class ReefBeatSelectEntity(ReefBeatRestoreEntity, SelectEntity):  # type: ignore
         self._method = cast(str, getattr(self._description, "method", "put"))
 
     async def async_added_to_hass(self) -> None:
-        """Register listeners and restore the last state on Home Assistant restart."""
+        """Restore last known option and prime from coordinator cache."""
         await super().async_added_to_hass()
 
-        last_state = await self.async_get_last_state()
-        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
-            if (self._attr_current_option is None) or (not self._attr_available):
-                self._attr_current_option = last_state.state
-                self._attr_available = True
-                self.async_write_ha_state()
-        # CoordinatorEntity already listens for coordinator updates.
-        self._handle_device_update()
+        if self._attr_current_option is not None and not self._attr_available:
+            self._attr_available = True
+
+        if self._device.last_update_success:
+            self._update_val()
+            super()._handle_coordinator_update()
+
+    def _update_val(self) -> None:
+        self._attr_current_option = self._device.get_data(self._value_name)
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        self._handle_device_update()
-
-    @callback
-    def _handle_device_update(self) -> None:
-        """Sync HA state from coordinator cached data."""
-        self._attr_current_option = self._device.get_data(self._value_name)
-        self.async_write_ha_state()
+        """Update cached `_attr_*` values from coordinator data."""
+        self._update_val()
+        super()._handle_coordinator_update()
 
     @staticmethod
     def _extract_source_from_value_name(value_name: str) -> str | None:
@@ -463,14 +467,30 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the head identifier."""
-        di = dict(self._device.device_info)
-        di["name"] = f"{di.get('name', '')}_head_{self._head}"
+        if self._head <= 0:
+            return self._device.device_info
 
-        identifiers_set = di.get("identifiers")
-        if identifiers_set:
-            base = next(iter(cast(set[tuple[Any, ...]], identifiers_set)))
-            di["identifiers"] = {tuple(base) + (f"head_{self._head}",)}
-        return cast(DeviceInfo, di)
+        base_di = dict(self._device.device_info)
+        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
+        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
+
+        # DeviceInfo is a TypedDict; copying values from a generic dict makes mypy/pyright
+        # widen types to object | None, so we guard and only assign strings (or omit keys).
+        di_dict: dict[str, Any] = {
+            "identifiers": {(domain, f"{ident}_head_{self._head}")},
+            "name": f"{self._device.title} head {self._head}",
+        }
+
+        for key in ("manufacturer", "model", "model_id", "hw_version", "sw_version"):
+            val = base_di.get(key)
+            if isinstance(val, str) or val is None:
+                di_dict[key] = val
+
+        via_device = base_di.get("via_device")
+        if via_device is not None:
+            di_dict["via_device"] = via_device
+
+        return cast(DeviceInfo, di_dict)
 
 
 # -------------------------------------

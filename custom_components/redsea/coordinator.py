@@ -43,9 +43,10 @@ from .const import (
     CONFIG_FLOW_INTENSITY_COMPENSATION,
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_SCAN_INTERVAL,
-    DEFAULT_TIMEOUT,
     DEVICE_MANUFACTURER,
     DOMAIN,
+    HTTP_DELAY_BETWEEN_RETRY,
+    HTTP_MAX_RETRY,
     HW_ATO_IDS,
     HW_DOSE_IDS,
     HW_G2_LED_IDS,
@@ -125,13 +126,34 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         UpdateFailed so HA can handle retries/backoff.
         """
         try:
-            async with async_timeout.timeout(DEFAULT_TIMEOUT * 2):
+            # fetch_data() concurrently fetches multiple endpoints. Each endpoint has its
+            # own per-request timeout and retry loop in the API layer.
+            #
+            # If this coordinator timeout is shorter than the API retry budget, HA will
+            # cancel the update (CancelledError) and async_timeout will surface it as a
+            # TimeoutError (exactly what we saw in logs). Compute an upper bound that
+            # matches the API behavior.
+            per_try_timeout = int(getattr(self.my_api, "_timeout", 10))
+            overall_timeout = (
+                (per_try_timeout + HTTP_DELAY_BETWEEN_RETRY) * HTTP_MAX_RETRY
+            ) + 5  # small buffer
+            async with async_timeout.timeout(overall_timeout):
                 res = cast(dict[str, Any] | None, await self.my_api.fetch_data())
             if res is None:
                 raise UpdateFailed(f"No data received from API: {self._title}")
             return res
         except UpdateFailed:
             raise
+        except asyncio.TimeoutError as err:
+            _LOGGER.debug(
+                "Coordinator update timed out for %s (%s): %s",
+                self._title,
+                self._ip,
+                err.__class__.__name__,
+            )
+            raise UpdateFailed(
+                f"{self._title} ({self._ip}) update failed: TimeoutError"
+            ) from err
         except Exception as err:
             _LOGGER.debug(
                 "Coordinator update failed for %s (%s): %s",

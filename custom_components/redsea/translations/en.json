@@ -1,216 +1,58 @@
 {
-  "title": "ReefBeat",
   "config": {
-    "flow_title": "ReefBeat configuration",
-    "step": {
-      "user": {
-        "title": "Add new Device",
-        "data": {
-          "ip_address": "IP or subnet Addr. (ex:10.0.1.0/255.255.255.0)",
-          "add_type": "Choose your adding method",
-          "hw_model": "Hardware Model",
-          "virtual_led": "New virtual LED Controler",
-          "platform": "Platform",
-          "scan_interval": "scan interval"
-        }
-      }
-    },
     "abort": {
       "already_configured": "Device Already configured",
       "cannot_create": "Unable to create ReefBeat device with specified parameters"
-    }
-  },
-  "selector": {
-    "add_type": {
-      "options": {
-        "cloud_api": "Cloud API",
-        "local_detect": "Local detection",
-        "manual_mode": "Manual Mode",
-        "virtual_led": "Virtual Led"
-      }
     },
-    "ip_address": {
-      "options": {
-        "virtual_led": "Add Virtual LED"
-      }
-    }
-  },
-  "options": {
+    "flow_title": "ReefBeat configuration",
     "step": {
-      "init": {
-        "title": "Configuration",
+      "user": {
         "data": {
-          "slaves": "LED",
-          "not_virtual": "Not configurable",
-          "live_config_update": "Live Configuration Update"
-        }
+          "add_type": "Choose your adding method",
+          "hw_model": "Hardware Model",
+          "ip_address": "IP or subnet Addr. (ex:10.0.1.0/255.255.255.0)",
+          "platform": "Platform",
+          "scan_interval": "scan interval",
+          "virtual_led": "New virtual LED Controler"
+        },
+        "title": "Add new Device"
       }
     }
   },
   "entity": {
-    "button": {
-      "set_supplement": {
-        "name": "Set new Supplement"
-      },
-      "delete_supplement": {
-        "name": "Delete Supplement"
-      },
-      "reset": {
-        "name": "Restart"
-      },
-      "start_calibration": {
-        "name": "Start  Calibration"
-      },
-      "set_calibration_value": {
-        "name": "Set Calibration volume"
-      },
-      "test_calibration": {
-        "name": "Test new Calibration"
-      },
-      "end_calibration": {
-        "name": "Stop and Save Calibration"
-      },
-      "start_priming": {
-        "name": "Start Priming"
-      },
-      "stop_priming": {
-        "name": "Stop Priming"
-      },
-      "firmware_update": {
-        "name": "Force Firmware Update"
-      },
-      "preview_set_from_current": {
-        "name": "Set Prev. from Current"
-      },
-      "led_identify": {
-        "name": "Identify"
-      },
-      "preview_save": {
-        "name": "Save preview"
-      },
-      "preview_start": {
-        "name": "Start preview"
-      },
-      "preview_stop": {
-        "name": "Stop preview"
-      },
-      "fetch_config": {
-        "name": "Fetch Config"
-      },
-      "new_roll": {
-        "name": "New Roll"
-      },
-      "manual_head": {
-        "name": "Manual dosing"
-      },
-      "advance": {
-        "name": "Advance"
-      },
-      "fill": {
-        "name": "Fill"
-      },
-      "stop_fill": {
-        "name": "Stop filling"
-      },
-      "resume": {
-        "name": "Resume"
-      }
-    },
-    "number": {
-      "ato_volume_left": {
-        "name": "ATO Volume Left"
-      },
-      "calibration_dose_value": {
-        "name": "Dose of Calibration"
-      },
-      "wave_preview_wave_duration": {
-        "name": "Prev. wave duration"
-      },
-      "wave_preview_step": {
-        "name": "Preview Step"
-      },
-      "wave_forward_time": {
-        "name": "Prev. Fwd Time"
-      },
-      "wave_backward_time": {
-        "name": "Prev. Bwd Time"
-      },
-      "wave_forward_intensity": {
-        "name": "Prev. Fwd Intensity"
-      },
-      "wave_backward_intensity": {
-        "name": "Prev. Bwd Intensity"
-      },
-      "wave_preview_duration": {
-        "name": "Preview  Duration"
-      },
-      "preview_speed": {
-        "name": "Preview Speed"
-      },
-      "shortcut_off_delay": {
-        "name": "Shortcut OFF delay"
-      },
-      "overskimming_threshold": {
-        "name": "Overskimming Threshold"
-      },
-      "stock_alert_days": {
-        "name": "Stock Alert Days"
-      },
-      "dosing_waiting_period": {
-        "name": "Dosing Waiting Period"
-      },
-      "speed": {
-        "name": "Speed"
-      },
-      "manual_duration": {
-        "name": "Manual Duration"
-      },
-      "kelvin": {
-        "name": "Kelvin"
-      },
-      "intensity": {
-        "name": "Intensity"
-      },
-      "schedule_length": {
-        "name": "Schedule Length"
-      },
-      "acclimation_duration": {
-        "name": "Acclimation Duration"
-      },
-      "acclimation_start_intensity_factor": {
-        "name": "Acclimation Start Intensity Factor"
-      },
-      "moon_day": {
-        "name": "Moon Day"
-      },
-      "started_roll_diameter": {
-        "name": "Roll Diameter"
-      },
-      "container_volume": {
-        "name": "Container Volume"
-      },
-      "daily_dose": {
-        "name": "Update Daily dose"
-      },
-      "custom_advance_value": {
-        "name": "Advance Value"
-      },
-      "manual_head_volume": {
-        "name": "Manual Volume"
-      }
-    },
     "binary_sensor": {
+      "battery_level": {
+        "name": "Battery Level"
+      },
+      "buzzer_enabled": {
+        "name": "Buzzer enabled"
+      },
       "cloud_state": {
         "name": "Cloud connection state"
+      },
+      "connected": {
+        "name": "Leak sensor Connected"
       },
       "constant_speed": {
         "name": "Constant speed"
       },
-      "battery_level": {
-        "name": "Battery Level"
+      "ec_sensor_connected": {
+        "name": "EC sensor Connected"
       },
-      "sensor_controlled": {
-        "name": "Controlled by Sensor"
+      "enabled": {
+        "name": "Leak sensor enabled"
+      },
+      "is_ec_sensor_connected": {
+        "name": "Is EC sensor Connected"
+      },
+      "is_pump_on": {
+        "name": "Is pump on?"
+      },
+      "is_sensor_error": {
+        "name": "Is sensor in error?"
+      },
+      "is_temp_enabled": {
+        "name": "Is temperature enabled"
       },
       "missing_pump": {
         "name": "Missing Pump"
@@ -218,14 +60,14 @@
       "missing_sensor": {
         "name": "Missing Sensor"
       },
-      "schedule_enabled": {
-        "name": "Schedule Enabled"
-      },
       "recalibration_required": {
         "name": "Calibration"
       },
-      "enabled": {
-        "name": "Leak sensor enabled"
+      "schedule_enabled": {
+        "name": "Schedule Enabled"
+      },
+      "sensor_controlled": {
+        "name": "Controlled by Sensor"
       },
       "status": {
         "name": "Status"
@@ -233,220 +75,214 @@
       "unclean_sensor": {
         "name": "Sensor State"
       },
-      "is_ec_sensor_connected": {
-        "name": "Is EC sensor Connected"
-      },
-      "ec_sensor_connected": {
-        "name": "EC sensor Connected"
-      },
       "water_level": {
         "name": "Water level"
-      },
-      "is_pump_on": {
-        "name": "Is pump on?"
-      },
-      "connected": {
-        "name": "Leak sensor Connected"
-      },
-      "buzzer_enabled": {
-        "name": "Buzzer enabled"
-      },
-      "is_sensor_error": {
-        "name": "Is sensor in error?"
-      },
-      "is_temp_enabled": {
-        "name": "Is temperature enabled"
       }
     },
-    "sensor": {
-      "bundled_heads": {
-        "name": "Bundled Heads"
+    "button": {
+      "advance": {
+        "name": "Advance"
       },
-      "dosing_queue": {
-        "name": "Dosing Queue"
+      "delete_supplement": {
+        "name": "Delete Supplement"
       },
-      "last_alert_message": {
-        "name": "Last Alert Message"
+      "end_calibration": {
+        "name": "Stop and Save Calibration"
       },
-      "last_message": {
-        "name": "Last Message"
+      "fetch_config": {
+        "name": "Fetch Config"
       },
-      "save_initial_container_volume": {
-        "name": "Container Initial Volume"
+      "fill": {
+        "name": "Fill"
       },
-      "schedule_head": {
-        "name": "Head Schedule"
+      "firmware_update": {
+        "name": "Force Firmware Update"
       },
-      "head_state": {
-        "name": "Status"
+      "led_identify": {
+        "name": "Identify"
       },
-      "last_calibration": {
-        "name": "Last Calibration"
+      "manual_head": {
+        "name": "Manual dosing"
       },
-      "supplement_program": {
-        "name": "Supplement"
+      "new_roll": {
+        "name": "New Roll"
       },
-      "wave_step": {
-        "name": "Steps"
+      "preview_save": {
+        "name": "Save preview"
       },
-      "mode": {
-        "name": "Mode"
+      "preview_set_from_current": {
+        "name": "Set Prev. from Current"
       },
-      "wave_type": {
-        "name": "Waves Type"
+      "preview_start": {
+        "name": "Start preview"
       },
-      "wave_direction": {
-        "name": "Waves Direction"
+      "preview_stop": {
+        "name": "Stop preview"
       },
-      "wave_forward_time": {
-        "name": "Forward Time"
+      "reset": {
+        "name": "Restart"
       },
-      "wave_backward_time": {
-        "name": "Backward Time"
+      "resume": {
+        "name": "Resume"
       },
-      "wave_forward_intensity": {
-        "name": "Forward Intensity"
+      "set_calibration_value": {
+        "name": "Set Calibration volume"
       },
-      "wave_backward_intensity": {
-        "name": "Backward Intensity"
+      "set_supplement": {
+        "name": "Set new Supplement"
       },
-      "cloud_account": {
-        "name": "Linked to account"
+      "start_calibration": {
+        "name": "Start  Calibration"
       },
-      "email": {
-        "name": "Email"
+      "start_priming": {
+        "name": "Start Priming"
       },
-      "backup_email": {
-        "name": "Backup Email"
+      "stop_fill": {
+        "name": "Stop filling"
       },
-      "first_name": {
-        "name": "First Name"
+      "stop_priming": {
+        "name": "Stop Priming"
       },
-      "last_name": {
-        "name": "Last Name"
-      },
-      "mobile_number": {
-        "name": "Mobile Number"
-      },
-      "language": {
-        "name": "Language"
-      },
-      "country": {
-        "name": "Country"
-      },
-      "zip_code": {
-        "name": "ZIP Code"
-      },
-      "led_program": {
-        "name": "LED Program"
-      },
-      "wave_program": {
-        "name": "Wave Program"
-      },
-      "wifi_quality": {
-        "name": "WIFI signal quality"
-      },
-      "wifi_ssid": {
-        "name": "WIFI SSID"
-      },
-      "wifi_signal": {
-        "name": "WIFI Signal Strength"
-      },
-      "supplement_uid": {
-        "name": "Supplement Unique ID"
-      },
-      "white": {
-        "name": "White"
-      },
+      "test_calibration": {
+        "name": "Test new Calibration"
+      }
+    },
+    "light": {
       "blue": {
         "name": "Blue"
       },
-      "water_level": {
-        "name": "Water level"
+      "intensity": {
+        "name": "Intensity"
       },
+      "kelvin_intensity": {
+        "name": "Kelvin"
+      },
+      "moon": {
+        "name": "Moon"
+      },
+      "white": {
+        "name": "White"
+      }
+    },
+    "number": {
       "acclimation_duration": {
         "name": "Acclimation Duration"
       },
       "acclimation_start_intensity_factor": {
         "name": "Acclimation Start Intensity Factor"
       },
-      "moon_intensity": {
-        "name": "Moon Phase Intensity"
+      "ato_volume_left": {
+        "name": "ATO Volume Left"
       },
-      "todays_moon_day": {
-        "name": "Todays Moon Day"
-      },
-      "next_full_moon": {
-        "name": "Next Full Moon"
-      },
-      "next_new_moon": {
-        "name": "Next New Moon"
-      },
-      "name": {
-        "name": "Name"
-      },
-      "type": {
-        "name": "Type"
-      },
-      "model": {
-        "name": "Model"
-      },
-      "state": {
-        "name": "State"
-      },
-      "intensity": {
-        "name": "Intensity"
-      },
-      "pulse": {
-        "name": "Pulse"
+      "calibration_dose_value": {
+        "name": "Dose of Calibration"
       },
       "container_volume": {
         "name": "Container Volume"
       },
-      "supplement": {
-        "name": "Supplement"
-      },
-      "auto_dosed_today": {
-        "name": "Auto dosed today"
-      },
-      "manual_dosed_today": {
-        "name": "Manual dosed today"
-      },
-      "doses_today": {
-        "name": "Doses today"
-      },
-      "remaining_days": {
-        "name": "Remaining days"
+      "custom_advance_value": {
+        "name": "Advance Value"
       },
       "daily_dose": {
-        "name": "Daily dose"
+        "name": "Update Daily dose"
       },
-      "daily_doses": {
-        "name": "Daily doses"
+      "dosing_waiting_period": {
+        "name": "Dosing Waiting Period"
       },
-      "days_till_end_of_roll": {
-        "name": "Days till end of roll"
+      "intensity": {
+        "name": "Intensity"
       },
-      "daily_average_usage": {
-        "name": "Daily Average Usage"
+      "kelvin": {
+        "name": "Kelvin"
       },
-      "total_usage": {
-        "name": "Total usage"
+      "manual_duration": {
+        "name": "Manual Duration"
       },
-      "remaining_length": {
-        "name": "Remaining Length"
+      "manual_head_volume": {
+        "name": "Manual Volume"
       },
-      "today_usage": {
-        "name": "Today Usage"
+      "moon_day": {
+        "name": "Moon Day"
       },
-      "fan": {
-        "name": "Fan"
+      "overskimming_threshold": {
+        "name": "Overskimming Threshold"
       },
-      "temperature": {
-        "name": "Temperature"
+      "preview_speed": {
+        "name": "Preview Speed"
       },
-      "ip": {
-        "name": "IP Address"
+      "schedule_length": {
+        "name": "Schedule Length"
+      },
+      "shortcut_off_delay": {
+        "name": "Shortcut OFF delay"
+      },
+      "speed": {
+        "name": "Speed"
+      },
+      "started_roll_diameter": {
+        "name": "Roll Diameter"
+      },
+      "stock_alert_days": {
+        "name": "Stock Alert Days"
+      },
+      "wave_backward_intensity": {
+        "name": "Prev. Bwd Intensity"
+      },
+      "wave_backward_time": {
+        "name": "Prev. Bwd Time"
+      },
+      "wave_forward_intensity": {
+        "name": "Prev. Fwd Intensity"
+      },
+      "wave_forward_time": {
+        "name": "Prev. Fwd Time"
+      },
+      "wave_preview_duration": {
+        "name": "Preview  Duration"
+      },
+      "wave_preview_step": {
+        "name": "Preview Step"
+      },
+      "wave_preview_wave_duration": {
+        "name": "Prev. wave duration"
+      }
+    },
+    "select": {
+      "mode": {
+        "name": "Mode"
+      },
+      "model": {
+        "name": "Model"
+      },
+      "model_skimmer": {
+        "name": "Model"
+      },
+      "position": {
+        "name": "Position"
+      },
+      "preview_wave_direction": {
+        "name": "Preview Waves Direction"
+      },
+      "preview_wave_type": {
+        "name": "Preview Waves Type"
+      },
+      "supplements": {
+        "name": "Supplements"
+      }
+    },
+    "sensor": {
+      "acclimation_duration": {
+        "name": "Acclimation Duration"
+      },
+      "acclimation_start_intensity_factor": {
+        "name": "Acclimation Start Intensity Factor"
+      },
+      "ato_mode": {
+        "name": "ATO Mode",
+        "state": {
+          "auto": "Auto",
+          "empty": "Empty"
+        }
       },
       "auto_1": {
         "name": "Sunday"
@@ -469,17 +305,52 @@
       "auto_7": {
         "name": "Saturday"
       },
-      "today_fills": {
-        "name": "Today Fills"
+      "auto_dosed_today": {
+        "name": "Auto dosed today"
       },
-      "today_volume_usage": {
-        "name": "Today volume usage"
+      "auto_fill": {
+        "name": "Auto fill"
       },
-      "total_volume_usage": {
-        "name": "Total volume usage"
+      "backup_email": {
+        "name": "Backup Email"
       },
-      "total_fills": {
-        "name": "Total fills"
+      "blue": {
+        "name": "Blue"
+      },
+      "bundled_heads": {
+        "name": "Bundled Heads"
+      },
+      "cloud_account": {
+        "name": "Linked to account"
+      },
+      "container_volume": {
+        "name": "Container Volume"
+      },
+      "country": {
+        "name": "Country"
+      },
+      "current_level": {
+        "name": "Current level",
+        "state": {
+          "above": "Above",
+          "acceptable": "Acceptable",
+          "below": "Below",
+          "desired": "Desired",
+          "desired_level_1": "Desired Level 1",
+          "desired_level_2": "Desired Level 2"
+        }
+      },
+      "current_read": {
+        "name": "Temperature"
+      },
+      "daily_average_usage": {
+        "name": "Daily Average Usage"
+      },
+      "daily_dose": {
+        "name": "Daily dose"
+      },
+      "daily_doses": {
+        "name": "Daily doses"
       },
       "daily_fills_average": {
         "name": "Daily fills average"
@@ -487,60 +358,219 @@
       "daily_volume_average": {
         "name": "Daily volume average"
       },
-      "volume_left": {
-        "name": "Volume left"
-      },
       "days_till_empty": {
         "name": "Days till empty"
       },
-      "status": {
+      "days_till_end_of_roll": {
+        "name": "Days till end of roll"
+      },
+      "doses_today": {
+        "name": "Doses today"
+      },
+      "dosing_queue": {
+        "name": "Dosing Queue"
+      },
+      "email": {
+        "name": "Email"
+      },
+      "fan": {
+        "name": "Fan"
+      },
+      "first_name": {
+        "name": "First Name"
+      },
+      "head_state": {
         "name": "Status"
-      },
-      "current_level": {
-        "name": "Current level"
-      },
-      "current_read": {
-        "name": "Temperature"
-      },
-      "temperature_probe_status": {
-        "name": "Temperature probe status"
-      },
-      "auto_fill": {
-        "name": "Auto fill"
-      },
-      "pump_state": {
-        "name": "Pump State"
-      }
-    },
-    "light": {
-      "kelvin_intensity": {
-        "name": "Kelvin"
       },
       "intensity": {
         "name": "Intensity"
       },
+      "ip": {
+        "name": "IP Address"
+      },
+      "language": {
+        "name": "Language"
+      },
+      "last_alert_message": {
+        "name": "Last Alert Message"
+      },
+      "last_calibration": {
+        "name": "Last Calibration"
+      },
+      "last_message": {
+        "name": "Last Message"
+      },
+      "last_name": {
+        "name": "Last Name"
+      },
+      "led_program": {
+        "name": "LED Program"
+      },
+      "manual_dosed_today": {
+        "name": "Manual dosed today"
+      },
+      "mobile_number": {
+        "name": "Mobile Number"
+      },
+      "mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "manual": "Manual",
+          "off": "Off"
+        }
+      },
+      "model": {
+        "name": "Model"
+      },
+      "moon_intensity": {
+        "name": "Moon Phase Intensity"
+      },
+      "name": {
+        "name": "Name"
+      },
+      "next_full_moon": {
+        "name": "Next Full Moon"
+      },
+      "next_new_moon": {
+        "name": "Next New Moon"
+      },
+      "pulse": {
+        "name": "Pulse"
+      },
+      "pump_state": {
+        "name": "Pump State"
+      },
+      "remaining_days": {
+        "name": "Remaining days"
+      },
+      "remaining_length": {
+        "name": "Remaining Length"
+      },
+      "save_initial_container_volume": {
+        "name": "Container Initial Volume"
+      },
+      "schedule_head": {
+        "name": "Head Schedule"
+      },
+      "state": {
+        "name": "State"
+      },
+      "status": {
+        "name": "Status"
+      },
+      "supplement": {
+        "name": "Supplement"
+      },
+      "supplement_program": {
+        "name": "Supplement"
+      },
+      "supplement_uid": {
+        "name": "Supplement Unique ID"
+      },
+      "temperature": {
+        "name": "Temperature"
+      },
+      "temperature_probe_status": {
+        "name": "Temperature probe status",
+        "state": {
+          "connected": "Connected",
+          "disconnected": "Disconnected"
+        }
+      },
+      "today_fills": {
+        "name": "Today Fills"
+      },
+      "today_usage": {
+        "name": "Today Usage"
+      },
+      "today_volume_usage": {
+        "name": "Today volume usage"
+      },
+      "todays_moon_day": {
+        "name": "Todays Moon Day"
+      },
+      "total_fills": {
+        "name": "Total fills"
+      },
+      "total_usage": {
+        "name": "Total usage"
+      },
+      "total_volume_usage": {
+        "name": "Total volume usage"
+      },
+      "type": {
+        "name": "Type"
+      },
+      "volume_left": {
+        "name": "Volume left"
+      },
+      "water_level": {
+        "name": "Water level",
+        "state": {
+          "above": "Above",
+          "acceptable": "Acceptable",
+          "below": "Below",
+          "desired": "Desired",
+          "desired_level_1": "Desired Level 1",
+          "desired_level_2": "Desired Level 2"
+        }
+      },
+      "wave_backward_intensity": {
+        "name": "Backward Intensity"
+      },
+      "wave_backward_time": {
+        "name": "Backward Time"
+      },
+      "wave_direction": {
+        "name": "Waves Direction"
+      },
+      "wave_forward_intensity": {
+        "name": "Forward Intensity"
+      },
+      "wave_forward_time": {
+        "name": "Forward Time"
+      },
+      "wave_program": {
+        "name": "Wave Program"
+      },
+      "wave_step": {
+        "name": "Steps"
+      },
+      "wave_type": {
+        "name": "Waves Type"
+      },
       "white": {
         "name": "White"
       },
-      "blue": {
-        "name": "Blue"
+      "wifi_quality": {
+        "name": "WIFI signal quality"
       },
-      "moon": {
-        "name": "Moon"
+      "wifi_signal": {
+        "name": "WIFI Signal Strength"
+      },
+      "wifi_ssid": {
+        "name": "WIFI SSID"
+      },
+      "zip_code": {
+        "name": "ZIP Code"
       }
     },
     "switch": {
-      "maintenance": {
-        "name": "Maintenance"
+      "acclimation": {
+        "name": "Acclimation"
       },
-      "use_cloud_api": {
-        "name": "Use cloud API"
+      "auto_advance": {
+        "name": "Auto advance"
       },
-      "local_api_fallback": {
-        "name": "Local API fallback"
+      "auto_fill": {
+        "name": "Auto fill"
       },
       "cloud_connect": {
         "name": "Connect to cloud"
+      },
+      "daily_prog": {
+        "name": "Daily Program"
       },
       "device_state": {
         "name": "Device State"
@@ -548,11 +578,11 @@
       "fullcup_enabled": {
         "name": "Full Cup Detection"
       },
-      "overskimming_enabled": {
-        "name": "Overskimming"
+      "local_api_fallback": {
+        "name": "Local API fallback"
       },
-      "scheduled_advance": {
-        "name": "Schedule Advance"
+      "maintenance": {
+        "name": "Maintenance"
       },
       "moon": {
         "name": "Moon"
@@ -560,56 +590,20 @@
       "moon_phase": {
         "name": "Moon Phase"
       },
-      "acclimation": {
-        "name": "Acclimation"
-      },
-      "slm": {
-        "name": "Volume Controller"
+      "overskimming_enabled": {
+        "name": "Overskimming"
       },
       "schedule_enabled": {
         "name": "Schedule enabled"
       },
-      "daily_prog": {
-        "name": "Daily Program"
+      "scheduled_advance": {
+        "name": "Schedule Advance"
       },
-      "auto_advance": {
-        "name": "Auto advance"
+      "slm": {
+        "name": "Volume Controller"
       },
-      "auto_fill": {
-        "name": "Auto fill"
-      }
-    },
-    "select": {
-      "supplements": {
-        "name": "Supplements"
-      },
-      "preview_wave_type": {
-        "name": "Preview Waves Type"
-      },
-      "preview_wave_direction": {
-        "name": "Preview Waves Direction"
-      },
-      "model_skimmer": {
-        "name": "Model"
-      },
-      "mode": {
-        "name": "Mode"
-      },
-      "model": {
-        "name": "Model"
-      },
-      "position": {
-        "name": "Position"
-      }
-    },
-    "time": {
-      "schedule_time": {
-        "name": "Schedule Time"
-      }
-    },
-    "update": {
-      "firmware_update": {
-        "name": "Firmware update"
+      "use_cloud_api": {
+        "name": "Use cloud API"
       }
     },
     "text": {
@@ -622,6 +616,44 @@
       "new_supplement_short_name": {
         "name": "Supplement Short Name"
       }
+    },
+    "time": {
+      "schedule_time": {
+        "name": "Schedule Time"
+      }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "Firmware update"
+      }
     }
-  }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "live_config_update": "Live Configuration Update",
+          "not_virtual": "Not configurable",
+          "slaves": "LED"
+        },
+        "title": "Configuration"
+      }
+    }
+  },
+  "selector": {
+    "add_type": {
+      "options": {
+        "cloud_api": "Cloud API",
+        "local_detect": "Local detection",
+        "manual_mode": "Manual Mode",
+        "virtual_led": "Virtual Led"
+      }
+    },
+    "ip_address": {
+      "options": {
+        "virtual_led": "Add Virtual LED"
+      }
+    }
+  },
+  "title": "ReefBeat"
 }

@@ -144,51 +144,51 @@ async def async_setup_entry(
     entities: list[LightEntity] = []
 
     if isinstance(device, ReefLedG2Coordinator):
-        entities += [
+        entities.extend(
             ReefLedLightEntity(device, description)
             for description in COMMON_LIGHTS
             if description.exists_fn(device)
-        ]
-        entities += [
+        )
+        entities.extend(
             ReefLedLightEntity(device, description)
             for description in G2_LIGHTS
             if description.exists_fn(device)
-        ]
+        )
 
     elif isinstance(device, ReefLedCoordinator):
         # Physical LED (G1)
-        entities += [
+        entities.extend(
             ReefLedLightEntity(device, description)
             for description in LIGHTS
             if description.exists_fn(device)
-        ]
-        entities += [
+        )
+        entities.extend(
             ReefLedLightEntity(device, description)
             for description in G1_LIGHTS
             if description.exists_fn(device)
-        ]
-        entities += [
+        )
+        entities.extend(
             ReefLedLightEntity(device, description)
             for description in COMMON_LIGHTS
             if description.exists_fn(device)
-        ]
+        )
 
     elif isinstance(device, ReefVirtualLedCoordinator):
-        entities += [
+        entities.extend(
             ReefLedLightEntity(device, description)
             for description in VIRTUAL_LIGHTS
             if description.exists_fn(device)
-        ]
+        )
         if device.only_g1:
             _LOGGER.info(
                 "G1 protocol activated for %s. White and Blue lights can be set.",
                 device.title,
             )
-            entities += [
+            entities.extend(
                 ReefLedLightEntity(device, description)
                 for description in LIGHTS
                 if description.exists_fn(device)
-            ]
+            )
 
     async_add_entities(entities, update_before_add=True)
 
@@ -263,13 +263,13 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
     def _handle_event_update(self, event: Any | None = None) -> None:
         """Handle integration-local update events."""
         self._update_from_device()
-        self.async_write_ha_state()
+        super()._handle_coordinator_update()
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle coordinator refresh updates."""
         self._update_from_device()
-        self.async_write_ha_state()
+        super()._handle_coordinator_update()
 
     async def async_update(self) -> None:
         """Update entity state (called by HA polling when applicable)."""

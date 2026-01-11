@@ -64,7 +64,7 @@ from .coordinator import (
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
 )
-from .entity import ReefBeatRestoreEntity
+from .entity import ReefBeatRestoreEntity, RestoreSpec
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -202,6 +202,8 @@ SAVE_STATE_SWITCHES: tuple[SaveStateSwitchEntityDescription, ...] = (
         icon="mdi:cloud-check-variant",
         icon_off="mdi:cloud-cancel",
         entity_category=EntityCategory.CONFIG,
+        # ATO is local-only (no cloud API toggle).
+        exists_fn=lambda device: not isinstance(device, ReefATOCoordinator),
     ),
 )
 
@@ -471,15 +473,18 @@ class SaveStateSwitchEntity(RestoreEntity, SwitchEntity):
         self.async_write_ha_state()
 
     async def async_added_to_hass(self) -> None:
-        """Restore local state and sync into the coordinator cache."""
+        """Restore last known state and prime from coordinator cache."""
         await super().async_added_to_hass()
 
-        last = await self.async_get_last_state()
-        self._attr_is_on = True if last is None else last.state == "on"
+        if self._attr_is_on is not None and not self._attr_available:
+            self._attr_available = True
+            self._set_icon()
 
-        self._set_icon()
-        self._device.set_data("$.local." + self._desc.key, bool(self._attr_is_on))
-        self.async_write_ha_state()
+        if self._device.last_update_success:
+            self._attr_available = True
+            self._attr_is_on = bool(self._device.get_data("$.local." + self._desc.key))
+            self._set_icon()
+            self.async_write_ha_state()
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
@@ -491,12 +496,20 @@ class ReefBeatSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore
 
     _attr_has_entity_name = True
 
+    @staticmethod
+    def _restore_is_on(state: str) -> bool:
+        return state == "on"
+
     def __init__(
         self,
         device: ReefBeatCoordinator,
         entity_description: ReefBeatSwitchEntityDescription,
     ) -> None:
-        ReefBeatRestoreEntity.__init__(self, device)
+        ReefBeatRestoreEntity.__init__(
+            self,
+            device,
+            restore=RestoreSpec("_attr_is_on", self._restore_is_on),
+        )
         self._device = device
 
         self.entity_description = cast(SwitchEntityDescription, entity_description)
@@ -523,20 +536,18 @@ class ReefBeatSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore
                 self._attr_is_on = last_state.state == "on"
                 self._attr_available = True
                 self.async_write_ha_state()
-        # CoordinatorEntity already listens for coordinator updates.
-        self._handle_device_update()
+
+        # Prime state from the coordinator cache immediately after (optional) restore.
+        self._handle_coordinator_update()
+        self.async_write_ha_state()
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        self._handle_device_update()
-
-    @callback
-    def _handle_device_update(self) -> None:
-        """Handle updated data from the device and write HA state."""
+        """Update cached `_attr_*` values from coordinator data."""
         self._attr_available = True
         self._attr_is_on = self._compute_is_on()
         self._set_icon()
-        self.async_write_ha_state()
+        super()._handle_coordinator_update()
 
     def _compute_is_on(self) -> bool:
         raw = self._device.get_data(self._desc.value_name)
@@ -721,14 +732,30 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
-        di = dict(self._device.device_info)
-        di["name"] = f"{di.get('name', '')}_head_{self._head}"
+        if self._head <= 0:
+            return self._device.device_info
 
-        identifiers_set = di.get("identifiers")
-        if identifiers_set:
-            base = next(iter(cast(set[tuple[Any, ...]], identifiers_set)))
-            di["identifiers"] = {tuple(base) + (f"head_{self._head}",)}
-        return cast(DeviceInfo, di)
+        base_di = dict(self._device.device_info)
+        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
+        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
+
+        # DeviceInfo is a TypedDict; copying values from a generic dict makes mypy/pyright
+        # widen types to object | None, so we guard and only assign strings (or omit keys).
+        di_dict: dict[str, Any] = {
+            "identifiers": {(domain, f"{ident}_head_{self._head}")},
+            "name": f"{self._device.title} head {self._head}",
+        }
+
+        for key in ("manufacturer", "model", "model_id", "hw_version", "sw_version"):
+            val = base_di.get(key)
+            if isinstance(val, str) or val is None:
+                di_dict[key] = val
+
+        via_device = base_di.get("via_device")
+        if via_device is not None:
+            di_dict["via_device"] = via_device
+
+        return cast(DeviceInfo, di_dict)
 
 
 class ReefRunSwitchEntity(ReefBeatSwitchEntity):

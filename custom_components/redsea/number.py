@@ -23,8 +23,6 @@ from homeassistant.components.number import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
-    STATE_UNAVAILABLE,
-    STATE_UNKNOWN,
     EntityCategory,
     UnitOfLength,
     UnitOfTime,
@@ -60,7 +58,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
-from .entity import ReefBeatRestoreEntity
+from .entity import ReefBeatRestoreEntity, RestoreSpec
 from .i18n import translate
 
 _LOGGER = logging.getLogger(__name__)
@@ -127,6 +125,7 @@ class ReefBeatNumberEntityDescription(NumberEntityDescription):
     dependency: str | None = None
     dependency_values: Sequence[Any] | None = None
     translate: Sequence[dict[str, Any]] | None = None
+    source: str = "/configuration"
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -382,18 +381,18 @@ async def async_setup_entry(
     if isinstance(
         device, (ReefLedCoordinator, ReefVirtualLedCoordinator, ReefLedG2Coordinator)
     ):
-        entities += [
+        entities.extend(
             ReefLedNumberEntity(device, description)
             for description in LED_NUMBERS
             if description.exists_fn(device)
-        ]
+        )
 
     elif isinstance(device, ReefMatCoordinator):
-        entities += [
+        entities.extend(
             ReefBeatNumberEntity(device, description)
             for description in MAT_NUMBERS
             if description.exists_fn(device)
-        ]
+        )
 
     elif isinstance(device, ReefDoseCoordinator):
         descriptions: list[ReefDoseNumberEntityDescription] = []
@@ -505,15 +504,15 @@ async def async_setup_entry(
                 )
             )
 
-        entities += [
+        entities.extend(
             ReefDoseNumberEntity(device, description)
             for description in descriptions
             if description.exists_fn(device)
-        ]
+        )
 
     elif isinstance(device, ReefRunCoordinator):
-        # global overskimming threshold
-        entities += [
+        # global overskimming threshold (single entity)
+        entities.append(
             ReefBeatNumberEntity(
                 device,
                 ReefBeatNumberEntityDescription(
@@ -527,7 +526,7 @@ async def async_setup_entry(
                     icon="mdi:cloud-percent-outline",
                 ),
             )
-        ]
+        )
 
         run_descs: list[ReefRunNumberEntityDescription] = []
         for pump in (1, 2):
@@ -559,26 +558,27 @@ async def async_setup_entry(
                 )
             )
 
-        entities += [
+        entities.extend(
             ReefRunNumberEntity(device, description)
             for description in run_descs
             if description.exists_fn(device)
-        ]
+        )
 
     elif isinstance(device, ReefWaveCoordinator):
-        entities += [
+        entities.extend(
             ReefBeatNumberEntity(device, description)
             for description in WAVE_NUMBERS
             if description.exists_fn(device)
-        ]
-        entities += [
+        )
+        entities.extend(
             ReefWaveNumberEntity(device, description)
             for description in WAVE_PREVIEW_NUMBERS
             if description.exists_fn(device)
-        ]
+        )
 
     elif isinstance(device, ReefATOCoordinator):
-        entities += [
+        # single entity
+        entities.append(
             ReefATOVolumeLeftNumberEntity(
                 device,
                 ReefBeatNumberEntityDescription(
@@ -595,7 +595,7 @@ async def async_setup_entry(
                     entity_category=EntityCategory.CONFIG,
                 ),
             )
-        ]
+        )
 
     async_add_entities(entities, update_before_add=True)
 
@@ -618,11 +618,55 @@ class ReefBeatNumberEntity(ReefBeatRestoreEntity, NumberEntity):  # type: ignore
 
     _attr_has_entity_name = True
 
+    @staticmethod
+    def _restore_native_value(state: str) -> float:
+        return float(state)
+
     def __init__(self, device: _HasDeviceInfo, description: DescriptionT) -> None:
         """Initialize the entity."""
-        ReefBeatRestoreEntity.__init__(self, cast(ReefBeatCoordinator, device))
+        ReefBeatRestoreEntity.__init__(
+            self,
+            cast(ReefBeatCoordinator, device),
+            restore=RestoreSpec("_attr_native_value", self._restore_native_value),
+        )
         self._device: _HasDeviceInfo = device
         self._description: DescriptionT = description
+
+        if description.translation_key is not None:
+            self._attr_translation_key = description.translation_key
+        if description.icon is not None:
+            self._attr_icon = description.icon
+        if description.entity_category is not None:
+            self._attr_entity_category = description.entity_category
+        if description.device_class is not None:
+            self._attr_device_class = description.device_class
+        if description.native_unit_of_measurement is not None:
+            self._attr_native_unit_of_measurement = (
+                description.native_unit_of_measurement
+            )
+
+        # HA stubs type these as Optional[...] on the description, but the entity
+        # attributes are non-optional. Coalesce to safe defaults for strict typing.
+        #
+        # Defaults chosen to be neutral and should never matter for our entities
+        # because we always set these fields in our descriptions. If a future
+        # description omits them, the entity still behaves sensibly.
+        self._attr_mode = description.mode or NumberMode.AUTO
+        self._attr_native_min_value = (
+            float(description.native_min_value)
+            if description.native_min_value is not None
+            else 0.0
+        )
+        self._attr_native_max_value = (
+            float(description.native_max_value)
+            if description.native_max_value is not None
+            else 100.0
+        )
+        self._attr_native_step = (
+            float(description.native_step)
+            if description.native_step is not None
+            else 1.0
+        )
 
         self._attr_unique_id = f"{device.serial}_{description.key}"
         self._attr_device_info = device.device_info
@@ -636,35 +680,23 @@ class ReefBeatNumberEntity(ReefBeatRestoreEntity, NumberEntity):  # type: ignore
             pass
 
     async def async_added_to_hass(self) -> None:
-        """Register listeners and restore the last state on Home Assistant restart."""
+        """Restore last known value and prime from coordinator cache."""
         await super().async_added_to_hass()
 
-        last_state = await self.async_get_last_state()
-        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
-            if self._attr_native_value is None or not self._attr_available:
-                try:
-                    self._attr_native_value = float(last_state.state)
-                except Exception:
-                    # Fall back to leaving it unset if it is not numeric
-                    self._attr_native_value = None
-                else:
-                    self._attr_available = True
-                    self.async_write_ha_state()
-        # CoordinatorEntity already listens for coordinator updates.
-        self._handle_device_update()
+        if self._attr_native_value is not None and not self._attr_available:
+            self._attr_available = True
+
+        if cast(ReefBeatCoordinator, self._device).last_update_success:
+            self._handle_coordinator_update()
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        self._handle_device_update()
-
-    @callback
-    def _handle_device_update(self) -> None:
-        """Sync HA state from coordinator cached data."""
+        """Sync cached `_attr_*` state from coordinator data."""
         self._attr_available = self._compute_available()
         self._attr_native_value = cast(
             float | None, self._device.get_data(self._description.value_name, True)
         )
-        self.async_write_ha_state()
+        super()._handle_coordinator_update()
 
     def _compute_available(self) -> bool:
         """Return True when this number should be shown as available."""

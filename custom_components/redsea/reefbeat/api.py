@@ -126,7 +126,9 @@ class ReefBeatAPI:
                 ],
             )
         }
-        self.data["local"] = {}
+        # Integration-maintained derived state.
+        # Ensure common local keys exist so jsonpath lookups don't spam logs.
+        self.data["local"] = {"use_cloud_api": None}
         self.data["message"] = {}
 
         # Cache mapping JSONPath expression -> "self.data[...]..." eval string
@@ -218,7 +220,15 @@ class ReefBeatAPI:
         try:
             timeout = getattr(self, "_timeout", 10)
             async with async_timeout.timeout(timeout):
-                async with session.get(url) as resp:
+                async with session.get(url, headers=self._header, ssl=False) as resp:
+                    if resp.status == 401 and self._secure:
+                        # token expired — renew once
+                        await self.connect()
+                        async with session.get(
+                            url, headers=self._header, ssl=False
+                        ) as resp2:
+                            resp = resp2
+
                     if resp.status >= 400:
                         _LOGGER.debug(
                             "GET %s failed: %s %s", url, resp.status, resp.reason
@@ -238,7 +248,8 @@ class ReefBeatAPI:
 
                     # Preserve your existing "sources" contract:
                     # store under the source name key (or whatever your integration expects)
-                    self.data[endpoint] = payload
+                    # source.value is the dict inside self.data["sources"], so mutate it in place
+                    source.value["data"] = payload
                     return True
 
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:

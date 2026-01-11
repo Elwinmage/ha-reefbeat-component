@@ -47,7 +47,7 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Any, Protocol, cast, runtime_checkable
+from typing import Any, Protocol, TypeAlias, cast, runtime_checkable
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -95,11 +95,14 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
-from .entity import ReefBeatRestoreEntity
+from .entity import ReefBeatRestoreEntity, RestoreSpec
 from .i18n import translate
 
 _LOGGER = logging.getLogger(__name__)
 
+# HA's StateType doesn't include date/datetime, but SensorEntity supports them for
+# device classes like DATE/TIMESTAMP.
+SensorNativeValue: TypeAlias = StateType | datetime.date | datetime.datetime
 
 # =============================================================================
 # Protocols (capability-based typing)
@@ -756,8 +759,8 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         icon="mdi:thermometer-check",
     ),
     ReefBeatSensorEntityDescription(
-        key="mode",
-        translation_key="mode",
+        key="ato_mode",
+        translation_key="ato_mode",
         value_fn=lambda device: device.get_data(ATO_MODE_INTERNAL_NAME),
         icon="mdi:play",
     ),
@@ -1218,10 +1221,24 @@ class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore
 
     _attr_has_entity_name = True
 
+    @staticmethod
+    def _restore_native_value(state: str) -> StateType:
+        """Best-effort parse of restored state into a native value."""
+        try:
+            if re.fullmatch(r"-?\d+(?:\.\d+)?", state.strip()):
+                return float(state)
+        except Exception:
+            pass
+        return state
+
     def __init__(
         self, device: ReefBeatCoordinator, entity_description: DescriptionT
     ) -> None:
-        ReefBeatRestoreEntity.__init__(self, device)
+        ReefBeatRestoreEntity.__init__(
+            self,
+            device,
+            restore=RestoreSpec("_attr_native_value", self._restore_native_value),
+        )
         self._device = device
 
         self.entity_description = cast(SensorEntityDescription, entity_description)
@@ -1231,44 +1248,23 @@ class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore
         self._attr_unique_id = f"{device.serial}_{self._description.key}"
 
     async def async_added_to_hass(self) -> None:
-        """Register listeners and restore the last state on Home Assistant restart."""
+        """Restore last known value and prime from coordinator cache."""
         await super().async_added_to_hass()
 
-        # Restore previous state early so entities keep a useful value across restarts,
-        # even if the device/coordinator has not provided fresh data yet.
-        last_state = await self.async_get_last_state()
-        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
-            # Best-effort type coercion: keep strings, coerce numerics when sensible.
-            restored: StateType
-            try:
-                state_str = last_state.state
+        # If we restored a value, mark available so HA doesn't show `unavailable`.
+        if self._attr_native_value is not None and not self._attr_available:
+            self._attr_available = True
 
-                if self.native_unit_of_measurement and re.fullmatch(
-                    r"-?\d+(?:\.\d+)?", state_str.strip()
-                ):
-                    restored = float(state_str)
-                else:
-                    restored = state_str
-            except Exception:
-                restored = last_state.state
-
-            # Only apply if we don't have a value yet (or were marked unavailable).
-            if self._attr_native_value is None or not self._attr_available:
-                self._attr_native_value = restored
-                self._attr_available = True
-                self.async_write_ha_state()
-        # CoordinatorEntity already listens for coordinator updates.
-        self._handle_device_update()
+        # If coordinator already has fresh data, populate attributes now.
+        if self._device.last_update_success:
+            self._update_val()
+            super()._handle_coordinator_update()
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        self._handle_device_update()
-
-    @callback
-    def _handle_device_update(self) -> None:
-        """Handle updated data from the device and write HA state."""
+        """Update cached `_attr_*` values from coordinator data."""
         self._update_val()
-        self.async_write_ha_state()
+        super()._handle_coordinator_update()
 
     def _update_val(self) -> None:
         """Update native value and extra state attributes.
@@ -1311,7 +1307,7 @@ class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore
                 with_attr_name: self._device.get_data(with_attr_value)
             }
 
-    def _get_value(self) -> StateType:
+    def _get_value(self) -> SensorNativeValue:
         """Compute the sensor native value for the current description."""
         if getattr(self._description, "translation_key", None) == "dosing_queue":
             value_name = cast(str, getattr(self._description, "value_name", ""))
@@ -1381,12 +1377,21 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
         super().__init__(device, entity_description)
         self._head: int = entity_description.head
 
-    def _get_value(self) -> StateType:
+    def _get_value(self) -> SensorNativeValue:
         desc = cast(ReefDoseSensorEntityDescription, self._description)
         if desc.translation_key == "last_calibration":
             raw = self._device.get_data(desc.value_name)
-            dt = datetime.datetime.fromtimestamp(int(cast(int, raw))).date()
-            return dt.isoformat()
+            if raw is None:
+                return None
+            try:
+                ts = int(cast(int, raw))
+            except (TypeError, ValueError):
+                return None
+
+            # Use UTC to avoid local timezone shifting the date (e.g. 1969-12-31).
+            dt = datetime.datetime.fromtimestamp(ts, tz=datetime.UTC).date()
+            return dt
+
         return self._device.get_data(desc.value_name)
 
     def _update_val(self) -> None:
@@ -1407,14 +1412,30 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the head identifier."""
-        di = dict(self._device.device_info)
-        di["name"] = f"{di.get('name', '')}_head_{self._head}"
+        if self._head <= 0:
+            return self._device.device_info
 
-        identifiers_set = di.get("identifiers")
-        if identifiers_set:
-            base = next(iter(cast(set[tuple[Any, ...]], identifiers_set)))
-            di["identifiers"] = {tuple(base) + (f"head_{self._head}",)}
-        return cast(DeviceInfo, di)
+        base_di = dict(self._device.device_info)
+        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
+        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
+
+        # DeviceInfo is a TypedDict; copying values from a generic dict makes mypy/pyright
+        # widen types to object | None, so we guard and only assign strings (or omit keys).
+        di_dict: dict[str, Any] = {
+            "identifiers": {(domain, f"{ident}_head_{self._head}")},
+            "name": f"{self._device.title} head {self._head}",
+        }
+
+        for key in ("manufacturer", "model", "model_id", "hw_version", "sw_version"):
+            val = base_di.get(key)
+            if isinstance(val, str) or val is None:
+                di_dict[key] = val
+
+        via_device = base_di.get("via_device")
+        if via_device is not None:
+            di_dict["via_device"] = via_device
+
+        return cast(DeviceInfo, di_dict)
 
 
 class RestoreSensorEntity(ReefDoseSensorEntity):

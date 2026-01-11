@@ -15,20 +15,21 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import time
 from datetime import time as dt_time
 from functools import cached_property
 from typing import cast
 
 from homeassistant.components.time import TimeEntity, TimeEntityDescription
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .coordinator import ReefMatCoordinator
-from .entity import ReefBeatRestoreEntity
+from .entity import ReefBeatRestoreEntity, RestoreSpec
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -68,7 +69,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up time entities for a config entry."""
-    device = cast(ReefMatCoordinator, hass.data[DOMAIN][config_entry.entry_id])
+    device = hass.data[DOMAIN][config_entry.entry_id]
+
+    if not isinstance(device, ReefMatCoordinator):
+        return
 
     entities: list[TimeEntity] = []
     _LOGGER.debug("TIMES")
@@ -92,12 +96,20 @@ class ReefMatTimeEntity(ReefBeatRestoreEntity, TimeEntity):  # type: ignore[repo
 
     _attr_has_entity_name = True
 
+    @staticmethod
+    def _restore_value(state: str) -> time:
+        return time.fromisoformat(state)
+
     def __init__(
         self,
         device: ReefMatCoordinator,
         entity_description: ReefMatTimeEntityDescription,
     ) -> None:
-        ReefBeatRestoreEntity.__init__(self, device)
+        ReefBeatRestoreEntity.__init__(
+            self,
+            device,
+            restore=RestoreSpec("_attr_native_value", self._restore_value),
+        )
         self._device = device
 
         self.entity_description = cast(TimeEntityDescription, entity_description)
@@ -111,33 +123,27 @@ class ReefMatTimeEntity(ReefBeatRestoreEntity, TimeEntity):  # type: ignore[repo
         )
 
     async def async_added_to_hass(self) -> None:
-        """Register listeners and restore the last state on Home Assistant restart."""
+        """Restore last known time and prime from coordinator cache."""
         await super().async_added_to_hass()
 
-        last_state = await self.async_get_last_state()
-        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
-            if self._attr_native_value is None or not self._attr_available:
-                try:
-                    self._attr_native_value = dt_time.fromisoformat(last_state.state)
-                except Exception:
-                    self._attr_native_value = None
-                else:
-                    self._attr_available = True
-                    self.async_write_ha_state()
-        # CoordinatorEntity already listens for coordinator updates.
-        self._handle_device_update()
+        if self._attr_native_value is not None and not self._attr_available:
+            self._attr_available = True
+
+        if self._device.last_update_success:
+            self._update_val()
+            super()._handle_coordinator_update()
+
+    def _update_val(self) -> None:
+        self._attr_available = True
+
+        minutes = cast(int | None, self._device.get_data(self._desc.value_name, True))
+        self._attr_native_value = self._minutes_to_time(minutes)
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        self._handle_device_update()
-
-    @callback
-    def _handle_device_update(self) -> None:
-        """Handle updated data from the coordinator cache."""
-        self._attr_available = True
-        minutes = cast(int | None, self._device.get_data(self._desc.value_name))
-        self._attr_native_value = self._minutes_to_time(minutes)
-        self.async_write_ha_state()
+        """Update cached `_attr_*` values from coordinator data."""
+        self._update_val()
+        super()._handle_coordinator_update()
 
     @staticmethod
     def _minutes_to_time(minutes: int | None) -> dt_time | None:
