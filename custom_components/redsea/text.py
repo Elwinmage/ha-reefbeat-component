@@ -1,214 +1,243 @@
-"""Implements the sensor entity"""
+"""Text platform for the Red Sea ReefBeat integration.
+
+This module exposes configurable string fields as Home Assistant `text` entities.
+
+Design notes (HA 2025.12):
+- Entities are backed by the coordinator cache; we write to the cache on set.
+- Avoid `type(x).__name__` checks; use `isinstance`.
+- Avoid mutating shared `device_info` dicts; copy and return a new mapping.
+- Avoid using `device._hass`; use `self.hass` (provided by Entity base).
+"""
+
+from __future__ import annotations
 
 import logging
-
-from dataclasses import dataclass
 from collections.abc import Callable
+from dataclasses import dataclass
+from functools import cached_property
+from typing import Any, cast
 
-from homeassistant.core import (
-    HomeAssistant,
-    callback,
-)
-
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
-
+from homeassistant.components.text import TextEntity, TextEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
+from homeassistant.core import HomeAssistant, callback
 
-from homeassistant.components.text import (
-    TextEntity,
-    TextEntityDescription,
-)
-
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+# (keep callback import; we’ll use it on the listener)
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-
-from homeassistant.const import (
-    EntityCategory,
-)
-
-from .const import (
-    DOMAIN,
-)
-
-
-from .coordinator import ReefBeatCoordinator
-
-from .i18n import translate
+from .const import DOMAIN
+from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass(kw_only=True)
+# =============================================================================
+# Entity descriptions
+# =============================================================================
+
+
+@dataclass(kw_only=True, frozen=True)
 class ReefBeatTextEntityDescription(TextEntityDescription):
-    """Describes reefbeat Text entity."""
+    """Describes a ReefBeat text entity."""
 
+    value_name: str
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
-    value_name: str = None
 
 
-@dataclass(kw_only=True)
-class ReefDoseTextEntityDescription(TextEntityDescription):
-    """Describes reefbeat Text entity."""
+@dataclass(kw_only=True, frozen=True)
+class ReefDoseTextEntityDescription(ReefBeatTextEntityDescription):
+    """Describes a ReefDose per-head text entity."""
 
-    exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
-    dependency: str = None
-    value_name: str = None
-    head: int = 0
+    head: int
+    dependency: str | None = None
+
+
+# =============================================================================
+# Platform setup
+# =============================================================================
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
-    discovery_info=None,
-):
-    """Configuration de la plate-forme tuto_hacs à partir de la configuration graphique"""
-    device = hass.data[DOMAIN][config_entry.entry_id]
+) -> None:
+    """Set up text entities for a config entry."""
+    device = cast(ReefBeatCoordinator, hass.data[DOMAIN][config_entry.entry_id])
 
-    entities = []
+    entities: list[TextEntity] = []
     _LOGGER.debug("TEXTS")
-    if type(device).__name__ == "ReefDoseCoordinator":
-        dn = ()
-        for head in range(1, device.heads_nb + 1):
-            new_head = (
-                ReefDoseTextEntityDescription(
-                    key="new_supplement_brand_name" + str(head),
-                    translation_key="new_supplement_brand_name",
-                    value_name="$.local.head."
-                    + str(head)
-                    + ".new_supplement_brand_name",
-                    exists_fn=lambda _: True,
-                    icon="mdi:domain",
-                    dependency="$.local.head." + str(head) + ".new_supplement",
-                    entity_category=EntityCategory.CONFIG,
-                    head=head,
-                ),
+
+    if isinstance(device, ReefDoseCoordinator):
+        dose_descs: list[ReefDoseTextEntityDescription] = []
+
+        # `heads_nb` may be str/int in some coordinators; normalize to int.
+        for head in range(1, int(device.heads_nb) + 1):
+            dose_descs.extend(
+                [
+                    ReefDoseTextEntityDescription(
+                        key="new_supplement_brand_name_" + str(head),
+                        translation_key="new_supplement_brand_name",
+                        value_name="$.local.head."
+                        + str(head)
+                        + ".new_supplement_brand_name",
+                        icon="mdi:domain",
+                        entity_category=EntityCategory.CONFIG,
+                        dependency="$.local.head." + str(head) + ".new_supplement",
+                        head=head,
+                    ),
+                    ReefDoseTextEntityDescription(
+                        key="new_supplement_name_" + str(head),
+                        translation_key="new_supplement_name",
+                        value_name="$.local.head." + str(head) + ".new_supplement_name",
+                        icon="mdi:tag-text-outline",
+                        entity_category=EntityCategory.CONFIG,
+                        dependency="$.local.head." + str(head) + ".new_supplement",
+                        head=head,
+                    ),
+                    ReefDoseTextEntityDescription(
+                        key="new_supplement_short_name_" + str(head),
+                        translation_key="new_supplement_short_name",
+                        value_name="$.local.head."
+                        + str(head)
+                        + ".new_supplement_short_name",
+                        icon="mdi:text-short",
+                        entity_category=EntityCategory.CONFIG,
+                        dependency="$.local.head." + str(head) + ".new_supplement",
+                        head=head,
+                    ),
+                ]
             )
-            dn += new_head
-            new_head = (
-                ReefDoseTextEntityDescription(
-                    key="new_supplement_name" + str(head),
-                    translation_key="new_supplement_name",
-                    value_name="$.local.head." + str(head) + ".new_supplement_name",
-                    exists_fn=lambda _: True,
-                    icon="mdi:tag-text-outline",
-                    entity_category=EntityCategory.CONFIG,
-                    dependency="$.local.head." + str(head) + ".new_supplement",
-                    head=head,
-                ),
-            )
-            dn += new_head
-            new_head = (
-                ReefDoseTextEntityDescription(
-                    key="new_supplement_short_name" + str(head),
-                    translation_key="new_supplement_short_name",
-                    value_name="$.local.head."
-                    + str(head)
-                    + ".new_supplement_short_name",
-                    exists_fn=lambda _: True,
-                    icon="mdi:text-short",
-                    dependency="$.local.head." + str(head) + ".new_supplement",
-                    entity_category=EntityCategory.CONFIG,
-                    head=head,
-                ),
-            )
-            dn += new_head
-        entities += [
+
+        entities.extend(
             ReefDoseTextEntity(device, description)
-            for description in dn
+            for description in dose_descs
             if description.exists_fn(device)
-        ]
+        )
+
     async_add_entities(entities, True)
 
 
-################################################################################
-# BEAT
-class ReefBeatTextEntity(CoordinatorEntity, TextEntity):
-    """Represent an ReefBeat text."""
+# =============================================================================
+# Base entity
+# =============================================================================
+
+
+class ReefBeatTextEntity(TextEntity):
+    """A ReefBeat text entity backed by the coordinator cache.
+
+    This entity listens to the coordinator's internal listener mechanism rather
+    than using `CoordinatorEntity` to avoid MRO/type conflicts with HA stubs.
+    """
 
     _attr_has_entity_name = True
 
     def __init__(
-        self, device, entity_description: ReefBeatTextEntityDescription
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefBeatTextEntityDescription,
     ) -> None:
-        """Set up the instance."""
-        super().__init__(device, entity_description)
+        super().__init__()
+
+        # Keep HA's expected type for `entity_description`, store typed description separately.
+        self.entity_description = cast(TextEntityDescription, entity_description)
+        self._desc: ReefBeatTextEntityDescription = entity_description
+
         self._device = device
-        self.entity_description = entity_description
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
-        self._value_name = entity_description.value_name
-        self._attr_native_value = self._device.get_data(self._value_name)
+        self._attr_available = False
+
+        # Initial state from cache
+        self._attr_native_value = cast(
+            str | None, self._device.get_data(self._desc.value_name)
+        )
+
+    async def async_added_to_hass(self) -> None:
+        """Register coordinator listener after entity is added to HA."""
+        await super().async_added_to_hass()
+        self.async_on_remove(
+            self._device.async_add_listener(self._handle_device_update)
+        )
+        self._handle_device_update()
+
+    @callback
+    def _handle_device_update(self) -> None:
+        """Update state from the coordinator cache."""
+        self._attr_available = True
+        self._attr_native_value = cast(
+            str | None, self._device.get_data(self._desc.value_name)
+        )
+        self.async_write_ha_state()
 
     async def async_set_value(self, value: str) -> None:
-        """Update the current texted option."""
+        """Set the text value and mirror into the coordinator cache."""
         self._attr_native_value = value
-        self._device.set_data(self._value_name, value)
+        self._device.set_data(self._desc.value_name, value)
+        self._device.async_update_listeners()
         self.async_write_ha_state()
-        # await self._device.push_values(self._source,self._method)
 
-    @property
-    def available(self) -> bool:
-        if self.entity_description.dependency is not None:
-            if self.entity_description.dependency_values is not None:
-                val = self._device.get_data(self.entity_description.dependency)
-                if self.entity_description.translate is not None:
-                    val = translate(
-                        val,
-                        "id",
-                        dictionnary=self.entity_description.translate,
-                        src_lang=self._device._hass.config.language,
-                    )
-                return val in self.entity_description.dependency_values
-            else:
-                return self._device.get_data(self.entity_description.dependency)
-        else:
-            return True
-
-    @property
+    @cached_property  # type: ignore[override]
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info
 
 
-################################################################################
-# DOSE
+# =============================================================================
+# Dose entities
+# =============================================================================
+
+
 class ReefDoseTextEntity(ReefBeatTextEntity):
-    """Represent an ReefBeat sensor."""
+    """Per-head ReefDose text entity.
+
+    Availability is controlled by an HA bus event emitted elsewhere in the integration
+    (typically when the "dependency" select/switch changes).
+    """
 
     _attr_has_entity_name = True
 
     def __init__(
-        self, device, entity_description: ReefDoseTextEntityDescription
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefDoseTextEntityDescription,
     ) -> None:
-        """Set up the instance."""
         super().__init__(device, entity_description)
-        self._head = self.entity_description.head
-        self._attr_native_value = self._device.get_data(self._value_name)
-        self._device._hass.bus.async_listen(
-            self.entity_description.dependency, self._handle_update
-        )
-        self._attr_available = False
+        self._dose_desc: ReefDoseTextEntityDescription = entity_description
+        self._head: int = entity_description.head
+        self._attr_available = True  # default to available unless told otherwise
+
+    async def async_added_to_hass(self) -> None:
+        """Register event listener after HA has set `self.hass`."""
+        await super().async_added_to_hass()
+
+        if self._dose_desc.dependency:
+            self.async_on_remove(
+                self.hass.bus.async_listen(
+                    self._dose_desc.dependency, self._handle_update
+                )
+            )
 
     @callback
-    def _handle_update(self, event) -> None:
-        """Handle updated data from the coordinator."""
-        self._attr_available = event.data.get("other")
+    def _handle_update(self, event: Any) -> None:
+        """Handle updated availability data from the integration."""
+        # The integration fires event.data.get("other") as a boolean.
+        other = event.data.get("other")
+        if isinstance(other, bool):
+            self._attr_available = other
+        else:
+            # Defensive: if payload is malformed, do not crash the entity update loop.
+            self._attr_available = bool(other)
         self.async_write_ha_state()
 
-    @property
-    def available(self) -> bool:
-        return self._attr_available
-
-    @property
+    @cached_property  # type: ignore[override]
     def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        di = self._device.device_info
-        di["name"] += "_head_" + str(self._head)
-        identifiers = list(di["identifiers"])[0]
-        head = ("head_" + str(self._head),)
-        identifiers += head
-        di["identifiers"] = {identifiers}
-        return di
+        """Return device info extended with the head identifier (non-mutating)."""
+        di = dict(self._device.device_info)
+        di["name"] = f"{di.get('name', '')}_head_{self._head}"
+
+        identifiers_set = di.get("identifiers")
+        if identifiers_set:
+            base = next(iter(cast(set[tuple[Any, ...]], identifiers_set)))
+            di["identifiers"] = {tuple(base) + (f"head_{self._head}",)}
+        return cast(DeviceInfo, di)

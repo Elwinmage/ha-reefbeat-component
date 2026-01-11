@@ -111,6 +111,9 @@
       },
       "stop_fill": {
         "name": "Arrêt du remplissage"
+      },
+      "resume": {
+        "name": "Reprendre"
       }
     },
     "number": {
@@ -236,7 +239,6 @@
       "is_ec_sensor_connected": {
         "name": "Capteur connecté?"
       },
-
       "water_level": {
         "name": "Niveau d'eau"
       },
@@ -422,7 +424,6 @@
       "daily_dose": {
         "name": "Dose journalière"
       },
-
       "days_till_end_of_roll": {
         "name": "Jours avant la fin du rouleau"
       },
@@ -492,7 +493,6 @@
       "days_till_empty": {
         "name": "Nombre de jours restant"
       },
-
       "status": {
         "name": "Statut"
       },
@@ -504,13 +504,18 @@
       },
       "temperature_probe_status": {
         "name": "Statut de la sonde de température"
+      },
+      "auto_fill": {
+        "name": "Remplissage automatique"
+      },
+      "pump_state": {
+        "name": "Etat de la pompe"
       }
     },
     "light": {
       "kelvin_intensity": {
         "name": "Kelvin"
       },
-
       "intensity": {
         "name": "Intensité"
       },

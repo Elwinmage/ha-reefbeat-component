@@ -1,7 +1,25 @@
+"""Constants for the Red Sea ReefBeat integration.
+
+This module contains:
+- Integration identifiers and config keys
+- Hardware model identifiers
+- Default scan intervals / timeouts
+- JSONPath strings used to read device data
+- Static lookup tables used by platforms (LED conversions, wave types, etc.)
+"""
+
+from __future__ import annotations
+
+from typing import Final, TypedDict
+
+# -----------------------------------------------------------------------------
+# Platforms
+# -----------------------------------------------------------------------------
+
 try:
     from homeassistant.const import Platform
 
-    PLATFORMS: list[Platform] = [
+    PLATFORMS: Final[list[Platform]] = [
         Platform.LIGHT,
         Platform.SENSOR,
         Platform.BINARY_SENSOR,
@@ -13,103 +31,134 @@ try:
         Platform.UPDATE,
         Platform.TEXT,
     ]
-except Exception:
-    pass
+except Exception:  # pragma: no cover
+    # Allow importing this module outside of Home Assistant.
+    PLATFORMS = []  # type: ignore[assignment]
 
-DOMAIN = "redsea"
+# -----------------------------------------------------------------------------
+# Integration / config keys
+# -----------------------------------------------------------------------------
 
-DEVICE_MANUFACTURER = "Red Sea"
-CONF_FLOW_PLATFORM = "platform"
-MODEL_NAME = "hw_model"
-MODEL_ID = "hwid"
-HW_VERSION = "hw_revision"
-SW_VERSION = "version"
+DOMAIN: Final[str] = "redsea"
 
-CLOUD_SERVER_ADDR = "cloud.reef-beat.com"
+DEVICE_MANUFACTURER: Final[str] = "Red Sea"
+CONF_FLOW_PLATFORM: Final[str] = "platform"
+MODEL_NAME: Final[str] = "hw_model"
+MODEL_ID: Final[str] = "hwid"
+HW_VERSION: Final[str] = "hw_revision"
+SW_VERSION: Final[str] = "version"
 
-CONFIG_FLOW_IP_ADDRESS = "ip_address"
+CLOUD_SERVER_ADDR: Final[str] = "cloud.reef-beat.com"
 
-CONFIG_FLOW_ADD_TYPE = "add_type"
-ADD_CLOUD_API = "cloud_api"
-ADD_LOCAL_DETECT = "local_detect"
-ADD_MANUAL_MODE = "manual_mode"
-VIRTUAL_LED = "virtual_led"
+CONFIG_FLOW_IP_ADDRESS: Final[str] = "ip_address"
 
-ADD_TYPES = [ADD_CLOUD_API, ADD_LOCAL_DETECT, ADD_MANUAL_MODE, VIRTUAL_LED]
+CONFIG_FLOW_ADD_TYPE: Final[str] = "add_type"
+ADD_CLOUD_API: Final[str] = "cloud_api"
+ADD_LOCAL_DETECT: Final[str] = "local_detect"
+ADD_MANUAL_MODE: Final[str] = "manual_mode"
+VIRTUAL_LED: Final[str] = "virtual_led"
 
+ADD_TYPES: Final[tuple[str, ...]] = (
+    ADD_CLOUD_API,
+    ADD_LOCAL_DETECT,
+    ADD_MANUAL_MODE,
+    VIRTUAL_LED,
+)
 
 # CLOUD
-CONFIG_FLOW_CLOUD_USERNAME = "username"
-CONFIG_FLOW_CLOUD_PASSWORD = "password"
-CLOUD_SCAN_INTERVAL = 600
-CLOUD_DEVICE_TYPE = "Smartphone App"
-CLOUD_AUTH_TIMEOUT = 2700  # seconds => 45m
+CONFIG_FLOW_CLOUD_USERNAME: Final[str] = "username"
+CONFIG_FLOW_CLOUD_PASSWORD: Final[str] = "password"
+CLOUD_SCAN_INTERVAL: Final[int] = 600
+CLOUD_DEVICE_TYPE: Final[str] = "Smartphone App"
+CLOUD_AUTH_TIMEOUT: Final[int] = 2700  # seconds => 45m
 
-CONFIG_FLOW_CLOUD_ACCOUNT = "cloud_account"
-CONFIG_FLOW_HW_MODEL = "hw_model"
-CONFIG_FLOW_SCAN_INTERVAL = "scan_interval"
-CONFIG_FLOW_INTENSITY_COMPENSATION = "intensity_compensation"
-CONFIG_FLOW_CONFIG_TYPE = "live_config_update"
+CONFIG_FLOW_CLOUD_ACCOUNT: Final[str] = "cloud_account"
+CONFIG_FLOW_HW_MODEL: Final[str] = "hw_model"
+CONFIG_FLOW_SCAN_INTERVAL: Final[str] = "scan_interval"
+CONFIG_FLOW_INTENSITY_COMPENSATION: Final[str] = "intensity_compensation"
+CONFIG_FLOW_CONFIG_TYPE: Final[str] = "live_config_update"
 
-SCAN_INTERVAL = 120  # in seconds
-DO_NOT_REFRESH_TIME = 2  # in seconds
+SCAN_INTERVAL: Final[int] = 120  # seconds
+DO_NOT_REFRESH_TIME: Final[int] = 2  # seconds
 
-DEFAULT_TIMEOUT = 20
+DEFAULT_TIMEOUT: Final[int] = 20
 
-HTTP_MAX_RETRY = 5
-HTTP_DELAY_BETWEEN_RETRY = 2
+HTTP_MAX_RETRY: Final[int] = 5
+HTTP_DELAY_BETWEEN_RETRY: Final[int] = 2
 
-################################################################################
+# -----------------------------------------------------------------------------
+# Hardware model identifiers
+# -----------------------------------------------------------------------------
 
+HW_G1_LED_IDS: Final[tuple[str, ...]] = ("RSLED50", "RSLED90", "RSLED160")
+HW_G2_LED_IDS: Final[tuple[str, ...]] = ("RSLED60", "RSLED115", "RSLED170")
 
-HW_G1_LED_IDS = ["RSLED50", "RSLED90", "RSLED160"]
-HW_G2_LED_IDS = ["RSLED60", "RSLED115", "RSLED170"]
+HW_LED_IDS: Final[tuple[str, ...]] = HW_G1_LED_IDS + HW_G2_LED_IDS
 
-HW_LED_IDS = HW_G1_LED_IDS + HW_G2_LED_IDS
+HW_DOSE_IDS: Final[tuple[str, ...]] = ("RSDOSE2", "RSDOSE4")
+HW_MAT_IDS: Final[tuple[str, ...]] = ("RSMAT",)
+HW_MAT_MODEL: Final[tuple[str, ...]] = ("RSMAT250", "RSMAT500", "RSMAT1200")
+HW_ATO_IDS: Final[tuple[str, ...]] = ("RSATO+",)
+HW_RUN_IDS: Final[tuple[str, ...]] = ("RSRUN",)
+HW_WAVE_IDS: Final[tuple[str, ...]] = ("RSWAVE25", "RSWAVE45")
 
-HW_DOSE_IDS = ["RSDOSE2", "RSDOSE4"]
-HW_MAT_IDS = ["RSMAT"]
-HW_MAT_MODEL = ["RSMAT250", "RSMAT500", "RSMAT1200"]
-HW_ATO_IDS = ["RSATO+"]
-HW_RUN_IDS = ["RSRUN"]
-HW_WAVE_IDS = ["RSWAVE25", "RSWAVE45"]
-
-HW_DEVICES_IDS = (
+HW_DEVICES_IDS: Final[tuple[str, ...]] = (
     HW_LED_IDS + HW_DOSE_IDS + HW_MAT_IDS + HW_RUN_IDS + HW_ATO_IDS + HW_WAVE_IDS
 )
 
-################################################################################
-# COMMON
-COMMON_ON_OFF_SWITCH = "$.sources[?(@.name=='/mode')].data.mode"
-COMMON_CLOUD_CONNECTION = "$.sources[?(@.name=='/cloud')].data.enabled"
-COMMON_MAINTENANCE_SWITCH = "$.sources[?(@.name=='/mode')].data.mode"
+# -----------------------------------------------------------------------------
+# Common JSONPath names
+# -----------------------------------------------------------------------------
 
-################################################################################
-# LED
-LED_SCAN_INTERVAL = 120  # in seconds
+JsonPath = str
 
-LED_WHITE_INTERNAL_NAME = "$.sources[?(@.name=='/manual')].data.white"
-LED_BLUE_INTERNAL_NAME = "$.sources[?(@.name=='/manual')].data.blue"
-LED_MOON_INTERNAL_NAME = "$.sources[?(@.name=='/manual')].data.moon"
-LED_INTENSITY_INTERNAL_NAME = "$.sources[?(@.name=='/manual')].data.intensity"
-LED_KELVIN_INTERNAL_NAME = "$.sources[?(@.name=='/manual')].data.kelvin"
+COMMON_ON_OFF_SWITCH: Final[JsonPath] = "$.sources[?(@.name=='/mode')].data.mode"
+COMMON_CLOUD_CONNECTION: Final[JsonPath] = "$.sources[?(@.name=='/cloud')].data.enabled"
+COMMON_MAINTENANCE_SWITCH: Final[JsonPath] = "$.sources[?(@.name=='/mode')].data.mode"
 
-LED_ACCLIMATION_ENABLED_INTERNAL_NAME = (
+# -----------------------------------------------------------------------------
+# REEFLED
+# -----------------------------------------------------------------------------
+
+LED_SCAN_INTERVAL: Final[int] = 120  # seconds
+
+LED_WHITE_INTERNAL_NAME: Final[JsonPath] = "$.sources[?(@.name=='/manual')].data.white"
+LED_BLUE_INTERNAL_NAME: Final[JsonPath] = "$.sources[?(@.name=='/manual')].data.blue"
+LED_MOON_INTERNAL_NAME: Final[JsonPath] = "$.sources[?(@.name=='/manual')].data.moon"
+LED_INTENSITY_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/manual')].data.intensity"
+)
+LED_KELVIN_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/manual')].data.kelvin"
+)
+
+LED_ACCLIMATION_ENABLED_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/acclimation')].data.enabled"
 )
-LED_MOONPHASE_ENABLED_INTERNAL_NAME = "$.sources[?(@.name=='/moonphase')].data.enabled"
+LED_MOONPHASE_ENABLED_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/moonphase')].data.enabled"
+)
 
-LED_MOON_DAY_INTERNAL_NAME = "$.local.moonphase.moon_day"
-LED_ACCLIMATION_DURATION_INTERNAL_NAME = "$.local.acclimation.duration"
-LED_ACCLIMATION_INTENSITY_INTERNAL_NAME = "$.local.acclimation.start_intensity_factor"
+LED_MOON_DAY_INTERNAL_NAME: Final[JsonPath] = "$.local.moonphase.moon_day"
+LED_ACCLIMATION_DURATION_INTERNAL_NAME: Final[JsonPath] = "$.local.acclimation.duration"
+LED_ACCLIMATION_INTENSITY_INTERNAL_NAME: Final[JsonPath] = (
+    "$.local.acclimation.start_intensity_factor"
+)
 
-LED_MANUAL_DURATION_INTERNAL_NAME = "$.local.manual_duration"
+LED_MANUAL_DURATION_INTERNAL_NAME: Final[JsonPath] = "$.local.manual_duration"
 
-DAILY_PROG_INTERNAL_NAME = "$.local.daily_prog"
+DAILY_PROG_INTERNAL_NAME: Final[JsonPath] = "$.local.daily_prog"
 
-LED_CONVERSION_COEF = 100 / 255
+LED_CONVERSION_COEF: Final[float] = 100 / 255
 
-LEDS_CONV = [
+
+class LedConv(TypedDict):
+    name: str
+    kelvin: list[int]
+    white_blue: list[int]
+
+
+LEDS_CONV: Final[list[LedConv]] = [
     {
         "name": "RSLED160",
         "kelvin": [9000, 12000, 15000, 20000, 23000],
@@ -130,7 +179,14 @@ LEDS_CONV = [
     {"name": "RSLED170", "kelvin": [], "white_blue": []},
 ]
 
-LEDS_INTENSITY_COMPENSATION = [
+
+class LedIntensityComp(TypedDict):
+    name: str
+    intensity: list[int]
+    white_blue: list[int]
+
+
+LEDS_INTENSITY_COMPENSATION: Final[list[LedIntensityComp]] = [
     {
         "name": "RSLED160",
         "intensity": [10320, 14300, 17240, 20575, 23100, 22260, 20190, 18070, 13370],
@@ -138,59 +194,86 @@ LEDS_INTENSITY_COMPENSATION = [
     }
 ]
 
+LED_MODE_INTERNAL_NAME: Final[JsonPath] = "$.sources[?(@.name=='/mode')].data.mode"
+LED_MODES: Final[tuple[str, ...]] = ("auto", "timer", "manual")
 
-LED_MODE_INTERNAL_NAME = "$.sources[?(@.name=='/mode')].data.mode"
-LED_MODES = ["auto", "timer", "manual"]
+EVENT_KELVIN_LIGHT_UPDATED: Final[str] = "Kelvin_light_updated"
+EVENT_WB_LIGHT_UPDATED: Final[str] = "Kelvin_wb_updated"
 
-EVENT_KELVIN_LIGHT_UPDATED = "Kelvin_light_updated"
-EVENT_WB_LIGHT_UPDATED = "Kelvin_wb_updated"
+# -----------------------------------------------------------------------------
+# Virtual LED
+# -----------------------------------------------------------------------------
 
-# VIRTUAL
+VIRTUAL_LED_MAX_WAITING_TIME: Final[int] = 15
+LINKED_LED: Final[str] = "linked"
+VIRTUAL_LED_SCAN_INTERVAL: Final[int] = 10  # seconds
 
-VIRTUAL_LED_MAX_WAITING_TIME = 15
-LINKED_LED = "linked"
-VIRTUAL_LED_SCAN_INTERVAL = 10  # in seconds
+# -----------------------------------------------------------------------------
+# REEFMAT
+# -----------------------------------------------------------------------------
 
+MAT_SCAN_INTERVAL: Final[int] = 300  # seconds
+MAT_MIN_ROLL_DIAMETER: Final[float] = 4.0
+# NOTE: keeping original constant name for compatibility (typo is in original name).
+MAT_MAX_ROLL_DIAMETERS: Final[dict[str, float]] = {
+    "RSMAT1200": 11.1,
+    "RSMAT500": 10.0,
+    "RSMAT250": 10.6,
+}
+MAT_ROLL_THICKNESS: Final[float] = 0.0237
 
-################################################################################
-# MAT
-MAT_SCAN_INTERVAL = 300  # in seconds
-MAT_MIN_ROLL_DIAMETER = 4.0
-MAT_MAX_ROLL_DIAMETERS = {"RSMAT1200": 11.1, "RSMAT500": 10.0, "RSMAT250": 10.6}
-MAT_ROLL_THICKNESS = 0.0237
-# MAT SWITCHES
-MAT_AUTO_ADVANCE_INTERNAL_NAME = (
+MAT_AUTO_ADVANCE_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/configuration')].data.auto_advance"
 )
-MAT_SCHEDULE_ADVANCE_INTERNAL_NAME = (
+MAT_SCHEDULE_ADVANCE_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/configuration')].data.schedule_enable"
 )
-# MAT NUMBERS
-MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME = (
+
+MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/configuration')].data.custom_advance_value"
 )
-MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME = "$.local.started_roll_diameter"
-# MAT SELECT
-MAT_MODEL_INTERNAL_NAME = "$.sources[?(@.name=='/configuration')].data.model"
-MAT_POSITION_INTERNAL_NAME = "$.sources[?(@.name=='/configuration')].data.position"
+MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME: Final[JsonPath] = (
+    "$.local.started_roll_diameter"
+)
 
-########################################
-# DOSE__INTERNAL_NAME
-DOSE_SCAN_INTERVAL = 120  # in seconds
-#
+MAT_MODEL_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/configuration')].data.model"
+)
+MAT_POSITION_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/configuration')].data.position"
+)
+
+# -----------------------------------------------------------------------------
+# REEFDOSE
+# -----------------------------------------------------------------------------
+
+DOSE_SCAN_INTERVAL: Final[int] = 120  # seconds
 # DOSE_MANUAL_DOSEE_INTERNAL_NAME="$.local.head.<head_nb>.manual_dose"
 
-################################################################################
-# ATO
-ATO_SCAN_INTERVAL = 20  # in seconds
-# ATO SWITCHES
-ATO_AUTO_FILL_INTERNAL_NAME = "$.sources[?(@.name=='/configuration')].data.auto_fill"
-ATO_VOLUME_LEFT_INTERNAL_NAME = "$.sources[?(@.name=='/dashboard')].data.volume_left"
+# -----------------------------------------------------------------------------
+# REEFATO
+# -----------------------------------------------------------------------------
 
-################################################################################
-# RUN
-RUN_SCAN_INTERVAL = 60  # in seconds
-RETURN_MODELS = [
+ATO_SCAN_INTERVAL: Final[int] = 20  # seconds
+
+ATO_AUTO_FILL_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/configuration')].data.auto_fill"
+)
+ATO_VOLUME_LEFT_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/dashboard')].data.volume_left"
+)
+
+# TODO: test ato modes
+ATO_MODE_INTERNAL_NAME: Final[JsonPath] = "$.sources[?(@.name=='/dashboard')].data.mode"
+ATO_MODES: Final[tuple[str, ...]] = ("auto", "empty", "error")
+
+# -----------------------------------------------------------------------------
+# REEFRUN
+# -----------------------------------------------------------------------------
+
+RUN_SCAN_INTERVAL: Final[int] = 60  # seconds
+
+RETURN_MODELS: Final[tuple[str, ...]] = (
     "return-6",
     "return-7",
     "return-9",
@@ -198,23 +281,25 @@ RETURN_MODELS = [
     "return-6000",
     "return-8000",
     "return-12000",
-]
-SKIMMER_MODELS = ["rsk-300", "rsk-600", "rsk-900"]
-FULLCUP_ENABLED_INTERNAL_NAME = (
+)
+SKIMMER_MODELS: Final[tuple[str, ...]] = ("rsk-300", "rsk-600", "rsk-900")
+
+FULLCUP_ENABLED_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/pump/settings')].data.fullcup_enabled"
 )
-OVERSKIMMING_ENABLED_INTERNAL_NAME = (
+OVERSKIMMING_ENABLED_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/pump/settings')].data.overskimming.enabled"
 )
 
-################################################################################
-# WAVE
-WAVE_SHORTCUT_OFF_DELAY = (
+# -----------------------------------------------------------------------------
+# REEFWAVE
+# -----------------------------------------------------------------------------
+
+WAVE_SHORTCUT_OFF_DELAY: Final[JsonPath] = (
     "$.sources[?(@.name=='/device-settings')].data.shortcut_off_delay"
 )
 
-
-WAVE_TYPES = [
+WAVE_TYPES: Final[list[dict[str, str]]] = [
     {"id": "nw", "en": "No Wave", "fr": "Pas de vague"},
     {"id": "ra", "en": "Random", "fr": "Aléatoire"},
     {"id": "re", "en": "Regular", "fr": "Régulier"},
@@ -223,16 +308,28 @@ WAVE_TYPES = [
     {"id": "un", "en": "Uniform", "fr": "Uniforme"},
 ]
 
-WAVE_DIRECTIONS = [
+WAVE_DIRECTIONS: Final[list[dict[str, str]]] = [
     {"id": "alt", "en": "Alternate", "fr": "Alternatif"},
     {"id": "fw", "en": "Forward", "fr": "Marche Avant"},
     {"id": "rw", "en": "Reward", "fr": "Marche Arrière"},
 ]
 
-################################################################################
-# LIBRARIES
-LIGHTS_LIBRARY = "/reef-lights/library?include=all"
-WAVES_LIBRARY = "/reef-wave/library"
-SUPPLEMENTS_LIBRARY = "/reef-dosing/supplement"
-WAVE_SCHEDULE_PATH = "$.sources[?(@.name=='/auto')].data.intervals"
-WAVES_DATA_NAMES = ["type", "direction", "frt", "rrt", "fti", "rti", "sn", "pd"]
+# -----------------------------------------------------------------------------
+# Libraries / endpoints
+# -----------------------------------------------------------------------------
+
+LIGHTS_LIBRARY: Final[str] = "/reef-lights/library?include=all"
+WAVES_LIBRARY: Final[str] = "/reef-wave/library"
+SUPPLEMENTS_LIBRARY: Final[str] = "/reef-dosing/supplement"
+
+WAVE_SCHEDULE_PATH: Final[JsonPath] = "$.sources[?(@.name=='/auto')].data.intervals"
+WAVES_DATA_NAMES: Final[tuple[str, ...]] = (
+    "type",
+    "direction",
+    "frt",
+    "rrt",
+    "fti",
+    "rti",
+    "sn",
+    "pd",
+)

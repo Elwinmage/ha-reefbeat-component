@@ -10,7 +10,7 @@ request:
       required: true
       selector:
         config_entry:
-          integration: redsea    
+          integration: redsea
         # device:
         #   multiple: false
         #   filter:
@@ -36,8 +36,8 @@ request:
             - "get"
     data:
       required: true
-      description: JSON data to send to device      
-      example: "{'mode': 'auto'}"
-      default: "{}"
+      description: JSON data to send to device
+      example: { "mode": "auto" }
+      default: {}
       selector:
-        text:
+        object:

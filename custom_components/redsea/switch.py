@@ -1,63 +1,136 @@
-"""Implements the sensor entity"""
+"""Switch entities for the Red Sea ReefBeat integration.
+
+This module implements Home Assistant `switch` entities for ReefBeat devices.
+
+Goals (HA 2025.12 + strict typing)
+----------------------------------
+- Use idiomatic Home Assistant patterns:
+  - `async_setup_entry` to create entities
+  - entities subscribe to coordinator updates via `async_add_listener`
+  - avoid direct use of protected members (no `device._hass`)
+- Keep type checking clean under Pylance strict / Ruff:
+  - define description dataclasses with explicit types
+  - narrow device types via `isinstance`
+  - avoid `type(x).__name__` / base-name string checks
+- Use list `.extend(...)` / `.append(...)` (avoid `+=` for clarity)
+- Avoid mutating shared `DeviceInfo` dicts; clone before customizing.
+
+Notes
+-----
+This file previously used `CoordinatorEntity` from `homeassistant.helpers.update_coordinator`
+but the integration’s coordinators are custom (not necessarily `DataUpdateCoordinator`).
+To keep behavior consistent with other platforms in this repo (sensor/select),
+we use `device.async_add_listener(...)` and update state from device cache.
+"""
+
+from __future__ import annotations
 
 import logging
-
-from dataclasses import dataclass
 from collections.abc import Callable
+from dataclasses import dataclass
+from functools import cached_property
+from typing import Any, Protocol, cast, runtime_checkable
 
-from homeassistant.core import (
-    HomeAssistant,
-    callback,
-)
-
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
-
+from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
-
-from homeassistant.components.switch import (
-    SwitchEntity,
-    SwitchEntityDescription,
-)
-
-
-from homeassistant.const import (
-    EntityCategory,
-)
-
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.const import EntityCategory
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
-
+from homeassistant.helpers.typing import StateType
 
 from .const import (
-    DOMAIN,
-    COMMON_ON_OFF_SWITCH,
+    ATO_AUTO_FILL_INTERNAL_NAME,
     COMMON_CLOUD_CONNECTION,
     COMMON_MAINTENANCE_SWITCH,
-    MAT_AUTO_ADVANCE_INTERNAL_NAME,
-    MAT_SCHEDULE_ADVANCE_INTERNAL_NAME,
-    ATO_AUTO_FILL_INTERNAL_NAME,
+    COMMON_ON_OFF_SWITCH,
+    DOMAIN,
+    FULLCUP_ENABLED_INTERNAL_NAME,
     LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
     LED_MOONPHASE_ENABLED_INTERNAL_NAME,
+    MAT_AUTO_ADVANCE_INTERNAL_NAME,
+    MAT_SCHEDULE_ADVANCE_INTERNAL_NAME,
     OVERSKIMMING_ENABLED_INTERNAL_NAME,
-    FULLCUP_ENABLED_INTERNAL_NAME,
 )
-
 from .coordinator import (
+    ReefATOCoordinator,
+    ReefBeatCloudCoordinator,
     ReefBeatCoordinator,
     ReefDoseCoordinator,
     ReefLedCoordinator,
+    ReefLedG2Coordinator,
+    ReefMatCoordinator,
     ReefRunCoordinator,
+    ReefVirtualLedCoordinator,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass(kw_only=True)
+# =============================================================================
+# Protocols (capability-based typing)
+# =============================================================================
+
+
+@runtime_checkable
+class _CloudLinkedCoordinator(Protocol):
+    """Coordinator capability: cloud-linked device."""
+
+    def cloud_link(self) -> StateType: ...
+
+
+@runtime_checkable
+class _HasPressDelete(Protocol):
+    """Coordinator capability: can press/delete/fetch_config."""
+
+    async def press(self, cmd: str) -> None: ...
+    async def delete(self, path: str) -> None: ...
+    async def fetch_config(self, path: str) -> None: ...
+
+
+@runtime_checkable
+class _HasPushValuesBySource(Protocol):
+    """Coordinator capability: push cached values for a source and refresh."""
+
+    async def push_values(self, source: str, method: str = "put") -> None: ...
+    async def async_quick_request_refresh(self, source: str) -> None: ...
+
+
+@runtime_checkable
+class _DosePush(Protocol):
+    """Coordinator capability: push values for a dosing head."""
+
+    async def push_values(self, head: int) -> None: ...
+    async def async_quick_request_refresh(self, source: str) -> None: ...
+
+
+@runtime_checkable
+class _RunPush(Protocol):
+    """Coordinator capability: push values for run pumps.
+
+    The existing coordinator API in this repo uses `push_values(source, method)`
+    for most devices, so RUN switches should generally use that form.
+    """
+
+    async def push_values(self, source: str, method: str = "put") -> None: ...
+    async def async_quick_request_refresh(self, source: str) -> None: ...
+
+
+# =============================================================================
+# Entity descriptions
+# =============================================================================
+
+
+@dataclass(kw_only=True, frozen=True)
 class ReefBeatSwitchEntityDescription(SwitchEntityDescription):
-    """Describes reefbeat Switch entity."""
+    """Description for generic device switches.
+
+    - `value_name` points to the underlying cache path / key used by the coordinator.
+    - `method` indicates the HTTP verb used by `push_values` when applicable.
+    - `icon_off` is used when state is off (HA does not auto-handle this).
+    - `notify` optionally fires an HA bus event when toggled (used by dose/run).
+    """
 
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_name: str = ""
@@ -66,32 +139,32 @@ class ReefBeatSwitchEntityDescription(SwitchEntityDescription):
     notify: bool = False
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class ReefLedSwitchEntityDescription(SwitchEntityDescription):
-    """Describes reefbeat Switch entity."""
+    """Description for LED-specific switches."""
 
     exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
-    icon_off: str = ""
     value_name: str = ""
+    icon_off: str = ""
     method: str = "put"
     notify: bool = False
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class ReefDoseSwitchEntityDescription(SwitchEntityDescription):
-    """Describes reefbeat Switch entity."""
+    """Description for per-head dosing switches."""
 
     exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
-    icon_off: str = ""
     value_name: str = ""
+    icon_off: str = ""
     head: int = 0
     method: str = "put"
     notify: bool = False
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class ReefRunSwitchEntityDescription(SwitchEntityDescription):
-    """Describes reefbeat Switch entity."""
+    """Description for per-pump run switches."""
 
     exists_fn: Callable[[ReefRunCoordinator], bool] = lambda _: True
     value_name: str = ""
@@ -101,14 +174,25 @@ class ReefRunSwitchEntityDescription(SwitchEntityDescription):
     notify: bool = False
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class SaveStateSwitchEntityDescription(SwitchEntityDescription):
-    """Describes reefbeat Switch entity."""
+    """Description for switches that persist their state locally across restarts."""
 
-    exists_fn: Callable[[], bool] = lambda _: True
+    exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     icon_off: str = ""
-    notify: bool = False
 
+
+DescriptionT = (
+    ReefBeatSwitchEntityDescription
+    | ReefLedSwitchEntityDescription
+    | ReefDoseSwitchEntityDescription
+    | ReefRunSwitchEntityDescription
+    | SaveStateSwitchEntityDescription
+)
+
+# =============================================================================
+# Static descriptions
+# =============================================================================
 
 SAVE_STATE_SWITCHES: tuple[SaveStateSwitchEntityDescription, ...] = (
     SaveStateSwitchEntityDescription(
@@ -122,7 +206,7 @@ SAVE_STATE_SWITCHES: tuple[SaveStateSwitchEntityDescription, ...] = (
 
 COMMON_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
     ReefBeatSwitchEntityDescription(
-        key="device_state",  # on/off
+        key="device_state",
         translation_key="device_state",
         value_name=COMMON_ON_OFF_SWITCH,
         icon="mdi:power-plug",
@@ -131,7 +215,7 @@ COMMON_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
     ),
     ReefBeatSwitchEntityDescription(
-        key="cloud_connect",  # on/off
+        key="cloud_connect",
         translation_key="cloud_connect",
         value_name=COMMON_CLOUD_CONNECTION,
         icon="mdi:cloud-check-variant-outline",
@@ -140,7 +224,7 @@ COMMON_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
     ),
     ReefBeatSwitchEntityDescription(
-        key="maintenance",  # maintenance
+        key="maintenance",
         translation_key="maintenance",
         value_name=COMMON_MAINTENANCE_SWITCH,
         icon="mdi:account-wrench",
@@ -149,7 +233,6 @@ COMMON_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
     ),
 )
-
 
 LED_SWITCHES: tuple[ReefLedSwitchEntityDescription, ...] = (
     ReefLedSwitchEntityDescription(
@@ -177,7 +260,6 @@ MAT_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         key="auto_advance",
         translation_key="auto_advance",
         value_name=MAT_AUTO_ADVANCE_INTERNAL_NAME,
-        exists_fn=lambda _: True,
         icon="mdi:auto-mode",
         entity_category=EntityCategory.CONFIG,
     ),
@@ -185,7 +267,6 @@ MAT_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         key="scheduled_advance",
         translation_key="scheduled_advance",
         value_name=MAT_SCHEDULE_ADVANCE_INTERNAL_NAME,
-        exists_fn=lambda _: True,
         icon="mdi:auto-mode",
         entity_category=EntityCategory.CONFIG,
     ),
@@ -196,7 +277,6 @@ ATO_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         key="auto_fill",
         translation_key="auto_fill",
         value_name=ATO_AUTO_FILL_INTERNAL_NAME,
-        exists_fn=lambda _: True,
         icon="mdi:waves-arrow-up",
         entity_category=EntityCategory.CONFIG,
     ),
@@ -207,7 +287,6 @@ RUN_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         key="fullcup_enabled",
         translation_key="fullcup_enabled",
         value_name=FULLCUP_ENABLED_INTERNAL_NAME,
-        exists_fn=lambda _: True,
         icon="mdi:cup",
         icon_off="mdi:cup-off",
         entity_category=EntityCategory.CONFIG,
@@ -216,61 +295,69 @@ RUN_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         key="overskimming_enabled",
         translation_key="overskimming_enabled",
         value_name=OVERSKIMMING_ENABLED_INTERNAL_NAME,
-        exists_fn=lambda _: True,
         icon="mdi:stack-overflow",
         entity_category=EntityCategory.CONFIG,
     ),
 )
 
 
+# =============================================================================
+# Platform setup
+# =============================================================================
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
-    discovery_info=None,
-):
-    """Configuration de la plate-forme tuto_hacs à partir de la configuration graphique"""
-    device = hass.data[DOMAIN][config_entry.entry_id]
+) -> None:
+    """Set up switch entities for a config entry."""
+    device = cast(ReefBeatCoordinator, hass.data[DOMAIN][entry.entry_id])
+    entities: list[SwitchEntity] = []
 
-    entities = []
     _LOGGER.debug("SWITCHES")
-    if device.__class__.__bases__[0].__name__ == "ReefBeatCloudLinkedCoordinator":
-        entities += [
+
+    if isinstance(device, _CloudLinkedCoordinator):
+        entities.extend(
             SaveStateSwitchEntity(device, description)
             for description in SAVE_STATE_SWITCHES
             if description.exists_fn(device)
-        ]
-    if (
-        type(device).__name__ == "ReefLedCoordinator"
-        or type(device).__name__ == "ReefVirtualLedCoordinator"
-        or type(device).__name__ == "ReefLedG2Coordinator"
+        )
+
+    if isinstance(
+        device, (ReefLedCoordinator, ReefVirtualLedCoordinator, ReefLedG2Coordinator)
     ):
-        entities += [
-            ReefLedSwitchEntity(device, description, hass)
+        led_device = cast(ReefLedCoordinator, device)
+        entities.extend(
+            ReefLedSwitchEntity(device, description)
             for description in LED_SWITCHES
-            if description.exists_fn(device)
-        ]
-    elif type(device).__name__ == "ReefMatCoordinator":
-        entities += [
+            if description.exists_fn(led_device)
+        )
+
+    elif isinstance(device, ReefMatCoordinator):
+        entities.extend(
             ReefBeatSwitchEntity(device, description)
             for description in MAT_SWITCHES
             if description.exists_fn(device)
-        ]
-    elif type(device).__name__ == "ReefATOCoordinator":
-        entities += [
+        )
+
+    elif isinstance(device, ReefATOCoordinator):
+        entities.extend(
             ReefBeatSwitchEntity(device, description)
             for description in ATO_SWITCHES
             if description.exists_fn(device)
-        ]
-    elif type(device).__name__ == "ReefRunCoordinator":
-        entities += [
+        )
+
+    elif isinstance(device, ReefRunCoordinator):
+        entities.extend(
             ReefBeatSwitchEntity(device, description)
             for description in RUN_SWITCHES
             if description.exists_fn(device)
-        ]
-        dn = ()
+        )
+
+        run_descs: list[ReefRunSwitchEntityDescription] = []
         for pump in range(1, 3):
-            new_pump = (
+            run_descs.append(
                 ReefRunSwitchEntityDescription(
                     key="schedule_enabled_pump_" + str(pump),
                     translation_key="schedule_enabled",
@@ -281,19 +368,19 @@ async def async_setup_entry(
                     + ".schedule_enabled",
                     pump=pump,
                     entity_category=EntityCategory.CONFIG,
-                ),
+                )
             )
-            dn += new_pump
-        entities += [
-            ReefRunSwitchEntity(device, description)
-            for description in dn
-            if description.exists_fn(device)
-        ]
 
-    elif type(device).__name__ == "ReefDoseCoordinator":
-        dn = ()
-        for head in range(1, device.heads_nb + 1):
-            new_head = (
+        entities.extend(
+            ReefRunSwitchEntity(device, description)
+            for description in run_descs
+            if description.exists_fn(device)
+        )
+
+    elif isinstance(device, ReefDoseCoordinator):
+        dose_descs: list[ReefDoseSwitchEntityDescription] = []
+        for head in range(1, int(device.heads_nb) + 1):
+            dose_descs.append(
                 ReefDoseSwitchEntityDescription(
                     key="schedule_enabled_head_" + str(head),
                     translation_key="schedule_enabled",
@@ -304,10 +391,9 @@ async def async_setup_entry(
                     + "/settings')].data.schedule_enabled",
                     head=head,
                     entity_category=EntityCategory.CONFIG,
-                ),
+                )
             )
-            dn += new_head
-            new_head = (
+            dose_descs.append(
                 ReefDoseSwitchEntityDescription(
                     key="slm_head_" + str(head),
                     translation_key="slm",
@@ -318,351 +404,375 @@ async def async_setup_entry(
                     head=head,
                     entity_category=EntityCategory.CONFIG,
                     notify=True,
-                ),
+                )
             )
-            dn += new_head
-        entities += [
+
+        entities.extend(
             ReefDoseSwitchEntity(device, description)
-            for description in dn
+            for description in dose_descs
             if description.exists_fn(device)
-        ]
-    if type(device).__name__ != "ReefBeatCloudCoordinator":
-        entities += [
+        )
+
+    if not isinstance(device, ReefBeatCloudCoordinator):
+        entities.extend(
             ReefBeatSwitchEntity(device, description)
             for description in COMMON_SWITCHES
             if description.exists_fn(device)
-        ]
+        )
 
     async_add_entities(entities, True)
 
 
-################################################################################
-# SaveState Switches
-class SaveStateSwitchEntity(SwitchEntity, RestoreEntity):
+# =============================================================================
+# Entity implementations
+# =============================================================================
+
+
+class SaveStateSwitchEntity(RestoreEntity, SwitchEntity):
+    """Switch that persists simple local state in the coordinator cache.
+
+    Uses RestoreEntity to restore the last HA state, then mirrors the boolean into
+    the coordinator cache at `$.local.<key>`.
+    """
+
     _attr_has_entity_name = True
 
     def __init__(
-        self, device, entity_description: SaveStateSwitchEntityDescription
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: SaveStateSwitchEntityDescription,
     ) -> None:
         super().__init__()
         self._device = device
-        self.entity_description = entity_description
+        self.entity_description = cast(SwitchEntityDescription, entity_description)
+        self._desc: SaveStateSwitchEntityDescription = entity_description
+
         self._attr_available = True
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
+        self._attr_is_on: bool | None = True
 
-    def set_icon(self):
-        if self._state is False and self.entity_description.icon_off != "":
-            self.icon = self.entity_description.icon_off
+    def _set_icon(self) -> None:
+        if not self._attr_is_on and self._desc.icon_off:
+            self._attr_icon = self._desc.icon_off
         else:
-            self.icon = self.entity_description.icon
+            self._attr_icon = self._desc.icon
 
-    async def async_turn_on(self, **kwargs):
-        """Turn the switch on."""
-        self._state = True
-        self.icon = self.entity_description.icon
-        self._device.set_data("$.local." + self.entity_description.key, self._state)
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        self._attr_is_on = True
+        self._set_icon()
+        self._device.set_data("$.local." + self._desc.key, True)
         self.async_write_ha_state()
 
-    async def async_turn_off(self, **kwargs):
-        """Turn the switch off."""
-        self._state = False
-        # self.icon=self.entity_description.icon_off
-        self.set_icon()
-        self._device.set_data("$.local." + self.entity_description.key, self._state)
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self._attr_is_on = False
+        self._set_icon()
+        self._device.set_data("$.local." + self._desc.key, False)
         self.async_write_ha_state()
 
     async def async_added_to_hass(self) -> None:
-        """Handle entity which will be added."""
+        """Restore local state and sync into the coordinator cache."""
         await super().async_added_to_hass()
-        state = await self.async_get_last_state()
-        if state is None:
-            self._state = True
-            self.icon = self.entity_description.icon
-            self._device.set_data("$.local." + self.entity_description.key, self._state)
-            self.async_write_ha_state()
-            return
-        self._state = state.state == "on"
-        # if self._state == False:
-        #     self.icon=self.entity_description.icon_off
-        self.set_icon()
-        self._device.set_data("$.local." + self.entity_description.key, self._state)
+
+        last = await self.async_get_last_state()
+        self._attr_is_on = True if last is None else last.state == "on"
+
+        self._set_icon()
+        self._device.set_data("$.local." + self._desc.key, bool(self._attr_is_on))
         self.async_write_ha_state()
 
-    @property
-    def is_on(self) -> bool:
-        return self._state
-
-    @property
+    @cached_property  # type: ignore[override]
     def device_info(self) -> DeviceInfo:
-        """Return the device info."""
         return self._device.device_info
 
 
-################################################################################
-# BEAT
-class ReefBeatSwitchEntity(CoordinatorEntity, SwitchEntity):
-    """Represent an ReefBeat switch."""
+class ReefBeatSwitchEntity(SwitchEntity):
+    """Base switch entity backed by the ReefBeat coordinator cache."""
 
     _attr_has_entity_name = True
 
     def __init__(
-        self, device, entity_description: ReefBeatSwitchEntityDescription
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefBeatSwitchEntityDescription,
     ) -> None:
-        """Set up the instance."""
-        super().__init__(device, entity_description)
+        super().__init__()
         self._device = device
-        self.entity_description = entity_description
+        self.entity_description = cast(SwitchEntityDescription, entity_description)
+        self._desc: ReefBeatSwitchEntityDescription = entity_description
+
         self._attr_available = False
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
-        self._source = self.entity_description.value_name.split("'")[1]
-        self._state = False
+        self._attr_is_on: bool | None = False
+
+        # Some value_name entries embed a source name in quotes; keep best-effort.
+        self._source: str = ""
+        try:
+            self._source = self._desc.value_name.split("'")[1]
+        except IndexError:
+            self._source = ""
+
+    async def async_added_to_hass(self) -> None:
+        """Register update listeners once added to Home Assistant."""
+        self.async_on_remove(
+            self._device.async_add_listener(self._handle_device_update)
+        )
+        self._handle_device_update()
 
     @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+    def _handle_device_update(self) -> None:
+        """Handle updated data from the device and write HA state."""
         self._attr_available = True
-        if self.entity_description.key == "device_state":
-            self._state = (
-                self._device.get_data(self.entity_description.value_name) != "off"
-            )
-        elif self.entity_description.key == "maintenance":
-            self._state = (
-                self._device.get_data(self.entity_description.value_name)
-                == "maintenance"
-            )
-        else:
-            self._state = self._device.get_data(self.entity_description.value_name)
-        self.set_icon()
+        self._attr_is_on = self._compute_is_on()
+        self._set_icon()
         self.async_write_ha_state()
 
-    async def async_update(self) -> None:
-        """Update entity state."""
-        self._attr_available = True
-        if self.entity_description.key == "device_state":
-            self._state = (
-                self._device.get_data(self.entity_description.value_name) != "off"
-            )
-        elif self.entity_description.key == "maintenance":
-            self._state = (
-                self._device.get_data(self.entity_description.value_name)
-                == "maintenance"
-            )
-        else:
-            self._state = self._device.get_data(self.entity_description.value_name)
+    def _compute_is_on(self) -> bool:
+        raw = self._device.get_data(self._desc.value_name)
 
-    def set_icon(self):
-        if self._state:
-            self.icon = self.entity_description.icon
-        elif self.entity_description.icon_off != "":
-            self.icon = self.entity_description.icon_off
+        if self._desc.key == "device_state":
+            return raw != "off"
+        if self._desc.key == "maintenance":
+            return raw == "maintenance"
+        return bool(raw)
 
-    async def async_turn_on(self, **kwargs):
-        """Turn the switch on."""
-        self._state = True
-        self.set_icon()
-        if self.entity_description.key == "device_state":
-            self._device.set_data(self.entity_description.value_name, "auto")
+    def _set_icon(self) -> None:
+        if self._attr_is_on:
+            self._attr_icon = self._desc.icon
+        elif self._desc.icon_off:
+            self._attr_icon = self._desc.icon_off
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        self._attr_is_on = True
+        self._set_icon()
+
+        if self._desc.key == "device_state":
+            self._device.set_data(self._desc.value_name, "auto")
             self._device.async_update_listeners()
             self.async_write_ha_state()
-            await self._device.delete("/off")
+            await cast(_HasPressDelete, self._device).delete("/off")
             return
-        elif self.entity_description.key == "maintenance":
-            self._device.set_data(self.entity_description.value_name, "maintenance")
+
+        if self._desc.key == "maintenance":
+            self._device.set_data(self._desc.value_name, "maintenance")
             self._device.async_update_listeners()
             self.async_write_ha_state()
-            await self._device.press("maintenance")
+            await cast(_HasPressDelete, self._device).press("maintenance")
             return
-        elif self.entity_description.key == "cloud_connect":
-            await self._device.press("cloud/enable")
-            self._device.set_data(self.entity_description.value_name, True)
+
+        if self._desc.key == "cloud_connect":
+            await cast(_HasPressDelete, self._device).press("cloud/enable")
+            self._device.set_data(self._desc.value_name, True)
             self.async_write_ha_state()
             return
-        else:
-            self._device.set_data(self.entity_description.value_name, True)
+
+        self._device.set_data(self._desc.value_name, True)
         self._device.async_update_listeners()
         self.async_write_ha_state()
 
-        await self._device.push_values(self._source, self.entity_description.method)
-        # await self._device.async_request_refresh()
-        await self._device.async_quick_request_refresh(self._source)
+        if self._source:
+            pusher = cast(_HasPushValuesBySource, self._device)
+            await pusher.push_values(self._source, self._desc.method)
+            await pusher.async_quick_request_refresh(self._source)
 
-    async def async_turn_off(self, **kwargs):
-        self._state = False
-        self.set_icon()
-        if self.entity_description.key == "device_state":
-            self._device.set_data(self.entity_description.value_name, "off")
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self._attr_is_on = False
+        self._set_icon()
+
+        if self._desc.key == "device_state":
+            self._device.set_data(self._desc.value_name, "off")
             self._device.async_update_listeners()
             self.async_write_ha_state()
-            await self._device.press("off")
+            await cast(_HasPressDelete, self._device).press("off")
             return
-        elif self.entity_description.key == "maintenance":
-            self._device.set_data(self.entity_description.value_name, "auto")
+
+        if self._desc.key == "maintenance":
+            self._device.set_data(self._desc.value_name, "auto")
             self.async_write_ha_state()
-            await self._device.delete("/maintenance")
-            await self._device.fetch_config("/mode")
+            helper = cast(_HasPressDelete, self._device)
+            await helper.delete("/maintenance")
+            await helper.fetch_config("/mode")
             return
-        elif self.entity_description.key == "cloud_connect":
-            # self._device.async_update_listeners()
-            # self.async_write_ha_state()
-            self._device.set_data(self.entity_description.value_name, False)
-            await self._device.press("cloud/disable")
+
+        if self._desc.key == "cloud_connect":
+            self._device.set_data(self._desc.value_name, False)
+            await cast(_HasPressDelete, self._device).press("cloud/disable")
             self.async_write_ha_state()
             return
-        else:
-            self._device.set_data(self.entity_description.value_name, False)
+
+        self._device.set_data(self._desc.value_name, False)
         self._device.async_update_listeners()
         self.async_write_ha_state()
-        await self._device.push_values(self._source, self.entity_description.method)
-        # await self._device.async_request_refresh()
-        await self._device.async_quick_request_refresh(self._source)
 
-    @property
-    def is_on(self) -> bool:
-        return self._state
+        if self._source:
+            pusher = cast(_HasPushValuesBySource, self._device)
+            await pusher.push_values(self._source, self._desc.method)
+            await pusher.async_quick_request_refresh(self._source)
 
-    @property
+    @cached_property  # type: ignore[override]
     def device_info(self) -> DeviceInfo:
-        """Return the device info."""
         return self._device.device_info
 
 
-################################################################################
-# LED
 class ReefLedSwitchEntity(ReefBeatSwitchEntity):
-    """Represent an ReefBeat switch."""
+    """LED switch entity.
+
+    Uses the base cache-first behavior. Typed description is stored separately to
+    avoid invariant override issues in Pylance.
+    """
 
     _attr_has_entity_name = True
 
     def __init__(
-        self, device, entity_description: ReefDoseSwitchEntityDescription, hass
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefLedSwitchEntityDescription,
     ) -> None:
-        """Set up the instance."""
-        super().__init__(device, entity_description)
-        self.hass = hass
+        super().__init__(
+            device, cast(ReefBeatSwitchEntityDescription, entity_description)
+        )
+        self._typed_desc: ReefLedSwitchEntityDescription = entity_description
+        self.entity_description = cast(SwitchEntityDescription, entity_description)
 
-    async def async_turn_on(self, **kwargs):
-        """Turn the switch on."""
-        self._state = True
-        self._device.set_data(self.entity_description.value_name, False)
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        self._attr_is_on = True
+        self._set_icon()
+
+        self._device.set_data(self._typed_desc.value_name, True)
         self._device.async_update_listeners()
         self.async_write_ha_state()
-        await self._device.post_specific(self._source)
-        await self._device.async_quick_request_refresh(self._source)
-        #        await self._device.async_request_refresh()
-        # self.async_write_ha_state()
 
-    async def async_turn_off(self, **kwargs):
-        self._state = False
-        self._device.set_data(self.entity_description.value_name, False)
+        if self._source:
+            pusher = cast(_HasPushValuesBySource, self._device)
+            await pusher.push_values(self._source, self._typed_desc.method)
+            await pusher.async_quick_request_refresh(self._source)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self._attr_is_on = False
+        self._set_icon()
+
+        self._device.set_data(self._typed_desc.value_name, False)
         self._device.async_update_listeners()
         self.async_write_ha_state()
-        await self._device.delete(self._source)
-        await self._device.async_quick_request_refresh(self._source)
-        #        await self._device.async_request_refresh()
-        # self.async_write_ha_state()
+
+        if self._source:
+            pusher = cast(_HasPushValuesBySource, self._device)
+            await pusher.push_values(self._source, self._typed_desc.method)
+            await pusher.async_quick_request_refresh(self._source)
 
 
-###############################################################################
-# DOSE
 class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
-    """Represent an ReefBeat switch."""
+    """Per-head dosing switch."""
 
     _attr_has_entity_name = True
 
     def __init__(
-        self, device, entity_description: ReefDoseSwitchEntityDescription
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefDoseSwitchEntityDescription,
     ) -> None:
-        """Set up the instance."""
-        super().__init__(device, entity_description)
-        self._head = entity_description.head
+        super().__init__(
+            device, cast(ReefBeatSwitchEntityDescription, entity_description)
+        )
+        self._typed_desc: ReefDoseSwitchEntityDescription = entity_description
+        self.entity_description = cast(SwitchEntityDescription, entity_description)
+        self._head: int = entity_description.head
 
-    async def async_turn_on(self, **kwargs):
-        """Turn the switch on."""
-        self._state = True
-        self._device.set_data(self.entity_description.value_name, True)
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        self._attr_is_on = True
+        self._set_icon()
+
+        self._device.set_data(self._typed_desc.value_name, True)
         self._device.async_update_listeners()
         self.async_write_ha_state()
-        # await self._device.push_values('/head/'+str(self._head)+'/settings',self.entity_description.method)
-        if self.entity_description.notify:
-            self._device._hass.bus.fire(self.entity_description.value_name, {})
 
-        await self._device.push_values(self._head)
-        await self._device.async_quick_request_refresh(
-            "/head/" + str(self._head) + "/settings"
-        )
-        # await self._device.async_request_refresh()
+        if self._typed_desc.notify:
+            self._device.hass.bus.fire(self._typed_desc.value_name, {})
 
-    async def async_turn_off(self, **kwargs):
-        self._state = False
-        self._device.set_data(self.entity_description.value_name, False)
+        dose = cast(_DosePush, self._device)
+        await dose.push_values(self._head)
+        await dose.async_quick_request_refresh("/head/" + str(self._head) + "/settings")
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self._attr_is_on = False
+        self._set_icon()
+
+        self._device.set_data(self._typed_desc.value_name, False)
         self._device.async_update_listeners()
         self.async_write_ha_state()
-        if self.entity_description.notify:
-            self._device._hass.bus.fire(self.entity_description.value_name, {})
-        await self._device.push_values(self._head)
-        await self._device.async_quick_request_refresh(
-            "/head/" + str(self._head) + "/settings"
-        )
-        # await self._device.async_request_refresh()
 
-    @property
+        if self._typed_desc.notify:
+            self._device.hass.bus.fire(self._typed_desc.value_name, {})
+
+        dose = cast(_DosePush, self._device)
+        await dose.push_values(self._head)
+        await dose.async_quick_request_refresh("/head/" + str(self._head) + "/settings")
+
+    @cached_property  # type: ignore[override]
     def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        di = self._device.device_info
-        di["name"] += "_head_" + str(self._head)
-        identifiers = list(di["identifiers"])[0]
-        head = ("head_" + str(self._head),)
-        identifiers += head
-        di["identifiers"] = {identifiers}
-        return di
+        di = dict(self._device.device_info)
+        di["name"] = f"{di.get('name', '')}_head_{self._head}"
+
+        identifiers_set = di.get("identifiers")
+        if identifiers_set:
+            base = next(iter(cast(set[tuple[Any, ...]], identifiers_set)))
+            di["identifiers"] = {tuple(base) + (f"head_{self._head}",)}
+        return cast(DeviceInfo, di)
 
 
-###############################################################################
-# RUN
 class ReefRunSwitchEntity(ReefBeatSwitchEntity):
-    """Represent an ReefBeat switch."""
+    """Per-pump ReefRun switch."""
 
     _attr_has_entity_name = True
 
     def __init__(
-        self, device, entity_description: ReefRunSwitchEntityDescription
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefRunSwitchEntityDescription,
     ) -> None:
-        """Set up the instance."""
-        super().__init__(device, entity_description)
-        self._pump = entity_description.pump
+        super().__init__(
+            device, cast(ReefBeatSwitchEntityDescription, entity_description)
+        )
+        self._typed_desc: ReefRunSwitchEntityDescription = entity_description
+        self.entity_description = cast(SwitchEntityDescription, entity_description)
+        self._pump: int = entity_description.pump
 
-    async def async_turn_on(self, **kwargs):
-        """Turn the switch on."""
-        self._state = True
-        self._device.set_data(self.entity_description.value_name, True)
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        self._attr_is_on = True
+        self._set_icon()
+
+        self._device.set_data(self._typed_desc.value_name, True)
         self._device.async_update_listeners()
         self.async_write_ha_state()
-        # await self._device.push_values('/pump/'+str(self._pump)+'/settings',self.entity_description.method)
-        if self.entity_description.notify:
-            self._device._hass.bus.fire(self.entity_description.value_name, {})
 
-        await self._device.push_values(source="/pump/settings", pump=self._pump)
-        await self._device.async_quick_request_refresh("/pump/settings")
-        # await self._device.async_request_refresh()
+        if self._typed_desc.notify:
+            self._device.hass.bus.fire(self._typed_desc.value_name, {})
 
-    async def async_turn_off(self, **kwargs):
-        self._state = False
-        self._device.set_data(self.entity_description.value_name, False)
+        run = cast(_RunPush, self._device)
+        await run.push_values("/pump/settings", self._typed_desc.method)
+        await run.async_quick_request_refresh("/pump/settings")
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self._attr_is_on = False
+        self._set_icon()
+
+        self._device.set_data(self._typed_desc.value_name, False)
         self._device.async_update_listeners()
         self.async_write_ha_state()
-        if self.entity_description.notify:
-            self._device._hass.bus.fire(self.entity_description.value_name, {})
-        await self._device.push_values(source="/pump/settings", pump=self._pump)
-        await self._device.async_quick_request_refresh("/pump/settings")
-        # await self._device.async_request_refresh()
 
-    @property
+        if self._typed_desc.notify:
+            self._device.hass.bus.fire(self._typed_desc.value_name, {})
+
+        run = cast(_RunPush, self._device)
+        await run.push_values("/pump/settings", self._typed_desc.method)
+        await run.async_quick_request_refresh("/pump/settings")
+
+    @cached_property  # type: ignore[override]
     def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        di = self._device.device_info
-        di["name"] += "_pump_" + str(self._pump)
-        identifiers = list(di["identifiers"])[0]
-        pump = ("pump_" + str(self._pump),)
-        identifiers += pump
-        di["identifiers"] = {identifiers}
-        return di
+        di = dict(self._device.device_info)
+        di["name"] = f"{di.get('name', '')}_pump_{self._pump}"
+
+        identifiers_set = di.get("identifiers")
+        if identifiers_set:
+            base = next(iter(cast(set[tuple[Any, ...]], identifiers_set)))
+            di["identifiers"] = {tuple(base) + (f"pump_{self._pump}",)}
+        return cast(DeviceInfo, di)

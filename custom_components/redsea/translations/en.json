@@ -107,10 +107,13 @@
         "name": "Advance"
       },
       "fill": {
-        "name": "fill"
+        "name": "Fill"
       },
       "stop_fill": {
         "name": "Stop filling"
+      },
+      "resume": {
+        "name": "Resume"
       }
     },
     "number": {
@@ -287,7 +290,7 @@
         "name": "Steps"
       },
       "mode": {
-        "name": "mode"
+        "name": "Mode"
       },
       "wave_type": {
         "name": "Waves Type"
@@ -485,7 +488,7 @@
         "name": "Daily volume average"
       },
       "volume_left": {
-        "name": "volume left"
+        "name": "Volume left"
       },
       "days_till_empty": {
         "name": "Days till empty"
@@ -501,6 +504,12 @@
       },
       "temperature_probe_status": {
         "name": "Temperature probe status"
+      },
+      "auto_fill": {
+        "name": "Auto fill"
+      },
+      "pump_state": {
+        "name": "Pump State"
       }
     },
     "light": {
