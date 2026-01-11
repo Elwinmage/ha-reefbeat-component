@@ -8,11 +8,14 @@ offers JSONPath-based getters/setters as well as async-safe HTTP helpers.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import time
-from typing import Any, Dict, List, Optional, Protocol, TypedDict, cast
+from contextlib import suppress
+from typing import Any, Awaitable, Dict, List, Optional, Protocol, TypedDict, cast
 
-import httpx
+import aiohttp
+import async_timeout
 from jsonpath_ng.ext import parse as _parse  # type: ignore
 
 from ..const import DEFAULT_TIMEOUT, HTTP_DELAY_BETWEEN_RETRY, HTTP_MAX_RETRY
@@ -58,6 +61,20 @@ class SourceEntry(TypedDict):
     data: Any
 
 
+class HttpResult(TypedDict, total=False):
+    """Structured HTTP call result (debug-friendly)."""
+
+    ok: bool
+    method: str
+    url: str
+    status: int
+    reason: str
+    headers: Dict[str, str]
+    text: str
+    json: Any
+    elapsed_ms: int
+
+
 class ReefBeatAPI:
     """Base API client for ReefBeat local devices and cloud endpoints.
 
@@ -74,7 +91,13 @@ class ReefBeatAPI:
         - `get_data()` uses an internal cache of eval()-able paths for speed.
     """
 
-    def __init__(self, ip: str, live_config_update: bool, secure: bool = False) -> None:
+    def __init__(
+        self,
+        ip: str,
+        live_config_update: bool,
+        session: aiohttp.ClientSession,
+        secure: bool = False,
+    ) -> None:
         """Initialize the base API client.
 
         Args:
@@ -84,6 +107,7 @@ class ReefBeatAPI:
         """
         self.ip = ip
         self._secure = secure
+        self._session = session
         self._auth_date: Optional[float] = None
         self._in_error = False
 
@@ -113,6 +137,34 @@ class ReefBeatAPI:
         self._live_config_update = bool(live_config_update)
         self._header: Optional[Dict[str, str]] = None
 
+    def _build_result(
+        self,
+        *,
+        method: str,
+        url: str,
+        status: int,
+        reason: str,
+        headers: dict[str, str],
+        text: str,
+        json_body: Any | None,
+        started: float,
+    ) -> HttpResult:
+        """Build a structured result object for debugging and service responses."""
+        elapsed_ms = int((time.time() - started) * 1000)
+        result: HttpResult = {
+            "ok": 200 <= status < 300,
+            "method": method,
+            "url": url,
+            "status": int(status),
+            "reason": reason or "",
+            "headers": headers,
+            "text": text or "",
+            "elapsed_ms": elapsed_ms,
+        }
+        if json_body is not None:
+            result["json"] = json_body
+        return result
+
     async def connect(self) -> None:
         """Perform authentication/handshake if needed.
 
@@ -124,73 +176,76 @@ class ReefBeatAPI:
         """
         return
 
-    async def http_get(self, access_path: str) -> Optional[httpx.Response]:
-        """Perform a one-off GET request to `access_path`.
-
-        This is a legacy convenience wrapper. Prefer registering a source and using
-        `fetch_data()` / `fetch_config()` for consistent caching behavior.
-        """
+    async def http_get(self, access_path: str) -> Optional[HttpResult]:
+        """Perform a one-off GET request to `access_path` (debug-friendly)."""
+        url = self._base_url + access_path
+        started = time.time()
         try:
-            async with httpx.AsyncClient(
-                verify=False, timeout=DEFAULT_TIMEOUT
-            ) as client:
-                return await client.get(
-                    self._base_url + access_path, headers=self._header
-                )
-        except Exception as e:
-            _LOGGER.error(e)
+            async with async_timeout.timeout(DEFAULT_TIMEOUT):
+                async with self._session.get(
+                    url, headers=self._header, ssl=False
+                ) as resp:
+                    text = await resp.text()
+                    json_body: Any | None = None
+                    with suppress(Exception):
+                        json_body = await resp.json(content_type=None)
+
+                    return self._build_result(
+                        method="get",
+                        url=url,
+                        status=resp.status,
+                        reason=resp.reason or "",
+                        headers={k: v for k, v in resp.headers.items()},
+                        text=text,
+                        json_body=json_body,
+                        started=started,
+                    )
+        except Exception as err:
+            _LOGGER.debug("http_get failed: %s", err)
             return None
 
-    async def _http_get(
-        self, client: httpx.AsyncClient, source: Match
-    ) -> Optional[bool]:
-        """Fetch one registered source and cache its decoded JSON.
+    async def _http_get(self, session: aiohttp.ClientSession, source: Match) -> bool:
+        """HTTP GET one endpoint and store its response into self.data.
 
-        Args:
-            client: Shared `httpx.AsyncClient` instance.
-            source: jsonpath-ng match object for a source entry.
-
-        Returns:
-            True on success (data updated), False on hard failure, None when the caller
-            should retry (e.g., after token renewal on HTTP 401).
+        Returns True if request succeeded and response was parsed/accepted.
         """
-        name = cast(str, source.value["name"])
-        _LOGGER.debug("_http_get: %s", self._base_url + name)
-        now = time.time()
+        endpoint = source.value.get("name")
+        if not endpoint:
+            return False
 
-        # Renew authentication token for secure connections.
-        if (
-            self._secure
-            and self._auth_date is not None
-            and (now - self._auth_date) > 2700
-        ):
-            await self.connect()
+        url = f"{self._base_url}{endpoint}"
 
-        r = await client.get(
-            self._base_url + name,
-            timeout=DEFAULT_TIMEOUT,
-            headers=self._header,
-        )
+        try:
+            timeout = getattr(self, "_timeout", 10)
+            async with async_timeout.timeout(timeout):
+                async with session.get(url) as resp:
+                    if resp.status >= 400:
+                        _LOGGER.debug(
+                            "GET %s failed: %s %s", url, resp.status, resp.reason
+                        )
+                        return False
 
-        if r.status_code == 200 or (r.status_code == 503 and name == "/"):
-            response = r.json()
-            query = parse("$.sources[?(@.name=='" + name + "')]")
-            s = query.find(self.data)
-            if not s:
-                _LOGGER.debug("Source %s not registered; ignoring response", name)
-                return True
-            s[0].value["data"] = response
-            return True
+                    # Prefer JSON, but tolerate text
+                    content_type = (resp.headers.get("Content-Type") or "").lower()
+                    if "application/json" in content_type:
+                        payload: Any = await resp.json(content_type=None)
+                    else:
+                        text = await resp.text()
+                        try:
+                            payload = json.loads(text)
+                        except Exception:
+                            payload = text
 
-        if r.status_code == 401:
-            _LOGGER.warning("Authorization failed for %s, try to renew token", name)
-            await self.connect()
-            return None
+                    # Preserve your existing "sources" contract:
+                    # store under the source name key (or whatever your integration expects)
+                    self.data[endpoint] = payload
+                    return True
 
-        _LOGGER.error("Can not get data: %s from %s", name, self.ip)
-        return False
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+            _LOGGER.debug("GET %s error: %s", url, err)
+            return False
 
-    async def _call_url(self, client: httpx.AsyncClient, source: Match) -> None:
+    async def _call_url(self, session: aiohttp.ClientSession, source: Match) -> None:
         """Fetch one source with retries.
 
         Marks the instance in error (`self._in_error=True`) if all retries fail.
@@ -199,7 +254,7 @@ class ReefBeatAPI:
         error_count = 0
         while status_ok is False and error_count < HTTP_MAX_RETRY:
             try:
-                status_ok = bool(await self._http_get(client, source))
+                status_ok = bool(await self._http_get(session, source))
             except Exception as e:
                 error_count += 1
                 _LOGGER.debug(
@@ -208,7 +263,8 @@ class ReefBeatAPI:
                     error_count,
                     HTTP_MAX_RETRY,
                 )
-                _LOGGER.debug(e)
+                _LOGGER.debug("Exception: %s", e, exc_info=True)
+
             if not status_ok:
                 await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
 
@@ -234,10 +290,12 @@ class ReefBeatAPI:
         """
         _LOGGER.debug("Reefbeat.get_initial_data")
         query = parse("$.sources[?(@.type=='device-info')]")
-        sources = query.find(self.data)
+        sources: list[Match] = query.find(self.data)
 
-        async with httpx.AsyncClient(verify=False) as client:
-            await asyncio.gather(*(self._call_url(client, s) for s in sources))
+        tasks: list[Awaitable[None]] = [
+            self._call_url(self._session, s) for s in sources
+        ]
+        await asyncio.gather(*tasks, return_exceptions=True)
 
         if self._in_error:
             raise Exception("Initialization failed, is your device on?")
@@ -253,19 +311,21 @@ class ReefBeatAPI:
 
         Args:
             config_path: If provided, fetch only that specific source name.
-                         Otherwise fetch all sources where `type == "config"`.
+                        Otherwise fetch all sources where `type == "config"`.
         """
         _LOGGER.debug("reefbeat.fetch_config")
         if config_path is None:
             query = parse("$.sources[?(@.type=='config')]")
         else:
             query = parse("$.sources[?(@.name=='" + config_path + "')]")
-        sources = query.find(self.data)
+        sources: list[Match] = query.find(self.data)
 
-        async with httpx.AsyncClient(verify=False) as client:
-            await asyncio.gather(*(self._call_url(client, s) for s in sources))
+        tasks: list[Awaitable[None]] = [
+            self._call_url(self._session, s) for s in sources
+        ]
+        await asyncio.gather(*tasks, return_exceptions=True)
 
-    async def fetch_data(self) -> None:
+    async def fetch_data(self) -> dict[str, Any]:
         """Fetch cached data sources.
 
         Behavior:
@@ -275,7 +335,7 @@ class ReefBeatAPI:
         """
         if self.quick_refresh is not None:
             query = parse("$.sources[?(@.name=='" + self.quick_refresh + "')]")
-            sources = query.find(self.data)
+            sources: list[Match] = query.find(self.data)
             self.quick_refresh = None
         else:
             if self._live_config_update:
@@ -284,8 +344,12 @@ class ReefBeatAPI:
                 query = parse("$.sources[?(@.type=='data')]")
             sources = query.find(self.data)
 
-        async with httpx.AsyncClient(verify=False) as client:
-            await asyncio.gather(*(self._call_url(client, s) for s in sources))
+        tasks: list[Awaitable[None]] = [
+            self._call_url(self._session, s) for s in sources
+        ]
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+        return self.data
 
     async def press(self, action: str, head: Optional[int] = None) -> None:
         """Trigger a button-like action.
@@ -387,7 +451,7 @@ class ReefBeatAPI:
 
     async def http_send(
         self, action: str, payload: Any = None, method: str = "post"
-    ) -> Optional[httpx.Response]:
+    ) -> Optional[HttpResult]:
         """Send an HTTP request to an action path relative to this API base URL.
 
         Args:
@@ -396,85 +460,113 @@ class ReefBeatAPI:
             method: HTTP method ('post', 'put', 'delete').
 
         Returns:
-            The final `httpx.Response` if a request was performed, else None.
+            The final `aiohttp.Response` if a request was performed, else None.
         """
         return await self._http_send(self._base_url + action, payload, method)
 
     async def _http_send(
         self, url: str, payload: Any = None, method: str = "post"
-    ) -> Optional[httpx.Response]:
-        """Send an HTTP request with retries.
+    ) -> Optional[HttpResult]:
+        """Send an HTTP request with retries (aiohttp).
 
-        Args:
-            url: Absolute URL.
-            payload: JSON payload (for POST/PUT). Ignored for DELETE.
-            method: HTTP method ('post', 'put', 'delete').
-
-        Returns:
-            The final `httpx.Response` if a request was performed, else None.
-
-        Side effects:
-            - Updates `self.data["message"]` on success if the response contains JSON.
+        Returns a structured `HttpResult` to make debugging (and the `redsea.request`
+        service) more useful than a raw response object.
         """
+        method_l = method.lower()
         status_ok = False
         error_count = 0
-        _LOGGER.debug("%s data: %s to %s", method, payload, url)
+        _LOGGER.debug("%s data: %s to %s", method_l, payload, url)
 
-        r: Optional[httpx.Response] = None
-        async with httpx.AsyncClient(verify=False, timeout=DEFAULT_TIMEOUT) as client:
-            while status_ok is False and error_count < HTTP_MAX_RETRY:
-                try:
-                    if method == "post":
-                        r = await client.post(url, json=payload, headers=self._header)
-                    elif method == "put":
-                        r = await client.put(url, json=payload, headers=self._header)
-                    elif method == "delete":
-                        r = await client.delete(url, headers=self._header)
+        last_result: Optional[HttpResult] = None
+
+        while status_ok is False and error_count < HTTP_MAX_RETRY:
+            started = time.time()
+            try:
+                async with async_timeout.timeout(DEFAULT_TIMEOUT):
+                    if method_l in ("post", "put"):
+                        req = getattr(self._session, method_l)
+                        async with req(
+                            url,
+                            json=payload,
+                            headers=self._header,
+                            ssl=False,
+                        ) as resp:
+                            text = await resp.text()
+                            json_body: Any | None = None
+                            with suppress(Exception):
+                                json_body = await resp.json(content_type=None)
+
+                            last_result = self._build_result(
+                                method=method_l,
+                                url=url,
+                                status=resp.status,
+                                reason=resp.reason or "",
+                                headers={k: v for k, v in resp.headers.items()},
+                                text=text,
+                                json_body=json_body,
+                                started=started,
+                            )
+                    elif method_l == "delete":
+                        async with self._session.delete(
+                            url, headers=self._header, ssl=False
+                        ) as resp:
+                            text = await resp.text()
+                            json_body = None
+                            with suppress(Exception):
+                                json_body = await resp.json(content_type=None)
+
+                            last_result = self._build_result(
+                                method=method_l,
+                                url=url,
+                                status=resp.status,
+                                reason=resp.reason or "",
+                                headers={k: v for k, v in resp.headers.items()},
+                                text=text,
+                                json_body=json_body,
+                                started=started,
+                            )
                     else:
                         raise ValueError(f"Unsupported method: {method}")
 
-                    status_code = getattr(r, "status_code", None)
-                    status_ok = status_code in (200, 201, 202)
+                status = int(last_result.get("status", 0)) if last_result else 0
+                status_ok = status in (200, 201, 202)
 
-                    if status_code in (400, 404):
-                        error_count = HTTP_MAX_RETRY
+                # Hard failures that should not be retried
+                if status in (400, 404):
+                    error_count = HTTP_MAX_RETRY
 
-                    if not status_ok:
-                        _LOGGER.error("%d: %s", status_code, getattr(r, "text", ""))
-                        error_count += 1
-                    else:
-                        _LOGGER.debug("%d: %s", status_code, getattr(r, "text", ""))
-                        try:
-                            raw = r.json()
-                            msg: dict[str, Any]
-                            if isinstance(raw, dict):
-                                # json() returns dict[str, Any] in practice, but type is Any
-                                msg = cast(dict[str, Any], raw)
-                            else:
-                                msg = {"data": raw}
-                            if "alert" not in msg:
-                                msg["alert"] = ""
-                            self.data["message"] = msg
-                        except Exception:
-                            self.data["message"] = {}
-                except Exception as e:
+                if not status_ok:
+                    _LOGGER.error("%d: %s", status, (last_result or {}).get("text", ""))
                     error_count += 1
-                    _LOGGER.debug(
-                        "Can not %s data: %s to %s, retry nb %d/%d",
-                        method,
-                        payload,
-                        url,
-                        error_count,
-                        HTTP_MAX_RETRY,
-                    )
-                    _LOGGER.debug(e)
+                else:
+                    _LOGGER.debug("%d: %s", status, (last_result or {}).get("text", ""))
+                    msg = (last_result or {}).get("json")
+                    if isinstance(msg, dict):
+                        if "alert" not in msg:
+                            msg["alert"] = ""
+                        self.data["message"] = msg
+                    elif msg is not None:
+                        self.data["message"] = {"data": msg, "alert": ""}
+                    else:
+                        self.data["message"] = {}
+            except Exception as e:
+                error_count += 1
+                _LOGGER.debug(
+                    "Can not %s data: %s to %s, retry nb %d/%d",
+                    method_l,
+                    payload,
+                    url,
+                    error_count,
+                    HTTP_MAX_RETRY,
+                )
+                _LOGGER.debug(e)
 
-                if status_ok is False:
-                    await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
+            if status_ok is False:
+                await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
 
         if status_ok is False:
             _LOGGER.error("Can not push data to %s", url)
-        return r
+        return last_result
 
     async def push_values(self, source: str, method: str = "post") -> None:
         """Push the currently cached payload for `source` to the device."""

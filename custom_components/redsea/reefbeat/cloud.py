@@ -13,13 +13,14 @@ from __future__ import annotations
 
 import logging
 import time
+from contextlib import suppress
 from typing import Any, Optional, cast
 
-import httpx
+import aiohttp
 from homeassistant.exceptions import HomeAssistantError
 
-from ..const import DEFAULT_TIMEOUT, LIGHTS_LIBRARY, SUPPLEMENTS_LIBRARY, WAVES_LIBRARY
-from .api import ReefBeatAPI, SourceEntry, parse
+from ..const import LIGHTS_LIBRARY, SUPPLEMENTS_LIBRARY, WAVES_LIBRARY
+from .api import HttpResult, ReefBeatAPI, SourceEntry, parse
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,7 +36,12 @@ class ReefBeatCloudAPI(ReefBeatAPI):
     """
 
     def __init__(
-        self, username: str, password: str, live_config_update: bool, ip: str
+        self,
+        username: str,
+        password: str,
+        live_config_update: bool,
+        ip: str,
+        session: aiohttp.ClientSession,
     ) -> None:
         """Create a ReefBeatCloudAPI instance.
 
@@ -48,7 +54,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
         Notes:
             Initializes the default list of cloud sources in `self.data["sources"]`.
         """
-        super().__init__(ip, live_config_update, secure=True)
+        super().__init__(ip, live_config_update, session, secure=True)
         self._username = username
         self._password = password
         self._token: str | None = None
@@ -68,7 +74,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
 
     async def http_send(
         self, action: str, payload: Any = None, method: str = "post"
-    ) -> Optional[httpx.Response]:
+    ) -> Optional[HttpResult]:
         """Send a cloud request.
 
         Args:
@@ -77,7 +83,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             method: HTTP method name passed to `_http_send`.
 
         Returns:
-            The `httpx.Response` when available, otherwise `None`.
+            The `HttpResult` when available, otherwise `None`.
 
         Notes:
             If the response is HTTP 401, tries to renew the token once and retries.
@@ -86,7 +92,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             payload = {}
 
         res = await self._http_send(self._base_url + action, payload, method)
-        if res is not None and res.status_code == 401:
+        if res is not None and res.get("status", 0) == 401:
             _LOGGER.warning("Try to renew token")
             await self.connect()
             res = await self._http_send(self._base_url + action, payload, method)
@@ -113,18 +119,23 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             "password": self._password,
         }
 
-        async with httpx.AsyncClient(verify=False, timeout=DEFAULT_TIMEOUT) as client:
-            r = await client.post(
-                "https://" + self.ip + "/oauth/token",
-                data=payload,
-                headers=header,
-            )
+        async with self._session.post(
+            "https://" + self.ip + "/oauth/token",
+            data=payload,
+            headers=header,
+            ssl=False,
+        ) as resp:
+            r_status = int(resp.status)
+            r_text = await resp.text()
+            r_json: Any | None = None
+            with suppress(Exception):
+                r_json = await resp.json(content_type=None)
 
-        if r.status_code != 200:
+        if r_status != 200:
             _LOGGER.error("Authentification fail. Verify your credentials")
-            raise InvalidAuth(r.text)
+            raise InvalidAuth(r_text)
 
-        raw = r.json()
+        raw = r_json if r_json is not None else {}
         token: str | None = None
         if isinstance(raw, dict):
             data = cast(dict[str, Any], raw)

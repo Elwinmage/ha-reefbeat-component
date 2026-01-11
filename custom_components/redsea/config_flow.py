@@ -17,11 +17,12 @@ from functools import partial
 from time import time
 from typing import Any, cast
 
-import httpx
+import async_timeout
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .auto_detect import ReefBeatInfo, get_reefbeats, get_unique_id, is_reefbeat
 from .const import (
@@ -67,7 +68,9 @@ _LOGGER = logging.getLogger(__name__)
 # -----------------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------------
-async def validate_cloud_input(username: str, password: str) -> bool:
+async def validate_cloud_input(
+    hass: HomeAssistant, username: str, password: str
+) -> bool:
     """Validate ReefBeat cloud credentials.
 
     Notes:
@@ -85,21 +88,23 @@ async def validate_cloud_input(username: str, password: str) -> bool:
         "password": password,
     }
 
+    session = async_get_clientsession(hass)
+
     try:
-        async with httpx.AsyncClient(
-            timeout=httpx.Timeout(10.0, connect=10.0)
-        ) as client:
-            r = await client.post(
+        async with async_timeout.timeout(10):
+            async with session.post(
                 f"https://{CLOUD_SERVER_ADDR}/oauth/token",
                 data=payload,
                 headers=headers,
-            )
+                ssl=False,
+            ) as resp:
+                status = int(resp.status)
     except Exception:
         _LOGGER.exception("Cloud credential validation failed due to request error")
         return False
 
-    if r.status_code != 200:
-        _LOGGER.warning("Cloud authentication failed (status=%s)", r.status_code)
+    if status != 200:
+        _LOGGER.warning("Cloud authentication failed (status=%s)", status)
         return False
 
     return True
@@ -232,6 +237,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # CLOUD
         if CONFIG_FLOW_CLOUD_USERNAME in user_input:
             valid = await validate_cloud_input(
+                self.hass,
                 str(user_input[CONFIG_FLOW_CLOUD_USERNAME]),
                 str(user_input[CONFIG_FLOW_CLOUD_PASSWORD]),
             )
@@ -411,6 +417,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 user_input[CONFIG_FLOW_CONFIG_TYPE] = False
 
                 valid = await validate_cloud_input(
+                    self.hass,
                     str(user_input[CONFIG_FLOW_CLOUD_USERNAME]),
                     str(user_input[CONFIG_FLOW_CLOUD_PASSWORD]),
                 )

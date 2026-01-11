@@ -31,6 +31,7 @@ import async_timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -100,6 +101,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Keep integration state
         self._hass = hass
+        self._session = async_get_clientsession(hass)
         self._ip: str = str(entry.data[CONFIG_FLOW_IP_ADDRESS])
         self._hw: str = str(entry.data[CONFIG_FLOW_HW_MODEL])
         self._title: str = entry.title
@@ -109,7 +111,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._boot = True
 
         # Default API for a generic ReefBeat device (specialized coordinators override this).
-        self.my_api = ReefBeatAPI(self._ip, self._live_config_update)
+        self.my_api = ReefBeatAPI(self._ip, self._live_config_update, self._session)
 
         _LOGGER.info("%s scan interval set to %d", self._title, scan_interval)
         _LOGGER.info(
@@ -124,7 +126,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         try:
             async with async_timeout.timeout(DEFAULT_TIMEOUT * 2):
-                res = await self.my_api.fetch_data()
+                res = cast(dict[str, Any] | None, await self.my_api.fetch_data())
             if res is None:
                 raise UpdateFailed(f"No data received from API: {self._title}")
             return res
@@ -385,7 +387,11 @@ class ReefLedCoordinator(ReefBeatCloudLinkedCoordinator):
             entry.data.get(CONFIG_FLOW_INTENSITY_COMPENSATION, False)
         )
         self.my_api = ReefLedAPI(
-            self._ip, self._live_config_update, self._hw, intensity_compensation
+            self._ip,
+            self._live_config_update,
+            self._session,
+            self._hw,
+            intensity_compensation,
         )
         _LOGGER.info(
             "%s intensity compensation: %s", self._title, intensity_compensation
@@ -681,7 +687,7 @@ class ReefMatCoordinator(ReefBeatCloudLinkedCoordinator):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the ReefMat coordinator and its API."""
         super().__init__(hass, entry)
-        self.my_api = ReefMatAPI(self._ip, self._live_config_update)
+        self.my_api = ReefMatAPI(self._ip, self._live_config_update, self._session)
 
     async def new_roll(self) -> None:
         """Start a new roll on the device."""
@@ -699,7 +705,9 @@ class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
         super().__init__(hass, entry)
         # HW model ends with the number of heads (e.g. "...4")
         self.heads_nb = int(str(entry.data[CONFIG_FLOW_HW_MODEL])[-1])
-        self.my_api = ReefDoseAPI(self._ip, self._live_config_update, self.heads_nb)
+        self.my_api = ReefDoseAPI(
+            self._ip, self._live_config_update, self._session, self.heads_nb
+        )
 
     async def calibration(self, action: str, head: int, param: Any) -> None:
         """Run a calibration step for the given dosing head."""
@@ -737,7 +745,7 @@ class ReefATOCoordinator(ReefBeatCloudLinkedCoordinator):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the ReefATO+ coordinator and its API."""
         super().__init__(hass, entry)
-        self.my_api = ReefATOAPI(self._ip, self._live_config_update)
+        self.my_api = ReefATOAPI(self._ip, self._live_config_update, self._session)
 
     async def set_volume_left(self, volume_ml: int) -> None:
         """Set remaining refill/container volume (in ml)."""
@@ -757,7 +765,7 @@ class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the ReefRun coordinator and its API."""
         super().__init__(hass, entry)
-        self.my_api = ReefRunAPI(self._ip, self._live_config_update)
+        self.my_api = ReefRunAPI(self._ip, self._live_config_update, self._session)
 
     async def set_pump_intensity(self, pump: int, intensity: int) -> None:
         """Update the currently active schedule segment intensity for a pump."""
@@ -807,7 +815,7 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the ReefWave coordinator and its API."""
         super().__init__(hass, entry)
-        self.my_api = ReefWaveAPI(self._ip, self._live_config_update)
+        self.my_api = ReefWaveAPI(self._ip, self._live_config_update, self._session)
 
     async def set_wave(self) -> None:
         """Apply the current preview wave into the active schedule."""
@@ -1051,6 +1059,7 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
             self._entry.data[CONFIG_FLOW_CLOUD_PASSWORD],
             self._entry.data[CONFIG_FLOW_CONFIG_TYPE],
             self._ip,
+            self._session,
         )
 
     async def _async_setup(self) -> None:

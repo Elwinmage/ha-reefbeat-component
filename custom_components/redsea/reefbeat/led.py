@@ -3,7 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional, cast
 
-import httpx
+import aiohttp
+import async_timeout
 import numpy as np
 
 from ..const import (
@@ -31,6 +32,7 @@ class ReefLedAPI(ReefBeatAPI):
         self,
         ip: str,
         live_config_update: bool,
+        session: aiohttp.ClientSession,
         hw: Any,
         intensity_compensation: bool = False,
     ) -> None:
@@ -46,7 +48,7 @@ class ReefLedAPI(ReefBeatAPI):
             - Some older firmwares require runtime source patching (RSLED90).
             - G1 devices report white/blue; kelvin/intensity are derived and cached.
         """
-        super().__init__(ip, live_config_update)
+        super().__init__(ip, live_config_update, session)
 
         # patch for old RSLED
         self._rsled90_patch = False
@@ -90,13 +92,13 @@ class ReefLedAPI(ReefBeatAPI):
         Returns 0 on any exception.
         """
         try:
-            async with httpx.AsyncClient(
-                verify=False,
-                timeout=DEFAULT_TIMEOUT,
-                follow_redirects=True,
-            ) as client:
-                r = await client.get(self._base_url + path)
-                return int(r.status_code)
+            async with async_timeout.timeout(DEFAULT_TIMEOUT):
+                async with self._session.get(
+                    self._base_url + path,
+                    ssl=False,
+                    allow_redirects=True,
+                ) as resp:
+                    return int(resp.status)
         except Exception:
             return 0
 

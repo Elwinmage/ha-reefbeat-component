@@ -12,6 +12,8 @@ import copy
 import logging
 from typing import Any, Optional, cast
 
+import aiohttp
+
 from .api import ReefBeatAPI
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,7 +22,13 @@ _LOGGER = logging.getLogger(__name__)
 class ReefDoseAPI(ReefBeatAPI):
     """ReefDose API wrapper (heads, calibration, bundle support)."""
 
-    def __init__(self, ip: str, live_config_update: bool, heads_nb: int) -> None:
+    def __init__(
+        self,
+        ip: str,
+        live_config_update: bool,
+        session: aiohttp.ClientSession,
+        heads_nb: int,
+    ) -> None:
         """Create a ReefDoseAPI instance.
 
         Args:
@@ -32,7 +40,7 @@ class ReefDoseAPI(ReefBeatAPI):
             Initializes a `local.head` cache with per-head defaults used by the UI
             (manual dose, calibration dose, supplement wizard fields).
         """
-        super().__init__(ip, live_config_update)
+        super().__init__(ip, live_config_update, session)
         self._heads_nb = heads_nb
 
         # Register sources

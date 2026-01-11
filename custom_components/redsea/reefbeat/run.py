@@ -5,7 +5,7 @@ preview endpoint.
 
 Notes:
     - `/pump/settings` accepts either a single pump payload (`pump_1` / `pump_2`)
-      or a reduced payload without per-pump entries depending on context.
+        or a reduced payload without per-pump entries depending on context.
     - `/preview` is treated as a local-only preview source used for UI simulation.
 """
 
@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import logging
 from typing import Any, Optional, cast
+
+import aiohttp
 
 from .api import ReefBeatAPI
 
@@ -22,7 +24,12 @@ _LOGGER = logging.getLogger(__name__)
 class ReefRunAPI(ReefBeatAPI):
     """ReefRun API wrapper (pump settings and preview payload shaping)."""
 
-    def __init__(self, ip: str, live_config_update: bool) -> None:
+    def __init__(
+        self,
+        ip: str,
+        live_config_update: bool,
+        session: aiohttp.ClientSession,
+    ) -> None:
         """Create a ReefRunAPI instance.
 
         Args:
@@ -31,10 +38,10 @@ class ReefRunAPI(ReefBeatAPI):
 
         Notes:
             Registers:
-              - `/pump/settings` (config)
-              - `/preview` (preview) with default pump preview values
+                - `/pump/settings` (config)
+                - `/preview` (preview) with default pump preview values
         """
-        super().__init__(ip, live_config_update)
+        super().__init__(ip, live_config_update, session)
 
         # TODO: add feeding, maintenance, emergency, shortcut_off_delay, and pump_on_delayed.
         # Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/25

@@ -199,12 +199,23 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             title = getattr(device, "title", getattr(device, "_title", device_id))
             return {"error": f"can not access to device {title}"}
 
-        # Ensure r_text is always initialized, then attempt to parse JSON.
-        r_text: Any = r.text
-        with suppress(Exception):
-            r_text = json.loads(r.text)
+        # Debug-friendly structured response (matches reefbeat.api.HttpResult)
+        resp: dict[str, Any] = {
+            "ok": bool(r.get("ok")),
+            "status": int(r.get("status", 0)),
+            "reason": str(r.get("reason", "")),
+            "method": str(r.get("method", "")),
+            "url": str(r.get("url", "")),
+            "elapsed_ms": int(r.get("elapsed_ms", 0)),
+            "headers": dict(r.get("headers", {})),
+        }
 
-        return {"code": r.status_code, "text": r_text}
+        if "json" in r:
+            resp["json"] = r.get("json")
+        else:
+            resp["text"] = r.get("text", "")
+
+        return resp
 
     _LOGGER.debug("Registering service redsea.request")
     hass.services.async_register(

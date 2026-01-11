@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import logging
 
+import aiohttp
+
 from .api import ReefBeatAPI
 
 _LOGGER = logging.getLogger(__name__)
@@ -21,7 +23,12 @@ _LOGGER = logging.getLogger(__name__)
 class ReefWaveAPI(ReefBeatAPI):
     """ReefWave API wrapper (sources and preview defaults)."""
 
-    def __init__(self, ip: str, live_config_update: bool) -> None:
+    def __init__(
+        self,
+        ip: str,
+        live_config_update: bool,
+        session: aiohttp.ClientSession,
+    ) -> None:
         """Create a ReefWaveAPI instance.
 
         Args:
@@ -30,12 +37,12 @@ class ReefWaveAPI(ReefBeatAPI):
 
         Notes:
             Adjusts default sources inherited from `ReefBeatAPI`:
-              - Removes `/dashboard` (data) and `/mode` (config)
-              - Adds `/` as `device-info`
-              - Re-adds `/mode` as `data`
-              - Adds feeding schedule, auto mode, device-settings, and preview sources
+                - Removes `/dashboard` (data) and `/mode` (config)
+                - Adds `/` as `device-info`
+                - Re-adds `/mode` as `data`
+                - Adds feeding schedule, auto mode, device-settings, and preview sources
         """
-        super().__init__(ip, live_config_update)
+        super().__init__(ip, live_config_update, session)
 
         # Remove sources that don't match ReefWave behavior (safe if absent).
         self.remove_source("/dashboard")

@@ -9,6 +9,8 @@ from __future__ import annotations
 import logging
 from typing import Any, cast
 
+import aiohttp
+
 from ..const import (
     MAT_MAX_ROLL_DIAMETERS,
     MAT_MIN_ROLL_DIAMETER,
@@ -23,13 +25,18 @@ _LOGGER = logging.getLogger(__name__)
 class ReefMatAPI(ReefBeatAPI):
     """Access to ReefMat information and commands."""
 
-    def __init__(self, ip: str, live_config_update: bool) -> None:
+    def __init__(
+        self,
+        ip: str,
+        live_config_update: bool,
+        session: aiohttp.ClientSession,
+    ) -> None:
         """Initialize the ReefMat API wrapper.
 
         Ensures the configuration source exists and that local state contains
         a default for the started roll diameter.
         """
-        super().__init__(ip, live_config_update)
+        super().__init__(ip, live_config_update, session)
 
         # Ensure configuration source exists
         self.data["sources"].insert(
@@ -63,9 +70,9 @@ class ReefMatAPI(ReefBeatAPI):
         """Start a new (or started) roll on the ReefMat device.
 
         Reads current `started_roll_diameter` from local state:
-          - If it equals the minimum diameter, creates a "New Roll" using the
+            - If it equals the minimum diameter, creates a "New Roll" using the
             model-specific maximum roll diameter.
-          - Otherwise creates a "Started Roll" using the provided diameter.
+            - Otherwise creates a "Started Roll" using the provided diameter.
 
         Sends the resulting payload to the `/new-roll` endpoint.
         """

@@ -37,7 +37,7 @@ request:
     data:
       required: true
       description: JSON data to send to device
-      example: { "mode": "auto" }
-      default: {}
+      example: "{'mode': 'auto'}"
+      default: "{}"
       selector:
-        object:
+        text:

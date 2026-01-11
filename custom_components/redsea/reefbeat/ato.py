@@ -13,6 +13,8 @@ from __future__ import annotations
 import logging
 from typing import Any, cast
 
+import aiohttp
+
 from ..const import ATO_AUTO_FILL_INTERNAL_NAME
 from .api import ReefBeatAPI, SourceEntry
 
@@ -28,7 +30,12 @@ class ReefATOAPI(ReefBeatAPI):
     - /configuration: push auto_fill setting
     """
 
-    def __init__(self, ip: str, live_config_update: bool) -> None:
+    def __init__(
+        self,
+        ip: str,
+        live_config_update: bool,
+        session: aiohttp.ClientSession,
+    ) -> None:
         """Create a ReefATOAPI instance.
 
         Args:
@@ -39,7 +46,7 @@ class ReefATOAPI(ReefBeatAPI):
             Ensures the `/configuration` source exists so `push_values()` can PUT
             ATO configuration.
         """
-        super().__init__(ip, live_config_update)
+        super().__init__(ip, live_config_update, session)
 
         # Ensure /configuration exists as a config source.
         sources = cast(list[SourceEntry], self.data.get("sources", []))
