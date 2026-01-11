@@ -79,7 +79,7 @@ async def validate_cloud_input(
     _LOGGER.debug("Validating cloud credentials for user '%s'", username)
 
     headers = {
-        "Authorization": "Basic Z0ZqSHRKcGE6Qzlmb2d3jmpEV09SVDJHWQ==",
+        "Authorization": "Basic Z0ZqSHRKcGE6Qzlmb2d3cmpEV09SVDJHWQ==",
         "Content-Type": "application/x-www-form-urlencoded",
     }
     payload = {
