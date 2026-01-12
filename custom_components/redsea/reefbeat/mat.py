@@ -22,6 +22,11 @@ from .api import ReefBeatAPI
 _LOGGER = logging.getLogger(__name__)
 
 
+# =============================================================================
+# Classes
+# =============================================================================
+
+
 class ReefMatAPI(ReefBeatAPI):
     """Access to ReefMat information and commands."""
 

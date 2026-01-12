@@ -37,12 +37,15 @@ _LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from .coordinator import ReefBeatCloudCoordinator
-# =============================================================================
 # Protocols (capability-based typing)
-# =============================================================================
 
 
 @runtime_checkable
+
+# =============================================================================
+# Classes
+# =============================================================================
+
 class _CloudLinkedCoordinator(Protocol):
     """Coordinator capability: is linked to cloud data and exposes firmware info."""
 
@@ -66,9 +69,9 @@ class _CloudLinkedCoordinator(Protocol):
     def my_api(self) -> Any: ...
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entity descriptions
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -93,9 +96,9 @@ FIRMWARE_UPDATES: tuple[ReefBeatUpdateEntityDescription, ...] = (
 )
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Platform setup
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 async def async_setup_entry(
@@ -119,14 +122,12 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entities
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
-# -------------------------------------
 # REEFBEAT
-# -------------------------------------
 class ReefBeatUpdateEntity(ReefBeatRestoreEntity, UpdateEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Firmware update entity backed by coordinator + cloud version discovery."""
 

@@ -44,10 +44,13 @@ _LOGGER = logging.getLogger(__name__)
 TCoord = TypeVar("TCoord", bound=ReefBeatCoordinator)
 
 
-# -----------------------------------------------------------------------------
 # Entity descriptions
-# -----------------------------------------------------------------------------
 @dataclass(kw_only=True, frozen=True)
+
+# =============================================================================
+# Classes
+# =============================================================================
+
 class ReefBeatBinarySensorEntityDescription(
     BinarySensorEntityDescription, Generic[TCoord]
 ):
@@ -76,9 +79,7 @@ class ReefRunBinarySensorEntityDescription(
     pump: int = 0
 
 
-# -----------------------------------------------------------------------------
 # Sensor descriptions
-# -----------------------------------------------------------------------------
 COMMON_SENSORS: tuple[
     ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], ...
 ] = (
@@ -231,9 +232,7 @@ RUN_SENSORS: tuple[ReefBeatBinarySensorEntityDescription[ReefRunCoordinator], ..
 )
 
 
-# -----------------------------------------------------------------------------
 # Platform setup
-# -----------------------------------------------------------------------------
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -379,17 +378,15 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entities
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 TDevice = TypeVar("TDevice", bound=ReefBeatCoordinator)
 
 
-# -------------------------------------
 # REEFBEAT
-# -------------------------------------
 class ReefBeatBinarySensorEntity(  # pyright: ignore[reportIncompatibleVariableOverride]
     RestoreEntity, CoordinatorEntity[TDevice], BinarySensorEntity, Generic[TDevice]
 ):
@@ -447,9 +444,7 @@ class ReefBeatBinarySensorEntity(  # pyright: ignore[reportIncompatibleVariableO
         return None
 
 
-# -------------------------------------
 # REEFDOSE
-# -------------------------------------
 class ReefDoseBinarySensorEntity(ReefBeatBinarySensorEntity[ReefDoseCoordinator]):
     """Binary sensor for ReefDose heads."""
 
@@ -496,9 +491,7 @@ class ReefDoseBinarySensorEntity(ReefBeatBinarySensorEntity[ReefDoseCoordinator]
         return cast(DeviceInfo, di_dict)
 
 
-# -------------------------------------
 # REEFRUN
-# -------------------------------------
 class ReefRunBinarySensorEntity(ReefBeatBinarySensorEntity[ReefRunCoordinator]):
     """Binary sensor for ReefRun pumps."""
 

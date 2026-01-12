@@ -55,9 +55,11 @@ from .coordinator import (
 _LOGGER = logging.getLogger(__name__)
 
 
-# -----------------------------------------------------------------------------
-# Coordinator factory
-# -----------------------------------------------------------------------------
+# =============================================================================
+# Helpers
+# =============================================================================
+
+
 def _build_coordinator(hass: HomeAssistant, entry: ConfigEntry) -> ReefBeatCoordinator:
     """Create the correct coordinator for a local (non-cloud) device entry.
 
@@ -88,9 +90,7 @@ def _build_coordinator(hass: HomeAssistant, entry: ConfigEntry) -> ReefBeatCoord
     raise ValueError(f"Unsupported hardware model or configuration: ip={ip} hw={hw}")
 
 
-# -----------------------------------------------------------------------------
 # Config entry lifecycle
-# -----------------------------------------------------------------------------
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up a config entry.
 
@@ -148,9 +148,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-# -----------------------------------------------------------------------------
 # Services
-# -----------------------------------------------------------------------------
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the integration (register services)."""
 

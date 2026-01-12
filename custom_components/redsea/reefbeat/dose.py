@@ -19,6 +19,11 @@ from .api import ReefBeatAPI
 _LOGGER = logging.getLogger(__name__)
 
 
+# =============================================================================
+# Classes
+# =============================================================================
+
+
 class ReefDoseAPI(ReefBeatAPI):
     """ReefDose API wrapper (heads, calibration, bundle support)."""
 

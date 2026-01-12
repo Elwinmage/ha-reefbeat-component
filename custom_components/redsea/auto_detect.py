@@ -31,9 +31,11 @@ except Exception:  # pragma: no cover
     from const import HW_DEVICES_IDS  # type: ignore
 
 
-# -----------------------------------------------------------------------------
+# =============================================================================
 # Types
-# -----------------------------------------------------------------------------
+# =============================================================================
+
+
 class ReefBeatInfo(TypedDict, total=False):
     """Basic information returned by network detection."""
 
@@ -43,9 +45,7 @@ class ReefBeatInfo(TypedDict, total=False):
     uuid: str
 
 
-# -----------------------------------------------------------------------------
 # Network helpers
-# -----------------------------------------------------------------------------
 def _iter_ipv4s(cidr: str) -> Iterable[str]:
     """Yield IPv4 addresses in a CIDR."""
     net = ipaddress.ip_network(cidr, strict=False)
@@ -95,9 +95,7 @@ def get_local_ips(subnetwork: str | None = None) -> list[str]:
     return []
 
 
-# -----------------------------------------------------------------------------
 # Device probing
-# -----------------------------------------------------------------------------
 def get_unique_id(ip: str) -> str | None:
     """Fetch the device UDN from description.xml and return the UUID, or None."""
     try:
@@ -166,8 +164,6 @@ def get_reefbeats(
     return reefbeats
 
 
-# -----------------------------------------------------------------------------
 # Script entry point
-# -----------------------------------------------------------------------------
 if __name__ == "__main__":
     print(json.dumps(get_reefbeats(), sort_keys=True, indent=4))

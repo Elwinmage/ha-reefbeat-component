@@ -28,6 +28,11 @@ _T = TypeVar("_T")
 
 
 @dataclass(frozen=True, slots=True)
+
+# =============================================================================
+# Classes
+# =============================================================================
+
 class RestoreSpec(Generic[_T]):
     """Describe how to restore a single value from the last state."""
 
@@ -37,21 +42,17 @@ class RestoreSpec(Generic[_T]):
     parser: Callable[[str], _T]
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entities
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
-# -------------------------------------
 # REEFBEAT
-# -------------------------------------
 class ReefBeatEntity(CoordinatorEntity[ReefBeatCoordinator]):
     """CoordinatorEntity base for all entities."""
 
 
-# -------------------------------------
 # RESTORE
-# -------------------------------------
 class ReefBeatRestoreEntity(ReefBeatEntity, RestoreEntity):
     """CoordinatorEntity + RestoreEntity with a small standardized restore helper."""
 

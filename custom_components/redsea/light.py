@@ -47,10 +47,13 @@ from .entity import ReefBeatRestoreEntity
 _LOGGER = logging.getLogger(__name__)
 
 
-# -----------------------------------------------------------------------------
 # Entity descriptions
-# -----------------------------------------------------------------------------
 @dataclass(kw_only=True, frozen=True)
+
+# =============================================================================
+# Classes
+# =============================================================================
+
 class ReefLedLightEntityDescription(LightEntityDescription):
     """Description for a physical ReefLED entity."""
 
@@ -69,9 +72,7 @@ class ReefVirtualLedLightEntityDescription(LightEntityDescription):
 DescriptionT = ReefLedLightEntityDescription | ReefVirtualLedLightEntityDescription
 
 
-# -----------------------------------------------------------------------------
 # Entity description tables
-# -----------------------------------------------------------------------------
 COMMON_LIGHTS: Final[tuple[ReefLedLightEntityDescription, ...]] = (
     ReefLedLightEntityDescription(
         key="moon",
@@ -131,9 +132,7 @@ VIRTUAL_LIGHTS: Final[tuple[ReefVirtualLedLightEntityDescription, ...]] = (
 )
 
 
-# -----------------------------------------------------------------------------
 # Platform setup
-# -----------------------------------------------------------------------------
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -193,14 +192,12 @@ async def async_setup_entry(
     async_add_entities(entities, update_before_add=True)
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entities
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
-# -------------------------------------
 # REEFBEAT
-# -------------------------------------
 class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Light entity for a ReefBeat LED channel.
 

@@ -33,12 +33,17 @@ from .entity import ReefBeatRestoreEntity, RestoreSpec
 _LOGGER = logging.getLogger(__name__)
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entity descriptions
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 @dataclass(kw_only=True, frozen=True)
+
+# =============================================================================
+# Classes
+# =============================================================================
+
 class ReefBeatTextEntityDescription(TextEntityDescription):
     """Describes a ReefBeat text entity."""
 
@@ -54,9 +59,9 @@ class ReefDoseTextEntityDescription(ReefBeatTextEntityDescription):
     dependency: str | None = None
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Platform setup
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 async def async_setup_entry(
@@ -120,14 +125,12 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entities
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
-# -------------------------------------
 # REEFBEAT
-# -------------------------------------
 class ReefBeatTextEntity(ReefBeatRestoreEntity, TextEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """A ReefBeat text entity backed by the coordinator cache.
 
@@ -202,9 +205,7 @@ class ReefBeatTextEntity(ReefBeatRestoreEntity, TextEntity):  # type: ignore[rep
         return self._device.device_info
 
 
-# -------------------------------------
 # REEFDOSE
-# -------------------------------------
 class ReefDoseTextEntity(ReefBeatTextEntity):
     """Per-head ReefDose text entity.
 

@@ -20,6 +20,11 @@ from .api import ReefBeatAPI
 _LOGGER = logging.getLogger(__name__)
 
 
+# =============================================================================
+# Classes
+# =============================================================================
+
+
 class ReefWaveAPI(ReefBeatAPI):
     """ReefWave API wrapper (sources and preview defaults)."""
 

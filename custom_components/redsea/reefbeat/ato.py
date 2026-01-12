@@ -21,6 +21,11 @@ from .api import ReefBeatAPI, SourceEntry
 _LOGGER = logging.getLogger(__name__)
 
 
+# =============================================================================
+# Classes
+# =============================================================================
+
+
 class ReefATOAPI(ReefBeatAPI):
     """ReefATO+ API wrapper.
 

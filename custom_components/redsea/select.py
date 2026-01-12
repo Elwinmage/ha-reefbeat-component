@@ -56,10 +56,13 @@ _SORTED_SUPPLEMENTS: list[dict[str, Any]] = sorted(
 _LOGGER = logging.getLogger(__name__)
 
 
-# -----------------------------------------------------------------------------
 # Entity descriptions
-# -----------------------------------------------------------------------------
 @dataclass(kw_only=True, frozen=True)
+
+# =============================================================================
+# Classes
+# =============================================================================
+
 class ReefBeatSelectEntityDescription(SelectEntityDescription):
     """Describes a generic ReefBeat select entity."""
 
@@ -113,9 +116,7 @@ DescriptionT = (
 )
 
 
-# -----------------------------------------------------------------------------
 # Select definitions
-# -----------------------------------------------------------------------------
 MAT_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
     ReefBeatSelectEntityDescription(
         key="model",
@@ -156,9 +157,7 @@ LED_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
 #  labels: enhancement, rsdose
 
 
-# -----------------------------------------------------------------------------
 # Setup
-# -----------------------------------------------------------------------------
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -274,14 +273,12 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entities
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
-# -------------------------------------
 # REEFBEAT
-# -------------------------------------
 class ReefBeatSelectEntity(ReefBeatRestoreEntity, SelectEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Generic ReefBeat-backed select entity.
 
@@ -379,9 +376,7 @@ class ReefBeatSelectEntity(ReefBeatRestoreEntity, SelectEntity):  # type: ignore
         return self._device.device_info
 
 
-# -------------------------------------
 # REEFRUN
-# -------------------------------------
 class ReefRunSelectEntity(ReefBeatSelectEntity):
     """Select entity for ReefRun (per-pump setting)."""
 
@@ -420,9 +415,7 @@ class ReefRunSelectEntity(ReefBeatSelectEntity):
         return cast(DeviceInfo, di)
 
 
-# -------------------------------------
 # REEFDOSE
-# -------------------------------------
 class ReefDoseSelectEntity(ReefBeatSelectEntity):
     """Select entity for ReefDose (supplement selection per head)."""
 
@@ -493,9 +486,7 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
         return cast(DeviceInfo, di_dict)
 
 
-# -------------------------------------
 # REEFWAVE
-# -------------------------------------
 class ReefWaveSelectEntity(ReefBeatSelectEntity):
     """Select entity for ReefWave preview values."""
 

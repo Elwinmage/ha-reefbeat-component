@@ -25,6 +25,11 @@ from .api import ReefBeatAPI
 _LOGGER = logging.getLogger(__name__)
 
 
+# =============================================================================
+# Classes
+# =============================================================================
+
+
 class ReefLedAPI(ReefBeatAPI):
     """ReefLED API wrapper (G1/G2, RSLED90 patch, kelvin/intensity conversion)."""
 
@@ -460,13 +465,14 @@ class ReefLedAPI(ReefBeatAPI):
         if "moon" in new_data and "moon" in manual:
             manual["moon"] = new_data["moon"]
 
-    async def fetch_data(self) -> None:
+    async def fetch_data(self) -> dict[str, Any]:
         """Fetch device sources, then update derived state (acclimation/status and wb/ki)."""
-        await super().fetch_data()
+        data = await super().fetch_data()
         if self._g1:
             self.update_light_wb()
         self.update_acclimation()
         self.force_status_update()
+        return data
 
     async def push_values(self, source: str, method: str = "post") -> None:
         """Push the current payload for a source to the device.

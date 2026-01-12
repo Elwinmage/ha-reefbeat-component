@@ -104,12 +104,17 @@ _LOGGER = logging.getLogger(__name__)
 # device classes like DATE/TIMESTAMP.
 SensorNativeValue: TypeAlias = StateType | datetime.date | datetime.datetime
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Protocols (capability-based typing)
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 @runtime_checkable
+
+# =============================================================================
+# Classes
+# =============================================================================
+
 class _CloudLinkedCoordinator(Protocol):
     """Coordinator capability: indicates a cloud-linked device.
 
@@ -132,9 +137,9 @@ class _WaveValueCoordinator(Protocol):
     def get_current_value(self, basename: str, name: str) -> Any: ...
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entity descriptions
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -244,9 +249,9 @@ DescriptionT = (
 )
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Static sensors (descriptions)
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 CLOUD_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription(
@@ -545,9 +550,9 @@ MAT_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
     ),
 )
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Derived dynamic description lists (LED schedules)
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 _led_schedules: list[ReefLedScheduleSensorEntityDescription] = []
 for auto_id in range(1, 8):
@@ -589,9 +594,9 @@ LED_SCHEDULES: tuple[ReefLedScheduleSensorEntityDescription, ...] = tuple(
     _led_schedules
 )
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Wave / ATO descriptions
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
     ReefWaveSensorEntityDescription(
@@ -775,9 +780,9 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
 )
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Platform setup
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 async def async_setup_entry(
@@ -798,9 +803,7 @@ async def async_setup_entry(
 
     _LOGGER.debug("SENSORS")
 
-    # -------------------------------------------------------------------------
     # Cloud linked coordinator diagnostics
-    # -------------------------------------------------------------------------
     # Avoid brittle base-class-name checks; use capability instead.
     if isinstance(device, _CloudLinkedCoordinator):
         entities.extend(
@@ -1099,9 +1102,7 @@ async def async_setup_entry(
             if description.exists_fn(run_device)
         )
 
-    # -------------------------------------------------------------------------
     # Schedule sensors (LED coordinators)
-    # -------------------------------------------------------------------------
     if isinstance(device, (ReefLedCoordinator, ReefVirtualLedCoordinator)):
         led_device = cast(ReefLedCoordinator, device)
         entities.extend(
@@ -1110,9 +1111,7 @@ async def async_setup_entry(
             if description.exists_fn(led_device)
         )
 
-    # -------------------------------------------------------------------------
     # Common sensors (skip pure cloud + virtual LED to keep behavior consistent)
-    # -------------------------------------------------------------------------
     if not isinstance(device, (ReefBeatCloudCoordinator, ReefVirtualLedCoordinator)):
         entities.extend(
             ReefBeatSensorEntity(device, description)
@@ -1120,9 +1119,7 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
-    # -------------------------------------------------------------------------
     # Cloud library sensors
-    # -------------------------------------------------------------------------
     if isinstance(device, ReefBeatCloudCoordinator):
         entities.extend(
             ReefBeatCloudSensorEntity(device, description)
@@ -1203,14 +1200,12 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entities
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
-# -------------------------------------
 # REEFBEAT
-# -------------------------------------
 class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Base sensor entity backed by a ReefBeat device/coordinator.
 
@@ -1335,9 +1330,7 @@ class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore
         return self._device.device_info
 
 
-# -------------------------------------
 # REEFLED
-# -------------------------------------
 class ReefLedScheduleSensorEntity(ReefBeatSensorEntity):
     """LED schedule sensor.
 
@@ -1364,9 +1357,7 @@ class ReefLedScheduleSensorEntity(ReefBeatSensorEntity):
         self._attr_extra_state_attributes = {"data": prog_data, "clouds": cloud_data}
 
 
-# -------------------------------------
 # REEFDOSE
-# -------------------------------------
 class ReefDoseSensorEntity(ReefBeatSensorEntity):
     """Per-head ReefDose sensor.
 
@@ -1447,9 +1438,7 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
         return cast(DeviceInfo, di_dict)
 
 
-# -------------------------------------
 # RESTORE
-# -------------------------------------
 class RestoreSensorEntity(ReefDoseSensorEntity):
     """Restore-capable ReefDose sensor.
 
@@ -1507,9 +1496,7 @@ class RestoreSensorEntity(ReefDoseSensorEntity):
         self.async_write_ha_state()
 
 
-# -------------------------------------
 # REEFRUN
-# -------------------------------------
 class ReefRunSensorEntity(ReefBeatSensorEntity):
     """Per-pump ReefRun sensor entity.
 
@@ -1539,9 +1526,7 @@ class ReefRunSensorEntity(ReefBeatSensorEntity):
         return cast(DeviceInfo, di)
 
 
-# -------------------------------------
 # REEFWAVE
-# -------------------------------------
 class ReefWaveSensorEntity(ReefBeatSensorEntity):
     """Wave schedule sensor entity.
 
@@ -1578,9 +1563,7 @@ class ReefWaveSensorEntity(ReefBeatSensorEntity):
         return cast(StateType, val)
 
 
-# -------------------------------------
 # REEFCLOUD
-# -------------------------------------
 class ReefBeatCloudSensorEntity(ReefBeatSensorEntity):
     """Cloud library sensor entity.
 

@@ -76,9 +76,13 @@ from .reefbeat import (
 _LOGGER = logging.getLogger(__name__)
 
 
-# -----------------------------------------------------------------------------
 # Base coordinator types and common helpers
-# -----------------------------------------------------------------------------
+
+# =============================================================================
+# Classes
+# =============================================================================
+
+
 class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Base coordinator for a ReefBeat device.
 
@@ -308,9 +312,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return None
 
 
-# -----------------------------------------------------------------------------
 # Cloud-linked base
-# -----------------------------------------------------------------------------
 class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
     """Base for local devices that can link to a ReefBeat cloud account.
 
@@ -410,9 +412,7 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
         return self._cloud_link.title if self._cloud_link is not None else "None"
 
 
-# -----------------------------------------------------------------------------
 # REEFLED
-# -----------------------------------------------------------------------------
 class ReefLedCoordinator(ReefBeatCloudLinkedCoordinator):
     """Coordinator for ReefLED devices (G1 and G2)."""
 
@@ -471,9 +471,7 @@ class ReefLedG2Coordinator(ReefLedCoordinator):
         self.my_api.set_data(name, value)
 
 
-# -----------------------------------------------------------------------------
 # Virtual LED
-# -----------------------------------------------------------------------------
 class ReefVirtualLedCoordinator(ReefLedCoordinator):
     """Virtual LED that aggregates multiple physical ReefLEDs into one entity.
 
@@ -714,9 +712,7 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         return self._only_g1
 
 
-# -----------------------------------------------------------------------------
 # REEFMAT
-# -----------------------------------------------------------------------------
 class ReefMatCoordinator(ReefBeatCloudLinkedCoordinator):
     """Coordinator for ReefMat devices."""
 
@@ -730,9 +726,7 @@ class ReefMatCoordinator(ReefBeatCloudLinkedCoordinator):
         await self.my_api.new_roll()
 
 
-# -----------------------------------------------------------------------------
 # REEFDOSE
-# -----------------------------------------------------------------------------
 class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
     """Coordinator for ReefDose devices."""
 
@@ -829,9 +823,7 @@ class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
         return None
 
 
-# -----------------------------------------------------------------------------
 # REEFATO+
-# -----------------------------------------------------------------------------
 class ReefATOCoordinator(ReefBeatCloudLinkedCoordinator):
     """Coordinator for ReefATO+ devices."""
 
@@ -849,9 +841,7 @@ class ReefATOCoordinator(ReefBeatCloudLinkedCoordinator):
         await self.my_api.resume()
 
 
-# -----------------------------------------------------------------------------
 # REEFRUN
-# -----------------------------------------------------------------------------
 class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
     """Coordinator for ReefRun devices."""
 
@@ -899,9 +889,7 @@ class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
         await self.my_api.push_values(source, method, pump)
 
 
-# -----------------------------------------------------------------------------
 # REEFWAVE
-# -----------------------------------------------------------------------------
 class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
     """Coordinator for ReefWave devices."""
 
@@ -1132,9 +1120,7 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
         cur_prog[value_name] = value
 
 
-# -----------------------------------------------------------------------------
 # CLOUD
-# -----------------------------------------------------------------------------
 class ReefBeatCloudCoordinator(ReefBeatCoordinator):
     """Coordinator for a ReefBeat Cloud account.
 
@@ -1170,9 +1156,7 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
         """Public entry-point for one-time initialization."""
         await self._async_setup()
 
-    # -----------------------------------------------------------------------------
     # Wave library helpers
-    # -----------------------------------------------------------------------------
     def get_no_wave(self, device: Any) -> dict[str, Any] | None:
         """Return the 'no wave' preset for the aquarium associated with `device`."""
         aquarium_uid = self.get_data(
@@ -1190,9 +1174,7 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
                 return nw.value
         return None
 
-    # -------------------------------------
     # Local device linking
-    # -------------------------------------
     async def _handle_link_requests(self, event: Any) -> None:
         """Handle requests from local coordinators to link to this cloud account."""
         device_id = event.data.get("device_id")
@@ -1220,9 +1202,7 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
             {"state": "off", "account": self._title},
         )
 
-    # -------------------------------------
     # Firmware helpers
-    # -------------------------------------
     async def listen_for_firmware(self, url: str | None, device_name: str) -> None:
         """Ensure the cloud API payload contains the latest firmware endpoint and refresh it."""
         if not url:
@@ -1237,9 +1217,7 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
         await self.my_api.fetch_data()
         self._hass.bus.fire("request_latest_firmware", {"device_name": device_name})
 
-    # -------------------------------------
     # Cloud coordinator identity / device registry
-    # -------------------------------------
     @property
     def title(self) -> str:
         """Human-readable name for this cloud account entry."""

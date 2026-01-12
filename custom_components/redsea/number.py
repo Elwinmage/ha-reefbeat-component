@@ -64,10 +64,13 @@ from .i18n import translate
 _LOGGER = logging.getLogger(__name__)
 
 
-# -----------------------------------------------------------------------------
 # Coordinator capability protocols (typing only)
-# -----------------------------------------------------------------------------
 @runtime_checkable
+
+# =============================================================================
+# Classes
+# =============================================================================
+
 class _HasDeviceInfo(Protocol):
     device_info: Any
 
@@ -113,9 +116,7 @@ class _HasATOVolumeLeft(Protocol):
     async def set_volume_left(self, volume_ml: int) -> None: ...
 
 
-# -----------------------------------------------------------------------------
 # Entity descriptions
-# -----------------------------------------------------------------------------
 @dataclass(kw_only=True, frozen=True)
 class ReefBeatNumberEntityDescription(NumberEntityDescription):
     """Common description for ReefBeat number entities."""
@@ -600,14 +601,12 @@ async def async_setup_entry(
     async_add_entities(entities, update_before_add=True)
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entities
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
-# -------------------------------------
 # REEFBEAT
-# -------------------------------------
 class ReefBeatNumberEntity(ReefBeatRestoreEntity, NumberEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Base number entity backed by a ReefBeat coordinator.
 
@@ -734,9 +733,7 @@ class ReefBeatNumberEntity(ReefBeatRestoreEntity, NumberEntity):  # type: ignore
         await self._device.async_request_refresh()
 
 
-# -------------------------------------
 # REEFLED
-# -------------------------------------
 class ReefLedNumberEntity(ReefBeatNumberEntity):
     """LED-specific number entity (some values require POST to a special endpoint)."""
 
@@ -766,9 +763,7 @@ class ReefLedNumberEntity(ReefBeatNumberEntity):
         await self._device.async_request_refresh()
 
 
-# -------------------------------------
 # REEFDOSE
-# -------------------------------------
 class ReefDoseNumberEntity(ReefBeatNumberEntity):
     """Dose-specific number entity (head-scoped pushes)."""
 
@@ -852,9 +847,7 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         self._attr_device_info = di
 
 
-# -------------------------------------
 # REEFRUN
-# -------------------------------------
 class ReefRunNumberEntity(ReefBeatNumberEntity):
     """Run-specific number entity (pump-scoped)."""
 
@@ -916,9 +909,7 @@ class ReefRunNumberEntity(ReefBeatNumberEntity):
         self._attr_device_info = di
 
 
-# -------------------------------------
 # REEFWAVE
-# -------------------------------------
 class ReefWaveNumberEntity(ReefBeatNumberEntity):
     """Wave preview number entity (dynamic min/max/step depending on wave type)."""
 
@@ -967,9 +958,7 @@ class ReefWaveNumberEntity(ReefBeatNumberEntity):
         self.async_write_ha_state()
 
 
-# -------------------------------------
 # REEFATO+
-# -------------------------------------
 class ReefATOVolumeLeftNumberEntity(ReefBeatNumberEntity):
     """ATO number: remaining reservoir volume."""
 

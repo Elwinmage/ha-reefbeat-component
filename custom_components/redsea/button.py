@@ -50,6 +50,11 @@ from .supplements_list import SUPPLEMENTS
 _LOGGER = logging.getLogger(__name__)
 
 
+# =============================================================================
+# Helpers
+# =============================================================================
+
+
 def _get_supplement(uid: str) -> dict[str, Any]:
     """Return the supplement dict for a given uid.
 
@@ -90,6 +95,11 @@ def _add_described_entities(
 
 
 @dataclass(kw_only=True, frozen=True)
+
+# =============================================================================
+# Classes
+# =============================================================================
+
 class ReefBeatButtonEntityDescription(ButtonEntityDescription):
     """Entity description for generic ReefBeat buttons.
 
@@ -465,14 +475,12 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entities
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
-# -------------------------------------
 # REEFBEAT
-# -------------------------------------
 class ReefBeatButtonEntity(ButtonEntity):
     """Generic button entity for ReefBeat coordinators.
 
@@ -506,9 +514,7 @@ class ReefBeatButtonEntity(ButtonEntity):
             await result
 
 
-# -------------------------------------
 # REEFDOSE
-# -------------------------------------
 class ReefDoseButtonEntity(ButtonEntity):
     """Button entity for ReefDose, scoped to a dosing head.
 
@@ -635,9 +641,7 @@ class ReefDoseButtonEntity(ButtonEntity):
         return cast(DeviceInfo, di_dict)
 
 
-# -------------------------------------
 # REEFRUN
-# -------------------------------------
 class ReefRunButtonEntity(ButtonEntity):
     """Button entity for ReefRun, scoped to a pump channel.
 
@@ -707,9 +711,7 @@ class ReefRunButtonEntity(ButtonEntity):
             await self._device.async_quick_request_refresh("/dashboard")
 
 
-# -------------------------------------
 # REEFWAVE
-# -------------------------------------
 class ReefWaveButtonEntity(ButtonEntity):
     """Button entity for ReefWave schedule preview actions."""
 

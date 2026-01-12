@@ -69,12 +69,17 @@ from .entity import ReefBeatRestoreEntity, RestoreSpec
 _LOGGER = logging.getLogger(__name__)
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Protocols (capability-based typing)
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 @runtime_checkable
+
+# =============================================================================
+# Classes
+# =============================================================================
+
 class _CloudLinkedCoordinator(Protocol):
     """Coordinator capability: cloud-linked device."""
 
@@ -118,9 +123,9 @@ class _RunPush(Protocol):
     async def async_quick_request_refresh(self, source: str) -> None: ...
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entity descriptions
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -191,9 +196,9 @@ DescriptionT = (
     | SaveStateSwitchEntityDescription
 )
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Static descriptions
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 SAVE_STATE_SWITCHES: tuple[SaveStateSwitchEntityDescription, ...] = (
     SaveStateSwitchEntityDescription(
@@ -304,9 +309,9 @@ RUN_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
 )
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Platform setup
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
 async def async_setup_entry(
@@ -426,14 +431,12 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-# =============================================================================
+# -----------------------------------------------------------------------------
 # Entities
-# =============================================================================
+# -----------------------------------------------------------------------------
 
 
-# -------------------------------------
 # SAVESTATE
-# -------------------------------------
 class SaveStateSwitchEntity(RestoreEntity, SwitchEntity):
     """Switch that persists simple local state in the coordinator cache.
 
@@ -494,9 +497,7 @@ class SaveStateSwitchEntity(RestoreEntity, SwitchEntity):
         return self._device.device_info
 
 
-# -------------------------------------
 # REEFBEAT
-# -------------------------------------
 class ReefBeatSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Base switch entity backed by the ReefBeat coordinator cache."""
 
@@ -642,9 +643,7 @@ class ReefBeatSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore
         return self._device.device_info
 
 
-# -------------------------------------
 # REEFLED
-# -------------------------------------
 class ReefLedSwitchEntity(ReefBeatSwitchEntity):
     """LED switch entity.
 
@@ -692,9 +691,7 @@ class ReefLedSwitchEntity(ReefBeatSwitchEntity):
             await pusher.async_quick_request_refresh(self._source)
 
 
-# -------------------------------------
 # REEFDOSE
-# -------------------------------------
 class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
     """Per-head dosing switch."""
 
@@ -770,9 +767,7 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
         return cast(DeviceInfo, di_dict)
 
 
-# -------------------------------------
 # REEFRUN
-# -------------------------------------
 class ReefRunSwitchEntity(ReefBeatSwitchEntity):
     """Per-pump ReefRun switch."""
 

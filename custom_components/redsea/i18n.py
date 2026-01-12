@@ -16,7 +16,17 @@ _LOGGER = logging.getLogger(__name__)
 
 # Fallback order when resolving language keys.
 # NOTE: "id" here is the dictionary entry identifier key, not Indonesian.
+
+# =============================================================================
+# Constants
+# =============================================================================
+
 DEFAULT_LANG_FALLBACKS: tuple[str, ...] = ("en", "id")
+
+
+# =============================================================================
+# Helpers
+# =============================================================================
 
 
 def _lang_candidates(

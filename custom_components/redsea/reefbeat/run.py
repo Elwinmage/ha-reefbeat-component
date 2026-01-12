@@ -21,6 +21,11 @@ from .api import ReefBeatAPI
 _LOGGER = logging.getLogger(__name__)
 
 
+# =============================================================================
+# Classes
+# =============================================================================
+
+
 class ReefRunAPI(ReefBeatAPI):
     """ReefRun API wrapper (pump settings and preview payload shaping)."""
 

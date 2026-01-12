@@ -39,6 +39,10 @@ except Exception:  # pragma: no cover
 # Integration / config keys
 # -----------------------------------------------------------------------------
 
+# =============================================================================
+# Constants
+# =============================================================================
+
 DOMAIN: Final[str] = "redsea"
 
 DEVICE_MANUFACTURER: Final[str] = "Red Sea"
@@ -150,6 +154,11 @@ LED_MANUAL_DURATION_INTERNAL_NAME: Final[JsonPath] = "$.local.manual_duration"
 DAILY_PROG_INTERNAL_NAME: Final[JsonPath] = "$.local.daily_prog"
 
 LED_CONVERSION_COEF: Final[float] = 100 / 255
+
+
+# =============================================================================
+# Classes
+# =============================================================================
 
 
 class LedConv(TypedDict):

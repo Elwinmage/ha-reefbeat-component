@@ -25,6 +25,11 @@ from .api import HttpResult, ReefBeatAPI, SourceEntry, parse
 _LOGGER = logging.getLogger(__name__)
 
 
+# =============================================================================
+# Classes
+# =============================================================================
+
+
 class ReefBeatCloudAPI(ReefBeatAPI):
     """ReefBeat cloud API wrapper.
 

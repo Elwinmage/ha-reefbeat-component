@@ -65,9 +65,7 @@ from .reefbeat import parse
 _LOGGER = logging.getLogger(__name__)
 
 
-# -----------------------------------------------------------------------------
 # Helpers
-# -----------------------------------------------------------------------------
 async def validate_cloud_input(
     hass: HomeAssistant, username: str, password: str
 ) -> bool:
@@ -108,6 +106,11 @@ async def validate_cloud_input(
         return False
 
     return True
+
+
+# =============================================================================
+# Helpers
+# =============================================================================
 
 
 def get_scan_interval(hw_model: str) -> int:
@@ -154,9 +157,13 @@ def _device_to_string(d: ReefBeatInfo) -> str:
     return f"{ip} {hw_model} {friendly_name}".strip()
 
 
-# -----------------------------------------------------------------------------
 # Config flow
-# -----------------------------------------------------------------------------
+
+# =============================================================================
+# Classes
+# =============================================================================
+
+
 class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """ReefBeat config flow."""
 
@@ -392,9 +399,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
 
-# -----------------------------------------------------------------------------
 # Options flow
-# -----------------------------------------------------------------------------
 class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle integration options."""
 
