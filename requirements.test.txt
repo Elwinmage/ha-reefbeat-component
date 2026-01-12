@@ -2,3 +2,4 @@ pytest
 pytest-cov
 pytest-asyncio
 pytest-homeassistant-custom-component
+coverage-badge
