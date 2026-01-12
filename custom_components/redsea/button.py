@@ -12,6 +12,7 @@ import logging
 import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Any, cast
 
 from homeassistant.components.button import (
@@ -25,6 +26,7 @@ from homeassistant.const import (
 from homeassistant.core import (
     HomeAssistant,
 )
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
@@ -463,9 +465,9 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-# -----------------------------------------------------------------------------
-# Entity implementations
-# -----------------------------------------------------------------------------
+# =============================================================================
+# Entities
+# =============================================================================
 
 
 # -------------------------------------
@@ -605,6 +607,32 @@ class ReefDoseButtonEntity(ButtonEntity):
                 await self._device.calibration(str(act), self._head, payload)
         else:
             await self._device.calibration(str(action), self._head, payload)
+
+    @cached_property
+    def device_info(self) -> DeviceInfo:
+        """Return per-head device info for ReefDose."""
+        if self._head <= 0:
+            return self._device.device_info
+
+        base_di = dict(self._device.device_info)
+        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
+        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
+
+        di_dict: dict[str, Any] = {
+            "identifiers": {(domain, f"{ident}_head_{self._head}")},
+            "name": f"{self._device.title} head {self._head}",
+        }
+
+        for key in ("manufacturer", "model", "model_id", "hw_version", "sw_version"):
+            val = base_di.get(key)
+            if isinstance(val, str) or val is None:
+                di_dict[key] = val
+
+        via_device = base_di.get("via_device")
+        if via_device is not None:
+            di_dict["via_device"] = via_device
+
+        return cast(DeviceInfo, di_dict)
 
 
 # -------------------------------------

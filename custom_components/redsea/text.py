@@ -121,10 +121,13 @@ async def async_setup_entry(
 
 
 # =============================================================================
-# Base entity
+# Entities
 # =============================================================================
 
 
+# -------------------------------------
+# REEFBEAT
+# -------------------------------------
 class ReefBeatTextEntity(ReefBeatRestoreEntity, TextEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """A ReefBeat text entity backed by the coordinator cache.
 
@@ -199,11 +202,9 @@ class ReefBeatTextEntity(ReefBeatRestoreEntity, TextEntity):  # type: ignore[rep
         return self._device.device_info
 
 
-# =============================================================================
-# Dose entities
-# =============================================================================
-
-
+# -------------------------------------
+# REEFDOSE
+# -------------------------------------
 class ReefDoseTextEntity(ReefBeatTextEntity):
     """Per-head ReefDose text entity.
 

@@ -9,7 +9,7 @@ This module is responsible for:
 
 from __future__ import annotations
 
-import json
+import json  # pyright: ignore[reportUnusedImport]  # noqa: F401
 import logging
 from contextlib import suppress
 from typing import Any

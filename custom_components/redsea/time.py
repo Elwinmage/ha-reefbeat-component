@@ -91,6 +91,9 @@ async def async_setup_entry(
 # =============================================================================
 
 
+# -------------------------------------
+# REEFMAT
+# -------------------------------------
 class ReefMatTimeEntity(ReefBeatRestoreEntity, TimeEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """ReefMat time entity backed by the coordinator cache."""
 

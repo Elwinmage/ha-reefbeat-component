@@ -193,9 +193,14 @@ async def async_setup_entry(
     async_add_entities(entities, update_before_add=True)
 
 
-# -----------------------------------------------------------------------------
+# =============================================================================
 # Entities
-# -----------------------------------------------------------------------------
+# =============================================================================
+
+
+# -------------------------------------
+# REEFBEAT
+# -------------------------------------
 class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Light entity for a ReefBeat LED channel.
 

@@ -9,7 +9,8 @@ their values from coordinator data via jsonpath lookups and/or callables.
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Generic, TypeVar, cast
+from functools import cached_property
+from typing import Any, Generic, TypeVar, cast
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -19,6 +20,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import StateType
@@ -377,9 +379,11 @@ async def async_setup_entry(
     async_add_entities(entities, True)
 
 
-# -----------------------------------------------------------------------------
+# =============================================================================
 # Entities
-# -----------------------------------------------------------------------------
+# =============================================================================
+
+
 TDevice = TypeVar("TDevice", bound=ReefBeatCoordinator)
 
 
@@ -464,6 +468,32 @@ class ReefDoseBinarySensorEntity(ReefBeatBinarySensorEntity[ReefDoseCoordinator]
             _LOGGER.error("%s: missing value_name for %s", __name__, self.desc.key)
             return None
         return self._device.get_data(value_name)
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
+    def device_info(self) -> DeviceInfo:
+        """Return per-head device info for ReefDose."""
+        if self._head <= 0:
+            return self._device.device_info
+
+        base_di = dict(self._device.device_info)
+        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
+        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
+
+        di_dict: dict[str, Any] = {
+            "identifiers": {(domain, f"{ident}_head_{self._head}")},
+            "name": f"{self._device.title} head {self._head}",
+        }
+
+        for key in ("manufacturer", "model", "model_id", "hw_version", "sw_version"):
+            val = base_di.get(key)
+            if isinstance(val, str) or val is None:
+                di_dict[key] = val
+
+        via_device = base_di.get("via_device")
+        if via_device is not None:
+            di_dict["via_device"] = via_device
+
+        return cast(DeviceInfo, di_dict)
 
 
 # -------------------------------------

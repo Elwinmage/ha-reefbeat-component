@@ -427,10 +427,13 @@ async def async_setup_entry(
 
 
 # =============================================================================
-# Entity implementations
+# Entities
 # =============================================================================
 
 
+# -------------------------------------
+# SAVESTATE
+# -------------------------------------
 class SaveStateSwitchEntity(RestoreEntity, SwitchEntity):
     """Switch that persists simple local state in the coordinator cache.
 
@@ -491,6 +494,9 @@ class SaveStateSwitchEntity(RestoreEntity, SwitchEntity):
         return self._device.device_info
 
 
+# -------------------------------------
+# REEFBEAT
+# -------------------------------------
 class ReefBeatSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Base switch entity backed by the ReefBeat coordinator cache."""
 
@@ -636,6 +642,9 @@ class ReefBeatSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore
         return self._device.device_info
 
 
+# -------------------------------------
+# REEFLED
+# -------------------------------------
 class ReefLedSwitchEntity(ReefBeatSwitchEntity):
     """LED switch entity.
 
@@ -683,6 +692,9 @@ class ReefLedSwitchEntity(ReefBeatSwitchEntity):
             await pusher.async_quick_request_refresh(self._source)
 
 
+# -------------------------------------
+# REEFDOSE
+# -------------------------------------
 class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
     """Per-head dosing switch."""
 
@@ -758,6 +770,9 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
         return cast(DeviceInfo, di_dict)
 
 
+# -------------------------------------
+# REEFRUN
+# -------------------------------------
 class ReefRunSwitchEntity(ReefBeatSwitchEntity):
     """Per-pump ReefRun switch."""
 

@@ -1204,10 +1204,13 @@ async def async_setup_entry(
 
 
 # =============================================================================
-# Entity implementations
+# Entities
 # =============================================================================
 
 
+# -------------------------------------
+# REEFBEAT
+# -------------------------------------
 class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Base sensor entity backed by a ReefBeat device/coordinator.
 
@@ -1332,6 +1335,9 @@ class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore
         return self._device.device_info
 
 
+# -------------------------------------
+# REEFLED
+# -------------------------------------
 class ReefLedScheduleSensorEntity(ReefBeatSensorEntity):
     """LED schedule sensor.
 
@@ -1358,6 +1364,9 @@ class ReefLedScheduleSensorEntity(ReefBeatSensorEntity):
         self._attr_extra_state_attributes = {"data": prog_data, "clouds": cloud_data}
 
 
+# -------------------------------------
+# REEFDOSE
+# -------------------------------------
 class ReefDoseSensorEntity(ReefBeatSensorEntity):
     """Per-head ReefDose sensor.
 
@@ -1438,6 +1447,9 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
         return cast(DeviceInfo, di_dict)
 
 
+# -------------------------------------
+# RESTORE
+# -------------------------------------
 class RestoreSensorEntity(ReefDoseSensorEntity):
     """Restore-capable ReefDose sensor.
 
@@ -1495,6 +1507,9 @@ class RestoreSensorEntity(ReefDoseSensorEntity):
         self.async_write_ha_state()
 
 
+# -------------------------------------
+# REEFRUN
+# -------------------------------------
 class ReefRunSensorEntity(ReefBeatSensorEntity):
     """Per-pump ReefRun sensor entity.
 
@@ -1524,6 +1539,9 @@ class ReefRunSensorEntity(ReefBeatSensorEntity):
         return cast(DeviceInfo, di)
 
 
+# -------------------------------------
+# REEFWAVE
+# -------------------------------------
 class ReefWaveSensorEntity(ReefBeatSensorEntity):
     """Wave schedule sensor entity.
 
@@ -1560,6 +1578,9 @@ class ReefWaveSensorEntity(ReefBeatSensorEntity):
         return cast(StateType, val)
 
 
+# -------------------------------------
+# REEFCLOUD
+# -------------------------------------
 class ReefBeatCloudSensorEntity(ReefBeatSensorEntity):
     """Cloud library sensor entity.
 

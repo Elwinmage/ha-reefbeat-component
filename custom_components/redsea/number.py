@@ -600,9 +600,9 @@ async def async_setup_entry(
     async_add_entities(entities, update_before_add=True)
 
 
-# -----------------------------------------------------------------------------
+# =============================================================================
 # Entities
-# -----------------------------------------------------------------------------
+# =============================================================================
 
 
 # -------------------------------------
@@ -777,6 +777,37 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
     ) -> None:
         super().__init__(device, description)
         self._dose_description = description
+        self._head = description.head
+
+        # Attach per-head entities to the head device card, not the base doser device.
+        if self._head > 0:
+            base_di = dict(self._device.device_info)
+            base_identifiers = base_di.get("identifiers") or {
+                (DOMAIN, self._device.serial)
+            }
+            domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
+
+            di_dict: dict[str, Any] = {
+                "identifiers": {(domain, f"{ident}_head_{self._head}")},
+                "name": f"{self._device.title} head {self._head}",
+            }
+
+            for key in (
+                "manufacturer",
+                "model",
+                "model_id",
+                "hw_version",
+                "sw_version",
+            ):
+                val = base_di.get(key)
+                if isinstance(val, str) or val is None:
+                    di_dict[key] = val
+
+            via_device = base_di.get("via_device")
+            if via_device is not None:
+                di_dict["via_device"] = via_device
+
+            self._attr_device_info = cast(DeviceInfo, di_dict)
 
     async def async_set_native_value(self, value: float) -> None:
         v: Any = int(value) if float(value).is_integer() else value

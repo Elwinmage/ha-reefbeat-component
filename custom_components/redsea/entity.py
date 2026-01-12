@@ -37,10 +37,21 @@ class RestoreSpec(Generic[_T]):
     parser: Callable[[str], _T]
 
 
+# =============================================================================
+# Entities
+# =============================================================================
+
+
+# -------------------------------------
+# REEFBEAT
+# -------------------------------------
 class ReefBeatEntity(CoordinatorEntity[ReefBeatCoordinator]):
     """CoordinatorEntity base for all entities."""
 
 
+# -------------------------------------
+# RESTORE
+# -------------------------------------
 class ReefBeatRestoreEntity(ReefBeatEntity, RestoreEntity):
     """CoordinatorEntity + RestoreEntity with a small standardized restore helper."""
 

@@ -400,6 +400,11 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
             self.latest_firmware_url = f"/firmware/api/{model_type}/latest?board={self.board}&framework={self.framework}"
         await cloud.listen_for_firmware(self.latest_firmware_url, self._title)
 
+    @property
+    def cloud_coordinator(self) -> "ReefBeatCloudCoordinator | None":
+        """Return the linked cloud coordinator (if any)."""
+        return self._cloud_link
+
     def cloud_link(self) -> str:
         """Return linked cloud account name, or 'None'."""
         return self._cloud_link.title if self._cloud_link is not None else "None"
@@ -739,6 +744,63 @@ class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
         self.my_api = ReefDoseAPI(
             self._ip, self._live_config_update, self._session, self.heads_nb
         )
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch fresh data and prefill local editable supplement fields for each head."""
+        res = await super()._async_update_data()
+
+        # Prefill once: populate editable fields from current /head/<n>/settings values
+        # only when the local fields are empty. This avoids constantly overwriting
+        # user edits while still providing sensible defaults.
+        local_any = res.setdefault("local", {})
+        if not isinstance(local_any, dict):
+            return res
+        local = cast(dict[str, Any], local_any)
+
+        head_local_any = local.setdefault("head", {})
+        if not isinstance(head_local_any, dict):
+            return res
+
+        head_local = cast(dict[str, Any], head_local_any)
+
+        for head in range(1, self.heads_nb + 1):
+            head_key = str(head)
+            head_dict_any = head_local.setdefault(head_key, {})
+            if not isinstance(head_dict_any, dict):
+                continue
+            head_dict = cast(dict[str, Any], head_dict_any)
+
+            # Read current supplement metadata from device settings
+            base = (
+                "$.sources[?(@.name=='/head/"
+                + head_key
+                + "/settings')].data.supplement."
+            )
+            cur_brand = self.get_data(base + "brand_name", True)
+            cur_name = self.get_data(base + "name", True)
+            cur_short = self.get_data(base + "short_name", True)
+
+            # Only prefill if local editable fields are blank/missing.
+            if (
+                isinstance(cur_brand, str)
+                and cur_brand
+                and (head_dict.get("new_supplement_brand_name") in (None, ""))
+            ):
+                head_dict["new_supplement_brand_name"] = cur_brand
+            if (
+                isinstance(cur_name, str)
+                and cur_name
+                and (head_dict.get("new_supplement_name") in (None, ""))
+            ):
+                head_dict["new_supplement_name"] = cur_name
+            if (
+                isinstance(cur_short, str)
+                and cur_short
+                and (head_dict.get("new_supplement_short_name") in (None, ""))
+            ):
+                head_dict["new_supplement_short_name"] = cur_short
+
+        return res
 
     async def calibration(self, action: str, head: int, param: Any) -> None:
         """Run a calibration step for the given dosing head."""

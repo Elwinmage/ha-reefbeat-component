@@ -15,7 +15,7 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Any, Protocol, cast, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, cast, runtime_checkable
 
 from homeassistant.components.update import (
     UpdateDeviceClass,
@@ -35,7 +35,8 @@ from .entity import ReefBeatRestoreEntity
 
 _LOGGER = logging.getLogger(__name__)
 
-
+if TYPE_CHECKING:
+    from .coordinator import ReefBeatCloudCoordinator
 # =============================================================================
 # Protocols (capability-based typing)
 # =============================================================================
@@ -49,6 +50,8 @@ class _CloudLinkedCoordinator(Protocol):
     device_info: DeviceInfo
     sw_version: str | None
     latest_firmware_url: str | None
+
+    cloud_coordinator: "ReefBeatCloudCoordinator | None"
 
     def async_add_listener(
         self, update_callback: Callable[[], None]
@@ -121,6 +124,9 @@ async def async_setup_entry(
 # =============================================================================
 
 
+# -------------------------------------
+# REEFBEAT
+# -------------------------------------
 class ReefBeatUpdateEntity(ReefBeatRestoreEntity, UpdateEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Firmware update entity backed by coordinator + cloud version discovery."""
 
@@ -149,7 +155,7 @@ class ReefBeatUpdateEntity(ReefBeatRestoreEntity, UpdateEntity):  # type: ignore
         """Best-effort lookup of latest version from cloud link."""
         if not self._device.latest_firmware_url:
             return None
-        link = self._device.cloud_link
+        link = self._device.cloud_coordinator
         if link is None:
             return None
         new_version = link.get_data(

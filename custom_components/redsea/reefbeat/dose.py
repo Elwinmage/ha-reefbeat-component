@@ -47,18 +47,22 @@ class ReefDoseAPI(ReefBeatAPI):
         self.add_source("/device-settings", "config", "")
         self.add_source("/dosing-queue", "data", "")
 
-        # Initialize local head cache
+        # Initialize local head cache (preserve existing local keys like use_cloud_api)
+        local_any = self.data.get("local")
+        if not isinstance(local_any, dict):
+            local_any = {}
+            self.data["local"] = local_any
+
+        local = cast(dict[str, Any], local_any)
         if self._heads_nb not in (2, 4):
             _LOGGER.error(
                 "redsea.reefbeat.ReefDoseAPI.__init__() unknown head number: %d",
                 self._heads_nb,
             )
-            self.data["local"] = {"head": {}}
+            local.setdefault("head", {})
         else:
-            # start with empty dicts so subsequent assignments won't crash
-            self.data["local"] = {
-                "head": {str(i): {} for i in range(1, self._heads_nb + 1)}
-            }
+            # Start with empty dicts so subsequent assignments won't crash
+            local.setdefault("head", {str(i): {} for i in range(1, self._heads_nb + 1)})
 
         # Add per-head settings sources and default local values
         heads = cast(
