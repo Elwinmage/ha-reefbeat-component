@@ -120,13 +120,14 @@ async def async_setup(hass: HomeAssistant, config) -> bool:
                 % (device_id, access_path, method, data)
             )
             r = await device.my_api.http_send(access_path, data, method)
-        _LOGGER.debug("REQUEST RESPONSE %s" % r)
         if r:
             try:
                 r_text = json.loads(r.text)
             except Exception:
                 r_text = r.text
                 _LOGGER.debug(r)
+            await device.my_api.fetch_config()
+            await device.my_api.fetch_data()
             return {"code": r.status_code, "text": r_text}
         else:
             _LOGGER.error("can not access to device " + device._title)
