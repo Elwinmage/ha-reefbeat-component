@@ -207,8 +207,6 @@ SAVE_STATE_SWITCHES: tuple[SaveStateSwitchEntityDescription, ...] = (
         icon="mdi:cloud-check-variant",
         icon_off="mdi:cloud-cancel",
         entity_category=EntityCategory.CONFIG,
-        # ATO is local-only (no cloud API toggle).
-        exists_fn=lambda device: not isinstance(device, ReefATOCoordinator),
     ),
 )
 

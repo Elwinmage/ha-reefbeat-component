@@ -53,12 +53,6 @@ class ReefATOAPI(ReefBeatAPI):
         """
         super().__init__(ip, live_config_update, session)
 
-        # ATO is strictly local-only in this integration.
-        # Populate the local flag so entities/coordinators can branch without
-        # noisy jsonpath misses.
-        self.data.setdefault("local", {})
-        self.data["local"]["use_cloud_api"] = False
-
         # Ensure /configuration exists as a config source.
         sources = cast(list[SourceEntry], self.data.get("sources", []))
         sources.insert(

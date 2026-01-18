@@ -248,7 +248,7 @@ ATO_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         key="resume",
         translation_key="resume",
         exists_fn=lambda _: True,
-        press_fn=lambda device: device.push_values(source="/resume", method="post"),
+        press_fn=lambda device: cast(ReefATOCoordinator, device).resume(),
         icon="mdi:play-circle-outline",
         entity_category=EntityCategory.CONFIG,
     ),
