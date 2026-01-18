@@ -831,7 +831,7 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         # Per-head device_info: keep identifiers stable and type-safe.
         base_di = cast(DeviceInfo, self._device.device_info)
         base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
-        domain, ident = next(iter(base_identifiers))
+        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
         via_device = base_di.get("via_device")
         di: DeviceInfo = {
             "identifiers": {(domain, f"{ident}_head_{head}")},

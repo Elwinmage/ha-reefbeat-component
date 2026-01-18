@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json  # pyright: ignore[reportUnusedImport]  # noqa: F401
 import logging
+import re
 from contextlib import suppress
 from typing import Any
 
@@ -22,6 +23,7 @@ from homeassistant.core import (
     SupportsResponse,
     callback,
 )
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -53,6 +55,43 @@ from .coordinator import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+_HEAD_NAME_RE = re.compile(r"^(?P<prefix>.+)_head_(?P<head>\d+)$")
+
+
+async def _migrate_head_device_names(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Migrate ReefDose per-head device display names.
+
+    This only updates the registry `name` when the user hasn't set a custom name.
+    """
+    device_registry = dr.async_get(hass)
+    for device_entry in dr.async_entries_for_config_entry(
+        device_registry, entry.entry_id
+    ):
+        name = getattr(device_entry, "name", None)
+        if not isinstance(name, str) or "_head_" not in name:
+            continue
+
+        # Don't override user customizations.
+        if getattr(device_entry, "name_by_user", None):
+            continue
+
+        match = _HEAD_NAME_RE.match(name)
+        if not match:
+            continue
+
+        new_name = f"{match.group('prefix')} head {match.group('head')}"
+        if new_name == name:
+            continue
+
+        _LOGGER.debug(
+            "Migrating head device name: %s -> %s (device_id=%s)",
+            name,
+            new_name,
+            device_entry.id,
+        )
+        device_registry.async_update_device(device_entry.id, name=new_name)
 
 
 # =============================================================================
@@ -124,6 +163,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Best-effort cosmetic migration; doesn't affect identifiers or entities.
+    with suppress(Exception):
+        await _migrate_head_device_names(hass, entry)
+
     entry.async_on_unload(entry.add_update_listener(update_listener))
     return True
 
