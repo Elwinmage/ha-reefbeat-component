@@ -416,6 +416,7 @@
         "name": "mode",
         "state": {
           "auto": "Auto",
+          "end_of_roll": "Fin de rouleau",
           "manual": "Manuel",
           "off": "Off"
         }

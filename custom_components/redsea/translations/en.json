@@ -416,6 +416,7 @@
         "name": "Mode",
         "state": {
           "auto": "Auto",
+          "end_of_roll": "End of Roll",
           "manual": "Manual",
           "off": "Off"
         }
