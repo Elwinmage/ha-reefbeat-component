@@ -7,6 +7,11 @@
   "documentation": "https://github.com/Elwinmage/ha-reefbeat-component",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/Elwinmage/ha-reefbeat-component/issues",
-  "requirements": ["jsonpath-ng>=1.7.0"],
+  "requirements": [
+    "jsonpath-ng>=1.7.0",
+    "lxml>=6.0.2",
+    "netifaces>=0.11.0",
+    "numpy>=2.3.2"
+  ],
   "version": "1.4.0"
 }

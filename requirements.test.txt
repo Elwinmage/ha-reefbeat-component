@@ -1,10 +1,6 @@
-pytest
-pytest-cov
-pytest-asyncio
-pytest-homeassistant-custom-component
-coverage-badge
-jsonpath-ng>=1.7.0
-numpy>=2.3.5
-dotenv
-lxml
-netifaces
+pytest>=9.0.0
+pytest-cov>=7.0.0
+pytest-asyncio>=1.3.0
+pytest-homeassistant-custom-component>=0.13.301
+coverage-badge>=1.1.2
+dotenv>=0.9.9
