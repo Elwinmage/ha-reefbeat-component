@@ -3,7 +3,6 @@ pytest-cov
 pytest-asyncio
 pytest-homeassistant-custom-component
 coverage-badge
-homeassistant
 jsonpath-ng>=1.7.0
 numpy>=2.3.5
 dotenv
