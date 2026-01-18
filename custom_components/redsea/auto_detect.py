@@ -14,14 +14,17 @@ from __future__ import annotations
 import ipaddress
 import json
 import socket
+import xml.etree.ElementTree as ET
 from collections.abc import Iterable
 from multiprocessing import Pool
 from typing import TypedDict
 
-import netifaces
 import requests
-from lxml import objectify  # type: ignore
-from lxml.objectify import ObjectifiedElement  # type: ignore
+
+try:
+    import netifaces  # type: ignore
+except Exception:  # pragma: no cover
+    netifaces = None  # type: ignore
 
 try:
     # Package import (Home Assistant integration)
@@ -46,6 +49,9 @@ class ReefBeatInfo(TypedDict, total=False):
 
 
 # Network helpers
+_DEFAULT_PREFIXLEN = 24
+
+
 def _iter_ipv4s(cidr: str) -> Iterable[str]:
     """Yield IPv4 addresses in a CIDR."""
     net = ipaddress.ip_network(cidr, strict=False)
@@ -75,24 +81,29 @@ def get_local_ips(subnetwork: str | None = None) -> list[str]:
     except OSError:
         return []
 
-    # Find the interface that owns local_ip and derive its subnet.
-    for netif in netifaces.interfaces():
+    # If netifaces is available, prefer using it to derive an accurate subnet.
+    if netifaces is not None:
         try:
-            inet_addrs = netifaces.ifaddresses(netif).get(netifaces.AF_INET, [])
-            if not inet_addrs:
-                continue
-            addr = inet_addrs[0]
-            if addr.get("addr") != local_ip:
-                continue
-            netmask = addr.get("netmask")
-            if not isinstance(netmask, str) or not netmask:
-                continue
-            cidr = f"{local_ip}/{netmask}"
-            return list(_iter_ipv4s(cidr))
+            for netif in netifaces.interfaces():
+                try:
+                    inet_addrs = netifaces.ifaddresses(netif).get(netifaces.AF_INET, [])
+                    if not inet_addrs:
+                        continue
+                    addr = inet_addrs[0]
+                    if addr.get("addr") != local_ip:
+                        continue
+                    netmask = addr.get("netmask")
+                    if not isinstance(netmask, str) or not netmask:
+                        continue
+                    cidr = f"{local_ip}/{netmask}"
+                    return list(_iter_ipv4s(cidr))
+                except Exception:
+                    continue
         except Exception:
-            continue
+            pass
 
-    return []
+    # Fallback: use a conservative /24 to avoid requiring extra dependencies.
+    return list(_iter_ipv4s(f"{local_ip}/{_DEFAULT_PREFIXLEN}"))
 
 
 # Device probing
@@ -101,9 +112,19 @@ def get_unique_id(ip: str) -> str | None:
     try:
         r = requests.get(f"http://{ip}/description.xml", timeout=2)
         r.raise_for_status()
-        tree: ObjectifiedElement = objectify.fromstring(r.text)  # type: ignore
-        udn = str(tree.device.UDN)  # type: ignore[attr-defined]
-        return udn.replace("uuid:", "")
+        root = ET.fromstring(r.text)
+
+        udn_text: str | None = None
+        for el in root.iter():
+            # Handle namespaces by looking at the localname.
+            if isinstance(el.tag, str) and el.tag.split("}")[-1] == "UDN":
+                if el.text:
+                    udn_text = el.text.strip()
+                break
+
+        if not udn_text:
+            return None
+        return udn_text.replace("uuid:", "")
     except Exception:
         return None
 

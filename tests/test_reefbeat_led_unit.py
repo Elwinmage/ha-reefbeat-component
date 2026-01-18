@@ -226,12 +226,6 @@ async def test_get_initial_data_builds_kelvin_conversions_from_list_table(
 ) -> None:
     api = _make_led_api(hw=VIRTUAL_LED)
 
-    # Make polyfit deterministic (and avoid numeric issues across numpy versions).
-    monkeypatch.setattr(
-        "custom_components.redsea.reefbeat.led.np.polyfit",
-        lambda *_args, **_kwargs: [0, 0, 0, 0, 0],
-    )
-
     api.data["local"]["leds_conv"] = [
         {
             "name": VIRTUAL_LED,
@@ -300,11 +294,6 @@ async def test_get_initial_data_builds_intensity_compensation_from_dict_table(
 ) -> None:
     api = _make_led_api(hw=VIRTUAL_LED, intensity_compensation=True)
 
-    monkeypatch.setattr(
-        "custom_components.redsea.reefbeat.led.np.polyfit",
-        lambda *_args, **_kwargs: [0, 0, 0, 0, 0, 0],
-    )
-
     api.data["local"]["leds_intensity_compensation"] = {
         VIRTUAL_LED: {
             "wb": [0, 25, 50, 75, 100, 125],
@@ -331,11 +320,6 @@ async def test_get_initial_data_kelvin_conversion_accepts_wb_key(
     monkeypatch: Any,
 ) -> None:
     api = _make_led_api(hw=VIRTUAL_LED)
-
-    monkeypatch.setattr(
-        "custom_components.redsea.reefbeat.led.np.polyfit",
-        lambda *_args, **_kwargs: [0, 0, 0, 0, 0],
-    )
 
     # Dict-table variant + 'wb' key variant.
     api.data["local"]["leds_conv"] = {
@@ -414,11 +398,6 @@ async def test_get_initial_data_dict_table_executes_model_lookup_line(
     monkeypatch: Any,
 ) -> None:
     api = _make_led_api(hw=VIRTUAL_LED)
-
-    monkeypatch.setattr(
-        "custom_components.redsea.reefbeat.led.np.polyfit",
-        lambda *_args, **_kwargs: [0, 0, 0, 0, 0],
-    )
 
     async def _noop() -> None:
         return

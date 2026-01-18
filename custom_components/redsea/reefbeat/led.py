@@ -5,7 +5,6 @@ from typing import Any, Optional, cast
 
 import aiohttp
 import async_timeout
-import numpy as np
 
 from ..const import (
     DEFAULT_TIMEOUT,
@@ -23,6 +22,46 @@ from ..const import (
 from .api import ReefBeatAPI
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _interp(x: float, xs: list[float], ys: list[float]) -> float:
+    """Piecewise-linear interpolation with clamping.
+
+    Assumes xs is sorted ascending and len(xs) == len(ys) >= 2.
+    """
+    if x <= xs[0]:
+        return ys[0]
+    if x >= xs[-1]:
+        return ys[-1]
+
+    for i in range(1, len(xs)):
+        if x <= xs[i]:
+            x0 = xs[i - 1]
+            x1 = xs[i]
+            y0 = ys[i - 1]
+            y1 = ys[i]
+            if x1 == x0:
+                return y0
+            t = (x - x0) / (x1 - x0)
+            return y0 + t * (y1 - y0)
+
+    return ys[-1]
+
+
+def _make_interpolator(xs_in: list[float], ys_in: list[float]):
+    """Build an interpolation callable from raw x/y lists."""
+    pairs = sorted(zip(xs_in, ys_in), key=lambda p: p[0])
+    xs = [float(x) for x, _y in pairs]
+    ys = [float(y) for _x, y in pairs]
+
+    def _f(x: Any) -> float:
+        try:
+            xf = float(x)
+        except Exception:
+            xf = xs[-1]
+        return float(_interp(xf, xs, ys))
+
+    return _f
 
 
 # =============================================================================
@@ -154,10 +193,10 @@ class ReefLedAPI(ReefBeatAPI):
     async def get_initial_data(self) -> dict[str, Any]:
         """Fetch initial device data and initialize conversion functions.
 
-        After the initial fetch, computes polynomial conversions for:
+        After the initial fetch, computes conversion functions for:
         - kelvin -> white/blue ratio (wb)
         - wb -> kelvin
-        And optionally an intensity compensation polynomial, if enabled.
+        And optionally an intensity compensation function, if enabled.
         """
         await self._apply_runtime_source_patches()
         data = await super().get_initial_data()
@@ -196,12 +235,12 @@ class ReefLedAPI(ReefBeatAPI):
                     wb_list = cast(list[Any], wb_any)
                     kelvins = [v for v in kelvins_list if isinstance(v, (int, float))]
                     wb_vals = [v for v in wb_list if isinstance(v, (int, float))]
-                    if len(kelvins) == len(wb_vals) and len(kelvins) >= 5:
-                        self._kelvin_to_wb = np.poly1d(
-                            np.polyfit(np.array(kelvins), np.array(wb_vals), 4)
+                    if len(kelvins) == len(wb_vals) and len(kelvins) >= 2:
+                        self._kelvin_to_wb = _make_interpolator(
+                            [float(v) for v in kelvins], [float(v) for v in wb_vals]
                         )
-                        self._wb_to_kelvin = np.poly1d(
-                            np.polyfit(np.array(wb_vals), np.array(kelvins), 4)
+                        self._wb_to_kelvin = _make_interpolator(
+                            [float(v) for v in wb_vals], [float(v) for v in kelvins]
                         )
         except Exception as e:
             _LOGGER.debug("LED conversion init failed: %s", e)
@@ -230,9 +269,10 @@ class ReefLedAPI(ReefBeatAPI):
                         intensities = [
                             v for v in intensity_list if isinstance(v, (int, float))
                         ]
-                        if len(wb_vals) == len(intensities) and len(wb_vals) >= 6:
-                            self._intensity_compensation = np.poly1d(
-                                np.polyfit(np.array(wb_vals), np.array(intensities), 5)
+                        if len(wb_vals) == len(intensities) and len(wb_vals) >= 2:
+                            self._intensity_compensation = _make_interpolator(
+                                [float(v) for v in wb_vals],
+                                [float(v) for v in intensities],
                             )
                             min_blue = float(self._intensity_compensation(0))
                             min_white = float(self._intensity_compensation(125))

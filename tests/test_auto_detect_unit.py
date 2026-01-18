@@ -170,35 +170,29 @@ def test_get_local_ips_socket_error_returns_empty(
     assert auto_detect.get_local_ips(None) == []
 
 
-def test_get_local_ips_infers_subnet_from_netifaces(
+def test_get_local_ips_prefers_netifaces_when_available(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from custom_components.redsea import auto_detect
 
-    class _Sock:
-        def __enter__(self) -> "_Sock":
-            return self
+    _patch_socket_local_ip(monkeypatch, local_ip="192.0.2.1")
 
-        def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
-            return None
+    class _FakeNetifaces:
+        AF_INET = 2
 
-        def connect(self, addr: Any) -> None:
-            return None
+        @staticmethod
+        def interfaces() -> list[str]:
+            return ["eth0"]
 
-        def getsockname(self) -> tuple[str, int]:
-            return ("192.0.2.1", 0)
+        @staticmethod
+        def ifaddresses(_iface: str) -> dict[int, list[dict[str, str]]]:
+            return {
+                _FakeNetifaces.AF_INET: [
+                    {"addr": "192.0.2.1", "netmask": "255.255.255.252"}
+                ]
+            }
 
-    monkeypatch.setattr(auto_detect.socket, "socket", lambda *a, **k: _Sock())
-    monkeypatch.setattr(auto_detect.netifaces, "interfaces", lambda: ["eth0"])
-    monkeypatch.setattr(
-        auto_detect.netifaces,
-        "ifaddresses",
-        lambda _iface: {
-            auto_detect.netifaces.AF_INET: [
-                {"addr": "192.0.2.1", "netmask": "255.255.255.252"}
-            ]
-        },
-    )
+    monkeypatch.setattr(auto_detect, "netifaces", _FakeNetifaces)
 
     assert auto_detect.get_local_ips(None) == [
         "192.0.2.0",
@@ -231,68 +225,80 @@ def _patch_socket_local_ip(
     monkeypatch.setattr(auto_detect.socket, "socket", lambda *a, **k: _Sock())
 
 
-def test_get_local_ips_netifaces_no_inet_addrs_returns_empty(
+def test_get_local_ips_falls_back_to_default_prefixlen_when_no_netifaces(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from custom_components.redsea import auto_detect
 
     _patch_socket_local_ip(monkeypatch, local_ip="192.0.2.1")
-    monkeypatch.setattr(auto_detect.netifaces, "interfaces", lambda: ["eth0"])
-    monkeypatch.setattr(auto_detect.netifaces, "ifaddresses", lambda _iface: {})
+    monkeypatch.setattr(auto_detect, "netifaces", None)
+    monkeypatch.setattr(auto_detect, "_DEFAULT_PREFIXLEN", 30)
 
-    assert auto_detect.get_local_ips(None) == []
+    assert auto_detect.get_local_ips(None) == [
+        "192.0.2.0",
+        "192.0.2.1",
+        "192.0.2.2",
+        "192.0.2.3",
+    ]
 
 
-def test_get_local_ips_netifaces_addr_mismatch_returns_empty(
+def test_get_local_ips_netifaces_mismatch_falls_back(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from custom_components.redsea import auto_detect
 
     _patch_socket_local_ip(monkeypatch, local_ip="192.0.2.1")
-    monkeypatch.setattr(auto_detect.netifaces, "interfaces", lambda: ["eth0"])
-    monkeypatch.setattr(
-        auto_detect.netifaces,
-        "ifaddresses",
-        lambda _iface: {
-            auto_detect.netifaces.AF_INET: [
-                {"addr": "192.0.2.99", "netmask": "255.255.255.0"}
-            ]
-        },
-    )
+    monkeypatch.setattr(auto_detect, "_DEFAULT_PREFIXLEN", 30)
 
-    assert auto_detect.get_local_ips(None) == []
+    class _FakeNetifaces:
+        AF_INET = 2
+
+        @staticmethod
+        def interfaces() -> list[str]:
+            return ["eth0"]
+
+        @staticmethod
+        def ifaddresses(_iface: str) -> dict[int, list[dict[str, str]]]:
+            # addr mismatch => cannot infer subnet => fallback
+            return {
+                _FakeNetifaces.AF_INET: [
+                    {"addr": "192.0.2.99", "netmask": "255.255.255.0"}
+                ]
+            }
+
+    monkeypatch.setattr(auto_detect, "netifaces", _FakeNetifaces)
+
+    assert auto_detect.get_local_ips(None) == [
+        "192.0.2.0",
+        "192.0.2.1",
+        "192.0.2.2",
+        "192.0.2.3",
+    ]
 
 
-def test_get_local_ips_netifaces_missing_netmask_returns_empty(
+def test_get_local_ips_netifaces_exception_falls_back(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from custom_components.redsea import auto_detect
 
     _patch_socket_local_ip(monkeypatch, local_ip="192.0.2.1")
-    monkeypatch.setattr(auto_detect.netifaces, "interfaces", lambda: ["eth0"])
-    monkeypatch.setattr(
-        auto_detect.netifaces,
-        "ifaddresses",
-        lambda _iface: {auto_detect.netifaces.AF_INET: [{"addr": "192.0.2.1"}]},
-    )
+    monkeypatch.setattr(auto_detect, "_DEFAULT_PREFIXLEN", 30)
 
-    assert auto_detect.get_local_ips(None) == []
+    class _FakeNetifaces:
+        AF_INET = 2
 
+        @staticmethod
+        def interfaces() -> list[str]:
+            raise RuntimeError("boom")
 
-def test_get_local_ips_netifaces_ifaddresses_exception_returns_empty(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    from custom_components.redsea import auto_detect
+    monkeypatch.setattr(auto_detect, "netifaces", _FakeNetifaces)
 
-    _patch_socket_local_ip(monkeypatch, local_ip="192.0.2.1")
-    monkeypatch.setattr(auto_detect.netifaces, "interfaces", lambda: ["eth0"])
-
-    def _boom(_iface: str) -> Any:
-        raise RuntimeError("boom")
-
-    monkeypatch.setattr(auto_detect.netifaces, "ifaddresses", _boom)
-
-    assert auto_detect.get_local_ips(None) == []
+    assert auto_detect.get_local_ips(None) == [
+        "192.0.2.0",
+        "192.0.2.1",
+        "192.0.2.2",
+        "192.0.2.3",
+    ]
 
 
 def test_is_reefbeat_exception_returns_false(monkeypatch: pytest.MonkeyPatch) -> None:
