@@ -225,6 +225,28 @@ async def test_reefbeat_switch_cloud_connect_on_off(hass: Any) -> None:
 
 
 @pytest.mark.asyncio
+async def test_reefbeat_switch_maintenance_on_calls_press(hass: Any) -> None:
+    device = FakeCoordinator()
+
+    desc = ReefBeatSwitchEntityDescription(
+        key="maintenance",
+        translation_key="maintenance",
+        value_name="$.local.mode",
+        icon="mdi:on",
+        icon_off="mdi:off",
+    )
+
+    entity = ReefBeatSwitchEntity(cast(Any, device), desc)
+    entity.hass = hass
+    entity.async_write_ha_state = lambda: None  # type: ignore[assignment]
+
+    await entity.async_turn_on()
+
+    assert ("$.local.mode", "maintenance") in device.set_calls
+    assert device.pressed == ["maintenance"]
+
+
+@pytest.mark.asyncio
 async def test_reefbeat_switch_generic_source_pushes_and_refreshes(hass: Any) -> None:
     device = FakeCoordinator()
 

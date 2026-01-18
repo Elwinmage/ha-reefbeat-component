@@ -259,6 +259,42 @@ async def test_get_initial_data_builds_kelvin_conversions_from_list_table(
 
 
 @pytest.mark.asyncio
+async def test_get_initial_data_ignores_invalid_leds_conv_table(
+    monkeypatch: Any,
+) -> None:
+    api = _make_led_api(hw=VIRTUAL_LED)
+
+    # Not a list or dict => _find_model_params returns None via the final return.
+    api.data["local"]["leds_conv"] = "bad"
+
+    async def _noop() -> None:
+        return
+
+    async def _fake_initial_bound(self: Any) -> dict[str, Any]:
+        return {"ok": True}
+
+    monkeypatch.setattr(api, "_apply_runtime_source_patches", _noop)
+    monkeypatch.setattr(ReefLedAPI.__mro__[1], "get_initial_data", _fake_initial_bound)
+
+    await api.get_initial_data()
+    assert api._kelvin_to_wb is None
+    assert api._wb_to_kelvin is None
+
+
+def test_white_and_blue_to_kelvin_compensation_zero_denom_defaults_factor_one() -> None:
+    api = _make_led_api(hw=VIRTUAL_LED)
+    api.add_source("/manual", "data", {"moon": 0, "kelvin": 12000})
+
+    api._intensity_compensation = lambda _wb: 0.0  # type: ignore[method-assign]
+    api._intensity_compensation_reference = 1.0
+    api._wb_to_kelvin = lambda _wb: 12000  # type: ignore[method-assign]
+
+    res = api.white_and_blue_to_kelvin(white=50, blue=25)
+    assert res["kelvin"] == 12000
+    assert res["intensity"] == 50
+
+
+@pytest.mark.asyncio
 async def test_get_initial_data_builds_intensity_compensation_from_dict_table(
     monkeypatch: Any,
 ) -> None:

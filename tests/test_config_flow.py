@@ -15,6 +15,7 @@ from custom_components.redsea.config_flow import (
 )
 from custom_components.redsea.const import (
     ADD_CLOUD_API,
+    ADD_LOCAL_DETECT,
     ADD_MANUAL_MODE,
     ATO_SCAN_INTERVAL,
     CLOUD_DEVICE_TYPE,
@@ -173,6 +174,254 @@ async def test_manual_mode_unique_id_falls_back_to_ip(
 
     entry = cast(Any, result3["result"])
     assert entry.unique_id == "192.0.2.10"
+
+
+@pytest.mark.asyncio
+async def test_manual_mode_unique_id_resolves_uuid_first_try(
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import custom_components.redsea.config_flow as cf
+
+    monkeypatch.setattr(cf, "_is_cidr", lambda _s: False)
+
+    def _is_rb(*, ip: str):  # type: ignore[no-untyped-def]
+        return (True, ip, "RSLED50", "My Light", "uuid-from-probe")
+
+    monkeypatch.setattr(cf, "is_reefbeat", _is_rb)
+
+    def _uuid(*, ip: str):  # type: ignore[no-untyped-def]
+        return "uuid-ok"
+
+    monkeypatch.setattr(cf, "get_unique_id", _uuid)
+
+    flow = cast(Any, hass.config_entries.flow)
+    result = cast(
+        dict[str, Any], await flow.async_init(DOMAIN, context={"source": "user"})
+    )
+    assert result["type"] == FlowResultType.FORM
+
+    result2 = cast(
+        dict[str, Any],
+        await flow.async_configure(
+            result["flow_id"],
+            user_input={CONFIG_FLOW_ADD_TYPE: ADD_MANUAL_MODE},
+        ),
+    )
+    assert result2["type"] == FlowResultType.FORM
+
+    result3 = cast(
+        dict[str, Any],
+        await flow.async_configure(
+            result2["flow_id"],
+            user_input={CONFIG_FLOW_IP_ADDRESS: "192.0.2.10"},
+        ),
+    )
+    assert result3["type"] == FlowResultType.CREATE_ENTRY
+
+    entry = cast(Any, result3["result"])
+    assert entry.unique_id == "uuid-ok"
+
+
+@pytest.mark.asyncio
+async def test_add_local_detect_calls_auto_detect_and_filters_existing(
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    import custom_components.redsea.config_flow as cf
+
+    existing_uuid = "uuid-existing"
+    MockConfigEntry(
+        domain=DOMAIN, title="t", data={}, unique_id=existing_uuid
+    ).add_to_hass(hass)
+
+    devices = [
+        {
+            "ip": "192.0.2.10",
+            "hw_model": "RSLED50",
+            "friendly_name": "A",
+            "uuid": existing_uuid,
+        },
+        {
+            "ip": "192.0.2.11",
+            "hw_model": "RSMAT",
+            "friendly_name": "B",
+            "uuid": "uuid-new",
+        },
+    ]
+
+    def _get_rb(*, subnetwork: str | None = None):  # type: ignore[no-untyped-def]
+        return devices
+
+    monkeypatch.setattr(cf, "get_reefbeats", _get_rb)
+
+    flow = cast(Any, hass.config_entries.flow)
+    result = cast(
+        dict[str, Any], await flow.async_init(DOMAIN, context={"source": "user"})
+    )
+    assert result["type"] == FlowResultType.FORM
+
+    result2 = cast(
+        dict[str, Any],
+        await flow.async_configure(
+            result["flow_id"],
+            user_input={CONFIG_FLOW_ADD_TYPE: ADD_LOCAL_DETECT},
+        ),
+    )
+
+    assert result2["type"] == FlowResultType.FORM
+    # Should include VIRTUAL_LED and exclude already-configured device
+    assert VIRTUAL_LED in str(result2.get("data_schema"))
+    assert "192.0.2.10" not in str(result2.get("data_schema"))
+
+
+@pytest.mark.asyncio
+async def test_add_type_virtual_led_creates_entry(hass: HomeAssistant) -> None:
+    flow = cast(Any, hass.config_entries.flow)
+    result = cast(
+        dict[str, Any], await flow.async_init(DOMAIN, context={"source": "user"})
+    )
+    assert result["type"] == FlowResultType.FORM
+
+    result2 = cast(
+        dict[str, Any],
+        await flow.async_configure(
+            result["flow_id"],
+            user_input={CONFIG_FLOW_ADD_TYPE: VIRTUAL_LED},
+        ),
+    )
+
+    assert result2["type"] == FlowResultType.CREATE_ENTRY
+    assert result2["data"][CONFIG_FLOW_HW_MODEL] == VIRTUAL_LED
+    assert result2["data"][CONFIG_FLOW_SCAN_INTERVAL] == VIRTUAL_LED_SCAN_INTERVAL
+
+
+@pytest.mark.asyncio
+async def test_manual_virtual_led_string_creates_entry(
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import custom_components.redsea.config_flow as cf
+
+    monkeypatch.setattr(cf, "_is_cidr", lambda _s: False)
+
+    flow = cast(Any, hass.config_entries.flow)
+    result = cast(
+        dict[str, Any], await flow.async_init(DOMAIN, context={"source": "user"})
+    )
+    assert result["type"] == FlowResultType.FORM
+
+    result2 = cast(
+        dict[str, Any],
+        await flow.async_configure(
+            result["flow_id"],
+            user_input={CONFIG_FLOW_ADD_TYPE: ADD_MANUAL_MODE},
+        ),
+    )
+    assert result2["type"] == FlowResultType.FORM
+
+    result3 = cast(
+        dict[str, Any],
+        await flow.async_configure(
+            result2["flow_id"],
+            user_input={CONFIG_FLOW_IP_ADDRESS: VIRTUAL_LED},
+        ),
+    )
+    assert result3["type"] == FlowResultType.CREATE_ENTRY
+    assert result3["data"][CONFIG_FLOW_HW_MODEL] == VIRTUAL_LED
+
+
+@pytest.mark.asyncio
+async def test_cidr_routes_to_auto_detect(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import custom_components.redsea.config_flow as cf
+
+    def _get_rb(*, subnetwork: str | None = None):  # type: ignore[no-untyped-def]
+        return []
+
+    monkeypatch.setattr(cf, "get_reefbeats", _get_rb)
+
+    flow = cast(Any, hass.config_entries.flow)
+    result = cast(
+        dict[str, Any], await flow.async_init(DOMAIN, context={"source": "user"})
+    )
+    result2 = cast(
+        dict[str, Any],
+        await flow.async_configure(
+            result["flow_id"],
+            user_input={CONFIG_FLOW_ADD_TYPE: ADD_MANUAL_MODE},
+        ),
+    )
+    assert result2["type"] == FlowResultType.FORM
+
+    result3 = cast(
+        dict[str, Any],
+        await flow.async_configure(
+            result2["flow_id"],
+            user_input={CONFIG_FLOW_IP_ADDRESS: "192.0.2.0/24"},
+        ),
+    )
+    assert result3["type"] == FlowResultType.FORM
+
+
+@pytest.mark.asyncio
+async def test_manual_probe_status_false_executes_fallback_path(
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import custom_components.redsea.config_flow as cf
+
+    monkeypatch.setattr(cf, "_is_cidr", lambda _s: False)
+
+    def _is_rb(*, ip: str):  # type: ignore[no-untyped-def]
+        return (False, ip, None, None, None)
+
+    monkeypatch.setattr(cf, "is_reefbeat", _is_rb)
+
+    def _uuid(*, ip: str):  # type: ignore[no-untyped-def]
+        return "uuid-ok"
+
+    monkeypatch.setattr(cf, "get_unique_id", _uuid)
+
+    flow = cast(Any, hass.config_entries.flow)
+    result = cast(
+        dict[str, Any], await flow.async_init(DOMAIN, context={"source": "user"})
+    )
+    result2 = cast(
+        dict[str, Any],
+        await flow.async_configure(
+            result["flow_id"],
+            user_input={CONFIG_FLOW_ADD_TYPE: ADD_MANUAL_MODE},
+        ),
+    )
+    assert result2["type"] == FlowResultType.FORM
+
+    result3 = cast(
+        dict[str, Any],
+        await flow.async_configure(
+            result2["flow_id"],
+            user_input={CONFIG_FLOW_IP_ADDRESS: "192.0.2.10"},
+        ),
+    )
+    assert result3["type"] == FlowResultType.CREATE_ENTRY
+    assert result3["data"][CONFIG_FLOW_HW_MODEL] == ""
+
+
+@pytest.mark.asyncio
+async def test_unknown_submission_aborts_reason_unknown(hass: HomeAssistant) -> None:
+    import custom_components.redsea.config_flow as cf
+
+    # Going through the HA flow manager enforces schema validation, so an
+    # arbitrary payload would raise InvalidData before our code sees it.
+    direct = cf.ReefBeatConfigFlow()
+    direct.hass = hass
+
+    result = cast(dict[str, Any], await direct.async_step_user({"x": "y"}))
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "unknown"
 
 
 @pytest.mark.asyncio

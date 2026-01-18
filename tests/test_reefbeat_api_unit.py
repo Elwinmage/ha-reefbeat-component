@@ -351,6 +351,29 @@ async def test__http_get_secure_401_triggers_connect_and_retries() -> None:
 
 
 @pytest.mark.asyncio
+async def test__http_get_status_ge_400_returns_false() -> None:
+    session = _FakeSession(
+        responses={
+            "get": [
+                _FakeResponse(status=500, reason="server error"),
+            ]
+        }
+    )
+    api = _make_api(session)
+
+    # Restore the real implementation (autouse fixture patches it).
+    ReefBeatAPI._http_get = _ORIG_HTTP_GET  # type: ignore[method-assign]
+
+    class _Match:
+        def __init__(self, value: dict[str, Any]):
+            self.value = value
+
+    m = _Match({"name": "/bad", "data": None})
+    ok = await api._http_get(cast(Any, session), m)
+    assert ok is False
+
+
+@pytest.mark.asyncio
 async def test_connect_is_noop_and_fetch_data_default_data_only_branch(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -377,6 +400,29 @@ async def test_connect_is_noop_and_fetch_data_default_data_only_branch(
 
     await api.fetch_data()
     assert set(called) == {"/wifi", "/dashboard"}
+
+
+@pytest.mark.asyncio
+async def test_push_values_with_payload_calls_http_send(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = _FakeSession()
+    api = _make_api(session)
+    api.add_source("/manual", "data", {"x": 1})
+
+    called: list[tuple[str, Any, str]] = []
+
+    async def _fake_http_send(
+        url: str, payload: Any = None, method: str = "post"
+    ) -> Any:
+        called.append((url, payload, method))
+        return None
+
+    monkeypatch.setattr(api, "_http_send", _fake_http_send)
+
+    await api.push_values("/manual", method="put")
+
+    assert called == [(api._base_url + "/manual", {"x": 1}, "put")]
 
 
 def test__get_data_slow_path_and_missing_logs(monkeypatch: pytest.MonkeyPatch) -> None:
