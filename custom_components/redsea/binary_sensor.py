@@ -475,7 +475,7 @@ class ReefDoseBinarySensorEntity(ReefBeatBinarySensorEntity[ReefDoseCoordinator]
         domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
 
         di_dict: dict[str, Any] = {
-            "identifiers": {(domain, f"{ident}_head_{self._head}")},
+            "identifiers": {(domain, ident, f"head_{self._head}")},
             "name": f"{self._device.title} head {self._head}",
         }
 

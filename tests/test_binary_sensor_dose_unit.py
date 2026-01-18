@@ -101,7 +101,7 @@ def test_dose_device_info_builds_head_device_and_copies_fields_and_via_device() 
     ent = ReefDoseBinarySensorEntity(cast(Any, device), desc)
     di = cast(dict[str, Any], ent.device_info)
 
-    assert di["identifiers"] == {("redsea", "IDENT_head_3")}
+    assert di["identifiers"] == {("redsea", "IDENT", "head_3")}
     assert di["name"] == "Dose head 3"
     assert di["manufacturer"] == "Red Sea"
     assert di["model"] is None
@@ -128,4 +128,4 @@ def test_dose_device_info_falls_back_to_default_identifiers_when_missing() -> No
     ent = ReefDoseBinarySensorEntity(cast(Any, device), desc)
     di = cast(dict[str, Any], ent.device_info)
 
-    assert di["identifiers"] == {("redsea", "SER123_head_1")}
+    assert di["identifiers"] == {("redsea", "SER123", "head_1")}

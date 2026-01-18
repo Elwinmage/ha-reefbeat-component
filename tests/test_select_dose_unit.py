@@ -111,7 +111,7 @@ def test_reefdose_select_device_info_builds_head_device_and_copies_fields(
     ent = ReefDoseSelectEntity(cast(Any, device), desc)
 
     di = cast(DeviceInfo, ent.device_info)
-    assert ("redsea", "IDENT_head_1") in (di.get("identifiers") or set())
+    assert ("redsea", "IDENT", "head_1") in (di.get("identifiers") or set())
     assert di.get("name") == "Dose head 1"
 
     assert di.get("manufacturer") == "Red Sea"

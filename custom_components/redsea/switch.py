@@ -749,7 +749,7 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
         # DeviceInfo is a TypedDict; copying values from a generic dict makes mypy/pyright
         # widen types to object | None, so we guard and only assign strings (or omit keys).
         di_dict: dict[str, Any] = {
-            "identifiers": {(domain, f"{ident}_head_{self._head}")},
+            "identifiers": {(domain, ident, f"head_{self._head}")},
             "name": f"{self._device.title} head {self._head}",
         }
 

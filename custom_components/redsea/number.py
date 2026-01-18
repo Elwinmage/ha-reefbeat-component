@@ -783,7 +783,7 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
             domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
 
             di_dict: dict[str, Any] = {
-                "identifiers": {(domain, f"{ident}_head_{self._head}")},
+                "identifiers": {(domain, ident, f"head_{self._head}")},
                 "name": f"{self._device.title} head {self._head}",
             }
 
@@ -833,8 +833,8 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
         base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
         domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
         via_device = base_di.get("via_device")
-        di: DeviceInfo = {
-            "identifiers": {(domain, f"{ident}_head_{head}")},
+        di_dict: dict[str, Any] = {
+            "identifiers": {(domain, ident, f"head_{head}")},
             "name": f"{self._device.title} head {head}",
             "manufacturer": base_di.get("manufacturer"),
             "model": base_di.get("model"),
@@ -843,8 +843,8 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
             "sw_version": base_di.get("sw_version"),
         }
         if via_device is not None:
-            di["via_device"] = via_device
-        self._attr_device_info = di
+            di_dict["via_device"] = via_device
+        self._attr_device_info = cast(DeviceInfo, di_dict)
 
 
 # REEFRUN
