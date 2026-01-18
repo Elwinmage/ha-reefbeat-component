@@ -30,11 +30,10 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          mkdir -p .coverage
           pytest -q \
             --cov=custom_components \
             --cov-report=term-missing \
-            --cov-report=xml:.coverage/coverage.xml
+            --cov-report=xml:coverage.xml
 
       - name: Generate coverage badge (repo-local)
         run: |
@@ -43,7 +42,7 @@ jobs:
       - name: Upload coverage.xml to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: .coverage/coverage.xml
+          files: coverage.xml
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
