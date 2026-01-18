@@ -1,0 +1,14 @@
+{
+  "dns_watchdog_duration": 20,
+  "dns_watchdog_enabled": false,
+  "global_internet_connected": true,
+  "global_mqtt_connected": true,
+  "global_wifi_connected": true,
+  "internet_connected": true,
+  "internet_started": true,
+  "mqtt_connected": true,
+  "mqtt_started": true,
+  "offline_logging": false,
+  "wifi_connected": true,
+  "wifi_started": true
+}

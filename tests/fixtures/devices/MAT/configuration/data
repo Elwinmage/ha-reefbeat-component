@@ -1,0 +1,22 @@
+{
+  "auto_advance": true,
+  "auto_delay": 30,
+  "blockage_recover_interval": 3,
+  "blockage_recover_retries": 3,
+  "custom_advance_value": 2.28,
+  "dispatch_timeout_sec": 10,
+  "ec_fresh_water_threshold": 30,
+  "ec_water_threshold": 300,
+  "enable_ec_sensor_detection": true,
+  "end_of_roll_monitor": 7,
+  "fresh_water_aquarium": false,
+  "mat_end_length": 100,
+  "model": "RSMAT500",
+  "motor_blockage_threshold": 2000,
+  "motor_speed": 3000,
+  "position": "left",
+  "relief_motor_reverse_time": 200,
+  "schedule_enable": false,
+  "schedule_length": 20,
+  "schedule_time": 0
+}

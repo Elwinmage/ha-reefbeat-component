@@ -1,0 +1,11 @@
+{
+  "chip_revision": "RSMAT",
+  "framework_version": "4.3.2",
+  "last_message": "updated_successful",
+  "last_update": "2025-11-24T17:30:33-05:00",
+  "last_update_attempt": "2025-11-24T17:29:58-05:00",
+  "message": "firmware check success",
+  "success": true,
+  "update_server": "http://firmware.reef-beat.com/firmware/download/reef-mat?framework=i",
+  "version": "1.10.2"
+}

@@ -1,0 +1,11 @@
+{
+  "intervals": [
+    {
+      "duration": 20,
+      "name": "No Wave",
+      "type": "nw",
+      "wave_uid": "2e7819eb-87d2-43b7-ac91-4af1de6dc505"
+    }
+  ],
+  "uid": ""
+}

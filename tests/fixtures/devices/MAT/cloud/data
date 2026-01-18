@@ -1,0 +1,10 @@
+{
+  "api_key": "REDACTED_SECRET",
+  "api_secret": "REDACTED_SECRET",
+  "connected": true,
+  "connection_state": "CONNECTED",
+  "enabled": true,
+  "message": "",
+  "success": true,
+  "url": "mqtt.reef-beat.com:1883"
+}

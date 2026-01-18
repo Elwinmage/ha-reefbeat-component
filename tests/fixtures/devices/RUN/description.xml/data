@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <URLBase>http://__REEFBEAT_DEVICE_IP__:80/</URLBase>
+  <device>
+    <board>esp32</board>
+    <framework>i</framework>
+    <deviceType>reef-run</deviceType>
+    <friendlyName>SIMU-RSRUN-7603942596</friendlyName>
+    <presentationURL>/</presentationURL>
+    <serialNumber>423c4f99a4fe</serialNumber>
+    <modelName>RSRUN</modelName>
+    <modelDescription/>
+    <modelNumber>1C:69:20:2A:5A:50</modelNumber>
+    <modelURL>https://www.reef-beat.com</modelURL>
+    <manufacturer>RedSea</manufacturer>
+    <manufacturerURL>https://www.redseafish.com</manufacturerURL>
+    <UDN>uuid:faa788ff-964d-44d5-96d2-ad2ad7b3594a</UDN>
+    <serviceList/>
+    <iconList/>
+  </device>
+</root>

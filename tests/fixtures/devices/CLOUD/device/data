@@ -1,0 +1,682 @@
+[
+  {
+    "aquarium_id": 111111,
+    "aquarium_uid": "00000000-0000-0000-0000-000000000001",
+    "board": "esp32",
+    "bssid": "02:00:01:F7:34:AE",
+    "connected": true,
+    "firmware_version": "1.11.1",
+    "framework": "i",
+    "group_index": 0,
+    "grouped": false,
+    "hw_revision": "V1.2A_24C",
+    "hwid": "0700084ae021",
+    "id": 990068,
+    "in_service": true,
+    "ip_address": "10.0.0.11",
+    "last_seen": "2026-01-15T20:20:55.949188Z",
+    "mac": "02:00:00:EA:92:7D",
+    "model": "RSATO+",
+    "name": "RSATO+10000000000",
+    "offset": 0,
+    "onboarding_date": "2025-12-21T23:07:17.192522Z",
+    "previously_grouped": false,
+    "properties": {
+      "active_shortcut": "no_shortcut",
+      "ato_sensor": {
+        "connected": true,
+        "is_calibrated": true,
+        "is_sensor_error": false,
+        "last_adjustment_date": null,
+        "last_installation_date": 1766358323,
+        "serial_code": "cfaeed54730f5d5d"
+      },
+      "check_sensor": false,
+      "device_settings": {
+        "auto_fill": true,
+        "buzzer": {
+          "duty_cycle": 50,
+          "enabled": true,
+          "frequency": 12
+        },
+        "flow_rate_override": -1,
+        "hose": {
+          "height": 38,
+          "length": 137
+        },
+        "leak": {
+          "dry_threshold": 1,
+          "emergency_shutdown": false,
+          "rodi_threshold": 20,
+          "sensor_enabled": true
+        },
+        "pump_speed_override": -1,
+        "rvm_enabled": true,
+        "shortcut_off_delay": 0,
+        "temp_enabled": false,
+        "temperature": {
+          "acceptable_range_high": 28,
+          "acceptable_range_low": 21,
+          "code": "515",
+          "desired_range_high": 26,
+          "desired_range_low": 23,
+          "enabled": false,
+          "log_enabled": false,
+          "offset": 0
+        }
+      },
+      "device_setup_date": 1766340517,
+      "emergency": false,
+      "emergency_1": {
+        "subscribed": false
+      },
+      "factory_reset_time": 1766340517,
+      "is_pump_on": false,
+      "leak_sensor": {
+        "buzzer_on": false,
+        "connected": true,
+        "status": "dry"
+      },
+      "maintenance": false,
+      "maintenance_1": {
+        "subscribed": false
+      },
+      "mode": "auto",
+      "shortcut_settings": {
+        "shortcut_off_delay": 0
+      },
+      "timezone": -300
+    },
+    "ssid": "REDACTED_SSID",
+    "type": "reef-ato"
+  },
+  {
+    "aquarium_id": 111111,
+    "aquarium_uid": "00000000-0000-0000-0000-000000000001",
+    "board": "esp32",
+    "bssid": "02:00:01:F7:34:AE",
+    "connected": true,
+    "firmware_version": "3.0.0",
+    "framework": "a",
+    "group_index": 0,
+    "grouped": false,
+    "hwid": "ae8f6238d45a",
+    "id": 961753,
+    "in_service": true,
+    "ip_address": "10.0.0.12",
+    "last_seen": "2026-01-02T21:47:42.294008Z",
+    "mac": "02:00:00:23:79:22",
+    "model": "RSDOSE4",
+    "name": "RSDOSE4-000000001",
+    "offset": 0,
+    "onboarding_date": "2025-11-01T21:18:49.887027Z",
+    "previously_grouped": false,
+    "properties": {
+      "active_shortcut": "no_shortcut",
+      "battery_level": "high",
+      "calibration_reminder": false,
+      "calibration_reminder_days": 60,
+      "calibration_reminder_steps": 35000,
+      "daily_metrics_last_compute_time": 1768608000,
+      "device_settings": {
+        "auto_fill_schedule": false,
+        "bundled_heads": false,
+        "shortcut_off_delay": 0
+      },
+      "dosing_waiting_period": 60,
+      "emergency": false,
+      "emergency_1": {
+        "subscribed": false
+      },
+      "factory_reset_time": 1577836800,
+      "feeding": false,
+      "feeding_1": {
+        "duration": 20,
+        "subscribed": false
+      },
+      "feeding_duration": 20,
+      "file_error": false,
+      "food_head_schedule": {},
+      "heads": {
+        "1": {
+          "daily_dose": 0,
+          "days": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "dc": true,
+          "dd": 0,
+          "enable_ratio": true,
+          "food_delay": 0,
+          "is_food_head": false,
+          "last_calibrated": 0,
+          "nd": 1,
+          "schedule_enabled": false,
+          "schedule_type": "single",
+          "shortcut_code": "no_shortcut",
+          "show": false,
+          "slm": true,
+          "state": "not-setup",
+          "supplement": {
+            "brand_name": "Red Sea",
+            "concentration": 0,
+            "display_name": "Coral food",
+            "made_by_redsea": true,
+            "name": "Reef Energy Plus",
+            "short_name": "RE+",
+            "type": "null",
+            "uid": "bf9a7da3-741b-4c1d-8542-d9344a95fb70"
+          },
+          "vps": 0
+        },
+        "2": {
+          "daily_dose": 0,
+          "days": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "dc": true,
+          "dd": 0,
+          "enable_ratio": true,
+          "food_delay": 0,
+          "is_food_head": false,
+          "last_calibrated": 1762103199,
+          "nd": 1,
+          "schedule_enabled": false,
+          "schedule_type": "single",
+          "shortcut_code": "no_shortcut",
+          "show": true,
+          "slm": true,
+          "state": "on",
+          "supplement": {
+            "brand_name": "API",
+            "concentration": 0,
+            "display_name": "Magnesium",
+            "made_by_redsea": false,
+            "name": "Magnesium",
+            "short_name": "Mag",
+            "type": "null",
+            "uid": "184238cc-8840-4a47-9e0e-d22ad5e3f6fe"
+          },
+          "vps": 0.075758
+        },
+        "3": {
+          "daily_dose": 10,
+          "days": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "dc": true,
+          "dd": 10,
+          "enable_ratio": true,
+          "food_delay": 0,
+          "is_food_head": false,
+          "last_calibrated": 1762102146,
+          "nd": 24,
+          "schedule_enabled": true,
+          "schedule_type": "hourly",
+          "shortcut_code": "no_shortcut",
+          "show": true,
+          "slm": true,
+          "state": "on",
+          "supplement": {
+            "brand_name": "Ocean's Blend",
+            "concentration": 0,
+            "display_name": "Calcium",
+            "made_by_redsea": false,
+            "name": "Calcium (Part 1)",
+            "short_name": "Cal",
+            "type": "null",
+            "uid": "55a13d1a-c217-45f9-aa0f-640160a3c166"
+          },
+          "vps": 0.075758
+        },
+        "4": {
+          "daily_dose": 10,
+          "days": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "dc": true,
+          "dd": 10,
+          "enable_ratio": true,
+          "food_delay": 0,
+          "is_food_head": false,
+          "last_calibrated": 1762101944,
+          "nd": 24,
+          "schedule_enabled": false,
+          "schedule_type": "hourly",
+          "shortcut_code": "no_shortcut",
+          "show": true,
+          "slm": true,
+          "state": "on",
+          "supplement": {
+            "brand_name": "Ocean's Blend",
+            "concentration": 0,
+            "display_name": "Alkalinity",
+            "made_by_redsea": false,
+            "name": "Alkalinity (Part 2)",
+            "short_name": "Alk",
+            "type": "null",
+            "uid": "6537abd2-4bce-43db-a567-360dab0684aa"
+          },
+          "vps": 0.075758
+        }
+      },
+      "is_factory_reset": false,
+      "maintenance": false,
+      "maintenance_1": {
+        "subscribed": false
+      },
+      "missed_doses_reminder": true,
+      "mode": "auto",
+      "ntp_sync": true,
+      "shortcut_settings": {
+        "shortcut_off_delay": 0
+      },
+      "start_of_schedule_for_next_day": 0,
+      "stock_alert_days": 7,
+      "time_error": false,
+      "time_error_unixtime": 0,
+      "timezone": -300,
+      "turned_off": false
+    },
+    "ssid": "REDACTED_SSID",
+    "type": "reef-dosing"
+  },
+  {
+    "aquarium_id": 111111,
+    "aquarium_uid": "00000000-0000-0000-0000-000000000001",
+    "board": "esp32",
+    "bssid": "02:00:01:F7:34:AE",
+    "connected": true,
+    "firmware_version": "1.10.2",
+    "framework": "i",
+    "group_index": 0,
+    "grouped": false,
+    "hw_revision": "v0.4_24G",
+    "hwid": "dd957a828b11",
+    "id": 974323,
+    "in_service": true,
+    "ip_address": "10.0.0.13",
+    "last_seen": "2026-01-02T21:16:11.668173Z",
+    "mac": "02:00:00:49:C4:49",
+    "model": "RSMAT500",
+    "name": "RSMAT-0000000001",
+    "offset": 0,
+    "onboarding_date": "2025-11-24T22:30:55.987165Z",
+    "previously_grouped": false,
+    "properties": {
+      "active_shortcut": "no_shortcut",
+      "auto_advance": true,
+      "cumulative_steps": 11201,
+      "daily_average_usage": 151.6634979248047,
+      "days_till_end_of_roll": 0,
+      "device_settings": {
+        "auto_advance": true,
+        "custom_advance_value": 2.28,
+        "end_of_roll_monitor": 7,
+        "fresh_water_aquarium": false,
+        "model": "RSMAT500",
+        "position": "left",
+        "schedule_enable": false,
+        "schedule_length": 20,
+        "schedule_time": 0
+      },
+      "device_setup_date": 1764005514,
+      "emergency": false,
+      "emergency_1": {
+        "subscribed": false
+      },
+      "external_ec_average": 0,
+      "internal_ec_average": 0,
+      "is_advancing": false,
+      "last_advance_cause": "self_test",
+      "lifetime_steps": 30158,
+      "maintenance": false,
+      "maintenance_1": {
+        "subscribed": false
+      },
+      "material": {
+        "external_diameter": 10.105999946594238,
+        "is_partial": false,
+        "name": "28 Meter",
+        "thickness": 0.02370000071823597
+      },
+      "mode": "end_of_roll",
+      "remaining_length": 1.9223999977111816,
+      "roll_level": "empty",
+      "setup_date": "2026-01-01T11:29:30Z",
+      "timezone": -300,
+      "today_usage": 0,
+      "total_usage": 2798.04443359375,
+      "unclean_sensor": false
+    },
+    "ssid": "REDACTED_SSID",
+    "type": "reef-mat"
+  },
+  {
+    "aquarium_id": 111113,
+    "aquarium_uid": "00000000-0000-0000-0000-000000000003",
+    "board": "esp32",
+    "bssid": "02:00:01:21:86:CB",
+    "connected": true,
+    "firmware_version": "1.11.0",
+    "framework": "i",
+    "group_index": 0,
+    "grouped": false,
+    "hw_revision": "V1.2A_23B",
+    "hwid": "1ce62c40421c",
+    "id": 974385,
+    "in_service": true,
+    "ip_address": "10.0.0.14",
+    "last_seen": "2026-01-03T22:58:48.338262Z",
+    "mac": "02:00:00:4C:B8:8F",
+    "model": "RSATO+",
+    "name": "RSATO+10000000000",
+    "offset": 0,
+    "onboarding_date": "2025-11-25T03:15:15.939717Z",
+    "previously_grouped": false,
+    "properties": {
+      "active_shortcut": "no_shortcut",
+      "ato_sensor": {
+        "connected": true,
+        "is_calibrated": true,
+        "is_sensor_error": false,
+        "last_adjustment_date": null,
+        "last_installation_date": 1764040557,
+        "serial_code": "sc4ffa02131a155a"
+      },
+      "check_sensor": false,
+      "device_settings": {
+        "auto_fill": true,
+        "buzzer": {
+          "duty_cycle": 50,
+          "enabled": true,
+          "frequency": 12
+        },
+        "flow_rate_override": -1,
+        "hose": {
+          "height": 40,
+          "length": 300
+        },
+        "leak": {
+          "dry_threshold": 1,
+          "emergency_shutdown": false,
+          "rodi_threshold": 20,
+          "sensor_enabled": true
+        },
+        "pump_speed_override": -1,
+        "rvm_enabled": true,
+        "shortcut_off_delay": 0,
+        "temp_enabled": true,
+        "temperature": {
+          "acceptable_range_high": 28,
+          "acceptable_range_low": 21,
+          "code": "515",
+          "desired_range_high": 26,
+          "desired_range_low": 23,
+          "enabled": true,
+          "log_enabled": true,
+          "offset": 0
+        }
+      },
+      "device_setup_date": 0,
+      "emergency": false,
+      "emergency_1": {
+        "subscribed": false
+      },
+      "factory_reset_time": 1716134143,
+      "is_pump_on": false,
+      "leak_sensor": {
+        "buzzer_on": false,
+        "connected": true,
+        "status": "dry"
+      },
+      "maintenance": false,
+      "maintenance_1": {
+        "subscribed": false
+      },
+      "mode": "auto",
+      "shortcut_settings": {
+        "shortcut_off_delay": 0
+      },
+      "timezone": -300
+    },
+    "ssid": "REDACTED_SSID",
+    "type": "reef-ato"
+  },
+  {
+    "aquarium_id": 111113,
+    "aquarium_uid": "00000000-0000-0000-0000-000000000003",
+    "board": "esp32",
+    "bssid": "02:00:01:F7:34:AE",
+    "connected": true,
+    "firmware_version": "3.0.0",
+    "framework": "a",
+    "group_index": 0,
+    "grouped": false,
+    "hwid": "7f366f7d1803",
+    "id": 974876,
+    "in_service": true,
+    "ip_address": "10.0.0.15",
+    "last_seen": "2026-01-03T22:58:47.391361Z",
+    "mac": "02:00:00:49:43:B2",
+    "model": "RSDOSE2",
+    "name": "RSDOSE2-000000001",
+    "offset": 0,
+    "onboarding_date": "2025-11-25T22:03:46.609809Z",
+    "previously_grouped": false,
+    "properties": {
+      "active_shortcut": "no_shortcut",
+      "battery_level": "high",
+      "calibration_reminder": false,
+      "calibration_reminder_days": 60,
+      "calibration_reminder_steps": 35000,
+      "daily_metrics_last_compute_time": 1768608000,
+      "device_settings": {
+        "auto_fill_schedule": false,
+        "bundled_heads": false,
+        "shortcut_off_delay": 0
+      },
+      "dosing_waiting_period": 60,
+      "emergency": false,
+      "emergency_1": {
+        "subscribed": false
+      },
+      "factory_reset_time": 1577836800,
+      "feeding": false,
+      "feeding_1": {
+        "duration": 20,
+        "subscribed": false
+      },
+      "feeding_duration": 20,
+      "file_error": false,
+      "food_head_schedule": {},
+      "heads": {
+        "1": {
+          "daily_dose": 4,
+          "days": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "dc": true,
+          "dd": 4,
+          "enable_ratio": true,
+          "food_delay": 0,
+          "is_food_head": false,
+          "last_calibrated": 1762537564,
+          "nd": 4,
+          "schedule_enabled": true,
+          "schedule_type": "custom",
+          "shortcut_code": "no_shortcut",
+          "show": true,
+          "slm": true,
+          "state": "on",
+          "supplement": {
+            "brand_name": "Ocean's Blend",
+            "concentration": 0,
+            "display_name": "Alkalinity",
+            "made_by_redsea": false,
+            "name": "Alkalinity",
+            "short_name": "Alk",
+            "type": "null",
+            "uid": "e10dbae3-9d4f-4637-91ef-cb30f10e87e0"
+          },
+          "vps": 0.056818
+        },
+        "2": {
+          "daily_dose": 4,
+          "days": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "dc": true,
+          "dd": 4,
+          "enable_ratio": true,
+          "food_delay": 0,
+          "is_food_head": false,
+          "last_calibrated": 1762537765,
+          "nd": 4,
+          "schedule_enabled": true,
+          "schedule_type": "custom",
+          "shortcut_code": "no_shortcut",
+          "show": true,
+          "slm": true,
+          "state": "on",
+          "supplement": {
+            "brand_name": "Ocean's Blend",
+            "concentration": 0,
+            "display_name": "Calcium",
+            "made_by_redsea": false,
+            "name": "Calcium",
+            "short_name": "Cal",
+            "type": "null",
+            "uid": "c9e5ef78-3190-4813-b80c-a38fcee8b5fb"
+          },
+          "vps": 0.059091
+        }
+      },
+      "is_factory_reset": false,
+      "maintenance": false,
+      "maintenance_1": {
+        "subscribed": false
+      },
+      "missed_doses_reminder": true,
+      "mode": "auto",
+      "ntp_sync": true,
+      "shortcut_settings": {
+        "shortcut_off_delay": 0
+      },
+      "start_of_schedule_for_next_day": 0,
+      "stock_alert_days": 7,
+      "time_error": false,
+      "time_error_unixtime": 0,
+      "timezone": -300,
+      "turned_off": false
+    },
+    "ssid": "REDACTED_SSID",
+    "type": "reef-dosing"
+  },
+  {
+    "aquarium_id": 111113,
+    "aquarium_uid": "00000000-0000-0000-0000-000000000003",
+    "board": "esp32",
+    "bssid": "02:00:01:21:86:CB",
+    "connected": true,
+    "firmware_version": "1.10.2",
+    "framework": "i",
+    "group_index": 0,
+    "grouped": false,
+    "hw_revision": "v1.0_23A",
+    "hwid": "840ca07e3087",
+    "id": 973622,
+    "in_service": true,
+    "ip_address": "10.0.0.16",
+    "last_seen": "2026-01-03T22:58:51.927951Z",
+    "mac": "02:00:00:E8:AA:EB",
+    "model": "RSMAT250",
+    "name": "RSMAT-000000002",
+    "offset": 0,
+    "onboarding_date": "2025-11-23T19:26:33.480627Z",
+    "previously_grouped": false,
+    "properties": {
+      "active_shortcut": "no_shortcut",
+      "auto_advance": true,
+      "cumulative_steps": 3404,
+      "daily_average_usage": 62.6347999572754,
+      "days_till_end_of_roll": 33,
+      "device_settings": {
+        "auto_advance": true,
+        "custom_advance_value": 2.79,
+        "end_of_roll_monitor": 3,
+        "fresh_water_aquarium": false,
+        "model": "RSMAT250",
+        "position": "right",
+        "schedule_enable": false,
+        "schedule_length": 20,
+        "schedule_time": 0
+      },
+      "device_setup_date": 1760885816,
+      "emergency": false,
+      "emergency_1": {
+        "subscribed": false
+      },
+      "external_ec_average": 0,
+      "internal_ec_average": 254,
+      "is_advancing": false,
+      "last_advance_cause": "ec_sensor",
+      "lifetime_steps": 87767,
+      "maintenance": false,
+      "maintenance_1": {
+        "subscribed": false
+      },
+      "material": {
+        "external_diameter": 10.600000381469727,
+        "is_partial": false,
+        "name": "32 Meter",
+        "thickness": 0.023000000044703484
+      },
+      "mode": "auto",
+      "remaining_length": 2078.33740234375,
+      "roll_level": "full",
+      "setup_date": "2026-01-03T16:37:46Z",
+      "timezone": -300,
+      "today_usage": 39.11090087890625,
+      "total_usage": 1156.1343994140625,
+      "unclean_sensor": false
+    },
+    "ssid": "REDACTED_SSID",
+    "type": "reef-mat"
+  }
+]

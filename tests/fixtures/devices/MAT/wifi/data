@@ -1,0 +1,23 @@
+{
+  "auth_method": "WPA2_PSK",
+  "auto_connect": false,
+  "auto_reconnect": false,
+  "bssid": "02:00:01:F7:34:AE",
+  "channel": 6,
+  "dns": "10.0.10.125",
+  "gateway": "10.0.0.1",
+  "ip": "10.0.0.13",
+  "isConnected": true,
+  "is_connected": true,
+  "mac": "02:00:00:49:C4:49",
+  "phy_mode": "802.11n",
+  "real_sleep_mode": "no_sleep",
+  "signal_dBm": -52,
+  "sleep_mode": "no_sleep",
+  "ssid": "REDACTED_SSID",
+  "sub_channel": 0,
+  "subnet_mask": "255.255.255.0",
+  "success": true,
+  "watchdog_duration": 0,
+  "watchdog_enabled": false
+}

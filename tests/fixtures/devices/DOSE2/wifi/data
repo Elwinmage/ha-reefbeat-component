@@ -1,0 +1,20 @@
+{
+  "auto_connect": false,
+  "auto_reconnect": true,
+  "bssid": "02:00:01:F7:34:AE",
+  "channel": 6,
+  "connected": true,
+  "dns": "10.0.10.125",
+  "gateway": "10.0.0.1",
+  "ip": "10.0.0.15",
+  "mac": "02:00:00:49:43:B2",
+  "phy_mode": "802.11n",
+  "real_phy_mode": "802.11n",
+  "real_sleep_mode": "no_sleep",
+  "signal_dBm": -62,
+  "sleep_mode": "no_sleep",
+  "ssid": "REDACTED_SSID",
+  "subnet_mask": "255.255.255.0",
+  "watchdog_duration": 900,
+  "watchdog_enabled": true
+}

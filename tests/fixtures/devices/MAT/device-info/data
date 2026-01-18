@@ -1,0 +1,9 @@
+{
+  "hw_model": "RSMAT",
+  "hw_revision": "v0.4_24G",
+  "hw_type": "reef-mat",
+  "hwid": "dd957a828b11",
+  "message": "get device info successfully",
+  "name": "RSMAT-0000000001",
+  "success": true
+}

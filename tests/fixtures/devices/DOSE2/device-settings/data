@@ -1,0 +1,10 @@
+{
+  "calibration_reminder": false,
+  "calibration_reminder_days": 60,
+  "calibration_reminder_steps": 35000,
+  "daily_metrics_last_compute_time": 1768608000,
+  "dosing_waiting_period": 60,
+  "missed_doses_reminder": true,
+  "shortcut_off_delay": 0,
+  "stock_alert_days": 7
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <URLBase>http://10.0.0.13:80/</URLBase>
+  <device>
+    <board>esp32</board>
+    <framework>i</framework>
+    <deviceType>reef-mat</deviceType>
+    <friendlyName>RSMAT-3632934213</friendlyName>
+    <presentationURL>/</presentationURL>
+    <serialNumber>345f452d8ad8</serialNumber>
+    <modelName>RSMAT</modelName>
+    <modelDescription/>
+    <modelNumber>34:5F:45:2D:8A:D8</modelNumber>
+    <modelURL>https://www.reef-beat.com</modelURL>
+    <manufacturer>RedSea</manufacturer>
+    <manufacturerURL>https://www.redseafish.com</manufacturerURL>
+    <UDN>uuid:1cdf4379-9f3e-44fd-b0d6-fedc39a45aed</UDN>
+    <serviceList/>
+    <iconList/>
+  </device>
+</root>

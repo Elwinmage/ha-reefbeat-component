@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <URLBase>http://__REEFBEAT_DEVICE_IP__:80/</URLBase>
+  <device>
+    <board>esp32</board>
+    <framework>i</framework>
+    <deviceType>reef-lights</deviceType>
+    <friendlyName>SIMU-RSLED160-708948580</friendlyName>
+    <presentationURL>/</presentationURL>
+    <serialNumber>521f271d32c8</serialNumber>
+    <modelName>RSLED160</modelName>
+    <modelDescription/>
+    <modelNumber>08:D1:F9:5B:B5:24</modelNumber>
+    <modelURL>https://www.reef-beat.com</modelURL>
+    <manufacturer>RedSea</manufacturer>
+    <manufacturerURL>https://www.redseafish.com</manufacturerURL>
+    <UDN>uuid:837c8b0b-c282-4dcf-95e8-396dafcb2eae</UDN>
+    <serviceList/>
+    <iconList/>
+  </device>
+</root>

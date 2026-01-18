@@ -1,0 +1,155 @@
+[
+  {
+    "dst_enabled": false,
+    "height": 40.64,
+    "id": 111111,
+    "length": 60.96,
+    "measuring_unit": "gallons",
+    "name": "Aquarium 1",
+    "net_water_volume": 120,
+    "online": true,
+    "properties": {
+      "emergency": false,
+      "emergency_1": {
+        "code": "emergency_1",
+        "enabled": false,
+        "name": "Emergency",
+        "type": "emergency"
+      },
+      "feeding": false,
+      "feeding_1": {
+        "code": "feeding_1",
+        "enabled": false,
+        "name": "Feeding",
+        "scheduled_feeding": false,
+        "skip_next": [],
+        "start": [],
+        "type": "feeding"
+      },
+      "led_emergency": false,
+      "maintenance": false,
+      "maintenance_1": {
+        "code": "maintenance_1",
+        "enabled": false,
+        "name": "Maintenance",
+        "type": "maintenance"
+      },
+      "shortcut_reminder": false,
+      "staggered": false,
+      "staggered_delay": 0
+    },
+    "serial_number": "",
+    "staggered": false,
+    "staggered_delay": 0,
+    "system_model": "Aquarium System",
+    "system_series": "other",
+    "system_type": "mixed-reef",
+    "timezone_offset": -300,
+    "uid": "00000000-0000-0000-0000-000000000001",
+    "user_uid": "00000000-0000-0000-0000-000000000001",
+    "water_volume": 80,
+    "width": 121.92
+  },
+  {
+    "dst_enabled": false,
+    "height": 0.0,
+    "id": 111112,
+    "length": 0.0,
+    "measuring_unit": "gallons",
+    "name": "Aquarium 2",
+    "net_water_volume": 20,
+    "online": false,
+    "properties": {
+      "emergency": false,
+      "emergency_1": {
+        "code": "emergency_1",
+        "enabled": false,
+        "name": "Emergency",
+        "type": "emergency"
+      },
+      "feeding": false,
+      "feeding_1": {
+        "code": "feeding_1",
+        "enabled": false,
+        "name": "Feeding",
+        "scheduled_feeding": false,
+        "skip_next": [],
+        "start": [],
+        "type": "feeding"
+      },
+      "led_emergency": false,
+      "maintenance": false,
+      "maintenance_1": {
+        "code": "maintenance_1",
+        "enabled": false,
+        "name": "Maintenance",
+        "type": "maintenance"
+      },
+      "shortcut_reminder": false,
+      "staggered": false,
+      "staggered_delay": 0
+    },
+    "serial_number": "12345",
+    "staggered": false,
+    "staggered_delay": 0,
+    "system_model": "Aquarium System",
+    "system_series": "Red Sea MAX",
+    "system_type": "mixed-reef",
+    "timezone_offset": -300,
+    "uid": "00000000-0000-0000-0000-000000000002",
+    "user_uid": "00000000-0000-0000-0000-000000000001",
+    "water_volume": 75,
+    "width": 0.0
+  },
+  {
+    "dst_enabled": false,
+    "height": 0.0,
+    "id": 111113,
+    "length": 0.0,
+    "measuring_unit": "gallons",
+    "name": "Aquarium 3",
+    "net_water_volume": 53,
+    "online": true,
+    "properties": {
+      "emergency": false,
+      "emergency_1": {
+        "code": "emergency_1",
+        "enabled": false,
+        "name": "Emergency",
+        "type": "emergency"
+      },
+      "feeding": false,
+      "feeding_1": {
+        "code": "feeding_1",
+        "enabled": false,
+        "name": "Feeding",
+        "scheduled_feeding": false,
+        "skip_next": [],
+        "start": [],
+        "type": "feeding"
+      },
+      "led_emergency": false,
+      "maintenance": false,
+      "maintenance_1": {
+        "code": "maintenance_1",
+        "enabled": false,
+        "name": "Maintenance",
+        "type": "maintenance"
+      },
+      "shortcut_reminder": false,
+      "staggered": false,
+      "staggered_delay": 0
+    },
+    "serial_number": "11926",
+    "staggered": false,
+    "staggered_delay": 0,
+    "system_model": "Aquarium System",
+    "system_series": "Red Sea REEFER",
+    "system_type": "mixed-reef",
+    "timezone_offset": -300,
+    "uid": "00000000-0000-0000-0000-000000000003",
+    "user_uid": "00000000-0000-0000-0000-000000000001",
+    "water_volume": 200,
+    "width": 0.0
+  }
+]

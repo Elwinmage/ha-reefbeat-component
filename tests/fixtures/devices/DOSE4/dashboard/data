@@ -1,0 +1,81 @@
+{
+  "battery_level": "high",
+  "bundled_heads": false,
+  "heads": {
+    "1": {
+      "auto_dosed_today": 3.3,
+      "daily_dose": 10,
+      "daily_doses": 3,
+      "doses_today": 1,
+      "is_food_head": false,
+      "manual_dosed_today": 50,
+      "missed_dose": {
+        "missed_volume": 0,
+        "total_volume": 0
+      },
+      "recalibration_required": false,
+      "remaining_days": 432,
+      "shortcut_code": "no_shortcut",
+      "state": "on",
+      "stock_level": "high",
+      "supplement": "Calcium (Foundation A)"
+    },
+    "2": {
+      "auto_dosed_today": 15,
+      "daily_dose": 45,
+      "daily_doses": 3,
+      "doses_today": 1,
+      "is_food_head": false,
+      "manual_dosed_today": 0,
+      "missed_dose": {
+        "missed_volume": 0,
+        "total_volume": 0
+      },
+      "recalibration_required": false,
+      "remaining_days": 32,
+      "shortcut_code": "feeding_1",
+      "state": "on",
+      "stock_level": "high",
+      "supplement": "KH/Alkalinity (Foundation B)"
+    },
+    "3": {
+      "auto_dosed_today": 13.4,
+      "daily_dose": 40,
+      "daily_doses": 3,
+      "doses_today": 1,
+      "is_food_head": false,
+      "manual_dosed_today": 0,
+      "missed_dose": {
+        "missed_volume": 0,
+        "total_volume": 0
+      },
+      "recalibration_required": false,
+      "remaining_days": 1,
+      "shortcut_code": "no_shortcut",
+      "state": "on",
+      "stock_level": "high",
+      "supplement": "Magnesium (Foundation C)"
+    },
+    "4": {
+      "auto_dosed_today": 0,
+      "daily_dose": 36,
+      "daily_doses": 1,
+      "doses_today": 0,
+      "is_food_head": false,
+      "manual_dosed_today": 0,
+      "missed_dose": {
+        "missed_volume": 0,
+        "total_volume": 0
+      },
+      "recalibration_required": false,
+      "remaining_days": 0,
+      "shortcut_code": "no_shortcut",
+      "state": "not-setup",
+      "stock_level": "off",
+      "supplement": "Reef Energy Plus"
+    }
+  },
+  "is_active": false,
+  "restore_settings": true,
+  "time_error": false
+}

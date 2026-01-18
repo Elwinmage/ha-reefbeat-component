@@ -1,0 +1,32 @@
+[
+  {
+    "container_volume": 310.8909,
+    "head_id": 1,
+    "last_calibrated": 1762537564,
+    "supplement": {
+      "brand_name": "Ocean's Blend",
+      "concentration": 0,
+      "display_name": "Alkalinity",
+      "made_by_redsea": false,
+      "name": "Alkalinity",
+      "short_name": "Alk",
+      "type": "null",
+      "uid": "e10dbae3-9d4f-4637-91ef-cb30f10e87e0"
+    }
+  },
+  {
+    "container_volume": 379.0567,
+    "head_id": 2,
+    "last_calibrated": 1762537765,
+    "supplement": {
+      "brand_name": "Ocean's Blend",
+      "concentration": 0,
+      "display_name": "Calcium",
+      "made_by_redsea": false,
+      "name": "Calcium",
+      "short_name": "Cal",
+      "type": "null",
+      "uid": "c9e5ef78-3190-4813-b80c-a38fcee8b5fb"
+    }
+  }
+]

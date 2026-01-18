@@ -1,0 +1,24 @@
+{
+  "ap_enabled": false,
+  "ap_ip": "192.168.4.1",
+  "flash_size": 16777216,
+  "free_heap": 66844,
+  "i2c_devices": [
+    {
+      "address": "0x68",
+      "device": "RTC"
+    }
+  ],
+  "mac": "2C:BC:BB:03:7A:A4",
+  "reset_reasons": {
+    "0": "software reset CPU",
+    "1": "software reset CPU"
+  },
+  "rtc_connected": true,
+  "total_bytes": 3604480,
+  "uptime": "D:003-H:11-m:13-s:04",
+  "used_bytes": 184320,
+  "uuid": "983109083961",
+  "wifi_enabled": true,
+  "wifi_ip": "__REEFBEAT_DEVICE_IP__"
+}
