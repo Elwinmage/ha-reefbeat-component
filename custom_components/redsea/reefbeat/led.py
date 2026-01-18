@@ -178,8 +178,7 @@ class ReefLedAPI(ReefBeatAPI):
                 return None
             dtable = _as_str_any_dict(table)
             if dtable is not None:
-                entry = dtable.get(self._model)
-                return _as_str_any_dict(entry)
+                return _as_str_any_dict(dtable.get(self._model))
             return None
 
         # Kelvin conversion (legacy-compatible)

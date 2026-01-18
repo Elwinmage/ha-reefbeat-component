@@ -35,7 +35,7 @@ from .entity import ReefBeatRestoreEntity
 
 _LOGGER = logging.getLogger(__name__)
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .coordinator import ReefBeatCloudCoordinator
 # Protocols (capability-based typing)
 

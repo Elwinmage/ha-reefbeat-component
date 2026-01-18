@@ -11,11 +11,13 @@ They:
 from __future__ import annotations
 
 import json
-import time
 from pathlib import Path
 from typing import Any
 
 import pytest
+from homeassistant.const import CONF_HOST
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
 # Ensure HA loads integrations from ./custom_components during tests
@@ -24,10 +26,6 @@ def _auto_enable_custom_integrations(enable_custom_integrations):
     """Enable loading this repo's custom_components in the HA test instance."""
     return
 
-
-from homeassistant.const import CONF_HOST
-from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 DOMAIN = "redsea"
 
@@ -60,20 +58,147 @@ CLOUD_SERVER_ADDR = _const("CLOUD_SERVER_ADDR", "cloud.reef-beat.com")
 CLOUD_DEVICE_TYPE = _const("CLOUD_DEVICE_TYPE", "Smartphone App")
 
 
+def _cloud_library_paths() -> tuple[str, str, str]:
+    """Return the cloud library endpoint paths.
+
+    Prefer integration constants when importable (keeps tests aligned with refactors).
+    """
+
+    try:
+        from custom_components.redsea.const import (  # type: ignore
+            LIGHTS_LIBRARY,
+            SUPPLEMENTS_LIBRARY,
+            WAVES_LIBRARY,
+        )
+
+        return (str(LIGHTS_LIBRARY), str(WAVES_LIBRARY), str(SUPPLEMENTS_LIBRARY))
+    except Exception:
+        return (
+            "/reef-lights/library?include=all",
+            "/reef-wave/library",
+            "/reef-dosing/supplement",
+        )
+
+
 @pytest.fixture(scope="session")
 def fixtures_dir() -> Path:
     return Path(__file__).parent / "fixtures"
 
 
 @pytest.fixture(scope="session")
-def reefbeat_cloud_dump(fixtures_dir: Path) -> dict[str, Any]:
-    return json.loads((fixtures_dir / ".private/reefbeat_cloud_dump.json").read_text())
+def devices_dir(fixtures_dir: Path) -> Path:
+    # tests/fixtures/devices contains captured endpoint payloads per device type.
+    #
+    # Historically this repo used a symlink to an external simulator checkout.
+    # For portable tests (CI, tarballs, etc.) we keep real fixture files here.
+    return fixtures_dir / "devices"
 
 
-@pytest.fixture(scope="session")
-def reefbeat_probe_by_type(fixtures_dir: Path) -> dict[str, Any]:
-    return json.loads(
-        (fixtures_dir / ".private/reefbeat_probe_by_type.json").read_text()
+def _read_device_endpoint(devices_dir: Path, profile: str, endpoint: str) -> Any:
+    """
+    Load JSON (or text) for a simulated device endpoint.
+
+    profile: "DOSE4", "ATO", "LED", "RUN", "WAVE"
+    endpoint: "/device-info", "/dashboard", "/head/3/settings", "/description.xml", "/"
+    """
+    rel = endpoint.lstrip("/")  # "/device-info" -> "device-info"
+    if rel == "":
+        # root "/" maps to "<profile>/data"
+        data_path = devices_dir / profile / "data"
+    else:
+        data_path = devices_dir / profile / rel / "data"
+
+    if not data_path.exists():
+        # endpoint not implemented in simulator dataset; mirror "not present"
+        return {}
+
+    raw = data_path.read_text(encoding="utf-8")
+
+    # description.xml is not JSON
+    if rel.endswith("description.xml"):
+        return raw
+
+    return json.loads(raw)
+
+
+# Public alias for tests (keeps type checkers happy about private usage)
+read_device_endpoint = _read_device_endpoint
+
+
+def _read_device_info(devices_dir: Path, profile: str) -> dict[str, Any]:
+    info = _read_device_endpoint(devices_dir, profile, "/device-info")
+    return info if isinstance(info, dict) else {}
+
+
+def _read_device_ip(devices_dir: Path, profile: str) -> str:
+    """Return the device IP used for test routing.
+
+    Prefer /wifi.ip when present; fall back to /.wifi_ip.
+    """
+    wifi = _read_device_endpoint(devices_dir, profile, "/wifi")
+    if isinstance(wifi, dict) and isinstance(wifi.get("ip"), str):
+        return str(wifi["ip"])
+
+    root = _read_device_endpoint(devices_dir, profile, "/")
+    if isinstance(root, dict) and isinstance(root.get("wifi_ip"), str):
+        return str(root["wifi_ip"])
+
+    return ""
+
+
+def _profile_to_ip(devices_dir: Path) -> dict[str, str]:
+    """Return a stable mapping of fixture profile -> device IP.
+
+    Some fixtures use a placeholder like "__REEFBEAT_DEVICE_IP__". When that
+    happens we assign a deterministic TEST-NET IP so each profile stays unique.
+    """
+
+    profiles = sorted(p.name for p in devices_dir.iterdir() if p.is_dir())
+    out: dict[str, str] = {}
+
+    base = 90
+    for i, profile in enumerate(profiles):
+        ip = _read_device_ip(devices_dir, profile)
+        if not ip or ip.startswith("__"):
+            ip = f"192.0.2.{base + i}"
+        out[profile] = ip
+
+    return out
+
+
+def _build_ip_to_profile(devices_dir: Path) -> dict[str, str]:
+    profile_to_ip = _profile_to_ip(devices_dir)
+    return {ip: profile for profile, ip in profile_to_ip.items() if ip}
+
+
+def _local_config_entry_from_profile(
+    devices_dir: Path, profile: str
+) -> MockConfigEntry:
+    info = _read_device_info(devices_dir, profile)
+    ip = _profile_to_ip(devices_dir).get(profile, "")
+
+    name = info.get("name")
+    hw_model = info.get("hw_model")
+    hwid = info.get("hwid")
+
+    title = str(name) if isinstance(name, str) else profile
+    hw_model_str = str(hw_model) if isinstance(hw_model, str) else ""
+    unique_id = str(hwid) if isinstance(hwid, str) else None
+
+    data: dict[str, Any] = {
+        CONFIG_FLOW_CONFIG_TYPE: True,
+    }
+    if ip:
+        data[CONF_HOST] = ip
+        data[CONFIG_FLOW_IP_ADDRESS] = ip
+    if hw_model_str:
+        data[CONFIG_FLOW_HW_MODEL] = hw_model_str
+
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title=title,
+        data=data,
+        unique_id=unique_id,
     )
 
 
@@ -104,24 +229,27 @@ def _index_local_sources(probe_by_type: dict[str, Any]) -> dict[str, dict[str, A
 def patch_reefbeat_network(
     hass: HomeAssistant,
     monkeypatch: pytest.MonkeyPatch,
-    reefbeat_cloud_dump: dict[str, Any],
-    reefbeat_probe_by_type: dict[str, Any],
+    devices_dir: Path,
 ) -> None:
-    """Patch the integration's API layer so tests never touch the network."""
-
-    # Import here so test collection doesn't require HA to import the integration.
     from custom_components.redsea.reefbeat.api import ReefBeatAPI  # type: ignore
     from custom_components.redsea.reefbeat.cloud import ReefBeatCloudAPI  # type: ignore
 
-    cloud_sources = _index_cloud_sources(reefbeat_cloud_dump)
-    local_sources_by_ip = _index_local_sources(reefbeat_probe_by_type)
+    # Map host/ip -> simulator profile based on captured fixture payloads.
+    ip_to_profile = _build_ip_to_profile(devices_dir)
+
+    # Cloud payloads are served from sanitized fixtures under tests/fixtures/devices/CLOUD.
+    lights_library, waves_library, supplements_library = _cloud_library_paths()
+    cloud_sources: dict[str, Any] = {
+        "/user": _read_device_endpoint(devices_dir, "CLOUD", "/user"),
+        "/aquarium": _read_device_endpoint(devices_dir, "CLOUD", "/aquarium"),
+        "/device": _read_device_endpoint(devices_dir, "CLOUD", "/device"),
+        # Library endpoints may not be present in the sanitized dataset; default to empty.
+        lights_library: [],
+        waves_library: [],
+        supplements_library: [],
+    }
 
     async def _fake_http_get(self: ReefBeatAPI, session: Any, source: Any) -> bool:
-        """Fake the low-level GET used by `fetch_*` and `get_initial_data`.
-
-        This is the most reliable patch point because the integration uses
-        `_call_url()` -> `_http_get()` for *all* cached sources.
-        """
         endpoint = None
         try:
             endpoint = source.value.get("name")
@@ -131,31 +259,24 @@ def patch_reefbeat_network(
         if not isinstance(endpoint, str):
             return False
 
-        # Cloud
-        if getattr(self, "_secure", False):
-            if endpoint in cloud_sources:
-                source.value["data"] = cloud_sources[endpoint]
-            else:
-                source.value["data"] = {}
+        # Cloud API instances are created with secure=True
+        if bool(getattr(self, "_secure", False)):
+            source.value["data"] = cloud_sources.get(endpoint, {})
             return True
 
-        # Local
+        # Your integration uses `self.ip` for locals
         ip = getattr(self, "ip", None)
-        if isinstance(ip, str) and ip in local_sources_by_ip:
-            payloads = local_sources_by_ip[ip]
-            source.value["data"] = payloads.get(endpoint, {})
+        profile = ip_to_profile.get(ip) if isinstance(ip, str) else None
+        if not profile:
+            source.value["data"] = {}
             return True
 
-        # Unknown device/ip
-        source.value["data"] = {}
+        source.value["data"] = _read_device_endpoint(devices_dir, profile, endpoint)
         return True
 
     async def _fake_cloud_connect(self: ReefBeatCloudAPI) -> None:
-        """Avoid calling real cloud auth endpoints."""
-        # Cloud API expects a token + headers; any non-empty value works for our tests.
         self._token = "test-token"
         self._header = {"Authorization": "Bearer test-token"}
-        self._auth_date = time.time()
 
     monkeypatch.setattr(ReefBeatAPI, "_http_get", _fake_http_get, raising=True)
     monkeypatch.setattr(ReefBeatCloudAPI, "connect", _fake_cloud_connect, raising=True)
@@ -181,54 +302,37 @@ def cloud_config_entry() -> MockConfigEntry:
 
 
 @pytest.fixture
-def local_dose_config_entry() -> MockConfigEntry:
-    """Config entry for the captured ReefDose4 device."""
-    return MockConfigEntry(
-        domain=DOMAIN,
-        title="RSDOSE4-217211586",
-        data={
-            CONF_HOST: "10.0.30.94",
-            CONFIG_FLOW_IP_ADDRESS: "10.0.30.94",
-            CONFIG_FLOW_HW_MODEL: "RSDOSE4",
-            # The integration reads this to decide which sources to fetch.
-            "live_config_update": True,
-        },
-        unique_id="1c9dc262f20c",
-    )
+def local_dose_config_entry(devices_dir: Path) -> MockConfigEntry:
+    return _local_config_entry_from_profile(devices_dir, "DOSE4")
 
 
 @pytest.fixture
-def local_mat_config_entry() -> MockConfigEntry:
+def local_dose2_config_entry(devices_dir: Path) -> MockConfigEntry:
+    return _local_config_entry_from_profile(devices_dir, "DOSE2")
+
+
+@pytest.fixture
+def local_mat_config_entry(devices_dir: Path) -> MockConfigEntry:
     """Config entry for the captured ReefMat 500 device."""
-    return MockConfigEntry(
-        domain=DOMAIN,
-        title="RSMAT-3632934213",
-        data={
-            CONF_HOST: "10.0.30.95",
-            CONFIG_FLOW_IP_ADDRESS: "10.0.30.95",
-            # NOTE: current integration uses HW_MAT_IDS=("RSMAT",) in the
-            # coordinator factory. Using "RSMAT" keeps tests passing while
-            # refactor work continues.
-            CONFIG_FLOW_HW_MODEL: "RSMAT",
-            # Preserve the real model as extra data for later assertions.
-            "model": "RSMAT500",
-            "live_config_update": True,
-        },
-        unique_id="345f452d8ad8",
-    )
+    return _local_config_entry_from_profile(devices_dir, "MAT")
 
 
 @pytest.fixture
-def local_ato_config_entry() -> MockConfigEntry:
+def local_ato_config_entry(devices_dir: Path) -> MockConfigEntry:
     """Config entry for the captured ReefATO+ device."""
-    return MockConfigEntry(
-        domain=DOMAIN,
-        title="RSATO+2487379135",
-        data={
-            CONF_HOST: "10.0.30.96",
-            CONFIG_FLOW_IP_ADDRESS: "10.0.30.96",
-            CONFIG_FLOW_HW_MODEL: "RSATO+",
-            "live_config_update": True,
-        },
-        unique_id="8813bf644294",
-    )
+    return _local_config_entry_from_profile(devices_dir, "ATO")
+
+
+@pytest.fixture
+def local_run_config_entry(devices_dir: Path) -> MockConfigEntry:
+    return _local_config_entry_from_profile(devices_dir, "RUN")
+
+
+@pytest.fixture
+def local_wave_config_entry(devices_dir: Path) -> MockConfigEntry:
+    return _local_config_entry_from_profile(devices_dir, "WAVE")
+
+
+@pytest.fixture
+def local_led_config_entry(devices_dir: Path) -> MockConfigEntry:
+    return _local_config_entry_from_profile(devices_dir, "LED")
