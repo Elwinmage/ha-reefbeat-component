@@ -3,3 +3,4 @@ pytest-cov
 pytest-asyncio
 pytest-homeassistant-custom-component
 coverage-badge
+jsonpath-ng>=1.7.0
