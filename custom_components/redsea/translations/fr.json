@@ -258,7 +258,11 @@
         "name": "Modèle"
       },
       "position": {
-        "name": "Position"
+        "name": "Position",
+        "state": {
+          "left": "Gauche",
+          "right": "Droite"
+        }
       },
       "preview_wave_direction": {
         "name": "Prev. direction des vagues"
@@ -452,7 +456,13 @@
         "name": "Volume intial"
       },
       "schedule_head": {
-        "name": "Programme de la pompe"
+        "name": "Programme de la pompe",
+        "state": {
+          "custom": "Personnalisé",
+          "daily": "Journalier",
+          "hourly": "Horaire",
+          "single": "Unique"
+        }
       },
       "state": {
         "name": "Etat"

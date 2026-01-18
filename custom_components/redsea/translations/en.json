@@ -258,7 +258,11 @@
         "name": "Model"
       },
       "position": {
-        "name": "Position"
+        "name": "Position",
+        "state": {
+          "left": "Left",
+          "right": "Right"
+        }
       },
       "preview_wave_direction": {
         "name": "Preview Waves Direction"
@@ -452,7 +456,13 @@
         "name": "Container Initial Volume"
       },
       "schedule_head": {
-        "name": "Head Schedule"
+        "name": "Head Schedule",
+        "state": {
+          "custom": "Custom",
+          "daily": "Daily",
+          "hourly": "Hourly",
+          "single": "Single"
+        }
       },
       "state": {
         "name": "State"
