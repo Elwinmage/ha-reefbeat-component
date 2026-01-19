@@ -55,6 +55,9 @@
     },
     "entity": {
 	"button":{
+	    "delete_emergency":{
+		"name": "Delete Emergency Alert"
+	    },
 	    "set_supplement":{
 		"name": "Set new Supplement"
 	    },

@@ -147,6 +147,14 @@ MAT_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         icon="mdi:paper-roll-outline",
         entity_category=EntityCategory.CONFIG,
     ),
+    ReefBeatButtonEntityDescription(
+        key="delete_emergency",
+        translation_key="delete_emergency",
+        exists_fn=lambda _: True,
+        press_fn=lambda device: device.delete("/emergency"),
+        icon="mdi:alert",
+        entity_category=EntityCategory.CONFIG,
+    ),
 )
 
 ATO_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (

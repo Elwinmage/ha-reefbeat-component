@@ -61,7 +61,7 @@ class ReefBeatAPI:
                 # {"name":"/","type": "device-info","data":""},
                 {"name": "/device-info", "type": "device-info", "data": ""},
                 {"name": "/firmware", "type": "config", "data": ""},
-                {"name": "/mode", "type": "config", "data": ""},
+                {"name": "/mode", "type": "data", "data": ""},
                 {"name": "/cloud", "type": "config", "data": ""},
                 {"name": "/wifi", "type": "data", "data": ""},
                 {"name": "/dashboard", "type": "data", "data": ""},
@@ -919,12 +919,8 @@ class ReefWaveAPI(ReefBeatAPI):
     def __init__(self, ip, live_config_update) -> None:
         super().__init__(ip, live_config_update)
         self.data["sources"].remove({"name": "/dashboard", "type": "data", "data": ""})
-        self.data["sources"].remove({"name": "/mode", "type": "config", "data": ""})
         self.data["sources"].insert(
             len(self.data["sources"]), {"name": "/", "type": "device-info", "data": ""}
-        )
-        self.data["sources"].insert(
-            len(self.data["sources"]), {"name": "/mode", "type": "data", "data": ""}
         )
         self.data["sources"].insert(
             len(self.data["sources"]),

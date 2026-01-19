@@ -52,6 +52,9 @@
   },
   "entity": {
     "button": {
+	"delete_emergency":{
+	    "name": "Effacer l'alerte"
+	},
       "set_supplement": {
         "name": "Modifer le Supplément"
       },
