@@ -55,6 +55,8 @@ CONFIG_FLOW_CONFIG_TYPE = "live_config_update"
 SCAN_INTERVAL = 120  # in seconds
 DO_NOT_REFRESH_TIME = 2  # in seconds
 
+REFRESH_DEVICE_DELAY = 2  # Time to wait for device to take data refresh into account
+
 DEFAULT_TIMEOUT = 20
 
 HTTP_MAX_RETRY = 5

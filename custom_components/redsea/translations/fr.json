@@ -203,6 +203,9 @@
       }
     },
     "binary_sensor": {
+      "bundled_heads": {
+        "name": "Têtes liées"
+      },
       "cloud_state": {
         "name": "Connecté au Cloud"
       },
@@ -263,9 +266,6 @@
       }
     },
     "sensor": {
-      "bundled_heads": {
-        "name": "Têtes liées"
-      },
       "dosing_queue": {
         "name": "File d'attente"
       },

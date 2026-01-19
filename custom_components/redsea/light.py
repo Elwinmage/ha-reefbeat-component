@@ -309,12 +309,8 @@ class ReefLedLightEntity(CoordinatorEntity, LightEntity):
                 round(ha_value * LED_CONVERSION_COEF),
             )
             self._device._hass.bus.fire(EVENT_WB_LIGHT_UPDATED, {})
-
-        # self._device.force_status_update(True)
         self.async_write_ha_state()
         await self._device.push_values("/manual", "post")
-        # await self._device.async_quick_request_refresh('/manual')
-        # await self._device.async_request_refresh()
 
     async def async_turn_off(self, **kwargs):
         _LOGGER.debug("redsea.light.async_turn_off")
@@ -330,8 +326,7 @@ class ReefLedLightEntity(CoordinatorEntity, LightEntity):
         self._device.force_status_update()
         self.async_write_ha_state()
         await self._device.push_values("/manual", "post")
-        await self._device.async_quick_request_refresh("/manual")
-        # await self._device.async_request_refresh()
+        await self._device.async_request_refresh(source="/manual")
 
     @property
     def available(self) -> bool:

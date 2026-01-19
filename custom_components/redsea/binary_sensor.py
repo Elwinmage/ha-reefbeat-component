@@ -251,6 +251,22 @@ async def async_setup_entry(
         ]
     elif type(device).__name__ == "ReefDoseCoordinator":
         ds = ()
+        new_head = (
+            ReefDoseBinarySensorEntityDescription(
+                key="bundled_heads",
+                translation_key="bundled_heads",
+                icon="mdi:link",
+                value_name="$.sources[?(@.name=='/dashboard')].data.bundled_heads",
+                head=0,
+            ),
+        )
+        ds += new_head
+        entities += [
+            ReefBeatBinarySensorEntity(device, description)
+            for description in ds
+            if description.exists_fn(device)
+        ]
+        ds = ()
         for head in range(1, device.heads_nb + 1):
             new_head = (
                 ReefDoseBinarySensorEntityDescription(

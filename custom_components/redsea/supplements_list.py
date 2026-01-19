@@ -994,6 +994,7 @@ SUPPLEMENTS = [
         "short_name": "Care",
         "brand_name": "Red Sea",
         "type": "Bundle",
+        "sizes": [500, 1000, 2000],
         "bundle": {
             "1": {
                 "supplement": {

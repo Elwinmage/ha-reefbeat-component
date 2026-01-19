@@ -483,8 +483,7 @@ class ReefBeatSwitchEntity(CoordinatorEntity, SwitchEntity):
         self.async_write_ha_state()
 
         await self._device.push_values(self._source, self.entity_description.method)
-        # await self._device.async_request_refresh()
-        await self._device.async_quick_request_refresh(self._source)
+        await self._device.async_request_refresh(source=self._source)
 
     async def async_turn_off(self, **kwargs):
         self._state = False
@@ -513,8 +512,7 @@ class ReefBeatSwitchEntity(CoordinatorEntity, SwitchEntity):
         self._device.async_update_listeners()
         self.async_write_ha_state()
         await self._device.push_values(self._source, self.entity_description.method)
-        # await self._device.async_request_refresh()
-        await self._device.async_quick_request_refresh(self._source)
+        await self._device.async_request_refresh(source=self._source)
 
     @property
     def is_on(self) -> bool:
@@ -547,9 +545,7 @@ class ReefLedSwitchEntity(ReefBeatSwitchEntity):
         self._device.async_update_listeners()
         self.async_write_ha_state()
         await self._device.post_specific(self._source)
-        await self._device.async_quick_request_refresh(self._source)
-        #        await self._device.async_request_refresh()
-        # self.async_write_ha_state()
+        await self._device.async_request_refresh(source=self._source)
 
     async def async_turn_off(self, **kwargs):
         self._state = False
@@ -557,9 +553,7 @@ class ReefLedSwitchEntity(ReefBeatSwitchEntity):
         self._device.async_update_listeners()
         self.async_write_ha_state()
         await self._device.delete(self._source)
-        await self._device.async_quick_request_refresh(self._source)
-        #        await self._device.async_request_refresh()
-        # self.async_write_ha_state()
+        await self._device.async_request_refresh(source=self._source)
 
 
 ###############################################################################
@@ -587,8 +581,8 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
             self._device._hass.bus.fire(self.entity_description.value_name, {})
 
         await self._device.push_values(self._head)
-        await self._device.async_quick_request_refresh(
-            "/head/" + str(self._head) + "/settings"
+        await self._device.async_request_refresh(
+            source="/head/" + str(self._head) + "/settings"
         )
         # await self._device.async_request_refresh()
 
@@ -600,8 +594,8 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
         if self.entity_description.notify:
             self._device._hass.bus.fire(self.entity_description.value_name, {})
         await self._device.push_values(self._head)
-        await self._device.async_quick_request_refresh(
-            "/head/" + str(self._head) + "/settings"
+        await self._device.async_request_refresh(
+            source="/head/" + str(self._head) + "/settings"
         )
         # await self._device.async_request_refresh()
 
@@ -642,8 +636,7 @@ class ReefRunSwitchEntity(ReefBeatSwitchEntity):
             self._device._hass.bus.fire(self.entity_description.value_name, {})
 
         await self._device.push_values(source="/pump/settings", pump=self._pump)
-        await self._device.async_quick_request_refresh("/pump/settings")
-        # await self._device.async_request_refresh()
+        await self._device.async_request_refresh(source="/pump/settings")
 
     async def async_turn_off(self, **kwargs):
         self._state = False
@@ -653,8 +646,7 @@ class ReefRunSwitchEntity(ReefBeatSwitchEntity):
         if self.entity_description.notify:
             self._device._hass.bus.fire(self.entity_description.value_name, {})
         await self._device.push_values(source="/pump/settings", pump=self._pump)
-        await self._device.async_quick_request_refresh("/pump/settings")
-        # await self._device.async_request_refresh()
+        await self._device.async_request_refresh(source="/pump/settings")
 
     @property
     def device_info(self) -> DeviceInfo:

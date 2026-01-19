@@ -693,16 +693,6 @@ async def async_setup_entry(
             ),
         )
         ds += new_head
-        new_head = (
-            ReefDoseSensorEntityDescription(
-                key="bundled_heads",
-                translation_key="bundled_heads",
-                icon="mdi:link",
-                value_name="$.sources[?(@.name=='/dashboard')].data.bundled_heads",
-                head=0,
-            ),
-        )
-        ds += new_head
         entities += [
             ReefBeatSensorEntity(device, description)
             for description in ds

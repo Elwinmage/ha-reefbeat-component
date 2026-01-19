@@ -48,6 +48,7 @@ from .const import (
     HW_ATO_IDS,
     HW_MAT_IDS,
     HW_DOSE_IDS,
+    REFRESH_DEVICE_DELAY,
 )
 
 from .reefbeat import (
@@ -125,16 +126,16 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return res
         return None
 
-    async def async_request_refresh(self, wait=2):
-        # wait fore device to refresh state
+    async def async_request_refresh(
+        self, source=None, config=False, wait=REFRESH_DEVICE_DELAY
+    ):
+        # wait for device to refresh state
         if wait > 0:
             await asyncio.sleep(wait)
-        return await super().async_request_refresh()
-
-    async def async_quick_request_refresh(self, source, wait=2):
-        # wait fore device to refresh state
-        await asyncio.sleep(wait)
-        self.my_api.quick_refresh = source
+        if source is not None:
+            self.my_api.quick_refresh = source
+        if config:
+            await self.my_api.fetch_config()
         return await super().async_request_refresh()
 
     @property
@@ -533,13 +534,11 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         for led in self._linked:
             await led.post_specific(source)
 
-    async def async_request_refresh(self):
+    async def async_request_refresh(
+        self, source=None, config=False, wait=REFRESH_DEVICE_DELAY
+    ):
         for led in self._linked:
-            await led.async_request_refresh()
-
-    async def async_quick_request_refresh(self, source):
-        for led in self._linked:
-            await led.async_quick_request_refresh(source)
+            await led.async_request_refresh(source, config, wait)
 
     @property
     def device_info(self):

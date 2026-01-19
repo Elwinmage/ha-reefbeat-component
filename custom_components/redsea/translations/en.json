@@ -204,7 +204,10 @@
         "name": "Manual Volume"
       }
     },
-    "binary_sensor": {
+      "binary_sensor": {
+	  "bundled_heads":{
+	    "name": "Bundled Heads"
+	},
       "cloud_state": {
         "name": "Cloud connection state"
       },
@@ -264,9 +267,6 @@
       }
     },
     "sensor": {
-      "bundled_heads": {
-        "name": "Bundled Heads"
-      },
       "dosing_queue": {
         "name": "Dosing Queue"
       },

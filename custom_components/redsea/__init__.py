@@ -126,8 +126,7 @@ async def async_setup(hass: HomeAssistant, config) -> bool:
             except Exception:
                 r_text = r.text
                 _LOGGER.debug(r)
-            await device.my_api.fetch_config()
-            await device.my_api.fetch_data()
+            await device.async_request_refresh(config=True)
             return {"code": r.status_code, "text": r_text}
         else:
             _LOGGER.error("can not access to device " + device._title)
