@@ -12,16 +12,16 @@ from custom_components.redsea.switch import (
     ReefRunSwitchEntity,
     ReefRunSwitchEntityDescription,
 )
-from tests._switch_test_fakes import FakeCoordinator
+from tests._switch_test_fakes import FakeCoordinator, FakeRunCoordinator
 
 
-class _RunDevice(FakeCoordinator):
+class _RunDevice(FakeRunCoordinator):
     pass
 
 
 @pytest.mark.asyncio
 async def test_run_switch_device_info_adds_pump_suffix() -> None:
-    device = FakeCoordinator()
+    device = FakeRunCoordinator()
     desc = ReefRunSwitchEntityDescription(
         key="run",
         translation_key="run",
@@ -40,7 +40,7 @@ async def test_run_switch_device_info_adds_pump_suffix() -> None:
 
 @pytest.mark.asyncio
 async def test_run_switch_notify_and_pushes_settings(hass: Any) -> None:
-    device = FakeCoordinator()
+    device = FakeRunCoordinator()
     device.hass = hass
 
     events: list[str] = []
@@ -68,13 +68,13 @@ async def test_run_switch_notify_and_pushes_settings(hass: Any) -> None:
     await hass.async_block_till_done()
 
     assert events == ["event.run"]
-    assert device.pushed == [("/pump/settings", "put")]
+    assert device.pushed == [("/pump/settings", "put",1)]
     assert device.refreshed == ["/pump/settings"]
 
 
 @pytest.mark.asyncio
 async def test_run_switch_turn_on_notify_and_pushes_settings(hass: Any) -> None:
-    device = FakeCoordinator()
+    device = FakeRunCoordinator()
     device.hass = hass
 
     events: list[str] = []
@@ -102,7 +102,7 @@ async def test_run_switch_turn_on_notify_and_pushes_settings(hass: Any) -> None:
     await hass.async_block_till_done()
 
     assert events == ["event.run"]
-    assert device.pushed == [("/pump/settings", "put")]
+    assert device.pushed == [("/pump/settings", "put",1)]
     assert device.refreshed == ["/pump/settings"]
 
 

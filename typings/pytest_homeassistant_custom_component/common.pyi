@@ -4,7 +4,6 @@ from typing import Any, Mapping, MutableMapping
 
 from homeassistant.core import HomeAssistant
 
-
 class MockConfigEntry:
     entry_id: str
     domain: str
@@ -25,5 +24,4 @@ class MockConfigEntry:
         version: int = ...,
         source: str | None = ...,
     ) -> None: ...
-
     def add_to_hass(self, hass: HomeAssistant) -> None: ...

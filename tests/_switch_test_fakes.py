@@ -73,7 +73,9 @@ class FakeCoordinator:
     async def push_values(self, source: str, method: str = "put") -> None:
         self.pushed.append((source, method))
 
-    async def async_quick_request_refresh(self, source: str) -> None:
+    async def async_request_refresh(
+        self, source: str, config: bool = False, wait: int = 2
+    ) -> None:
         self.refreshed.append(source)
 
 
@@ -83,3 +85,12 @@ class FakeDoseCoordinator(FakeCoordinator):
 
     async def push_values(self, head: int) -> None:  # type: ignore[override]
         self.head_pushed.append(head)
+
+
+@dataclass
+class FakeRunCoordinator(FakeCoordinator):
+    pushed: list[(str,str,int)] = field(default_factory=list)
+
+    async def push_values(self, source:str,method:str="put",pump: int= None) -> None:  # type: ignore[override]
+        self.pushed.append((source,method,pump))
+        

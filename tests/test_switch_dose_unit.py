@@ -36,7 +36,7 @@ async def test_dose_switch_device_info_adds_head_suffix() -> None:
 
     assert info.get("name") == "Dose head 2"
     identifiers = cast(set[tuple[str, str]], info.get("identifiers"))
-    assert ("redsea", "SERIAL_head_2") in identifiers
+    assert ("redsea", "SERIAL","head_2") in identifiers
 
 
 @pytest.mark.asyncio
