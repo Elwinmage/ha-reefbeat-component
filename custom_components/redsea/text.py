@@ -52,6 +52,7 @@ class ReefBeatTextEntityDescription(TextEntityDescription):
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     dependency: str | None = None
 
+
 @dataclass(kw_only=True, frozen=True)
 class ReefDoseTextEntityDescription(ReefBeatTextEntityDescription):
     """Describes a ReefDose per-head text entity."""

@@ -47,7 +47,7 @@ class FakeCoordinator:
         self.pushed.append({"source": source, "method": method, **kwargs})
 
     async def async_request_refresh(
-        self, source: str=None, config: bool=False, wait: int = 2
+        self, source: str = None, config: bool = False, wait: int = 2
     ) -> None:
         self.refreshed += 1
 

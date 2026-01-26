@@ -89,8 +89,9 @@ class FakeDoseCoordinator(FakeCoordinator):
 
 @dataclass
 class FakeRunCoordinator(FakeCoordinator):
-    pushed: list[(str,str,int)] = field(default_factory=list)
+    pushed: list[(str, str, int)] = field(default_factory=list)
 
-    async def push_values(self, source:str,method:str="put",pump: int= None) -> None:  # type: ignore[override]
-        self.pushed.append((source,method,pump))
-        
+    async def push_values(
+        self, source: str, method: str = "put", pump: int = None
+    ) -> None:  # type: ignore[override]
+        self.pushed.append((source, method, pump))

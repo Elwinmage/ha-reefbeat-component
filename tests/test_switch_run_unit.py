@@ -12,7 +12,7 @@ from custom_components.redsea.switch import (
     ReefRunSwitchEntity,
     ReefRunSwitchEntityDescription,
 )
-from tests._switch_test_fakes import FakeCoordinator, FakeRunCoordinator
+from tests._switch_test_fakes import FakeRunCoordinator
 
 
 class _RunDevice(FakeRunCoordinator):
@@ -68,7 +68,7 @@ async def test_run_switch_notify_and_pushes_settings(hass: Any) -> None:
     await hass.async_block_till_done()
 
     assert events == ["event.run"]
-    assert device.pushed == [("/pump/settings", "put",1)]
+    assert device.pushed == [("/pump/settings", "put", 1)]
     assert device.refreshed == ["/pump/settings"]
 
 
@@ -102,7 +102,7 @@ async def test_run_switch_turn_on_notify_and_pushes_settings(hass: Any) -> None:
     await hass.async_block_till_done()
 
     assert events == ["event.run"]
-    assert device.pushed == [("/pump/settings", "put",1)]
+    assert device.pushed == [("/pump/settings", "put", 1)]
     assert device.refreshed == ["/pump/settings"]
 
 
