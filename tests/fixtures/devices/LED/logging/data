@@ -1,0 +1,9 @@
+{
+  "log_level": "info",
+  "message": "",
+  "port": 5044,
+  "remote_logging": false,
+  "serial": true,
+  "server": "device.logging.reef-beat.com",
+  "success": true
+}

@@ -1,125 +1,160 @@
-"""Implements the sensor entity"""
+"""Number platform for Red Sea ReefBeat devices.
+
+This module exposes device settings as `number` entities (configuration sliders/boxes)
+for supported ReefBeat devices (LED, Mat, Dose, Run, Wave, ATO).
+
+Most entities read/write values via their device coordinator. Some entities are
+conditionally available depending on other device state (dependency fields).
+"""
+
+from __future__ import annotations
 
 import logging
-
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from collections.abc import Callable
-
-from homeassistant.core import (
-    HomeAssistant,
-    callback,
-)
-
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
-
-from homeassistant.config_entries import ConfigEntry
+from typing import Any, Protocol, cast, runtime_checkable
 
 from homeassistant.components.number import (
     NumberDeviceClass,
     NumberEntity,
     NumberEntityDescription,
-    RestoreNumber,
+    NumberMode,
 )
-
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
-    UnitOfLength,
-    UnitOfVolume,
-    UnitOfTime,
     EntityCategory,
+    UnitOfLength,
+    UnitOfTime,
+    UnitOfVolume,
 )
-
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
-
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     ATO_VOLUME_LEFT_INTERNAL_NAME,
     DOMAIN,
-    MAT_MIN_ROLL_DIAMETER,
-    MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
-    MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
-    LED_MOONPHASE_ENABLED_INTERNAL_NAME,
-    LED_MOON_DAY_INTERNAL_NAME,
-    LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
     LED_ACCLIMATION_DURATION_INTERNAL_NAME,
+    LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
     LED_ACCLIMATION_INTENSITY_INTERNAL_NAME,
     LED_MANUAL_DURATION_INTERNAL_NAME,
+    LED_MOON_DAY_INTERNAL_NAME,
+    LED_MOONPHASE_ENABLED_INTERNAL_NAME,
+    MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
+    MAT_MIN_ROLL_DIAMETER,
+    MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
     WAVE_SHORTCUT_OFF_DELAY,
     WAVE_TYPES,
 )
-
 from .coordinator import (
+    ReefATOCoordinator,
     ReefBeatCoordinator,
     ReefDoseCoordinator,
     ReefLedCoordinator,
+    ReefLedG2Coordinator,
+    ReefMatCoordinator,
     ReefRunCoordinator,
+    ReefVirtualLedCoordinator,
+    ReefWaveCoordinator,
 )
-
+from .entity import ReefBeatRestoreEntity, RestoreSpec
 from .i18n import translate
 
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass(kw_only=True)
+# Coordinator capability protocols (typing only)
+@runtime_checkable
+
+# =============================================================================
+# Classes
+# =============================================================================
+
+class _HasDeviceInfo(Protocol):
+    device_info: Any
+
+    @property
+    def title(self) -> str: ...
+
+    @property
+    def serial(self) -> str: ...
+
+    def async_add_listener(
+        self, update_callback: Callable[[], None]
+    ) -> Callable[[], None]: ...
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any: ...
+    def set_data(self, name: str, value: Any) -> None: ...
+    async def push_values(
+        self,
+        source: str = "/configuration",
+        method: str = "put",
+        *args: Any,
+        **kwargs: Any,
+    ) -> None: ...
+    async def async_request_refresh(self, *, wait: int = 2) -> None: ...
+
+
+@runtime_checkable
+class _HasPostSpecific(Protocol):
+    async def post_specific(self, source: str) -> None: ...
+
+
+@runtime_checkable
+class _HasPumpIntensity(Protocol):
+    async def set_pump_intensity(self, pump: int, intensity: int) -> None: ...
+    async def push_values(
+        self,
+        source: str = "/configuration",
+        method: str = "put",
+        pump: int | None = None,
+    ) -> None: ...
+
+
+@runtime_checkable
+class _HasATOVolumeLeft(Protocol):
+    async def set_volume_left(self, volume_ml: int) -> None: ...
+
+
+# Entity descriptions
+@dataclass(kw_only=True, frozen=True)
 class ReefBeatNumberEntityDescription(NumberEntityDescription):
-    """Describes reefbeat Number entity."""
+    """Common description for ReefBeat number entities."""
 
-    exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
+    exists_fn: Callable[[Any], bool] = lambda _: True
     value_name: str = ""
-    dependency: str = None
-    dependency_values: [] = None
-    translate: [] = None
+    dependency: str | None = None
+    dependency_values: Sequence[Any] | None = None
+    translate: Sequence[dict[str, Any]] | None = None
+    source: str = "/configuration"
 
+@dataclass(kw_only=True, frozen=True)
+class ReefRunNumberEntityDescription(ReefBeatNumberEntityDescription):
+    """Description for ReefRun number entities."""
 
-@dataclass(kw_only=True)
-class RestoreNumberEntityDescription(NumberEntityDescription):
-    """Describes reefbeat number entity."""
-
-    exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
-    head: int = 0
-    value_name: str = None
-    dependency: str = None
-    dependency_values: str = None
-
-
-@dataclass(kw_only=True)
-class ReefRunNumberEntityDescription(NumberEntityDescription):
-    """Describes reefbeat Number entity."""
-
-    exists_fn: Callable[[ReefRunCoordinator], bool] = lambda _: True
-    dependency: str = None
-    dependency_values: [] = None
-    translate: [] = None
-    value_name: str = ""
     pump: int = 0
 
 
-@dataclass(kw_only=True)
-class ReefLedNumberEntityDescription(NumberEntityDescription):
-    """Describes reefbeat Number entity."""
+@dataclass(kw_only=True, frozen=True)
+class ReefLedNumberEntityDescription(ReefBeatNumberEntityDescription):
+    """Description for ReefLED number entities."""
 
-    exists_fn: Callable[[ReefLedCoordinator], bool] = lambda _: True
-    value_name: str = ""
-    post_specific: bool = False
-    dependency: str = None
-    dependency_values: [] = None
-    translate: [] = None
+    post_specific: str | None = None
 
 
-@dataclass(kw_only=True)
-class ReefDoseNumberEntityDescription(NumberEntityDescription):
-    """Describes reefbeat Number entity."""
+@dataclass(kw_only=True, frozen=True)
+class ReefDoseNumberEntityDescription(ReefBeatNumberEntityDescription):
+    """Description for ReefDose number entities."""
 
-    exists_fn: Callable[[ReefDoseCoordinator], bool] = lambda _: True
-    value_name: str = ""
     head: int = 0
-    dependency: str = None
-    dependency_values: [] = None
-    translate: [] = None
 
+
+DescriptionT = (
+    ReefBeatNumberEntityDescription
+    | ReefRunNumberEntityDescription
+    | ReefLedNumberEntityDescription
+    | ReefDoseNumberEntityDescription
+)
 
 WAVE_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
     ReefBeatNumberEntityDescription(
@@ -338,32 +373,31 @@ async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
-    discovery_info=None,
-):
-    """Configuration de la plate-forme tuto_hacs à partir de la configuration graphique"""
+) -> None:
+    """Set up number entities from a config entry."""
     device = hass.data[DOMAIN][config_entry.entry_id]
+    entities: list[NumberEntity] = []
 
-    entities = []
-    _LOGGER.debug("NUMBERS")
-    if (
-        type(device).__name__ == "ReefLedCoordinator"
-        or type(device).__name__ == "ReefVirtualLedCoordinator"
-        or type(device).__name__ == "ReefLedG2Coordinator"
+    if isinstance(
+        device, (ReefLedCoordinator, ReefVirtualLedCoordinator, ReefLedG2Coordinator)
     ):
-        entities += [
-            ReefLedNumberEntity(device, description, hass)
+        entities.extend(
+            ReefLedNumberEntity(device, description)
             for description in LED_NUMBERS
             if description.exists_fn(device)
-        ]
-    elif type(device).__name__ == "ReefMatCoordinator":
-        entities += [
+        )
+
+    elif isinstance(device, ReefMatCoordinator):
+        entities.extend(
             ReefBeatNumberEntity(device, description)
             for description in MAT_NUMBERS
             if description.exists_fn(device)
-        ]
-    elif type(device).__name__ == "ReefDoseCoordinator":
-        dn = ()
-        new_head = (
+        )
+
+    elif isinstance(device, ReefDoseCoordinator):
+        descriptions: list[ReefDoseNumberEntityDescription] = []
+
+        descriptions.append(
             ReefDoseNumberEntityDescription(
                 key="stock_alert_days",
                 translation_key="stock_alert_days",
@@ -375,10 +409,9 @@ async def async_setup_entry(
                 icon="mdi:hydraulic-oil-level",
                 head=0,
                 entity_category=EntityCategory.CONFIG,
-            ),
+            )
         )
-        dn += new_head
-        new_head = (
+        descriptions.append(
             ReefDoseNumberEntityDescription(
                 key="dosing_waiting_period",
                 translation_key="dosing_waiting_period",
@@ -390,433 +423,486 @@ async def async_setup_entry(
                 icon="mdi:sleep",
                 head=0,
                 entity_category=EntityCategory.CONFIG,
-            ),
+            )
         )
-        dn += new_head
+
         for head in range(1, device.heads_nb + 1):
-            new_head = (
-                RestoreNumberEntityDescription(
-                    key="save_initial_container_volume_head_" + str(head),
+            descriptions.append (
+                ReefDoseNumberEntityDescription(
+                    key=f"save_initial_container_volume_head_{head}",
                     translation_key="save_initial_container_volume",
                     native_unit_of_measurement=UnitOfVolume.MILLILITERS,
                     device_class=NumberDeviceClass.VOLUME_STORAGE,
                     native_min_value=25,
                     native_step=1,
                     native_max_value=20000,
-                    value_name="$.local.head." + str(head) + ".initial_volume",
+                    value_name=f"$.local.head.{head}.initial_volume",
                     icon="mdi:content-save-cog",
-                    dependency="$.sources[?(@.name=='/head/"
-                    + str(head)
-                    + "/settings')].data.slm",
+                    dependency=f"$.sources[?(@.name=='/head/{head}/settings')].data.slm",
                     head=head,
                     entity_category=EntityCategory.CONFIG,
                 ),
             )
-            init_number = new_head
-            entities += [
-                RestoreNumberEntity(device, description)
-                for description in init_number
-                if description.exists_fn(device)
-            ]
-
-            new_head = (
+            descriptions.append(
                 ReefDoseNumberEntityDescription(
-                    key="manual_head_" + str(head) + "_volume",
+                    key=f"manual_head_{head}_volume",
                     translation_key="manual_head_volume",
-                    mode="box",
+                    mode=NumberMode.BOX,
                     native_unit_of_measurement=UnitOfVolume.MILLILITERS,
                     device_class=NumberDeviceClass.VOLUME,
                     native_min_value=0,
                     native_step=0.1,
                     native_max_value=300,
-                    value_name="$.local.head." + str(head) + ".manual_dose",
+                    value_name=f"$.local.head.{head}.manual_dose",
                     icon="mdi:cup-water",
                     head=head,
                     entity_category=EntityCategory.CONFIG,
-                ),
+                )
             )
-            dn += new_head
-            new_head = (
+            descriptions.append(
                 ReefDoseNumberEntityDescription(
-                    key="calibration_dose_value_head_" + str(head),
+                    key=f"calibration_dose_value_head_{head}",
                     translation_key="calibration_dose_value",
                     native_unit_of_measurement=UnitOfVolume.MILLILITERS,
                     native_min_value=3.5,
                     native_step=0.05,
                     native_max_value=5.5,
-                    value_name="$.local.head." + str(head) + ".calibration_dose",
+                    value_name=f"$.local.head.{head}.calibration_dose",
                     icon="mdi:test-tube-empty",
                     head=head,
                     entity_category=EntityCategory.CONFIG,
                     entity_registry_visible_default=False,
-                ),
+                )
             )
-            dn += new_head
-            new_head = (
+            descriptions.append(
                 ReefDoseNumberEntityDescription(
-                    key="daily_dose_head_" + str(head) + "_volume",
+                    key=f"daily_dose_head_{head}_volume",
                     translation_key="daily_dose",
-                    mode="box",
+                    mode=NumberMode.BOX,
                     native_unit_of_measurement=UnitOfVolume.MILLILITERS,
                     device_class=NumberDeviceClass.VOLUME,
                     native_min_value=0,
                     native_step=0.1,
                     native_max_value=300,
-                    value_name="$.sources[?(@.name=='/head/"
-                    + str(head)
-                    + "/settings')].data.schedule.dd",
+                    value_name=(
+                        "$.sources[?(@.name=='/head/"
+                        + str(head)
+                        + "/settings')].data.schedule.dd"
+                    ),
                     icon="mdi:cup-water",
                     head=head,
                     entity_category=EntityCategory.CONFIG,
-                ),
+                )
             )
-            dn += new_head
-            new_head = (
+            descriptions.append(
                 ReefDoseNumberEntityDescription(
-                    key="container_volume_head_" + str(head) + "_volume",
+                    key=f"container_volume_head_{head}_volume",
                     translation_key="container_volume",
-                    mode="box",
+                    mode=NumberMode.BOX,
                     native_unit_of_measurement=UnitOfVolume.MILLILITERS,
                     device_class=NumberDeviceClass.VOLUME,
                     native_min_value=0,
                     native_step=1,
                     native_max_value=20000,
-                    value_name="$.sources[?(@.name=='/head/"
-                    + str(head)
-                    + "/settings')].data.container_volume",
+                    value_name=(
+                        "$.sources[?(@.name=='/head/"
+                        + str(head)
+                        + "/settings')].data.container_volume"
+                    ),
                     icon="mdi:cup-water",
                     head=head,
                     entity_category=EntityCategory.CONFIG,
-                    dependency="$.sources[?(@.name=='/head/"
-                    + str(head)
-                    + "/settings')].data.slm",
+                    dependency=(
+                        "$.sources[?(@.name=='/head/"
+                        + str(head)
+                        + "/settings')].data.slm"
+                    ),
+                )
+            )
+
+        entities.extend(
+            ReefDoseNumberEntity(device, description)
+            for description in descriptions
+            if description.exists_fn(device)
+        )
+
+    elif isinstance(device, ReefRunCoordinator):
+        # global overskimming threshold (single entity)
+        entities.append(
+            ReefBeatNumberEntity(
+                device,
+                ReefBeatNumberEntityDescription(
+                    key="overskimming_threshold",
+                    translation_key="overskimming_threshold",
+                    native_unit_of_measurement=PERCENTAGE,
+                    native_min_value=0,
+                    native_step=1,
+                    native_max_value=100,
+                    value_name="$.sources[?(@.name=='/pump/settings')].data.overskimming.threshold",
+                    icon="mdi:cloud-percent-outline",
                 ),
             )
-            dn += new_head
-
-        entities += [
-            ReefDoseNumberEntity(device, description)
-            for description in dn
-            if description.exists_fn(device)
-        ]
-    elif type(device).__name__ == "ReefRunCoordinator":
-        dn = ()
-        new_pump = (
-            ReefBeatNumberEntityDescription(
-                key="overskimming_threshold",
-                translation_key="overskimming_threshold",
-                native_unit_of_measurement=PERCENTAGE,
-                native_min_value=0,
-                native_step=1,
-                native_max_value=100,
-                value_name="$.sources[?(@.name=='/pump/settings')].data.overskimming.threshold",
-                icon="mdi:cloud-percent-outline",
-            ),
         )
-        dn += new_pump
-        entities += [
-            ReefBeatNumberEntity(device, description)
-            for description in dn
-            if description.exists_fn(device)
-        ]
-        dn = ()
-        for pump in range(1, 3):
-            new_pump = (
+
+        run_descs: list[ReefRunNumberEntityDescription] = []
+        for pump in (1, 2):
+            run_descs.append(
                 ReefRunNumberEntityDescription(
-                    key="pump_" + str(pump) + "_intensity",
+                    key=f"pump_{pump}_intensity",
                     translation_key="speed",
                     native_unit_of_measurement=PERCENTAGE,
                     native_min_value=0,
                     native_step=1,
                     native_max_value=100,
-                    value_name="$.sources[?(@.name=='/dashboard')].data.pump_"
-                    + str(pump)
-                    + ".intensity",
+                    value_name=f"$.sources[?(@.name=='/dashboard')].data.pump_{pump}.intensity",
                     icon="mdi:waves",
                     pump=pump,
-                ),
+                )
             )
-            dn += new_pump
-            new_pump = (
+            run_descs.append(
                 ReefRunNumberEntityDescription(
-                    key="preview_pump_" + str(pump) + "_intensity",
+                    key=f"preview_pump_{pump}_intensity",
                     translation_key="preview_speed",
                     native_unit_of_measurement=PERCENTAGE,
                     native_min_value=1,
                     native_step=1,
                     native_max_value=100,
-                    value_name="$.sources[?(@.name=='/preview')].data.pump_"
-                    + str(pump)
-                    + ".ti",
+                    value_name=f"$.sources[?(@.name=='/preview')].data.pump_{pump}.ti",
                     icon="mdi:waves",
                     pump=pump,
                     entity_category=EntityCategory.CONFIG,
-                ),
+                )
             )
-            dn += new_pump
 
-        entities += [
+        entities.extend(
             ReefRunNumberEntity(device, description)
-            for description in dn
+            for description in run_descs
             if description.exists_fn(device)
-        ]
-    elif type(device).__name__ == "ReefWaveCoordinator":
-        entities += [
+        )
+
+    elif isinstance(device, ReefWaveCoordinator):
+        entities.extend(
             ReefBeatNumberEntity(device, description)
             for description in WAVE_NUMBERS
             if description.exists_fn(device)
-        ]
-        entities += [
+        )
+        entities.extend(
             ReefWaveNumberEntity(device, description)
             for description in WAVE_PREVIEW_NUMBERS
             if description.exists_fn(device)
-        ]
-
-    elif type(device).__name__ == "ReefATOCoordinator":
-        dn = ()
-        dn += (
-            ReefBeatNumberEntityDescription(
-                key="ato_volume_left",
-                translation_key="ato_volume_left",
-                mode="box",
-                native_unit_of_measurement=UnitOfVolume.MILLILITERS,
-                device_class=NumberDeviceClass.VOLUME,
-                native_min_value=0,
-                native_step=1,
-                native_max_value=200000,  # pick a safe ceiling
-                value_name=ATO_VOLUME_LEFT_INTERNAL_NAME,
-                icon="mdi:cup-water",
-                entity_category=EntityCategory.CONFIG,
-            ),
         )
 
-        entities += [
-            ReefATOVolumeLeftNumberEntity(device, description)
-            for description in dn
-            if description.exists_fn(device)
-        ]
+    elif isinstance(device, ReefATOCoordinator):
+        # single entity
+        entities.append(
+            ReefATOVolumeLeftNumberEntity(
+                device,
+                ReefBeatNumberEntityDescription(
+                    key="ato_volume_left",
+                    translation_key="ato_volume_left",
+                    mode=NumberMode.BOX,
+                    native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+                    device_class=NumberDeviceClass.VOLUME,
+                    native_min_value=0,
+                    native_step=1,
+                    native_max_value=200000,
+                    value_name=ATO_VOLUME_LEFT_INTERNAL_NAME,
+                    icon="mdi:cup-water",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
 
-    async_add_entities(entities, True)
+    async_add_entities(entities, update_before_add=True)
 
 
-################################################################################
-# BEAT
-class ReefBeatNumberEntity(CoordinatorEntity, NumberEntity):
-    """Represent an ReefBeat number."""
+# -----------------------------------------------------------------------------
+# Entities
+# -----------------------------------------------------------------------------
+
+
+# REEFBEAT
+class ReefBeatNumberEntity(ReefBeatRestoreEntity, NumberEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """Base number entity backed by a ReefBeat coordinator.
+
+    We intentionally do not subclass `CoordinatorEntity` to avoid conflicts between
+    Home Assistant stubs (`available`/`native_value` cached_property vs property).
+    Instead we subscribe to the coordinator via `async_add_listener`.
+    """
 
     _attr_has_entity_name = True
 
-    def __init__(
-        self, device, entity_description: ReefBeatNumberEntityDescription
-    ) -> None:
-        """Set up the instance."""
-        super().__init__(device, entity_description)
-        self._device = device
-        self.entity_description = entity_description
-        try:
-            self._source = self.entity_description.value_name.split("'")[1]
-        except Exception:
-            self._source = "/configuration"
-        self._attr_unique_id = f"{device.serial}_{entity_description.key}"
-        self._attr_native_value = 3.25
-        if self.entity_description.dependency is not None:
-            self._device._hass.bus.async_listen(
-                self.entity_description.dependency, self._handle_coordinator_update
+    @staticmethod
+    def _restore_native_value(state: str) -> float:
+        return float(state)
+
+    def __init__(self, device: _HasDeviceInfo, description: DescriptionT) -> None:
+        """Initialize the entity."""
+        ReefBeatRestoreEntity.__init__(
+            self,
+            cast(ReefBeatCoordinator, device),
+            restore=RestoreSpec("_attr_native_value", self._restore_native_value),
+        )
+        self._device: _HasDeviceInfo = device
+        self._description: DescriptionT = description
+
+        if description.translation_key is not None:
+            self._attr_translation_key = description.translation_key
+        if description.icon is not None:
+            self._attr_icon = description.icon
+        if description.entity_category is not None:
+            self._attr_entity_category = description.entity_category
+        if description.device_class is not None:
+            self._attr_device_class = description.device_class
+        if description.native_unit_of_measurement is not None:
+            self._attr_native_unit_of_measurement = (
+                description.native_unit_of_measurement
             )
 
-    @callback
-    def _handle_coordinator_update(self, event=None) -> None:
-        """Handle updated data from the coordinator."""
-        self._attr_available = self.available
-        self._attr_native_value = self._device.get_data(
-            self.entity_description.value_name
+        # HA stubs type these as Optional[...] on the description, but the entity
+        # attributes are non-optional. Coalesce to safe defaults for strict typing.
+        #
+        # Defaults chosen to be neutral and should never matter for our entities
+        # because we always set these fields in our descriptions. If a future
+        # description omits them, the entity still behaves sensibly.
+        self._attr_mode = description.mode or NumberMode.AUTO
+        self._attr_native_min_value = (
+            float(description.native_min_value)
+            if description.native_min_value is not None
+            else 0.0
         )
-        self.async_write_ha_state()
+        self._attr_native_max_value = (
+            float(description.native_max_value)
+            if description.native_max_value is not None
+            else 100.0
+        )
+        self._attr_native_step = (
+            float(description.native_step)
+            if description.native_step is not None
+            else 1.0
+        )
 
-    @property
-    def native_value(self) -> float:
-        return self._device.get_data(self.entity_description.value_name)
+        self._attr_unique_id = f"{device.serial}_{description.key}"
+        self._attr_device_info = device.device_info
+        self._attr_native_value: float | None = None
+
+        # Derive the push source from the JSONPath, default to configuration.
+        self._source = "/configuration"
+        try:
+            self._source = str(description.value_name).split("'")[1]
+        except Exception:
+            pass
+
+    async def async_added_to_hass(self) -> None:
+        """Restore last known value and prime from coordinator cache."""
+        await super().async_added_to_hass()
+
+        if self._attr_native_value is not None and not self._attr_available:
+            self._attr_available = True
+
+        if cast(ReefBeatCoordinator, self._device).last_update_success:
+            self._handle_coordinator_update()
+
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Sync cached `_attr_*` state from coordinator data."""
+        self._attr_available = self._compute_available()
+        self._attr_native_value = cast(
+            float | None, self._device.get_data(self._description.value_name, True)
+        )
+        super()._handle_coordinator_update()
+
+    def _compute_available(self) -> bool:
+        """Return True when this number should be shown as available."""
+        dep = self._description.dependency
+        if dep is None:
+            return True
+
+        dep_value = self._device.get_data(dep, True)
+        if self._description.translate is not None:
+            dep_value = translate(
+                str(dep_value),
+                "id",
+                dictionary=self._description.translate,
+                src_lang=self.hass.config.language,
+            )
+
+        if self._description.dependency_values is None:
+            return bool(dep_value)
+
+        return dep_value in self._description.dependency_values
 
     async def async_set_native_value(self, value: float) -> None:
-        """Update the current value."""
-        _LOGGER.debug("Reefbeat.number.set_native_value %f" % value)
-        if self.entity_description.native_unit_of_measurement == UnitOfTime.SECONDS:
-            f_value = int(value)
-        else:
-            f_value = value
-        self._attr_native_value = f_value
-        self._device.set_data(self.entity_description.value_name, f_value)
+        """Set a new value and push to the device."""
+        _LOGGER.debug("redsea.number.set_native_value %s", value)
+
+        f_value: Any = (
+            int(value)
+            if self._description.native_unit_of_measurement == UnitOfTime.SECONDS
+            else value
+        )
+        self._attr_native_value = cast(float | None, f_value)
+
+        self._device.set_data(self._description.value_name, f_value)
         await self._device.push_values(self._source)
         await self._device.async_request_refresh()
 
     @property
     def available(self) -> bool:
-        if self.entity_description.dependency is not None:
-            if self.entity_description.dependency_values is not None:
-                val = self._device.get_data(self.entity_description.dependency)
-                if self.entity_description.translate is not None:
-                    val = translate(
-                        val,
-                        "id",
-                        dictionnary=self.entity_description.translate,
-                        src_lang=self._device._hass.config.language,
-                    )
-                return val in self.entity_description.dependency_values
-            else:
-                return self._device.get_data(self.entity_description.dependency)
-        else:
-            return True
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        return self._device.device_info
-
-
-################################################################################
-# LED
+        return  self._compute_available()
+        
+# REEFLED
 class ReefLedNumberEntity(ReefBeatNumberEntity):
-    """Represent an ReefBeat number."""
-
-    _attr_has_entity_name = True
+    """LED-specific number entity (some values require POST to a special endpoint)."""
 
     def __init__(
-        self, device, entity_description: ReefLedNumberEntityDescription, hass
+        self, device: _HasDeviceInfo, description: ReefLedNumberEntityDescription
     ) -> None:
-        """Set up the instance."""
-        super().__init__(device, entity_description)
-        self.hass = hass
+        super().__init__(device, description)
+        self._led_description = description
 
     async def async_set_native_value(self, value: float) -> None:
-        """Update the current value."""
-        _LOGGER.debug("Reefbeat.number.set_native_value %f" % value)
         self._attr_native_value = value
-        self._device.set_data(self.entity_description.value_name, value)
+        self._device.set_data(self._description.value_name, value)
         self.async_write_ha_state()
-        if self.entity_description.post_specific is False:
-            await self._device.push_values(
-                self.entity_description.value_name.split("'")[1], "post"
-            )
+
+        # POST to special endpoint when required.
+        if self._led_description.post_specific:
+            if isinstance(self._device, _HasPostSpecific):
+                await self._device.post_specific(self._led_description.post_specific)
+            else:
+                _LOGGER.debug(
+                    "Device does not support post_specific; falling back to push_values"
+                )
+                await self._device.push_values(self._source, "post")
         else:
-            await self._device.post_specific(self.entity_description.post_specific)
+            await self._device.push_values(self._source, "post")
+
         await self._device.async_request_refresh()
 
 
-################################################################################
-# DOSE
+# REEFDOSE
 class ReefDoseNumberEntity(ReefBeatNumberEntity):
-    """Represent an ReefBeat number."""
-
-    _attr_has_entity_name = True
+    """Dose-specific number entity (head-scoped pushes)."""
 
     def __init__(
-        self, device, entity_description: ReefDoseNumberEntityDescription
+        self, device: _HasDeviceInfo, description: ReefDoseNumberEntityDescription
     ) -> None:
-        """Set up the instance."""
-        super().__init__(device, entity_description)
-        self._head = self.entity_description.head
-        self._attr_native_value = 0
+        super().__init__(device, description)
+        self._dose_description = description
+        self._head = description.head
 
-    async def async_set_native_value(self, value) -> None:
-        """Update the current value."""
-        _LOGGER.debug("Reefbeat.number.set_native_value %f" % value)
-        self._attr_native_value = value
-        self._device.set_data(self.entity_description.value_name, value)
-        self.async_write_ha_state()
+        # Attach per-head entities to the head device card, not the base doser device.
         if self._head > 0:
-            if self.entity_description.translation_key != "calibration_dose_value":
-                await self._device.push_values(self._head)
+            base_di = dict(self._device.device_info)
+            base_identifiers = base_di.get("identifiers") or {
+                (DOMAIN, self._device.serial)
+            }
+            domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
+
+            di_dict: dict[str, Any] = {
+                "identifiers": {(domain, ident, f"head_{self._head}")},
+                "name": f"{self._device.title} head {self._head}",
+            }
+
+            for key in (
+                "manufacturer",
+                "model",
+                "model_id",
+                "hw_version",
+                "sw_version",
+            ):
+                val = base_di.get(key)
+                if isinstance(val, str) or val is None:
+                    di_dict[key] = val
+
+            via_device = base_di.get("via_device")
+            if via_device is not None:
+                di_dict["via_device"] = via_device
+
+            self._attr_device_info = cast(DeviceInfo, di_dict)
+
+    async def async_set_native_value(self, value: float) -> None:
+        v: Any = int(value) if float(value).is_integer() else value
+        self._attr_native_value = cast(float | None, v)
+
+        self._device.set_data(self._description.value_name, v)
+        self.async_write_ha_state()
+
+        head = self._dose_description.head
+        if head > 0:
+            if self._dose_description.translation_key != "calibration_dose_value":
+                # Push head-scoped changes via coordinator API.
+                await self._device.push_values(source="/configuration", head=head)
         else:
             await self._device.push_values("/device-settings")
+
         await self._device.async_request_refresh()
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        if self._head > 0:
-            di = self._device.device_info
-            di["name"] += "_head_" + str(self._head)
-            identifiers = list(di["identifiers"])[0]
-            head = ("head_" + str(self._head),)
-            identifiers += head
-            di["identifiers"] = {identifiers}
-            return di
-        else:
-            return self._device.device_info
-
-
-# -------------------------------------------------------------------------------
-# RestoreNumber
-class RestoreNumberEntity(ReefDoseNumberEntity, RestoreNumber):
-    _attr_has_entity_name = True
-
-    def __init__(
-        self, device, entity_description: RestoreNumberEntityDescription
-    ) -> None:
-        super().__init__(device, entity_description)
-        # self._device._hass.bus.async_listen(
-        #     self.entity_description.dependency, self._handle_coordinator_update
-        # )
-
-    # def _handle_coordinator_update(self, event=None) -> None:
-    #     self._attr_available = True
-    #     if event:
-    #         _LOGGER.debug("Update %s" % event)
-    #         new_val = event.data.get("value")
-    #         self._device.set_data(self.entity_description.value_name, new_val)
-    #         self._attr_native_value = new_val
-    #         self.async_write_ha_state()
-    #         # self._handle_coordinator_update()
-
     async def async_added_to_hass(self) -> None:
-        res = await self.async_get_last_extra_data()
-        if res is not None:
-            self._attr_native_value = res.as_dict()["native_value"]
-            self._device.set_data(
-                self.entity_description.value_name, self._attr_native_value
-            )
-        else:
-            self._attr_native_value = 0
         await super().async_added_to_hass()
-        #        self.async_write_ha_state()
+
+        head = self._dose_description.head
+        if head <= 0:
+            return
+
+        # Per-head device_info: keep identifiers stable and type-safe.
+        base_di = cast(DeviceInfo, self._device.device_info)
+        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
+        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
+        via_device = base_di.get("via_device")
+        di_dict: dict[str, Any] = {
+            "identifiers": {(domain, ident, f"head_{head}")},
+            "name": f"{self._device.title} head {head}",
+            "manufacturer": base_di.get("manufacturer"),
+            "model": base_di.get("model"),
+            "model_id": base_di.get("model_id"),
+            "hw_version": base_di.get("hw_version"),
+            "sw_version": base_di.get("sw_version"),
+        }
+        if via_device is not None:
+            di_dict["via_device"] = via_device
+        self._attr_device_info = cast(DeviceInfo, di_dict)
 
 
-################################################################################
-# RUN
+# REEFRUN
 class ReefRunNumberEntity(ReefBeatNumberEntity):
-    """Represent an ReefBeat number."""
-
-    _attr_has_entity_name = True
+    """Run-specific number entity (pump-scoped)."""
 
     def __init__(
-        self, device, entity_description: ReefDoseNumberEntityDescription
+        self, device: _HasDeviceInfo, description: ReefRunNumberEntityDescription
     ) -> None:
-        """Set up the instance."""
-        super().__init__(device, entity_description)
-        self._pump = self.entity_description.pump
-        self._attr_native_value = 0
+        super().__init__(device, description)
+        self._run_description = description
+        self._pump = description.pump
+        
+    async def async_set_native_value(self, value: float) -> None:
+        v = int(value)
+        self._attr_native_value = float(v)
 
-    async def async_set_native_value(self, value: int) -> None:
-        """Update the current value."""
-        _LOGGER.debug("Reefbeat.number.set_native_value %d" % int(value))
-        self._attr_native_value = value
-        if (
-            self.entity_description.key
-            == "preview_pump_" + str(self._pump) + "_intensity"
-        ):
-            # do not send push request for changing speed preview. It's done by the preview start button
-            self._device.set_data(self.entity_description.value_name, int(value))
+        if self._description.key == f"preview_pump_{self._pump}_intensity":
+            self._device.set_data(self._description.value_name, v)
+            self.async_write_ha_state()
             return
-        elif self.entity_description.key == "pump_" + str(self._pump) + "_intensity":
-            await self._device.set_pump_intensity(self._pump, int(value))
+
+        if self._description.key == f"pump_{self._pump}_intensity" and isinstance(
+            self._device, _HasPumpIntensity
+        ):
+            await self._device.set_pump_intensity(self._pump, v)
             self.async_write_ha_state()
             await self._device.push_values(source="/pump/settings", pump=self._pump)
             await self._device.async_request_refresh()
-        else:
-            self._device.set_data(self.entity_description.value_name, int(value))
-            self.async_write_ha_state()
+            return
+
+        self._device.set_data(self._description.value_name, v)
+        self.async_write_ha_state()
+
+        if isinstance(self._device, _HasPumpIntensity):
             await self._device.push_values(source=self._source, pump=self._pump)
-            await self._device.async_request_refresh()
+        else:
+            await self._device.push_values(self._source)
+        await self._device.async_request_refresh()
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -829,58 +915,70 @@ class ReefRunNumberEntity(ReefBeatNumberEntity):
         di["identifiers"] = {identifiers}
         return di
 
+        
 
-################################################################################
-# WAVE
+# REEFWAVE
 class ReefWaveNumberEntity(ReefBeatNumberEntity):
-    """Represent an ReefBeat number."""
-
-    _attr_has_entity_name = True
-
-    def __init__(
-        self, device, entity_description: ReefBeatNumberEntityDescription
-    ) -> None:
-        """Set up the instance."""
-        super().__init__(device, entity_description)
+    """Wave preview number entity (dynamic min/max/step depending on wave type)."""
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        value = self._device.get_data(self.entity_description.value_name, True)
+        self._handle_device_update()
+
+    @callback
+    def _handle_device_update(self) -> None:
+        value = self._device.get_data(self._description.value_name, True)
+
+        preview_type = self._device.get_data(
+            "$.sources[?(@.name=='/preview')].data.type", True
+        )
+
         if (
-            self.entity_description.key == "wave_preview_wave_duration"
-            and self._device.get_data("$.sources[?(@.name=='/preview')].data.type")
-            == "su"
+            self._description.key == "wave_preview_wave_duration"
+            and preview_type == "su"
         ):
-            # limite values for surface
+            # Limit values for surface mode.
             self._attr_native_min_value = 0.5
             self._attr_native_max_value = 5.9
             self._attr_native_step = 0.1
         else:
-            self._attr_native_min_value = self.entity_description.native_min_value
-            self._attr_native_max_value = self.entity_description.native_max_value
-            self._attr_native_step = self.entity_description.native_step
+            # description fields are Optional[float] in stubs; keep previous values if None.
+            self._attr_native_min_value = (
+                self._description.native_min_value or self._attr_native_min_value
+            )
+            self._attr_native_max_value = (
+                self._description.native_max_value or self._attr_native_max_value
+            )
+            self._attr_native_step = (
+                self._description.native_step or self._attr_native_step
+            )
+
             if value is not None:
                 value = int(value)
+
         if value is None:
-            _LOGGER.debug("%s is None!!!" % self.entity_description.value_name)
             self._attr_available = False
             self._attr_native_value = None
         else:
-            self._attr_available = self.available
-            self._attr_native_value = value
+            self._attr_available = self._compute_available()
+            self._attr_native_value = cast(float | None, value)
+
         self.async_write_ha_state()
 
-    async def async_set_native_value(self, value: int) -> None:
-        self._attr_native_value = value
-        self._device.set_data(self.entity_description.value_name, int(value))
-        self.async_write_ha_state()
+        
+        
 
-
-################################################################################
-# ATO
+# REEFATO+
 class ReefATOVolumeLeftNumberEntity(ReefBeatNumberEntity):
+    """ATO number: remaining reservoir volume."""
+
     async def async_set_native_value(self, value: float) -> None:
         volume_ml = int(value)
-        await self._device.set_volume_left(volume_ml)
+        if isinstance(self._device, _HasATOVolumeLeft):
+            await self._device.set_volume_left(volume_ml)
+        else:
+            # Fallback: set locally and push (keeps integration usable even if coordinator differs)
+            self._device.set_data(self._description.value_name, volume_ml)
+            await self._device.push_values(self._source)
+
         await self._device.async_request_refresh()

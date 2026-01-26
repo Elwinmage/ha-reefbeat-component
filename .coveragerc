@@ -1,0 +1,11 @@
+[run]
+source =
+    custom_components
+
+[report]
+exclude_lines =
+    pragma: no cover
+    raise NotImplemented\(\)
+    if __name__ == .__main__.:
+    main\(\)
+show_missing = True

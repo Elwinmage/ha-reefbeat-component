@@ -1,0 +1,11 @@
+{
+  "chip_revision": "RSWAVE45",
+  "framework_version": "4.3.2",
+  "last_message": "updated_successful",
+  "last_update": "2025-11-23T14:08:16+01:00",
+  "last_update_attempt": "2025-11-23T14:07:43+01:00",
+  "message": "firmware check success",
+  "success": true,
+  "update_server": "http://firmware.reef-beat.com/firmware/download/reef-wave?framework=i",
+  "version": "0.10.0"
+}

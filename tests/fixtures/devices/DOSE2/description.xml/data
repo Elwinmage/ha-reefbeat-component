@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <URLBase>http://10.0.0.15:80/</URLBase>
+  <device>
+    <deviceType>reef-dosing</deviceType>
+    <friendlyName>RSDOSE2-470062598</friendlyName>
+    <presentationURL>/</presentationURL>
+    <serialNumber>90150696041c</serialNumber>
+    <modelName>RSDOSE2</modelName>
+    <modelDescription/>
+    <modelNumber>90:15:06:96:04:1C</modelNumber>
+    <modelURL>https://www.reef-beat.com</modelURL>
+    <manufacturer>RedSea</manufacturer>
+    <manufacturerURL>https://www.redseafish.com</manufacturerURL>
+    <UDN>uuid:2abc93a3-f0ff-45b7-947a-750efabbfed3</UDN>
+    <serviceList/>
+    <iconList/>
+  </device>
+</root>

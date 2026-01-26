@@ -1,0 +1,14 @@
+{
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnType": true,
+    "editor.formatOnSave": true,
+    "editor.rulers": [{ "column": 88 }],
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
+  "ruff.lineLength": 88,
+  "python.defaultInterpreterPath": ".venv/bin/python"
+}

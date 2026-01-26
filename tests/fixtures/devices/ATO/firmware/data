@@ -1,0 +1,11 @@
+{
+  "chip_revision": "RSATO+",
+  "framework_version": "4.3.2",
+  "last_message": "never",
+  "last_update": "never",
+  "last_update_attempt": "never",
+  "message": "firmware check success",
+  "success": true,
+  "update_server": "http://firmware.reef-beat.com/firmware/download/reef-lights?framework=i",
+  "version": "1.6.1"
+}

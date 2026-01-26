@@ -1,0 +1,29 @@
+{
+  "duration": 400,
+  "message": "wifi scan finished",
+  "networks": [
+    {
+      "bssid": "00:11:32:D3:94:56",
+      "channel": 2,
+      "security": "WPA2_PSK",
+      "signal_dBm": -47,
+      "ssid": "ELWINMAGE"
+    },
+    {
+      "bssid": "14:EB:B6:D6:1E:D9",
+      "channel": 11,
+      "security": "WPA2_PSK",
+      "signal_dBm": -60,
+      "ssid": "Elwinmage_piscine"
+    },
+    {
+      "bssid": "98:25:4A:CB:53:AE",
+      "channel": 4,
+      "security": "WPA2_PSK",
+      "signal_dBm": -75,
+      "ssid": "Wifi-Atelier"
+    }
+  ],
+  "success": true,
+  "total_networks_found": 3
+}

@@ -1,0 +1,28 @@
+{
+  "ap_enabled": false,
+  "ap_ip": "",
+  "flash_size": 16777216,
+  "free_heap": 52884,
+  "i2c_devices": [
+    {
+      "address": "0x68",
+      "device": "externalRtc"
+    },
+    {
+      "address": "0x20",
+      "device": "PCA9555"
+    }
+  ],
+  "max_open_files": 0,
+  "max_path_length": 0,
+  "message": "",
+  "reset_reason": "ESP_RST_TASK_WDT",
+  "rtc_connected": 1,
+  "success": true,
+  "total_bytes": 0,
+  "uptime": "D:006-H:00-m:00-s:53",
+  "used_bytes": 0,
+  "uuid": "423c4f99a4fe",
+  "wifi_enabled": true,
+  "wifi_ip": "__REEFBEAT_DEVICE_IP__"
+}

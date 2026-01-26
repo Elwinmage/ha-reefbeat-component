@@ -1,0 +1,9 @@
+{
+  "hw_model": "RSRUN",
+  "hw_revision": "v1_24D",
+  "hw_type": "reef-run",
+  "hwid": "423c4f99a4fe",
+  "message": "get device info successfully",
+  "name": "SIMU-RSRUN-7603942596",
+  "success": true
+}

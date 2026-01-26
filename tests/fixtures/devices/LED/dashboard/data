@@ -1,0 +1,43 @@
+{
+  "acclimation": {
+    "current_intensity_factor": 100,
+    "duration": 50,
+    "enabled": false,
+    "remaining_days": 0,
+    "start_intensity_factor": 50,
+    "started_on": "never"
+  },
+  "battery_level": "high",
+  "current_program": {
+    "active_preset": 2,
+    "name": "Perso"
+  },
+  "manual": {
+    "blue": 0,
+    "blue_full": 0,
+    "blue_pwm": 0,
+    "fan": 0,
+    "fan_full": 0,
+    "frequency_khz": 25,
+    "moon": 1,
+    "moon_full": 1.4,
+    "moon_pwm": 55,
+    "resolution_bits": 12,
+    "temperature": 18.934356689453125,
+    "white": 0,
+    "white_full": 0,
+    "white_pwm": 0
+  },
+  "mode": "auto",
+  "moon_phase": {
+    "enabled": true,
+    "intensity": 14,
+    "name": "Waxing Crescent",
+    "next_full_moon": 12,
+    "next_new_moon": 27,
+    "started_on": 1758491094,
+    "todays_moon_day": 2
+  },
+  "tilt_switch": false,
+  "time_error": false
+}

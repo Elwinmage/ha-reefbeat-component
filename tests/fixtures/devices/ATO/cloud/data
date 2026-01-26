@@ -1,0 +1,10 @@
+{
+  "api_key": "tCmJOg1aET7toFTJ",
+  "api_secret": "*********",
+  "connected": true,
+  "connection_state": "CONNECTED",
+  "enabled": true,
+  "message": "",
+  "success": true,
+  "url": "mqtt.reef-beat.com:1883"
+}

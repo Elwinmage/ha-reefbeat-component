@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <URLBase>http://192.168.0.194:80/</URLBase>
+  <device>
+    <board>esp32</board>
+    <framework>i</framework>
+    <deviceType>reef-lights</deviceType>
+    <friendlyName>ATO-5465458396</friendlyName>
+    <presentationURL>/</presentationURL>
+    <serialNumber>cc7b5ca3167c</serialNumber>
+    <modelName>RSLED160</modelName>
+    <modelDescription/>
+    <modelNumber>CC:7B:5C:A3:16:7C</modelNumber>
+    <modelURL>https://www.reef-beat.com</modelURL>
+    <manufacturer>RedSea</manufacturer>
+    <manufacturerURL>https://www.redseafish.com</manufacturerURL>
+    <UDN>uuid:39323636-4558-4dda-9188-cda0e6007c16</UDN>
+    <serviceList/>
+    <iconList/>
+  </device>
+</root>

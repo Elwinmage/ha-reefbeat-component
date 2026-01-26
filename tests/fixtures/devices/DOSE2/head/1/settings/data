@@ -1,0 +1,52 @@
+{
+  "container_volume": 310.8909,
+  "dc": true,
+  "enable_ratio": true,
+  "entire_dd": true,
+  "food_delay": 0,
+  "is_food_head": false,
+  "last_calibrated": 1762537564,
+  "manual_dose_scheduled": false,
+  "recalibration_required": false,
+  "schedule": {
+    "days": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "dd": 4,
+    "intervals": [
+      {
+        "end": 1200,
+        "mode": "whisper",
+        "nd": 4,
+        "st": 480
+      }
+    ],
+    "type": "custom"
+  },
+  "schedule_enabled": true,
+  "shortcut_code": "no_shortcut",
+  "show": true,
+  "slm": true,
+  "state": "on",
+  "supplement": {
+    "brand_name": "Ocean's Blend",
+    "concentration": 0,
+    "display_name": "Alkalinity",
+    "is_brand_editable": true,
+    "is_name_editable": true,
+    "is_supplement_editable": true,
+    "made_by_redsea": false,
+    "name": "Alkalinity",
+    "short_name": "Alk",
+    "type": "null",
+    "uid": "e10dbae3-9d4f-4637-91ef-cb30f10e87e0"
+  },
+  "today_auto_dosed_volume": 4,
+  "vps": 0.056818
+}

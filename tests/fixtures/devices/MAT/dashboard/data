@@ -1,0 +1,27 @@
+{
+  "auto_advance": true,
+  "cumulative_steps": 11201,
+  "daily_average_usage": 151.6,
+  "days_till_end_of_roll": 0,
+  "device_setup_date": 1764005514,
+  "external_ec_average": 0,
+  "internal_ec_average": 0,
+  "is_advancing": false,
+  "is_ec_sensor_connected": true,
+  "is_internet_connected": true,
+  "last_advance_cause": "self_test",
+  "lifetime_steps": 30158,
+  "material": {
+    "external_diameter": 10.1,
+    "is_partial": false,
+    "name": "28 Meter",
+    "thickness": 0.0237
+  },
+  "mode": "end_of_roll",
+  "remaining_length": 1.9,
+  "roll_level": "empty",
+  "setup_date": "2026-01-01T11:29:30Z",
+  "today_usage": 0,
+  "total_usage": 2798,
+  "unclean_sensor": false
+}

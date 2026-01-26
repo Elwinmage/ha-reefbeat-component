@@ -1,54 +1,98 @@
-"""Implements the sensor entity"""
+"""Update platform for the Red Sea ReefBeat integration.
+
+Exposes firmware updates as Home Assistant `update` entities.
+
+HA 2025.12 notes:
+- Avoid `type(x).__name__` / base-class-name checks; use `isinstance` or Protocols.
+- Prefer `entities.extend(...)` over `+= [...]`.
+- Do not use protected attributes like `_hass`, `_title`, `_cloud_link`.
+- Subscribe to coordinator updates via the coordinator listener mechanism.
+"""
+
+from __future__ import annotations
 
 import logging
-
-from dataclasses import dataclass
 from collections.abc import Callable
-
-from homeassistant.core import (
-    HomeAssistant,
-)
-
-from homeassistant.config_entries import ConfigEntry
+from dataclasses import dataclass
+from functools import cached_property
+from typing import TYPE_CHECKING, Any, Protocol, cast, runtime_checkable
 
 from homeassistant.components.update import (
+    UpdateDeviceClass,
     UpdateEntity,
     UpdateEntityDescription,
     UpdateEntityFeature,
-    UpdateDeviceClass,
 )
-
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-
-from homeassistant.const import (
-    EntityCategory,
-)
-
-
-from .const import (
-    DOMAIN,
-)
-
+from .const import DOMAIN
 from .coordinator import ReefBeatCoordinator
+from .entity import ReefBeatRestoreEntity
 
 _LOGGER = logging.getLogger(__name__)
 
+if TYPE_CHECKING:  # pragma: no cover
+    from .coordinator import (
+        ReefBeatCloudCoordinator,
+        )
+# Protocols (capability-based typing)
+from .coordinator import (
+    ReefVirtualLedCoordinator,
+)
 
-@dataclass(kw_only=True)
+@runtime_checkable
+
+# =============================================================================
+# Classes
+# =============================================================================
+
+class _CloudLinkedCoordinator(Protocol):
+    """Coordinator capability: is linked to cloud data and exposes firmware info."""
+
+    serial: str
+    device_info: DeviceInfo
+    sw_version: str | None
+    latest_firmware_url: str | None
+
+    cloud_coordinator: "ReefBeatCloudCoordinator | None"
+
+    def async_add_listener(
+        self, update_callback: Callable[[], None]
+    ) -> Callable[[], None]: ...
+    def get_data(self, name: str, use_cache: bool = True) -> Any: ...
+    def set_data(self, name: str, value: Any) -> None: ...
+
+    @property
+    def cloud_link(self) -> Any: ...
+
+    @property
+    def my_api(self) -> Any: ...
+
+
+# -----------------------------------------------------------------------------
+# Entity descriptions
+# -----------------------------------------------------------------------------
+
+
+@dataclass(kw_only=True, frozen=True)
 class ReefBeatUpdateEntityDescription(UpdateEntityDescription):
-    """Describes reefbeat Update entity."""
+    """Describes a ReefBeat update entity."""
 
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
-    version_installed: str
+
+    # JSONPath to the installed firmware version (in the local device cache)
+    version_path: str
 
 
 FIRMWARE_UPDATES: tuple[ReefBeatUpdateEntityDescription, ...] = (
     ReefBeatUpdateEntityDescription(
         key="firmware_update",
-        translation_key="schedule_update",
-        version_installed="$.sources[?(@.name=='/firmware')].data.version",
+        translation_key="firmware_update",
+        version_path="$.sources[?(@.name=='/firmware')].data.version",
         icon="mdi:update",
         entity_category=EntityCategory.CONFIG,
         device_class=UpdateDeviceClass.FIRMWARE,
@@ -56,89 +100,156 @@ FIRMWARE_UPDATES: tuple[ReefBeatUpdateEntityDescription, ...] = (
 )
 
 
+# -----------------------------------------------------------------------------
+# Platform setup
+# -----------------------------------------------------------------------------
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
-    discovery_info=None,
-):
-    """Configuration de la plate-forme tuto_hacs à partir de la configuration graphique"""
-    device = hass.data[DOMAIN][config_entry.entry_id]
+) -> None:
+    """Set up update entities for a config entry."""
+    device = cast(ReefBeatCoordinator, hass.data[DOMAIN][config_entry.entry_id])
 
-    entities = []
+    entities: list[UpdateEntity] = []
     _LOGGER.debug("UPDATES")
-    if device.__class__.__bases__[0].__name__ == "ReefBeatCloudLinkedCoordinator":
-        entities += [
+
+    if isinstance(device, _CloudLinkedCoordinator) and not isinstance(device,ReefVirtualLedCoordinator):
+        entities.extend(
             ReefBeatUpdateEntity(device, description)
             for description in FIRMWARE_UPDATES
             if description.exists_fn(device)
-        ]
+        )
+
     async_add_entities(entities, True)
 
 
-class ReefBeatUpdateEntity(UpdateEntity):
-    """Represent an ReefMat Update."""
+# -----------------------------------------------------------------------------
+# Entities
+# -----------------------------------------------------------------------------
+
+
+# REEFBEAT
+class ReefBeatUpdateEntity(ReefBeatRestoreEntity, UpdateEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """Firmware update entity backed by coordinator + cloud version discovery."""
 
     _attr_has_entity_name = True
     _attr_supported_features = UpdateEntityFeature.INSTALL
 
     def __init__(
-        self, device, entity_description: ReefBeatUpdateEntityDescription
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefBeatUpdateEntityDescription,
     ) -> None:
-        """Set up the instance."""
-        self._device = device
-        self.entity_description = entity_description
-        self._attr_available = True
+        ReefBeatRestoreEntity.__init__(self, device)
+        self._device = cast(_CloudLinkedCoordinator, device)
+
+        self.entity_description = cast(UpdateEntityDescription, entity_description)
+        self._desc: ReefBeatUpdateEntityDescription = entity_description
+
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
-        self._attr_installed_version = self._device.sw_version
-        self._attr_latest_version = self._attr_installed_version
-        self._device._hass.bus.async_listen(
-            "request_latest_firmware", self._handle_ask_for_latest_firmware
+        self._attr_available = True
+
+        installed = self._get_installed_from_cache()
+        self._attr_installed_version = installed
+        self._attr_latest_version = self._get_latest_from_cloud() or installed
+
+    def _get_latest_from_cloud(self) -> str | None:
+        """Best-effort lookup of latest version from cloud link."""
+        if not self._device.latest_firmware_url:
+            return None
+        link = self._device.cloud_coordinator
+        if link is None:
+            return None
+        new_version = link.get_data(
+            "$.sources[?(@.name=='"
+            + self._device.latest_firmware_url
+            + "')].data.version",
+            True,
         )
+        return cast(str | None, new_version)
 
-    @property
-    def installed_version(self) -> str | None:
-        """Version currently in use."""
-        return self._device.sw_version
+    async def async_added_to_hass(self) -> None:
+        """Register coordinator and event listeners after added to HA."""
+        await super().async_added_to_hass()
 
-    def _handle_ask_for_latest_firmware(self, event):
-        if event.data.get("device_name") == self._device._title:
-            temp = self.latest_version
-            _LOGGER.info(
-                "Last firmware version for %s is %s. Current installed versions is: %s"
-                % (self._device._title, temp, self.installed_version)
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            # Restore versions if we don't have anything yet.
+            if (
+                not self._attr_installed_version
+                and "installed_version" in last_state.attributes
+            ):
+                self._attr_installed_version = cast(
+                    str, last_state.attributes["installed_version"]
+                )
+            if (
+                not self._attr_latest_version
+                and "latest_version" in last_state.attributes
+            ):
+                self._attr_latest_version = cast(
+                    str, last_state.attributes["latest_version"]
+                )
+        # CoordinatorEntity already listens for coordinator updates.
+        self.async_on_remove(
+            self.hass.bus.async_listen(
+                "request_latest_firmware", self._handle_ask_for_latest_firmware
             )
+        )
+        self._handle_device_update()
 
-    @property
-    def latest_version(self) -> str | None:
-        """Latest version available for install."""
-        if (
-            self._device._cloud_link is not None
-            and self._device.latest_firmware_url is not None
-        ):
-            new_version = self._device._cloud_link.get_data(
-                "$.sources[?(@.name='"
-                + self._device.latest_firmware_url
-                + "')].data.version",
-                True,
-            )
-            if new_version:
-                self._attr_latest_version = new_version
-                return new_version
-        return self.installed_version
+    def _get_installed_from_cache(self) -> str | None:
+        raw = self._device.get_data(self._desc.version_path, True)
+        return cast(str | None, raw) if raw else self._device.sw_version
 
-    async def async_install(self, version: str | None, backup: bool, **kwargs) -> None:
-        await self._device.my_api.press("firmware")
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._handle_device_update()
+
+    @callback
+    def _handle_device_update(self) -> None:
+        """Update installed/latest versions from cache/cloud."""
+        self._attr_installed_version = self._get_installed_from_cache()
+        self._attr_latest_version = (
+            self._get_latest_from_cloud() or self._attr_installed_version
+        )
+        self.async_write_ha_state()
+
+    @callback
+    def _handle_ask_for_latest_firmware(self, event: Any) -> None:
+        """Log latest firmware when asked (debug helper)."""
+        device_name = event.data.get("device_name")
+        if device_name and device_name != self._attr_unique_id:
+            return
+
         _LOGGER.info(
-            "Install new version for %s: %s"
-            % (self._device._title, self.latest_version)
+            "Latest firmware for %s is %s (installed: %s)",
+            self._attr_unique_id,
+            self._attr_latest_version,
+            self._attr_installed_version,
         )
-        self._device.set_data(
-            "$.sources[?(@.name=='/firmware')].data.version", self.latest_version
-        )
-        self._attr_installed_version = self.latest_version
 
-    @property
+    async def async_install(
+        self, version: str | None, backup: bool, **kwargs: Any
+    ) -> None:
+        """Trigger firmware update installation on the device."""
+        # Device API endpoint is integration-specific; keep as-is but avoid protected attrs.
+        await self._device.my_api.press("firmware")
+
+        _LOGGER.info(
+            "Installing firmware for %s: %s",
+            self._attr_unique_id,
+            self.latest_version,
+        )
+
+        # Mirror the version into the cache so HA updates quickly
+        self._device.set_data(self._desc.version_path, self.latest_version)
+        self._attr_installed_version = self.latest_version
+        self.async_write_ha_state()
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info

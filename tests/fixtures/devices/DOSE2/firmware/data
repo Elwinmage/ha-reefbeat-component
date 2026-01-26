@@ -1,0 +1,11 @@
+{
+  "board": "esp32",
+  "chip_revision": 3,
+  "framework": "a",
+  "framework_version": "SDK:v4.4.4/Core:2.0.9(0x3670e2bf)=2_0_9/lwIP:2.1.2esp",
+  "last_message": "never",
+  "last_update": "never",
+  "last_update_attempt": "never",
+  "server": "http://firmware.reef-beat.com/firmware/download/reef-dosing",
+  "version": "3.0.0"
+}

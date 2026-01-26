@@ -1,0 +1,9 @@
+{
+  "hw_model": "RSLED160",
+  "hw_revision": "v2.2_23F",
+  "hw_type": "reef-lights",
+  "hwid": "521f271d32c8",
+  "message": "get device info successfully",
+  "name": "SIMU-RSLED160-708948580",
+  "success": true
+}
