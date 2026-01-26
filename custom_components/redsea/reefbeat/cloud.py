@@ -78,7 +78,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             ],
         )
         if not disable_supplement:
-            self.add_source(SUPPLEMENTS_LIBRARY,"config","");
+            self.add_source(SUPPLEMENTS_LIBRARY, "config", "")
 
     async def http_send(
         self, action: str, payload: Any = None, method: str = "post"
@@ -126,7 +126,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             "username": self._username,
             "password": quote_plus(self._password.encode("UTF-8")),
         }
-        _LOGGER.debug("AUTH %s"%self._session);
+        _LOGGER.debug("AUTH %s" % self._session)
         async with self._session.post(
             "https://" + self.ip + "/oauth/token",
             data=payload,

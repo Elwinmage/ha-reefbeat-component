@@ -323,7 +323,9 @@ async def async_setup_entry(
 
     _LOGGER.debug("SWITCHES")
 
-    if isinstance(device, _CloudLinkedCoordinator) and not isinstance(device,ReefVirtualLedCoordinator):
+    if isinstance(device, _CloudLinkedCoordinator) and not isinstance(
+        device, ReefVirtualLedCoordinator
+    ):
         entities.extend(
             SaveStateSwitchEntity(device, description)
             for description in SAVE_STATE_SWITCHES
@@ -473,7 +475,7 @@ class SaveStateSwitchEntity(RestoreEntity, SwitchEntity):
         self._set_icon()
         self._device.set_data("$.local." + self._desc.key, False)
         self.async_write_ha_state()
-        state=await self.async_get_last_state()
+        await self.async_get_last_state()
 
     async def async_added_to_hass(self) -> None:
         """Restore last known state and prime from coordinator cache."""
@@ -484,7 +486,9 @@ class SaveStateSwitchEntity(RestoreEntity, SwitchEntity):
         else:
             self._attr_is_on = state.state == "on"
         self._set_icon()
-        self._device.set_data("$.local." + self.entity_description.key, self._attr_is_on)
+        self._device.set_data(
+            "$.local." + self.entity_description.key, self._attr_is_on
+        )
         self.async_write_ha_state()
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
@@ -626,7 +630,7 @@ class ReefBeatSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore
         self._device.set_data(self._desc.value_name, False)
         self._device.async_update_listeners()
         self.async_write_ha_state()
-        
+
         if self._source:
             pusher = cast(_HasPushValuesBySource, self._device)
             await pusher.push_values(self._source, self._desc.method)
@@ -682,6 +686,7 @@ class ReefLedSwitchEntity(ReefBeatSwitchEntity):
             await pusher.push_values(self._source, self._typed_desc.method)
             await pusher.async_request_refresh(source=self._source)
 
+
 # REEFDOSE
 class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
     """Per-head dosing switch."""
@@ -712,7 +717,9 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
             self._device.hass.bus.fire(self._typed_desc.value_name, {})
         dose = cast(_DosePush, self._device)
         await dose.push_values(self._head)
-        await dose.async_request_refresh(source="/head/" + str(self._head) + "/settings")
+        await dose.async_request_refresh(
+            source="/head/" + str(self._head) + "/settings"
+        )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         self._attr_is_on = False
@@ -726,7 +733,9 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
 
         dose = cast(_DosePush, self._device)
         await dose.push_values(self._head)
-        await dose.async_request_refresh(source="/head/" + str(self._head) + "/settings")
+        await dose.async_request_refresh(
+            source="/head/" + str(self._head) + "/settings"
+        )
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
@@ -786,9 +795,9 @@ class ReefRunSwitchEntity(ReefBeatSwitchEntity):
             self._device.hass.bus.fire(self._typed_desc.value_name, {})
 
         run = cast(_RunPush, self._device)
-        await run.push_values("/pump/settings", self._typed_desc.method,self._pump)
+        await run.push_values("/pump/settings", self._typed_desc.method, self._pump)
         await run.async_request_refresh(source="/pump/settings")
-        
+
     async def async_turn_off(self, **kwargs: Any) -> None:
         self._attr_is_on = False
         self._set_icon()
@@ -799,7 +808,7 @@ class ReefRunSwitchEntity(ReefBeatSwitchEntity):
         if self._typed_desc.notify:
             self._device.hass.bus.fire(self._typed_desc.value_name, {})
         run = cast(_RunPush, self._device)
-        await run.push_values("/pump/settings", self._typed_desc.method,self._pump)
+        await run.push_values("/pump/settings", self._typed_desc.method, self._pump)
         await run.async_request_refresh(source="/pump/settings")
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]

@@ -30,19 +30,18 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .coordinator import ReefBeatCoordinator
+from .coordinator import ReefBeatCoordinator, ReefVirtualLedCoordinator
 from .entity import ReefBeatRestoreEntity
 
 _LOGGER = logging.getLogger(__name__)
 
+
 if TYPE_CHECKING:  # pragma: no cover
     from .coordinator import (
         ReefBeatCloudCoordinator,
-        )
+    )
 # Protocols (capability-based typing)
-from .coordinator import (
-    ReefVirtualLedCoordinator,
-)
+
 
 @runtime_checkable
 
@@ -116,7 +115,9 @@ async def async_setup_entry(
     entities: list[UpdateEntity] = []
     _LOGGER.debug("UPDATES")
 
-    if isinstance(device, _CloudLinkedCoordinator) and not isinstance(device,ReefVirtualLedCoordinator):
+    if isinstance(device, _CloudLinkedCoordinator) and not isinstance(
+        device, ReefVirtualLedCoordinator
+    ):
         entities.extend(
             ReefBeatUpdateEntity(device, description)
             for description in FIRMWARE_UPDATES

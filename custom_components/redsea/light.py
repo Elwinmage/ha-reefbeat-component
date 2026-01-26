@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Final, cast
+from typing import Any, cast
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -209,11 +209,13 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
     _attr_supported_color_modes = {ColorMode.BRIGHTNESS}
     _attr_color_mode = ColorMode.BRIGHTNESS
 
-    def __init__(self, device: ReefLedCoordinator, entity_description: DescriptionT) -> None:
+    def __init__(
+        self, device: ReefLedCoordinator, entity_description: DescriptionT
+    ) -> None:
         """Initialize the entity."""
         super().__init__(coordinator=device)
         self._device = device
-        self.entity_description = cast (LightEntityDescription, entity_description)
+        self.entity_description = cast(LightEntityDescription, entity_description)
 
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._attr_device_info = device.device_info
@@ -391,9 +393,6 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
         await self._device.push_values("/manual", "post")
         await self._device.async_request_refresh(source="/manual")
 
-
-
-        
     # @property
     # def available(self) -> bool:
     #     if type(self._device).__name__ == "ReefVirtualLedCoordinator" and (
@@ -417,5 +416,3 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
     # def device_info(self) -> DeviceInfo:
     #     """Return the device info."""
     #     return self._device.device_info
-
-

@@ -192,7 +192,9 @@ async def test_dose_set_bundle_posts_to_bundle_setup(
 
     sent: list[tuple[str, Any, str]] = []
 
-    async def _fake_http_send(url: str, payload: Any = None, method: str = "post") -> Any:
+    async def _fake_http_send(
+        url: str, payload: Any = None, method: str = "post"
+    ) -> Any:
         sent.append((url, payload, method))
         return None
 
@@ -218,7 +220,9 @@ async def test_dose_push_values_head_payload_none_returns_early(
 
     sent: list[tuple[str, Any, str]] = []
 
-    async def _fake_http_send(url: str, payload: Any = None, method: str = "put") -> Any:
+    async def _fake_http_send(
+        url: str, payload: Any = None, method: str = "put"
+    ) -> Any:
         sent.append((url, payload, method))
         return None
 
@@ -243,7 +247,9 @@ async def test_dose_push_values_source_payload_none_returns_early(
 
     sent: list[tuple[str, Any, str]] = []
 
-    async def _fake_http_send(url: str, payload: Any = None, method: str = "put") -> Any:
+    async def _fake_http_send(
+        url: str, payload: Any = None, method: str = "put"
+    ) -> Any:
         sent.append((url, payload, method))
         return None
 
@@ -266,7 +272,9 @@ async def test_dose_push_values_source_success(monkeypatch: pytest.MonkeyPatch) 
 
     sent: list[tuple[str, Any, str]] = []
 
-    async def _fake_http_send(url: str, payload: Any = None, method: str = "put") -> Any:
+    async def _fake_http_send(
+        url: str, payload: Any = None, method: str = "put"
+    ) -> Any:
         sent.append((url, payload, method))
         return None
 

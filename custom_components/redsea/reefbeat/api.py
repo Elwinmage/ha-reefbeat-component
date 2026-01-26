@@ -187,7 +187,7 @@ class ReefBeatAPI:
         """Perform a one-off GET request to `access_path` (debug-friendly)."""
         url = self._base_url + access_path
         started = time.time()
-        _LOGGER.debug("http_get %s",url)
+        _LOGGER.debug("http_get %s", url)
         try:
             async with async_timeout.timeout(DEFAULT_TIMEOUT):
                 async with self._session.get(
@@ -222,7 +222,7 @@ class ReefBeatAPI:
             return False
 
         url = f"{self._base_url}{endpoint}"
-        _LOGGER.debug("_http_get %s",url)
+        _LOGGER.debug("_http_get %s", url)
 
         try:
             timeout = getattr(self, "_timeout", 10)

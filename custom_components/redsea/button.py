@@ -229,7 +229,7 @@ MAT_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
     ),
 )
 
-EMERGENCY_BUTTON:tuple[ReefBeatButtonEntityDescription, ...] = (
+EMERGENCY_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
         key="delete_emergency",
         translation_key="delete_emergency",
@@ -283,7 +283,9 @@ async def async_setup_entry(
 
     if isinstance(device, ReefMatCoordinator):
         _add_described_entities(entities, device, ReefBeatButtonEntity, MAT_BUTTONS)
-        _add_described_entities(entities, device, ReefBeatButtonEntity, EMERGENCY_BUTTON)
+        _add_described_entities(
+            entities, device, ReefBeatButtonEntity, EMERGENCY_BUTTON
+        )
 
     elif isinstance(device, ReefATOCoordinator):
         _add_described_entities(entities, device, ReefBeatButtonEntity, ATO_BUTTONS)
@@ -313,7 +315,9 @@ async def async_setup_entry(
         )
 
     elif isinstance(device, ReefRunCoordinator):
-        _add_described_entities(entities, device, ReefBeatButtonEntity, EMERGENCY_BUTTON)
+        _add_described_entities(
+            entities, device, ReefBeatButtonEntity, EMERGENCY_BUTTON
+        )
         if not device.my_api.live_config_update:
             for pump in range(1, 3):
                 CONFIG_PREVIEW_BUTTONS: tuple[ReefRunButtonEntityDescription, ...] = (
@@ -482,8 +486,10 @@ async def async_setup_entry(
         _add_described_entities(
             entities, device, ReefBeatButtonEntity, FETCH_CONFIG_BUTTON
         )
-    
-    if not isinstance(device,ReefBeatCloudCoordinator) and not isinstance(device,ReefVirtualLedCoordinator):
+
+    if not isinstance(device, ReefBeatCloudCoordinator) and not isinstance(
+        device, ReefVirtualLedCoordinator
+    ):
         _add_described_entities(
             entities, device, ReefBeatButtonEntity, FIRMWARE_UPDATE_BUTTON
         )
@@ -735,7 +741,7 @@ class ReefRunButtonEntity(ButtonEntity):
         identifiers += pump
         di["identifiers"] = {identifiers}
         return di
-            
+
 
 # REEFWAVE
 class ReefWaveButtonEntity(ButtonEntity):

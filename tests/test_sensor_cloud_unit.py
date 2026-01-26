@@ -61,7 +61,9 @@ class _FakeCoordinator:
     serial: str = "SERIAL"
     title: str = "Device"
     device_info: DeviceInfo = field(
-        default_factory=lambda: DeviceInfo(identifiers={("redsea", "SERIAL")}, name="Device")
+        default_factory=lambda: DeviceInfo(
+            identifiers={("redsea", "SERIAL")}, name="Device"
+        )
     )
     hass: Any | None = None
     my_api: _FakeApi = field(default_factory=_FakeApi)
@@ -140,7 +142,9 @@ def test_cloud_sensor_no_aquarium_name_returns_raw_name() -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_setup_entry_cloud_linked_branch(monkeypatch: Any, hass: Any) -> None:
+async def test_async_setup_entry_cloud_linked_branch(
+    monkeypatch: Any, hass: Any
+) -> None:
     class _CloudLinked(_FakeCoordinator):
         pass
 
@@ -182,7 +186,9 @@ async def test_async_setup_entry_cloud_linked_branch(monkeypatch: Any, hass: Any
     def _add_entities(new_entities: Any, update_before_add: bool = False) -> None:
         added.extend(list(new_entities))
 
-    await sensor_platform.async_setup_entry(hass, cast(Any, entry), cast(Any, _add_entities))
+    await sensor_platform.async_setup_entry(
+        hass, cast(Any, entry), cast(Any, _add_entities)
+    )
 
     assert any(isinstance(e, sensor_platform.ReefBeatSensorEntity) for e in added)
 
@@ -229,13 +235,19 @@ async def test_async_setup_entry_cloud_library_dynamic_descriptions(
     ] = [{"uid": 3}]
 
     device.get_data_map[
-        "$.sources[?(@.name=='" + sensor_platform.LIGHTS_LIBRARY + "')].data[?(@.uid=='1')].name"
+        "$.sources[?(@.name=='"
+        + sensor_platform.LIGHTS_LIBRARY
+        + "')].data[?(@.uid=='1')].name"
     ] = "P"
     device.get_data_map[
-        "$.sources[?(@.name=='" + sensor_platform.WAVES_LIBRARY + "')].data[?(@.uid=='2')].name"
+        "$.sources[?(@.name=='"
+        + sensor_platform.WAVES_LIBRARY
+        + "')].data[?(@.uid=='2')].name"
     ] = "W"
     device.get_data_map[
-        "$.sources[?(@.name=='" + sensor_platform.SUPPLEMENTS_LIBRARY + "')].data[?(@.uid=='3')].name"
+        "$.sources[?(@.name=='"
+        + sensor_platform.SUPPLEMENTS_LIBRARY
+        + "')].data[?(@.uid=='3')].name"
     ] = "S"
 
     entry = MockConfigEntry(domain=DOMAIN, data={"host": "1.2.3.4"})
@@ -247,6 +259,8 @@ async def test_async_setup_entry_cloud_library_dynamic_descriptions(
     def _add_entities(new_entities: Any, update_before_add: bool = False) -> None:
         added.extend(list(new_entities))
 
-    await sensor_platform.async_setup_entry(hass, cast(Any, entry), cast(Any, _add_entities))
+    await sensor_platform.async_setup_entry(
+        hass, cast(Any, entry), cast(Any, _add_entities)
+    )
 
     assert any(isinstance(e, sensor_platform.ReefBeatCloudSensorEntity) for e in added)

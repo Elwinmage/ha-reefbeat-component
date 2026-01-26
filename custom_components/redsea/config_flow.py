@@ -271,8 +271,8 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             user_input[CONFIG_FLOW_CONFIG_TYPE] = False
             user_input[CONFIG_FLOW_IP_ADDRESS] = CLOUD_SERVER_ADDR
             user_input[CONFIG_FLOW_HW_MODEL] = CLOUD_DEVICE_TYPE
-            user_input[CONFIG_FLOW_DISABLE_SUPPLEMENT]=True
-            
+            user_input[CONFIG_FLOW_DISABLE_SUPPLEMENT] = True
+
             title = str(user_input[CONFIG_FLOW_CLOUD_USERNAME])
             await self.async_set_unique_id(title)
             return self.async_create_entry(title=title, data=user_input)

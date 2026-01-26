@@ -435,8 +435,6 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
             other
         ]
 
-        
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -454,7 +452,7 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
                 src_lang="uid",
             )
         self.async_write_ha_state()
-        
+
     async def async_select_option(self, option: str) -> None:
         """Update the selected supplement and update local cache."""
         hass = self._device.hass
@@ -463,8 +461,8 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
         self._attr_current_option = option
         event_type = self._value_name
 
-        _LOGGER.debug("FIRE %s %s"%(option,other))
-        
+        _LOGGER.debug("FIRE %s %s" % (option, other))
+
         if option == other:
             value = "other"
             hass.bus.fire(event_type, {"other": True})

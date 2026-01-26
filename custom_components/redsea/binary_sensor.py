@@ -90,7 +90,7 @@ COMMON_SENSORS: tuple[
         value_fn=lambda device: device.get_data(
             "$.sources[?(@.name=='/cloud')].data.connected"
         ),
-        exists_fn=lambda device: not isinstance(device,ReefVirtualLedCoordinator),        
+        exists_fn=lambda device: not isinstance(device, ReefVirtualLedCoordinator),
         icon="mdi:cloud-check-variant-outline",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),

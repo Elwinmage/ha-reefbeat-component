@@ -226,7 +226,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                     data,
                 )
                 r = await device.my_api.http_send(access_path, data, method)
-                
+
         except Exception:
             _LOGGER.exception(
                 "Service request failed: device_id=%s path=%s method=%s",

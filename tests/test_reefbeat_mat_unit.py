@@ -136,7 +136,9 @@ async def test_mat_new_roll_unknown_model_returns_early(
 
     sent: list[tuple[str, Any, str]] = []
 
-    async def _fake_http_send(url: str, payload: Any = None, method: str = "post") -> Any:
+    async def _fake_http_send(
+        url: str, payload: Any = None, method: str = "post"
+    ) -> Any:
         sent.append((url, payload, method))
         return None
 

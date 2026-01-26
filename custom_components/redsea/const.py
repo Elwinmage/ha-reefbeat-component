@@ -86,7 +86,9 @@ CONFIG_FLOW_CONFIG_TYPE: Final[str] = "live_config_update"
 SCAN_INTERVAL: Final[int] = 120  # seconds
 DO_NOT_REFRESH_TIME: Final[int] = 2  # seconds
 
-REFRESH_DEVICE_DELAY: Final[int] = 2  # Time to wait for device to take data refresh into account
+REFRESH_DEVICE_DELAY: Final[int] = (
+    2  # Time to wait for device to take data refresh into account
+)
 DEFAULT_TIMEOUT: Final[int] = 20
 
 HTTP_MAX_RETRY: Final[int] = 5

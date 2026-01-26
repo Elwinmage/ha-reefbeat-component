@@ -70,7 +70,9 @@ async def test_cloud_connect_missing_token_raises_invalidauth() -> None:
     ReefBeatCloudAPI2 = mod.ReefBeatCloudAPI
     InvalidAuth = mod.InvalidAuth
 
-    session = _FakeSession(_FakeResponse(status=200, text_body="ok", json_body={"x": 1}))
+    session = _FakeSession(
+        _FakeResponse(status=200, text_body="ok", json_body={"x": 1})
+    )
     api = ReefBeatCloudAPI2(
         username="u",
         password="p",

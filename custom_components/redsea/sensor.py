@@ -388,7 +388,7 @@ LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         value_fn=lambda device: device.get_data(
             "$.sources[?(@.name=='/manual')].data.fan"
         ),
-        exists_fn=lambda device: not isinstance(device,ReefVirtualLedCoordinator),
+        exists_fn=lambda device: not isinstance(device, ReefVirtualLedCoordinator),
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:fan",
     ),
@@ -401,7 +401,7 @@ LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         value_fn=lambda device: device.get_data(
             "$.sources[?(@.name=='/manual')].data.temperature"
         ),
-        exists_fn=lambda device: not isinstance(device,ReefVirtualLedCoordinator),        
+        exists_fn=lambda device: not isinstance(device, ReefVirtualLedCoordinator),
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:thermometer",
         suggested_display_precision=1,
@@ -1416,6 +1416,7 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
 
         return cast(DeviceInfo, di_dict)
 
+
 # RESTORE
 class RestoreSensorEntity(ReefDoseSensorEntity):
     """Restore-capable ReefDose sensor.
@@ -1501,6 +1502,7 @@ class ReefRunSensorEntity(ReefBeatSensorEntity):
         identifiers += pump
         di["identifiers"] = {identifiers}
         return di
+
 
 # REEFWAVE
 class ReefWaveSensorEntity(ReefBeatSensorEntity):

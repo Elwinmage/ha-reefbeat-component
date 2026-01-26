@@ -117,7 +117,9 @@ async def test_run_push_values_non_dict_payload_returns_early(
 
     sent: list[tuple[str, Any, str]] = []
 
-    async def _fake_http_send(url: str, payload: Any = None, method: str = "put") -> Any:
+    async def _fake_http_send(
+        url: str, payload: Any = None, method: str = "put"
+    ) -> Any:
         sent.append((url, payload, method))
         return None
 
@@ -140,7 +142,9 @@ async def test_run_push_values_unknown_source_payload_none_returns_early(
 
     sent: list[tuple[str, Any, str]] = []
 
-    async def _fake_http_send(url: str, payload: Any = None, method: str = "put") -> Any:
+    async def _fake_http_send(
+        url: str, payload: Any = None, method: str = "put"
+    ) -> Any:
         sent.append((url, payload, method))
         return None
 

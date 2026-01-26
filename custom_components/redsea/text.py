@@ -29,6 +29,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import DOMAIN
 from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator
 from .entity import ReefBeatRestoreEntity, RestoreSpec
+from .i18n import translate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -179,9 +180,9 @@ class ReefBeatTextEntity(ReefBeatRestoreEntity, TextEntity):  # type: ignore[rep
         if self._device.last_update_success:
             self._update_val()
             super()._handle_coordinator_update()
-            
+
     def _update_val(self) -> None:
-#        self._attr_available = True
+        #        self._attr_available = True
         self._attr_native_value = cast(
             str | None, self._device.get_data(self._desc.value_name)
         )
@@ -222,6 +223,7 @@ class ReefBeatTextEntity(ReefBeatRestoreEntity, TextEntity):  # type: ignore[rep
         else:
             return True
 
+
 # REEFDOSE
 class ReefDoseTextEntity(ReefBeatTextEntity):
     """Per-head ReefDose text entity.
@@ -245,7 +247,7 @@ class ReefDoseTextEntity(ReefBeatTextEntity):
     async def async_added_to_hass(self) -> None:
         """Register event listener after HA has set `self.hass`."""
         await super().async_added_to_hass()
-        self._attr_available=False
+        self._attr_available = False
         if self._dose_desc.dependency:
             self.async_on_remove(
                 self.hass.bus.async_listen(
@@ -268,7 +270,7 @@ class ReefDoseTextEntity(ReefBeatTextEntity):
     @property
     def available(self) -> bool:
         return self._attr_available
-        
+
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the head identifier (non-mutating)."""

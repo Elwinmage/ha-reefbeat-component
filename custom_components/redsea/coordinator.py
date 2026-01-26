@@ -127,7 +127,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def clean_message(self, msg_type) -> None:
         self.my_api.clean_message(msg_type)
         self.async_update_listeners()
-        
+
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch fresh data from the device.
 
@@ -508,7 +508,7 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
     async def async_setup(self) -> None:
         """Public entry-point for one-time initialization."""
         pass
-            
+
     @callback
     def _link_leds(self, event: Any | None = None) -> None:
         """Resolve linked LED coordinators from entry data."""

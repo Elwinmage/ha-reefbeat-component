@@ -128,6 +128,7 @@ class ReefBeatNumberEntityDescription(NumberEntityDescription):
     translate: Sequence[dict[str, Any]] | None = None
     source: str = "/configuration"
 
+
 @dataclass(kw_only=True, frozen=True)
 class ReefRunNumberEntityDescription(ReefBeatNumberEntityDescription):
     """Description for ReefRun number entities."""
@@ -427,7 +428,7 @@ async def async_setup_entry(
         )
 
         for head in range(1, device.heads_nb + 1):
-            descriptions.append (
+            descriptions.append(
                 ReefDoseNumberEntityDescription(
                     key=f"save_initial_container_volume_head_{head}",
                     translation_key="save_initial_container_volume",
@@ -703,7 +704,6 @@ class ReefBeatNumberEntity(ReefBeatRestoreEntity, NumberEntity):  # type: ignore
         if cast(ReefBeatCoordinator, self._device).last_update_success:
             self._handle_coordinator_update()
 
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Sync cached `_attr_*` state from coordinator data."""
@@ -750,8 +750,9 @@ class ReefBeatNumberEntity(ReefBeatRestoreEntity, NumberEntity):  # type: ignore
 
     @property
     def available(self) -> bool:
-        return  self._compute_available()
-        
+        return self._compute_available()
+
+
 # REEFLED
 class ReefLedNumberEntity(ReefBeatNumberEntity):
     """LED-specific number entity (some values require POST to a special endpoint)."""
@@ -876,7 +877,7 @@ class ReefRunNumberEntity(ReefBeatNumberEntity):
         super().__init__(device, description)
         self._run_description = description
         self._pump = description.pump
-        
+
     async def async_set_native_value(self, value: float) -> None:
         v = int(value)
         self._attr_native_value = float(v)
@@ -915,7 +916,6 @@ class ReefRunNumberEntity(ReefBeatNumberEntity):
         di["identifiers"] = {identifiers}
         return di
 
-        
 
 # REEFWAVE
 class ReefWaveNumberEntity(ReefBeatNumberEntity):
@@ -965,8 +965,6 @@ class ReefWaveNumberEntity(ReefBeatNumberEntity):
 
         self.async_write_ha_state()
 
-        
-        
 
 # REEFATO+
 class ReefATOVolumeLeftNumberEntity(ReefBeatNumberEntity):
