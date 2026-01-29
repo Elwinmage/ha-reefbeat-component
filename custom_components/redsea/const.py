@@ -277,6 +277,7 @@ ATO_VOLUME_LEFT_INTERNAL_NAME: Final[JsonPath] = (
 )
 
 # TODO: test ato modes
+# Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/50
 ATO_MODE_INTERNAL_NAME: Final[JsonPath] = "$.sources[?(@.name=='/dashboard')].data.mode"
 ATO_MODES: Final[tuple[str, ...]] = ("auto", "empty", "error")
 
