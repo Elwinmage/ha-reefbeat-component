@@ -9,7 +9,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 import custom_components.redsea.select as platform
 from custom_components.redsea.const import DOMAIN
-from tests._select_test_fakes import FakeCoordinator, FakeDoseCoordinator
+from tests._select_test_fakes import FakeDoseCoordinator
 
 
 @pytest.mark.asyncio
@@ -58,7 +58,7 @@ def test_reefdose_select_device_info_head_zero_returns_base(
         "identifiers": {("redsea", "BASE")},
         "manufacturer": "Red Sea",
     }
-    device = FakeCoordinator(
+    device = FakeDoseCoordinator(
         hass=hass,
         serial="BASE",
         title="Dose",
@@ -94,7 +94,7 @@ def test_reefdose_select_device_info_builds_head_device_and_copies_fields(
         "hw_version": None,  # allowed
         "via_device": ("redsea", "PARENT"),
     }
-    device = FakeCoordinator(
+    device = FakeDoseCoordinator(
         hass=hass,
         serial="IDENT",
         title="Dose",
@@ -111,11 +111,10 @@ def test_reefdose_select_device_info_builds_head_device_and_copies_fields(
     ent = ReefDoseSelectEntity(cast(Any, device), desc)
 
     di = cast(DeviceInfo, ent.device_info)
-    assert ("redsea", "IDENT", "head_1") in (di.get("identifiers") or set())
+    assert ("redsea", "IDENT_head_1") in (di.get("identifiers") or set())
     assert di.get("name") == "Dose head 1"
 
     assert di.get("manufacturer") == "Red Sea"
-    assert "model" not in di
     assert di.get("hw_version") is None
     assert di.get("via_device") == ("redsea", "PARENT")
 
@@ -131,7 +130,7 @@ async def test_reefdose_select_async_select_option_other_fires_event_and_sets_va
     )
 
     uid = "0e63ba83-3ec4-445e-a3dd-7f2dbdc7f964"
-    device = FakeCoordinator(hass=hass, _data={"$.sup": uid})
+    device = FakeDoseCoordinator(hass=hass, _data={"$.sup": uid})
     desc = ReefDoseSelectEntityDescription(
         key="sup",
         translation_key="supplements",
@@ -170,7 +169,7 @@ async def test_reefdose_select_async_select_option_known_supplement_translates_t
     uid = "0e63ba83-3ec4-445e-a3dd-7f2dbdc7f964"
     fullname = "Red Sea - Calcium (Powder)"
 
-    device = FakeCoordinator(hass=hass, _data={"$.sup": uid})
+    device = FakeDoseCoordinator(hass=hass, _data={"$.sup": uid})
     desc = ReefDoseSelectEntityDescription(
         key="sup",
         translation_key="supplements",

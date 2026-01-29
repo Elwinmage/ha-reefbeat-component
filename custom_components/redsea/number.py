@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Any, Protocol, cast, runtime_checkable
 
 from homeassistant.components.number import (
@@ -748,7 +749,7 @@ class ReefBeatNumberEntity(ReefBeatRestoreEntity, NumberEntity):  # type: ignore
         await self._device.push_values(self._source)
         await self._device.async_request_refresh()
 
-    @property
+    @cached_property
     def available(self) -> bool:
         return self._compute_available()
 
@@ -843,28 +844,37 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-
         head = self._dose_description.head
         if head <= 0:
             return
 
-        # Per-head device_info: keep identifiers stable and type-safe.
-        base_di = cast(DeviceInfo, self._device.device_info)
-        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
-        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
-        via_device = base_di.get("via_device")
-        di_dict: dict[str, Any] = {
-            "identifiers": {(domain, ident, f"head_{head}")},
-            "name": f"{self._device.title} head {head}",
-            "manufacturer": base_di.get("manufacturer"),
-            "model": base_di.get("model"),
-            "model_id": base_di.get("model_id"),
-            "hw_version": base_di.get("hw_version"),
-            "sw_version": base_di.get("sw_version"),
-        }
-        if via_device is not None:
-            di_dict["via_device"] = via_device
-        self._attr_device_info = cast(DeviceInfo, di_dict)
+        if self._dose_description.dependency:
+            self._attr_available = self._device.get_data(
+                self._dose_description.dependency
+            )
+            self.async_on_remove(
+                self.hass.bus.async_listen(
+                    self._dose_description.dependency, self._handle_available_update
+                )
+            )
+        else:
+            self._attr_available = True
+
+    @callback
+    def _handle_available_update(self, event: Any) -> None:
+        if self._dose_description.dependency is not None:
+            self._attr_available = self._device.get_data(
+                self._dose_description.dependency
+            )
+
+    @cached_property
+    def available(self) -> bool:
+        return self._compute_available()
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
+    def device_info(self) -> DeviceInfo:
+        """Return device info extended with the head identifier (non-mutating)."""
+        return cast(ReefDoseCoordinator, self._device).head_device_info(self._head)
 
 
 # REEFRUN
@@ -905,16 +915,15 @@ class ReefRunNumberEntity(ReefBeatNumberEntity):
             await self._device.push_values(self._source)
         await self._device.async_request_refresh()
 
-    @property
+    async def async_added_to_hass(self) -> None:
+        """Register event listener after HA has set `self.hass`."""
+        await super().async_added_to_hass()
+        self._attr_available = True
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        di = self._device.device_info
-        di["name"] += "_pump_" + str(self._pump)
-        identifiers = list(di["identifiers"])[0]
-        pump = ("pump_" + str(self._pump),)
-        identifiers += pump
-        di["identifiers"] = {identifiers}
-        return di
+        """Return per-pump device info for ReefRun."""
+        return cast(ReefRunCoordinator, self._device).pump_device_info(self._pump)
 
 
 # REEFWAVE

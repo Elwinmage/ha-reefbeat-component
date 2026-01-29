@@ -113,8 +113,7 @@ class _LinkedLed:
     deleted: list[str] = field(default_factory=list)
     configs: list[str | None] = field(default_factory=list)
     posted: list[str] = field(default_factory=list)
-    refresh_calls: list[int] = field(default_factory=list)
-    quick_refresh_calls: list[tuple[str, int]] = field(default_factory=list)
+    refresh_calls: list[tuple[str | None, int]] = field(default_factory=list)
 
     def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
         return self.get_map.get(name)
@@ -139,11 +138,10 @@ class _LinkedLed:
     async def post_specific(self, source: str) -> None:
         self.posted.append(source)
 
-    async def async_request_refresh(self, *, wait: int = 2) -> None:
-        self.refresh_calls.append(wait)
-
-    async def async_quick_request_refresh(self, source: str, wait: int = 2) -> None:
-        self.quick_refresh_calls.append((source, wait))
+    async def async_request_refresh(
+        self, src: str | None = None, config: bool = False, wait: int = 2
+    ) -> None:
+        self.refresh_calls.append((src, wait))
 
 
 @pytest.mark.asyncio
@@ -387,9 +385,9 @@ async def test_virtual_led_broadcasts_to_linked_leds(
     assert l1.posted == ["/timer"] and l2.posted == ["/timer"]
 
     await vled.async_request_refresh(wait=0)
-    await vled.async_quick_request_refresh("/dashboard", wait=0)
-    assert l1.refresh_calls == [0] and l2.refresh_calls == [0]
-    assert l1.quick_refresh_calls == [("/dashboard", 0)]
+    await vled.async_request_refresh(source="/dashboard", wait=0)
+    assert l1.refresh_calls == ([(None, 0), ("/dashboard", 0)])
+    assert l2.refresh_calls == ([(None, 0), ("/dashboard", 0)])
 
     # Cover force_status_update override (no-op).
     assert vled.force_status_update() is None

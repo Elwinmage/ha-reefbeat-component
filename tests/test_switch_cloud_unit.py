@@ -74,7 +74,7 @@ async def test_save_state_switch_async_added_to_hass_sets_available_when_previou
     await entity.async_added_to_hass()
 
     assert entity.available is True
-    assert entity.icon == "mdi:cloud-off"
+    assert entity.icon == "mdi:cloud"
 
 
 @pytest.mark.asyncio

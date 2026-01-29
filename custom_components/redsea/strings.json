@@ -4,6 +4,9 @@
       "already_configured": "Device Already configured",
       "cannot_create": "Unable to create ReefBeat device with specified parameters"
     },
+    "error":{
+      "err1":" YES"
+    },
     "flow_title": "ReefBeat configuration",
     "step": {
       "user": {

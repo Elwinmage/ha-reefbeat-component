@@ -51,6 +51,9 @@ CONFIG_FLOW_CLOUD_USERNAME = _const("CONFIG_FLOW_CLOUD_USERNAME", "username")
 CONFIG_FLOW_CLOUD_PASSWORD = _const("CONFIG_FLOW_CLOUD_PASSWORD", "password")
 CONFIG_FLOW_ADD_TYPE = _const("CONFIG_FLOW_ADD_TYPE", "add_type")
 CONFIG_FLOW_CONFIG_TYPE = _const("CONFIG_FLOW_CONFIG_TYPE", "live_config_update")
+CONFIG_FLOW_DISABLE_SUPPLEMENT = _const(
+    "CONFIG_FLOW_DISABLE_SUPPLEMENT", "disable_supplements"
+)
 
 
 ADD_CLOUD_API = _const("ADD_CLOUD_API", "cloud_api")
@@ -296,6 +299,7 @@ def cloud_config_entry() -> MockConfigEntry:
             CONFIG_FLOW_CLOUD_USERNAME: "test@example.com",
             CONFIG_FLOW_CLOUD_PASSWORD: "not-a-real-password",
             CONFIG_FLOW_CONFIG_TYPE: False,
+            CONFIG_FLOW_DISABLE_SUPPLEMENT: True,
         },
         unique_id="test-cloud",
     )

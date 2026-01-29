@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, cast
 
 import pytest
@@ -125,6 +125,13 @@ class _FakeAPI:
 class _FakeDevice:
     my_api: _FakeAPI
     title: str = "DeviceTitle"
+
+    refreshed: list[str | None] = field(default_factory=list)
+
+    async def async_request_refresh(
+        self, source: str | None = None, config: bool = False, wait: int = 2
+    ) -> None:
+        self.refreshed.append(source)
 
 
 @pytest.mark.asyncio

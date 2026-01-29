@@ -96,7 +96,8 @@ async def test_run_async_set_native_value_falls_back_to_push_values(hass: Any) -
 
 @pytest.mark.asyncio
 async def test_run_async_added_to_hass_sets_per_pump_device_info(hass: Any) -> None:
-    device = FakeCoordinator(hass=hass)
+    # device = FakeCoordinator(hass=hass)
+    device = FakeRunWithPumpIntensity(hass=hass)
     desc = ReefRunNumberEntityDescription(
         key="x",
         translation_key="x",
@@ -108,13 +109,13 @@ async def test_run_async_added_to_hass_sets_per_pump_device_info(hass: Any) -> N
     )
     ent = ReefRunNumberEntity(cast(Any, device), desc)
     ent.hass = hass
-
     await ent.async_added_to_hass()
 
     assert ent.device_info is not None
     di = cast(DeviceInfo, ent.device_info)
     identifiers = cast(set[tuple[str, str]], di.get("identifiers") or set())
-    assert any("pump_2" in ident for _d, ident in identifiers)
+
+    assert any("SERIAL_pump_2" in serial for _d, serial in identifiers)
 
 
 @pytest.mark.asyncio

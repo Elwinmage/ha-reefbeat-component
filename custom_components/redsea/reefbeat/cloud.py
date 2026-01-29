@@ -48,7 +48,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
         live_config_update: bool,
         ip: str,
         session: aiohttp.ClientSession,
-        disable_supplement: str,
+        disable_supplement: bool,
     ) -> None:
         """Create a ReefBeatCloudAPI instance.
 

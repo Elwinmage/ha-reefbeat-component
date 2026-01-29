@@ -5,6 +5,9 @@ from dataclasses import dataclass, field
 from typing import Any, cast
 
 import pytest
+
+from copy import deepcopy
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
@@ -201,14 +204,16 @@ async def test_reefrun_button_entity_preview_save_and_preview_refresh_paths() ->
         ) -> None:
             self.pushed.append((source, pump))
 
-        async def async_request_refresh(self) -> None:
-            self.refreshed.append("refresh")
+        async def async_request_refresh(
+            self, source: str | None = None, config: bool = False, wait: int = 2
+        ) -> None:
+            # self.refreshed.append("refresh")
+            if source is None:
+                source = "refresh"
+            self.refreshed.append(source)
 
         async def fetch_config(self) -> None:
             self.refreshed.append("fetch_config")
-
-        async def async_quick_request_refresh(self, source: str) -> None:
-            self.refreshed.append(source)
 
     device = _Run()
 
@@ -257,7 +262,7 @@ async def test_reefrun_button_entity_fetch_config_and_press_fn_variants(
         async def fetch_config(self) -> None:
             self.fetched += 1
 
-        async def async_quick_request_refresh(self, source: str) -> None:
+        async def async_request_refresh(self, source: str) -> None:
             self.quick.append(source)
 
     device = _Run()
@@ -511,6 +516,16 @@ async def test_reefdose_button_entity_remaining_branches_and_device_info() -> No
         pressed: list[tuple[str, int]] = []
         calibrated: list[tuple[str, int, dict[str, Any]]] = []
         refreshed: int = 0
+
+        def head_device_info(self, head_id):
+            """Return device info extended with the head identifier (non-mutating)."""
+            if head_id <= 0:
+                return self.device_info
+            else:
+                res = deepcopy(self.device_info)
+                res["identifiers"] = {("redsea", f"{self.serial}_head_{head_id}")}
+                res["name"] = f"{self.title} head {head_id}"
+                return res
 
         def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
             return self.get_data_map.get(name)

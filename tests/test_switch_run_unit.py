@@ -33,7 +33,7 @@ async def test_run_switch_device_info_adds_pump_suffix() -> None:
     entity = ReefRunSwitchEntity(cast(Any, device), desc)
     info = entity.device_info
 
-    assert "_pump_3" in cast(str, info.get("name"))
+    assert " pump 3" in cast(str, info.get("name"))
     identifiers = info.get("identifiers")
     assert identifiers is not None
 
@@ -68,7 +68,7 @@ async def test_run_switch_notify_and_pushes_settings(hass: Any) -> None:
     await hass.async_block_till_done()
 
     assert events == ["event.run"]
-    assert device.pushed == [("/pump/settings", "put", 1)]
+    assert device.pump_pushed == [("/pump/settings", "put", 1)]
     assert device.refreshed == ["/pump/settings"]
 
 
@@ -102,7 +102,7 @@ async def test_run_switch_turn_on_notify_and_pushes_settings(hass: Any) -> None:
     await hass.async_block_till_done()
 
     assert events == ["event.run"]
-    assert device.pushed == [("/pump/settings", "put", 1)]
+    assert device.pump_pushed == [("/pump/settings", "put", 1)]
     assert device.refreshed == ["/pump/settings"]
 
 

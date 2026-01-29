@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Callable
-
+from copy import deepcopy
 from homeassistant.core import HomeAssistant
 
 
@@ -47,7 +47,7 @@ class FakeCoordinator:
         self.pushed.append({"source": source, "method": method, **kwargs})
 
     async def async_request_refresh(
-        self, source: str = None, config: bool = False, wait: int = 2
+        self, source: str | None = None, config: bool = False, wait: int = 2
     ) -> None:
         self.refreshed += 1
 
@@ -62,6 +62,16 @@ class FakeMatCoordinator(FakeCoordinator):
 class FakeDoseCoordinator(FakeCoordinator):
     heads_nb: int = 2
 
+    def head_device_info(self, head_id):
+        """Return device info extended with the head identifier (non-mutating)."""
+        if head_id <= 0:
+            return self.device_info
+        else:
+            res = deepcopy(self.device_info)
+            res["identifiers"] = {("redsea", f"{self.serial}_head_{head_id}")}
+            res["name"] = f"{self.title} head {head_id}"
+            return res
+
 
 class FakeLedCoordinator(FakeCoordinator):
     pass
@@ -72,4 +82,12 @@ class FakeWaveCoordinator(FakeCoordinator):
 
 
 class FakeRunCoordinator(FakeCoordinator):
-    pass
+    def pump_device_info(self, pump_id):
+        """Return device info extended with the pump identifier (non-mutating)."""
+        if pump_id <= 0:
+            return self.device_info
+        else:
+            res = deepcopy(self.device_info)
+            res["identifiers"] = {("redsea", f"{self.serial}_pump_{pump_id}")}
+            res["name"] = f"{self.title} pump {pump_id}"
+            return res

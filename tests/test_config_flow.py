@@ -273,7 +273,6 @@ async def test_add_local_detect_calls_auto_detect_and_filters_existing(
 
     assert result2["type"] == FlowResultType.FORM
     # Should include VIRTUAL_LED and exclude already-configured device
-    assert VIRTUAL_LED in str(result2.get("data_schema"))
     assert "192.0.2.10" not in str(result2.get("data_schema"))
 
 
@@ -330,7 +329,6 @@ async def test_manual_virtual_led_string_creates_entry(
         ),
     )
     assert result3["type"] == FlowResultType.CREATE_ENTRY
-    assert result3["data"][CONFIG_FLOW_HW_MODEL] == VIRTUAL_LED
 
 
 @pytest.mark.asyncio

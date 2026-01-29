@@ -100,7 +100,7 @@ class _HasPushValuesBySource(Protocol):
     """Coordinator capability: push cached values for a source and refresh."""
 
     async def push_values(self, source: str, method: str = "put") -> None: ...
-    async def async_quick_request_refresh(self, source: str) -> None: ...
+    async def async_request_refresh(self, source: str) -> None: ...
 
 
 @runtime_checkable
@@ -108,7 +108,7 @@ class _DosePush(Protocol):
     """Coordinator capability: push values for a dosing head."""
 
     async def push_values(self, head: int) -> None: ...
-    async def async_quick_request_refresh(self, source: str) -> None: ...
+    async def async_request_refresh(self, source: str) -> None: ...
 
 
 @runtime_checkable
@@ -119,8 +119,10 @@ class _RunPush(Protocol):
     for most devices, so RUN switches should generally use that form.
     """
 
-    async def push_values(self, source: str, method: str = "put") -> None: ...
-    async def async_quick_request_refresh(self, source: str) -> None: ...
+    async def push_values(
+        self, source: str, method: str = "put", pump: int | None = None
+    ) -> None: ...
+    async def async_request_refresh(self, source: str) -> None: ...
 
 
 # -----------------------------------------------------------------------------
@@ -491,6 +493,10 @@ class SaveStateSwitchEntity(RestoreEntity, SwitchEntity):
         )
         self.async_write_ha_state()
 
+    @cached_property
+    def available(self) -> bool:
+        return True
+
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         return self._device.device_info
@@ -716,7 +722,7 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
         if self._typed_desc.notify:
             self._device.hass.bus.fire(self._typed_desc.value_name, {})
         dose = cast(_DosePush, self._device)
-        await dose.push_values(self._head)
+        await dose.push_values(head=self._head)
         await dose.async_request_refresh(
             source="/head/" + str(self._head) + "/settings"
         )
@@ -732,37 +738,15 @@ class ReefDoseSwitchEntity(ReefBeatSwitchEntity):
             self._device.hass.bus.fire(self._typed_desc.value_name, {})
 
         dose = cast(_DosePush, self._device)
-        await dose.push_values(self._head)
+        await dose.push_values(head=self._head)
         await dose.async_request_refresh(
             source="/head/" + str(self._head) + "/settings"
         )
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
-        if self._head <= 0:
-            return self._device.device_info
-
-        base_di = dict(self._device.device_info)
-        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
-        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
-
-        # DeviceInfo is a TypedDict; copying values from a generic dict makes mypy/pyright
-        # widen types to object | None, so we guard and only assign strings (or omit keys).
-        di_dict: dict[str, Any] = {
-            "identifiers": {(domain, ident, f"head_{self._head}")},
-            "name": f"{self._device.title} head {self._head}",
-        }
-
-        for key in ("manufacturer", "model", "model_id", "hw_version", "sw_version"):
-            val = base_di.get(key)
-            if isinstance(val, str) or val is None:
-                di_dict[key] = val
-
-        via_device = base_di.get("via_device")
-        if via_device is not None:
-            di_dict["via_device"] = via_device
-
-        return cast(DeviceInfo, di_dict)
+        """Return device info extended with the head identifier (non-mutating)."""
+        return cast(ReefDoseCoordinator, self._device).head_device_info(self._head)
 
 
 # REEFRUN
@@ -795,7 +779,9 @@ class ReefRunSwitchEntity(ReefBeatSwitchEntity):
             self._device.hass.bus.fire(self._typed_desc.value_name, {})
 
         run = cast(_RunPush, self._device)
-        await run.push_values("/pump/settings", self._typed_desc.method, self._pump)
+        await run.push_values(
+            source="/pump/settings", method=self._typed_desc.method, pump=self._pump
+        )
         await run.async_request_refresh(source="/pump/settings")
 
     async def async_turn_off(self, **kwargs: Any) -> None:
@@ -808,16 +794,12 @@ class ReefRunSwitchEntity(ReefBeatSwitchEntity):
         if self._typed_desc.notify:
             self._device.hass.bus.fire(self._typed_desc.value_name, {})
         run = cast(_RunPush, self._device)
-        await run.push_values("/pump/settings", self._typed_desc.method, self._pump)
+        await run.push_values(
+            source="/pump/settings", method=self._typed_desc.method, pump=self._pump
+        )
         await run.async_request_refresh(source="/pump/settings")
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
-        di = dict(self._device.device_info)
-        di["name"] = f"{di.get('name', '')}_pump_{self._pump}"
-
-        identifiers_set = di.get("identifiers")
-        if identifiers_set:
-            base = next(iter(cast(set[tuple[Any, ...]], identifiers_set)))
-            di["identifiers"] = {tuple(base) + (f"pump_{self._pump}",)}
-        return cast(DeviceInfo, di)
+        """Return device info extended with the pump identifier."""
+        return cast(ReefRunCoordinator, self._device).pump_device_info(self._pump)

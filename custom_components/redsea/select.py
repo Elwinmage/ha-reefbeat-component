@@ -400,14 +400,7 @@ class ReefRunSelectEntity(ReefBeatSelectEntity):
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the pump identifier."""
-        di = dict(self._device.device_info)
-        di["name"] = f"{di.get('name', '')}_pump_{self._pump}"
-
-        identifiers_set = di.get("identifiers")
-        if identifiers_set:
-            base = next(iter(cast(set[tuple[Any, ...]], identifiers_set)))
-            di["identifiers"] = {tuple(base) + (f"pump_{self._pump}",)}
-        return cast(DeviceInfo, di)
+        return cast(ReefRunCoordinator, self._device).pump_device_info(self._pump)
 
 
 # REEFDOSE
@@ -479,30 +472,7 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the head identifier."""
-        if self._head <= 0:
-            return self._device.device_info
-
-        base_di = dict(self._device.device_info)
-        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
-        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
-
-        # DeviceInfo is a TypedDict; copying values from a generic dict makes mypy/pyright
-        # widen types to object | None, so we guard and only assign strings (or omit keys).
-        di_dict: dict[str, Any] = {
-            "identifiers": {(domain, ident, f"head_{self._head}")},
-            "name": f"{self._device.title} head {self._head}",
-        }
-
-        for key in ("manufacturer", "model", "model_id", "hw_version", "sw_version"):
-            val = base_di.get(key)
-            if isinstance(val, str) or val is None:
-                di_dict[key] = val
-
-        via_device = base_di.get("via_device")
-        if via_device is not None:
-            di_dict["via_device"] = via_device
-
-        return cast(DeviceInfo, di_dict)
+        return cast(ReefDoseCoordinator, self._device).head_device_info(self._head)
 
 
 # REEFWAVE

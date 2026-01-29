@@ -48,12 +48,13 @@ _LOGGER = logging.getLogger(__name__)
 
 
 # Entity descriptions
-@dataclass(kw_only=True, frozen=True)
 
 # =============================================================================
 # Classes
 # =============================================================================
 
+
+@dataclass(kw_only=True, frozen=True)
 class ReefLedLightEntityDescription(LightEntityDescription):
     """Description for a physical ReefLED entity."""
 
@@ -215,7 +216,7 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
         """Initialize the entity."""
         super().__init__(coordinator=device)
         self._device = device
-        self.entity_description = cast(LightEntityDescription, entity_description)
+        self.entity_description = entity_description
 
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._attr_device_info = device.device_info
@@ -281,7 +282,9 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
 
     def _update_from_device(self) -> None:
         """Pull state from the coordinator and update HA attributes."""
-        value_name = self.entity_description.value_name
+        value_name = cast(
+            ReefLedLightEntityDescription, self.entity_description
+        ).value_name
         raw_data = self._device.get_data(value_name, True)
 
         if raw_data is None:
@@ -322,7 +325,9 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
         """Turn the light on."""
         _LOGGER.debug("ReefLED async_turn_on kwargs=%s", kwargs)
 
-        value_name = self.entity_description.value_name
+        value_name = cast(
+            ReefLedLightEntityDescription, self.entity_description
+        ).value_name
 
         if ATTR_COLOR_TEMP_KELVIN in kwargs:
             kelvin = int(kwargs[ATTR_COLOR_TEMP_KELVIN])
@@ -380,7 +385,9 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
         self._attr_brightness = 0
         self._attr_is_on = False
 
-        value_name = self.entity_description.value_name
+        value_name = cast(
+            ReefLedLightEntityDescription, self.entity_description
+        ).value_name
         if self.entity_description.key == "kelvin_intensity":
             self._device.set_data(value_name + ".intensity", 0)
             self.hass.bus.fire(EVENT_KELVIN_LIGHT_UPDATED, {})

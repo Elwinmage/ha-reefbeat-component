@@ -4,6 +4,10 @@
       "already_configured": "Entitée déjà existante",
       "cannot_create": "Impossible de créer une entitée pour un ReefBeat avec ces paramètres"
     },
+    "error":{
+      "auth_failed":"Erreur d'authentification, vérifiez vos informations d'identification",
+      "nothing_detected": "Aucun périphérique détecté à "
+    },
     "flow_title": "ReefBeat configuration",
     "step": {
       "user": {
@@ -605,6 +609,9 @@
     }
   },
   "options": {
+    "error":{
+      "auth_failed":"Erreur d'authentification, vérifiez vos informations d'identification"
+    },
     "step": {
       "init": {
         "data": {

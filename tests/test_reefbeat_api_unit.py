@@ -237,10 +237,11 @@ async def test_http_get_success_and_failure(monkeypatch: pytest.MonkeyPatch) -> 
     api = _make_api(session)
 
     res = await api.http_get("/dashboard")
+
     assert res is not None
-    assert res["ok"] is True
-    assert res["method"] == "get"
-    assert res["status"] == 200
+    assert "ok" in res and res["ok"] is True
+    assert "method" in res and res["method"] == "get"
+    assert "status" in res and res["status"] == 200
     assert "elapsed_ms" in res
 
     def _boom(*_args: Any, **_kwargs: Any) -> Any:
@@ -263,6 +264,8 @@ async def test__http_get_handles_missing_endpoint_and_client_error(
     class _Match:
         def __init__(self, value: dict[str, Any]):
             self.value = value
+            self.context = None
+            self.path = "/"
 
     assert await api._http_get(cast(Any, session), _Match({})) is False
 
@@ -303,6 +306,8 @@ async def test__http_get_parses_non_json_content_type_and_sets_source_data() -> 
     class _Match:
         def __init__(self, value: dict[str, Any]):
             self.value = value
+            self.context = None
+            self.path = "/"
 
     m1 = _Match({"name": "/x", "data": None})
     ok1 = await api._http_get(cast(Any, session), m1)
@@ -340,6 +345,8 @@ async def test__http_get_secure_401_triggers_connect_and_retries() -> None:
     class _Match:
         def __init__(self, value: dict[str, Any]):
             self.value = value
+            self.context = None
+            self.path = "/"
 
     m = _Match({"name": "/secure", "data": None})
     ok = await api._http_get(cast(Any, session), m)
@@ -367,6 +374,8 @@ async def test__http_get_status_ge_400_returns_false() -> None:
     class _Match:
         def __init__(self, value: dict[str, Any]):
             self.value = value
+            self.context = None
+            self.path = "/"
 
     m = _Match({"name": "/bad", "data": None})
     ok = await api._http_get(cast(Any, session), m)
@@ -503,6 +512,8 @@ async def test__call_url_retries_and_sets_error(
     class _Match:
         def __init__(self, value: dict[str, Any]):
             self.value = value
+            self.context = None
+            self.path = "/"
 
     await api._call_url(cast(Any, session), _Match({"name": "/fail"}))
     assert api._in_error is True

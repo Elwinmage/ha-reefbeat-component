@@ -29,7 +29,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import DOMAIN
 from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator
 from .entity import ReefBeatRestoreEntity, RestoreSpec
-from .i18n import translate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -205,21 +204,10 @@ class ReefBeatTextEntity(ReefBeatRestoreEntity, TextEntity):  # type: ignore[rep
         """Return the device info."""
         return self._device.device_info
 
-    @property
+    @cached_property
     def available(self) -> bool:
-        if self.entity_description.dependency is not None:
-            if self.entity_description.dependency_values is not None:
-                val = self._device.get_data(self.entity_description.dependency)
-                if self.entity_description.translate is not None:
-                    val = translate(
-                        val,
-                        "id",
-                        dictionary=self.entity_description.translate,
-                        src_lang=self._device._hass.config.language,
-                    )
-                return val in self.entity_description.dependency_values
-            else:
-                return self._device.get_data(self.entity_description.dependency)
+        if self._desc.dependency is not None:
+            return self._device.get_data(self._desc.dependency)
         else:
             return True
 
@@ -267,34 +255,11 @@ class ReefDoseTextEntity(ReefBeatTextEntity):
             self._attr_available = bool(other)
         self.async_write_ha_state()
 
-    @property
+    @cached_property
     def available(self) -> bool:
         return self._attr_available
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the head identifier (non-mutating)."""
-        if self._head <= 0:
-            return self._device.device_info
-
-        base_di = dict(self._device.device_info)
-        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
-        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
-
-        # DeviceInfo is a TypedDict; copying values from a generic dict makes mypy/pyright
-        # widen types to object | None, so we guard and only assign strings (or omit keys).
-        di_dict: dict[str, Any] = {
-            "identifiers": {(domain, ident, f"head_{self._head}")},
-            "name": f"{self._device.title} head {self._head}",
-        }
-
-        for key in ("manufacturer", "model", "model_id", "hw_version", "sw_version"):
-            val = base_di.get(key)
-            if isinstance(val, str) or val is None:
-                di_dict[key] = val
-
-        via_device = base_di.get("via_device")
-        if via_device is not None:
-            di_dict["via_device"] = via_device
-
-        return cast(DeviceInfo, di_dict)
+        return cast(ReefDoseCoordinator, self._device).head_device_info(self._head)

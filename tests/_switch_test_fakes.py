@@ -4,6 +4,8 @@ from contextlib import suppress
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
+from copy import deepcopy
+
 from homeassistant.helpers.device_registry import DeviceInfo
 
 
@@ -86,12 +88,33 @@ class FakeDoseCoordinator(FakeCoordinator):
     async def push_values(self, head: int) -> None:  # type: ignore[override]
         self.head_pushed.append(head)
 
+    def head_device_info(self, head_id):
+        """Return device info extended with the head identifier (non-mutating)."""
+        if head_id <= 0:
+            return self.device_info
+        else:
+            res = deepcopy(self.device_info)
+            res["identifiers"] = {("redsea", f"{self.serial}_head_{head_id}")}
+            res["name"] = f"{self.title} head {head_id}"
+            return res
+
 
 @dataclass
 class FakeRunCoordinator(FakeCoordinator):
-    pushed: list[(str, str, int)] = field(default_factory=list)
+    # pump_pushed: list[(str, str, int|None)] = field(default_factory=list)
+    pump_pushed: list[tuple[str, str, int | None]] = field(default_factory=list)
 
     async def push_values(
-        self, source: str, method: str = "put", pump: int = None
+        self, source: str, method: str = "put", pump: int | None = None
     ) -> None:  # type: ignore[override]
-        self.pushed.append((source, method, pump))
+        self.pump_pushed.append((source, method, pump))
+
+    def pump_device_info(self, pump_id):
+        """Return device info extended with the pump identifier (non-mutating)."""
+        if pump_id <= 0:
+            return self.device_info
+        else:
+            res = deepcopy(self.device_info)
+            res["identifiers"] = {("redsea", f"{self.serial}_pump_{pump_id}")}
+            res["name"] = f"Device pump {pump_id}"
+            return res

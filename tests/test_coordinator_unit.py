@@ -75,6 +75,7 @@ def _make_entry(*, title: str, ip: str, hw_model: str) -> MockConfigEntry:
 @dataclass
 class _FakeCloudCoordinator:
     title: str = "CloudAccount"
+    _title: str = "CloudAccount"
     listened: list[tuple[str | None, str]] = field(default_factory=list)
 
     async def listen_for_firmware(self, url: str | None, device_title: str) -> None:
@@ -289,7 +290,7 @@ async def test_async_quick_request_refresh_sets_quick_refresh_and_calls_super(
         raising=True,
     )
 
-    await coordinator.async_quick_request_refresh("/dashboard", wait=1)
+    await coordinator.async_request_refresh("/dashboard", wait=1)
 
     assert fake_api.quick_refresh == "/dashboard"
     assert called == 1

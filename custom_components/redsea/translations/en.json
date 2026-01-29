@@ -4,6 +4,10 @@
       "already_configured": "Device Already configured",
       "cannot_create": "Unable to create ReefBeat device with specified parameters"
     },
+    "error":{
+      "auth_failed":"Authentification failed, check your crendentials",
+      "nothing_detected": "No device detected"
+    },
     "flow_title": "ReefBeat configuration",
     "step": {
       "user": {
@@ -605,6 +609,9 @@
     }
   },
   "options": {
+    "error":{
+      "auth_failed":"Authentification failed, check your crendentials"
+    },
     "step": {
       "init": {
         "data": {

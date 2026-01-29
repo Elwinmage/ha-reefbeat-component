@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Any, Generic, TypeVar
 
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -65,7 +66,7 @@ class ReefBeatRestoreEntity(ReefBeatEntity, RestoreEntity):
         super().__init__(coordinator)
         self._restore_spec = restore
 
-    @property
+    @cached_property
     def available(self) -> bool:  # type: ignore[override]
         # Use CoordinatorEntity's behavior (based on coordinator success) but provide
         # a plain `property` to satisfy strict type checkers.

@@ -1,4 +1,4 @@
-"""Sensor entities for the Red Sea ReefBeat integration.
+"""Sensor entities for the Red Sea Reefeat integration.
 
 This module registers Home Assistant `sensor` entities for supported devices.
 
@@ -1391,30 +1391,7 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the head identifier."""
-        if self._head <= 0:
-            return self._device.device_info
-
-        base_di = dict(self._device.device_info)
-        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
-        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
-
-        # DeviceInfo is a TypedDict; copying values from a generic dict makes mypy/pyright
-        # widen types to object | None, so we guard and only assign strings (or omit keys).
-        di_dict: dict[str, Any] = {
-            "identifiers": {(domain, ident, f"head_{self._head}")},
-            "name": f"{self._device.title} head {self._head}",
-        }
-
-        for key in ("manufacturer", "model", "model_id", "hw_version", "sw_version"):
-            val = base_di.get(key)
-            if isinstance(val, str) or val is None:
-                di_dict[key] = val
-
-        via_device = base_di.get("via_device")
-        if via_device is not None:
-            di_dict["via_device"] = via_device
-
-        return cast(DeviceInfo, di_dict)
+        return cast(ReefDoseCoordinator, self._device).head_device_info(self._head)
 
 
 # RESTORE
@@ -1492,16 +1469,10 @@ class ReefRunSensorEntity(ReefBeatSensorEntity):
         super().__init__(device, entity_description)
         self._pump: int = entity_description.pump
 
-    @property
+    @cached_property
     def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        di = self._device.device_info
-        di["name"] += "_pump_" + str(self._pump)
-        identifiers = list(di["identifiers"])[0]
-        pump = ("pump_" + str(self._pump),)
-        identifiers += pump
-        di["identifiers"] = {identifiers}
-        return di
+        """Return per-pump device info for ReefDose."""
+        return cast(ReefRunCoordinator, self._device).pump_device_info(self._pump)
 
 
 # REEFWAVE

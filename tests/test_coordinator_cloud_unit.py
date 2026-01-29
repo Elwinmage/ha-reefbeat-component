@@ -14,6 +14,7 @@ from custom_components.redsea.const import (
     CONFIG_FLOW_CONFIG_TYPE,
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_IP_ADDRESS,
+    CONFIG_FLOW_DISABLE_SUPPLEMENT,
     DOMAIN,
 )
 
@@ -30,6 +31,7 @@ def _make_cloud_entry(
             CONFIG_FLOW_CONFIG_TYPE: False,
             CONFIG_FLOW_CLOUD_USERNAME: "u",
             CONFIG_FLOW_CLOUD_PASSWORD: "p",
+            CONFIG_FLOW_DISABLE_SUPPLEMENT: True,
         },
     )
 

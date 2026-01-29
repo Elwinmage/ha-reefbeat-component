@@ -4,6 +4,8 @@ from contextlib import suppress
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
+from copy import deepcopy
+
 from homeassistant.helpers.device_registry import DeviceInfo
 
 
@@ -59,7 +61,7 @@ class FakeCoordinator:
         self.pushed.append(((source, method) + args, dict(kwargs)))
 
     async def async_request_refresh(
-        self, source: str = None, config: bool = False, wait: int = 2
+        self, source: str | None = None, config: bool = False, wait: int = 2
     ) -> None:
         self.refreshed += 1
 
@@ -87,6 +89,14 @@ class FakeRunWithPumpIntensity(FakeCoordinator):
     ) -> None:  # type: ignore[override]
         self.pushed.append(((source, method), {"pump": pump}))
 
+    def pump_device_info(self, pump_id):
+        return DeviceInfo(
+            identifiers={("redsea", f"SERIAL_pump_{pump_id}")},
+            name=f"Device_pump_{pump_id}",
+            manufacturer="Red Sea",
+            model="X",
+        )
+
 
 @dataclass
 class FakeAtoWithVolumeLeft(FakeCoordinator):
@@ -94,3 +104,17 @@ class FakeAtoWithVolumeLeft(FakeCoordinator):
 
     async def set_volume_left(self, volume_ml: int) -> None:
         self.set_volume_left_calls.append(volume_ml)
+
+
+class FakeDoseCoordinator(FakeCoordinator):
+    heads_nb: int = 2
+
+    def head_device_info(self, head_id):
+        """Return device info extended with the head identifier (non-mutating)."""
+        if head_id <= 0:
+            return self.device_info
+        else:
+            res = deepcopy(self.device_info)
+            res["identifiers"] = {("redsea", f"{self.serial}_head_{head_id}")}
+            res["name"] = f"{self.title} head {head_id}"
+            return res

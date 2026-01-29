@@ -16,6 +16,22 @@ class _FakeCoordinator:
     device_info: dict[str, Any] = field(default_factory=dict)
     _data: dict[str, Any] = field(default_factory=dict)
 
+    def head_device_info(self, head_id):
+        """Return device info extended with the head identifier (non-mutating)."""
+        if head_id <= 0:
+            return self.device_info
+        else:
+            return {
+                "identifiers": {("redsea", f"{self.serial}_head_{head_id}")},
+                "name": f"Dose head {head_id}",
+                "manufacturer": "Red Sea",
+                "model": None,
+                "model_id": "mid",
+                "hw_version": "1",
+                "sw_version": "2",
+                "via_device": ("redsea", "IDENT"),
+            }
+
     def __post_init__(self) -> None:
         if not self.device_info:
             self.device_info = {"identifiers": {("redsea", self.serial)}}
@@ -260,7 +276,7 @@ def test_reefdose_text_device_info_builds_head_device_and_copies_fields_and_via_
     ent = ReefDoseTextEntity(cast(Any, device), desc)
     di = cast(dict[str, Any], ent.device_info)
 
-    assert di["identifiers"] == {("redsea", "IDENT", "head_3")}
+    assert di["identifiers"] == {("redsea", "SERIAL_head_3")}
     assert di["name"] == "Dose head 3"
     assert di["manufacturer"] == "Red Sea"
     assert di["model"] is None
@@ -288,7 +304,7 @@ def test_reefdose_text_device_info_falls_back_to_default_identifiers_when_missin
     ent = ReefDoseTextEntity(cast(Any, device), desc)
     di = cast(dict[str, Any], ent.device_info)
 
-    assert di["identifiers"] == {("redsea", "SER123", "head_1")}
+    assert di["identifiers"] == {("redsea", "SER123_head_1")}
 
 
 def test_reefbeat_text_restore_value_returns_state() -> None:

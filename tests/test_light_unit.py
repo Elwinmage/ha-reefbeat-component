@@ -4,6 +4,10 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, cast
 
 import pytest
+from collections.abc import Iterable
+
+from homeassistant.helpers.entity import Entity
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_COLOR_TEMP_KELVIN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -52,7 +56,7 @@ class _FakeLedCoordinator:
     set_calls: list[tuple[str, Any]] = field(default_factory=list)
     pushed: list[tuple[str, str]] = field(default_factory=list)
     forced: int = 0
-    quick_refreshed: list[str] = field(default_factory=list)
+    quick_refreshed: list[str | None] = field(default_factory=list)
 
     _listeners: list[Callable[[], None]] = field(default_factory=list)
 
@@ -79,7 +83,9 @@ class _FakeLedCoordinator:
     def force_status_update(self) -> None:
         self.forced += 1
 
-    async def async_quick_request_refresh(self, source: str) -> None:
+    async def async_request_refresh(
+        self, source: str | None = None, config: bool = False, wait: int = 2
+    ) -> None:
         self.quick_refreshed.append(source)
 
 
@@ -119,11 +125,13 @@ async def test_light_async_setup_entry_adds_entities_for_g2_and_virtual_only_g1(
 
     added_g2: list[Any] = []
 
-    def _add_g2(entities: list[Any], update_before_add: bool = False) -> None:
+    def _add_g2(
+        new_entities: Iterable[Entity], update_before_add: bool = False
+    ) -> None:
         assert update_before_add is True
-        added_g2.extend(entities)
+        added_g2.extend(new_entities)
 
-    await light_mod.async_setup_entry(hass, entry_g2, _add_g2)
+    await light_mod.async_setup_entry(hass, cast(ConfigEntry, entry_g2), _add_g2)
     assert len(added_g2) == 2  # COMMON_LIGHTS + G2_LIGHTS
 
     # Virtual only_g1 branch
@@ -137,12 +145,12 @@ async def test_light_async_setup_entry_adds_entities_for_g2_and_virtual_only_g1(
 
     added_v: list[Any] = []
 
-    def _add_v(entities: list[Any], update_before_add: bool = False) -> None:
+    def _add_v(new_entities: Iterable[Entity], update_before_add: bool = False) -> None:
         assert update_before_add is True
-        added_v.extend(entities)
+        added_v.extend(new_entities)
 
     caplog.clear()
-    await light_mod.async_setup_entry(hass, entry_v, _add_v)
+    await light_mod.async_setup_entry(hass, cast(ConfigEntry, entry_v), _add_v)
     assert len(added_v) == 4  # VIRTUAL_LIGHTS + LIGHTS
     assert any("G1 protocol activated" in r.message for r in caplog.records)
 

@@ -172,6 +172,12 @@ class ReefBeatAPI:
             result["json"] = json_body
         return result
 
+    def clean_message(self, type_msg):
+        if type_msg == "last_message" or type_msg == "All":
+            self.data["message"]["message"] = ""
+        elif type_msg == "last_alert_message" or type_msg == "All":
+            self.data["message"]["alert"] = ""
+
     async def connect(self) -> None:
         """Perform authentication/handshake if needed.
 

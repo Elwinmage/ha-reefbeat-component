@@ -9,7 +9,6 @@ Supports:
 """
 
 from __future__ import annotations
-
 import asyncio
 import ipaddress
 import logging
@@ -250,7 +249,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 str(user_input[CONFIG_FLOW_CLOUD_PASSWORD]),
             )
             if not valid:
-                errors = {"base": "Authentification fail, check your crendentials"}
+                errors = {"base": "auth_failed"}
                 schema = vol.Schema(
                     {
                         vol.Required(
@@ -281,15 +280,15 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if CONFIG_FLOW_IP_ADDRESS in user_input:
             ip_value = str(user_input[CONFIG_FLOW_IP_ADDRESS])
 
-            # Allow "Virtual LED" via manual field as before
-            if ip_value == VIRTUAL_LED:
-                title = f"{VIRTUAL_LED}-{int(time())}"
-                user_input[CONFIG_FLOW_IP_ADDRESS] = title
-                user_input[CONFIG_FLOW_HW_MODEL] = VIRTUAL_LED
-                user_input[CONFIG_FLOW_SCAN_INTERVAL] = VIRTUAL_LED_SCAN_INTERVAL
-                _LOGGER.debug("Creating virtual LED entry with unique_id '%s'", title)
-                await self.async_set_unique_id(title)
-                return self.async_create_entry(title=title, data=user_input)
+            # # Allow "Virtual LED" via manual field as before
+            # if ip_value == VIRTUAL_LED:
+            #     title = f"{VIRTUAL_LED}-{int(time())}"
+            #     user_input[CONFIG_FLOW_IP_ADDRESS] = title
+            #     user_input[CONFIG_FLOW_HW_MODEL] = VIRTUAL_LED
+            #     user_input[CONFIG_FLOW_SCAN_INTERVAL] = VIRTUAL_LED_SCAN_INTERVAL
+            #     _LOGGER.debug("Creating virtual LED entry with unique_id '%s'", title)
+            #     await self.async_set_unique_id(title)
+            #     return self.async_create_entry(title=title, data=user_input)
 
             # If user provided a CIDR, run auto-detect
             if _is_cidr(ip_value):
@@ -391,8 +390,17 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         _LOGGER.info("Available devices: %s", available_devices)
 
         available_devices_s = list(map(_device_to_string, available_devices))
-        available_devices_s += [VIRTUAL_LED]
+        # available_devices_s += [VIRTUAL_LED]
 
+        # No device detected reask for IP or subnetwork
+        if len(available_devices_s) == 0:
+            errors = {"base": "nothing_detected"}
+            return self.async_show_form(
+                step_id="user",
+                data_schema=vol.Schema({vol.Required(CONFIG_FLOW_IP_ADDRESS): str}),
+                errors=errors,
+            )
+        # Propose detected devices
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
@@ -429,7 +437,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     str(user_input[CONFIG_FLOW_CLOUD_PASSWORD]),
                 )
                 if not valid:
-                    errors = {"base": "Authentification fail, check your crendentials"}
+                    errors = {"base": "auth_failed"}
                     schema = vol.Schema(
                         {
                             vol.Required(

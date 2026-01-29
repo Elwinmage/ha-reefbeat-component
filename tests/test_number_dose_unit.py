@@ -12,7 +12,7 @@ from custom_components.redsea.number import (
     ReefDoseNumberEntity,
     ReefDoseNumberEntityDescription,
 )
-from tests._number_test_fakes import FakeCoordinator
+from tests._number_test_fakes import FakeDoseCoordinator
 
 
 @pytest.fixture(autouse=True)
@@ -29,7 +29,7 @@ def _patch_base(monkeypatch: Any) -> None:
 
 
 def test_dose_device_info_head_zero_keeps_base() -> None:
-    device = FakeCoordinator()
+    device = FakeDoseCoordinator()
     desc = ReefDoseNumberEntityDescription(
         key="x",
         translation_key="x",
@@ -44,7 +44,7 @@ def test_dose_device_info_head_zero_keeps_base() -> None:
 
 
 def test_dose_device_info_head_extends_identifiers_and_name() -> None:
-    device = FakeCoordinator()
+    device = FakeDoseCoordinator()
     desc = ReefDoseNumberEntityDescription(
         key="x",
         translation_key="x",
@@ -65,7 +65,7 @@ def test_dose_device_info_head_extends_identifiers_and_name() -> None:
 
 @pytest.mark.asyncio
 async def test_dose_async_added_to_hass_head_zero_returns_early(hass: Any) -> None:
-    device = FakeCoordinator(hass=hass)
+    device = FakeDoseCoordinator(hass=hass)
     desc = ReefDoseNumberEntityDescription(
         key="x",
         translation_key="x",
@@ -85,7 +85,7 @@ async def test_dose_async_added_to_hass_head_zero_returns_early(hass: Any) -> No
 
 @pytest.mark.asyncio
 async def test_dose_async_set_native_value_pushes_head_and_root(hass: Any) -> None:
-    device = FakeCoordinator(hass=hass)
+    device = FakeDoseCoordinator(hass=hass)
 
     head_desc = ReefDoseNumberEntityDescription(
         key="x",
@@ -127,7 +127,7 @@ async def test_dose_async_set_native_value_pushes_head_and_root(hass: Any) -> No
 async def test_dose_async_set_native_value_calibration_does_not_push_head(
     hass: Any,
 ) -> None:
-    device = FakeCoordinator(hass=hass)
+    device = FakeDoseCoordinator(hass=hass)
 
     desc = ReefDoseNumberEntityDescription(
         key="cal",
@@ -148,7 +148,7 @@ async def test_dose_async_set_native_value_calibration_does_not_push_head(
 
 @pytest.mark.asyncio
 async def test_dose_async_added_to_hass_sets_per_head_device_info(hass: Any) -> None:
-    device = FakeCoordinator(hass=hass)
+    device = FakeDoseCoordinator(hass=hass)
     desc = ReefDoseNumberEntityDescription(
         key="x",
         translation_key="x",

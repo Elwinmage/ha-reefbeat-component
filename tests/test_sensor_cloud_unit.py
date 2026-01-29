@@ -198,6 +198,7 @@ async def test_async_setup_entry_cloud_library_dynamic_descriptions(
     monkeypatch: Any, hass: Any
 ) -> None:
     class _CloudCoord(_FakeCoordinator):
+        disable_supplement: bool = True
         pass
 
     monkeypatch.setattr(sensor_platform, "ReefBeatCloudCoordinator", _CloudCoord)

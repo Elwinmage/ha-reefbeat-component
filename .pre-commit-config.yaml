@@ -11,11 +11,21 @@ repos:
 
   - repo: local
     hooks:
+      - id : check_translation
+        name: Check Entities translations
+        entry: python custom_components/redsea/scripts/check_translation.py
+        language: python
+        additional_dependencies:
+          # used by check_translation.py
+          - colorama>=0.4.6
+        pass_filenames: false
+
       - id: pyright
         name: pyright
         entry: pyright
         language: python
-        args: [--project, pyrightconfig.precommit.json]
+        #args: [--project, pyrightconfig.precommit.json]
+        args: [--project, pyrightconfig.json]
         additional_dependencies:
           - pyright>=1.1.390
           # Provide Home Assistant modules/types in the hook env.
@@ -24,6 +34,8 @@ repos:
           - jsonpath-ng>=1.7.0
           # Used by auto_detect.py
           - requests>=2.31.0
+          # used by check_translation.py
+          - colorama>=0.4.6
         pass_filenames: false
 
       - id: pytest

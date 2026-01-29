@@ -638,28 +638,7 @@ class ReefDoseButtonEntity(ButtonEntity):
     @cached_property
     def device_info(self) -> DeviceInfo:
         """Return per-head device info for ReefDose."""
-        if self._head <= 0:
-            return self._device.device_info
-
-        base_di = dict(self._device.device_info)
-        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self._device.serial)}
-        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
-
-        di_dict: dict[str, Any] = {
-            "identifiers": {(domain, ident, f"head_{self._head}")},
-            "name": f"{self._device.title} head {self._head}",
-        }
-
-        for key in ("manufacturer", "model", "model_id", "hw_version", "sw_version"):
-            val = base_di.get(key)
-            if isinstance(val, str) or val is None:
-                di_dict[key] = val
-
-        via_device = base_di.get("via_device")
-        if via_device is not None:
-            di_dict["via_device"] = via_device
-
-        return cast(DeviceInfo, di_dict)
+        return self._device.head_device_info(self._head)
 
 
 # REEFRUN
@@ -729,18 +708,12 @@ class ReefRunButtonEntity(ButtonEntity):
         # Refresh preview/dashboard state when starting or stopping preview
         if desc.key.startswith(("preview_start_", "preview_stop_")):
             _LOGGER.debug("Refresh preview state")
-            await self._device.async_quick_request_refresh("/dashboard")
+            await self._device.async_request_refresh(source="/dashboard")
 
-    @property
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        di = self._device.device_info
-        di["name"] += "_pump_" + str(self._pump)
-        identifiers = list(di["identifiers"])[0]
-        pump = ("pump_" + str(self._pump),)
-        identifiers += pump
-        di["identifiers"] = {identifiers}
-        return di
+        """Return per-pump device info for ReefRun."""
+        return self._device.pump_device_info(self._pump)
 
 
 # REEFWAVE

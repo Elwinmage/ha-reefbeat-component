@@ -8,7 +8,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 import custom_components.redsea.select as platform
 from custom_components.redsea.const import DOMAIN
-from tests._select_test_fakes import FakeCoordinator, FakeRunCoordinator
+from tests._select_test_fakes import FakeRunCoordinator
 
 
 @pytest.mark.asyncio
@@ -55,7 +55,7 @@ def test_reefrun_select_device_info_extends_identifiers_and_name(
         "identifiers": {("redsea", "BASE")},
         "name": "ReefRun",
     }
-    device = FakeCoordinator(
+    device = FakeRunCoordinator(
         hass=hass, serial="BASE", title="ReefRun", device_info=base_di
     )
 
@@ -68,11 +68,11 @@ def test_reefrun_select_device_info_extends_identifiers_and_name(
     ent = ReefRunSelectEntity(cast(Any, device), desc)
 
     di = cast(dict[str, Any], ent.device_info)
-    assert di["name"].endswith("_pump_2")
+    assert di["name"].endswith(" pump 2")
 
     identifiers = di.get("identifiers")
     assert identifiers
-    assert ("redsea", "BASE", "pump_2") in identifiers
+    assert ("redsea", "BASE_pump_2") in identifiers
 
 
 @pytest.mark.asyncio
@@ -84,7 +84,7 @@ async def test_reefrun_select_async_select_option_pushes_pump_scoped_settings(
         ReefRunSelectEntityDescription,
     )
 
-    device = FakeCoordinator(hass=hass, _data={"$.v": "old"})
+    device = FakeRunCoordinator(hass=hass, _data={"$.v": "old"})
     desc = ReefRunSelectEntityDescription(
         key="model",
         translation_key="model",

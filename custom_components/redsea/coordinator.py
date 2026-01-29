@@ -192,8 +192,12 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             await self.my_api.get_initial_data()
 
     async def async_request_refresh(
-        self, source: str = None, config: bool = False, wait: int = REFRESH_DEVICE_DELAY
+        self,
+        source: str | None = None,
+        config: bool = False,
+        wait: int = REFRESH_DEVICE_DELAY,
     ) -> None:
+        """config to True to also fetch config data"""
         # wait for device to refresh state
         if wait > 0:
             await asyncio.sleep(wait)
@@ -701,7 +705,10 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
             await led.post_specific(source)
 
     async def async_request_refresh(
-        self, source: str = None, config: bool = False, wait: int = REFRESH_DEVICE_DELAY
+        self,
+        source: str | None = None,
+        config: bool = False,
+        wait: int = REFRESH_DEVICE_DELAY,
     ) -> None:
         for led in self._linked:
             await led.async_request_refresh(source, config, wait)
@@ -832,6 +839,33 @@ class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
         """ReefDose has no meaningful hardware version mapping in current payload."""
         return None
 
+    def head_device_info(self, head_id):
+        """Return device info extended with the head identifier (non-mutating)."""
+        if head_id <= 0:
+            return self.device_info
+
+        base_di = dict(self.device_info)
+        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self.serial)}
+        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
+
+        # DeviceInfo is a TypedDict; copying values from a generic dict makes mypy/pyright
+        # widen types to object | None, so we guard and only assign strings (or omit keys).
+        di_dict: dict[str, Any] = {
+            "identifiers": {(domain, f"{ident}_head_{head_id}")},
+            "name": f"{self.title} head {head_id}",
+        }
+
+        for key in ("manufacturer", "model", "model_id", "hw_version", "sw_version"):
+            val = base_di.get(key)
+            if isinstance(val, str) or val is None:
+                di_dict[key] = val
+
+        via_device = base_di.get("via_device")
+        if via_device is not None:
+            di_dict["via_device"] = via_device
+
+        return cast(DeviceInfo, di_dict)
+
 
 # REEFATO+
 class ReefATOCoordinator(ReefBeatCloudLinkedCoordinator):
@@ -897,6 +931,31 @@ class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
     ) -> None:
         """Push changed values to the device (optionally pump-scoped)."""
         await self.my_api.push_values(source, method, pump)
+
+    def pump_device_info(self, pump_id: int):
+        """Return per-pump device info for ReefRun."""
+        if pump_id <= 0:
+            return self.device_info
+
+        base_di = dict(self.device_info)
+        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self.serial)}
+        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
+
+        di_dict: dict[str, Any] = {
+            "identifiers": {(domain, f"{ident}_pump_{pump_id}")},
+            "name": f"{self.title} pump {pump_id}",
+        }
+
+        for key in ("manufacturer", "model", "model_id", "hw_version", "sw_version"):
+            val = base_di.get(key)
+            if isinstance(val, str) or val is None:
+                di_dict[key] = val
+
+        via_device = base_di.get("via_device")
+        if via_device is not None:
+            di_dict["via_device"] = via_device
+
+        return cast(DeviceInfo, di_dict)
 
 
 # REEFWAVE

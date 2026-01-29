@@ -9,6 +9,7 @@ from typing import Any, Callable, cast
 import pytest
 from homeassistant.helpers.device_registry import DeviceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from copy import deepcopy
 
 import custom_components.redsea.sensor as sensor_platform
 from custom_components.redsea.const import DOMAIN
@@ -73,6 +74,16 @@ class _FakeCoordinator:
     def set_data(self, name: str, value: Any) -> None:
         self.set_calls.append((name, value))
         self.get_data_map[name] = value
+
+    def head_device_info(self, head_id):
+        """Return device info extended with the head identifier (non-mutating)."""
+        if head_id <= 0:
+            return self.device_info
+        else:
+            res = deepcopy(self.device_info)
+            res["identifiers"] = {("redsea", f"{self.serial}_head_{head_id}")}
+            res["name"] = f"{self.title} head {head_id}"
+            return res
 
 
 def test_update_val_sets_extra_attributes_from_with_attr_fields() -> None:
@@ -217,7 +228,7 @@ def test_dose_device_info_head_extends_identifiers_and_name() -> None:
 
     di = entity.device_info
     identifiers = cast(set[tuple[str, str]], di.get("identifiers") or set())
-    assert ("redsea", "SERIAL", "test", "head_2") in identifiers
+    assert ("redsea", "SERIAL_head_2") in identifiers
     assert di.get("name") == "Device head 2"
     assert di.get("via_device") == ("redsea", "hub")
 

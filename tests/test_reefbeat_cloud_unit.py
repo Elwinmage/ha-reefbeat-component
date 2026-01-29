@@ -58,6 +58,7 @@ async def test_cloud_connect_non_200_raises_invalidauth() -> None:
         live_config_update=True,
         ip="cloud.example",
         session=cast(Any, session),
+        disable_supplement=True,
     )
 
     with pytest.raises(InvalidAuth, match="nope"):
@@ -79,6 +80,7 @@ async def test_cloud_connect_missing_token_raises_invalidauth() -> None:
         live_config_update=True,
         ip="cloud.example",
         session=cast(Any, session),
+        disable_supplement=True,
     )
 
     with pytest.raises(InvalidAuth, match="access_token"):
@@ -99,6 +101,7 @@ async def test_cloud_connect_sets_header_and_auth_date() -> None:
         live_config_update=True,
         ip="cloud.example",
         session=cast(Any, session),
+        disable_supplement=True,
     )
 
     assert api._header is None
@@ -118,6 +121,7 @@ async def test_cloud_http_send_retries_on_401(monkeypatch: pytest.MonkeyPatch) -
         live_config_update=False,
         ip="cloud.example",
         session=cast(Any, object()),
+        disable_supplement=True,
     )
 
     connect_called: list[str] = []
@@ -159,6 +163,7 @@ async def test_cloud_connect_renew_branch_and_get_devices() -> None:
         live_config_update=False,
         ip="cloud.example",
         session=cast(Any, session),
+        disable_supplement=True,
     )
 
     await api.connect()

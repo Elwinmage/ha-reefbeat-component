@@ -25,6 +25,14 @@ class _FakeCoordinator:
         )
     )
 
+    def pump_device_info(self, pump_id) -> DeviceInfo:
+        return DeviceInfo(
+            identifiers={("redsea", f"SERIAL_pump_{pump_id}")},
+            name=f"Device_pump_{pump_id}",
+            manufacturer="Red Sea",
+            model="X",
+        )
+
     def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
         return None
 
@@ -42,13 +50,17 @@ def test_run_device_info_extends_identifiers_and_name() -> None:
     di = entity.device_info
     assert cast(str, di.get("name") or "").endswith("_pump_2")
     identifiers = cast(set[Any], di.get("identifiers") or set())
-    assert any("pump_2" in cast(tuple[Any, ...], ident) for ident in identifiers)
+
+    assert any("SERIAL_pump_2" in cast(tuple[Any, ...], ident) for ident in identifiers)
 
 
 def test_run_device_info_no_identifiers_still_sets_name() -> None:
     device = _FakeCoordinator()
-    device.device_info = DeviceInfo(name="Device")
-
+    # device_info: DeviceInfo = field(
+    #     default_factory=lambda: DeviceInfo(
+    #         identifiers={("redsea", "SERIAL_pump_1")}, name="Device"
+    #     )
+    # )
     desc = ReefRunSensorEntityDescription(
         key="x",
         translation_key="x",
@@ -56,8 +68,7 @@ def test_run_device_info_no_identifiers_still_sets_name() -> None:
         pump=1,
     )
     entity = ReefRunSensorEntity(cast(Any, device), desc)
-
-    assert cast(str, entity.device_info.get("name") or "").endswith("_pump_1")
+    assert cast(str, entity.device_info.get("name") or "").endswith("pump_1")
 
 
 @pytest.mark.asyncio
