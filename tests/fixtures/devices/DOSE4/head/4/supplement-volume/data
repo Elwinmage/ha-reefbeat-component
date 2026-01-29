@@ -1,0 +1,62 @@
+[
+  {
+    "container_volume": 4325.382,
+    "head_id": 1,
+    "last_calibrated": 1749296252,
+    "supplement": {
+      "brand_name": "Red Sea",
+      "concentration": 0,
+      "display_name": "Calcium",
+      "made_by_redsea": true,
+      "name": "Calcium (Foundation A)",
+      "short_name": "Ca",
+      "type": "null",
+      "uid": "7d67412c-fde0-44d4-882a-dc8746fd4acb"
+    }
+  },
+  {
+    "container_volume": 1479.472,
+    "head_id": 2,
+    "last_calibrated": 1749299907,
+    "supplement": {
+      "brand_name": "Red Sea",
+      "concentration": 0,
+      "display_name": "KH",
+      "made_by_redsea": true,
+      "name": "KH/Alkalinity (Foundation B)",
+      "short_name": "KH",
+      "type": "null",
+      "uid": "76830db3-a0bd-459a-9974-76a57d026893"
+    }
+  },
+  {
+    "container_volume": 418.9731,
+    "head_id": 3,
+    "last_calibrated": 1750604011,
+    "supplement": {
+      "brand_name": "Red Sea",
+      "concentration": 0,
+      "display_name": "Magnesium",
+      "made_by_redsea": true,
+      "name": "Magnesium (Foundation C)",
+      "short_name": "Mg",
+      "type": "null",
+      "uid": "f524734e-8651-496e-b09b-640b40fc8bab"
+    }
+  },
+  {
+    "container_volume": 0,
+    "head_id": 4,
+    "last_calibrated": 1756030844,
+    "supplement": {
+      "brand_name": "Red Sea",
+      "concentration": 0,
+      "display_name": "Coral food",
+      "made_by_redsea": true,
+      "name": "Reef Energy Plus",
+      "short_name": "RE+",
+      "type": "null",
+      "uid": "bf9a7da3-741b-4c1d-8542-d9344a95fb70"
+    }
+  }
+]

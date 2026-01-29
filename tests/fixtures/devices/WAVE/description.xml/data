@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <URLBase>http://__REEFBEAT_DEVICE_IP__:80/</URLBase>
+  <device>
+    <board>esp32</board>
+    <framework>i</framework>
+    <deviceType>reef-wave</deviceType>
+    <friendlyName>SIMU-RSWAVE45-2905438260</friendlyName>
+    <presentationURL>/</presentationURL>
+    <serialNumber>b5d5f92c881e</serialNumber>
+    <modelName>RSWAVE45</modelName>
+    <modelDescription/>
+    <modelNumber>08:3A:8D:2B:E9:EC</modelNumber>
+    <modelURL>https://www.reef-beat.com</modelURL>
+    <manufacturer>RedSea</manufacturer>
+    <manufacturerURL>https://www.redseafish.com</manufacturerURL>
+    <UDN>uuid:6b568f43-88f6-48c3-a1dc-72ebe7c25448</UDN>
+    <serviceList/>
+    <iconList/>
+  </device>
+</root>

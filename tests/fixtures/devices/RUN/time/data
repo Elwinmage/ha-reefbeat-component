@@ -1,0 +1,11 @@
+{
+  "epoch": 1768259145,
+  "last_ntp_sync_at": 1768259136,
+  "message": "",
+  "now": 1768262745,
+  "ntp_sync": true,
+  "pretty": "2026-01-13T00:05:45+01:00",
+  "success": true,
+  "timezone": 60,
+  "utc_pretty": "2026-01-12T23:05:45Z"
+}

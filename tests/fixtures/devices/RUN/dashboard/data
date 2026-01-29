@@ -1,0 +1,38 @@
+{
+  "battery_level": "high",
+  "ec_sensor_connected": true,
+  "is_internet_connected": true,
+  "linked": false,
+  "mode": "auto",
+  "pump_1": {
+    "intensity": 100,
+    "missing_pump": false,
+    "missing_sensor": false,
+    "model": "return-12000",
+    "name": "Reefrun 1200",
+    "pulse": 0,
+    "reconnect_pump": false,
+    "schedule_enabled": true,
+    "sensor_controlled": false,
+    "state": "operational",
+    "temperature": 48.780487060546875,
+    "type": "return"
+  },
+  "pump_2": {
+    "intensity": 80,
+    "missing_pump": false,
+    "missing_sensor": false,
+    "model": "rsk-900",
+    "name": "DC Skimmer 900",
+    "pulse": 0,
+    "reconnect_pump": false,
+    "schedule_enabled": true,
+    "sensor_controlled": true,
+    "state": "operational",
+    "temperature": 37.195117950439453,
+    "type": "skimmer"
+  },
+  "restore_settings": true,
+  "synced": true,
+  "time_error": false
+}

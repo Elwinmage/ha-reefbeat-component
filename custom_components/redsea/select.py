@@ -1,101 +1,122 @@
-"""Implements the sensor entity"""
+"""Select entities for the Red Sea ReefBeat integration.
+
+This module registers Home Assistant `select` entities for supported devices:
+- ReefMat (model/position)
+- ReefLED (mode)
+- ReefDose (per-head supplement selection)
+- ReefWave (preview wave settings)
+- ReefRun (skimmer model per pump)
+"""
+
+from __future__ import annotations
 
 import logging
-
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from collections.abc import Callable
+from functools import cached_property
+from typing import Any, cast
 
-from homeassistant.core import (
-    HomeAssistant,
-    callback,
-)
-
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
-
+from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.config_entries import ConfigEntry
-
-from homeassistant.components.select import (
-    SelectEntity,
-    SelectEntityDescription,
-)
-
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.const import EntityCategory
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
-
-
-from homeassistant.const import (
-    EntityCategory,
-)
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
     HW_MAT_MODEL,
-    MAT_MODEL_INTERNAL_NAME,
-    MAT_POSITION_INTERNAL_NAME,
     LED_MODE_INTERNAL_NAME,
     LED_MODES,
+    MAT_MODEL_INTERNAL_NAME,
+    MAT_POSITION_INTERNAL_NAME,
     SKIMMER_MODELS,
-    WAVE_TYPES,
     WAVE_DIRECTIONS,
+    WAVE_TYPES,
+)
+from .coordinator import (
+    ReefBeatCoordinator,
+    ReefDoseCoordinator,
+    ReefLedCoordinator,
+    ReefLedG2Coordinator,
+    ReefMatCoordinator,
+    ReefRunCoordinator,
+    ReefVirtualLedCoordinator,
+    ReefWaveCoordinator,
+)
+from .entity import ReefBeatRestoreEntity, RestoreSpec
+from .i18n import translate, translate_list
+from .supplements_list import SUPPLEMENTS as SUPPLEMENTS_LIST
+
+# Keep the imported constant intact; use a local name for the sorted view.
+_SORTED_SUPPLEMENTS: list[dict[str, Any]] = sorted(
+    SUPPLEMENTS_LIST, key=lambda d: d.get("fullname", "")
 )
 
-from .supplements_list import SUPPLEMENTS
-
-from .coordinator import ReefBeatCoordinator
-
-from .i18n import translate_list, translate
-
-SUPPLEMENTS = sorted(SUPPLEMENTS, key=lambda d: d["fullname"])
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass(kw_only=True)
+# Entity descriptions
+@dataclass(kw_only=True, frozen=True)
+
+# =============================================================================
+# Classes
+# =============================================================================
+
 class ReefBeatSelectEntityDescription(SelectEntityDescription):
-    """Describes reefbeat Select entity."""
+    """Describes a generic ReefBeat select entity."""
 
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     entity_registry_visible_default: bool = True
     value_name: str = ""
-    options: []
+    # Must match HA's SelectEntityDescription.options type.
+    options: list[str] | None = None
     method: str = "put"
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class ReefRunSelectEntityDescription(SelectEntityDescription):
-    """Describes reefbeat Select entity."""
+    """Describes a ReefRun select entity (scoped to a pump)."""
 
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     entity_registry_visible_default: bool = True
     value_name: str = ""
     pump: int = 0
-    options: []
+    options: list[str] | None = None
     method: str = "put"
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class ReefWaveSelectEntityDescription(SelectEntityDescription):
-    """Describes reefbeat Select entity."""
+    """Describes a ReefWave preview select entity."""
 
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_name: str = ""
-    options: []
+    options: list[str] | None = None
     method: str = "post"
-    i18n_options: []
+    i18n_options: list[dict[str, Any]] | None = None
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class ReefDoseSelectEntityDescription(SelectEntityDescription):
-    """Describes reefbeat Select entity."""
+    """Describes a ReefDose select entity (scoped to a head)."""
 
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_name: str = ""
-    options: []
+    options: list[str] | None = None
     head: int = 0
     method: str = "post"
 
 
+DescriptionT = (
+    ReefBeatSelectEntityDescription
+    | ReefRunSelectEntityDescription
+    | ReefWaveSelectEntityDescription
+    | ReefDoseSelectEntityDescription
+)
+
+
+# Select definitions
 MAT_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
     ReefBeatSelectEntityDescription(
         key="model",
@@ -103,7 +124,7 @@ MAT_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
         value_name=MAT_MODEL_INTERNAL_NAME,
         exists_fn=lambda _: True,
         icon="mdi:movie-roll",
-        options=HW_MAT_MODEL,
+        options=list(HW_MAT_MODEL),
         entity_category=EntityCategory.CONFIG,
         entity_registry_visible_default=False,
     ),
@@ -126,7 +147,7 @@ LED_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
         value_name=LED_MODE_INTERNAL_NAME,
         exists_fn=lambda _: True,
         icon="mdi:auto-mode",
-        options=LED_MODES,
+        options=list(LED_MODES),
         entity_category=EntityCategory.CONFIG,
         method="post",
     ),
@@ -136,56 +157,59 @@ LED_SELECTS: tuple[ReefBeatSelectEntityDescription, ...] = (
 #  labels: enhancement, rsdose
 
 
+# Setup
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
-    discovery_info=None,
-):
-    """Configuration de la plate-forme tuto_hacs à partir de la configuration graphique"""
-    device = hass.data[DOMAIN][config_entry.entry_id]
+) -> None:
+    """Set up ReefBeat select entities from a config entry."""
+    device = cast(ReefBeatCoordinator, hass.data[DOMAIN][config_entry.entry_id])
 
-    entities = []
-    _LOGGER.debug("SELECTS")
-    if type(device).__name__ == "ReefMatCoordinator":
-        entities += [
+    entities: list[SelectEntity] = []
+    _LOGGER.debug("Setting up select entities")
+
+    # Keep this as a single chain; device coordinators are mutually exclusive.
+    if isinstance(device, ReefMatCoordinator):
+        entities.extend(
             ReefBeatSelectEntity(device, description)
             for description in MAT_SELECTS
             if description.exists_fn(device)
-        ]
-    elif type(device).__name__ == "ReefDoseCoordinator":
-        dn = ()
-        for head in range(1, device.heads_nb + 1):
-            new_head = (
+        )
+
+    elif isinstance(device, ReefDoseCoordinator):
+        dn: list[ReefDoseSelectEntityDescription] = []
+        for head in range(1, int(device.heads_nb) + 1):
+            dn.append(
                 ReefDoseSelectEntityDescription(
                     key="supplements_" + str(head),
                     translation_key="supplements",
                     value_name="$.local.head." + str(head) + ".new_supplement",
                     exists_fn=lambda _: True,
                     icon="mdi:shaker",
-                    options=translate_list(SUPPLEMENTS, "fullname"),
+                    options=translate_list(_SORTED_SUPPLEMENTS, "fullname"),
                     entity_category=EntityCategory.CONFIG,
                     head=head,
-                ),
+                )
             )
-            dn += new_head
-        entities += [
+
+        entities.extend(
             ReefDoseSelectEntity(device, description)
             for description in dn
             if description.exists_fn(device)
-        ]
-    elif (
-        type(device).__name__ == "ReefLedCoordinator"
-        or type(device).__name__ == "ReefLedG2Coordinator"
-        or type(device).__name__ == "ReefVirtualLedCoordinator"
+        )
+
+    elif isinstance(
+        device, (ReefLedCoordinator, ReefLedG2Coordinator, ReefVirtualLedCoordinator)
     ):
-        entities += [
+        entities.extend(
             ReefBeatSelectEntity(device, description)
             for description in LED_SELECTS
             if description.exists_fn(device)
-        ]
-    elif type(device).__name__ == "ReefWaveCoordinator":
-        waves = (
+        )
+
+    elif isinstance(device, ReefWaveCoordinator):
+        waves: tuple[ReefWaveSelectEntityDescription, ...] = (
             ReefWaveSelectEntityDescription(
                 key="preview_wave_type",
                 translation_key="preview_wave_type",
@@ -207,14 +231,14 @@ async def async_setup_entry(
                 entity_category=EntityCategory.CONFIG,
             ),
         )
-        entities += [
+        entities.extend(
             ReefWaveSelectEntity(device, description)
             for description in waves
             if description.exists_fn(device)
-        ]
+        )
 
-    elif type(device).__name__ == "ReefRunCoordinator":
-        ds = ()
+    elif isinstance(device, ReefRunCoordinator):
+        ds: list[ReefRunSelectEntityDescription] = []
         for pump in range(1, 3):
             if (
                 device.get_data(
@@ -224,7 +248,7 @@ async def async_setup_entry(
                 )
                 == "skimmer"
             ):
-                new_pump = (
+                ds.append(
                     ReefRunSelectEntityDescription(
                         key="model_skimmer_pump_" + str(pump),
                         translation_key="model",
@@ -233,120 +257,176 @@ async def async_setup_entry(
                         + ".model",
                         exists_fn=lambda _: True,
                         icon="mdi:raspberry-pi",
-                        options=SKIMMER_MODELS,
+                        options=list(SKIMMER_MODELS),
                         entity_category=EntityCategory.CONFIG,
                         pump=pump,
                         method="put",
-                    ),
+                    )
                 )
-                ds += new_pump
-            entities += [
-                ReefRunSelectEntity(device, description)
-                for description in ds
-                if description.exists_fn(device)
-            ]
+
+        entities.extend(
+            ReefRunSelectEntity(device, description)
+            for description in ds
+            if description.exists_fn(device)
+        )
 
     async_add_entities(entities, True)
 
 
-################################################################################
-# BEAT
-class ReefBeatSelectEntity(CoordinatorEntity, SelectEntity):
-    """Represent an ReefBeat select."""
+# -----------------------------------------------------------------------------
+# Entities
+# -----------------------------------------------------------------------------
+
+
+# REEFBEAT
+class ReefBeatSelectEntity(ReefBeatRestoreEntity, SelectEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """Generic ReefBeat-backed select entity.
+
+    We intentionally do not subclass `CoordinatorEntity` (see number.py rationale).
+    Instead we subscribe to the coordinator via `async_add_listener`.
+    """
 
     _attr_has_entity_name = True
 
+    @staticmethod
+    def _restore_value(state: str) -> str:
+        return state
+
     def __init__(
-        self, device, entity_description: ReefBeatSelectEntityDescription
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: DescriptionT,
     ) -> None:
-        """Set up the instance."""
-        super().__init__(device, entity_description)
+        """Initialize the select entity."""
+        super().__init__(
+            device,
+            restore=RestoreSpec("_attr_current_option", self._restore_value),
+        )
         self._device = device
         self.entity_description = entity_description
-        self._attr_unique_id = f"{device.serial}_{entity_description.key}"
-        other = translate("other", self._device.hass.config.language)
-        self._attr_options = entity_description.options + [other]
-        self._value_name = entity_description.value_name
+        self._description: DescriptionT = entity_description
+        self._attr_available = True
+
+        self._attr_unique_id = f"{device.serial}_{self._description.key}"
+
+        self._value_name = cast(str, getattr(self._description, "value_name", ""))
         self._attr_current_option = self._device.get_data(self._value_name)
-        try:
-            self._source = self.entity_description.value_name.split("'")[1]
-            self._method = entity_description.method
-        except Exception:
-            # ReefDose
-            pass
+
+        self._source = self._extract_source_from_value_name(self._value_name)
+        self._method = cast(str, getattr(self._description, "method", "put"))
+
+    async def async_added_to_hass(self) -> None:
+        """Restore last known option and prime from coordinator cache."""
+        await super().async_added_to_hass()
+
+        if self._attr_current_option is not None and not self._attr_available:
+            self._attr_available = True
+
+        if self._device.last_update_success:
+            self._update_val()
+            super()._handle_coordinator_update()
+
+    def _update_val(self) -> None:
+        self._attr_current_option = self._device.get_data(self._value_name)
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self._attr_available = True
-        self._attr_current_option = self._device.get_data(self._value_name)
-        self.async_write_ha_state()
+        """Update cached `_attr_*` values from coordinator data."""
+        self._update_val()
+        super()._handle_coordinator_update()
+
+    @staticmethod
+    def _extract_source_from_value_name(value_name: str) -> str | None:
+        """Extract the `/source` segment from a JSONPath value_name like:
+        "$.sources[?(@.name=='/pump/settings')].data.foo"
+        """
+        marker = "@.name=='"
+        i = value_name.find(marker)
+        if i == -1:
+            return None
+        start = i + len(marker)
+        end = value_name.find("'", start)
+        if end == -1:
+            return None
+        return value_name[start:end]
 
     async def async_select_option(self, option: str) -> None:
-        """Update the current selected option."""
+        """Update the current selected option and push to the device when applicable."""
         self._attr_current_option = option
         self._device.set_data(self._value_name, option)
         self.async_write_ha_state()
+
+        if self._source is None:
+            return
+
         await self._device.push_values(self._source, self._method)
 
-    @property
+        refresh = getattr(self._device, "async_request_refresh", None)
+        if callable(refresh):
+            await cast(Callable[[], Awaitable[None]], refresh)()
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
         return self._device.device_info
 
 
-################################################################################
-# RUN
+# REEFRUN
 class ReefRunSelectEntity(ReefBeatSelectEntity):
-    """Represent an ReefBeat sensor."""
+    """Select entity for ReefRun (per-pump setting)."""
 
     _attr_has_entity_name = True
 
     def __init__(
-        self, device, entity_description: ReefRunSelectEntityDescription
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefRunSelectEntityDescription,
     ) -> None:
-        """Set up the instance."""
+        """Initialize the per-pump select."""
         super().__init__(device, entity_description)
-        self._pump = self.entity_description.pump
+        self._pump: int = entity_description.pump
 
     async def async_select_option(self, option: str) -> None:
-        """Update the current selected option."""
+        """Update the current selected option and push pump-specific settings."""
         self._attr_current_option = option
         self._device.set_data(self._value_name, option)
         self.async_write_ha_state()
-        await self._device.push_values(pump=self._pump)
 
-    @property
+        # Base coordinator doesn't type `pump`, but ReefRun coordinator supports it.
+        await cast(Any, self._device).push_values(
+            source="/pump/settings", method="put", pump=self._pump
+        )
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        di = self._device.device_info
-        di["name"] += "_pump_" + str(self._pump)
-        identifiers = list(di["identifiers"])[0]
-        pump = ("pump_" + str(self._pump),)
-        identifiers += pump
-        di["identifiers"] = {identifiers}
-        return di
+        """Return device info extended with the pump identifier."""
+        return cast(ReefRunCoordinator, self._device).pump_device_info(self._pump)
 
 
-################################################################################
-# DOSE
+# REEFDOSE
 class ReefDoseSelectEntity(ReefBeatSelectEntity):
-    """Represent an ReefBeat sensor."""
+    """Select entity for ReefDose (supplement selection per head)."""
 
     _attr_has_entity_name = True
 
     def __init__(
-        self, device, entity_description: ReefRunSelectEntityDescription
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefDoseSelectEntityDescription,
     ) -> None:
-        """Set up the instance."""
+        """Initialize the per-head supplement select."""
         super().__init__(device, entity_description)
-        self._head = self.entity_description.head
+        self._head: int = entity_description.head
         self._attr_current_option = translate(
             self._device.get_data(self._value_name),
             "fullname",
-            dictionnary=SUPPLEMENTS,
+            dictionary=_SORTED_SUPPLEMENTS,
             src_lang="uid",
         )
+        other = translate("other", self._device.hass.config.language)
+        self._attr_options = list(getattr(self._description, "options", None) or []) + [
+            other
+        ]
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -361,81 +441,89 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
             self._attr_current_option = translate(
                 self._device.get_data(self._value_name),
                 "fullname",
-                dictionnary=SUPPLEMENTS,
+                dictionary=_SORTED_SUPPLEMENTS,
                 src_lang="uid",
             )
         self.async_write_ha_state()
 
     async def async_select_option(self, option: str) -> None:
-        """Update the current selected option."""
+        """Update the selected supplement and update local cache."""
+        hass = self._device.hass
+        other = translate("other", hass.config.language)
+
         self._attr_current_option = option
-        if option == translate("other", self._device._hass.config.language):
+        event_type = self._value_name
+
+        _LOGGER.debug("FIRE %s %s" % (option, other))
+
+        if option == other:
             value = "other"
-            self._device._hass.bus.fire(
-                self.entity_description.value_name, {"other": True}
-            )
+            hass.bus.fire(event_type, {"other": True})
         else:
             value = translate(
-                option, "uid", dictionnary=SUPPLEMENTS, src_lang="fullname"
+                option, "uid", dictionary=_SORTED_SUPPLEMENTS, src_lang="fullname"
             )
-            self._device._hass.bus.fire(
-                self.entity_description.value_name, {"other": False}
-            )
-        _LOGGER.debug("Setting new supplement %s" % value)
+            hass.bus.fire(event_type, {"other": False})
+
+        _LOGGER.debug("Setting new supplement %s", value)
         self._device.set_data(self._value_name, value)
-        # self._device.async_update_listeners()
         self.async_write_ha_state()
 
-    @property
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        di = self._device.device_info
-        di["name"] += "_head_" + str(self._head)
-        identifiers = list(di["identifiers"])[0]
-        head = ("head_" + str(self._head),)
-        identifiers += head
-        di["identifiers"] = {identifiers}
-        return di
+        """Return device info extended with the head identifier."""
+        return cast(ReefDoseCoordinator, self._device).head_device_info(self._head)
 
 
-################################################################################
-# WAVE
+# REEFWAVE
 class ReefWaveSelectEntity(ReefBeatSelectEntity):
-    """Represent an ReefBeat sensor."""
+    """Select entity for ReefWave preview values."""
 
     _attr_has_entity_name = True
 
     def __init__(
-        self, device, entity_description: ReefWaveSelectEntityDescription
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefWaveSelectEntityDescription,
     ) -> None:
-        """Set up the instance."""
+        """Initialize the preview select."""
         super().__init__(device, entity_description)
+        self._i18n_options: list[dict[str, Any]] = entity_description.i18n_options or []
+
+        hass = self._device.hass
         self._attr_current_option = translate(
             self._device.get_data(self._value_name),
-            self._device._hass.config.language,
-            dictionnary=self.entity_description.i18n_options,
+            hass.config.language,
+            dictionary=self._i18n_options,
         )
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self._attr_available = True
+        self._handle_device_update()
+
+    @callback
+    def _handle_device_update(self) -> None:
+        """Sync translated HA state from coordinator cached data."""
+        hass = self._device.hass
         self._attr_current_option = translate(
             self._device.get_data(self._value_name),
-            self._device._hass.config.language,
-            dictionnary=self.entity_description.i18n_options,
+            hass.config.language,
+            dictionary=self._i18n_options,
         )
         self.async_write_ha_state()
 
     async def async_select_option(self, option: str) -> None:
-        """Update the current selected option."""
+        """Update the preview setting locally (and notify listeners)."""
+        hass = self._device.hass
         self._attr_current_option = option
         value = translate(
             option,
             "id",
-            dictionnary=self.entity_description.i18n_options,
-            src_lang=self._device._hass.config.language,
+            dictionary=self._i18n_options,
+            src_lang=hass.config.language,
         )
         self._device.set_data(self._value_name, value)
+
+        # Preview changes are local; update listeners without pushing to the device.
         self._device.async_update_listeners()
         self.async_write_ha_state()

@@ -1,0 +1,24 @@
+{
+  "ap_enabled": false,
+  "ap_ip": "192.168.4.1",
+  "flash_size": 16777216,
+  "free_heap": 68212,
+  "i2c_devices": [
+    {
+      "address": "0x68",
+      "device": "RTC"
+    }
+  ],
+  "mac": "02:00:00:49:43:B2",
+  "reset_reasons": {
+    "0": "vbat power on reset",
+    "1": "for APP CPU, reset by PRO CPU"
+  },
+  "rtc_connected": true,
+  "total_bytes": 3604480,
+  "uptime": "D:014-H:00-m:54-s:31",
+  "used_bytes": 73728,
+  "uuid": "90150696041c",
+  "wifi_enabled": true,
+  "wifi_ip": "10.0.0.15"
+}

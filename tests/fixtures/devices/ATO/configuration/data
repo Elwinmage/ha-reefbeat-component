@@ -1,0 +1,73 @@
+{
+  "auto_delay": 30,
+  "auto_fill": true,
+  "buzzer": {
+    "duty_cycle": 50,
+    "enabled": true,
+    "frequency": 12
+  },
+  "custom_pump_time": 30000,
+  "danger_notification_interval": 60,
+  "days_for_notify_rvm_level_low": 1,
+  "ec1_water_threshold": 75,
+  "ec2_high_water_threshold": 750,
+  "ec2_water_threshold": 75,
+  "ec_multipliers": {
+    "above_multiplier": 1.20000004768372,
+    "desired_multiplier": 0.5
+  },
+  "ec_sample_num": 10,
+  "flow_rate_factor": {
+    "hf_flow_h>0": -4.19999980926514,
+    "lf_flow_h=0": -2.79999995231628,
+    "lf_flow_h>0": -1.20000004768372,
+    "offset_flow_h=0": 1950,
+    "offset_flow_h>0": 2100
+  },
+  "flow_rate_override": -1,
+  "hose": {
+    "height": 80,
+    "length": 490
+  },
+  "leak": {
+    "dry_threshold": 1,
+    "emergency_shutdown": false,
+    "rodi_threshold": 20,
+    "sensor_enabled": true
+  },
+  "leak_notification_timeout": 10,
+  "missing_pump_threshold": 10,
+  "mosfet_verify_timer": 5,
+  "num_logs_for_pump_consumption": 5,
+  "periodic_sample_time": 250,
+  "pump_consumption": {
+    "empty_scaling_factor": 0.75,
+    "stalled_scaling_factor": 1.20000004768372
+  },
+  "pump_off_timeout": 6,
+  "pump_on_multiplier": 6,
+  "pump_speed_override": -1,
+  "pwm_factor": {
+    "HF_speed": 0.300000011920929,
+    "LF_speed": 0.100000001490116,
+    "offset_speed": 34
+  },
+  "rvm_enabled": true,
+  "self_test_timeout": 5,
+  "sensor_missing_notification_delay": 1,
+  "shortcut_off_delay": 0,
+  "soft_start_percentage": 75,
+  "standard_flow_rate": 1200,
+  "temp_enabled": true,
+  "temperature": {
+    "acceptable_range_high": 28,
+    "acceptable_range_low": 23,
+    "code": "515",
+    "desired_range_high": 27,
+    "desired_range_low": 24,
+    "enabled": true,
+    "log_enabled": true,
+    "offset": 0
+  },
+  "user_test_timeout": 600
+}

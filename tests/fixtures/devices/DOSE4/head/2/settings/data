@@ -1,0 +1,52 @@
+{
+  "container_volume": 1479.472,
+  "dc": true,
+  "enable_ratio": true,
+  "entire_dd": true,
+  "food_delay": 0,
+  "is_food_head": false,
+  "last_calibrated": 1749299907,
+  "manual_dose_scheduled": false,
+  "recalibration_required": false,
+  "schedule": {
+    "days": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "dd": 45,
+    "intervals": [
+      {
+        "end": 1200,
+        "mode": "regular",
+        "nd": 3,
+        "st": 480
+      }
+    ],
+    "type": "custom"
+  },
+  "schedule_enabled": true,
+  "shortcut_code": "feeding_1",
+  "show": true,
+  "slm": true,
+  "state": "on",
+  "supplement": {
+    "brand_name": "Red Sea",
+    "concentration": 0,
+    "display_name": "KH",
+    "is_brand_editable": false,
+    "is_name_editable": false,
+    "is_supplement_editable": false,
+    "made_by_redsea": true,
+    "name": "KH/Alkalinity (Foundation B)",
+    "short_name": "KH",
+    "type": "null",
+    "uid": "76830db3-a0bd-459a-9974-76a57d026893"
+  },
+  "today_auto_dosed_volume": 15,
+  "vps": 0.063636
+}

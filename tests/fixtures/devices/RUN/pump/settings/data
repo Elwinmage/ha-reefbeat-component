@@ -1,0 +1,39 @@
+{
+  "fullcup_enabled": true,
+  "linked": false,
+  "overskimming": {
+    "enabled": true,
+    "threshold": 90
+  },
+  "pump_1": {
+    "id": 1,
+    "model": "return-12000",
+    "name": "Reefrun 1200",
+    "schedule": [
+      {
+        "pd": 0,
+        "st": 0,
+        "ti": 100
+      }
+    ],
+    "schedule_enabled": true,
+    "sensor_controlled": false,
+    "type": "return"
+  },
+  "pump_2": {
+    "id": 2,
+    "model": "rsk-900",
+    "name": "DC Skimmer 900",
+    "schedule": [
+      {
+        "pd": 0,
+        "st": 0,
+        "ti": 80
+      }
+    ],
+    "schedule_enabled": true,
+    "sensor_controlled": true,
+    "type": "skimmer"
+  },
+  "synced": true
+}

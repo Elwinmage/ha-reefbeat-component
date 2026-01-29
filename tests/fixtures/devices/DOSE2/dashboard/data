@@ -1,0 +1,45 @@
+{
+  "battery_level": "high",
+  "bundled_heads": false,
+  "heads": {
+    "1": {
+      "auto_dosed_today": 4,
+      "daily_dose": 4,
+      "daily_doses": 4,
+      "doses_today": 4,
+      "is_food_head": false,
+      "manual_dosed_today": 0,
+      "missed_dose": {
+        "missed_volume": 0,
+        "total_volume": 0
+      },
+      "recalibration_required": false,
+      "remaining_days": 77,
+      "shortcut_code": "no_shortcut",
+      "state": "on",
+      "stock_level": "high",
+      "supplement": "Alkalinity"
+    },
+    "2": {
+      "auto_dosed_today": 4,
+      "daily_dose": 4,
+      "daily_doses": 4,
+      "doses_today": 4,
+      "is_food_head": false,
+      "manual_dosed_today": 0,
+      "missed_dose": {
+        "missed_volume": 0,
+        "total_volume": 0
+      },
+      "recalibration_required": false,
+      "remaining_days": 94,
+      "shortcut_code": "no_shortcut",
+      "state": "on",
+      "stock_level": "high",
+      "supplement": "Calcium"
+    }
+  },
+  "is_active": false,
+  "restore_settings": true,
+  "time_error": false
+}

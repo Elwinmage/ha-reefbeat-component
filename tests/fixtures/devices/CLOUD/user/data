@@ -1,0 +1,15 @@
+{
+  "backup_email": "user@example.com",
+  "country": "United States",
+  "country_code": "US",
+  "created_at": "2025-01-01T00:00:00Z",
+  "email": "user@example.com",
+  "first_name": "User",
+  "id": 123456,
+  "language": "en",
+  "last_name": "User",
+  "mobile_number": "+10000000000",
+  "onboarding_complete": true,
+  "uid": "00000000-0000-0000-0000-000000000001",
+  "zip_code": "00000"
+}

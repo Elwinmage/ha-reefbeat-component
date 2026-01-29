@@ -1,0 +1,19 @@
+{
+  "ap_enabled": false,
+  "ap_ip": "",
+  "flash_size": 16777216,
+  "free_heap": 39160,
+  "i2c_devices": [],
+  "max_open_files": 0,
+  "max_path_length": 0,
+  "message": "",
+  "reset_reason": "ESP_RST_PANIC",
+  "rtc_connected": 0,
+  "success": true,
+  "total_bytes": 0,
+  "uptime": "D:000-H:20-m:10-s:01",
+  "used_bytes": 0,
+  "uuid": "d0ef760d2096",
+  "wifi_enabled": true,
+  "wifi_ip": "192.168.0.65"
+}
