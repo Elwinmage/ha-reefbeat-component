@@ -1,0 +1,10 @@
+name: "Check Entities Translation"
+on: [ "push" ]
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+      - name: "Run test script"
+        run: 
+          python custom_components/redsea/scripts/check_translation.py
