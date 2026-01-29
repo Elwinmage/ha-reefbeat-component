@@ -13,7 +13,7 @@ repos:
     hooks:
       - id : check_translation
         name: Check Entities translations
-        entry: python custom_components/redsea/scripts/check_translation.py
+        entry: python scripts/check_translation.py
         language: python
         additional_dependencies:
           # used by check_translation.py

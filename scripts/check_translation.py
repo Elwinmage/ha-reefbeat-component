@@ -11,13 +11,11 @@ import os
 import re
 import sys
 
-base_path = os.path.dirname(__file__)
+base_path = os.path.dirname(__file__) + "/../custom_components/redsea"
 
-print(base_path)
+const_file: str = f"{base_path}/const.py"
 
-const_file: str = f"{base_path}/../const.py"
-
-translations_path = f"{base_path}/../translations"
+translations_path = f"{base_path}/translations"
 
 entity_domains: list[str] = []
 keys_in_code: list[str] = []
@@ -34,7 +32,7 @@ with open(const_file) as f:
 
 langs = []
 
-with open(f"{base_path}/../strings.json") as f:
+with open(f"{base_path}/strings.json") as f:
     langs += [{"lang": "strings", "data": json.load(f), "translations_keys": []}]
 for file in os.listdir(translations_path):
     if file.endswith(".json"):
@@ -49,7 +47,7 @@ for file in os.listdir(translations_path):
 
 for entity_domain in entity_domains:
     # Get keys in code
-    with open(f"{base_path}/../" + entity_domain + ".py") as f:
+    with open(f"{base_path}/" + entity_domain + ".py") as f:
         keys_in_code += list(
             map(
                 lambda x: entity_domain
