@@ -6,5 +6,7 @@ jobs:
     steps:
       - uses: "actions/checkout@v4"
       - name: "Run test script"
-        run: 
+        run: |
+          ls 
+          pwd
           python custom_components/redsea/scripts/check_translation.py
