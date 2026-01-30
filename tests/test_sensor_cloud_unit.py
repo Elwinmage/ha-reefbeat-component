@@ -6,6 +6,8 @@ from types import SimpleNamespace
 from typing import Any, Callable, cast
 
 import pytest
+from copy import deepcopy
+
 from homeassistant.helpers.device_registry import DeviceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -69,6 +71,15 @@ class _FakeCoordinator:
     my_api: _FakeApi = field(default_factory=_FakeApi)
 
     get_data_map: dict[str, Any] = field(default_factory=dict)
+
+    def aquarium_device_info(self, aquarium_name: str | None):
+        if aquarium_name is None:
+            return self.device_info
+        else:
+            res = deepcopy(self.device_info)
+            res["identifiers"] = {("redsea", f"{self.serial}_{aquarium_name}")}
+            res["name"] = f"{aquarium_name}"
+            return res
 
     def cloud_link(self) -> Any:
         return True

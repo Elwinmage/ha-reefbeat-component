@@ -967,19 +967,6 @@ async def async_setup_entry(
                         head=head,
                     ),
                     ReefDoseSensorEntityDescription(
-                        key="container_volume_head_" + str(head),
-                        translation_key="container_volume",
-                        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
-                        device_class=SensorDeviceClass.VOLUME,
-                        state_class=SensorStateClass.TOTAL,
-                        icon="mdi:hydraulic-oil-level",
-                        suggested_display_precision=0,
-                        value_name="$.sources[?(@.name=='/head/"
-                        + str(head)
-                        + "/settings')].data.container_volume",
-                        head=head,
-                    ),
-                    ReefDoseSensorEntityDescription(
                         key="schedule_head_" + str(head),
                         translation_key="schedule_head",
                         icon="mdi:chart-timeline",
@@ -1560,11 +1547,6 @@ class ReefBeatCloudSensorEntity(ReefBeatSensorEntity):
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info adjusted for aquarium/library grouping."""
-        di = dict(self._device.device_info)
-        if self._aquarium_name is not None:
-            di["name"] = self._aquarium_name
-            identifiers_set = di.get("identifiers")
-            if identifiers_set:
-                base = next(iter(cast(set[tuple[Any, ...]], identifiers_set)))
-                di["identifiers"] = {tuple(base) + (self._aquarium_name,)}
-        return cast(DeviceInfo, di)
+        return cast(ReefBeatCloudCoordinator, self._device).aquarium_device_info(
+            self._aquarium_name
+        )

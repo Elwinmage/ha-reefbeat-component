@@ -176,7 +176,7 @@ class ReefBeatAPI:
         if type_msg == "last_message" or type_msg == "All":
             self.data["message"]["message"] = ""
         elif type_msg == "last_alert_message" or type_msg == "All":
-            self.data["message"]["alert"] = ""
+            self.data["message"]["alert"] = {"message": ""}
 
     async def connect(self) -> None:
         """Perform authentication/handshake if needed.

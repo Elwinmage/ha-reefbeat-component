@@ -1322,3 +1322,28 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
             name=self.title,
             manufacturer=DEVICE_MANUFACTURER,
         )
+
+    def aquarium_device_info(self, aquarium_name: str | None):
+        """Return per-pump device info for ReefRun."""
+        if aquarium_name is None:
+            return self.device_info
+
+        base_di = dict(self.device_info)
+        base_identifiers = base_di.get("identifiers") or {(DOMAIN, self.serial)}
+        domain, ident = next(iter(cast(set[tuple[str, str]], base_identifiers)))
+
+        di_dict: dict[str, Any] = {
+            "identifiers": {(domain, f"{ident}_{aquarium_name}")},
+            "name": f"{aquarium_name}",
+        }
+
+        for key in ("manufacturer", "model", "model_id", "hw_version", "sw_version"):
+            val = base_di.get(key)
+            if isinstance(val, str) or val is None:
+                di_dict[key] = val
+
+        via_device = base_di.get("via_device")
+        if via_device is not None:
+            di_dict["via_device"] = via_device
+
+        return cast(DeviceInfo, di_dict)
