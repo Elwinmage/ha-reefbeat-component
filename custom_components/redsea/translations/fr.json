@@ -323,9 +323,6 @@
       "cloud_account": {
         "name": "Lié au compte"
       },
-      "container_volume": {
-        "name": "Volume du réservoire"
-      },
       "country": {
         "name": "Pays"
       },
