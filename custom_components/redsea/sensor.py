@@ -801,6 +801,7 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         ),
         icon="mdi:thermometer-check",
     ),
+    # TODO: Seems to be following Mode now, is this still needed?
     ReefBeatSensorEntityDescription(
         key="ato_mode",
         translation_key="ato_mode",
