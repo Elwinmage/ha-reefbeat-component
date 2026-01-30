@@ -10,5 +10,13 @@
     }
   },
   "ruff.lineLength": 88,
-  "python.defaultInterpreterPath": ".venv/bin/python"
+  "python.defaultInterpreterPath": ".venv/bin/python",
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/*/**": true,
+    "**.venv/**": true,
+    "**.pytest_cache/**": true,
+    "*__pycache__/**": true
+  }
 }
