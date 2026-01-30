@@ -1,0 +1,37 @@
+// Pyright config used by pre-commit.
+//
+// Intentional difference from `pyrightconfig.json`:
+// - Excludes `.dev/` so uncommitted local scratch files don't fail pre-commit.
+// - Keeps strict checking for `custom_components/`.
+// - Keeps "basic-like" overrides for `tests/`.
+{
+  "include": ["custom_components", "tests"],
+  "exclude": ["**/node_modules", "**/__pycache__"],
+  "extraPaths": ["."],
+  "stubPath": "typings",
+  "ignore": ["typings/pytest_homeassistant_custom_component/**"],
+  "typeCheckingMode": "strict",
+  "executionEnvironments": [
+    {
+      "root": "custom_components"
+    },
+    {
+      "root": "tests",
+      "reportMissingTypeStubs": "none",
+      "reportPrivateUsage": "none",
+      "reportUnknownArgumentType": "none",
+      "reportUnknownLambdaType": "none",
+      "reportUnknownMemberType": "none",
+      "reportUnknownParameterType": "none",
+      "reportUnknownVariableType": "none",
+      "reportMissingParameterType": "none",
+      "reportUnusedImport": "none",
+      "reportUnusedClass": "none",
+      "reportUnusedFunction": "none",
+      "reportUnusedVariable": "none",
+      "reportUnnecessaryCast": "error",
+      "reportUnnecessaryComparison": "error",
+      "reportUnnecessaryIsInstance": "error"
+    }
+  ]
+}
