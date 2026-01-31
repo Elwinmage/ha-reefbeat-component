@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any, cast
 
 import pytest
-
-from copy import deepcopy
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
@@ -312,6 +310,29 @@ async def test_reefrun_button_entity_fetch_config_and_press_fn_variants(
     await ent3.async_press()
     assert ran == [True]
     assert "/dashboard" in device.quick
+
+
+def test_reef_run_button_entity_device_info_uses_pump_device_info() -> None:
+    from custom_components.redsea.button import (
+        ReefRunButtonEntity,
+        ReefRunButtonEntityDescription,
+    )
+
+    called: list[int] = []
+
+    class _Device:
+        serial = "SERIAL"
+        device_info = DeviceInfo(identifiers={(DOMAIN, "SERIAL")})
+
+        def pump_device_info(self, pump_id: int) -> DeviceInfo:
+            called.append(pump_id)
+            return DeviceInfo(identifiers={(DOMAIN, f"SERIAL_pump_{pump_id}")})
+
+    desc = ReefRunButtonEntityDescription(key="x", translation_key="x", pump=3)
+    entity = ReefRunButtonEntity(cast(Any, _Device()), desc)
+
+    _ = entity.device_info
+    assert called == [3]
 
 
 @pytest.mark.asyncio

@@ -78,6 +78,32 @@ async def test_save_state_switch_async_added_to_hass_sets_available_when_previou
 
 
 @pytest.mark.asyncio
+async def test_save_state_switch_async_added_to_hass_uses_restored_state(
+    hass: Any,
+) -> None:
+    device = FakeCoordinator(last_update_success=False)
+
+    desc = SaveStateSwitchEntityDescription(
+        key="use_cloud_api",
+        translation_key="use_cloud_api",
+        icon="mdi:cloud",
+        icon_off="mdi:cloud-off",
+    )
+
+    entity = SaveStateSwitchEntity(cast(Any, device), desc)
+    entity.hass = hass
+    entity.async_write_ha_state = lambda: None  # type: ignore[assignment]
+
+    async def _last() -> Any:
+        return type("_State", (), {"state": "off"})()
+
+    entity.async_get_last_state = _last  # type: ignore[assignment]
+
+    await entity.async_added_to_hass()
+    assert entity.is_on is False
+
+
+@pytest.mark.asyncio
 async def test_switch_async_setup_entry_cloud_linked_adds_save_state_and_common(
     hass: Any, monkeypatch: pytest.MonkeyPatch
 ) -> None:

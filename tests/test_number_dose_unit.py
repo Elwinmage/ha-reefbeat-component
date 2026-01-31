@@ -167,3 +167,25 @@ async def test_dose_async_added_to_hass_sets_per_head_device_info(hass: Any) -> 
     di = cast(DeviceInfo, ent.device_info)
     identifiers = cast(set[tuple[str, str]], di.get("identifiers") or set())
     assert ("redsea", "SERIAL_head_1") in identifiers
+
+
+def test_dose_number_handle_available_update_sets_attr_available() -> None:
+    device = FakeDoseCoordinator(last_update_success=False)
+    device.get_data_map["dep"] = False
+
+    desc = ReefDoseNumberEntityDescription(
+        key="x",
+        translation_key="x",
+        value_name="$.x",
+        head=1,
+        dependency="dep",
+        native_min_value=0,
+        native_max_value=1,
+        native_step=1,
+    )
+
+    entity = ReefDoseNumberEntity(cast(Any, device), desc)
+    entity._attr_available = True
+
+    entity._handle_available_update(object())
+    assert entity._attr_available is False
