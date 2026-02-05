@@ -13,11 +13,18 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+import sys
 
 import pytest
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+
+# Add the parent directory (project root) to sys.path
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 
 # Ensure HA loads integrations from ./custom_components during tests
