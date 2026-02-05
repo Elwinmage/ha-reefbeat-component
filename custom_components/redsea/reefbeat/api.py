@@ -562,6 +562,9 @@ class ReefBeatAPI:
                 if not status_ok:
                     _LOGGER.error("%d: %s", status, (last_result or {}).get("text", ""))
                     error_count += 1
+                    self.data["message"]["alert"] = {
+                        "message": (last_result or {}).get("text", "")
+                    }
                 else:
                     _LOGGER.debug("%d: %s", status, (last_result or {}).get("text", ""))
                     msg = (last_result or {}).get("json")
