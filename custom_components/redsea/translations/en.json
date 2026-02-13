@@ -13,7 +13,6 @@
       "user": {
         "data": {
           "add_type": "Choose your adding method",
-	    "disable_supplements": "Disable Supplements",
             "hw_model": "Hardware Model",
           "ip_address": "IP or subnet Addr. (ex:10.0.1.0/255.255.255.0)",
           "platform": "Platform",
@@ -579,6 +578,15 @@
       "slm": {
         "name": "Volume Controller"
       },
+      "shortcut_emergency":{
+	"name": "ShortCut Emergency"
+      },
+      "shortcut_feeding":{
+	"name": "ShortCut Feeding"
+      },
+      "shortcut_maintenance":{
+	"name": "ShortCut maintenance"
+      },
       "use_cloud_api": {
         "name": "Use cloud API"
       }
@@ -613,6 +621,7 @@
       "init": {
         "data": {
           "live_config_update": "Live Configuration Update",
+	  "disable_supplements": "Disable Supplements",
           "not_virtual": "Not configurable",
           "slaves": "LED"
         },

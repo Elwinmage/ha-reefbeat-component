@@ -76,19 +76,17 @@ async def async_setup_entry(
     """Set up time entities for a config entry."""
     device = hass.data[DOMAIN][config_entry.entry_id]
 
-    if not isinstance(device, ReefMatCoordinator):
-        return
+    if isinstance(device, ReefMatCoordinator):
+        entities: list[TimeEntity] = []
+        _LOGGER.debug("TIMES")
 
-    entities: list[TimeEntity] = []
-    _LOGGER.debug("TIMES")
+        entities.extend(
+            ReefMatTimeEntity(device, description)
+            for description in MAT_TIMES
+            if description.exists_fn(device)
+        )
 
-    entities.extend(
-        ReefMatTimeEntity(device, description)
-        for description in MAT_TIMES
-        if description.exists_fn(device)
-    )
-
-    async_add_entities(entities, True)
+        async_add_entities(entities, True)
 
 
 # -----------------------------------------------------------------------------

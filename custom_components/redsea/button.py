@@ -149,6 +149,11 @@ class ReefWaveButtonEntityDescription(ButtonEntityDescription):
     ) = None
 
 
+# =============================================================================
+# Entities Description
+# =============================================================================
+
+
 FETCH_CONFIG_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
         key="fetch_config",
@@ -618,6 +623,7 @@ class ReefDoseButtonEntity(ButtonEntity):
                 "type": None,
                 "concentration": None,
                 "made_by_redsea": False,
+                "is_name_editable": True,
             }
             for label in ["name", "short_name", "brand_name"]:
                 if len(payload[label]) == 0:

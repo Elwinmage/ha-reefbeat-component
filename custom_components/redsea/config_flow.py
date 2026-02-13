@@ -546,7 +546,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         ): str,
                         vol.Required(
                             CONFIG_FLOW_SCAN_INTERVAL,
-                            default=get_scan_interval_safe(hw_model),
+                            default=self._config_entry.data.get(
+                                CONFIG_FLOW_SCAN_INTERVAL,
+                                get_scan_interval_safe(hw_model),
+                            ),
                         ): int,
                         vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
                         vol.Required(

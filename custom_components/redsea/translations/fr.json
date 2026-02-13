@@ -13,7 +13,6 @@
       "user": {
         "data": {
           "add_type": "Méthode d'ajout",
-          "disable_supplements": "Désactiver la récupération des suppléments",
           "hw_model": "Modèle hardware",
           "ip_address": "Adr. IP ou reseau (ex:10.0.1.0/255.255.255.0)",
           "platform": "Plateforme",
@@ -579,6 +578,15 @@
       "slm": {
         "name": "Contrôleur du Volume"
       },
+      "shortcut_emergency":{
+	"name": "Raccourci Urgence"
+      },
+      "shortcut_feeding":{
+	"name": "Raccourci Nourrisage"
+      },
+      "shortcut_maintenance":{
+	"name": "Raccourci Maintenance"
+      },
       "use_cloud_api": {
         "name": "Utiliser l'API cloud"
       }
@@ -613,6 +621,7 @@
       "init": {
         "data": {
           "live_config_update": "MAJ de la configuration en direct",
+          "disable_supplements": "Désactiver la récupération des suppléments",
           "not_virtual": "Pas de configuration disponible",
           "slaves": "LED"
         },

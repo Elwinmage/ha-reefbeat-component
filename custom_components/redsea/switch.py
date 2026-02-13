@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Any, Protocol, cast, runtime_checkable
 
@@ -55,8 +55,8 @@ from .const import (
 )
 from .coordinator import (
     ReefATOCoordinator,
-    ReefBeatCloudCoordinator,
     ReefBeatCoordinator,
+    ReefBeatCloudCoordinator,
     ReefDoseCoordinator,
     ReefLedCoordinator,
     ReefLedG2Coordinator,
@@ -125,6 +125,17 @@ class _RunPush(Protocol):
     async def async_request_refresh(self, source: str) -> None: ...
 
 
+@runtime_checkable
+class _CloudPush(Protocol):
+    """Coordinator capability: push values for cloud.
+
+    The existing coordinator API in this repo uses `push_values(source, method)`
+    for most devices, so CLOUD switches should generally use that form.
+    """
+
+    async def async_request_refresh(self, source: str) -> None: ...
+
+
 # -----------------------------------------------------------------------------
 # Entity descriptions
 # -----------------------------------------------------------------------------
@@ -180,6 +191,18 @@ class ReefRunSwitchEntityDescription(SwitchEntityDescription):
     pump: int = 0
     method: str = "put"
     notify: bool = False
+
+
+@dataclass(kw_only=True, frozen=True)
+class ReefCloudSwitchEntityDescription(SwitchEntityDescription):
+    """Description for cloud shortcuts switches."""
+
+    exists_fn: Callable[[ReefBeatCloudCoordinator], bool] = lambda _: True
+    shortcut: str = ""
+    value_name: str = ""
+    icon_off: str = ""
+    notify: bool = True
+    aquarium: dict = field(default_factory=dict)
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -343,7 +366,64 @@ async def async_setup_entry(
             for description in LED_SWITCHES
             if description.exists_fn(led_device)
         )
+    elif isinstance(device, ReefBeatCloudCoordinator):
+        cloud_descs: list[ReefCloudSwitchEntityDescription] = []
+        for aquarium in device.get_data("$.sources[?(@.name=='/aquarium')].data"):
+            cloud_descs.append(
+                ReefCloudSwitchEntityDescription(
+                    key="shortcut_emergency_1",
+                    translation_key="shortcut_emergency",
+                    icon="mdi:alert-decagram-outline",
+                    shortcut="$.sources[?(@.name=='/aquarium')].data[?(@.uid='"
+                    + aquarium["uid"]
+                    + "')].properties.emergency_1",
+                    value_name="$.sources[?(@.name=='/aquarium')].data[?(@.uid='"
+                    + aquarium["uid"]
+                    + "')].properties.emergency_1.enabled",
+                    aquarium=aquarium,
+                )
+            )
+            for id in [1, 2, 3]:
+                cloud_descs.append(
+                    ReefCloudSwitchEntityDescription(
+                        key="shortcut_feeding_" + str(id),
+                        translation_key="shortcut_feeding",
+                        icon="mdi:fish",
+                        shortcut="$.sources[?(@.name=='/aquarium')].data[?(@.uid='"
+                        + aquarium["uid"]
+                        + "')].properties.feeding_"
+                        + str(id),
+                        value_name="$.sources[?(@.name=='/aquarium')].data[?(@.uid='"
+                        + aquarium["uid"]
+                        + "')].properties.feeding_"
+                        + str(id)
+                        + ".enabled",
+                        aquarium=aquarium,
+                    )
+                )
+                cloud_descs.append(
+                    ReefCloudSwitchEntityDescription(
+                        key="shortcut_maintenance_" + str(id),
+                        translation_key="shortcut_maintenance",
+                        icon="mdi:wrench",
+                        shortcut="$.sources[?(@.name=='/aquarium')].data[?(@.uid='"
+                        + aquarium["uid"]
+                        + "')].properties.maintenance_"
+                        + str(id),
+                        value_name="$.sources[?(@.name=='/aquarium')].data[?(@.uid='"
+                        + aquarium["uid"]
+                        + "')].properties.maintenance_"
+                        + str(id)
+                        + ".enabled",
+                        aquarium=aquarium,
+                    )
+                )
 
+        entities.extend(
+            ReefCloudSwitchEntity(device, description)
+            for description in cloud_descs
+            if description.exists_fn(device)
+        )
     elif isinstance(device, ReefMatCoordinator):
         entities.extend(
             ReefBeatSwitchEntity(device, description)
@@ -803,3 +883,149 @@ class ReefRunSwitchEntity(ReefBeatSwitchEntity):
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the pump identifier."""
         return cast(ReefRunCoordinator, self._device).pump_device_info(self._pump)
+
+
+# REEFCLOUD
+class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
+    """Reef cloud shortcuts switch."""
+
+    _attr_has_entity_name = True
+    _active_switches: dict[str, str] = {}
+
+    @classmethod
+    def _recompute_active_switches(cls, device: ReefBeatCoordinator) -> None:
+        cls._active_switches.clear()
+        aquariums = device.get_data("$.sources[?(@.name=='/aquarium')].data") or []
+        for aquarium in aquariums:
+            uid = aquarium["uid"]
+            for key, value in aquarium.get("properties", {}).items():
+                if isinstance(value, dict) and value.get("enabled"):
+                    cls._active_switches[uid] = key
+                    break
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefCloudSwitchEntityDescription,
+    ) -> None:
+        self._shortcut: dict = device.get_data(entity_description.shortcut, True)
+        self._aquarium: dict = entity_description.aquarium
+        self._present: bool = False
+        if self._shortcut:
+            self._attr_name = self._shortcut["name"]
+            self._present = True
+        else:
+            self._attr_name = entity_description.key
+            _LOGGER.info(
+                "Shortcut %s not present in aquarium %s"
+                % (entity_description.key, entity_description.aquarium["name"])
+            )
+
+        super().__init__(
+            device, cast(ReefBeatSwitchEntityDescription, entity_description)
+        )
+
+        if self._present and self._shortcut.get("enabled"):
+            ReefCloudSwitchEntity._active_switches[self._aquarium["uid"]] = (
+                self.entity_description.key
+            )
+            self._attr_is_on = True
+        else:
+            self._attr_is_on = False
+
+        self._attr_unique_id = f"{device.serial}_{entity_description.key}"
+
+        self._typed_desc: ReefCloudSwitchEntityDescription = entity_description
+        self.entity_description = cast(SwitchEntityDescription, entity_description)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        ReefCloudSwitchEntity._recompute_active_switches(self._device)
+
+        self._attr_is_on = self._compute_is_on()
+        self._attr_available = self.available
+
+        self._set_icon()
+        self.async_write_ha_state()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        self._attr_is_on = True
+        self._set_icon()
+
+        await self._device.my_api.http_send(
+            action="/aquarium/"
+            + self._aquarium["uid"]
+            + "/shortcut/"
+            + self._shortcut["code"]
+            + "/start",
+            method="post",
+        )
+
+        self._device.async_update_listeners()
+        self.async_write_ha_state()
+
+        if self._typed_desc.notify:
+            self._device.hass.bus.fire(
+                "shortcut_state", {"code": self._shortcut["code"], "state": "on"}
+            )
+
+        cloud = cast(_CloudPush, self._device)
+        await cloud.async_request_refresh(source="/aquarium")
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self._attr_is_on = False
+        self._set_icon()
+
+        await self._device.my_api.http_send(
+            action="/aquarium/"
+            + self._aquarium["uid"]
+            + "/shortcut/"
+            + self._shortcut["code"]
+            + "/stop",
+            method="post",
+        )
+
+        self._device.async_update_listeners()
+        self.async_write_ha_state()
+
+        if self._typed_desc.notify:
+            self._device.hass.bus.fire(
+                "shortcut_state", {"code": self._shortcut["code"], "state": "off"}
+            )
+
+        cloud = cast(_CloudPush, self._device)
+        await cloud.async_request_refresh(source="/aquarium")
+
+    def _compute_is_on(self) -> bool:
+        if not self._present:
+            return False
+        return bool(self._device.get_data(self._desc.value_name))
+
+    @property
+    def available(self) -> bool:  # type: ignore[override]
+        # get value form coordinator
+        self._shortcut = self._device.get_data(self._typed_desc.shortcut, True)
+
+        if not self._shortcut:
+            # No shortcut, disable switch
+            self._attr_name = self.entity_description.key
+            self._present = False
+            return False
+
+        # The shorcut is configured
+        self._attr_name = self._shortcut["name"]
+        self._present = True
+
+        # Get the active shortcut switch if exists
+        active_switch = ReefCloudSwitchEntity._active_switches.get(
+            self._aquarium["uid"]
+        )
+        # Return true if all shortcut switches are off, or if only this switch is on
+        return not active_switch or active_switch == self._shortcut["code"]
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
+    def device_info(self) -> DeviceInfo:
+        """Return device info extended with the pump identifier."""
+        return cast(ReefBeatCloudCoordinator, self._device).aquarium_device_info(
+            self._aquarium["name"]
+        )
