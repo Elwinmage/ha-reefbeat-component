@@ -30,6 +30,9 @@
   "prettier.enable": false,
   "python.analysis.diagnosticMode": "workspace",
   "ruff.lineLength": 88,
+  "ruff.lint.select": [
+    "I"
+  ],
   "ruff.useBundled": false,
   "ruff.path": [
     ".venv/bin/ruff"
@@ -46,5 +49,16 @@
     "**/.ruff_cache/**": true,
     "**/.mypy_cache/**": true,
     "**/.dev/**": true
+  },
+  "todo-tree.highlights.customHighlight": {
+    "TODO": {
+      "gutterIcon": true
+    },
+    "FIXME": {
+      "foreground": "#ff0000",
+      "iconColour": "#ff0000",
+      "gutterIcon": true,
+      "type": "text-and-comment"
+    }
   }
 }

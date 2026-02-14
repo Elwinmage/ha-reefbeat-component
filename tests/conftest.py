@@ -11,15 +11,14 @@ They:
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
-import sys
 
 import pytest
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-
 
 # Add the parent directory (project root) to sys.path
 project_root = Path(__file__).parent.parent

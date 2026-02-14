@@ -5,3 +5,4 @@ pytest-homeassistant-custom-component>=0.13.301
 pre-commit>=3.7.1
 coverage-badge>=1.1.2
 dotenv>=0.9.9
+colorama>=0.4.6
