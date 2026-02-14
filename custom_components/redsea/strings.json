@@ -446,7 +446,22 @@
         }
       },
       "state": {
-        "name": "State"
+        "name": "State",
+	"state":{
+          "calibration":"Calibration",
+          "dry-run":"Dry run",
+          "emergency":"Emergency",
+          "feeding":"Feeding",
+          "full-cup":"Full-cup",
+          "locked-rotor":"Locked Rotor",
+          "maintenance":"Maintenance",
+          "not-connected":"Not connected",
+          "operational":"Operational",
+          "over-skimming":"Over-skimming",
+          "preview":"Preview",
+          "shortcut-off-delay":"Shortcut off delay",
+          "wrong-pump":"Wrong pump"
+	}
       },
       "supplement": {
         "name": "Supplement"
@@ -486,7 +501,12 @@
         "name": "Total volume usage"
       },
       "type": {
-        "name": "Type"
+        "name": "Type",
+	"state":{
+	  "return":"Return",
+	  "skimmer":"Skimmer",
+	  "unknown":"Unknown"
+	}
       },
       "volume_left": {
         "name": "Volume left"

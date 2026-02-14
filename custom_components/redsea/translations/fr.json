@@ -445,7 +445,22 @@
         }
       },
       "state": {
-        "name": "Etat"
+        "name": "Etat",
+	"state":{
+	  "calibration": "Étalonnage",
+	  "dry-run": "Fonctionnement à sec",
+	  "emergency": "Urgence",
+	  "feeding": "Alimentation",
+	  "full-cup": "Bol plein",
+	  "locked-rotor": "Rotor bloqué",
+	  "maintenance": "Maintenance",
+	  "not-connected": "Non connecté",
+	  "operational": "Opérationnel",
+	  "over-skimming": "Surécumage",
+	  "preview": "Aperçu",
+	  "shortcut-off-delay": "Délais avant redémarrage",
+	  "wrong-pump": "Pompe incorrecte"	  
+	}
       },
       "supplement": {
         "name": "Nom du supplément"
@@ -485,7 +500,13 @@
         "name": "Volume total utilisé"
       },
       "type": {
-        "name": "Type"
+        "name": "Type",
+	"state":{
+	  "return":"Retour",
+	  "skimmer":"Ecumeur",
+	  "unknown":"Inconnu"
+	}
+	
       },
       "volume_left": {
         "name": "Volume restant"

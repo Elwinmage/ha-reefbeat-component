@@ -350,7 +350,6 @@ COMMON_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
             "setup",
             "setup_error_high",
             "setup_error_torn",
-            "shortcut-off-delay",
             "shortcut_off_delay",
             "stalled",
             "timer",
@@ -1060,6 +1059,8 @@ async def async_setup_entry(
                         value_name="$.sources[?(@.name=='/dashboard')].data.pump_"
                         + str(pump)
                         + ".type",
+                        device_class=SensorDeviceClass.ENUM,
+                        options=["return", "skimmer", "unknown"],
                         pump=pump,
                     ),
                     ReefRunSensorEntityDescription(
@@ -1079,6 +1080,21 @@ async def async_setup_entry(
                         + str(pump)
                         + ".state",
                         entity_category=EntityCategory.DIAGNOSTIC,
+                        device_class=SensorDeviceClass.ENUM,
+                        options=[
+                            "calibration",
+                            "dry-run",
+                            "emergency",
+                            "feeding",
+                            "full-cup",
+                            "locked-rotormaintenance",
+                            "not-connected",
+                            "operational",
+                            "over-skimming",
+                            "preview",
+                            "shortcut-off-delay",
+                            "wrong-pump",
+                        ],
                         pump=pump,
                     ),
                     ReefRunSensorEntityDescription(
