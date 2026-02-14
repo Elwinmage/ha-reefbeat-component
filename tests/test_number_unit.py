@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, cast
 
 import pytest
-from homeassistant.components.number import NumberDeviceClass
+from homeassistant.components.number import NumberDeviceClass, RestoreNumber
 from homeassistant.const import PERCENTAGE, UnitOfTime
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -129,6 +129,43 @@ async def test_base_async_added_to_hass_sets_available_when_value_present() -> N
     ent._attr_available = False
 
     await ent.async_added_to_hass()
+
+
+@pytest.mark.asyncio
+async def test_async_added_to_hass_restores_last_extra_data(
+    monkeypatch: Any, hass: Any
+) -> None:
+    async def _noop_restore_added(self: Any) -> None:
+        return None
+
+    monkeypatch.setattr(RestoreNumber, "async_added_to_hass", _noop_restore_added)
+
+    device = FakeCoordinator(hass=hass)
+    desc = ReefBeatNumberEntityDescription(
+        key="x",
+        translation_key="x",
+        value_name="$.v",
+        dependency=None,
+        native_min_value=0,
+        native_max_value=1,
+        native_step=1,
+    )
+    ent = ReefBeatNumberEntity(cast(Any, device), desc)
+    ent.hass = hass
+
+    class _Extra:
+        def as_dict(self) -> dict[str, Any]:
+            return {"native_value": 12.5}
+
+    async def _last_extra() -> Any:
+        return _Extra()
+
+    ent.async_get_last_extra_data = _last_extra  # type: ignore[assignment]
+
+    await ent.async_added_to_hass()
+
+    assert ent._attr_native_value == 12.5
+    assert device.set_calls[-1] == ("$.v", 12.5)
 
 
 @pytest.mark.asyncio
