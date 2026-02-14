@@ -108,6 +108,35 @@ async def test_update_entity_latest_from_cloud_and_install(hass: Any) -> None:
     assert (desc.version_path, "2.0") in dev.set_calls
 
 
+def test_update_entity_handle_coordinator_update_refreshes_versions() -> None:
+    dev = _FakeDevice()
+
+    desc = ReefBeatUpdateEntityDescription(
+        key="firmware_update",
+        translation_key="firmware_update",
+        version_path="$.sources[?(@.name=='/firmware')].data.version",
+    )
+
+    # installed from cache
+    dev.get_data_map[desc.version_path] = "1.1"
+
+    # latest from cloud
+    assert dev.cloud_coordinator is not None
+    dev.cloud_coordinator.get_data_map[
+        "$.sources[?(@.name=='/latest-fw')].data.version"
+    ] = "2.0"
+
+    ent = ReefBeatUpdateEntity(cast(Any, dev), desc)
+    ent.async_write_ha_state = lambda: None  # type: ignore[assignment]
+    ent._attr_installed_version = None
+    ent._attr_latest_version = None
+
+    ent._handle_coordinator_update()
+
+    assert ent.installed_version == "1.1"
+    assert ent.latest_version == "2.0"
+
+
 @pytest.mark.asyncio
 async def test_update_entity_async_added_restores_versions(
     monkeypatch: pytest.MonkeyPatch, hass: Any

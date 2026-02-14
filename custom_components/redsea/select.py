@@ -435,7 +435,7 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
         value = self._device.get_data(self._value_name)
         if value == "other":
             self._attr_current_option = translate(
-                "other", self._device._hass.config.language
+                "other", self._device.hass.config.language
             )
         else:
             self._attr_current_option = translate(

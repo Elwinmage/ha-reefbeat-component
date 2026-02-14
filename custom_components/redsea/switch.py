@@ -55,8 +55,8 @@ from .const import (
 )
 from .coordinator import (
     ReefATOCoordinator,
-    ReefBeatCoordinator,
     ReefBeatCloudCoordinator,
+    ReefBeatCoordinator,
     ReefDoseCoordinator,
     ReefLedCoordinator,
     ReefLedG2Coordinator,

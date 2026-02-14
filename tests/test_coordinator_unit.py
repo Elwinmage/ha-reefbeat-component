@@ -6,6 +6,7 @@ from typing import Any, cast
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -297,6 +298,75 @@ async def test_async_quick_request_refresh_sets_quick_refresh_and_calls_super(
 
 
 @pytest.mark.asyncio
+async def test_async_request_refresh_with_config_fetches_config(
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    entry = _make_entry(title="Test", ip="192.0.2.10", hw_model="RSLED50")
+    coordinator = ReefBeatCoordinator(hass, cast(Any, entry))
+
+    class _RecordingAPI(_FakeAPI):
+        def __init__(self) -> None:
+            super().__init__()
+            self.configs: list[str | None] = []
+
+        async def fetch_config(self, config_path: str | None = None) -> None:
+            self.configs.append(config_path)
+
+    fake_api = _RecordingAPI()
+    coordinator.my_api = cast(Any, fake_api)
+
+    async def _fake_sleep(_: float) -> None:
+        return None
+
+    called = 0
+
+    async def _fake_super_refresh(self: DataUpdateCoordinator[Any]) -> None:
+        nonlocal called
+        called += 1
+
+    monkeypatch.setattr(asyncio, "sleep", _fake_sleep, raising=True)
+    monkeypatch.setattr(
+        DataUpdateCoordinator,
+        "async_request_refresh",
+        _fake_super_refresh,
+        raising=True,
+    )
+
+    await coordinator.async_request_refresh("/configuration", config=True, wait=1)
+
+    assert fake_api.quick_refresh == "/configuration"
+    assert fake_api.configs == [None]
+    assert called == 1
+
+
+@pytest.mark.asyncio
+async def test_clean_message_updates_listeners(hass: HomeAssistant) -> None:
+    entry = _make_entry(title="Test", ip="192.0.2.10", hw_model="RSLED50")
+    coordinator = ReefBeatCoordinator(hass, cast(Any, entry))
+
+    called: list[str] = []
+
+    class _MsgAPI(_FakeAPI):
+        def clean_message(self, msg_type: str) -> None:
+            called.append(msg_type)
+
+    coordinator.my_api = cast(Any, _MsgAPI())
+
+    updated = 0
+
+    def _listener() -> None:
+        nonlocal updated
+        updated += 1
+
+    coordinator.async_add_listener(_listener)
+    coordinator.clean_message("last_message")
+
+    assert called == ["last_message"]
+    assert updated == 1
+
+
+@pytest.mark.asyncio
 async def test_device_info_properties_and_fallbacks(hass: HomeAssistant) -> None:
     entry = _make_entry(title="My Device", ip="192.0.2.10", hw_model="RSLED50")
     coordinator = ReefBeatCoordinator(hass, cast(Any, entry))
@@ -504,3 +574,111 @@ async def test_ask_for_link_fires_bus_event(
 
     device._ask_for_link()
     assert fired == [("redsea_ask_for_cloud_link", {"device_id": entry.entry_id})]
+
+
+def test_device_info_helpers_include_via_device_and_skip_non_str(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import custom_components.redsea.coordinator as coord
+
+    monkeypatch.setattr(coord, "async_get_clientsession", lambda _h: object())
+
+    class _DoseAPI:
+        def __init__(self, *_a: Any, **_k: Any) -> None:
+            self.data: dict[str, Any] = {"sources": []}
+
+        async def fetch_data(self) -> dict[str, Any] | None:
+            return {}
+
+        async def fetch_config(self, _config_path: str | None = None) -> None:
+            return None
+
+        async def get_initial_data(self) -> None:
+            return None
+
+        def get_data(self, _name: str, _is_None_possible: bool = False) -> Any:  # noqa: N803
+            return None
+
+        def set_data(self, _name: str, _value: Any) -> None:
+            return None
+
+    monkeypatch.setattr(coord, "ReefDoseAPI", _DoseAPI)
+
+    class _RunAPI(_DoseAPI):
+        async def push_values(self, *_a: Any, **_k: Any) -> None:
+            return None
+
+    monkeypatch.setattr(coord, "ReefRunAPI", _RunAPI)
+
+    class _CloudAPI(_DoseAPI):
+        async def connect(self) -> None:
+            return None
+
+    monkeypatch.setattr(coord, "ReefBeatCloudAPI", lambda *_a, **_k: _CloudAPI())
+
+    entry_dose = MockConfigEntry(
+        domain=coord.DOMAIN,
+        title="Dose",
+        data={
+            coord.CONFIG_FLOW_IP_ADDRESS: "192.0.2.10",
+            coord.CONFIG_FLOW_HW_MODEL: "RSDOSE4",
+            coord.CONFIG_FLOW_CONFIG_TYPE: False,
+        },
+    )
+    dose = coord.ReefDoseCoordinator(hass, cast(Any, entry_dose))
+
+    entry_run = MockConfigEntry(
+        domain=coord.DOMAIN,
+        title="Run",
+        data={
+            coord.CONFIG_FLOW_IP_ADDRESS: "192.0.2.11",
+            coord.CONFIG_FLOW_HW_MODEL: "RSRUN",
+            coord.CONFIG_FLOW_CONFIG_TYPE: False,
+        },
+    )
+    run = coord.ReefRunCoordinator(hass, cast(Any, entry_run))
+
+    entry_cloud = MockConfigEntry(
+        domain=coord.DOMAIN,
+        title="Cloud",
+        data={
+            coord.CONFIG_FLOW_IP_ADDRESS: "192.0.2.12",
+            coord.CONFIG_FLOW_HW_MODEL: "ReefBeat",
+            coord.CONFIG_FLOW_CONFIG_TYPE: False,
+            coord.CONFIG_FLOW_CLOUD_USERNAME: "u",
+            coord.CONFIG_FLOW_CLOUD_PASSWORD: "p",
+            coord.CONFIG_FLOW_DISABLE_SUPPLEMENT: True,
+        },
+    )
+    cloud = coord.ReefBeatCloudCoordinator(hass, cast(Any, entry_cloud))
+
+    def _di(_: Any) -> DeviceInfo:
+        return cast(
+            DeviceInfo,
+            {
+                "identifiers": {(coord.DOMAIN, "IDENT")},
+                "manufacturer": "Red Sea",
+                "model": 123,  # should be skipped
+                "model_id": None,
+                "hw_version": "1",
+                "sw_version": "2",
+                "via_device": (coord.DOMAIN, "PARENT"),
+                "name": "Base",
+            },
+        )
+
+    monkeypatch.setattr(type(dose), "device_info", property(_di))
+    monkeypatch.setattr(type(run), "device_info", property(_di))
+    monkeypatch.setattr(type(cloud), "device_info", property(_di))
+
+    head_di = cast(DeviceInfo, dose.head_device_info(1))
+    assert head_di.get("via_device") == (coord.DOMAIN, "PARENT")
+    assert head_di.get("model") is None
+
+    pump_di = cast(DeviceInfo, run.pump_device_info(1))
+    assert pump_di.get("via_device") == (coord.DOMAIN, "PARENT")
+    assert pump_di.get("model") is None
+
+    aq_di = cast(DeviceInfo, cloud.aquarium_device_info("Tank"))
+    assert aq_di.get("via_device") == (coord.DOMAIN, "PARENT")
+    assert aq_di.get("model") is None

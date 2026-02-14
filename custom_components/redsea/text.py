@@ -122,7 +122,7 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
 # -----------------------------------------------------------------------------
@@ -181,7 +181,7 @@ class ReefBeatTextEntity(ReefBeatRestoreEntity, TextEntity):  # type: ignore[rep
             super()._handle_coordinator_update()
 
     def _update_val(self) -> None:
-        #        self._attr_available = True
+        self._attr_available = True
         self._attr_native_value = cast(
             str | None, self._device.get_data(self._desc.value_name)
         )
@@ -204,13 +204,6 @@ class ReefBeatTextEntity(ReefBeatRestoreEntity, TextEntity):  # type: ignore[rep
         """Return the device info."""
         return self._device.device_info
 
-    @cached_property
-    def available(self) -> bool:
-        if self._desc.dependency is not None:
-            return self._device.get_data(self._desc.dependency)
-        else:
-            return True
-
 
 # REEFDOSE
 class ReefDoseTextEntity(ReefBeatTextEntity):
@@ -230,12 +223,12 @@ class ReefDoseTextEntity(ReefBeatTextEntity):
         super().__init__(device, entity_description)
         self._dose_desc: ReefDoseTextEntityDescription = entity_description
         self._head: int = entity_description.head
-        self._attr_available = False
+        self._attr_available = True  # default to available unless told otherwise
 
     async def async_added_to_hass(self) -> None:
         """Register event listener after HA has set `self.hass`."""
         await super().async_added_to_hass()
-        self._attr_available = False
+
         if self._dose_desc.dependency:
             self.async_on_remove(
                 self.hass.bus.async_listen(
@@ -254,10 +247,6 @@ class ReefDoseTextEntity(ReefBeatTextEntity):
             # Defensive: if payload is malformed, do not crash the entity update loop.
             self._attr_available = bool(other)
         self.async_write_ha_state()
-
-    @cached_property
-    def available(self) -> bool:
-        return self._attr_available
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 from contextlib import suppress
+from copy import deepcopy
 from dataclasses import dataclass, field
 from types import SimpleNamespace
 from typing import Any, Callable, cast
@@ -9,7 +10,6 @@ from typing import Any, Callable, cast
 import pytest
 from homeassistant.helpers.device_registry import DeviceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from copy import deepcopy
 
 import custom_components.redsea.sensor as sensor_platform
 from custom_components.redsea.const import DOMAIN

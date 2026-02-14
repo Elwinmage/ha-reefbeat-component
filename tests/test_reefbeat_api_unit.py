@@ -123,6 +123,19 @@ def test_set_data_clears_cached_path_on_update_failure(
     assert bad_path not in api._data_db
 
 
+def test_clean_message_clears_last_message_and_alert() -> None:
+    session = _FakeSession()
+    api = _make_api(session)
+
+    api.data["message"] = {"message": "x", "alert": {"message": "y"}}
+
+    api.clean_message("last_message")
+    assert api.data["message"]["message"] == ""
+
+    api.clean_message("last_alert_message")
+    assert api.data["message"]["alert"] == {"message": ""}
+
+
 @pytest.mark.asyncio
 async def test_push_values_no_payload_does_not_send(
     monkeypatch: pytest.MonkeyPatch,

@@ -4,12 +4,12 @@ This script check the consistency of translation keys in code and tranlsation fi
 
 """
 
-from colorama import Fore, Style
-
 import json
 import os
 import re
 import sys
+
+from colorama import Fore, Style
 
 base_path = os.path.dirname(__file__) + "/../custom_components/redsea"
 

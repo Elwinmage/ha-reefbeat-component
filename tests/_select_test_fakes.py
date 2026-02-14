@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any, Callable
-from copy import deepcopy
+
 from homeassistant.core import HomeAssistant
 
 

@@ -188,6 +188,36 @@ async def test_reefdose_text_async_added_to_hass_registers_dependency_listener(
     assert removed == [True]
 
 
+@pytest.mark.asyncio
+async def test_reefbeat_text_async_added_to_hass_sets_available_if_value_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from custom_components.redsea.entity import ReefBeatRestoreEntity
+    from custom_components.redsea.text import (
+        ReefBeatTextEntity,
+        ReefBeatTextEntityDescription,
+    )
+
+    async def _noop_added_to_hass(self: Any) -> None:
+        return None
+
+    monkeypatch.setattr(
+        ReefBeatRestoreEntity, "async_added_to_hass", _noop_added_to_hass
+    )
+
+    device = _FakeCoordinator(last_update_success=False, _data={"$.x": "value"})
+    desc = ReefBeatTextEntityDescription(key="x", translation_key="x", value_name="$.x")
+
+    ent = ReefBeatTextEntity(cast(Any, device), desc)
+    ent.async_write_ha_state = lambda: None  # type: ignore[assignment]
+
+    ent._attr_available = False
+    assert ent.native_value == "value"
+
+    await ent.async_added_to_hass()
+    assert ent._attr_available is True
+
+
 def test_reefdose_text_handle_update_sets_available_for_bool_and_non_bool(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

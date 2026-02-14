@@ -82,8 +82,6 @@ async def _migrate_head_device_names(hass: HomeAssistant, entry: ConfigEntry) ->
             continue
 
         new_name = f"{match.group('prefix')} head {match.group('head')}"
-        if new_name == name:
-            continue
 
         _LOGGER.debug(
             "Migrating head device name: %s -> %s (device_id=%s)",

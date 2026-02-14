@@ -32,6 +32,25 @@ def _make_led_api(*, hw: str, intensity_compensation: bool = False) -> ReefLedAP
     )
 
 
+def test_make_interpolator_handles_bad_input_and_duplicate_x() -> None:
+    from custom_components.redsea.reefbeat.led import _make_interpolator
+
+    f = _make_interpolator([0.0, 1.0, 1.0, 2.0], [10.0, 20.0, 25.0, 30.0])
+
+    # Bad input hits the exception path and clamps to last x.
+    assert f("not-a-number") == 30.0
+
+    # With duplicate x values, the stable sort preserves input ordering.
+    assert f(1.0) == 20.0
+    assert f(1.5) == 27.5
+
+
+def test_interp_falls_back_to_last_value_on_nan_x() -> None:
+    from custom_components.redsea.reefbeat.led import _interp
+
+    assert _interp(float("nan"), [0.0, 1.0], [10.0, 20.0]) == 20.0
+
+
 def test_led_wb_clamps_and_splits() -> None:
     api = _make_led_api(hw=VIRTUAL_LED)
 

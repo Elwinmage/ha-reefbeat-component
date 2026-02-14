@@ -4,8 +4,8 @@
       "already_configured": "Entitée déjà existante",
       "cannot_create": "Impossible de créer une entitée pour un ReefBeat avec ces paramètres"
     },
-    "error":{
-      "auth_failed":"Erreur d'authentification, vérifiez vos informations d'identification",
+    "error": {
+      "auth_failed": "Erreur d'authentification, vérifiez vos informations d'identification",
       "nothing_detected": "Aucun périphérique détecté à "
     },
     "flow_title": "ReefBeat configuration",
@@ -28,7 +28,7 @@
       "battery_level": {
         "name": "Batterie"
       },
-      "bundled_heads":{
+      "bundled_heads": {
         "name": "Têtes liées"
       },
       "buzzer_enabled": {
@@ -90,8 +90,8 @@
       "advance": {
         "name": "Faire dérouler"
       },
-      "delete_emergency":{
-        "name":"Effacer le message d'alerte"
+      "delete_emergency": {
+        "name": "Effacer le message d'alerte"
       },
       "delete_supplement": {
         "name": "Supprimer le Suplément"
@@ -253,7 +253,15 @@
     },
     "select": {
       "mode": {
-        "name": "Mode"
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "end_of_roll": "Fin de rouleau",
+          "manual": "Manuel",
+          "timer": "Minuterie",
+          "other": "Autre",
+          "off": "Off"
+        }
       },
       "model": {
         "name": "Modèle"
@@ -286,7 +294,8 @@
         "name": "Mode ATO",
         "state": {
           "auto": "Auto",
-          "empty": "Vide"
+          "empty": "Vide",
+          "pump_timeout": "Temporisation de la pompe"
         }
       },
       "auto_1": {
@@ -407,8 +416,10 @@
         "state": {
           "auto": "Auto",
           "end_of_roll": "Fin de rouleau",
+          "empty": "Vide",
           "manual": "Manuel",
-          "off": "Off"
+          "off": "Off",
+          "pump_timeout": "Temporisation de la pompe"
         }
       },
       "model": {
@@ -635,8 +646,8 @@
     }
   },
   "options": {
-    "error":{
-      "auth_failed":"Erreur d'authentification, vérifiez vos informations d'identification"
+    "error": {
+      "auth_failed": "Erreur d'authentification, vérifiez vos informations d'identification"
     },
     "step": {
       "init": {
