@@ -297,7 +297,8 @@
           "auto": "Auto",
           "empty": "Empty",
           "malfunction": "Malfunction",
-          "pump_timeout": "Pump Timeout"
+          "pump_timeout": "Pump Timeout",
+          "user_test": "User Test"
         }
       },
       "auto_1": {
@@ -422,7 +423,8 @@
           "malfunction": "Malfunction",
           "manual": "Manual",
           "off": "Off",
-          "pump_timeout": "Pump Timeout"
+          "pump_timeout": "Pump Timeout",
+          "user_test": "User Test"
         }
       },
       "model": {

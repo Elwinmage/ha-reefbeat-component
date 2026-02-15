@@ -296,7 +296,8 @@
           "auto": "Auto",
           "empty": "Vide",
           "malfunction": "Dysfonctionnement",
-          "pump_timeout": "Temporisation de la pompe"
+          "pump_timeout": "Temporisation de la pompe",
+          "user_test": "Test utilisateur"
         }
       },
       "auto_1": {
@@ -422,7 +423,8 @@
           "malfunction": "Dysfonctionnement",
           "manual": "Manuel",
           "off": "Off",
-          "pump_timeout": "Temporisation de la pompe"
+          "pump_timeout": "Temporisation de la pompe",
+          "user_test": "Test utilisateur"
         }
       },
       "model": {
