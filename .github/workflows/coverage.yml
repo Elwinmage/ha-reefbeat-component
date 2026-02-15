@@ -57,7 +57,10 @@ jobs:
       - name: Generate coverage badge (repo-local)
         if: matrix.ha == '2026.1'
         run: |
-          python -m coverage_badge -o badges/coverage.svg -f
+          mkdir -p badges
+          # Use genbadge instead of coverage_badge to avoid pkg_resources/setuptools issues on Py3.13.
+          python -m pip install --upgrade "genbadge[coverage]"
+          genbadge coverage -i coverage.xml -o badges/coverage.svg
 
       - name: Upload coverage.xml to Codecov
         if: matrix.ha == '2026.1'
