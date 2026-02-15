@@ -384,6 +384,17 @@ async def async_setup_entry(
             )
             db.append(
                 ReefDoseButtonEntityDescription(
+                    key="set_supplement_name_head_" + str(head),
+                    translation_key="set_supplement_name",
+                    icon="mdi:form-textbox",
+                    action="setup-supplement",
+                    entity_category=EntityCategory.CONFIG,
+                    head=head,
+                    entity_registry_visible_default=False,
+                )
+            )
+            db.append(
+                ReefDoseButtonEntityDescription(
                     key="start_calibration_head_" + str(head),
                     translation_key="start_calibration",
                     icon="mdi:play-box-edit-outline",
@@ -579,6 +590,8 @@ class ReefDoseButtonEntity(ButtonEntity):
                 await self._device.delete(str(desc.action))
         elif desc.translation_key == "set_supplement":
             await self._set_supplement()
+        elif desc.translation_key == "set_supplement_name":
+            await self._set_supplement_name()
         elif desc.action == "fetch_config":
             await self._device.fetch_config("/head/" + str(self._head) + "/settings")
         elif desc.action == "end-calibration":
@@ -596,6 +609,32 @@ class ReefDoseButtonEntity(ButtonEntity):
         else:
             await self._device.press(desc.action, self._head)
         await self._device.async_request_refresh()
+
+    # Set supplement display name. Work onmly for non listed supplements
+    async def _set_supplement_name(self) -> None:
+        display_name = self._device.get_data(
+            "$.local.head." + str(self._head) + ".new_supplement_display_name"
+        )
+        name = self._device.get_data(
+            "$.local.head." + str(self._head) + ".new_supplement_name"
+        )
+        brand_name = self._device.get_data(
+            "$.local.head." + str(self._head) + ".new_supplement_brand_name"
+        )
+        short_name = self._device.get_data(
+            "$.local.head." + str(self._head) + ".new_supplement_short_name"
+        )
+        payload: dict[str, Any] = {
+            "supplement": {
+                "name": name,
+                "display_name": display_name,
+                "brand_name": brand_name,
+                "short_name": short_name,
+            }
+        }
+        await self._device.my_api.http_send(
+            "/head/" + str(self._head) + "/settings", payload, method="put"
+        )
 
     async def _set_supplement(self) -> None:
         desc = self.desc

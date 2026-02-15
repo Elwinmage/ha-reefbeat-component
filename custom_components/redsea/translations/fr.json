@@ -141,6 +141,9 @@
       "set_supplement": {
         "name": "Modifer le Supplément"
       },
+      "set_supplement_name": {
+        "name": "Modifer le nom du supplément"
+      },
       "start_calibration": {
         "name": "Démarrer la  Calibration"
       },
@@ -266,10 +269,23 @@
         }
       },
       "preview_wave_direction": {
-        "name": "Prev. direction des vagues"
+        "name": "Prev. direction des vagues",
+	"state":{
+	  "alt":"Alternatif",
+	  "fw":"Marche avant",
+	  "rw":"Marche arrière"
+	}
       },
       "preview_wave_type": {
-        "name": "Prev. type de vagues"
+        "name": "Prev. type de vagues",
+	"state":{
+	  "nw":"Pas de vagues",
+	  "ra":"Aléatoire",
+	  "re":"Régulier",
+	  "st":"paliers",
+	  "su":"Surface",
+	  "un":"Uniforme"
+	}
       },
       "supplements": {
         "name": "Suppléments"
@@ -529,7 +545,12 @@
         "name": "Durée en Marche Arrière"
       },
       "wave_direction": {
-        "name": "Direction des vagues"
+        "name": "Direction des vagues",
+	"state":{
+	  "alt":"Alternatif",
+	  "fw":"Marche avant",
+	  "rw":"Marceh Arrière"
+	}
       },
       "wave_forward_intensity": {
         "name": "Intensité Marche Avant"
@@ -544,7 +565,15 @@
         "name": "Paliers"
       },
       "wave_type": {
-        "name": "Type de vagues"
+        "name": "Type de vagues",
+	"state":{
+	  "nw":"Pas de vagues",
+	  "ra":"Aléatoire",
+	  "re":"Régulier",
+	  "st":"paliers",
+	  "su":"Surface",
+	  "un":"Uniforme"
+	}
       },
       "white": {
         "name": "Blanc"
@@ -615,6 +644,9 @@
     "text": {
       "new_supplement_brand_name": {
         "name": "Marque du Supplément"
+      },
+      "new_supplement_display_name": {
+        "name": "Nom affiché du supplément"
       },
       "new_supplement_name": {
         "name": "Nom du Supplément"

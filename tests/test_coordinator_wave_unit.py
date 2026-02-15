@@ -340,7 +340,7 @@ async def test_wave_set_wave_cloud_api_must_create_and_edit_paths(
     new_wave2 = dict(new_wave)
     new_wave2["wave_uid"] = "w1"
     await wave._set_wave_cloud_api(cur_schedule, new_wave2)
-    assert cloud.sent and cloud.sent[-1][2] == "put"
+    assert cloud.sent and cloud.sent[-1][2] == "post"
 
 
 @pytest.mark.asyncio

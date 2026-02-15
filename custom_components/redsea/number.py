@@ -48,7 +48,6 @@ from .const import (
     MAT_MIN_ROLL_DIAMETER,
     MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
     WAVE_SHORTCUT_OFF_DELAY,
-    WAVE_TYPES,
 )
 from .coordinator import (
     ReefATOCoordinator,
@@ -61,7 +60,6 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
-from .i18n import translate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -127,7 +125,6 @@ class ReefBeatNumberEntityDescription(NumberEntityDescription):
     value_name: str = ""
     dependency: str | None = None
     dependency_values: Sequence[Any] | None = None
-    translate: Sequence[dict[str, Any]] | None = None
     source: str = "/configuration"
 
 
@@ -187,7 +184,6 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:waves-arrow-right",
         entity_category=EntityCategory.CONFIG,
         dependency="$.sources[?(@.name=='/preview')].data.type",
-        translate=WAVE_TYPES,
         dependency_values=["st", "ra", "re", "un"],
     ),
     ReefBeatNumberEntityDescription(
@@ -202,7 +198,6 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:waves-arrow-left",
         entity_category=EntityCategory.CONFIG,
         dependency="$.sources[?(@.name=='/preview')].data.type",
-        translate=WAVE_TYPES,
         dependency_values=["st", "ra", "re", "un"],
     ),
     ReefBeatNumberEntityDescription(
@@ -217,7 +212,6 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:waves-arrow-right",
         entity_category=EntityCategory.CONFIG,
         dependency="$.sources[?(@.name=='/preview')].data.type",
-        translate=WAVE_TYPES,
         dependency_values=["st", "ra", "re", "su", "un"],
     ),
     ReefBeatNumberEntityDescription(
@@ -232,7 +226,6 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:waves-arrow-left",
         entity_category=EntityCategory.CONFIG,
         dependency="$.sources[?(@.name=='/preview')].data.type",
-        translate=WAVE_TYPES,
         dependency_values=["st", "ra", "re", "su", "un"],
     ),
     ReefBeatNumberEntityDescription(
@@ -258,7 +251,6 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:stairs",
         entity_category=EntityCategory.CONFIG,
         dependency="$.sources[?(@.name=='/preview')].data.type",
-        translate=WAVE_TYPES,
         dependency_values=["st"],
     ),
     ReefBeatNumberEntityDescription(
@@ -273,7 +265,6 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:clock-time-five",
         entity_category=EntityCategory.CONFIG,
         dependency="$.sources[?(@.name=='/preview')].data.type",
-        translate=WAVE_TYPES,
         dependency_values=["st", "un", "su"],
     ),
 )
@@ -716,14 +707,6 @@ class ReefBeatNumberEntity(CoordinatorEntity[ReefBeatCoordinator], RestoreNumber
             return True
 
         dep_value = self._device.get_data(dep, True)
-        if self._description.translate is not None:
-            dep_value = translate(
-                str(dep_value),
-                "id",
-                dictionary=self._description.translate,
-                src_lang=self.hass.config.language,
-            )
-
         if self._description.dependency_values is None:
             return bool(dep_value)
 

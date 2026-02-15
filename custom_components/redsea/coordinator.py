@@ -1129,6 +1129,9 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
             await self._cloud_link.send_cmd(
                 "/reef-wave/schedule/" + self.model_id, cur_schedule["schedule"], "post"
             )
+        # TODO: setting direction not taken into account
+        #  if just updating direction must (also) update schedule because do not depend on wave
+        # labels: rswave, bug
         else:
             payload["name"] = c_wave["name"]
             _LOGGER.debug("Edit wave %s", new_wave["wave_uid"])
@@ -1138,6 +1141,17 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
                 "/reef-wave/library/" + new_wave["wave_uid"], payload, "put"
             )
             _LOGGER.debug("PUT wave response: %s", getattr(res, "text", res))
+
+            for pos, wave in enumerate(cur_schedule["schedule"]["intervals"]):
+                if wave["wave_uid"] == new_wave["wave_uid"]:
+                    cur_schedule["schedule"]["intervals"][pos] = new_wave
+                cur_schedule["schedule"]["intervals"][pos]["start"] = wave["st"]
+
+            _LOGGER.debug("POST new schedule %s", cur_schedule["schedule"])
+            await self._cloud_link.send_cmd(
+                "/reef-wave/schedule/" + self.model_id, cur_schedule["schedule"], "post"
+            )
+
             await self.fetch_config()
 
     async def _set_wave_local_api(

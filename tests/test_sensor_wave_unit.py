@@ -79,8 +79,8 @@ def test_wave_sensor_translates_type_and_direction(monkeypatch: Any) -> None:
     type_entity = ReefWaveSensorEntity(cast(Any, device), type_desc)
     dir_entity = ReefWaveSensorEntity(cast(Any, device), dir_desc)
 
-    assert type_entity._get_value() == "A-en"
-    assert dir_entity._get_value() == "X-en"
+    assert type_entity._get_value() == "A"
+    assert dir_entity._get_value() == "X"
 
 
 def test_wave_sensor_direction_defaults_fw_when_none() -> None:

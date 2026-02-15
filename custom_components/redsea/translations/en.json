@@ -139,7 +139,10 @@
         "name": "Set Calibration volume"
       },
       "set_supplement": {
-        "name": "Set new Supplement"
+        "name": "Set new supplement"
+      },
+      "set_supplement_name": {
+        "name": "Set new supplement name"
       },
       "start_calibration": {
         "name": "Start  Calibration"
@@ -266,10 +269,23 @@
         }
       },
       "preview_wave_direction": {
-        "name": "Preview Waves Direction"
+        "name": "Preview Waves Direction",
+	"state":{
+	  "alt":"Alternate",
+	  "fw":"Forward",
+	  "rw":"Reward"
+	}
       },
       "preview_wave_type": {
-        "name": "Preview Waves Type"
+        "name": "Preview Waves Type",
+	"state":{
+	  "nw":"No Wave",
+	  "ra":"Random",
+	  "re":"Regular",
+	  "st":"Step",
+	  "su":"Surface",
+	  "un":"Uniform"
+	}
       },
       "supplements": {
         "name": "Supplements"
@@ -528,10 +544,20 @@
         "name": "Backward Time"
       },
       "wave_direction": {
-        "name": "Waves Direction"
+        "name": "Waves Direction",
+	"state":{
+	  "alt":"Alternate",
+	  "fw":"Forward",
+	  "rw":"Reward"
+	}
       },
       "wave_forward_intensity": {
-        "name": "Forward Intensity"
+        "name": "Forward Intensity",
+	"state":{
+	  "alt":"Alternate",
+	  "fw":"Forward",
+	  "rw":"Reward"
+	}
       },
       "wave_forward_time": {
         "name": "Forward Time"
@@ -543,7 +569,15 @@
         "name": "Steps"
       },
       "wave_type": {
-        "name": "Waves Type"
+        "name": "Waves Type",
+	"state":{
+	  "nw":"No Wave",
+	  "ra":"Random",
+	  "re":"Regular",
+	  "st":"Step",
+	  "su":"Surface",
+	  "un":"Uniform"
+	}
       },
       "white": {
         "name": "White"
@@ -614,6 +648,9 @@
     "text": {
       "new_supplement_brand_name": {
         "name": "Brand Name"
+      },
+      "new_supplement_display_name": {
+        "name": "Supplement display name"
       },
       "new_supplement_name": {
         "name": "Supplement Name"

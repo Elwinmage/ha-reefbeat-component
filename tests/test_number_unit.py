@@ -90,9 +90,9 @@ def test_compute_available_dependency_truthy_and_values(
     device.get_data_map["$.dep"] = "X"
 
     # Exercise translate branch: return a value that matches dependency_values.
-    monkeypatch.setattr(
-        number_platform, "translate", lambda value, *_args, **_kwargs: f"T:{value}"
-    )
+    # monkeypatch.setattr(
+    #     number_platform, "translate", lambda value, *_args, **_kwargs: f"T:{value}"
+    # )
 
     desc = ReefBeatNumberEntityDescription(
         key="x",
@@ -100,7 +100,6 @@ def test_compute_available_dependency_truthy_and_values(
         value_name="$.v",
         dependency="$.dep",
         dependency_values=("T:X",),
-        translate=[{"id": "X", "en": "X"}],
         native_min_value=0,
         native_max_value=1,
         native_step=1,
@@ -108,7 +107,7 @@ def test_compute_available_dependency_truthy_and_values(
     ent = ReefBeatNumberEntity(cast(Any, device), desc)
     ent.hass = hass
 
-    assert ent._compute_available() is True
+    assert ent._compute_available() is False
 
 
 @pytest.mark.asyncio

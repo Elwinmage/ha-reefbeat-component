@@ -641,6 +641,8 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
         key="wave_type",
         translation_key="wave_type",
         value_name="type",
+        device_class=SensorDeviceClass.ENUM,
+        options=WAVE_TYPES,
         icon="mdi:wave",
     ),
     ReefWaveSensorEntityDescription(
@@ -653,6 +655,8 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
         key="wave_direction",
         translation_key="wave_direction",
         value_name="direction",
+        device_class=SensorDeviceClass.ENUM,
+        options=WAVE_DIRECTIONS,
         icon="mdi:waves-arrow-right",
     ),
     ReefWaveSensorEntityDescription(
@@ -1531,22 +1535,12 @@ class ReefWaveSensorEntity(ReefBeatSensorEntity):
         )
 
         if desc.value_name == "type" and val is not None:
-            return translate(
-                cast(str, val),
-                self._device.hass.config.language,
-                dictionary=WAVE_TYPES,
-                src_lang="id",
-            )
+            return cast(str, val)
 
         if desc.value_name == "direction":
             if val is None:
                 return "fw"
-            return translate(
-                cast(str, val),
-                self._device.hass.config.language,
-                dictionary=WAVE_DIRECTIONS,
-                src_lang="id",
-            )
+            return cast(str, val)
 
         return cast(StateType, val)
 
