@@ -296,6 +296,7 @@
         "state": {
           "auto": "Auto",
           "empty": "Empty",
+          "malfunction": "Malfunction",
           "pump_timeout": "Pump Timeout"
         }
       },
@@ -418,6 +419,7 @@
           "auto": "Auto",
           "end_of_roll": "End of Roll",
           "empty": "Empty",
+          "malfunction": "Malfunction",
           "manual": "Manual",
           "off": "Off",
           "pump_timeout": "Pump Timeout"
@@ -532,6 +534,7 @@
           "above": "Above",
           "acceptable": "Acceptable",
           "below": "Below",
+          "danger": "Danger",
           "desired": "Desired",
           "desired_level_1": "Desired Level 1",
           "desired_level_2": "Desired Level 2"

@@ -295,6 +295,7 @@
         "state": {
           "auto": "Auto",
           "empty": "Vide",
+          "malfunction": "Dysfonctionnement",
           "pump_timeout": "Temporisation de la pompe"
         }
       },
@@ -340,6 +341,7 @@
           "above": "Au-dessus",
           "acceptable": "Acceptable",
           "below": "En dessous",
+          "danger": "En danger",
           "desired": "Souhaité",
           "desired_level_1": "Niveau souhaité 1",
           "desired_level_2": "Niveau souhaité 2"
@@ -417,6 +419,7 @@
           "auto": "Auto",
           "end_of_roll": "Fin de rouleau",
           "empty": "Vide",
+          "malfunction": "Dysfonctionnement",
           "manual": "Manuel",
           "off": "Off",
           "pump_timeout": "Temporisation de la pompe"
@@ -457,21 +460,21 @@
       },
       "state": {
         "name": "Etat",
-	"state":{
-	  "calibration": "Étalonnage",
-	  "dry-run": "Fonctionnement à sec",
-	  "emergency": "Urgence",
-	  "feeding": "Alimentation",
-	  "full-cup": "Bol plein",
-	  "locked-rotor": "Rotor bloqué",
-	  "maintenance": "Maintenance",
-	  "not-connected": "Non connecté",
-	  "operational": "Opérationnel",
-	  "over-skimming": "Surécumage",
-	  "preview": "Aperçu",
-	  "shortcut-off-delay": "Délais avant redémarrage",
-	  "wrong-pump": "Pompe incorrecte"	  
-	}
+        "state": {
+          "calibration": "Étalonnage",
+          "dry-run": "Fonctionnement à sec",
+          "emergency": "Urgence",
+          "feeding": "Alimentation",
+          "full-cup": "Bol plein",
+          "locked-rotor": "Rotor bloqué",
+          "maintenance": "Maintenance",
+          "not-connected": "Non connecté",
+          "operational": "Opérationnel",
+          "over-skimming": "Surécumage",
+          "preview": "Aperçu",
+          "shortcut-off-delay": "Délais avant redémarrage",
+          "wrong-pump": "Pompe incorrecte"
+        }
       },
       "supplement": {
         "name": "Nom du supplément"
@@ -512,12 +515,11 @@
       },
       "type": {
         "name": "Type",
-	"state":{
-	  "return":"Retour",
-	  "skimmer":"Ecumeur",
-	  "unknown":"Inconnu"
-	}
-	
+        "state": {
+          "return": "Retour",
+          "skimmer": "Ecumeur",
+          "unknown": "Inconnu"
+        }
       },
       "volume_left": {
         "name": "Volume restant"
@@ -610,14 +612,14 @@
       "slm": {
         "name": "Contrôleur du Volume"
       },
-      "shortcut_emergency":{
-	"name": "Raccourci Urgence"
+      "shortcut_emergency": {
+        "name": "Raccourci Urgence"
       },
-      "shortcut_feeding":{
-	"name": "Raccourci Nourrisage"
+      "shortcut_feeding": {
+        "name": "Raccourci Nourrisage"
       },
-      "shortcut_maintenance":{
-	"name": "Raccourci Maintenance"
+      "shortcut_maintenance": {
+        "name": "Raccourci Maintenance"
       },
       "use_cloud_api": {
         "name": "Utiliser l'API cloud"
