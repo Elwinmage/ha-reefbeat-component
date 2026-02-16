@@ -23,8 +23,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .i18n import translate, translate_list
-
 from .const import (
     DOMAIN,
     HW_MAT_MODEL,
@@ -47,6 +45,7 @@ from .coordinator import (
     ReefWaveCoordinator,
 )
 from .entity import ReefBeatRestoreEntity, RestoreSpec
+from .i18n import translate, translate_list
 from .supplements_list import SUPPLEMENTS as SUPPLEMENTS_LIST
 
 # Keep the imported constant intact; use a local name for the sorted view.
@@ -451,8 +450,6 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
 
         self._attr_current_option = option
         event_type = self._value_name
-
-        _LOGGER.debug("FIRE %s %s" % (option, other))
 
         if option == other:
             value = "other"
