@@ -945,7 +945,23 @@ class ReefWaveNumberEntity(ReefBeatNumberEntity):
         else:
             self._attr_available = self._compute_available()
             self._attr_native_value = cast(float | None, value)
+        self.async_write_ha_state()
 
+    async def async_set_native_value(self, value: float) -> None:
+        """Set a new value and push to the device."""
+        _LOGGER.debug(
+            "redsea.number.set_native_value %s %s" % (self._description.key, value)
+        )
+
+        f_value: Any = (
+            int(value)
+            if self._description.native_unit_of_measurement == UnitOfTime.SECONDS
+            else value
+        )
+
+        self._attr_native_value = cast(float | None, f_value)
+
+        self._device.set_data(self._description.value_name, f_value)
         self.async_write_ha_state()
 
 

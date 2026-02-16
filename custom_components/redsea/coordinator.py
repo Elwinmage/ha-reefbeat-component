@@ -1129,9 +1129,6 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
             await self._cloud_link.send_cmd(
                 "/reef-wave/schedule/" + self.model_id, cur_schedule["schedule"], "post"
             )
-        # TODO: setting direction not taken into account
-        #  if just updating direction must (also) update schedule because do not depend on wave
-        # labels: rswave, bug
         else:
             payload["name"] = c_wave["name"]
             _LOGGER.debug("Edit wave %s", new_wave["wave_uid"])
@@ -1148,6 +1145,8 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
                 cur_schedule["schedule"]["intervals"][pos]["start"] = wave["st"]
 
             _LOGGER.debug("POST new schedule %s", cur_schedule["schedule"])
+            # TODO : When rswave are grouped, setting values do not work with standard API
+            # labels: rswave, bug
             await self._cloud_link.send_cmd(
                 "/reef-wave/schedule/" + self.model_id, cur_schedule["schedule"], "post"
             )

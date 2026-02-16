@@ -797,7 +797,6 @@ class ReefWaveButtonEntity(ButtonEntity):
             return
 
         if desc.key == "preview_set_from_current":
-            _LOGGER.debug("Set Preview from Current values")
             for dn in WAVES_DATA_NAMES:
                 v = self._device.get_current_value(WAVE_SCHEDULE_PATH, dn)
                 if v is not None:
