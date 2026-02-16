@@ -942,8 +942,14 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
     def _handle_coordinator_update(self) -> None:
         ReefCloudSwitchEntity._recompute_active_switches(self._device)
 
-        self._attr_is_on = self._compute_is_on()
+        # Check availability first - this updates self._shortcut and self._present
         self._attr_available = self.available
+
+        # Only compute is_on if the switch is available
+        if self._attr_available:
+            self._attr_is_on = self._compute_is_on()
+        else:
+            self._attr_is_on = False
 
         self._set_icon()
         self.async_write_ha_state()
@@ -999,7 +1005,12 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
     def _compute_is_on(self) -> bool:
         if not self._present:
             return False
-        return bool(self._device.get_data(self._desc.value_name))
+        # Safely get the value, return False if shortcut was deleted
+        try:
+            return bool(self._device.get_data(self._desc.value_name))
+        except (KeyError, ValueError):
+            # Shortcut was deleted or data is invalid
+            return False
 
     @property
     def available(self) -> bool:  # type: ignore[override]
