@@ -4,8 +4,8 @@
       "already_configured": "Entitée déjà existante",
       "cannot_create": "Impossible de créer une entitée pour un ReefBeat avec ces paramètres"
     },
-    "error":{
-      "auth_failed":"Erreur d'authentification, vérifiez vos informations d'identification",
+    "error": {
+      "auth_failed": "Erreur d'authentification, vérifiez vos informations d'identification",
       "nothing_detected": "Aucun périphérique détecté à "
     },
     "flow_title": "ReefBeat configuration",
@@ -28,7 +28,7 @@
       "battery_level": {
         "name": "Batterie"
       },
-      "bundled_heads":{
+      "bundled_heads": {
         "name": "Têtes liées"
       },
       "buzzer_enabled": {
@@ -90,8 +90,8 @@
       "advance": {
         "name": "Faire dérouler"
       },
-      "delete_emergency":{
-        "name":"Effacer le message d'alerte"
+      "delete_emergency": {
+        "name": "Effacer le message d'alerte"
       },
       "delete_supplement": {
         "name": "Supprimer le Suplément"
@@ -256,7 +256,15 @@
     },
     "select": {
       "mode": {
-        "name": "Mode"
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "end_of_roll": "Fin de rouleau",
+          "manual": "Manuel",
+          "timer": "Minuterie",
+          "other": "Autre",
+          "off": "Off"
+        }
       },
       "model": {
         "name": "Modèle"
@@ -302,7 +310,10 @@
         "name": "Mode ATO",
         "state": {
           "auto": "Auto",
-          "empty": "Vide"
+          "empty": "Vide",
+          "malfunction": "Dysfonctionnement",
+          "pump_timeout": "Temporisation de la pompe",
+          "user_test": "Test utilisateur"
         }
       },
       "auto_1": {
@@ -347,6 +358,7 @@
           "above": "Au-dessus",
           "acceptable": "Acceptable",
           "below": "En dessous",
+          "danger": "En danger",
           "desired": "Souhaité",
           "desired_level_1": "Niveau souhaité 1",
           "desired_level_2": "Niveau souhaité 2"
@@ -423,8 +435,12 @@
         "state": {
           "auto": "Auto",
           "end_of_roll": "Fin de rouleau",
+          "empty": "Vide",
+          "malfunction": "Dysfonctionnement",
           "manual": "Manuel",
-          "off": "Off"
+          "off": "Off",
+          "pump_timeout": "Temporisation de la pompe",
+          "user_test": "Test utilisateur"
         }
       },
       "model": {
@@ -462,21 +478,21 @@
       },
       "state": {
         "name": "Etat",
-	"state":{
-	  "calibration": "Étalonnage",
-	  "dry-run": "Fonctionnement à sec",
-	  "emergency": "Urgence",
-	  "feeding": "Alimentation",
-	  "full-cup": "Bol plein",
-	  "locked-rotor": "Rotor bloqué",
-	  "maintenance": "Maintenance",
-	  "not-connected": "Non connecté",
-	  "operational": "Opérationnel",
-	  "over-skimming": "Surécumage",
-	  "preview": "Aperçu",
-	  "shortcut-off-delay": "Délais avant redémarrage",
-	  "wrong-pump": "Pompe incorrecte"	  
-	}
+        "state": {
+          "calibration": "Étalonnage",
+          "dry-run": "Fonctionnement à sec",
+          "emergency": "Urgence",
+          "feeding": "Alimentation",
+          "full-cup": "Bol plein",
+          "locked-rotor": "Rotor bloqué",
+          "maintenance": "Maintenance",
+          "not-connected": "Non connecté",
+          "operational": "Opérationnel",
+          "over-skimming": "Surécumage",
+          "preview": "Aperçu",
+          "shortcut-off-delay": "Délais avant redémarrage",
+          "wrong-pump": "Pompe incorrecte"
+        }
       },
       "supplement": {
         "name": "Nom du supplément"
@@ -517,12 +533,11 @@
       },
       "type": {
         "name": "Type",
-	"state":{
-	  "return":"Retour",
-	  "skimmer":"Ecumeur",
-	  "unknown":"Inconnu"
-	}
-	
+        "state": {
+          "return": "Retour",
+          "skimmer": "Ecumeur",
+          "unknown": "Inconnu"
+        }
       },
       "volume_left": {
         "name": "Volume restant"
@@ -628,14 +643,14 @@
       "slm": {
         "name": "Contrôleur du Volume"
       },
-      "shortcut_emergency":{
-	"name": "Raccourci Urgence"
+      "shortcut_emergency": {
+        "name": "Raccourci Urgence"
       },
-      "shortcut_feeding":{
-	"name": "Raccourci Nourrisage"
+      "shortcut_feeding": {
+        "name": "Raccourci Nourrisage"
       },
-      "shortcut_maintenance":{
-	"name": "Raccourci Maintenance"
+      "shortcut_maintenance": {
+        "name": "Raccourci Maintenance"
       },
       "use_cloud_api": {
         "name": "Utiliser l'API cloud"
@@ -667,8 +682,8 @@
     }
   },
   "options": {
-    "error":{
-      "auth_failed":"Erreur d'authentification, vérifiez vos informations d'identification"
+    "error": {
+      "auth_failed": "Erreur d'authentification, vérifiez vos informations d'identification"
     },
     "step": {
       "init": {

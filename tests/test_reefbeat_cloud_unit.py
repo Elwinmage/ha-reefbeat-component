@@ -177,3 +177,35 @@ async def test_cloud_connect_renew_branch_and_get_devices() -> None:
     ]
     matches = api.get_devices("led")
     assert len(matches) == 1
+
+
+def test_cloud_api_includes_supplements_source_when_enabled() -> None:
+    from custom_components.redsea.const import SUPPLEMENTS_LIBRARY
+
+    session = cast(Any, object())
+
+    api_enabled = ReefBeatCloudAPI(
+        username="u",
+        password="p",
+        live_config_update=False,
+        ip="cloud.example",
+        session=session,
+        disable_supplement=False,
+    )
+    assert any(
+        src.get("name") == str(SUPPLEMENTS_LIBRARY)
+        for src in api_enabled.data["sources"]
+    )
+
+    api_disabled = ReefBeatCloudAPI(
+        username="u",
+        password="p",
+        live_config_update=False,
+        ip="cloud.example",
+        session=session,
+        disable_supplement=True,
+    )
+    assert not any(
+        src.get("name") == str(SUPPLEMENTS_LIBRARY)
+        for src in api_disabled.data["sources"]
+    )

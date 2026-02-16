@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from contextlib import suppress
+from copy import deepcopy
 from dataclasses import dataclass, field
 from types import SimpleNamespace
 from typing import Any, Callable, cast
 
 import pytest
-from copy import deepcopy
-
 from homeassistant.helpers.device_registry import DeviceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -205,12 +204,12 @@ async def test_async_setup_entry_cloud_linked_branch(
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("disable_supplement", [True, False])
 async def test_async_setup_entry_cloud_library_dynamic_descriptions(
-    monkeypatch: Any, hass: Any
+    monkeypatch: Any, hass: Any, disable_supplement: bool
 ) -> None:
     class _CloudCoord(_FakeCoordinator):
         disable_supplement: bool = True
-        pass
 
     monkeypatch.setattr(sensor_platform, "ReefBeatCloudCoordinator", _CloudCoord)
 
@@ -234,6 +233,7 @@ async def test_async_setup_entry_cloud_library_dynamic_descriptions(
     )
 
     device = _CloudCoord(hass=hass)
+    device.disable_supplement = disable_supplement
     device.get_data_map["$.user"] = "U"
 
     device.my_api.data[
@@ -276,3 +276,13 @@ async def test_async_setup_entry_cloud_library_dynamic_descriptions(
     )
 
     assert any(isinstance(e, sensor_platform.ReefBeatCloudSensorEntity) for e in added)
+
+    # Supplements are only added when not disabled.
+    has_supplement = any(
+        getattr(getattr(e, "entity_description", None), "key", "").startswith(
+            "supplement_"
+        )
+        for e in added
+        if isinstance(e, sensor_platform.ReefBeatCloudSensorEntity)
+    )
+    assert has_supplement is (not disable_supplement)

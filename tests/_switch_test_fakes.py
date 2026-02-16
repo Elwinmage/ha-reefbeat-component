@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from contextlib import suppress
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any, Callable
-
-from copy import deepcopy
 
 from homeassistant.helpers.device_registry import DeviceInfo
 

@@ -40,8 +40,12 @@ def _interp(x: float, xs: list[float], ys: list[float]) -> float:
             x1 = xs[i]
             y0 = ys[i - 1]
             y1 = ys[i]
+            # TODO: That branch is mathematically unreachable for the supported input
+            # shape (xs sorted ascending): to reach an index where x1 == x0, you’d need
+            # x>x0 (so you didn’t match the previous point) and x≤x1 (so you match this
+            # point), but if x0=x1 that can’t happen.
             if x1 == x0:
-                return y0
+                return y0  # pragma: no cover
             t = (x - x0) / (x1 - x0)
             return y0 + t * (y1 - y0)
 
