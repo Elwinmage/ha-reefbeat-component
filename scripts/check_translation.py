@@ -1,9 +1,8 @@
 import json
 import os
 import re
-import sys
 
-from colorama import Back, Fore, Style
+from colorama import Fore, Style
 
 # Base path configuration - automatically set to custom_components/redsea directory
 # Script location: ha-reefbeat-component/scripts/check_translation.py

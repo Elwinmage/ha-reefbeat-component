@@ -5,9 +5,11 @@ repos:
     hooks:
       # Run the linter.
       - id: ruff-check
-        args: [--select, I, --fix]
+        args: [--fix]
+        files: ^(custom_components/.*\.py|scripts/.*\.py)$
       # Run the formatter.
       - id: ruff-format
+        files: ^(custom_components/.*\.py|scripts/.*\.py)$	
 
   - repo: local
     hooks:
