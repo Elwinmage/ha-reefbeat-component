@@ -306,16 +306,6 @@
       "acclimation_start_intensity_factor": {
         "name": "Intensité de départ de l'acclimatation"
       },
-      "ato_mode": {
-        "name": "Mode ATO",
-        "state": {
-          "auto": "Auto",
-          "empty": "Vide",
-          "malfunction": "Dysfonctionnement",
-          "pump_timeout": "Temporisation de la pompe",
-          "user_test": "Test utilisateur"
-        }
-      },
       "auto_1": {
         "name": "Dimanche"
       },
@@ -433,14 +423,38 @@
       "mode": {
         "name": "mode",
         "state": {
-          "auto": "Auto",
-          "end_of_roll": "Fin de rouleau",
-          "empty": "Vide",
-          "malfunction": "Dysfonctionnement",
-          "manual": "Manuel",
-          "off": "Off",
-          "pump_timeout": "Temporisation de la pompe",
-          "user_test": "Test utilisateur"
+	  "auto": "Auto",
+	  "blockage": "Blocage",
+	  "calibration": "Calibration",
+	  "controller": "Contrôleur",
+	  "emergency": "Urgence",
+	  "empty": "Vide",
+	  "end_of_roll": "Fin de rouleau",
+	  "feeding": "Alimentation en cours",
+	  "high_water": "Niveau d'eau élevé",
+	  "leak": "Fuite",
+	  "maintenance": "Maintenance",
+	  "malfunction": "Dysfonctionnement",
+	  "manual": "Manuel",
+	  "mat_error": "Erreur de matériau",
+	  "missing_pump": "Pompe manquante",
+	  "missing_sensor": "Capteur manquant",
+	  "no_ec_sensor": "Capteur EC absent",
+	  "off": "Arrêt",
+	  "overheating": "Surchauffe",
+	  "partial_auto": "Semi-automatique",
+	  "preview": "Aperçu",
+	  "priming": "Amorçage",
+	  "pump_timeout": "Temps dépassé de la pompe",
+	  "setup": "Configuration",
+	  "setup_error_high": "Erreur de configuration : trop haut",
+	  "setup_error_torn": "Erreur de configuration : déchiré",
+	  "shortcut_off_delay": "Délai d'arrêt du raccourci",
+	  "stalled": "Bloqué",
+	  "timer": "Minuterie",
+	  "torn_mat": "Matériau déchiré",
+	  "user_test": "Test utilisateur",
+	  "no_roll": "Pas de rouleau"
         }
       },
       "model": {

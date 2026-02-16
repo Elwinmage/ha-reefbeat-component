@@ -73,7 +73,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
 from .const import (
-    ATO_MODE_INTERNAL_NAME,
     DOMAIN,
     LED_BLUE_INTERNAL_NAME,
     LED_WHITE_INTERNAL_NAME,
@@ -805,13 +804,6 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         ),
         icon="mdi:thermometer-check",
     ),
-    # TODO: Seems to be following Mode now, is this still needed?
-    ReefBeatSensorEntityDescription(
-        key="ato_mode",
-        translation_key="ato_mode",
-        value_fn=lambda device: device.get_data(ATO_MODE_INTERNAL_NAME),
-        icon="mdi:play",
-    ),
     ReefBeatSensorEntityDescription(
         key="pump_state",
         translation_key="pump_state",
@@ -1092,7 +1084,8 @@ async def async_setup_entry(
                             "emergency",
                             "feeding",
                             "full-cup",
-                            "locked-rotormaintenance",
+                            "locked-rotor",
+                            "maintenance",
                             "not-connected",
                             "operational",
                             "over-skimming",
