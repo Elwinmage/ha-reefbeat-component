@@ -94,3 +94,52 @@ def test_wave_handle_coordinator_update_delegates(hass: Any) -> None:
 
     ent._handle_coordinator_update()
     assert ent.native_value == 3
+
+@pytest.mark.asyncio
+async def test_wave_async_set_native_value_seconds_coerces_to_int(hass: Any) -> None:
+    from homeassistant.const import UnitOfTime
+
+    device = FakeCoordinator(hass=hass)
+    device.get_data_map["$.val"] = 5
+
+    desc = ReefBeatNumberEntityDescription(
+        key="wave_duration",
+        translation_key="x",
+        value_name="$.val",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        native_min_value=0,
+        native_max_value=60,
+        native_step=1,
+    )
+    ent = ReefWaveNumberEntity(cast(Any, device), desc)
+    ent.hass = hass
+    ent.async_write_ha_state = lambda: None  # type: ignore[assignment]
+
+    await ent.async_set_native_value(12.7)
+
+    assert device.set_calls[-1] == ("$.val", 12)   # int(12.7) car SECONDS
+    assert ent.native_value == 12
+
+
+@pytest.mark.asyncio
+async def test_wave_async_set_native_value_non_seconds_keeps_float(hass: Any) -> None:
+    device = FakeCoordinator(hass=hass)
+    device.get_data_map["$.val"] = 3.0
+
+    desc = ReefBeatNumberEntityDescription(
+        key="wave_intensity",
+        translation_key="x",
+        value_name="$.val",
+        native_min_value=0,
+        native_max_value=100,
+        native_step=0.1,
+    )
+    ent = ReefWaveNumberEntity(cast(Any, device), desc)
+    ent.hass = hass
+    ent.async_write_ha_state = lambda: None  # type: ignore[assignment]
+
+    await ent.async_set_native_value(75.3)
+
+    assert device.set_calls[-1] == ("$.val", 75.3)  # float conservé car pas SECONDS
+    assert ent.native_value == 75.3
+    

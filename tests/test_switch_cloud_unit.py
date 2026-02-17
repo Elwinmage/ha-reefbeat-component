@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, cast
+
+from dataclasses import dataclass, field
+from typing import Any, Callable, cast
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.helpers.device_registry import DeviceInfo
 
 import custom_components.redsea.switch as platform
 from custom_components.redsea.const import DOMAIN
@@ -20,6 +23,40 @@ from tests._switch_test_fakes import FakeCoordinator
 class _CloudLinkedDevice(FakeCoordinator):
     def cloud_link(self) -> Any:
         return True
+@dataclass
+class _FakeSwitchCoordinator:
+    """Fake coordinator pour les tests switch cloud."""
+
+    serial: str = "CLOUD-SERIAL"
+    title: str = "Device"
+    last_update_success: bool = True
+    device_info: DeviceInfo = field(
+        default_factory=lambda: DeviceInfo(
+            identifiers={("redsea", "CLOUD-SERIAL")},
+            name="Device",
+            manufacturer="Red Sea",
+            model="X",
+        )
+    )
+    get_data_map: dict[str, Any] = field(default_factory=dict)
+    set_calls: list[tuple[str, Any]] = field(default_factory=list)
+    _listeners: list[Callable[[], None]] = field(default_factory=list)
+
+    def async_add_listener(
+        self, update_callback: Callable[[], None], context: Any = None
+    ) -> Callable[[], None]:
+        self._listeners.append(update_callback)
+        return lambda: None
+
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+        return self.get_data_map.get(name)
+
+    def set_data(self, name: str, value: Any) -> None:
+        self.set_calls.append((name, value))
+        self.get_data_map[name] = value
+
+    async def async_request_refresh(self, source: str = "", **kwargs: Any) -> None:
+        pass
 
 
 class _FakeCloudAPI:
@@ -207,3 +244,106 @@ async def test_cloud_shortcut_switch_turn_on_off_sends_http_and_fires_event_and_
     assert device.my_api.sent[-1] == ("/aquarium/a1/shortcut/c1/stop", "post")
     assert device.refreshed[-1] == "/aquarium"
     assert events[-1] == {"code": "c1", "state": "off"}
+
+
+
+def test_cloud_switch_compute_is_on_returns_false_when_not_present() -> None:
+    """Couvre _compute_is_on() : ligne 1007 (_present == False)."""
+    from custom_components.redsea.switch import (
+        ReefCloudSwitchEntity,
+        ReefCloudSwitchEntityDescription,
+    )
+
+    device = _FakeSwitchCoordinator()
+    aquarium = {"uid": "a1", "name": "Tank"}
+    shortcut_path = "$.shortcut"
+    # Pas de shortcut dans get_data_map → _present sera False
+    device.get_data_map[shortcut_path] = None
+
+    desc = ReefCloudSwitchEntityDescription(
+        key="feeding_1",
+        translation_key="feeding_1",
+        icon="mdi:play",
+        icon_off="mdi:stop",
+        shortcut=shortcut_path,
+        value_name="$.shortcut.enabled",
+        aquarium=aquarium,
+    )
+
+    entity = ReefCloudSwitchEntity(cast(Any, device), desc)
+
+    # _present est False car shortcut est None
+    assert entity._present is False
+    assert entity._compute_is_on() is False
+
+
+def test_cloud_switch_compute_is_on_returns_false_on_key_error() -> None:
+    """Couvre _compute_is_on() : lignes 1011-1013 (KeyError)."""
+    from custom_components.redsea.switch import (
+        ReefCloudSwitchEntity,
+        ReefCloudSwitchEntityDescription,
+    )
+
+    device = _FakeSwitchCoordinator()
+    aquarium = {"uid": "a1", "name": "Tank"}
+    shortcut_path = "$.shortcut"
+    device.get_data_map[shortcut_path] = {"name": "Feed", "enabled": True, "code": "c1"}
+
+    desc = ReefCloudSwitchEntityDescription(
+        key="feeding_1",
+        translation_key="feeding_1",
+        icon="mdi:play",
+        icon_off="mdi:stop",
+        shortcut=shortcut_path,
+        value_name="$.shortcut.enabled",
+        aquarium=aquarium,
+    )
+
+    entity = ReefCloudSwitchEntity(cast(Any, device), desc)
+    assert entity._present is True
+
+    # Faire lever un KeyError lors de get_data
+    device.get_data_map.clear()
+
+    # Simuler KeyError en remplaçant get_data
+    def _raise_key_error(name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+        raise KeyError("shortcut deleted")
+
+    device.get_data = _raise_key_error  # type: ignore[method-assign]
+
+    assert entity._compute_is_on() is False
+
+
+def test_cloud_switch_compute_is_on_returns_false_on_value_error() -> None:
+    """Couvre _compute_is_on() : lignes 1011-1013 (ValueError)."""
+    from custom_components.redsea.switch import (
+        ReefCloudSwitchEntity,
+        ReefCloudSwitchEntityDescription,
+    )
+
+    device = _FakeSwitchCoordinator()
+    aquarium = {"uid": "a1", "name": "Tank"}
+    shortcut_path = "$.shortcut"
+    device.get_data_map[shortcut_path] = {"name": "Feed", "enabled": True, "code": "c1"}
+
+    desc = ReefCloudSwitchEntityDescription(
+        key="feeding_1",
+        translation_key="feeding_1",
+        icon="mdi:play",
+        icon_off="mdi:stop",
+        shortcut=shortcut_path,
+        value_name="$.shortcut.enabled",
+        aquarium=aquarium,
+    )
+
+    entity = ReefCloudSwitchEntity(cast(Any, device), desc)
+    assert entity._present is True
+
+    def _raise_value_error(name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+        raise ValueError("invalid data")
+
+    device.get_data = _raise_value_error  # type: ignore[method-assign]
+
+    assert entity._compute_is_on() is False
+
+    

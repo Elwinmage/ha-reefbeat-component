@@ -15,6 +15,10 @@ from custom_components.redsea.button import (
 @dataclass
 class _FakeAPI:
     live_config_update: bool = False
+    sent_http: list[tuple[str, Any, str]] = field(default_factory=list)
+
+    async def http_send(self, path: str, payload: Any, method: str = "put") -> None:
+        self.sent_http.append((path, payload, method))
 
 
 @dataclass
@@ -206,3 +210,43 @@ async def test_reefdose_set_supplement_other_builds_payload_and_calls_calibratio
     assert payload["short_name"] == "MS"
     assert payload["brand_name"] == "Brand"
     assert device.refresh_count == 1
+
+
+@pytest.mark.asyncio
+async def test_dose_button_set_supplement_name_calls_http_send() -> None:
+    """Couvre _set_supplement_name() : lignes 594, 615-635."""
+    from custom_components.redsea.button import (
+        ReefDoseButtonEntity,
+        ReefDoseButtonEntityDescription,
+    )
+
+    device = _FakeDoseCoordinator()
+    device.get_data_map.update(
+        {
+            "$.local.head.1.new_supplement_display_name": "Custom Supplement",
+            "$.local.head.1.new_supplement_name": "custom_supp",
+            "$.local.head.1.new_supplement_brand_name": "MyBrand",
+            "$.local.head.1.new_supplement_short_name": "CS",
+        }
+    )
+
+    desc = ReefDoseButtonEntityDescription(
+        key="set_supplement_name_1",
+        translation_key="set_supplement_name", 
+        head=1,
+    )
+
+    entity = ReefDoseButtonEntity(cast(Any, device), desc)
+    await entity.async_press()
+
+    assert len(device.my_api.sent_http) == 1
+    path, payload, method = device.my_api.sent_http[0]
+    assert path == "/head/1/settings"
+    assert method == "put"
+    assert payload["supplement"]["name"] == "custom_supp"
+    assert payload["supplement"]["display_name"] == "Custom Supplement"
+    assert payload["supplement"]["brand_name"] == "MyBrand"
+    assert payload["supplement"]["short_name"] == "CS"
+
+    assert device.refresh_count == 1
+    

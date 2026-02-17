@@ -5,6 +5,7 @@ from typing import Any, Callable, cast
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 
@@ -355,3 +356,89 @@ def test_reefbeat_text_device_info_returns_base_device_info() -> None:
 
     ent = ReefBeatTextEntity(cast(Any, device), desc)
     assert ent.device_info == base_di
+
+
+
+
+def test_text_handle_coordinator_update_refreshes_value(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Couvre _handle_coordinator_update : lignes 203-204."""
+    from custom_components.redsea.text import (
+        ReefBeatTextEntity,
+        ReefBeatTextEntityDescription,
+    )
+
+    device = _FakeCoordinator()
+    device._data["$.wifi.ssid"] = "InitialNetwork"
+
+    desc = ReefBeatTextEntityDescription(
+        key="wifi_ssid",
+        translation_key="wifi_ssid",
+        value_name="$.wifi.ssid",
+    )
+
+    wrote: list[bool] = []
+    monkeypatch.setattr(
+        CoordinatorEntity,
+        "_handle_coordinator_update",
+        lambda self: wrote.append(True),
+    )
+
+    entity = ReefBeatTextEntity(cast(Any, device), desc)
+    assert entity.native_value == "InitialNetwork"
+
+    # Changer la valeur dans le coordinator puis déclencher la mise à jour
+    device._data["$.wifi.ssid"] = "UpdatedNetwork"
+    entity._handle_coordinator_update()  # lignes 203-204
+
+    assert entity.native_value == "UpdatedNetwork"
+    assert wrote == [True]
+
+
+def test_text_available_with_dependency_false() -> None:
+    """Couvre la propriété available avec dependency : ligne 221."""
+    from custom_components.redsea.text import (
+        ReefBeatTextEntity,
+        ReefBeatTextEntityDescription,
+    )
+
+    device = _FakeCoordinator()
+    # La dependency retourne False
+    device._data["$.local.head.1.new_supplement"] = False
+    device._data["$.local.head.1.new_supplement_brand_name"] = "Brand"
+
+    desc = ReefBeatTextEntityDescription(
+        key="new_supplement_brand_name_1",
+        translation_key="new_supplement_brand_name",
+        value_name="$.local.head.1.new_supplement_brand_name",
+        dependency="$.local.head.1.new_supplement",  # dependency présente
+    )
+
+    entity = ReefBeatTextEntity(cast(Any, device), desc)
+
+    # available doit retourner False car la dependency est False (ligne 221)
+    assert entity.available is False
+
+
+def test_text_available_with_dependency_true() -> None:
+    """Couvre la propriété available avec dependency : ligne 221 (branche True)."""
+    from custom_components.redsea.text import (
+        ReefBeatTextEntity,
+        ReefBeatTextEntityDescription,
+    )
+
+    device = _FakeCoordinator()
+    device._data["$.local.head.1.new_supplement"] = True
+    device._data["$.local.head.1.new_supplement_brand_name"] = "Brand"
+
+    desc = ReefBeatTextEntityDescription(
+        key="new_supplement_brand_name_1",
+        translation_key="new_supplement_brand_name",
+        value_name="$.local.head.1.new_supplement_brand_name",
+        dependency="$.local.head.1.new_supplement",
+    )
+
+    entity = ReefBeatTextEntity(cast(Any, device), desc)
+
+    assert entity.available is True

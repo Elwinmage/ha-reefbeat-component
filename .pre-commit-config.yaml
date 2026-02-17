@@ -42,7 +42,7 @@ repos:
 
       - id: pytest
         name: pytest (-q)
-        entry: pytest -q
+        entry: pytest -q --cov=custom_components.redsea --cov-report=xml:reports/coverage.xml --cov-report=term-missing --cov-report=html:reports/htmlcov
         language: python
         always_run: true
         pass_filenames: false
