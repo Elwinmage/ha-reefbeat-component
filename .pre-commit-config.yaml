@@ -6,10 +6,10 @@ repos:
       # Run the linter.
       - id: ruff-check
         args: [--fix]
-        files: ^(custom_components/.*\.py|scripts/.*\.py)$
+        files: ^(custom_components/.*\.py|scripts/.*\.py|tests/.*\.py)$
       # Run the formatter.
       - id: ruff-format
-        files: ^(custom_components/.*\.py|scripts/.*\.py)$	
+        files: ^(custom_components/.*\.py|scripts/.*\.py|tests/.*\.py)$	
 
   - repo: local
     hooks:

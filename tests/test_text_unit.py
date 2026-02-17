@@ -5,7 +5,6 @@ from typing import Any, Callable, cast
 
 import pytest
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 
@@ -356,8 +355,6 @@ def test_reefbeat_text_device_info_returns_base_device_info() -> None:
 
     ent = ReefBeatTextEntity(cast(Any, device), desc)
     assert ent.device_info == base_di
-
-
 
 
 def test_text_handle_coordinator_update_refreshes_value(

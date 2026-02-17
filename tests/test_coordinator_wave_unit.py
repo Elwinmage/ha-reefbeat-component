@@ -476,14 +476,11 @@ async def test_wave_get_current_schedule_breaks_on_future_interval(
     assert cur["cur_wave"]["wave_uid"] == "w1"
 
 
-
 @pytest.mark.asyncio
 async def test_wave_put_wave_updates_matching_interval(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Couvre la mise à jour d'intervalle dans put_wave : ligne 1144."""
-    import custom_components.redsea.coordinator as coord_module
-    from custom_components.redsea.coordinator import ReefWaveCoordinator
 
     # Schedule avec 3 vagues
     schedule = {
@@ -510,11 +507,11 @@ async def test_wave_put_wave_updates_matching_interval(
     # Les autres vagues ne sont pas modifiées
     assert cur_schedule["schedule"]["intervals"][0]["intensity"] == 50
     assert cur_schedule["schedule"]["intervals"][2]["intensity"] == 70
-    
+
 
 @pytest.mark.asyncio
 async def test_wave_set_wave_cloud_api_edit_path_replaces_matching_interval(
-        hass: HomeAssistant,
+    hass: HomeAssistant,
 ) -> None:
     """Couvre la ligne 1144 : remplacement de l'intervalle dans la branche must_create=False."""
     entry = _make_entry(title="WAVE", ip="192.0.2.10", hw_model="RSWAVE25")
@@ -528,7 +525,7 @@ async def test_wave_set_wave_cloud_api_edit_path_replaces_matching_interval(
     cur_schedule = {
         "schedule": {
             "intervals": [
-                {"st": 0,   "wave_uid": "w0"},
+                {"st": 0, "wave_uid": "w0"},
                 {"st": 600, "wave_uid": "w1"},  # celui-ci sera remplacé
             ]
         },
@@ -543,7 +540,7 @@ async def test_wave_set_wave_cloud_api_edit_path_replaces_matching_interval(
                 "uid": "w1",
                 "name": "ExistingWave",
                 "type": "gy",
-                "default": False,   # <-- must_create=False
+                "default": False,  # <-- must_create=False
                 "aquarium_uid": "aq-1",
             },
         }
@@ -551,12 +548,18 @@ async def test_wave_set_wave_cloud_api_edit_path_replaces_matching_interval(
     wave._cloud_link = cast(Any, cloud)  # type: ignore[attr-defined]
 
     new_wave = {
-        "wave_uid": "w1",   # correspond exactement à intervals[1]
-        "type": "gy",       # même type → must_create=False
+        "wave_uid": "w1",  # correspond exactement à intervals[1]
+        "type": "gy",  # même type → must_create=False
         "name": "ha-edit",
         "direction": "fw",
-        "frt": 1, "rrt": 2, "fti": 3, "rti": 4,
-        "pd": 5, "sn": 6, "sync": True, "st": 600,
+        "frt": 1,
+        "rrt": 2,
+        "fti": 3,
+        "rti": 4,
+        "pd": 5,
+        "sn": 6,
+        "sync": True,
+        "st": 600,
     }
 
     await wave._set_wave_cloud_api(cur_schedule, new_wave)
@@ -570,4 +573,3 @@ async def test_wave_set_wave_cloud_api_edit_path_replaces_matching_interval(
     assert cloud.sent[0][2] == "put"
     assert cloud.sent[1][0] == "/reef-wave/schedule/" + wave.model_id
     assert cloud.sent[1][2] == "post"
-    
