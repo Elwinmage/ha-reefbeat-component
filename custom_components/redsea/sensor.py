@@ -96,7 +96,6 @@ from .coordinator import (
     ReefWaveCoordinator,
 )
 from .entity import ReefBeatRestoreEntity, RestoreSpec
-from .i18n import translate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1328,7 +1327,7 @@ class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore
             data = cast(list[dict[str, Any]], self._device.get_data(value_name))
             if data:
                 return data[0].get("head")
-            return translate("Empty", self._device.hass.config.language)
+            return "empty"
 
         if isinstance(self._description, ReefBeatSensorEntityDescription):
             return self._description.value_fn(self._device)

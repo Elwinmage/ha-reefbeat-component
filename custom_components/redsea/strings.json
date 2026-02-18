@@ -289,7 +289,10 @@
 	}
       },
       "supplements": {
-        "name": "Supplements"
+        "name": "Supplements",
+	"state":{
+	  "other":"Other"
+	}
       }
     },
     "sensor": {
@@ -371,7 +374,10 @@
         "name": "Doses today"
       },
       "dosing_queue": {
-        "name": "Dosing Queue"
+        "name": "Dosing Queue",
+	"state":{
+	  "empty": "Empty"
+	}
       },
       "email": {
         "name": "Email"

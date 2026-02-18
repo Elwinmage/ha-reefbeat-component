@@ -10,8 +10,6 @@ import logging
 from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 
-from .dictionary import DICTIONARY
-
 _LOGGER = logging.getLogger(__name__)
 
 # Fallback order when resolving language keys.
@@ -69,7 +67,7 @@ def translate_list(lst: Sequence[dict[str, Any]], lang: str) -> list[Any]:
 def translate(
     word: str,
     dest_lang: str,
-    dictionary: Iterable[Mapping[str, Any]] = DICTIONARY,
+    dictionary: Iterable[Mapping[str, Any]],
     src_lang: str = "id",
 ) -> Any:
     """Translate a word using a list of mapping dictionaries.

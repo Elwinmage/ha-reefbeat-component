@@ -55,10 +55,6 @@ class _FakeWaveCoordinator:
 
 
 def test_wave_sensor_translates_type_and_direction(monkeypatch: Any) -> None:
-    monkeypatch.setattr(
-        sensor_platform, "translate", lambda txt, lang, **_: f"{txt}-{lang}"
-    )
-
     device = _FakeWaveCoordinator(hass=_FakeHass(language="en"))
     device.current_values[("schedule", "type")] = "A"
     device.current_values[("schedule", "direction")] = "X"

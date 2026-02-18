@@ -296,7 +296,10 @@
 	}
       },
       "supplements": {
-        "name": "Suppléments"
+        "name": "Suppléments",
+	"state":{
+	  "other":"Autre"
+	}
       }
     },
     "sensor": {
@@ -379,7 +382,10 @@
         "name": "Doses du jour"
       },
       "dosing_queue": {
-        "name": "File d'attente"
+        "name": "File d'attente",
+	"state": {
+	  "empty": "Vide"
+	}
       },
       "email": {
         "name": "Email"

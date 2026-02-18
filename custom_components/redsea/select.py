@@ -420,9 +420,8 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
             dictionary=_SORTED_SUPPLEMENTS,
             src_lang="uid",
         )
-        other = translate("other", self._device.hass.config.language)
         self._attr_options = list(getattr(self._description, "options", None) or []) + [
-            other
+            "other"
         ]
 
     @callback
@@ -431,9 +430,7 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
         self._attr_available = True
         value = self._device.get_data(self._value_name)
         if value == "other":
-            self._attr_current_option = translate(
-                "other", self._device.hass.config.language
-            )
+            self._attr_current_option = "other"
         else:
             self._attr_current_option = translate(
                 self._device.get_data(self._value_name),
@@ -446,12 +443,11 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Update the selected supplement and update local cache."""
         hass = self._device.hass
-        other = translate("other", hass.config.language)
 
         self._attr_current_option = option
         event_type = self._value_name
 
-        if option == other:
+        if option == "other":
             value = "other"
             hass.bus.fire(event_type, {"other": True})
         else:

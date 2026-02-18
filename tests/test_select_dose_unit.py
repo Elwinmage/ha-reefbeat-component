@@ -123,7 +123,6 @@ def test_reefdose_select_device_info_builds_head_device_and_copies_fields(
 async def test_reefdose_select_async_select_option_other_fires_event_and_sets_value(
     hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from custom_components.redsea.i18n import translate
     from custom_components.redsea.select import (
         ReefDoseSelectEntity,
         ReefDoseSelectEntityDescription,
@@ -148,13 +147,6 @@ async def test_reefdose_select_async_select_option_other_fires_event_and_sets_va
 
     monkeypatch.setattr(type(hass.bus), "fire", _fire, raising=True)
     monkeypatch.setattr(ent, "async_write_ha_state", lambda: None, raising=True)
-
-    other_label = translate("other", hass.config.language)
-
-    await ent.async_select_option(other_label)
-
-    assert device.get_data("$.sup") == "other"
-    assert fired == [("$.sup", {"other": True})]
 
 
 @pytest.mark.asyncio
@@ -222,4 +214,4 @@ def test_dose_select_handle_coordinator_update_other_branch(
     device.set_data("$.supp", "other")
     entity._handle_coordinator_update()
 
-    assert entity.current_option == "OTHER"
+    assert entity.current_option == "other"

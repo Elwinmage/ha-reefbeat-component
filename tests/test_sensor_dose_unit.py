@@ -107,10 +107,6 @@ def test_update_val_sets_extra_attributes_from_with_attr_fields() -> None:
 
 
 def test_get_value_dosing_queue_non_empty(monkeypatch: Any) -> None:
-    monkeypatch.setattr(
-        sensor_platform, "translate", lambda txt, lang, **_: f"{txt}-{lang}"
-    )
-
     device = _FakeCoordinator(hass=_FakeHass(language="en"))
     device.get_data_map["$.queue"] = [{"head": 3}]
 
@@ -127,10 +123,6 @@ def test_get_value_dosing_queue_non_empty(monkeypatch: Any) -> None:
 
 
 def test_get_value_dosing_queue_empty_translates(monkeypatch: Any) -> None:
-    monkeypatch.setattr(
-        sensor_platform, "translate", lambda txt, lang, **_: f"{txt}-{lang}"
-    )
-
     device = _FakeCoordinator(hass=_FakeHass(language="fr"))
     device.get_data_map["$.queue"] = []
 
@@ -143,7 +135,7 @@ def test_get_value_dosing_queue_empty_translates(monkeypatch: Any) -> None:
     )
     entity = ReefBeatSensorEntity(cast(Any, device), cast(Any, desc))
 
-    assert entity._get_value() == "Empty-fr"
+    assert entity._get_value() == "empty"
 
 
 @pytest.mark.parametrize(
