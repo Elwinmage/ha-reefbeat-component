@@ -373,7 +373,7 @@ async def async_setup_entry(
                 ReefCloudSwitchEntityDescription(
                     key="shortcut_emergency_1",
                     translation_key="shortcut_emergency",
-                    icon="mdi:alert-decagram-outline",
+                    icon="mdi:hand-back-left-outline",
                     shortcut="$.sources[?(@.name=='/aquarium')].data[?(@.uid='"
                     + aquarium["uid"]
                     + "')].properties.emergency_1",
@@ -1040,3 +1040,12 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
         return cast(ReefBeatCloudCoordinator, self._device).aquarium_device_info(
             self._aquarium["name"]
         )
+
+    @cached_property
+    def icon(self):
+        if self._shortcut:
+            mdi_icon = "redsea:" + self._shortcut["type"]
+            if "icon" in self._shortcut:
+                mdi_icon = "redsea:" + self._shortcut["icon"]
+                return mdi_icon
+        return self.entity_description.icon
