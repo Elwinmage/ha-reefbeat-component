@@ -1,15 +1,15 @@
 {
   "domain": "redsea",
   "name": "Red Sea (ReefBeat devices)",
+  "after_dependencies": [
+    "frontend"
+  ],
   "codeowners": [
     "@Elwinmage"
   ],
   "config_flow": true,
   "dependencies": [
     "http"
-  ],
-  "after_dependencies": [
-    "frontend"
   ],
   "documentation": "https://github.com/Elwinmage/ha-reefbeat-component",
   "iot_class": "local_polling",
