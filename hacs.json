@@ -1,3 +1,10 @@
 {
-    "name": "Red Sea (ReefBeat devices)"
+  "name": "Red Sea (ReefBeat)",
+  "content_type": "integration",
+  "frontend_local_resources": [
+    {
+      "type": "js",
+      "url": "/redsea/frontend/redsea-icons.js"
+    }
+  ]
 }

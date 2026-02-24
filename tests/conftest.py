@@ -20,6 +20,21 @@ from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+
+from unittest.mock import patch
+
+
+@pytest.fixture(autouse=True)
+def mock_frontend_for_tests(hass):
+    """Empêche les erreurs de frontend pendant les tests."""
+    # On mocke add_extra_js_url pour qu'elle ne fasse rien
+    with patch("homeassistant.components.frontend.add_extra_js_url"):
+        # On s'assure que les clés existent pour éviter les KeyError
+        # au cas où ton code ne ferait pas la vérification 'if "frontend" in...'
+        hass.data["frontend_extra_module_url"] = set()
+        yield
+
+
 # Add the parent directory (project root) to sys.path
 project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:

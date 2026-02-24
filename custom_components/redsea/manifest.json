@@ -5,15 +5,17 @@
     "@Elwinmage"
   ],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": [
+    "http"
+  ],
+  "after_dependencies": [
+    "frontend"
+  ],
   "documentation": "https://github.com/Elwinmage/ha-reefbeat-component",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/Elwinmage/ha-reefbeat-component/issues",
   "requirements": [
     "jsonpath-ng>=1.7.0"
   ],
-  "version": "1.5.0",
-  "frontend_local_resources": [
-    "/redsea/frontend/redsea-icons.js"
-  ]
+  "version": "1.5.0"
 }
