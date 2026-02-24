@@ -65,7 +65,11 @@ class _FakeNumberCoordinator:
         self.get_data_map[name] = value
 
     async def push_values(
-        self, source: str = "/configuration", method: str = "put", *args: Any, **kwargs: Any
+        self,
+        source: str = "/configuration",
+        method: str = "put",
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
         pass
 
@@ -73,7 +77,6 @@ class _FakeNumberCoordinator:
         self, source: str | None = None, config: bool = False, wait: int = 2
     ) -> None:
         pass
-
 
 
 @pytest.fixture(autouse=True)
@@ -368,6 +371,7 @@ async def test_async_setup_entry_branches(monkeypatch: Any, hass: Any) -> None:
     assert any(isinstance(e, ReefWaveNumberEntity) for e in added)
     assert any(isinstance(e, ReefATOVolumeLeftNumberEntity) for e in added)
 
+
 @pytest.mark.asyncio
 async def test_number_set_native_value_seconds_converts_to_int(
     monkeypatch: pytest.MonkeyPatch,
@@ -453,5 +457,3 @@ async def test_number_set_native_value_non_seconds_keeps_float(
 
     assert entity.native_value == 75.3
     assert device.set_calls[-1] == ("$.brightness", 75.3)
-
-    

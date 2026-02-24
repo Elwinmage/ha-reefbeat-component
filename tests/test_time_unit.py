@@ -40,7 +40,7 @@ def test_restore_value_parses_isoformat() -> None:
 def test_minutes_to_time_none_returns_none() -> None:
     from custom_components.redsea.time import ReefMatTimeEntity
 
-    assert ReefMatTimeEntity._minutes_to_time(None) is None
+    assert ReefMatTimeEntity._seconds_to_time(None) is None
 
 
 @pytest.mark.asyncio
@@ -67,7 +67,7 @@ async def test_async_set_value_updates_device_and_pushes(
     await ent.async_set_value(dt_time(1, 23))
 
     assert ent.native_value == dt_time(1, 23)
-    assert device._set == [(desc.value_name, 83)]
+    assert device._set == [(desc.value_name, 4980)]
     assert device._listeners_called == 1
     assert wrote == [True]
     assert device.pushed == 1
@@ -102,7 +102,7 @@ async def test_async_setup_entry_adds_mat_time_entity(
     from custom_components.redsea.const import DOMAIN
 
     device = _FakeMatCoordinator()
-    device._data[(time_mod.MAT_TIMES[0].value_name, False)] = 60
+    device._data[(time_mod.MAT_TIMES[0].value_name, False)] = 3600
 
     # Make the platform treat our fake as a ReefMatCoordinator for isinstance().
     monkeypatch.setattr(
@@ -140,8 +140,8 @@ async def test_async_added_to_hass_primes_and_calls_super_update(
 
     device = _FakeMatCoordinator()
     desc = time_mod.MAT_TIMES[0]
-    device._data[(desc.value_name, False)] = 60
-    device._data[(desc.value_name, True)] = 120
+    device._data[(desc.value_name, False)] = 3600
+    device._data[(desc.value_name, True)] = 7200
 
     ent = time_mod.ReefMatTimeEntity(cast(Any, device), desc)
 
@@ -186,7 +186,7 @@ def test_handle_coordinator_update_updates_and_calls_super(
     device = _FakeMatCoordinator()
     desc = time_mod.MAT_TIMES[0]
     device._data[(desc.value_name, False)] = 0
-    device._data[(desc.value_name, True)] = 30
+    device._data[(desc.value_name, True)] = 1800
 
     ent = time_mod.ReefMatTimeEntity(cast(Any, device), desc)
 

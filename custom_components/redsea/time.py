@@ -1,6 +1,6 @@
 """Time platform for the Red Sea ReefBeat integration.
 
-Exposes device configuration times (minutes since midnight in the device cache)
+Exposes device configuration times (seconds since midnight in the device cache)
 as Home Assistant `time` entities.
 
 HA 2025.12 notes:
@@ -122,7 +122,7 @@ class ReefMatTimeEntity(ReefBeatRestoreEntity, TimeEntity):  # type: ignore[repo
         self._attr_available = False
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
 
-        self._attr_native_value = self._minutes_to_time(
+        self._attr_native_value = self._seconds_to_time(
             cast(int | None, self._device.get_data(self._desc.value_name))
         )
 
@@ -140,8 +140,8 @@ class ReefMatTimeEntity(ReefBeatRestoreEntity, TimeEntity):  # type: ignore[repo
     def _update_val(self) -> None:
         self._attr_available = True
 
-        minutes = cast(int | None, self._device.get_data(self._desc.value_name, True))
-        self._attr_native_value = self._minutes_to_time(minutes)
+        seconds = cast(int | None, self._device.get_data(self._desc.value_name, True))
+        self._attr_native_value = self._seconds_to_time(seconds)
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -150,17 +150,17 @@ class ReefMatTimeEntity(ReefBeatRestoreEntity, TimeEntity):  # type: ignore[repo
         super()._handle_coordinator_update()
 
     @staticmethod
-    def _minutes_to_time(minutes: int | None) -> dt_time | None:
-        """Convert minutes since midnight to a `datetime.time`."""
-        if minutes is None:
+    def _seconds_to_time(seconds: int | None) -> dt_time | None:
+        """Convert seconds since midnight to a `datetime.time`."""
+        if seconds is None:
             return None
-        minutes = int(minutes)
-        return dt_time(minutes // 60, minutes % 60)
+        seconds = int(seconds)
+        return dt_time(seconds // 3600, int((seconds % 3600) / 60))
 
     async def async_set_value(self, value: dt_time) -> None:
         """Set the time on the device (stored as minutes since midnight)."""
         self._attr_native_value = value
-        mat_value = value.hour * 60 + value.minute
+        mat_value = value.hour * 3600 + value.minute * 60
 
         self._device.set_data(self._desc.value_name, mat_value)
         self._device.async_update_listeners()

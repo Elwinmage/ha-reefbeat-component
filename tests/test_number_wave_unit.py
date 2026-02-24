@@ -95,6 +95,7 @@ def test_wave_handle_coordinator_update_delegates(hass: Any) -> None:
     ent._handle_coordinator_update()
     assert ent.native_value == 3
 
+
 @pytest.mark.asyncio
 async def test_wave_async_set_native_value_seconds_coerces_to_int(hass: Any) -> None:
     from homeassistant.const import UnitOfTime
@@ -117,7 +118,7 @@ async def test_wave_async_set_native_value_seconds_coerces_to_int(hass: Any) -> 
 
     await ent.async_set_native_value(12.7)
 
-    assert device.set_calls[-1] == ("$.val", 12)   # int(12.7) car SECONDS
+    assert device.set_calls[-1] == ("$.val", 12)  # int(12.7) car SECONDS
     assert ent.native_value == 12
 
 
@@ -142,4 +143,3 @@ async def test_wave_async_set_native_value_non_seconds_keeps_float(hass: Any) ->
 
     assert device.set_calls[-1] == ("$.val", 75.3)  # float conservé car pas SECONDS
     assert ent.native_value == 75.3
-    

@@ -23,6 +23,8 @@ from tests._switch_test_fakes import FakeCoordinator
 class _CloudLinkedDevice(FakeCoordinator):
     def cloud_link(self) -> Any:
         return True
+
+
 @dataclass
 class _FakeSwitchCoordinator:
     """Fake coordinator pour les tests switch cloud."""
@@ -246,7 +248,6 @@ async def test_cloud_shortcut_switch_turn_on_off_sends_http_and_fires_event_and_
     assert events[-1] == {"code": "c1", "state": "off"}
 
 
-
 def test_cloud_switch_compute_is_on_returns_false_when_not_present() -> None:
     """Couvre _compute_is_on() : ligne 1007 (_present == False)."""
     from custom_components.redsea.switch import (
@@ -346,4 +347,36 @@ def test_cloud_switch_compute_is_on_returns_false_on_value_error() -> None:
 
     assert entity._compute_is_on() is False
 
-    
+
+def test_cloud_switch_shortcut_icons() -> None:
+    """Cover shortcuts icons"""
+    from custom_components.redsea.switch import (
+        ReefCloudSwitchEntity,
+        ReefCloudSwitchEntityDescription,
+    )
+
+    device = _FakeSwitchCoordinator()
+    aquarium = {"uid": "a1", "name": "Tank"}
+    shortcut_path = "$.shortcut"
+    device.get_data_map[shortcut_path] = {
+        "name": "Feed",
+        "enabled": True,
+        "code": "c1",
+        "icon": "personnal",
+        "type": "test",
+    }
+
+    desc = ReefCloudSwitchEntityDescription(
+        key="feeding_1",
+        translation_key="feeding_1",
+        icon="mdi:play",
+        icon_off="mdi:stop",
+        shortcut=shortcut_path,
+        value_name="$.shortcut.enabled",
+        aquarium=aquarium,
+    )
+
+    entity = ReefCloudSwitchEntity(cast(Any, device), desc)
+    assert entity._present is True
+
+    assert entity.icon == "redsea:personnal"

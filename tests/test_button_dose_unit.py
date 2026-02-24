@@ -232,7 +232,7 @@ async def test_dose_button_set_supplement_name_calls_http_send() -> None:
 
     desc = ReefDoseButtonEntityDescription(
         key="set_supplement_name_1",
-        translation_key="set_supplement_name", 
+        translation_key="set_supplement_name",
         head=1,
     )
 
@@ -249,4 +249,3 @@ async def test_dose_button_set_supplement_name_calls_http_send() -> None:
     assert payload["supplement"]["short_name"] == "CS"
 
     assert device.refresh_count == 1
-    

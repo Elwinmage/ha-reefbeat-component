@@ -9,6 +9,54 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.redsea.const import DOMAIN
 
+from unittest.mock import MagicMock, patch, AsyncMock
+
+
+@pytest.mark.asyncio
+async def test_register_static_paths(hass):
+    """Test the registration of frontend resources and custom icons."""
+
+    # 1. Setup the Mock HTTP object
+    mock_http = MagicMock()
+    mock_register = AsyncMock()
+    mock_http.async_register_static_paths = mock_register
+
+    # 2. Assign the mock to hass.http BEFORE running the setup
+    # In some versions of HA tests, you must set it directly:
+    hass.http = mock_http
+
+    # 3. Patch the 'add_extra_js_url' function
+    # Note: Ensure the path points to your actual __init__.py location
+    with patch("custom_components.redsea.add_extra_js_url") as mock_add_js:
+        # 4. Import and run your setup function
+        from custom_components.redsea import async_setup
+
+        # Create a mock ConfigEntry (required for async_setup_entry)
+        mock_entry = MagicMock()
+        mock_entry.domain = DOMAIN
+        mock_entry.entry_id = "test_entry"
+
+        # Execute the function
+        assert hass.http
+        await async_setup(hass, mock_entry)
+
+        # 5. Debugging: If this still fails, print hass.http to see if it's None
+        # print(f"DEBUG: hass.http is {hass.http}")
+
+        # 6. Assertions
+        # Verify the registration method was actually called
+        assert mock_register.called, (
+            "The method async_register_static_paths was never called!"
+        )
+
+        # Verify specific arguments
+        args = mock_register.call_args[0][0]  # Get the list of StaticPathConfig
+        assert args[0].url_path == f"/{DOMAIN}/frontend"
+
+        # Verify the JS icon registration
+        assert mock_add_js.called
+        assert mock_add_js.call_args[0][1].endswith("icons.js")
+
 
 @pytest.mark.parametrize(
     "entry_fixture",
