@@ -1,6 +1,5 @@
 {
   "name": "Red Sea (ReefBeat)",
-  "content_type": "integration",
   "frontend_local_resources": [
     {
       "type": "js",
