@@ -138,9 +138,11 @@ class ReefDoseAPI(ReefBeatAPI):
         - Otherwise: POST to `/{action}` with an empty payload.
         """
         if head is not None:
-            manual_dose = self.get_data(
-                "$.local.head." + str(head) + ".manual_dose",
-                is_None_possible=True,
+            manual_dose = (
+                cast(dict[str, Any], self.data.get("local", {}))
+                .get("head", {})
+                .get(str(head), {})
+                .get("manual_dose")
             )
             payload: dict[str, Any] = {
                 "manual_dose_scheduled": True,
