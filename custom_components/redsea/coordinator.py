@@ -1146,6 +1146,7 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
 
             _LOGGER.debug("POST new schedule %s", cur_schedule["schedule"])
             # TODO : When rswave are grouped, setting values do not work with standard API
+            # Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/62
             # labels: rswave, bug
             await self._cloud_link.send_cmd(
                 "/reef-wave/schedule/" + self.model_id, cur_schedule["schedule"], "post"
