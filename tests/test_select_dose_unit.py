@@ -250,3 +250,30 @@ def test_dose_select_handle_coordinator_update_other_branch(
     device.set_data("$.supp", "other")
     entity._handle_coordinator_update()
     assert entity.current_option == "other"
+
+
+def test_dose_select_handle_coordinator_update_uid_branch(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Cover lines 434-439: else branch calls translate(uid -> fullname)."""
+    from custom_components.redsea.select import (
+        ReefDoseSelectEntity,
+        ReefDoseSelectEntityDescription,
+    )
+
+    uid = "0e63ba83-3ec4-445e-a3dd-7f2dbdc7f964"
+    expected_fullname = "Red Sea - Calcium (Powder)"
+
+    device = FakeDoseCoordinator(hass=hass, _data={"$.supp": uid})
+    desc = ReefDoseSelectEntityDescription(
+        key="supp",
+        translation_key="supplements",
+        value_name="$.supp",
+        head=1,
+    )
+    entity = ReefDoseSelectEntity(cast(Any, device), desc)
+    entity.async_write_ha_state = lambda: None  # type: ignore[assignment]
+
+    entity._handle_coordinator_update()
+
+    assert entity.current_option == expected_fullname
