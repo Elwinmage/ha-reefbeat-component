@@ -94,7 +94,6 @@ class ReefWaveSelectEntityDescription(SelectEntityDescription):
     value_name: str = ""
     options: list[str] | None = None
     method: str = "post"
-    i18n_options: list[dict[str, Any]] | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -216,8 +215,7 @@ async def async_setup_entry(
                 value_name="$.sources[?(@.name=='/preview')].data.type",
                 exists_fn=lambda _: True,
                 icon="mdi:wave",
-                i18n_options=WAVE_TYPES,
-                options=translate_list(WAVE_TYPES, hass.config.language),
+                options=WAVE_TYPES,
                 entity_category=EntityCategory.CONFIG,
             ),
             ReefWaveSelectEntityDescription(
@@ -226,8 +224,7 @@ async def async_setup_entry(
                 value_name="$.sources[?(@.name=='/preview')].data.direction",
                 exists_fn=lambda _: True,
                 icon="mdi:waves-arrow-right",
-                i18n_options=WAVE_DIRECTIONS,
-                options=translate_list(WAVE_DIRECTIONS, hass.config.language),
+                options=WAVE_DIRECTIONS,
                 entity_category=EntityCategory.CONFIG,
             ),
         )
@@ -423,9 +420,8 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
             dictionary=_SORTED_SUPPLEMENTS,
             src_lang="uid",
         )
-        other = translate("other", self._device.hass.config.language)
         self._attr_options = list(getattr(self._description, "options", None) or []) + [
-            other
+            "other"
         ]
 
     @callback
@@ -434,9 +430,7 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
         self._attr_available = True
         value = self._device.get_data(self._value_name)
         if value == "other":
-            self._attr_current_option = translate(
-                "other", self._device._hass.config.language
-            )
+            self._attr_current_option = "other"
         else:
             self._attr_current_option = translate(
                 self._device.get_data(self._value_name),
@@ -449,14 +443,11 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Update the selected supplement and update local cache."""
         hass = self._device.hass
-        other = translate("other", hass.config.language)
 
         self._attr_current_option = option
         event_type = self._value_name
 
-        _LOGGER.debug("FIRE %s %s" % (option, other))
-
-        if option == other:
+        if option == "other":
             value = "other"
             hass.bus.fire(event_type, {"other": True})
         else:
@@ -488,14 +479,7 @@ class ReefWaveSelectEntity(ReefBeatSelectEntity):
     ) -> None:
         """Initialize the preview select."""
         super().__init__(device, entity_description)
-        self._i18n_options: list[dict[str, Any]] = entity_description.i18n_options or []
-
-        hass = self._device.hass
-        self._attr_current_option = translate(
-            self._device.get_data(self._value_name),
-            hass.config.language,
-            dictionary=self._i18n_options,
-        )
+        self._attr_current_option = self._device.get_data(self._value_name)
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -503,25 +487,14 @@ class ReefWaveSelectEntity(ReefBeatSelectEntity):
 
     @callback
     def _handle_device_update(self) -> None:
-        """Sync translated HA state from coordinator cached data."""
-        hass = self._device.hass
-        self._attr_current_option = translate(
-            self._device.get_data(self._value_name),
-            hass.config.language,
-            dictionary=self._i18n_options,
-        )
+        """Sync HA state from coordinator cached data."""
+        self._attr_current_option = self._device.get_data(self._value_name)
         self.async_write_ha_state()
 
     async def async_select_option(self, option: str) -> None:
         """Update the preview setting locally (and notify listeners)."""
-        hass = self._device.hass
         self._attr_current_option = option
-        value = translate(
-            option,
-            "id",
-            dictionary=self._i18n_options,
-            src_lang=hass.config.language,
-        )
+        value = option
         self._device.set_data(self._value_name, value)
 
         # Preview changes are local; update listeners without pushing to the device.

@@ -281,6 +281,40 @@ def test_virtual_led_get_data_dispatches_by_type_and_fallback(
     assert vled.get_data("$.u") == [1, 2]
 
 
+def test_virtual_led_get_data_dict_passthrough(hass: HomeAssistant) -> None:
+    entry = _make_entry(title="VLED", ip="192.0.2.10", hw_model="RSLED50", linked=[])
+    hass.state = "STARTING"  # type: ignore[assignment]
+
+    vled = coord.ReefVirtualLedCoordinator(hass, cast(Any, entry))
+    vled._linked = [  # type: ignore[attr-defined]
+        _LinkedLed(title="A", is_g1=True, get_map={"$.d": {"k": 1}})
+    ]
+
+    assert vled.get_data("$.d") == {"k": 1}
+
+
+def test_virtual_led_get_data_unknown_type_logs_warning(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    entry = _make_entry(title="VLED", ip="192.0.2.10", hw_model="RSLED50", linked=[])
+    hass.state = "STARTING"  # type: ignore[assignment]
+
+    vled = coord.ReefVirtualLedCoordinator(hass, cast(Any, entry))
+    vled._linked = [  # type: ignore[attr-defined]
+        _LinkedLed(title="A", is_g1=True, get_map={"$.u": [1, 2]})
+    ]
+
+    seen: list[str] = []
+
+    def _warn(msg: str, *args: Any, **_kwargs: Any) -> None:
+        seen.append(msg % args)
+
+    monkeypatch.setattr(coord._LOGGER, "warning", _warn, raising=True)
+
+    assert vled.get_data("$.u") == [1, 2]
+    assert any("Not implemented" in s for s in seen)
+
+
 def test_virtual_led_get_data_kelvin_and_no_light_defaults(hass: HomeAssistant) -> None:
     entry = _make_entry(title="VLED", ip="192.0.2.10", hw_model="RSLED50", linked=[])
     hass.state = "STARTING"  # type: ignore[assignment]

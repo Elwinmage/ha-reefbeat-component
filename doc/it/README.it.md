@@ -8,39 +8,38 @@
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 <!-- [![Clones GitHub](https://img.shields.io/badge/dynamic/json?color=success&label=uniques-clones&query=uniques&url=https://gist.githubusercontent.com/Elwinmage/cd478ead8334b09d3d4f7dc0041981cb/raw/clone.json&logo=github)](https://github.com/MShawon/github-clone-count-badge) -->
-Per aiutarci a tradurre, seguite questa [guida](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/TRANSLATION.md).
 
-# Panoramica
+# Presentazione
 ***Gestione locale dei dispositivi HomeAssistant RedSea Reefbeat (senza cloud): ReefATO+, ReefDose, ReefLed, ReefMat, ReefRun e ReefWave***
 
 > [!TIP]
-> ***Per modificare le programmazioni avanzate di ReefDose, ReefLed, ReefRun e ReefWave, utilizzate la [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) (currently under development)***
+> ***Per modificare la programmazione avanzata di ReefDose, ReefLed, ReefRun e ReefWave, è necessario utilizzare la [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) (in fase di sviluppo)***
 
 > [!TIP]
-> La lista delle implementazioni future è disponibile [qui](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
-> La lista dei bug è disponibile [qui](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug)<br />
+> L'elenco delle future implementazioni è disponibile [qui](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
+> L'elenco dei bug è disponibile [qui](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug)<br />
 
-***Se avete bisogno di altri sensori o attuatori, non esitate a contattarmi [qui](https://github.com/Elwinmage/ha-reefbeat-component/discussions).***
+***Se hai bisogno di altri sensori o attuatori, non esitare a contattarmi [qui](https://github.com/Elwinmage/ha-reefbeat-component/discussions).***
 
 > [!IMPORTANT]
-> Se i vostri dispositivi non sono sulla stessa sottorete del vostro Home Assistant, [leggete questo](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected).
+> Se i tuoi dispositivi non sono nella stessa sottorete di Home Assistant, leggi [questo](README.it.md#il-mio-dispositivo-non-viene-rilevato).
 
 > [!CAUTION]
-> ⚠️ Questo non è un repository ufficiale RedSea. Utilizzate a vostro rischio.⚠️
+> ⚠️ Questo non è un repository ufficiale RedSea. Utilizzare a proprio rischio.⚠️
 
 # Compatibilità
 
-✅ Testato ☑️ Dovrebbe funzionare (Se ne avete uno, potete confermare che funziona [qui](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8)) ❌ Not Supported Yet
+✅ Testato ☑️ Dovrebbe funzionare (Se ne hai uno, puoi confermare che funziona [qui](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8))❌ Non ancora supportato
 <table>
 <th>
-<td colspan="2"><b>Model</b></td>
-<td colspan="2"><b>Status</b></td>
-<td><b>Issues</b> <br/>📆(Planned) <br/> 🐛(Bugs)</td>
+<td colspan="2"><b>Modello</b></td>
+<td colspan="2"><b>Stato</b></td>
+<td><b>Problemi</b> <br/>📆(Pianificato) <br/> 🐛(Bug)</td>
 </th>
 <tr>
 <td><a href="#reefato">ReefATO+</a></td>
 <td colspan="2">RSATO+</td><td>✅ </td>
-<td width="200px"><img src="../img/RSATO+.png"/></td>
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSATO+.png"/></td>
 <td>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsato,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsato,all label:bug" style="text-decoration:none">🐛</a>
@@ -48,18 +47,17 @@ Per aiutarci a tradurre, seguite questa [guida](https://github.com/Elwinmage/ha-
 </tr>
 <tr>
 <td><a href="#reefcontrol">ReefControl</a></td>
-<td colspan="2">RSSENSE<br />Se ne avete uno, contattatemi <a href="https://github.com/Elwinmage/ha-reefbeat-component/discussions/8">qui</a> e aggiungerò il supporto.</td><td>❌</td>
-<td width="200px"><img src="../img/RSCONTROL.png"/></td>
+<td colspan="2">RSSENSE<br />Se ne hai uno, contattami <a href="https://github.com/Elwinmage/ha-reefbeat-component/discussions/8">qui</a> per aggiungerne il supporto.</td><td>❌</td>
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROL.png"/></td>
 <td>
-  <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:enhancement" style="text-decoration:none">📆</a>
-  <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:bug" style="text-decoration:none">🐛</a>
+<a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:enhancement" style="text-decoration:none">📆</a>
+<a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:bug" style="text-decoration:none">🐛</a>
 </td>
 </tr>
 <tr>
 <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
-<td colspan="2">RSDOSE2</td>
-<td>✅</td>
-<td width="200px"><img src="../img/RSDOSE2.png"/></td>
+<td colspan="2">RSDOSE2</td><td>✅</td>
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSDOSE2.png"/></td>
 <td rowspan="2">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsdose,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsdose,all label:bug" style="text-decoration:none">🐛</a>
@@ -67,58 +65,42 @@ Per aiutarci a tradurre, seguite questa [guida](https://github.com/Elwinmage/ha-
 </tr>
 <tr>
 <td colspan="2">RSDOSE4</td><td>✅ </td>
-<td width="200px"><img src="../img/RSDOSE4.png"/></td>
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSDOSE4.png"/></td>
 </tr>
 <tr>
-<td rowspan="6"> <a href="#reefled">ReefLed</a></td>
+<td rowspan="6"><a href="#reefled">ReefLed</a></td>
 <td rowspan="3">G1</td>
-<td>RSLED50</td>
-<td>✅</td>
-<td rowspan="3" width="200px"><img src="../img/rsled_g1.png"/></td>
+<td>RSLED50</td><td>✅</td>
+<td rowspan="3" width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_g1.png"/></td>
 <td rowspan="6">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsled,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsled,RSLED90,all label:bug" style="text-decoration:none">🐛</a>
 </td>
 </tr>
-<tr>
-<td>RSLED90</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>RSLED160</td><td>✅ </td>
-</tr>
+<tr><td>RSLED90</td><td>✅</td></tr>
+<tr><td>RSLED160</td><td>✅ </td></tr>
 <tr>
 <td rowspan="3">G2</td>
-<td>RSLED60</td>
-<td>✅</td>
-<td rowspan="3" width="200px"><img src="../img/rsled_g2.png"/></td>
+<td>RSLED60</td><td>✅</td>
+<td rowspan="3" width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_g2.png"/></td>
 </tr>
-<tr>
-<td>RSLED115</td><td>✅ </td>
-</tr>
-<tr>
-<td>RSLED170</td><td>☑️</td>
-</tr>
+<tr><td>RSLED115</td><td>✅ </td></tr>
+<tr><td>RSLED170</td><td>☑️</td></tr>
 <tr>
 <td rowspan="3"><a href="#reefmat">ReefMat</a></td>
-<td colspan="2">RSMAT250</td>
-<td>✅</td>
-<td rowspan="3" width="200px"><img src="../img/RSMAT.png"/></td>
+<td colspan="2">RSMAT250</td><td>✅</td>
+<td rowspan="3" width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSMAT.png"/></td>
 <td rowspan="3">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsmat,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsmat,all label:bug" style="text-decoration:none">🐛</a>
 </td>
 </tr>
+<tr><td colspan="2">RSMAT500</td><td>✅</td></tr>
+<tr><td colspan="2">RSMAT1200</td><td>✅ </td></tr>
 <tr>
-<td colspan="2">RSMAT500</td><td>✅</td>
-</tr>
-<tr>
-<td colspan="2">RSMAT1200</td><td>✅ </td>
-</tr>
-<tr>
-<td><a href="#reefrun">ReefRun & DC Skimmer</a></td>
+<td><a href="#reefrun">ReefRun e DC Skimmer</a></td>
 <td colspan="2">RSRUN</td><td>✅</td>
-<td width="200px"><img src="../img/RSRUN.png"/></td>
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSRUN.png"/></td>
 <td>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsrun,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsrun,all label:bug" style="text-decoration:none">🐛</a>
@@ -126,208 +108,197 @@ Per aiutarci a tradurre, seguite questa [guida](https://github.com/Elwinmage/ha-
 </tr>
 <tr>
 <td rowspan="2"><a href="#reefwave">ReefWave (*)</a></td>
-<td colspan="2">RSWAVE25</td>
-<td>☑️</td>
-<td width="200px" rowspan="2"><img src="../img/RSWAVE.png"/></td>
+<td colspan="2">RSWAVE25</td><td>☑️</td>
+<td width="200px" rowspan="2"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSWAVE.png"/></td>
 <td rowspan="2">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rswave,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rwave,all label:bug" style="text-decoration:none">🐛</a>
 </td>
 </tr>
-<tr>
-<td colspan="2">RSWAVE45</td><td>✅</td>
-</tr>
+<tr><td colspan="2">RSWAVE45</td><td>✅</td></tr>
 </table>
 
-(*) Utenti ReefWave, per favore leggete [questo](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)
+(*) Utenti ReefWave, leggete [questo](README.it.md#reefwave)
 
-# Sommario
-- [Installazione via HACS](https://github.com/Elwinmage/ha-reefbeat-component/#installation-via-hacs)
-- [Funzioni comuni](https://github.com/Elwinmage/ha-reefbeat-component/#common-functions)
-- [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/#reefato)
-- [ReefControl](https://github.com/Elwinmage/ha-reefbeat-component/#reefcontrol)
-- [ReefDose](https://github.com/Elwinmage/ha-reefbeat-component/#reefdose)
-- [ReefLED](https://github.com/Elwinmage/ha-reefbeat-component/#reefled)
-- [LED virtuale](https://github.com/Elwinmage/ha-reefbeat-component/#virtual-led)
-- [ReefMat](https://github.com/Elwinmage/ha-reefbeat-component/#reefmat)
-- [ReefRun](https://github.com/Elwinmage/ha-reefbeat-component/#reefrun)
-- [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)
-- [Cloud API](https://github.com/Elwinmage/ha-reefbeat-component/#cloud-api)
-- [FAQ](https://github.com/Elwinmage/ha-reefbeat-component/#faq)
+# Indice
+- [Installazione tramite HACS](README.it.md#installazione-tramite-hacs)
+- [Funzioni comuni](README.it.md#funzioni-comuni)
+- [ReefATO+](README.it.md#reefato)
+- [ReefControl](README.it.md#reefcontrol)
+- [ReefDose](README.it.md#reefdose)
+- [ReefLED](README.it.md#reefled)
+- [LED virtuale](README.it.md#led-virtuale)
+- [ReefMat](README.it.md#reefmat)
+- [ReefRun](README.it.md#reefrun)
+- [ReefWave](README.it.md#reefwave)
+- [API Cloud](README.it.md#api-cloud)
+- [FAQ](README.it.md#faq)
 
-# Installazione via HACS
+# Installazione tramite HACS
 
 ## Installazione diretta
 
-Clicca qui per andare direttamente al repository in HACS e clicca su "Scarica": [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Elwinmage&repository=ha-reefbeat-component&category=integration)
+Clicca qui per accedere direttamente al repository in HACS e clicca su «Scarica»: [![Apri la tua istanza Home Assistant e apri un repository nel Community Store di Home Assistant.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Elwinmage&repository=ha-reefbeat-component&category=integration)
 
-Per la card complementare ha-reef-card con funzionalità avanzate, clicca qui per andare al repository in HACS e clicca su "Scarica": [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Elwinmage&repository=ha-reef-card&category=plugin)
+Per la scheda companion ha-reef-card che offre funzionalità avanzate ed ergonomiche, clicca qui per accedere direttamente al repository in HACS e clicca su «Scarica»: [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Elwinmage&repository=ha-reef-card&category=plugin)
 
 ## Cerca in HACS
-Oppure cercate «redsea» o «reefbeat» in HACS.
+Oppure cerca «redsea» o «reefbeat» in HACS.
 
 <p align="center">
-<img src="../img/hacs_search.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/hacs_search.png" alt="Immagine">
 </p>
 
 # Funzioni comuni
 
-# Icone
-Questa integrazione fornisce icone personalizzate accessibili tramite "redsea:icon-name":
-
-<img src="../img/icons_feeding_maintenance.png"/>
-<img src="../img/icons_devices.png"/>
-
 ## Aggiungere un dispositivo
-Quando si aggiunge un nuovo dispositivo, si hanno 4 opzioni:
+Quando si aggiunge un nuovo dispositivo, hai quattro opzioni:
 
 <p align="center">
-<img src="../img/add_devices_main.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/add_devices_main.png" alt="Immagine">
 </p>
 
-### Aggiungere API Cloud
-***Obbligatorio per ReefWave se volete mantenerlo sincronizzato con l'app mobile ReefBeat*** (Read [this](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)). <br />
-***Obbligatorio per ricevere notifiche di nuove versioni di firmware*** (Read [this](https://github.com/Elwinmage/ha-reefbeat-component/#firmware-update)).
-- Ottenere informazioni utente
-- Ottenere acquari
-- Ottenere libreria Waves
-- Ottenere libreria LED
+### Aggiungere l'API Cloud
+***Obbligatorio per mantenere i ReefWave sincronizzati con l'applicazione mobile ReefBeat*** (Leggi [questo](README.it.md#reefwave)). <br />
+***Obbligatorio per essere notificato delle nuove versioni del firmware*** (Leggi [questo](README.it.md#aggiornamento-firmware)).
+- Informazioni utente
+- Acquari
+- Libreria Wave
+- Libreria LED
 
 <p align="center">
-<img src="../img/add_devices_cloud_api.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/add_devices_cloud_api.png" alt="Immagine">
 </p>
 
-### Rilevamento automatico su rete privata
-Se non siete sulla stessa rete, leggete [questo](#my-device-is-not-detected) e usate la ["Modalità Manuale"](https://github.com/Elwinmage/ha-reefbeat-component/#manual-mode).
+### Rilevamento automatico sulla rete privata
+Se non sei sulla stessa rete, leggi [questo](README.it.md#il-mio-dispositivo-non-viene-rilevato) e usa la modalità [«Manuale»](README.it.md#modalità-manuale).
 <p align="center">
-<img src="../img/auto_detect.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/auto_detect.png" alt="Immagine">
 </p>
 
 ### Modalità manuale
-Potete inserire l'indirizzo IP del dispositivo o l'indirizzo di rete per il rilevamento automatico.
+Puoi inserire l'indirizzo IP o l'indirizzo di rete del tuo dispositivo per il rilevamento automatico.
 
 <p align="center">
-<img src="../img/add_devices_manual.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/add_devices_manual.png" alt="Immagine">
 </p>
 
 ### Impostare l'intervallo di scansione del dispositivo
 
 <p align="center">
-<img src="../img/configure_device_1.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/configure_device_1.png" alt="Immagine">
 </p>
 <p align="center">
-<img src="../img/configure_device_2.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/configure_device_2.png" alt="Immagine">
 </p>
 
 ## Aggiornamento in tempo reale
 
 > [!NOTE]
-> It is possible to choose whether to enable live_update_config or not. In this mode (old default), configuration data is continuously retrieved along with normal data. For RSDOSE or RSLED, these large HTTP requests can take a long time (7–9 seconds). Sometimes the device does not respond to the request, so a retry function has been implemented. When live_update_config is disabled, configuration data is only retrieved at startup and when requested via the "Fetch Configuration" button. This new mode is activated by default. You can change it in the device configuration. <p align="center">
-<img src="../img/configure_device_live_update_config.png" alt="Image">
-<img src="../img/fetch_config_button.png" alt="Image">
+> È possibile scegliere se attivare o meno la modalità Live_update_config. In questa modalità (vecchia impostazione predefinita), i dati di configurazione vengono recuperati continuamente insieme ai dati normali. Per RSDOSE o RSLED, queste richieste HTTP voluminose possono richiedere molto tempo (7-9 secondi). A volte il dispositivo non risponde alla richiesta, quindi è stata implementata una funzione di ripetizione. Quando Live_update_config è disabilitato, i dati di configurazione vengono recuperati solo all'avvio e su richiesta tramite il pulsante «Recupera configurazione». Questa nuova modalità è attiva per impostazione predefinita. Puoi modificarla nella configurazione del dispositivo. <p align="center">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/configure_device_live_update_config.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/fetch_config_button.png" alt="Immagine">
 </p>
 
 ## Aggiornamento Firmware
-Potete essere notificati e aggiornare il vostro dispositivo quando è disponibile una nuova versione del firmware. You must have an active ["Cloud API"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) device with your credentials and the "Use Cloud API" switch must be enabled.
+Puoi ricevere notifiche e aggiornare il tuo dispositivo quando è disponibile una nuova versione del firmware. Devi avere un componente [«API Cloud»](README.it.md#aggiungere-lapi-cloud) attivo con le tue credenziali e l'interruttore «Usa API Cloud» deve essere abilitato.
 > [!TIP]
-> The "Cloud API" is only needed to get the version number of the new release and compare it to the installed version. To update your firmware, the Cloud API is not strictly required.
-> If you do not use the "Cloud API" (switch disabled or no Cloud API device installed), you will not be alerted when a new version is available, but you can still use the hidden "Force Firmware Update" button. If a new version is available, it will be installed.
+> L'«API Cloud» è necessaria solo per ottenere il numero di versione della nuova versione e confrontarlo con la versione installata. Per aggiornare il firmware, l'API Cloud non è indispensabile.
+> Se non usi l'«API Cloud» (opzione disabilitata o componente API Cloud non installato), non verrai avvisato quando è disponibile una nuova versione, ma puoi comunque utilizzare il pulsante nascosto «Forza aggiornamento firmware». Se è disponibile una nuova versione, verrà installata.
 <p align="center">
-  <img src="../img/firmware_update_1.png" alt="Image">
-  <img src="../img/firmware_update_2.png" alt="Image">
+  <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/firmware_update_1.png" alt="Immagine">
+  <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/firmware_update_2.png" alt="Immagine">
 </p>
-
 
 # ReefATO:
 - Attivare/disattivare il riempimento automatico
 - Riempimento manuale
 <p align="center">
-<img src="../img/rsato_sensors.png" alt="Image">
-<img src="../img/rsato_conf.png" alt="Image">
-<img src="../img/rsato_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_diag.png" alt="Immagine">
 </p>
 
 # ReefControl:
-Non ancora supportato. If you have one, contact me [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) and I will add its support.
+Non ancora supportato. Se ne hai uno, contattami [qui](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) per aggiungerne il supporto.
 
 # ReefDose:
 - Modificare la dose giornaliera
 - Dose manuale
 - Aggiungere e rimuovere integratori
-- Modificare e controllare il volume del contenitore. Container volume settings are automatically enabled or disabled according to the volume control switch.
+- Modificare e controllare il volume del contenitore. L'impostazione del volume del contenitore viene attivata o disattivata automaticamente in base al volume selezionato.
 - Attivare/disattivare la programmazione per pompa
 - Configurazione degli avvisi di scorta
-- Ritardo di dosaggio tra integratori
-- Innesco (Si prega di leggere [this](https://github.com/Elwinmage/ha-reefbeat-component/#calibration-and-priming))
-- Calibrazione (Si prega di leggere [this](https://github.com/Elwinmage/ha-reefbeat-component/#calibration-and-priming))
+- Ritardo di dosaggio tra gli integratori
+- Preparazione (Leggi [questo](README.it.md#calibrazione-e-preparazione))
+- Calibrazione (Leggi [questo](README.it.md#calibrazione-e-preparazione))
 
 <p align="center">
-<img src="../img/rsdose_devices.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_devices.png" alt="Immagine">
 </p>
 
 ### Principale
 <p align="center">
-<img src="../img/rsdose_main_conf.png" alt="Image">
-<img src="../img/rsdose_main_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_main_conf.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_main_diag.png" alt="Immagine">
 </p>
 
-### Teste
+### Testine
 <p align="center">
-<img src="../img/rsdose_ctrl.png" alt="Image">
-<img src="../img/rsdose_sensors.png" alt="Image">
-<img src="../img/rsdose_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_ctrl.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_sensors.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_diag.png" alt="Immagine">
 </p>
 
-#### Calibration and Priming
+#### Calibrazione e preparazione
 
 > [!CAUTION]
-> È necessario seguire rigorosamente l'ordine seguente (Using the [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) is safer).<br /><br />
-> <ins>Calibration</ins>:
->  1. Place the graduated container and press "Start Calibration"
->  2. Enter the measured value using the "Dose of Calibration" field
->  3. Press "Set Calibration Value"
->  4. Empty the graduated container and press "Test new Calibration". If the value obtained is not 4 mL, go back to step 1.
->  5. Press "Stop and Save Graduation"
+> Devi seguire esattamente il seguente ordine (L'uso di [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) è più sicuro).<br /><br />
+> <ins>Calibrazione</ins>:
+>  1. Posiziona il cilindro graduato e premi "Start Calibration"
+>  2. Indica il valore misurato usando il campo "Dose of Calibration"
+>  3. Premi "Set Calibration Value"
+>  4. Svuota il cilindro graduato e premi "Test new Calibration". Se il valore ottenuto è diverso da 4 mL, torna al passo 1.
+>  5. Premi "Stop and Save Graduation"
 >
-> <ins>For priming</ins>:
->  1. (a) Press "Start Priming"
->  2. (b) When the liquid flows out, press "Stop Priming"
->  3. (1) Place the graduated container and press "Start Calibration"
->  4. (2) Enter the measured value using the "Dose of Calibration" field
->  5. (3) Press "Set Calibration Value"
->  6. (4) Empty the graduated container and press "Test new Calibration". If the value obtained is not 4 mL, go back to step 1.
->  7. (5) Press "Stop and Save Graduation"
+> <ins>Preparazione</ins>:
+>  1. (a) Premi "Start Priming"
+>  2. (b) Quando il liquido scorre, premi "Stop Priming"
+>  3. (1) Posiziona il cilindro graduato e premi "Start Calibration"
+>  4. (2) Indica il valore misurato usando il campo "Dose of Calibration"
+>  5. (3) Premi "Set Calibration Value"
+>  6. (4) Svuota il cilindro graduato e premi "Test new Calibration". Se il valore ottenuto è diverso da 4 mL, torna al passo 1.
+>  7. (5) Premi "Stop and Save Graduation"
 >
-> ⚠️ Priming must always be followed by a calibration (steps 1 to 5)!⚠️
+> ⚠️ La preparazione deve essere obbligatoriamente seguita da una calibrazione (passi da 1 a 5)!⚠️
 
 <p align="center">
-  <img src="../img/calibration.png" alt="Image">
+  <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/calibration.png" alt="Immagine">
 </p>
 
 # ReefLED:
-
-- Ottenere e impostare i canali Bianco e Blu (only for G1: RSLED50, RSLED90, RSLED160)
-- Ottenere e impostare Temperatura colore, Intensità e Luna (all LEDs)
-- Gestire l'acclimatazione. Acclimation settings are automatically enabled or disabled according to the acclimation switch.
-- Gestire le fasi lunari. Moon phase settings are automatically enabled or disabled according to the moon phase switch.
+- Ottenere e impostare i valori di bianco, blu e luna (solo per G1: RSLED50, RSLED90, RSLED160)
+- Ottenere e impostare la temperatura del colore, l'intensità e la luna (tutti i LED)
+- Gestire l'acclimatazione. Le impostazioni di acclimatazione vengono attivate o disattivate automaticamente in base all'interruttore di acclimatazione.
+- Gestire le fasi lunari. Le impostazioni delle fasi lunari vengono attivate o disattivate automaticamente in base al cambio di fase lunare.
 - Impostare la modalità colore manuale con o senza durata.
-- Ottenere i valori di ventilatore e temperatura.
-- Ottenere nome e valore dei programmi (with cloud support). Only for G1 LEDs.
+- Visualizzare i parametri della ventola e della temperatura.
+- Visualizzare il nome e il valore dei programmi (con supporto cloud). Solo per LED G1.
 
 <p align="center">
-<img src="../img/rsled_G1_ctrl.png" alt="Image">
-<img src="../img/rsled_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_G1_ctrl.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_diag.png" alt="Immagine">
 </p>
 <p align="center">
-<img src="../img/rsled_G1_sensors.png" alt="Image">
-<img src="../img/rsled_conf.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_G1_sensors.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_conf.png" alt="Immagine">
 </p>
 
 ***
 
-Color Temperature support for G1 LEDs takes into account the specificities of each of the three models.
+Il supporto della temperatura del colore per i LED G1 tiene conto delle specificità di ciascuno dei tre modelli.
 <p align="center">
-<img src="../img/leds_specs.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/leds_specs.png" alt="Immagine">
 </p>
 
 ***
@@ -336,212 +307,212 @@ Color Temperature support for G1 LEDs takes into account the specificities of ea
 ### LAMPADE G2
 
 #### Intensità
-Because G2 LEDs ensure constant intensity across the entire color range, your LEDs do not utilize their full capacity in the middle of the spectrum. At 8,000K, the white channel is at 100% and the blue channel at 0% (the opposite at 23,000K). At 14,000K with 100% intensity for G2 lights, the power of the white and blue channels is approximately 85%.
-Here is the loss curve for the G2s.
+Poiché questo tipo di LED garantisce un'intensità costante sull'intera gamma di colori, i tuoi LED non sfruttano appieno la loro capacità nel mezzo dello spettro. A 8 000 K, il canale bianco è al 100% e il canale blu allo 0% (il contrario a 23 000 K). A 14 000 K e con un'intensità del 100% per le lampade G2, la potenza dei canali bianco e blu è di circa l'85%.
+Ecco la curva di perdita dei G2.
 <p align="center">
-<img src="../img/intensity_factor.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/intensity_factor.png" alt="Immagine">
 </p>
 
-#### Temperatura colore
-The G2 interface does not support the entire temperature range. From 8,000K to 10,000K, values are incremented in 200K steps, and from 10,000K to 23,000K in 500K steps. This behavior is handled automatically: if you choose an invalid value (e.g. 8,300K), a valid value will be automatically selected (8,200K in this example). This is why you may sometimes observe a slight cursor adjustment when selecting the color on a G2 light — the cursor repositions itself to an allowed value.
+#### Temperatura del colore
+L'interfaccia delle lampade G2 non supporta l'intera gamma di temperatura. Da 8 000 K a 10 000 K, i valori si incrementano in passi di 200 K e da 10 000 K a 23 000 K in passi di 500 K. Questo comportamento è previsto: se si sceglie un valore non valido (ad esempio 8 300 K), verrà selezionato automaticamente un valore valido (8 200 K nel nostro esempio). Ecco perché a volte si può osservare un piccolo riadattamento del cursore durante la selezione del colore su una lampada G2: il cursore si riposiziona su un valore consentito.
 
 ### LAMPADE G1
 
-G1 LEDs use white and blue channel control, which allows full power across the entire range, but not constant intensity without compensation.
-That is why intensity compensation has been implemented.
-This compensation ensures you get the same [PAR](https://en.wikipedia.org/wiki/Photosynthetically_active_radiation) (light intensity) regardless of your color temperature choice (in the range 12,000 to 23,000K).
+I LED G1 utilizzano il controllo dei canali bianco e blu, il che consente la piena potenza sull'intera gamma, ma senza un'intensità costante senza compensazione.
+Per questo è stata implementata una compensazione dell'intensità.
+Questa compensazione garantisce lo stesso valore di [PAR](https://it.wikipedia.org/wiki/Radiazione_fotosinteticamente_attiva) (intensità luminosa) indipendentemente dalla temperatura del colore scelta (nella gamma da 12 000 a 23 000 K).
 > [!NOTE]
-> Because Red Sea does not publish PAR values below 12,000K, compensation is only available in the 12,000 to 23,000K range. If you have a G1 LED and a PAR meter, you can [contact me](https://github.com/Elwinmage/ha-reefbeat-component/discussions/) to add compensation for the full range (9,000 to 23,000K).
+> Poiché RedSea non pubblica i valori PAR al di sotto di 12 000 K, la compensazione funziona solo nella gamma da 12 000 a 23 000 K. Se hai un LED G1 e un misuratore PAR, puoi [contattarmi](https://github.com/Elwinmage/ha-reefbeat-component/discussions/) per aggiungere la compensazione per l'intera gamma (da 9 000 a 23 000 K).
 
 <p align="center">
-<img src="../img/intensity_compensation.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/intensity_compensation.png" alt="Immagine">
 </p>
 
-In other words, without compensation, an intensity of x% at 9,000K does not provide the same PAR as at 23,000K or 15,000K.
+In altre parole, senza compensazione, un'intensità di x% a 9 000 K non fornisce lo stesso valore PAR che a 23 000 K o 15 000 K.
 
-Here are the power curves:
+Ecco le curve di potenza:
 <p align="center">
-<img src="../img/PAR_curves.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/PAR_curves.png" alt="Immagine">
 </p>
 
-If you want to use the full power of your LED, disable intensity compensation (default).
+Se vuoi sfruttare appieno la potenza del tuo LED, disabilita la compensazione dell'intensità (impostazione predefinita).
 
-If you enable intensity compensation, the light intensity will be constant across all color temperature values, but in the middle of the range you will not use the full capacity of your LEDs (as with G2 models).
+Se abiliti la compensazione dell'intensità, l'intensità luminosa sarà costante per tutti i valori di temperatura, ma nella parte centrale della gamma non utilizzerai la piena capacità dei tuoi LED (come nei modelli G2).
 
-Also note that if compensation is enabled, the intensity factor can exceed 100% for G1 lights if you manually adjust the White/Blue channels. This allows you to harness the full power of your LEDs!
+Ricorda anche che, se abiliti la modalità di compensazione, il fattore di intensità può superare il 100% per i G1 se tocchi manualmente i canali Bianco/Blu. Puoi così sfruttare tutta la potenza dei tuoi LED!
 
 ***
 
 # LED virtuale
-- Raggruppare e gestire i LED con un dispositivo virtuale (create a virtual device from the integration panel, then use the configure button to link the LEDs).
-- Potete usare solo Kelvin e intensità per controllare i vostri LED se avete G2 o un mix di G1 e G2.
-- Potete usare sia Kelvin/Intensità che Bianco e Blu se avete solo lampade G1.
+- Raggruppa e gestisci i LED con un dispositivo virtuale (crea un dispositivo virtuale dal pannello di integrazione, poi usa il pulsante di configurazione per collegare i LED).
+- Puoi usare solo Kelvin e intensità per controllare i tuoi LED se hai G2 o una combinazione di G1 e G2.
+- Puoi usare sia Kelvin/Intensità che Bianco e Blu se hai solo G1.
 
 <p align="center">
-<img src="../img/virtual_led_config_1.png" alt="Image">
-<img src="../img/virtual_led_config_2.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/virtual_led_config_1.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/virtual_led_config_2.png" alt="Immagine">
 </p>
 
 # ReefMat:
-- Interruttore avanzamento automatico (attivare/disattivare)
+- Interruttore avanzamento automatico (attiva/disattiva)
 - Avanzamento programmato
 - Valore di avanzamento personalizzato: consente di selezionare il valore di avanzamento del rotolo
 - Avanzamento manuale
 - Cambiare il rotolo.
 >[!TIP]
-> For a new full roll, please set "roll diameter" to the minimum (4.0 cm). The size will be adjusted according to your RSMAT version. For a partially used roll, enter the value in cm.
-- Due parametri nascosti: modello e posizione, se è necessario riconfigurare il proprio RSMAT
+> Per un rotolo nuovo completo, imposta il «diametro del rotolo» al minimo (4,0 cm). La dimensione verrà adattata in base alla versione RSMAT. Per un rotolo già usato, inserisci il valore in cm.
+- Due parametri nascosti: modello e posizione, se devi riconfigurare il tuo RSMAT
 <p align="center">
-<img src="../img/rsmat_ctr.png" alt="Image">
-<img src="../img/rsmat_sensors.png" alt="Image">
-<img src="../img/rsmat_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_ctr.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_sensors.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_diag.png" alt="Immagine">
 </p>
 
 # ReefRun:
 - Impostare la velocità della pompa
-- Gestire la schiumatura eccessiva
-- Gestire il rilevamento della coppa piena
-- Possibilità di cambiare il modello dello schiumatoio
+- Gestire la sovra-schiumatura
+- Gestire il rilevamento della tazza piena
+- Possibilità di cambiare il modello di schiumatoio
 
 <p align="center">
-<img src="../img/rsrun_devices.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_devices.png" alt="Immagine">
 </p>
 
 ### Principale
 <p align="center">
-<img src="../img/rsrun_main_sensors.png" alt="Image">
-<img src="../img/rsrun_main_ctrl.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_sensors.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_ctrl.png" alt="Immagine">
 </p>
 <p align="center">
-<img src="../img/rsrun_main_conf.png" alt="Image">
-<img src="../img/rsrun_main_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_conf.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_diag.png" alt="Immagine">
 </p>
 
 ### Pompe
-<p align="center"><img src="../img/rsrun_ctrl.png" alt="Image">
-<img src="../img/rsrun_conf.png" alt="Image">
+<p align="center"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_ctrl.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_conf.png" alt="Immagine">
 </p>
 <p align="center">
-<img src="../img/rsrun_sensors.png" alt="Image">
-<img src="../img/rsrun_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_sensors.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_diag.png" alt="Immagine">
 </p>
 
 # ReefWave:
 > [!IMPORTANT]
-> ReefWave devices are different from other ReefBeat devices. They are the only devices that are slaves to the ReefBeat cloud.<br/>
-> When you launch the ReefBeat mobile app, the status of all devices is queried and data from the ReefBeat app is retrieved from device state.<br/>
-> For ReefWave, it is the opposite: there is no local control point (as you can see in the ReefBeat app, you cannot add a ReefWave to a disconnected aquarium).<br/>
-> <center><img width="20%" src="../img/reefbeat_rswave.jpg" alt="Image"></center><br />
-> Waves are stored in the cloud user library. When you change a wave's value, it is changed in the cloud library and applied to the new schedule.<br/>
-> So there is no local mode? Not so simple. There is a hidden local API to control ReefWave, but the ReefBeat app will not detect the changes. As a result, the device and Home Assistant on one side, and the ReefBeat mobile app on the other, will be out of sync. The device and Home Assistant will always be synchronized.<br/>
-> Now that you know, make your choice!
+> I dispositivi ReefWave sono diversi dagli altri dispositivi ReefBeat. Sono gli unici dispositivi dipendenti dal cloud ReefBeat.<br/>
+> Quando avvii l'applicazione mobile ReefBeat, lo stato di tutti i dispositivi viene interrogato e i dati dell'applicazione ReefBeat vengono recuperati dallo stato del dispositivo.<br/>
+> Per ReefWave è il contrario: non esiste un punto di controllo locale (come puoi vedere nell'applicazione ReefBeat, non puoi aggiungere un ReefWave a un acquario disconnesso).<br/>
+> <center><img width="20%" src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/reefbeat_rswave.jpg" alt="Immagine"></center><br />
+> Le onde sono archiviate nella libreria utente del cloud. Quando modifichi il valore di un'onda, questa viene modificata nella libreria cloud e applicata alla nuova programmazione.<br/>
+> Quindi non esiste la modalità locale? Non è così semplice. Esiste una API locale nascosta per controllare ReefWave, ma l'applicazione ReefBeat non rileva le modifiche. Pertanto il dispositivo e HomeAssistant da un lato, e l'applicazione mobile ReefBeat dall'altro, saranno desincronizzati. Il dispositivo e HomeAssistant saranno sempre sincronizzati.<br/>
+> Ora che lo sai, fai la tua scelta!
 
 > [!NOTE]
-> ReefWave waves have many linked parameters, and the range of some parameters depends on other parameters. I was not able to test all possible combinations. If you find a bug, you can create an issue [here](https://github.com/Elwinmage/ha-reefbeat-component/issues).
+> Le onde ReefWave hanno molti parametri collegati, e l'intervallo di alcuni parametri dipende da altri parametri. Non ho potuto testare tutte le possibili combinazioni. Se trovi un bug, puoi creare un ticket [qui](https://github.com/Elwinmage/ha-reefbeat-component/issues).
 
 ## Modalità ReefWave
-As explained above, ReefWave devices are the only devices that can become unsynchronized with the ReefBeat app if you use the local API.
-Sono disponibili tre modalità: Cloud, Locale e Ibrido.
-Potete cambiare la modalità impostando gli interruttori "Connetti al Cloud" e "Usa API Cloud" come descritto nella tabella sottostante.
+Come spiegato in precedenza, i dispositivi ReefWave sono gli unici che possono essere desincronizzati dall'applicazione ReefBeat se si utilizza l'API locale.
+Sono disponibili tre modalità: Cloud, Locale e Ibrida.
+Puoi modificare le impostazioni di modalità «Connessione al cloud» e «Usa API Cloud» come descritto nella tabella seguente.
 
 <table>
 <tr>
 <td>Nome modalità</td>
-<td>Interruttore Connetti al Cloud</td>
+<td>Interruttore Connessione al cloud</td>
 <td>Interruttore Usa API Cloud</td>
 <td>Comportamento</td>
 <td>ReefBeat e HA sono sincronizzati</td>
 </tr>
 <tr>
-<td>Cloud (predefinito)</td>
+<td>Cloud (predefinita)</td>
 <td>✅</td>
 <td>✅</td>
-<td>Data is fetched via the local API. <br />On/off commands are also sent via the local API. <br />Wave commands are sent via the cloud API.</td>
+<td>I dati vengono recuperati tramite l'API locale. <br />I comandi di accensione/spegnimento vengono anch'essi inviati tramite l'API locale. <br />I comandi vengono inviati tramite l'API Cloud.</td>
 <td>✅</td>
 </tr>
 <tr>
-<td>Local</td>
+<td>Locale</td>
 <td>❌</td>
 <td>❌</td>
-<td>Data is fetched via the local API. <br />Commands are sent via the local API. <br />Device is shown as "off" in the ReefBeat app.</td>
+<td>I dati vengono recuperati tramite l'API locale. <br />I comandi vengono inviati tramite l'API locale. <br />Il dispositivo viene mostrato come «spento» nell'applicazione ReefBeat.</td>
 <td>❌</td>
 </tr>
 <tr>
-<td>Hybrid</td>
+<td>Ibrida</td>
 <td>✅</td>
 <td>❌</td>
-<td>Data is fetched via the local API. <br />Commands are sent via the local API.<br />The ReefBeat mobile app does not display the correct wave values if they have been changed via HA.<br/>Home Assistant always displays the correct values.<br/>You can change values from both the ReefBeat app and Home Assistant.</td>
+<td>I dati vengono recuperati tramite l'API locale. <br />I comandi vengono inviati tramite l'API locale.<br />L'applicazione mobile ReefBeat non mostra i valori corretti delle onde se sono stati modificati tramite HA.<br/>Home Assistant li mostra sempre correttamente.<br/>Puoi modificare i valori dall'applicazione ReefBeat e da Home Assistant.</td>
 <td>❌</td>
 </tr>
 </table>
 
-For Cloud and Hybrid modes you must link your ReefBeat cloud account.
-First create a ["Cloud API"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) device with your credentials, and that's it!
-The "Linked to account" sensor will be updated with the name of your ReefBeat account once the connection is established.
+Per le modalità Cloud e Ibrida devi collegare il tuo account ReefBeat Cloud.
+Prima crea una [«API Cloud»](README.it.md#aggiungere-lapi-cloud) con le tue credenziali, e il gioco è fatto!
+Il sensore «Collegato all'account» verrà aggiornato con il nome del tuo account ReefBeat una volta stabilita la connessione.
 <p align="center">
-<img src="../img/rswave_linked.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_linked.png" alt="Immagine">
 </p>
 
 ## Modificare i valori attuali
-To load current wave values into the preview fields, use the "Set Preview From Current Wave" button.
+Per caricare i valori delle onde attuali nei campi di anteprima, usa il pulsante «Imposta anteprima dall'onda attuale».
 <p align="center">
-<img src="../img/rswave_set_preview.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_set_preview.png" alt="Immagine">
 </p>
-To change the current wave values, set the preview values and use the "Save Preview" button.
+Per modificare i valori delle onde attuali, imposta i valori di anteprima e usa il pulsante «Salva anteprima».
 
-The behavior is the same as the ReefBeat mobile app. All waves with the same ID in the current schedule will be updated.
+Il funzionamento è identico a quello dell'applicazione mobile ReefBeat. Tutte le onde con lo stesso identificatore nella programmazione attuale verranno aggiornate.
 <p align="center">
-<img src="../img/rswave_save_preview.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_save_preview.png" alt="Immagine">
 </p>
 
 <p align="center">
-<img src="../img/rswave_conf.png" alt="Image">
-<img src="../img/rswave_sensors.png" alt="Image">
-<img src="../img/rswave_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_conf.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_sensors.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_diag.png" alt="Immagine">
 </p>
 
 # API Cloud
 L'API Cloud consente di:
-- Avviare o fermare scorciatoie: emergenza, manutenzione e alimentazione,
-- Ottenere informazioni utente,
-- Recuperare la libreria waves,
-- Recuperare la libreria integratori,
-- Recuperare la libreria programmi LED,
-- Essere notificati di una [nuova versione firmware](https://github.com/Elwinmage/ha-reefbeat-component/#firmware-update),
-- Inviare comandi a ReefWave quando la modalità "[Cloud o Ibrido](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)" mode is selected.
+- Avviare o fermare i collegamenti rapidi: emergenza, manutenzione e alimentazione,
+- Ottenere informazioni sull'utente,
+- Recuperare la libreria delle onde,
+- Recuperare la libreria degli integratori,
+- Recuperare la libreria dei programmi LED,
+- Ricevere notifiche di [nuove versioni del firmware](README.it.md#aggiornamento-firmware),
+- Inviare comandi a ReefWave quando è selezionata la modalità «[Cloud o Ibrida](README.it.md#reefwave)».
 
-Le scorciatoie, i parametri wave e LED sono ordinati per acquario.
+I collegamenti rapidi, i parametri delle onde e dei LED sono ordinati per acquario.
 <p align="center">
-<img src="../img/cloud_api_devices.png" alt="Image">
-<img src="../img/cloud_ctrl.png" alt="Image">
-<img src="../img/cloud_api_supplements.png" alt="Image">
-<img src="../img/cloud_api_sensors.png" alt="Image">
-<img src="../img/cloud_api_led_and_waves.png" alt="Image">
-<img src="../img/cloud_api_conf.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_devices.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_ctrl.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_supplements.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_sensors.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_led_and_waves.png" alt="Immagine">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_conf.png" alt="Immagine">
 </p>
 
 >[!TIP]
-> Potete disattivare il recupero della lista degli integratori nella configurazione del dispositivo API Cloud.
->    <img src="../img/cloud_config.png" alt="Image">
+> È possibile disabilitare il recupero dell'elenco degli integratori tramite l'interfaccia di configurazione del dispositivo API Cloud.
+>    <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_config.png" alt="Immagine">
 ***
 # FAQ
 
 ## Il mio dispositivo non viene rilevato
-- Provate a rilanciare il rilevamento automatico con il pulsante "Aggiungi voce". Sometimes devices do not respond because they are busy.
-- If your Red Sea devices are not on the same subnet as your Home Assistant, auto-detection will first fail and then offer you the option to enter the IP address of your device or the address of the subnet where your devices are located. For subnet detection, please use the format IP/MASK, for example: 192.168.14.0/255.255.255.0.
-- You can also use [Manual Mode](https://github.com/Elwinmage/ha-reefbeat-component/#manual-mode).
+- Prova a riavviare il rilevamento automatico con il pulsante «Aggiungi voce». A volte i dispositivi non rispondono perché sono occupati.
+- Se i tuoi dispositivi RedSea non sono nella stessa sottorete di Home Assistant, il rilevamento automatico fallirà prima e ti proporrà di inserire l'indirizzo IP del tuo dispositivo o l'indirizzo della sottorete in cui si trovano i tuoi dispositivi. Per il rilevamento della sottorete, usa il formato IP/MASCHERA, come in questo esempio: 192.168.14.0/255.255.255.0.
+- Puoi anche usare la [modalità manuale](README.it.md#modalità-manuale).
 
 <p align="center">
-<img src="../img/subnetwork.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/subnetwork.png" alt="Immagine">
 </p>
 
 ## Alcuni dati vengono aggiornati correttamente, altri no.
-I dati sono divisi in tre parti: dati, configurazione e informazioni dispositivo.
+I dati sono divisi in tre parti: dati, configurazione e informazioni sul dispositivo.
 - I dati vengono aggiornati regolarmente.
-- I dati di configurazione vengono aggiornati solo all'avvio e quando si preme il pulsante "Recupera configurazione".
-- I dati delle informazioni dispositivo vengono aggiornati solo all'avvio.
+- I dati di configurazione vengono aggiornati solo all'avvio e quando si preme il pulsante «fetch-config».
+- Le informazioni sul dispositivo vengono aggiornate solo all'avvio.
 
-Per garantire che i dati di configurazione vengano aggiornati regolarmente, abilitate [Aggiornamento configurazione in tempo reale](#live-update).
+Per garantire l'aggiornamento regolare dei dati di configurazione, abilita l'[aggiornamento della configurazione in tempo reale](README.it.md#aggiornamento-in-tempo-reale).
 
 ***
 

@@ -13,8 +13,11 @@ import json  # pyright: ignore[reportUnusedImport]  # noqa: F401
 import logging
 import re
 from contextlib import suppress
+from pathlib import Path
 from typing import Any
 
+from homeassistant.components.frontend import add_extra_js_url
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import (
     HomeAssistant,
@@ -82,8 +85,6 @@ async def _migrate_head_device_names(hass: HomeAssistant, entry: ConfigEntry) ->
             continue
 
         new_name = f"{match.group('prefix')} head {match.group('head')}"
-        if new_name == name:
-            continue
 
         _LOGGER.debug(
             "Migrating head device name: %s -> %s (device_id=%s)",
@@ -192,9 +193,26 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
+# Frontend resources
+_FRONTEND_DIR = Path(__file__).parent / "frontend"
+_ICONS_JS_URL = f"/{DOMAIN}/frontend/redsea-icons.js"
+
+
 # Services
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the integration (register services)."""
+    """Set up the integration (register services and frontend resources)."""
+
+    # Serve the frontend/ directory as a static path and register the icon JS
+    if hass.http:
+        await hass.http.async_register_static_paths(
+            [
+                StaticPathConfig(
+                    f"/{DOMAIN}/frontend", str(_FRONTEND_DIR), cache_headers=False
+                )
+            ]
+        )
+        add_extra_js_url(hass, _ICONS_JS_URL, es5=False)
+        _LOGGER.debug("Registered custom icon set at %s", _ICONS_JS_URL)
 
     @callback
     async def handle_request(call: ServiceCall) -> ServiceResponse:

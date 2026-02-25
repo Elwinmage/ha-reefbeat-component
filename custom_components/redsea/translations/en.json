@@ -4,8 +4,8 @@
       "already_configured": "Device Already configured",
       "cannot_create": "Unable to create ReefBeat device with specified parameters"
     },
-    "error":{
-      "auth_failed":"Authentification failed, check your crendentials",
+    "error": {
+      "auth_failed": "Authentification failed, check your crendentials",
       "nothing_detected": "No device detected"
     },
     "flow_title": "ReefBeat configuration",
@@ -13,12 +13,12 @@
       "user": {
         "data": {
           "add_type": "Choose your adding method",
-	    "disable_supplements": "Disable Supplements",
-            "hw_model": "Hardware Model",
+          "disable_supplements": "Disable Supplements",
+          "hw_model": "Hardware Model",
           "ip_address": "IP or subnet Addr. (ex:10.0.1.0/255.255.255.0)",
           "platform": "Platform",
           "scan_interval": "scan interval",
-            "virtual_led": "New virtual LED Controler"
+          "virtual_led": "New virtual LED Controler"
         },
         "title": "Add new Device"
       }
@@ -29,7 +29,7 @@
       "battery_level": {
         "name": "Battery Level"
       },
-      "bundled_heads":{
+      "bundled_heads": {
         "name": "Bundled heads"
       },
       "buzzer_enabled": {
@@ -78,7 +78,7 @@
         "name": "Controlled by Sensor"
       },
       "status": {
-	"name": "Status"
+        "name": "Status"
       },
       "unclean_sensor": {
         "name": "Sensor State"
@@ -91,10 +91,10 @@
       "advance": {
         "name": "Advance"
       },
-     	"delete_emergency":{
-	    "name": "Delete emergency alert"
-    	},
-    	"delete_supplement": {
+      "delete_emergency": {
+        "name": "Delete emergency alert"
+      },
+      "delete_supplement": {
         "name": "Delete Supplement"
       },
       "end_calibration": {
@@ -140,7 +140,10 @@
         "name": "Set Calibration volume"
       },
       "set_supplement": {
-        "name": "Set new Supplement"
+        "name": "Set new supplement"
+      },
+      "set_supplement_name": {
+        "name": "Set new supplement name"
       },
       "start_calibration": {
         "name": "Start  Calibration"
@@ -254,7 +257,15 @@
     },
     "select": {
       "mode": {
-        "name": "Mode"
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "end_of_roll": "End of Roll",
+          "manual": "Manual",
+          "timer": "Timer",
+          "other": "Other",
+          "off": "Off"
+        }
       },
       "model": {
         "name": "Model"
@@ -267,13 +278,29 @@
         }
       },
       "preview_wave_direction": {
-        "name": "Preview Waves Direction"
+        "name": "Preview Waves Direction",
+	"state":{
+	  "alt":"Alternate",
+	  "fw":"Forward",
+	  "rw":"Reward"
+	}
       },
       "preview_wave_type": {
-        "name": "Preview Waves Type"
+        "name": "Preview Waves Type",
+	"state":{
+	  "nw":"No Wave",
+	  "ra":"Random",
+	  "re":"Regular",
+	  "st":"Step",
+	  "su":"Surface",
+	  "un":"Uniform"
+	}
       },
       "supplements": {
-        "name": "Supplements"
+        "name": "Supplements",
+	"state":{
+	  "other":"Other"
+	}
       }
     },
     "sensor": {
@@ -282,13 +309,6 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Acclimation Start Intensity Factor"
-      },
-      "ato_mode": {
-        "name": "ATO Mode",
-        "state": {
-          "auto": "Auto",
-          "empty": "Empty"
-        }
       },
       "auto_1": {
         "name": "Sunday"
@@ -362,7 +382,10 @@
         "name": "Doses today"
       },
       "dosing_queue": {
-        "name": "Dosing Queue"
+        "name": "Dosing Queue",
+	"state":{
+	  "empty": "Empty"
+	}
       },
       "email": {
         "name": "Email"
@@ -406,10 +429,38 @@
       "mode": {
         "name": "Mode",
         "state": {
-          "auto": "Auto",
-          "end_of_roll": "End of Roll",
-          "manual": "Manual",
-          "off": "Off"
+	  "auto": "Auto",
+	  "blockage": "Blockage",
+	  "calibration": "Calibration",
+	  "controller": "Controller",
+	  "emergency": "Emergency",
+	  "empty": "Empty",
+	  "end_of_roll": "End of roll",
+	  "feeding": "Feeding",
+	  "high_water": "High water level",
+	  "leak": "Leak",
+	  "maintenance": "Maintenance",
+	  "malfunction": "Malfunction",
+	  "manual": "Manual",
+	  "mat_error": "Material error",
+	  "missing_pump": "Pump missing",
+	  "missing_sensor": "Sensor missing",
+	  "no_ec_sensor": "No EC sensor",
+	  "off": "Off",
+	  "overheating": "Overheating",
+	  "partial_auto": "Semi-automatic",
+	  "preview": "Preview",
+	  "priming": "Priming",
+	  "pump_timeout": "Pump timeout",
+	  "setup": "Setup",
+	  "setup_error_high": "Setup error: too high",
+	  "setup_error_torn": "Setup error: torn",
+	  "shortcut_off_delay": "Shortcut off delay",
+	  "stalled": "Stalled",
+	  "timer": "Timer",
+	  "torn_mat": "Torn material",
+	  "user_test": "User test",
+	  "no_roll": "No roll"
         }
       },
       "model": {
@@ -428,7 +479,11 @@
         "name": "Next New Moon"
       },
       "pump_state": {
-        "name": "Pump State"
+        "name": "Pump State",
+        "state": {
+          "malfunction": "Malfunction",
+          "pump_on": "On"
+        }
       },
       "remaining_days": {
         "name": "Remaining days"
@@ -446,7 +501,22 @@
         }
       },
       "state": {
-        "name": "State"
+        "name": "State",
+        "state": {
+          "calibration": "Calibration",
+          "dry-run": "Dry run",
+          "emergency": "Emergency",
+          "feeding": "Feeding",
+          "full-cup": "Full-cup",
+          "locked-rotor": "Locked Rotor",
+          "maintenance": "Maintenance",
+          "not-connected": "Not connected",
+          "operational": "Operational",
+          "over-skimming": "Over-skimming",
+          "preview": "Preview",
+          "shortcut-off-delay": "Shortcut off delay",
+          "wrong-pump": "Wrong pump"
+        }
       },
       "supplement": {
         "name": "Supplement"
@@ -486,7 +556,12 @@
         "name": "Total volume usage"
       },
       "type": {
-        "name": "Type"
+        "name": "Type",
+        "state": {
+          "return": "Return",
+          "skimmer": "Skimmer",
+          "unknown": "Unknown"
+        }
       },
       "volume_left": {
         "name": "Volume left"
@@ -497,6 +572,7 @@
           "above": "Above",
           "acceptable": "Acceptable",
           "below": "Below",
+          "danger": "Danger",
           "desired": "Desired",
           "desired_level_1": "Desired Level 1",
           "desired_level_2": "Desired Level 2"
@@ -509,10 +585,20 @@
         "name": "Backward Time"
       },
       "wave_direction": {
-        "name": "Waves Direction"
+        "name": "Waves Direction",
+	"state":{
+	  "alt":"Alternate",
+	  "fw":"Forward",
+	  "rw":"Reward"
+	}
       },
       "wave_forward_intensity": {
-        "name": "Forward Intensity"
+        "name": "Forward Intensity",
+	"state":{
+	  "alt":"Alternate",
+	  "fw":"Forward",
+	  "rw":"Reward"
+	}
       },
       "wave_forward_time": {
         "name": "Forward Time"
@@ -524,7 +610,15 @@
         "name": "Steps"
       },
       "wave_type": {
-        "name": "Waves Type"
+        "name": "Waves Type",
+	"state":{
+	  "nw":"No Wave",
+	  "ra":"Random",
+	  "re":"Regular",
+	  "st":"Step",
+	  "su":"Surface",
+	  "un":"Uniform"
+	}
       },
       "white": {
         "name": "White"
@@ -549,8 +643,8 @@
       "auto_advance": {
         "name": "Auto advance"
       },
-      "auto_fill":{
-	"name": "Auto fill"
+      "auto_fill": {
+        "name": "Auto fill"
       },
       "cloud_connect": {
         "name": "Connect to cloud"
@@ -579,6 +673,15 @@
       "slm": {
         "name": "Volume Controller"
       },
+      "shortcut_emergency": {
+        "name": "ShortCut Emergency"
+      },
+      "shortcut_feeding": {
+        "name": "ShortCut Feeding"
+      },
+      "shortcut_maintenance": {
+        "name": "ShortCut maintenance"
+      },
       "use_cloud_api": {
         "name": "Use cloud API"
       }
@@ -586,6 +689,9 @@
     "text": {
       "new_supplement_brand_name": {
         "name": "Brand Name"
+      },
+      "new_supplement_display_name": {
+        "name": "Supplement display name"
       },
       "new_supplement_name": {
         "name": "Supplement Name"
@@ -606,13 +712,14 @@
     }
   },
   "options": {
-    "error":{
-      "auth_failed":"Authentification failed, check your crendentials"
+    "error": {
+      "auth_failed": "Authentification failed, check your crendentials"
     },
     "step": {
       "init": {
         "data": {
           "live_config_update": "Live Configuration Update",
+          "disable_supplements": "Disable Supplements",
           "not_virtual": "Not configurable",
           "slaves": "LED"
         },

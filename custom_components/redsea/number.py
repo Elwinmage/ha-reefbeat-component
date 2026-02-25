@@ -20,6 +20,7 @@ from homeassistant.components.number import (
     NumberEntity,
     NumberEntityDescription,
     NumberMode,
+    RestoreNumber,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -32,6 +33,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     ATO_VOLUME_LEFT_INTERNAL_NAME,
@@ -46,7 +48,6 @@ from .const import (
     MAT_MIN_ROLL_DIAMETER,
     MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
     WAVE_SHORTCUT_OFF_DELAY,
-    WAVE_TYPES,
 )
 from .coordinator import (
     ReefATOCoordinator,
@@ -59,8 +60,6 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
-from .entity import ReefBeatRestoreEntity, RestoreSpec
-from .i18n import translate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -126,7 +125,6 @@ class ReefBeatNumberEntityDescription(NumberEntityDescription):
     value_name: str = ""
     dependency: str | None = None
     dependency_values: Sequence[Any] | None = None
-    translate: Sequence[dict[str, Any]] | None = None
     source: str = "/configuration"
 
 
@@ -186,7 +184,6 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:waves-arrow-right",
         entity_category=EntityCategory.CONFIG,
         dependency="$.sources[?(@.name=='/preview')].data.type",
-        translate=WAVE_TYPES,
         dependency_values=["st", "ra", "re", "un"],
     ),
     ReefBeatNumberEntityDescription(
@@ -201,7 +198,6 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:waves-arrow-left",
         entity_category=EntityCategory.CONFIG,
         dependency="$.sources[?(@.name=='/preview')].data.type",
-        translate=WAVE_TYPES,
         dependency_values=["st", "ra", "re", "un"],
     ),
     ReefBeatNumberEntityDescription(
@@ -216,7 +212,6 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:waves-arrow-right",
         entity_category=EntityCategory.CONFIG,
         dependency="$.sources[?(@.name=='/preview')].data.type",
-        translate=WAVE_TYPES,
         dependency_values=["st", "ra", "re", "su", "un"],
     ),
     ReefBeatNumberEntityDescription(
@@ -231,7 +226,6 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:waves-arrow-left",
         entity_category=EntityCategory.CONFIG,
         dependency="$.sources[?(@.name=='/preview')].data.type",
-        translate=WAVE_TYPES,
         dependency_values=["st", "ra", "re", "su", "un"],
     ),
     ReefBeatNumberEntityDescription(
@@ -257,7 +251,6 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:stairs",
         entity_category=EntityCategory.CONFIG,
         dependency="$.sources[?(@.name=='/preview')].data.type",
-        translate=WAVE_TYPES,
         dependency_values=["st"],
     ),
     ReefBeatNumberEntityDescription(
@@ -272,7 +265,6 @@ WAVE_PREVIEW_NUMBERS: tuple[ReefBeatNumberEntityDescription, ...] = (
         icon="mdi:clock-time-five",
         entity_category=EntityCategory.CONFIG,
         dependency="$.sources[?(@.name=='/preview')].data.type",
-        translate=WAVE_TYPES,
         dependency_values=["st", "un", "su"],
     ),
 )
@@ -624,26 +616,19 @@ async def async_setup_entry(
 
 
 # REEFBEAT
-class ReefBeatNumberEntity(ReefBeatRestoreEntity, NumberEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class ReefBeatNumberEntity(CoordinatorEntity[ReefBeatCoordinator], RestoreNumber):  # type: ignore[reportIncompatibleVariableOverride]
     """Base number entity backed by a ReefBeat coordinator.
 
-    We intentionally do not subclass `CoordinatorEntity` to avoid conflicts between
-    Home Assistant stubs (`available`/`native_value` cached_property vs property).
-    Instead we subscribe to the coordinator via `async_add_listener`.
+    Uses CoordinatorEntity for automatic updates and RestoreNumber for state persistence.
     """
 
     _attr_has_entity_name = True
 
-    @staticmethod
-    def _restore_native_value(state: str) -> float:
-        return float(state)
-
     def __init__(self, device: _HasDeviceInfo, description: DescriptionT) -> None:
         """Initialize the entity."""
-        ReefBeatRestoreEntity.__init__(
-            self,
+        super().__init__(
+            #            self,
             cast(ReefBeatCoordinator, device),
-            restore=RestoreSpec("_attr_native_value", self._restore_native_value),
         )
         self._device: _HasDeviceInfo = device
         self._description: DescriptionT = description
@@ -697,13 +682,14 @@ class ReefBeatNumberEntity(ReefBeatRestoreEntity, NumberEntity):  # type: ignore
 
     async def async_added_to_hass(self) -> None:
         """Restore last known value and prime from coordinator cache."""
+
+        res = await self.async_get_last_extra_data()
+        if res is not None:
+            self._attr_native_value = res.as_dict()["native_value"]
+            self._device.set_data(self._description.value_name, self._attr_native_value)
+        else:
+            self._attr_native_value = None
         await super().async_added_to_hass()
-
-        if self._attr_native_value is not None and not self._attr_available:
-            self._attr_available = True
-
-        if cast(ReefBeatCoordinator, self._device).last_update_success:
-            self._handle_coordinator_update()
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -721,14 +707,6 @@ class ReefBeatNumberEntity(ReefBeatRestoreEntity, NumberEntity):  # type: ignore
             return True
 
         dep_value = self._device.get_data(dep, True)
-        if self._description.translate is not None:
-            dep_value = translate(
-                str(dep_value),
-                "id",
-                dictionary=self._description.translate,
-                src_lang=self.hass.config.language,
-            )
-
         if self._description.dependency_values is None:
             return bool(dep_value)
 
@@ -750,7 +728,7 @@ class ReefBeatNumberEntity(ReefBeatRestoreEntity, NumberEntity):  # type: ignore
         await self._device.async_request_refresh()
 
     @cached_property
-    def available(self) -> bool:
+    def available(self) -> bool:  # type: ignore[override]
         return self._compute_available()
 
 
@@ -867,10 +845,6 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
                 self._dose_description.dependency
             )
 
-    @cached_property
-    def available(self) -> bool:
-        return self._compute_available()
-
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the head identifier (non-mutating)."""
@@ -971,7 +945,23 @@ class ReefWaveNumberEntity(ReefBeatNumberEntity):
         else:
             self._attr_available = self._compute_available()
             self._attr_native_value = cast(float | None, value)
+        self.async_write_ha_state()
 
+    async def async_set_native_value(self, value: float) -> None:
+        """Set a new value and push to the device."""
+        _LOGGER.debug(
+            "redsea.number.set_native_value %s %s" % (self._description.key, value)
+        )
+
+        f_value: Any = (
+            int(value)
+            if self._description.native_unit_of_measurement == UnitOfTime.SECONDS
+            else value
+        )
+
+        self._attr_native_value = cast(float | None, f_value)
+
+        self._device.set_data(self._description.value_name, f_value)
         self.async_write_ha_state()
 
 

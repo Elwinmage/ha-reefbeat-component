@@ -1,12 +1,21 @@
 {
   "domain": "redsea",
   "name": "Red Sea (ReefBeat devices)",
-  "codeowners": ["@Elwinmage"],
+  "after_dependencies": [
+    "frontend"
+  ],
+  "codeowners": [
+    "@Elwinmage"
+  ],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": [
+    "http"
+  ],
   "documentation": "https://github.com/Elwinmage/ha-reefbeat-component",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/Elwinmage/ha-reefbeat-component/issues",
-  "requirements": ["jsonpath-ng>=1.7.0"],
+  "requirements": [
+    "jsonpath-ng>=1.7.0"
+  ],
   "version": "1.5.0"
 }

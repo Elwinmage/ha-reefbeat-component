@@ -123,7 +123,6 @@ def test_reefdose_select_device_info_builds_head_device_and_copies_fields(
 async def test_reefdose_select_async_select_option_other_fires_event_and_sets_value(
     hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from custom_components.redsea.i18n import translate
     from custom_components.redsea.select import (
         ReefDoseSelectEntity,
         ReefDoseSelectEntityDescription,
@@ -148,13 +147,6 @@ async def test_reefdose_select_async_select_option_other_fires_event_and_sets_va
 
     monkeypatch.setattr(type(hass.bus), "fire", _fire, raising=True)
     monkeypatch.setattr(ent, "async_write_ha_state", lambda: None, raising=True)
-
-    other_label = translate("other", hass.config.language)
-
-    await ent.async_select_option(other_label)
-
-    assert device.get_data("$.sup") == "other"
-    assert fired == [("$.sup", {"other": True})]
 
 
 @pytest.mark.asyncio
@@ -192,3 +184,69 @@ async def test_reefdose_select_async_select_option_known_supplement_translates_t
 
     assert device.get_data("$.sup") == uid
     assert fired == [("$.sup", {"other": False})]
+
+
+@pytest.mark.asyncio
+async def test_reefdose_select_async_select_option_known_supplement_fire_other(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from custom_components.redsea.select import (
+        ReefDoseSelectEntity,
+        ReefDoseSelectEntityDescription,
+    )
+
+    uid = "0e63ba83-3ec4-445e-a3dd-7f2dbdc7f964"
+
+    device = FakeDoseCoordinator(hass=hass, _data={"$.sup": uid})
+    desc = ReefDoseSelectEntityDescription(
+        key="sup",
+        translation_key="supplements",
+        value_name="$.sup",
+        head=1,
+    )
+    ent = ReefDoseSelectEntity(cast(Any, device), desc)
+
+    fired: list[tuple[str, dict[str, Any]]] = []
+
+    def _fire(
+        _bus: Any, event_type: str, event_data: dict[str, Any] | None = None
+    ) -> None:
+        fired.append((event_type, event_data or {}))
+
+    monkeypatch.setattr(type(hass.bus), "fire", _fire, raising=True)
+    monkeypatch.setattr(ent, "async_write_ha_state", lambda: None, raising=True)
+
+    await ent.async_select_option("other")
+
+    assert device.get_data("$.sup") == "other"
+    assert fired == [("$.sup", {"other": True})]
+
+
+def test_dose_select_handle_coordinator_update_other_branch(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from custom_components.redsea.select import (
+        ReefDoseSelectEntity,
+        ReefDoseSelectEntityDescription,
+    )
+
+    def _translate(val: Any, *_a: Any, **_k: Any) -> Any:
+        return "OTHER" if val == "other" else val
+
+    monkeypatch.setattr(platform, "translate", _translate, raising=True)
+
+    device = FakeDoseCoordinator(
+        hass=hass, last_update_success=False, _data={"$.supp": "uid"}
+    )
+    desc = ReefDoseSelectEntityDescription(
+        key="supp",
+        translation_key="supp",
+        value_name="$.supp",
+        head=1,
+    )
+    entity = ReefDoseSelectEntity(cast(Any, device), desc)
+    entity.async_write_ha_state = lambda: None  # type: ignore[assignment]
+
+    device.set_data("$.supp", "other")
+    entity._handle_coordinator_update()
+    assert entity.current_option == "other"

@@ -53,21 +53,16 @@ async def test_reefwave_select_translates_and_updates_listeners(
         ReefWaveSelectEntityDescription,
     )
 
-    i18n_options = [
-        {"id": "pulse", "en": "Pulse", "fr": "Impulsion"},
-    ]
-
     device = FakeCoordinator(hass=hass, _data={"$.wave": "pulse"})
     desc = ReefWaveSelectEntityDescription(
         key="wave",
         translation_key="wave",
         value_name="$.wave",
         options=["Pulse"],
-        i18n_options=i18n_options,
     )
     ent = ReefWaveSelectEntity(cast(Any, device), desc)
 
-    assert ent.current_option == "Pulse"
+    assert ent.current_option == "pulse"
 
     # Device update path writes HA state with translated value.
     wrote: list[str] = []
@@ -83,13 +78,13 @@ async def test_reefwave_select_translates_and_updates_listeners(
     # Coordinator update path forwards to device update.
     ent._handle_coordinator_update()
 
-    assert wrote == ["Pulse", "Pulse"]
+    assert wrote == ["pulse", "pulse"]
 
     # Selecting an option translates back to the id and only updates listeners.
     device.updated_listeners = 0
     device.set_data("$.wave", "pulse")
 
-    await ent.async_select_option("Pulse")
+    await ent.async_select_option("pulse")
 
     assert device.get_data("$.wave") == "pulse"
     assert device.updated_listeners == 1

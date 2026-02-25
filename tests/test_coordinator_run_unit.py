@@ -106,3 +106,27 @@ async def test_run_set_pump_intensity_updates_current_segment(
     assert api.set_calls[-1][0] == schedule_path
     assert api.pushed == [("/pump/settings", "put", 1)]
     run.async_request_refresh.assert_awaited()
+
+
+def test_run_pump_device_info_pump_id_zero_returns_base_info(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    entry = _make_entry(title="RUN", ip="192.0.2.10", hw_model="RSRUN")
+    run = coord.ReefRunCoordinator(hass, cast(Any, entry))
+
+    base_info = {
+        "identifiers": {(DOMAIN, "IDENT")},
+        "manufacturer": "Red Sea",
+        "model": "RSRUN",
+        "via_device": (DOMAIN, "PARENT"),
+        "name": "RUN",
+    }
+
+    monkeypatch.setattr(
+        type(run),
+        "device_info",
+        property(lambda _self: base_info),
+        raising=True,
+    )
+
+    assert run.pump_device_info(0) == base_info

@@ -173,12 +173,6 @@ Or search for "redsea" or "reefbeat" in HACS.
 
 # Common functions
 
-# Icons
-This integration provides custom icons accessible via "redsea:icon-name":
-
-<img src="doc/img/icons_feeding_maintenance.png"/>
-<img src="doc/img/icons_devices.png"/>
-
 ## Add device
 When adding a new device you have 4 choices:
 

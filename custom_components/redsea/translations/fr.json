@@ -4,8 +4,8 @@
       "already_configured": "Entitée déjà existante",
       "cannot_create": "Impossible de créer une entitée pour un ReefBeat avec ces paramètres"
     },
-    "error":{
-      "auth_failed":"Erreur d'authentification, vérifiez vos informations d'identification",
+    "error": {
+      "auth_failed": "Erreur d'authentification, vérifiez vos informations d'identification",
       "nothing_detected": "Aucun périphérique détecté à "
     },
     "flow_title": "ReefBeat configuration",
@@ -13,7 +13,6 @@
       "user": {
         "data": {
           "add_type": "Méthode d'ajout",
-          "disable_supplements": "Désactiver la récupération des suppléments",
           "hw_model": "Modèle hardware",
           "ip_address": "Adr. IP ou reseau (ex:10.0.1.0/255.255.255.0)",
           "platform": "Plateforme",
@@ -29,7 +28,7 @@
       "battery_level": {
         "name": "Batterie"
       },
-      "bundled_heads":{
+      "bundled_heads": {
         "name": "Têtes liées"
       },
       "buzzer_enabled": {
@@ -91,8 +90,8 @@
       "advance": {
         "name": "Faire dérouler"
       },
-      "delete_emergency":{
-        "name":"Effacer le message d'alerte"
+      "delete_emergency": {
+        "name": "Effacer le message d'alerte"
       },
       "delete_supplement": {
         "name": "Supprimer le Suplément"
@@ -141,6 +140,9 @@
       },
       "set_supplement": {
         "name": "Modifer le Supplément"
+      },
+      "set_supplement_name": {
+        "name": "Modifer le nom du supplément"
       },
       "start_calibration": {
         "name": "Démarrer la  Calibration"
@@ -254,7 +256,15 @@
     },
     "select": {
       "mode": {
-        "name": "Mode"
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "end_of_roll": "Fin de rouleau",
+          "manual": "Manuel",
+          "timer": "Minuterie",
+          "other": "Autre",
+          "off": "Off"
+        }
       },
       "model": {
         "name": "Modèle"
@@ -267,13 +277,29 @@
         }
       },
       "preview_wave_direction": {
-        "name": "Prev. direction des vagues"
+        "name": "Prev. direction des vagues",
+	"state":{
+	  "alt":"Alternatif",
+	  "fw":"Marche avant",
+	  "rw":"Marche arrière"
+	}
       },
       "preview_wave_type": {
-        "name": "Prev. type de vagues"
+        "name": "Prev. type de vagues",
+	"state":{
+	  "nw":"Pas de vagues",
+	  "ra":"Aléatoire",
+	  "re":"Régulier",
+	  "st":"paliers",
+	  "su":"Surface",
+	  "un":"Uniforme"
+	}
       },
       "supplements": {
-        "name": "Suppléments"
+        "name": "Suppléments",
+	"state":{
+	  "other":"Autre"
+	}
       }
     },
     "sensor": {
@@ -282,13 +308,6 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Intensité de départ de l'acclimatation"
-      },
-      "ato_mode": {
-        "name": "Mode ATO",
-        "state": {
-          "auto": "Auto",
-          "empty": "Vide"
-        }
       },
       "auto_1": {
         "name": "Dimanche"
@@ -332,6 +351,7 @@
           "above": "Au-dessus",
           "acceptable": "Acceptable",
           "below": "En dessous",
+          "danger": "En danger",
           "desired": "Souhaité",
           "desired_level_1": "Niveau souhaité 1",
           "desired_level_2": "Niveau souhaité 2"
@@ -362,7 +382,10 @@
         "name": "Doses du jour"
       },
       "dosing_queue": {
-        "name": "File d'attente"
+        "name": "File d'attente",
+	"state": {
+	  "empty": "Vide"
+	}
       },
       "email": {
         "name": "Email"
@@ -406,10 +429,38 @@
       "mode": {
         "name": "mode",
         "state": {
-          "auto": "Auto",
-          "end_of_roll": "Fin de rouleau",
-          "manual": "Manuel",
-          "off": "Off"
+	  "auto": "Auto",
+	  "blockage": "Blocage",
+	  "calibration": "Calibration",
+	  "controller": "Contrôleur",
+	  "emergency": "Urgence",
+	  "empty": "Vide",
+	  "end_of_roll": "Fin de rouleau",
+	  "feeding": "Alimentation en cours",
+	  "high_water": "Niveau d'eau élevé",
+	  "leak": "Fuite",
+	  "maintenance": "Maintenance",
+	  "malfunction": "Dysfonctionnement",
+	  "manual": "Manuel",
+	  "mat_error": "Erreur de matériau",
+	  "missing_pump": "Pompe manquante",
+	  "missing_sensor": "Capteur manquant",
+	  "no_ec_sensor": "Capteur EC absent",
+	  "off": "Arrêt",
+	  "overheating": "Surchauffe",
+	  "partial_auto": "Semi-automatique",
+	  "preview": "Aperçu",
+	  "priming": "Amorçage",
+	  "pump_timeout": "Temps dépassé de la pompe",
+	  "setup": "Configuration",
+	  "setup_error_high": "Erreur de configuration : trop haut",
+	  "setup_error_torn": "Erreur de configuration : déchiré",
+	  "shortcut_off_delay": "Délai d'arrêt du raccourci",
+	  "stalled": "Bloqué",
+	  "timer": "Minuterie",
+	  "torn_mat": "Matériau déchiré",
+	  "user_test": "Test utilisateur",
+	  "no_roll": "Pas de rouleau"
         }
       },
       "model": {
@@ -446,7 +497,22 @@
         }
       },
       "state": {
-        "name": "Etat"
+        "name": "Etat",
+        "state": {
+          "calibration": "Étalonnage",
+          "dry-run": "Fonctionnement à sec",
+          "emergency": "Urgence",
+          "feeding": "Alimentation",
+          "full-cup": "Bol plein",
+          "locked-rotor": "Rotor bloqué",
+          "maintenance": "Maintenance",
+          "not-connected": "Non connecté",
+          "operational": "Opérationnel",
+          "over-skimming": "Surécumage",
+          "preview": "Aperçu",
+          "shortcut-off-delay": "Délais avant redémarrage",
+          "wrong-pump": "Pompe incorrecte"
+        }
       },
       "supplement": {
         "name": "Nom du supplément"
@@ -486,7 +552,12 @@
         "name": "Volume total utilisé"
       },
       "type": {
-        "name": "Type"
+        "name": "Type",
+        "state": {
+          "return": "Retour",
+          "skimmer": "Ecumeur",
+          "unknown": "Inconnu"
+        }
       },
       "volume_left": {
         "name": "Volume restant"
@@ -509,7 +580,12 @@
         "name": "Durée en Marche Arrière"
       },
       "wave_direction": {
-        "name": "Direction des vagues"
+        "name": "Direction des vagues",
+	"state":{
+	  "alt":"Alternatif",
+	  "fw":"Marche avant",
+	  "rw":"Marceh Arrière"
+	}
       },
       "wave_forward_intensity": {
         "name": "Intensité Marche Avant"
@@ -524,7 +600,15 @@
         "name": "Paliers"
       },
       "wave_type": {
-        "name": "Type de vagues"
+        "name": "Type de vagues",
+	"state":{
+	  "nw":"Pas de vagues",
+	  "ra":"Aléatoire",
+	  "re":"Régulier",
+	  "st":"paliers",
+	  "su":"Surface",
+	  "un":"Uniforme"
+	}
       },
       "white": {
         "name": "Blanc"
@@ -579,6 +663,15 @@
       "slm": {
         "name": "Contrôleur du Volume"
       },
+      "shortcut_emergency": {
+        "name": "Raccourci Urgence"
+      },
+      "shortcut_feeding": {
+        "name": "Raccourci Nourrisage"
+      },
+      "shortcut_maintenance": {
+        "name": "Raccourci Maintenance"
+      },
       "use_cloud_api": {
         "name": "Utiliser l'API cloud"
       }
@@ -586,6 +679,9 @@
     "text": {
       "new_supplement_brand_name": {
         "name": "Marque du Supplément"
+      },
+      "new_supplement_display_name": {
+        "name": "Nom affiché du supplément"
       },
       "new_supplement_name": {
         "name": "Nom du Supplément"
@@ -606,13 +702,14 @@
     }
   },
   "options": {
-    "error":{
-      "auth_failed":"Erreur d'authentification, vérifiez vos informations d'identification"
+    "error": {
+      "auth_failed": "Erreur d'authentification, vérifiez vos informations d'identification"
     },
     "step": {
       "init": {
         "data": {
           "live_config_update": "MAJ de la configuration en direct",
+          "disable_supplements": "Désactiver la récupération des suppléments",
           "not_virtual": "Pas de configuration disponible",
           "slaves": "LED"
         },

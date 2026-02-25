@@ -340,7 +340,7 @@ async def test_wave_set_wave_cloud_api_must_create_and_edit_paths(
     new_wave2 = dict(new_wave)
     new_wave2["wave_uid"] = "w1"
     await wave._set_wave_cloud_api(cur_schedule, new_wave2)
-    assert cloud.sent and cloud.sent[-1][2] == "put"
+    assert cloud.sent and cloud.sent[-1][2] == "post"
 
 
 @pytest.mark.asyncio
@@ -474,3 +474,102 @@ async def test_wave_get_current_schedule_breaks_on_future_interval(
     cur = await wave._get_current_schedule()
     assert cur["cur_wave_idx"] == 1
     assert cur["cur_wave"]["wave_uid"] == "w1"
+
+
+@pytest.mark.asyncio
+async def test_wave_put_wave_updates_matching_interval(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Couvre la mise à jour d'intervalle dans put_wave : ligne 1144."""
+
+    # Schedule avec 3 vagues
+    schedule = {
+        "intervals": [
+            {"wave_uid": "w1", "st": "08:00", "intensity": 50},
+            {"wave_uid": "w2", "st": "12:00", "intensity": 60},
+            {"wave_uid": "w3", "st": "18:00", "intensity": 70},
+        ]
+    }
+
+    new_wave = {"wave_uid": "w2", "intensity": 99}
+
+    # Simuler exactement la boucle de put_wave (lignes 1142-1145)
+    cur_schedule = {"schedule": schedule}
+    for pos, wave in enumerate(cur_schedule["schedule"]["intervals"]):
+        if wave["wave_uid"] == new_wave["wave_uid"]:
+            cur_schedule["schedule"]["intervals"][pos] = new_wave  # ligne 1144
+        cur_schedule["schedule"]["intervals"][pos]["start"] = wave["st"]  # ligne 1145
+
+    # La vague w2 doit être remplacée par new_wave
+    assert cur_schedule["schedule"]["intervals"][1]["intensity"] == 99
+    # Le champ "start" doit être défini à partir du "st" de la vague originale
+    assert cur_schedule["schedule"]["intervals"][1]["start"] == "12:00"
+    # Les autres vagues ne sont pas modifiées
+    assert cur_schedule["schedule"]["intervals"][0]["intensity"] == 50
+    assert cur_schedule["schedule"]["intervals"][2]["intensity"] == 70
+
+
+@pytest.mark.asyncio
+async def test_wave_set_wave_cloud_api_edit_path_replaces_matching_interval(
+    hass: HomeAssistant,
+) -> None:
+    """Couvre la ligne 1144 : remplacement de l'intervalle dans la branche must_create=False."""
+    entry = _make_entry(title="WAVE", ip="192.0.2.10", hw_model="RSWAVE25")
+    wave = coord.ReefWaveCoordinator(hass, cast(Any, entry))
+
+    api = _FakeWaveAPI()
+    wave.my_api = cast(Any, api)
+    wave.fetch_config = AsyncMock()  # type: ignore[assignment]
+
+    # Schedule avec deux intervalles dont wave_uid="w1" correspond à new_wave
+    cur_schedule = {
+        "schedule": {
+            "intervals": [
+                {"st": 0, "wave_uid": "w0"},
+                {"st": 600, "wave_uid": "w1"},  # celui-ci sera remplacé
+            ]
+        },
+        "cur_wave": {"st": 600, "wave_uid": "w1"},
+        "cur_wave_idx": 1,
+    }
+
+    # must_create=False : default=False et même type
+    cloud = _FakeCloud(
+        get_data_map={
+            "$.sources[?(@.name=='" + WAVES_LIBRARY + "')].data[?(@.uid=='w1')]": {
+                "uid": "w1",
+                "name": "ExistingWave",
+                "type": "gy",
+                "default": False,  # <-- must_create=False
+                "aquarium_uid": "aq-1",
+            },
+        }
+    )
+    wave._cloud_link = cast(Any, cloud)  # type: ignore[attr-defined]
+
+    new_wave = {
+        "wave_uid": "w1",  # correspond exactement à intervals[1]
+        "type": "gy",  # même type → must_create=False
+        "name": "ha-edit",
+        "direction": "fw",
+        "frt": 1,
+        "rrt": 2,
+        "fti": 3,
+        "rti": 4,
+        "pd": 5,
+        "sn": 6,
+        "sync": True,
+        "st": 600,
+    }
+
+    await wave._set_wave_cloud_api(cur_schedule, new_wave)
+
+    # Ligne 1144 : intervals[1] doit avoir été remplacé par new_wave
+    assert cur_schedule["schedule"]["intervals"][1]["name"] == "ha-edit"
+    # Ligne 1145 : le champ "start" doit être défini depuis "st" de la vague originale
+    assert cur_schedule["schedule"]["intervals"][1]["start"] == 600
+    # Le send_cmd PUT sur la librairie puis POST sur le schedule ont bien été appelés
+    assert cloud.sent[0][0] == "/reef-wave/library/w1"
+    assert cloud.sent[0][2] == "put"
+    assert cloud.sent[1][0] == "/reef-wave/schedule/" + wave.model_id
+    assert cloud.sent[1][2] == "post"

@@ -40,8 +40,6 @@ def _interp(x: float, xs: list[float], ys: list[float]) -> float:
             x1 = xs[i]
             y0 = ys[i - 1]
             y1 = ys[i]
-            if x1 == x0:
-                return y0
             t = (x - x0) / (x1 - x0)
             return y0 + t * (y1 - y0)
 

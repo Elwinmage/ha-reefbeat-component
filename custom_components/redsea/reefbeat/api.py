@@ -241,10 +241,16 @@ class ReefBeatAPI:
                             url, headers=self._header, ssl=False
                         ) as resp2:
                             resp = resp2
-
-                    if resp.status >= 400:
+                    # 503 => Patch for some RSWAVE45
+                    if resp.status >= 400 and not (
+                        resp.status == 503 and url[-1] == "/"
+                    ):
                         _LOGGER.debug(
-                            "GET %s failed: %s %s", url, resp.status, resp.reason
+                            "GET %s failed: %s %s %s",
+                            url,
+                            resp.status,
+                            resp.reason,
+                            source,
                         )
                         return False
 
@@ -553,7 +559,7 @@ class ReefBeatAPI:
                         raise ValueError(f"Unsupported method: {method}")
 
                 status = int(last_result.get("status", 0)) if last_result else 0
-                status_ok = status in (200, 201, 202)
+                status_ok = status in (200, 201, 202, 503)
 
                 # Hard failures that should not be retried
                 if status in (400, 404):
@@ -562,6 +568,9 @@ class ReefBeatAPI:
                 if not status_ok:
                     _LOGGER.error("%d: %s", status, (last_result or {}).get("text", ""))
                     error_count += 1
+                    self.data["message"]["alert"] = {
+                        "message": (last_result or {}).get("text", "")
+                    }
                 else:
                     _LOGGER.debug("%d: %s", status, (last_result or {}).get("text", ""))
                     msg = (last_result or {}).get("json")

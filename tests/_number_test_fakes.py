@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from contextlib import suppress
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any, Callable
-
-from copy import deepcopy
 
 from homeassistant.helpers.device_registry import DeviceInfo
 
@@ -34,8 +33,13 @@ class FakeCoordinator:
     _listeners: list[Callable[[], None]] = field(default_factory=list)
 
     def async_add_listener(
-        self, update_callback: Callable[[], None]
+        self,
+        update_callback: Callable[[], None],
+        context: Any = None,
     ) -> Callable[[], None]:
+        # def async_add_listener(
+        #     self, update_callback: Callable[[], None]
+        # ) -> Callable[[], None]:
         self._listeners.append(update_callback)
 
         def _remove() -> None:

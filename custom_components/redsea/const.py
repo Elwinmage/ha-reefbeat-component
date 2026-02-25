@@ -276,9 +276,6 @@ ATO_VOLUME_LEFT_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/dashboard')].data.volume_left"
 )
 
-# TODO: test ato modes
-# Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/50
-ATO_MODE_INTERNAL_NAME: Final[JsonPath] = "$.sources[?(@.name=='/dashboard')].data.mode"
 ATO_MODES: Final[tuple[str, ...]] = ("auto", "empty", "error")
 
 # -----------------------------------------------------------------------------
@@ -313,20 +310,8 @@ WAVE_SHORTCUT_OFF_DELAY: Final[JsonPath] = (
     "$.sources[?(@.name=='/device-settings')].data.shortcut_off_delay"
 )
 
-WAVE_TYPES: Final[list[dict[str, str]]] = [
-    {"id": "nw", "en": "No Wave", "fr": "Pas de vague"},
-    {"id": "ra", "en": "Random", "fr": "Aléatoire"},
-    {"id": "re", "en": "Regular", "fr": "Régulier"},
-    {"id": "st", "en": "Step", "fr": "Paliers"},
-    {"id": "su", "en": "Surface", "fr": "Surface"},
-    {"id": "un", "en": "Uniform", "fr": "Uniforme"},
-]
-
-WAVE_DIRECTIONS: Final[list[dict[str, str]]] = [
-    {"id": "alt", "en": "Alternate", "fr": "Alternatif"},
-    {"id": "fw", "en": "Forward", "fr": "Marche Avant"},
-    {"id": "rw", "en": "Reward", "fr": "Marche Arrière"},
-]
+WAVE_TYPES: Final[list[str]] = ["nw", "ra", "re", "st", "su", "un"]
+WAVE_DIRECTIONS: Final[list[str]] = ["alt", "fw", "rw"]
 
 # -----------------------------------------------------------------------------
 # Libraries / endpoints

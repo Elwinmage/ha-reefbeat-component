@@ -73,7 +73,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
 from .const import (
-    ATO_MODE_INTERNAL_NAME,
     DOMAIN,
     LED_BLUE_INTERNAL_NAME,
     LED_WHITE_INTERNAL_NAME,
@@ -97,7 +96,6 @@ from .coordinator import (
     ReefWaveCoordinator,
 )
 from .entity import ReefBeatRestoreEntity, RestoreSpec
-from .i18n import translate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -322,6 +320,41 @@ COMMON_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
             "$.sources[?(@.name=='/mode')].data.mode"
         ),
         icon="mdi:play",
+        device_class=SensorDeviceClass.ENUM,
+        options=[
+            "auto",
+            "blockage",
+            "calibration",
+            "controller",
+            "emergency",
+            "empty",
+            "end_of_roll",
+            "feeding",
+            "high_water",
+            "leak",
+            "maintenance",
+            "malfunction",
+            "manual",
+            "mat_error",
+            "missing_pump",
+            "missing_sensor",
+            "no_ec_sensor",
+            "off",
+            "overheating",
+            "partial_auto",
+            "preview",
+            "priming",
+            "pump_timeout",
+            "setup",
+            "setup_error_high",
+            "setup_error_torn",
+            "shortcut_off_delay",
+            "stalled",
+            "timer",
+            "torn_mat",
+            "user_test",
+            "no_roll",
+        ],
     ),
     ReefBeatSensorEntityDescription(
         key="last_alert_message",
@@ -606,6 +639,8 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
         key="wave_type",
         translation_key="wave_type",
         value_name="type",
+        device_class=SensorDeviceClass.ENUM,
+        options=WAVE_TYPES,
         icon="mdi:wave",
     ),
     ReefWaveSensorEntityDescription(
@@ -618,6 +653,8 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
         key="wave_direction",
         translation_key="wave_direction",
         value_name="direction",
+        device_class=SensorDeviceClass.ENUM,
+        options=WAVE_DIRECTIONS,
         icon="mdi:waves-arrow-right",
     ),
     ReefWaveSensorEntityDescription(
@@ -765,12 +802,6 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
             "$.sources[?(@.name=='/dashboard')].data.ato_sensor.temperature_probe_status"
         ),
         icon="mdi:thermometer-check",
-    ),
-    ReefBeatSensorEntityDescription(
-        key="ato_mode",
-        translation_key="ato_mode",
-        value_fn=lambda device: device.get_data(ATO_MODE_INTERNAL_NAME),
-        icon="mdi:play",
     ),
     ReefBeatSensorEntityDescription(
         key="pump_state",
@@ -1024,6 +1055,8 @@ async def async_setup_entry(
                         value_name="$.sources[?(@.name=='/dashboard')].data.pump_"
                         + str(pump)
                         + ".type",
+                        device_class=SensorDeviceClass.ENUM,
+                        options=["return", "skimmer", "unknown"],
                         pump=pump,
                     ),
                     ReefRunSensorEntityDescription(
@@ -1043,6 +1076,22 @@ async def async_setup_entry(
                         + str(pump)
                         + ".state",
                         entity_category=EntityCategory.DIAGNOSTIC,
+                        device_class=SensorDeviceClass.ENUM,
+                        options=[
+                            "calibration",
+                            "dry-run",
+                            "emergency",
+                            "feeding",
+                            "full-cup",
+                            "locked-rotor",
+                            "maintenance",
+                            "not-connected",
+                            "operational",
+                            "over-skimming",
+                            "preview",
+                            "shortcut-off-delay",
+                            "wrong-pump",
+                        ],
                         pump=pump,
                     ),
                     ReefRunSensorEntityDescription(
@@ -1278,7 +1327,7 @@ class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore
             data = cast(list[dict[str, Any]], self._device.get_data(value_name))
             if data:
                 return data[0].get("head")
-            return translate("Empty", self._device.hass.config.language)
+            return "empty"
 
         if isinstance(self._description, ReefBeatSensorEntityDescription):
             return self._description.value_fn(self._device)
@@ -1479,22 +1528,12 @@ class ReefWaveSensorEntity(ReefBeatSensorEntity):
         )
 
         if desc.value_name == "type" and val is not None:
-            return translate(
-                cast(str, val),
-                self._device.hass.config.language,
-                dictionary=WAVE_TYPES,
-                src_lang="id",
-            )
+            return cast(str, val)
 
         if desc.value_name == "direction":
             if val is None:
                 return "fw"
-            return translate(
-                cast(str, val),
-                self._device.hass.config.language,
-                dictionary=WAVE_DIRECTIONS,
-                src_lang="id",
-            )
+            return cast(str, val)
 
         return cast(StateType, val)
 

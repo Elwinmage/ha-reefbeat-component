@@ -83,6 +83,7 @@ class ReefDoseAPI(ReefBeatAPI):
                 "new_supplement": "7d67412c-fde0-44d4-882a-dc8746fd4acb",
                 "new_supplement_brand_name": "",
                 "new_supplement_name": "",
+                "new_supplement_display_name": "",
                 "new_supplement_short_name": "",
             }
 

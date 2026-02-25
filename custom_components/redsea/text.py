@@ -103,6 +103,17 @@ async def async_setup_entry(
                         head=head,
                     ),
                     ReefDoseTextEntityDescription(
+                        key="new_supplement_display_name_" + str(head),
+                        translation_key="new_supplement_display_name",
+                        value_name="$.local.head."
+                        + str(head)
+                        + ".new_supplement_display_name",
+                        icon="mdi:tag-text-outline",
+                        entity_category=EntityCategory.CONFIG,
+                        dependency="$.local.head." + str(head) + ".new_supplement",
+                        head=head,
+                    ),
+                    ReefDoseTextEntityDescription(
                         key="new_supplement_short_name_" + str(head),
                         translation_key="new_supplement_short_name",
                         value_name="$.local.head."

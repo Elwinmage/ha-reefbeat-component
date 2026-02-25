@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
@@ -7,6 +8,54 @@ from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.redsea.const import DOMAIN
+
+from unittest.mock import MagicMock, patch, AsyncMock
+
+
+@pytest.mark.asyncio
+async def test_register_static_paths(hass):
+    """Test the registration of frontend resources and custom icons."""
+
+    # 1. Setup the Mock HTTP object
+    mock_http = MagicMock()
+    mock_register = AsyncMock()
+    mock_http.async_register_static_paths = mock_register
+
+    # 2. Assign the mock to hass.http BEFORE running the setup
+    # In some versions of HA tests, you must set it directly:
+    hass.http = mock_http
+
+    # 3. Patch the 'add_extra_js_url' function
+    # Note: Ensure the path points to your actual __init__.py location
+    with patch("custom_components.redsea.add_extra_js_url") as mock_add_js:
+        # 4. Import and run your setup function
+        from custom_components.redsea import async_setup
+
+        # Create a mock ConfigEntry (required for async_setup_entry)
+        mock_entry = MagicMock()
+        mock_entry.domain = DOMAIN
+        mock_entry.entry_id = "test_entry"
+
+        # Execute the function
+        assert hass.http
+        await async_setup(hass, mock_entry)
+
+        # 5. Debugging: If this still fails, print hass.http to see if it's None
+        # print(f"DEBUG: hass.http is {hass.http}")
+
+        # 6. Assertions
+        # Verify the registration method was actually called
+        assert mock_register.called, (
+            "The method async_register_static_paths was never called!"
+        )
+
+        # Verify specific arguments
+        args = mock_register.call_args[0][0]  # Get the list of StaticPathConfig
+        assert args[0].url_path == f"/{DOMAIN}/frontend"
+
+        # Verify the JS icon registration
+        assert mock_add_js.called
+        assert mock_add_js.call_args[0][1].endswith("icons.js")
 
 
 @pytest.mark.parametrize(
@@ -187,3 +236,88 @@ async def test_request_service_returns_error_on_exception_and_on_empty_response(
         return_response=True,
     )
     assert resp2 == {"error": "can not access to device Title2"}
+
+
+@pytest.mark.asyncio
+async def test_migrate_head_device_names_updates_registry(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import custom_components.redsea as redsea_init
+
+    entry = MockConfigEntry(domain=redsea_init.DOMAIN, title="Dose", data={})
+    entry.add_to_hass(hass)
+
+    updated: list[tuple[str, str]] = []
+
+    class _FakeRegistry:
+        def async_update_device(self, device_id: str, *, name: str) -> None:
+            updated.append((device_id, name))
+
+    fake_registry = _FakeRegistry()
+
+    devices = [
+        SimpleNamespace(id="d1", name="MyDose_head_2", name_by_user=None),
+        SimpleNamespace(id="d2", name="Other", name_by_user=None),
+        SimpleNamespace(id="d3", name="MyDose head 3", name_by_user=None),
+        SimpleNamespace(id="d4", name="User_head_1", name_by_user="custom"),
+        SimpleNamespace(id="d5", name="Bad_head_x", name_by_user=None),
+    ]
+
+    monkeypatch.setattr(redsea_init.dr, "async_get", lambda _h: fake_registry)
+    monkeypatch.setattr(
+        redsea_init.dr,
+        "async_entries_for_config_entry",
+        lambda _reg, _entry_id: devices,
+    )
+
+    await redsea_init._migrate_head_device_names(hass, cast(Any, entry))
+
+    assert ("d1", "MyDose head 2") in updated
+    assert all(did != "d2" for did, _name in updated)
+    assert all(did != "d4" for did, _name in updated)
+
+
+@pytest.mark.asyncio
+async def test_services_clean_message_and_request_handlers(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import custom_components.redsea as redsea_init
+
+    handlers: dict[str, Any] = {}
+
+    def _async_register(
+        self: Any,
+        domain: str,
+        service: str,
+        service_func: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        handlers[f"{domain}.{service}"] = service_func
+
+    monkeypatch.setattr(
+        type(hass.services), "async_register", _async_register, raising=True
+    )
+
+    assert await redsea_init.async_setup(hass, {}) is True
+
+    clean = handlers[f"{redsea_init.DOMAIN}.clean_message"]
+
+    hass.data.setdefault(redsea_init.DOMAIN, {})
+    resp = await clean(SimpleNamespace(data={"device_id": "missing"}))
+    assert resp == {"error": "Device not enabled"}
+
+    called: list[Any] = []
+
+    class _Device:
+        def clean_message(self, msg_type: Any) -> None:
+            called.append(msg_type)
+
+    hass.data[redsea_init.DOMAIN]["dev"] = _Device()
+    resp2 = await clean(SimpleNamespace(data={"device_id": "dev", "msg_type": "All"}))
+    assert resp2 is None
+    assert called == ["All"]
+
+    req = handlers[f"{redsea_init.DOMAIN}.request"]
+    bad = await req(SimpleNamespace(data={"device_id": 123}))
+    assert bad == {"error": "Invalid device_id"}

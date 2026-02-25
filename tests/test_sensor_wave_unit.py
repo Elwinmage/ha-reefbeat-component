@@ -55,10 +55,6 @@ class _FakeWaveCoordinator:
 
 
 def test_wave_sensor_translates_type_and_direction(monkeypatch: Any) -> None:
-    monkeypatch.setattr(
-        sensor_platform, "translate", lambda txt, lang, **_: f"{txt}-{lang}"
-    )
-
     device = _FakeWaveCoordinator(hass=_FakeHass(language="en"))
     device.current_values[("schedule", "type")] = "A"
     device.current_values[("schedule", "direction")] = "X"
@@ -79,8 +75,8 @@ def test_wave_sensor_translates_type_and_direction(monkeypatch: Any) -> None:
     type_entity = ReefWaveSensorEntity(cast(Any, device), type_desc)
     dir_entity = ReefWaveSensorEntity(cast(Any, device), dir_desc)
 
-    assert type_entity._get_value() == "A-en"
-    assert dir_entity._get_value() == "X-en"
+    assert type_entity._get_value() == "A"
+    assert dir_entity._get_value() == "X"
 
 
 def test_wave_sensor_direction_defaults_fw_when_none() -> None:

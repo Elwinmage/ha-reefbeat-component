@@ -71,7 +71,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             list[SourceEntry],
             [
                 {"name": "/user", "type": "config", "data": ""},
-                {"name": "/aquarium", "type": "config", "data": ""},
+                {"name": "/aquarium", "type": "data", "data": ""},
                 {"name": "/device", "type": "config", "data": ""},
                 {"name": LIGHTS_LIBRARY, "type": "config", "data": ""},
                 {"name": WAVES_LIBRARY, "type": "config", "data": ""},
