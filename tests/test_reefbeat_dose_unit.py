@@ -60,7 +60,7 @@ async def test_dose_press_with_head_sends_manual_dose_payload(
     )
 
     # Override manual_dose in local cache
-    api.set_data("$.local.head.1.manual_dose", 9)
+    api.set_data("$.local.head['1'].manual_dose", 9)
 
     sent: list[tuple[str, Any, str]] = []
 
