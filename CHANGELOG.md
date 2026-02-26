@@ -1,4 +1,6 @@
-# v2.0.0
+# v2.0.1
+
+CLOUD: Correct #63 - Cant log to redsea account
 
 # v2.0.0
 
