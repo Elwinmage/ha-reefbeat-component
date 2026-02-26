@@ -1,5 +1,10 @@
 # v2.0.0
 
+# v2.0.0
+
+> [!CAUTION]
+>  CLOUD, RSDOSE and RSRUN users: you have do delete and recreate your devices.
+
 ## GENERAL
 
 ### Compatibility with the new ha-reef-card 
