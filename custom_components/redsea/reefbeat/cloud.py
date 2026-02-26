@@ -15,7 +15,6 @@ import logging
 import time
 from contextlib import suppress
 from typing import Any, Optional, cast
-from urllib.parse import quote_plus
 
 import aiohttp
 from homeassistant.exceptions import HomeAssistantError
@@ -124,7 +123,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
         payload = {
             "grant_type": "password",
             "username": self._username,
-            "password": quote_plus(self._password.encode("UTF-8")),
+            "password": self._password,
         }
         _LOGGER.debug("AUTH %s" % self._session)
         async with self._session.post(
