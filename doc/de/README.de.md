@@ -40,7 +40,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <tr>
 <td><a href="#reefato">ReefATO+</a></td>
 <td colspan="2">RSATO+</td><td>✅ </td>
-<td width="200px"><img src="../img/RSATO+.png"/></td>
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSATO+.png"/></td>
 <td>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsato,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsato,all label:bug" style="text-decoration:none">🐛</a>
@@ -49,7 +49,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <tr>
 <td><a href="#reefcontrol">ReefControl</a></td>
 <td colspan="2">RSSENSE<br />Wenn Sie eines haben, kontaktieren Sie mich <a href="https://github.com/Elwinmage/ha-reefbeat-component/discussions/8">hier</a>, und ich werde den Support hinzufügen.</td><td>❌</td>
-<td width="200px"><img src="../img/RSCONTROL.png"/></td>
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROL.png"/></td>
 <td>
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:enhancement" style="text-decoration:none">📆</a>
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:bug" style="text-decoration:none">🐛</a>
@@ -59,7 +59,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
 <td colspan="2">RSDOSE2</td>
 <td>✅</td>
-<td width="200px"><img src="../img/RSDOSE2.png"/></td>
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSDOSE2.png"/></td>
 <td rowspan="2">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsdose,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsdose,all label:bug" style="text-decoration:none">🐛</a>
@@ -67,14 +67,14 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 </tr>
 <tr>
 <td colspan="2">RSDOSE4</td><td>✅ </td>
-<td width="200px"><img src="../img/RSDOSE4.png"/></td>
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSDOSE4.png"/></td>
 </tr>
 <tr>
 <td rowspan="6"> <a href="#reefled">ReefLed</a></td>
 <td rowspan="3">G1</td>
 <td>RSLED50</td>
 <td>✅</td>
-<td rowspan="3" width="200px"><img src="../img/rsled_g1.png"/></td>
+<td rowspan="3" width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_g1.png"/></td>
 <td rowspan="6">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsled,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsled,RSLED90,all label:bug" style="text-decoration:none">🐛</a>
@@ -91,7 +91,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <td rowspan="3">G2</td>
 <td>RSLED60</td>
 <td>✅</td>
-<td rowspan="3" width="200px"><img src="../img/rsled_g2.png"/></td>
+<td rowspan="3" width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_g2.png"/></td>
 </tr>
 <tr>
 <td>RSLED115</td><td>✅ </td>
@@ -103,7 +103,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <td rowspan="3"><a href="#reefmat">ReefMat</a></td>
 <td colspan="2">RSMAT250</td>
 <td>✅</td>
-<td rowspan="3" width="200px"><img src="../img/RSMAT.png"/></td>
+<td rowspan="3" width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSMAT.png"/></td>
 <td rowspan="3">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsmat,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsmat,all label:bug" style="text-decoration:none">🐛</a>
@@ -118,7 +118,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <tr>
 <td><a href="#reefrun">ReefRun & DC Skimmer</a></td>
 <td colspan="2">RSRUN</td><td>✅</td>
-<td width="200px"><img src="../img/RSRUN.png"/></td>
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSRUN.png"/></td>
 <td>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsrun,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsrun,all label:bug" style="text-decoration:none">🐛</a>
@@ -128,7 +128,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <td rowspan="2"><a href="#reefwave">ReefWave (*)</a></td>
 <td colspan="2">RSWAVE25</td>
 <td>☑️</td>
-<td width="200px" rowspan="2"><img src="../img/RSWAVE.png"/></td>
+<td width="200px" rowspan="2"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSWAVE.png"/></td>
 <td rowspan="2">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rswave,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rwave,all label:bug" style="text-decoration:none">🐛</a>
@@ -167,7 +167,7 @@ Für die Begleit-Karte ha-reef-card mit erweiterten Funktionen klicken Sie hier,
 Oder suchen Sie in HACS nach „redsea" oder „reefbeat".
 
 <p align="center">
-<img src="../img/hacs_search.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/hacs_search.png" alt="Image">
 </p>
 
 # Gemeinsame Funktionen
@@ -175,14 +175,14 @@ Oder suchen Sie in HACS nach „redsea" oder „reefbeat".
 # Symbole
 Diese Integration stellt benutzerdefinierte Symbole bereit, zugänglich über "redsea:icon-name":
 
-<img src="../img/icons_feeding_maintenance.png"/>
-<img src="../img/icons_devices.png"/>
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/icons_feeding_maintenance.png"/>
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/icons_devices.png"/>
 
 ## Gerät hinzufügen
 Beim Hinzufügen eines neuen Geräts haben Sie 4 Optionen:
 
 <p align="center">
-<img src="../img/add_devices_main.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/add_devices_main.png" alt="Image">
 </p>
 
 ### Cloud-API hinzufügen
@@ -194,37 +194,37 @@ Beim Hinzufügen eines neuen Geräts haben Sie 4 Optionen:
 - LED-Bibliothek abrufen
 
 <p align="center">
-<img src="../img/add_devices_cloud_api.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/add_devices_cloud_api.png" alt="Image">
 </p>
 
 ### Automatische Erkennung im privaten Netzwerk
 Wenn Sie sich nicht im gleichen Netzwerk befinden, lesen Sie [dies](#my-device-is-not-detected) und verwenden Sie den [„Manuellen Modus"](https://github.com/Elwinmage/ha-reefbeat-component/#manual-mode).
 <p align="center">
-<img src="../img/auto_detect.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/auto_detect.png" alt="Image">
 </p>
 
 ### Manueller Modus
 Sie können die IP-Adresse Ihres Geräts oder die Netzwerkadresse für die automatische Erkennung eingeben.
 
 <p align="center">
-<img src="../img/add_devices_manual.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/add_devices_manual.png" alt="Image">
 </p>
 
 ### Scan-Intervall für das Gerät festlegen
 
 <p align="center">
-<img src="../img/configure_device_1.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/configure_device_1.png" alt="Image">
 </p>
 <p align="center">
-<img src="../img/configure_device_2.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/configure_device_2.png" alt="Image">
 </p>
 
 ## Live-Aktualisierung
 
 > [!NOTE]
 > It is possible to choose whether to enable live_update_config or not. In this mode (old default), configuration data is continuously retrieved along with normal data. For RSDOSE or RSLED, these large HTTP requests can take a long time (7–9 seconds). Sometimes the device does not respond to the request, so a retry function has been implemented. When live_update_config is disabled, configuration data is only retrieved at startup and when requested via the "Fetch Configuration" button. This new mode is activated by default. You can change it in the device configuration. <p align="center">
-<img src="../img/configure_device_live_update_config.png" alt="Image">
-<img src="../img/fetch_config_button.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/configure_device_live_update_config.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/fetch_config_button.png" alt="Image">
 </p>
 
 ## Firmware-Aktualisierung
@@ -233,8 +233,8 @@ Sie können benachrichtigt werden und Ihr Gerät aktualisieren, wenn eine neue F
 > The "Cloud API" is only needed to get the version number of the new release and compare it to the installed version. To update your firmware, the Cloud API is not strictly required.
 > If you do not use the "Cloud API" (switch disabled or no Cloud API device installed), you will not be alerted when a new version is available, but you can still use the hidden "Force Firmware Update" button. If a new version is available, it will be installed.
 <p align="center">
-  <img src="../img/firmware_update_1.png" alt="Image">
-  <img src="../img/firmware_update_2.png" alt="Image">
+  <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/firmware_update_1.png" alt="Image">
+  <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/firmware_update_2.png" alt="Image">
 </p>
 
 
@@ -242,9 +242,9 @@ Sie können benachrichtigt werden und Ihr Gerät aktualisieren, wenn eine neue F
 - Automatisches Befüllen aktivieren/deaktivieren
 - Manuelles Befüllen
 <p align="center">
-<img src="../img/rsato_sensors.png" alt="Image">
-<img src="../img/rsato_conf.png" alt="Image">
-<img src="../img/rsato_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_diag.png" alt="Image">
 </p>
 
 # ReefControl:
@@ -262,20 +262,20 @@ Noch nicht unterstützt. If you have one, contact me [here](https://github.com/E
 - Kalibrierung (Bitte lesen Sie [this](https://github.com/Elwinmage/ha-reefbeat-component/#calibration-and-priming))
 
 <p align="center">
-<img src="../img/rsdose_devices.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_devices.png" alt="Image">
 </p>
 
 ### Hauptgerät
 <p align="center">
-<img src="../img/rsdose_main_conf.png" alt="Image">
-<img src="../img/rsdose_main_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_main_conf.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_main_diag.png" alt="Image">
 </p>
 
 ### Köpfe
 <p align="center">
-<img src="../img/rsdose_ctrl.png" alt="Image">
-<img src="../img/rsdose_sensors.png" alt="Image">
-<img src="../img/rsdose_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_ctrl.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_sensors.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_diag.png" alt="Image">
 </p>
 
 #### Calibration and Priming
@@ -301,7 +301,7 @@ Noch nicht unterstützt. If you have one, contact me [here](https://github.com/E
 > ⚠️ Priming must always be followed by a calibration (steps 1 to 5)!⚠️
 
 <p align="center">
-  <img src="../img/calibration.png" alt="Image">
+  <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/calibration.png" alt="Image">
 </p>
 
 # ReefLED:
@@ -315,19 +315,19 @@ Noch nicht unterstützt. If you have one, contact me [here](https://github.com/E
 - Name und Wert für Programme abrufen (with cloud support). Only for G1 LEDs.
 
 <p align="center">
-<img src="../img/rsled_G1_ctrl.png" alt="Image">
-<img src="../img/rsled_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_G1_ctrl.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_diag.png" alt="Image">
 </p>
 <p align="center">
-<img src="../img/rsled_G1_sensors.png" alt="Image">
-<img src="../img/rsled_conf.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_G1_sensors.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_conf.png" alt="Image">
 </p>
 
 ***
 
 Color Temperature support for G1 LEDs takes into account the specificities of each of the three models.
 <p align="center">
-<img src="../img/leds_specs.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/leds_specs.png" alt="Image">
 </p>
 
 ***
@@ -339,7 +339,7 @@ Color Temperature support for G1 LEDs takes into account the specificities of ea
 Because G2 LEDs ensure constant intensity across the entire color range, your LEDs do not utilize their full capacity in the middle of the spectrum. At 8,000K, the white channel is at 100% and the blue channel at 0% (the opposite at 23,000K). At 14,000K with 100% intensity for G2 lights, the power of the white and blue channels is approximately 85%.
 Here is the loss curve for the G2s.
 <p align="center">
-<img src="../img/intensity_factor.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/intensity_factor.png" alt="Image">
 </p>
 
 #### Farbtemperatur
@@ -354,14 +354,14 @@ This compensation ensures you get the same [PAR](https://en.wikipedia.org/wiki/P
 > Because Red Sea does not publish PAR values below 12,000K, compensation is only available in the 12,000 to 23,000K range. If you have a G1 LED and a PAR meter, you can [contact me](https://github.com/Elwinmage/ha-reefbeat-component/discussions/) to add compensation for the full range (9,000 to 23,000K).
 
 <p align="center">
-<img src="../img/intensity_compensation.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/intensity_compensation.png" alt="Image">
 </p>
 
 In other words, without compensation, an intensity of x% at 9,000K does not provide the same PAR as at 23,000K or 15,000K.
 
 Here are the power curves:
 <p align="center">
-<img src="../img/PAR_curves.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/PAR_curves.png" alt="Image">
 </p>
 
 If you want to use the full power of your LED, disable intensity compensation (default).
@@ -378,8 +378,8 @@ Also note that if compensation is enabled, the intensity factor can exceed 100% 
 - Sie können sowohl Kelvin/Intensität als auch Weiß & Blau verwenden, wenn Sie nur G1-Leuchten haben.
 
 <p align="center">
-<img src="../img/virtual_led_config_1.png" alt="Image">
-<img src="../img/virtual_led_config_2.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/virtual_led_config_1.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/virtual_led_config_2.png" alt="Image">
 </p>
 
 # ReefMat:
@@ -392,9 +392,9 @@ Also note that if compensation is enabled, the intensity factor can exceed 100% 
 > For a new full roll, please set "roll diameter" to the minimum (4.0 cm). The size will be adjusted according to your RSMAT version. For a partially used roll, enter the value in cm.
 - Zwei versteckte Parameter: Modell und Position, falls Sie Ihr RSMAT neu konfigurieren müssen
 <p align="center">
-<img src="../img/rsmat_ctr.png" alt="Image">
-<img src="../img/rsmat_sensors.png" alt="Image">
-<img src="../img/rsmat_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_ctr.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_sensors.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_diag.png" alt="Image">
 </p>
 
 # ReefRun:
@@ -404,26 +404,26 @@ Also note that if compensation is enabled, the intensity factor can exceed 100% 
 - Skimmer-Modell änderbar
 
 <p align="center">
-<img src="../img/rsrun_devices.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_devices.png" alt="Image">
 </p>
 
 ### Hauptgerät
 <p align="center">
-<img src="../img/rsrun_main_sensors.png" alt="Image">
-<img src="../img/rsrun_main_ctrl.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_sensors.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_ctrl.png" alt="Image">
 </p>
 <p align="center">
-<img src="../img/rsrun_main_conf.png" alt="Image">
-<img src="../img/rsrun_main_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_conf.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_diag.png" alt="Image">
 </p>
 
 ### Pumpen
-<p align="center"><img src="../img/rsrun_ctrl.png" alt="Image">
-<img src="../img/rsrun_conf.png" alt="Image">
+<p align="center"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_ctrl.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_conf.png" alt="Image">
 </p>
 <p align="center">
-<img src="../img/rsrun_sensors.png" alt="Image">
-<img src="../img/rsrun_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_sensors.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_diag.png" alt="Image">
 </p>
 
 # ReefWave:
@@ -431,7 +431,7 @@ Also note that if compensation is enabled, the intensity factor can exceed 100% 
 > ReefWave devices are different from other ReefBeat devices. They are the only devices that are slaves to the ReefBeat cloud.<br/>
 > When you launch the ReefBeat mobile app, the status of all devices is queried and data from the ReefBeat app is retrieved from device state.<br/>
 > For ReefWave, it is the opposite: there is no local control point (as you can see in the ReefBeat app, you cannot add a ReefWave to a disconnected aquarium).<br/>
-> <center><img width="20%" src="../img/reefbeat_rswave.jpg" alt="Image"></center><br />
+> <center><img width="20%" src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/reefbeat_rswave.jpg" alt="Image"></center><br />
 > Waves are stored in the cloud user library. When you change a wave's value, it is changed in the cloud library and applied to the new schedule.<br/>
 > So there is no local mode? Not so simple. There is a hidden local API to control ReefWave, but the ReefBeat app will not detect the changes. As a result, the device and Home Assistant on one side, and the ReefBeat mobile app on the other, will be out of sync. The device and Home Assistant will always be synchronized.<br/>
 > Now that you know, make your choice!
@@ -479,25 +479,25 @@ For Cloud and Hybrid modes you must link your ReefBeat cloud account.
 First create a ["Cloud API"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) device with your credentials, and that's it!
 The "Linked to account" sensor will be updated with the name of your ReefBeat account once the connection is established.
 <p align="center">
-<img src="../img/rswave_linked.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_linked.png" alt="Image">
 </p>
 
 ## Aktuelle Werte ändern
 To load current wave values into the preview fields, use the "Set Preview From Current Wave" button.
 <p align="center">
-<img src="../img/rswave_set_preview.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_set_preview.png" alt="Image">
 </p>
 To change the current wave values, set the preview values and use the "Save Preview" button.
 
 The behavior is the same as the ReefBeat mobile app. All waves with the same ID in the current schedule will be updated.
 <p align="center">
-<img src="../img/rswave_save_preview.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_save_preview.png" alt="Image">
 </p>
 
 <p align="center">
-<img src="../img/rswave_conf.png" alt="Image">
-<img src="../img/rswave_sensors.png" alt="Image">
-<img src="../img/rswave_diag.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_conf.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_sensors.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_diag.png" alt="Image">
 </p>
 
 # Cloud-API
@@ -512,17 +512,17 @@ Die Cloud-API ermöglicht Ihnen:
 
 Verknüpfungen, Wellenparameter und LED-Parameter sind nach Aquarium sortiert.
 <p align="center">
-<img src="../img/cloud_api_devices.png" alt="Image">
-<img src="../img/cloud_ctrl.png" alt="Image">
-<img src="../img/cloud_api_supplements.png" alt="Image">
-<img src="../img/cloud_api_sensors.png" alt="Image">
-<img src="../img/cloud_api_led_and_waves.png" alt="Image">
-<img src="../img/cloud_api_conf.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_devices.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_ctrl.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_supplements.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_sensors.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_led_and_waves.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_conf.png" alt="Image">
 </p>
 
 >[!TIP]
 > Sie können das Abrufen der Supplements-Liste in der Cloud-API-Gerätekonfiguration deaktivieren.
->    <img src="../img/cloud_config.png" alt="Image">
+>    <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_config.png" alt="Image">
 ***
 # FAQ
 
@@ -532,7 +532,7 @@ Verknüpfungen, Wellenparameter und LED-Parameter sind nach Aquarium sortiert.
 - You can also use [Manual Mode](https://github.com/Elwinmage/ha-reefbeat-component/#manual-mode).
 
 <p align="center">
-<img src="../img/subnetwork.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/subnetwork.png" alt="Image">
 </p>
 
 ## Einige Daten werden korrekt aktualisiert, andere nicht.
