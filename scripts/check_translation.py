@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import sys
 
 from colorama import Fore, Style
 
@@ -206,3 +207,5 @@ for lang in langs:
 
 if all_good:
     print("All " + Fore.GREEN + "good" + Style.RESET_ALL + ", no modifications needed")
+else:
+    sys.exit(1)
