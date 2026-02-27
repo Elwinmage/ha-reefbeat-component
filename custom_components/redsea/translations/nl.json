@@ -1,0 +1,746 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Apparaat al geconfigureerd",
+      "cannot_create": "Kan ReefBeat-apparaat niet aanmaken met de opgegeven parameters"
+    },
+    "error": {
+      "auth_failed": "Authenticatie mislukt, controleer je gegevens",
+      "nothing_detected": "Geen apparaat gedetecteerd"
+    },
+    "flow_title": "ReefBeat configuratie",
+    "step": {
+      "user": {
+        "data": {
+          "add_type": "Kies je toevoegmethode",
+          "disable_supplements": "Supplementen uitschakelen",
+          "hw_model": "Hardware Model",
+          "ip_address": "IP of subnet adres (bijv: 10.0.1.0/255.255.255.0)",
+          "platform": "Platform",
+          "scan_interval": "Scan-interval",
+          "virtual_led": "Nieuwe virtuele LED-controller"
+        },
+        "title": "Nieuw apparaat toevoegen"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "battery_level": {
+        "name": "Batterijniveau"
+      },
+      "bundled_heads": {
+        "name": "Gebundelde koppen"
+      },
+      "buzzer_enabled": {
+        "name": "Buzzer ingeschakeld"
+      },
+      "cloud_state": {
+        "name": "Cloud verbindingsstatus"
+      },
+      "connected": {
+        "name": "Leksensor verbonden"
+      },
+      "constant_speed": {
+        "name": "Constante snelheid"
+      },
+      "ec_sensor_connected": {
+        "name": "EC-sensor verbonden"
+      },
+      "enabled": {
+        "name": "Leksensor ingeschakeld"
+      },
+      "is_ec_sensor_connected": {
+        "name": "Is EC-sensor verbonden"
+      },
+      "is_pump_on": {
+        "name": "Staat de pomp aan?"
+      },
+      "is_sensor_error": {
+        "name": "Is sensor in foutstatus?"
+      },
+      "is_temp_enabled": {
+        "name": "Is temperatuur ingeschakeld"
+      },
+      "missing_pump": {
+        "name": "Pomp ontbreekt"
+      },
+      "missing_sensor": {
+        "name": "Sensor ontbreekt"
+      },
+      "recalibration_required": {
+        "name": "Kalibratie"
+      },
+      "schedule_enabled": {
+        "name": "Schema ingeschakeld"
+      },
+      "sensor_controlled": {
+        "name": "Aangestuurd door sensor"
+      },
+      "status": {
+        "name": "Status"
+      },
+      "unclean_sensor": {
+        "name": "Sensor status"
+      },
+      "water_level": {
+        "name": "Waterniveau"
+      }
+    },
+    "button": {
+      "advance": {
+        "name": "Vooruit"
+      },
+      "delete_emergency": {
+        "name": "Noodmelding verwijderen"
+      },
+      "delete_supplement": {
+        "name": "Supplement verwijderen"
+      },
+      "end_calibration": {
+        "name": "Stop en sla kalibratie op"
+      },
+      "fetch_config": {
+        "name": "Configuratie ophalen"
+      },
+      "fill": {
+        "name": "Vullen"
+      },
+      "firmware_update": {
+        "name": "Forceer firmware update"
+      },
+      "led_identify": {
+        "name": "Identificeren"
+      },
+      "manual_head": {
+        "name": "Handmatige dosering"
+      },
+      "new_roll": {
+        "name": "Nieuwe rol"
+      },
+      "preview_save": {
+        "name": "Voorvertoning opslaan"
+      },
+      "preview_set_from_current": {
+        "name": "Stel voorvertoning in van huidig"
+      },
+      "preview_start": {
+        "name": "Start voorvertoning"
+      },
+      "preview_stop": {
+        "name": "Stop voorvertoning"
+      },
+      "reset": {
+        "name": "Opnieuw opstarten"
+      },
+      "resume": {
+        "name": "Hervatten"
+      },
+      "set_calibration_value": {
+        "name": "Stel kalibratievolume in"
+      },
+      "set_supplement": {
+        "name": "Stel nieuw supplement in"
+      },
+      "set_supplement_name": {
+        "name": "Stel nieuwe supplementnaam in"
+      },
+      "start_calibration": {
+        "name": "Start kalibratie"
+      },
+      "start_priming": {
+        "name": "Start voorbereiden (priming)"
+      },
+      "stop_fill": {
+        "name": "Stop vullen"
+      },
+      "stop_priming": {
+        "name": "Stop voorbereiden (priming)"
+      },
+      "test_calibration": {
+        "name": "Test nieuwe kalibratie"
+      }
+    },
+    "light": {
+      "blue": {
+        "name": "Blauw"
+      },
+      "kelvin_intensity": {
+        "name": "Kelvin"
+      },
+      "moon": {
+        "name": "Maan"
+      },
+      "white": {
+        "name": "Wit"
+      }
+    },
+    "number": {
+      "acclimation_duration": {
+        "name": "Acclimatisatie duur"
+      },
+      "acclimation_start_intensity_factor": {
+        "name": "Acclimatisatie start intensiteit factor"
+      },
+      "ato_volume_left": {
+        "name": "ATO volume over"
+      },
+      "calibration_dose_value": {
+        "name": "Dosering van kalibratie"
+      },
+      "container_volume": {
+        "name": "Container volume"
+      },
+      "custom_advance_value": {
+        "name": "Waarde vooruit"
+      },
+      "daily_dose": {
+        "name": "Dagelijkse dosering bijwerken"
+      },
+      "dosing_waiting_period": {
+        "name": "Doseer wachttijd"
+      },
+      "manual_duration": {
+        "name": "Handmatige duur"
+      },
+      "manual_head_volume": {
+        "name": "Handmatig volume"
+      },
+      "moon_day": {
+        "name": "Maandag"
+      },
+      "overskimming_threshold": {
+        "name": "Drempelwaarde over-skimming"
+      },
+      "preview_speed": {
+        "name": "Snelheid voorvertoning"
+      },
+      "save_initial_container_volume": {
+        "name": "Initieel container volume"
+      },
+      "schedule_length": {
+        "name": "Lengte schema"
+      },
+      "shortcut_off_delay": {
+        "name": "Sneltoets UIT vertraging"
+      },
+      "speed": {
+        "name": "Snelheid"
+      },
+      "started_roll_diameter": {
+        "name": "Rol diameter"
+      },
+      "stock_alert_days": {
+        "name": "Voorraad alarm dagen"
+      },
+      "wave_backward_intensity": {
+        "name": "Voorvertoning achterwaartse intensiteit"
+      },
+      "wave_backward_time": {
+        "name": "Voorvertoning achterwaartse tijd"
+      },
+      "wave_forward_intensity": {
+        "name": "Voorvertoning voorwaartse intensiteit"
+      },
+      "wave_forward_time": {
+        "name": "Voorvertoning voorwaartse tijd"
+      },
+      "wave_preview_duration": {
+        "name": "Voorvertoning duur"
+      },
+      "wave_preview_step": {
+        "name": "Voorvertoning stap"
+      },
+      "wave_preview_wave_duration": {
+        "name": "Voorvertoning golfduur"
+      }
+    },
+    "select": {
+      "mode": {
+        "name": "Modus",
+        "state": {
+          "auto": "Auto",
+          "end_of_roll": "Einde rol",
+          "manual": "Handmatig",
+          "timer": "Timer",
+          "other": "Overig",
+          "off": "Uit"
+        }
+      },
+      "model": {
+        "name": "Model"
+      },
+      "position": {
+        "name": "Positie",
+        "state": {
+          "left": "Links",
+          "right": "Rechts"
+        }
+      },
+      "preview_wave_direction": {
+        "name": "Voorvertoning golfrichting",
+	"state":{
+	  "alt":"Afwisselend",
+	  "fw":"Voorwaarts",
+	  "rw":"Achterwaarts"
+	}
+      },
+      "preview_wave_type": {
+        "name": "Voorvertoning golftype",
+	"state":{
+	  "nw":"Geen golf",
+	  "ra":"Willekeurig",
+	  "re":"Regelmatig",
+	  "st":"Stap",
+	  "su":"Oppervlakte",
+	  "un":"Uniform"
+	}
+      },
+      "supplements": {
+        "name": "Supplementen",
+	"state":{
+	  "other":"Overig"
+	}
+      }
+    },
+    "sensor": {
+      "acclimation_duration": {
+        "name": "Acclimatisatie duur"
+      },
+      "acclimation_start_intensity_factor": {
+        "name": "Acclimatisatie start intensiteit factor"
+      },
+      "auto_1": {
+        "name": "Zondag"
+      },
+      "auto_2": {
+        "name": "Maandag"
+      },
+      "auto_3": {
+        "name": "Dinsdag"
+      },
+      "auto_4": {
+        "name": "Woensdag"
+      },
+      "auto_5": {
+        "name": "Donderdag"
+      },
+      "auto_6": {
+        "name": "Vrijdag"
+      },
+      "auto_7": {
+        "name": "Zaterdag"
+      },
+      "auto_dosed_today": {
+        "name": "Vandaag automatisch gedoseerd"
+      },
+      "backup_email": {
+        "name": "Back-up e-mail"
+      },
+      "blue": {
+        "name": "Blauw"
+      },
+      "cloud_account": {
+        "name": "Gekoppeld aan account"
+      },
+      "country": {
+        "name": "Land"
+      },
+      "current_level": {
+        "name": "Huidig niveau",
+        "state": {
+          "above": "Boven",
+          "acceptable": "Acceptabel",
+          "below": "Onder",
+          "desired": "Gewenst",
+          "desired_level_1": "Gewenst niveau 1",
+          "desired_level_2": "Gewenst niveau 2"
+        }
+      },
+      "current_read": {
+        "name": "Temperatuur"
+      },
+      "daily_average_usage": {
+        "name": "Gemiddeld dagelijks verbruik"
+      },
+      "daily_dose": {
+        "name": "Dagelijkse dosering"
+      },
+      "daily_doses": {
+        "name": "Dagelijkse doseringen"
+      },
+      "daily_fills_average": {
+        "name": "Gemiddelde dagelijkse vullingen"
+      },
+      "daily_volume_average": {
+        "name": "Gemiddeld dagelijks volume"
+      },
+      "days_till_end_of_roll": {
+        "name": "Dagen tot einde rol"
+      },
+      "doses_today": {
+        "name": "Doseringen vandaag"
+      },
+      "dosing_queue": {
+        "name": "Doseerwachtrij",
+	"state":{
+	  "empty": "Leeg"
+	}
+      },
+      "email": {
+        "name": "E-mail"
+      },
+      "fan": {
+        "name": "Ventilator"
+      },
+      "first_name": {
+        "name": "Voornaam"
+      },
+      "head_state": {
+        "name": "Status"
+      },
+      "ip": {
+        "name": "IP-adres"
+      },
+      "language": {
+        "name": "Taal"
+      },
+      "last_alert_message": {
+        "name": "Laatste alarmbericht"
+      },
+      "last_calibration": {
+        "name": "Laatste kalibratie"
+      },
+      "last_message": {
+        "name": "Laatste bericht"
+      },
+      "last_name": {
+        "name": "Achternaam"
+      },
+      "led_program": {
+        "name": "LED programma"
+      },
+      "manual_dosed_today": {
+        "name": "Vandaag handmatig gedoseerd"
+      },
+      "mobile_number": {
+        "name": "Mobiel nummer"
+      },
+      "mode": {
+        "name": "Modus",
+        "state": {
+	  "auto": "Auto",
+	  "blockage": "Blokkade",
+	  "calibration": "Kalibratie",
+	  "controller": "Controller",
+	  "emergency": "Noodgeval",
+	  "empty": "Leeg",
+	  "end_of_roll": "Einde rol",
+	  "feeding": "Voeren",
+	  "high_water": "Hoog waterniveau",
+	  "leak": "Lek",
+	  "maintenance": "Onderhoud",
+	  "malfunction": "Storing",
+	  "manual": "Handmatig",
+	  "mat_error": "Materiaal fout",
+	  "missing_pump": "Pomp ontbreekt",
+	  "missing_sensor": "Sensor ontbreekt",
+	  "no_ec_sensor": "Geen EC-sensor",
+	  "off": "Uit",
+	  "overheating": "Oververhitting",
+	  "partial_auto": "Semi-automatisch",
+	  "preview": "Voorvertoning",
+	  "priming": "Voorbereiden (priming)",
+	  "pump_timeout": "Pomp time-out",
+	  "setup": "Installatie",
+	  "setup_error_high": "Installatiefout: te hoog",
+	  "setup_error_torn": "Installatiefout: gescheurd",
+	  "shortcut_off_delay": "Sneltoets uit-vertraging",
+	  "stalled": "Vastgelopen",
+	  "timer": "Timer",
+	  "torn_mat": "Gescheurd materiaal",
+	  "user_test": "Gebruikerstest",
+	  "no_roll": "Geen rol"
+        }
+      },
+      "model": {
+        "name": "Model"
+      },
+      "moon_intensity": {
+        "name": "Maanfase intensiteit"
+      },
+      "name": {
+        "name": "Naam"
+      },
+      "next_full_moon": {
+        "name": "Volgende volle maan"
+      },
+      "next_new_moon": {
+        "name": "Volgende nieuwe maan"
+      },
+      "pump_state": {
+        "name": "Pomp status",
+        "state": {
+          "malfunction": "Storing",
+          "pump_on": "Aan"
+        }
+      },
+      "remaining_days": {
+        "name": "Resterende dagen"
+      },
+      "remaining_length": {
+        "name": "Resterende lengte"
+      },
+      "schedule_head": {
+        "name": "Doseerkop schema",
+        "state": {
+          "custom": "Aangepast",
+          "daily": "Dagelijks",
+          "hourly": "Per uur",
+          "single": "Eenmalig"
+        }
+      },
+      "state": {
+        "name": "Staat",
+        "state": {
+          "calibration": "Kalibratie",
+          "dry-run": "Testdraaien",
+          "emergency": "Noodgeval",
+          "feeding": "Voeren",
+          "full-cup": "Beker vol",
+          "locked-rotor": "Geblokkeerde rotor",
+          "maintenance": "Onderhoud",
+          "not-connected": "Niet verbonden",
+          "operational": "Operationeel",
+          "over-skimming": "Over-skimming",
+          "preview": "Voorvertoning",
+          "shortcut-off-delay": "Sneltoets uit-vertraging",
+          "wrong-pump": "Verkeerde pomp"
+        }
+      },
+      "supplement": {
+        "name": "Supplement"
+      },
+      "supplement_program": {
+        "name": "Supplement"
+      },
+      "temperature": {
+        "name": "Temperatuur"
+      },
+      "temperature_probe_status": {
+        "name": "Status temperatuursensor",
+        "state": {
+          "connected": "Verbonden",
+          "disconnected": "Niet verbonden"
+        }
+      },
+      "today_fills": {
+        "name": "Vullingen vandaag"
+      },
+      "today_usage": {
+        "name": "Verbruik vandaag"
+      },
+      "today_volume_usage": {
+        "name": "Volumeverbruik vandaag"
+      },
+      "todays_moon_day": {
+        "name": "Maandag vandaag"
+      },
+      "total_fills": {
+        "name": "Totaal aantal vullingen"
+      },
+      "total_usage": {
+        "name": "Totaal verbruik"
+      },
+      "total_volume_usage": {
+        "name": "Totaal volumeverbruik"
+      },
+      "type": {
+        "name": "Type",
+        "state": {
+          "return": "Opvoer",
+          "skimmer": "Afschuimer",
+          "unknown": "Onbekend"
+        }
+      },
+      "volume_left": {
+        "name": "Volume over"
+      },
+      "water_level": {
+        "name": "Waterniveau",
+        "state": {
+          "above": "Boven",
+          "acceptable": "Acceptabel",
+          "below": "Onder",
+          "danger": "Gevaar",
+          "desired": "Gewenst",
+          "desired_level_1": "Gewenst niveau 1",
+          "desired_level_2": "Gewenst niveau 2"
+        }
+      },
+      "wave_backward_intensity": {
+        "name": "Achterwaartse intensiteit"
+      },
+      "wave_backward_time": {
+        "name": "Achterwaartse tijd"
+      },
+      "wave_direction": {
+        "name": "Golfrichting",
+	"state":{
+	  "alt":"Afwisselend",
+	  "fw":"Voorwaarts",
+	  "rw":"Achterwaarts"
+	}
+      },
+      "wave_forward_intensity": {
+        "name": "Voorwaartse intensiteit",
+	"state":{
+	  "alt":"Afwisselend",
+	  "fw":"Voorwaarts",
+	  "rw":"Achterwaarts"
+	}
+      },
+      "wave_forward_time": {
+        "name": "Voorwaartse tijd"
+      },
+      "wave_program": {
+        "name": "Golf programma"
+      },
+      "wave_step": {
+        "name": "Stappen"
+      },
+      "wave_type": {
+        "name": "Golf type",
+	"state":{
+	  "nw":"Geen golf",
+	  "ra":"Willekeurig",
+	  "re":"Regelmatig",
+	  "st":"Stap",
+	  "su":"Oppervlakte",
+	  "un":"Uniform"
+	}
+      },
+      "white": {
+        "name": "Wit"
+      },
+      "wifi_quality": {
+        "name": "WIFI signaalkwaliteit"
+      },
+      "wifi_signal": {
+        "name": "WIFI signaalsterkte"
+      },
+      "wifi_ssid": {
+        "name": "WIFI SSID"
+      },
+      "zip_code": {
+        "name": "Postcode"
+      }
+    },
+    "switch": {
+      "acclimation": {
+        "name": "Acclimatisatie"
+      },
+      "auto_advance": {
+        "name": "Automatisch vooruit"
+      },
+      "auto_fill": {
+        "name": "Automatisch vullen"
+      },
+      "cloud_connect": {
+        "name": "Verbinden met cloud"
+      },
+      "device_state": {
+        "name": "Apparaat status"
+      },
+      "fullcup_enabled": {
+        "name": "Beker vol detectie"
+      },
+      "maintenance": {
+        "name": "Onderhoud"
+      },
+      "moon_phase": {
+        "name": "Maanfase"
+      },
+      "overskimming_enabled": {
+        "name": "Over-skimming"
+      },
+      "schedule_enabled": {
+        "name": "Schema ingeschakeld"
+      },
+      "scheduled_advance": {
+        "name": "Gepland vooruit"
+      },
+      "slm": {
+        "name": "Volumecontroller"
+      },
+      "shortcut_emergency": {
+        "name": "Sneltoets noodgeval"
+      },
+      "shortcut_feeding": {
+        "name": "Sneltoets voeren"
+      },
+      "shortcut_maintenance": {
+        "name": "Sneltoets onderhoud"
+      },
+      "use_cloud_api": {
+        "name": "Gebruik cloud-API"
+      }
+    },
+    "text": {
+      "new_supplement_brand_name": {
+        "name": "Merknaam"
+      },
+      "new_supplement_display_name": {
+        "name": "Weergavenaam supplement"
+      },
+      "new_supplement_name": {
+        "name": "Supplement naam"
+      },
+      "new_supplement_short_name": {
+        "name": "Korte naam supplement"
+      }
+    },
+    "time": {
+      "schedule_time": {
+        "name": "Schema tijd"
+      }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "Firmware update"
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "auth_failed": "Authenticatie mislukt, controleer je gegevens"
+    },
+    "step": {
+      "init": {
+        "data": {
+          "live_config_update": "Live configuratie update",
+          "disable_supplements": "Supplementen uitschakelen",
+          "not_virtual": "Niet configureerbaar",
+          "slaves": "LED"
+        },
+        "title": "Configuratie"
+      }
+    }
+  },
+  "selector": {
+    "add_type": {
+      "options": {
+        "cloud_api": "Cloud account",
+        "local_detect": "Lokale detectie",
+        "manual_mode": "Handmatige modus",
+        "virtual_led": "Virtuele Led"
+      }
+    },
+    "ip_address": {
+      "options": {
+        "virtual_led": "Virtuele LED toevoegen"
+      }
+    }
+  },
+  "title": "ReefBeat"
+}
