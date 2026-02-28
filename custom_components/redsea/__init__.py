@@ -27,6 +27,7 @@ from homeassistant.core import (
     callback,
 )
 from homeassistant.helpers import device_registry as dr
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -196,6 +197,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 # Frontend resources
 _FRONTEND_DIR = Path(__file__).parent / "frontend"
 _ICONS_JS_URL = f"/{DOMAIN}/frontend/redsea-icons.js"
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema("redsea")
 
 
 # Services
