@@ -486,7 +486,7 @@ async def test_cloud_link_ready_off_event_clears_link(
 
     device._handle_ask_for_link_ready(_Event({"state": "off", "account": "MyCloud"}))
     assert device.cloud_coordinator is None
-    assert device.cloud_link() == "None"
+    assert device.cloud_link() == "none"
 
 
 @pytest.mark.asyncio

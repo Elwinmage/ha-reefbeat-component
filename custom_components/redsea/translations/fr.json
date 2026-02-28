@@ -278,28 +278,28 @@
       },
       "preview_wave_direction": {
         "name": "Prev. direction des vagues",
-	"state":{
-	  "alt":"Alternatif",
-	  "fw":"Marche avant",
-	  "rw":"Marche arrière"
-	}
+        "state": {
+          "alt": "Alternatif",
+          "fw": "Marche avant",
+          "rw": "Marche arrière"
+        }
       },
       "preview_wave_type": {
         "name": "Prev. type de vagues",
-	"state":{
-	  "nw":"Pas de vagues",
-	  "ra":"Aléatoire",
-	  "re":"Régulier",
-	  "st":"paliers",
-	  "su":"Surface",
-	  "un":"Uniforme"
-	}
+        "state": {
+          "nw": "Pas de vagues",
+          "ra": "Aléatoire",
+          "re": "Régulier",
+          "st": "paliers",
+          "su": "Surface",
+          "un": "Uniforme"
+        }
       },
       "supplements": {
         "name": "Suppléments",
-	"state":{
-	  "other":"Autre"
-	}
+        "state": {
+          "other": "Autre"
+        }
       }
     },
     "sensor": {
@@ -341,9 +341,9 @@
       },
       "cloud_account": {
         "name": "Lié au compte",
-	"state":{
-	  "None": "Aucun"
-	}
+        "state": {
+          "none": "Aucun"
+        }
       },
       "country": {
         "name": "Pays"
@@ -386,9 +386,9 @@
       },
       "dosing_queue": {
         "name": "File d'attente",
-	"state": {
-	  "empty": "Vide"
-	}
+        "state": {
+          "empty": "Vide"
+        }
       },
       "email": {
         "name": "Email"
@@ -432,38 +432,38 @@
       "mode": {
         "name": "mode",
         "state": {
-	  "auto": "Auto",
-	  "blockage": "Blocage",
-	  "calibration": "Calibration",
-	  "controller": "Contrôleur",
-	  "emergency": "Urgence",
-	  "empty": "Vide",
-	  "end_of_roll": "Fin de rouleau",
-	  "feeding": "Alimentation en cours",
-	  "high_water": "Niveau d'eau élevé",
-	  "leak": "Fuite",
-	  "maintenance": "Maintenance",
-	  "malfunction": "Dysfonctionnement",
-	  "manual": "Manuel",
-	  "mat_error": "Erreur de matériau",
-	  "missing_pump": "Pompe manquante",
-	  "missing_sensor": "Capteur manquant",
-	  "no_ec_sensor": "Capteur EC absent",
-	  "off": "Arrêt",
-	  "overheating": "Surchauffe",
-	  "partial_auto": "Semi-automatique",
-	  "preview": "Aperçu",
-	  "priming": "Amorçage",
-	  "pump_timeout": "Temps dépassé de la pompe",
-	  "setup": "Configuration",
-	  "setup_error_high": "Erreur de configuration : trop haut",
-	  "setup_error_torn": "Erreur de configuration : déchiré",
-	  "shortcut_off_delay": "Délai d'arrêt du raccourci",
-	  "stalled": "Bloqué",
-	  "timer": "Minuterie",
-	  "torn_mat": "Matériau déchiré",
-	  "user_test": "Test utilisateur",
-	  "no_roll": "Pas de rouleau"
+          "auto": "Auto",
+          "blockage": "Blocage",
+          "calibration": "Calibration",
+          "controller": "Contrôleur",
+          "emergency": "Urgence",
+          "empty": "Vide",
+          "end_of_roll": "Fin de rouleau",
+          "feeding": "Alimentation en cours",
+          "high_water": "Niveau d'eau élevé",
+          "leak": "Fuite",
+          "maintenance": "Maintenance",
+          "malfunction": "Dysfonctionnement",
+          "manual": "Manuel",
+          "mat_error": "Erreur de matériau",
+          "missing_pump": "Pompe manquante",
+          "missing_sensor": "Capteur manquant",
+          "no_ec_sensor": "Capteur EC absent",
+          "off": "Arrêt",
+          "overheating": "Surchauffe",
+          "partial_auto": "Semi-automatique",
+          "preview": "Aperçu",
+          "priming": "Amorçage",
+          "pump_timeout": "Temps dépassé de la pompe",
+          "setup": "Configuration",
+          "setup_error_high": "Erreur de configuration : trop haut",
+          "setup_error_torn": "Erreur de configuration : déchiré",
+          "shortcut_off_delay": "Délai d'arrêt du raccourci",
+          "stalled": "Bloqué",
+          "timer": "Minuterie",
+          "torn_mat": "Matériau déchiré",
+          "user_test": "Test utilisateur",
+          "no_roll": "Pas de rouleau"
         }
       },
       "model": {
@@ -584,11 +584,11 @@
       },
       "wave_direction": {
         "name": "Direction des vagues",
-	"state":{
-	  "alt":"Alternatif",
-	  "fw":"Marche avant",
-	  "rw":"Marceh Arrière"
-	}
+        "state": {
+          "alt": "Alternatif",
+          "fw": "Marche avant",
+          "rw": "Marceh Arrière"
+        }
       },
       "wave_forward_intensity": {
         "name": "Intensité Marche Avant"
@@ -604,27 +604,27 @@
       },
       "wave_type": {
         "name": "Type de vagues",
-	"state":{
-	  "nw":"Pas de vagues",
-	  "ra":"Aléatoire",
-	  "re":"Régulier",
-	  "st":"paliers",
-	  "su":"Surface",
-	  "un":"Uniforme"
-	}
+        "state": {
+          "nw": "Pas de vagues",
+          "ra": "Aléatoire",
+          "re": "Régulier",
+          "st": "paliers",
+          "su": "Surface",
+          "un": "Uniforme"
+        }
       },
       "white": {
         "name": "Blanc"
       },
       "wifi_quality": {
         "name": "Qualité du signal Wifi",
-	"state":{
-	  "Poor":"Médiocre",
-	  "Low": "Mauvais",
-	  "Medium":"Moyen",
-	  "Good":"Bon",
-	  "Excellent":"Excellent"
-	}
+        "state": {
+          "poor": "Médiocre",
+          "low": "Mauvais",
+          "medium": "Moyen",
+          "good": "Bon",
+          "excellent": "Excellent"
+        }
       },
       "wifi_signal": {
         "name": "Signal WIFI"

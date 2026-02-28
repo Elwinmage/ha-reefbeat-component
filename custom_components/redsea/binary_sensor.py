@@ -103,14 +103,16 @@ BATTERY_SENSORS: tuple[
         key="battery_level",
         translation_key="battery_level",
         device_class=BinarySensorDeviceClass.BATTERY,
-        exists_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.battery_level", True
-        )
-        is not None,
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.battery_level"
-        )
-        == "low",
+        exists_fn=lambda device: (
+            device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.battery_level", True
+            )
+            is not None
+        ),
+        value_fn=lambda device: (
+            device.get_data("$.sources[?(@.name=='/dashboard')].data.battery_level")
+            == "low"
+        ),
         icon="mdi:battery-outline",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
@@ -152,9 +154,11 @@ ATO_SENSORS: tuple[ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], .
         key="water_level",
         translation_key="water_level",
         device_class=BinarySensorDeviceClass.PROBLEM,
-        value_fn=lambda device: not device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.water_level"
-        ).startswith("desired"),
+        value_fn=lambda device: (
+            not device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.water_level"
+            ).startswith("desired")
+        ),
         icon="mdi:water-alert",
     ),
     ReefBeatBinarySensorEntityDescription(
@@ -186,10 +190,12 @@ ATO_SENSORS: tuple[ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], .
         key="status",
         translation_key="status",
         device_class=BinarySensorDeviceClass.PROBLEM,
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.leak_sensor.status"
-        )
-        != "dry",
+        value_fn=lambda device: (
+            device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.leak_sensor.status"
+            )
+            != "dry"
+        ),
         icon="mdi:water-off",
     ),
     ReefBeatBinarySensorEntityDescription(
@@ -300,14 +306,16 @@ async def async_setup_entry(
                     key="constant_speed_pump_" + str(pump),
                     translation_key="constant_speed",
                     icon="mdi:car-cruise-control",
-                    value_fn=lambda device, pump=pump: len(
-                        device.get_data(
-                            "$.sources[?(@.name=='/pump/settings')].data.pump_"
-                            + str(pump)
-                            + ".schedule"
+                    value_fn=lambda device, pump=pump: (
+                        len(
+                            device.get_data(
+                                "$.sources[?(@.name=='/pump/settings')].data.pump_"
+                                + str(pump)
+                                + ".schedule"
+                            )
                         )
-                    )
-                    == 1,
+                        == 1
+                    ),
                     pump=pump,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 )

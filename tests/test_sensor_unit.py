@@ -214,11 +214,11 @@ async def test_sensor_async_added_to_hass_primes_from_cache(monkeypatch: Any) ->
 @pytest.mark.parametrize(
     ("signal", "expected_value", "expected_icon"),
     [
-        (-81, "Poor", "mdi:wifi-outline"),
-        (-71, "Low", "mdi:wifi-strength-1"),
-        (-61, "Medium", "mdi:wifi-strength-2"),
-        (-51, "Good", "mdi:wifi-strength-3"),
-        (-45, "Excellent", None),
+        (-81, "poor", "mdi:wifi-outline"),
+        (-71, "low", "mdi:wifi-strength-1"),
+        (-61, "medium", "mdi:wifi-strength-2"),
+        (-51, "good", "mdi:wifi-strength-3"),
+        (-45, "excellent", None),
     ],
 )
 def test_wifi_quality_thresholds(

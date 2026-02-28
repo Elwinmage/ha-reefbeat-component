@@ -1,9 +1,3 @@
-// Pyright config used by pre-commit.
-//
-// Intentional difference from `pyrightconfig.json`:
-// - Excludes `.dev/` so uncommitted local scratch files don't fail pre-commit.
-// - Keeps strict checking for `custom_components/`.
-// - Keeps "basic-like" overrides for `tests/`.
 {
   "include": ["custom_components", "tests"],
   "exclude": ["**/node_modules", "**/__pycache__"],

@@ -279,28 +279,28 @@
       },
       "preview_wave_direction": {
         "name": "Voorvertoning golfrichting",
-	"state":{
-	  "alt":"Afwisselend",
-	  "fw":"Voorwaarts",
-	  "rw":"Achterwaarts"
-	}
+        "state": {
+          "alt": "Afwisselend",
+          "fw": "Voorwaarts",
+          "rw": "Achterwaarts"
+        }
       },
       "preview_wave_type": {
         "name": "Voorvertoning golftype",
-	"state":{
-	  "nw":"Geen golf",
-	  "ra":"Willekeurig",
-	  "re":"Regelmatig",
-	  "st":"Stap",
-	  "su":"Oppervlakte",
-	  "un":"Uniform"
-	}
+        "state": {
+          "nw": "Geen golf",
+          "ra": "Willekeurig",
+          "re": "Regelmatig",
+          "st": "Stap",
+          "su": "Oppervlakte",
+          "un": "Uniform"
+        }
       },
       "supplements": {
         "name": "Supplementen",
-	"state":{
-	  "other":"Overig"
-	}
+        "state": {
+          "other": "Overig"
+        }
       }
     },
     "sensor": {
@@ -342,11 +342,9 @@
       },
       "cloud_account": {
         "name": "Gekoppeld aan account",
-	"state":
-        { 
-          "None":"Geen"
+        "state": {
+          "none": "Geen"
         }
-
       },
       "country": {
         "name": "Land"
@@ -388,9 +386,9 @@
       },
       "dosing_queue": {
         "name": "Doseerwachtrij",
-	"state":{
-	  "empty": "Leeg"
-	}
+        "state": {
+          "empty": "Leeg"
+        }
       },
       "email": {
         "name": "E-mail"
@@ -434,38 +432,38 @@
       "mode": {
         "name": "Modus",
         "state": {
-	  "auto": "Auto",
-	  "blockage": "Blokkade",
-	  "calibration": "Kalibratie",
-	  "controller": "Controller",
-	  "emergency": "Noodgeval",
-	  "empty": "Leeg",
-	  "end_of_roll": "Einde rol",
-	  "feeding": "Voeren",
-	  "high_water": "Hoog waterniveau",
-	  "leak": "Lek",
-	  "maintenance": "Onderhoud",
-	  "malfunction": "Storing",
-	  "manual": "Handmatig",
-	  "mat_error": "Materiaal fout",
-	  "missing_pump": "Pomp ontbreekt",
-	  "missing_sensor": "Sensor ontbreekt",
-	  "no_ec_sensor": "Geen EC-sensor",
-	  "off": "Uit",
-	  "overheating": "Oververhitting",
-	  "partial_auto": "Semi-automatisch",
-	  "preview": "Voorvertoning",
-	  "priming": "Voorbereiden (priming)",
-	  "pump_timeout": "Pomp time-out",
-	  "setup": "Installatie",
-	  "setup_error_high": "Installatiefout: te hoog",
-	  "setup_error_torn": "Installatiefout: gescheurd",
-	  "shortcut_off_delay": "Sneltoets uit-vertraging",
-	  "stalled": "Vastgelopen",
-	  "timer": "Timer",
-	  "torn_mat": "Gescheurd materiaal",
-	  "user_test": "Gebruikerstest",
-	  "no_roll": "Geen rol"
+          "auto": "Auto",
+          "blockage": "Blokkade",
+          "calibration": "Kalibratie",
+          "controller": "Controller",
+          "emergency": "Noodgeval",
+          "empty": "Leeg",
+          "end_of_roll": "Einde rol",
+          "feeding": "Voeren",
+          "high_water": "Hoog waterniveau",
+          "leak": "Lek",
+          "maintenance": "Onderhoud",
+          "malfunction": "Storing",
+          "manual": "Handmatig",
+          "mat_error": "Materiaal fout",
+          "missing_pump": "Pomp ontbreekt",
+          "missing_sensor": "Sensor ontbreekt",
+          "no_ec_sensor": "Geen EC-sensor",
+          "off": "Uit",
+          "overheating": "Oververhitting",
+          "partial_auto": "Semi-automatisch",
+          "preview": "Voorvertoning",
+          "priming": "Voorbereiden (priming)",
+          "pump_timeout": "Pomp time-out",
+          "setup": "Installatie",
+          "setup_error_high": "Installatiefout: te hoog",
+          "setup_error_torn": "Installatiefout: gescheurd",
+          "shortcut_off_delay": "Sneltoets uit-vertraging",
+          "stalled": "Vastgelopen",
+          "timer": "Timer",
+          "torn_mat": "Gescheurd materiaal",
+          "user_test": "Gebruikerstest",
+          "no_roll": "Geen rol"
         }
       },
       "model": {
@@ -549,7 +547,7 @@
         "name": "Volumeverbruik vandaag"
       },
       "todays_moon_day": {
-	"name": "Maanstand van vandaag"
+        "name": "Maanstand van vandaag"
       },
       "total_fills": {
         "name": "Totaal aantal vullingen"
@@ -591,19 +589,19 @@
       },
       "wave_direction": {
         "name": "Golfrichting",
-	"state":{
-	  "alt":"Afwisselend",
-	  "fw":"Voorwaarts",
-	  "rw":"Achterwaarts"
-	}
+        "state": {
+          "alt": "Afwisselend",
+          "fw": "Voorwaarts",
+          "rw": "Achterwaarts"
+        }
       },
       "wave_forward_intensity": {
         "name": "Voorwaartse intensiteit",
-	"state":{
-	  "alt":"Afwisselend",
-	  "fw":"Voorwaarts",
-	  "rw":"Achterwaarts"
-	}
+        "state": {
+          "alt": "Afwisselend",
+          "fw": "Voorwaarts",
+          "rw": "Achterwaarts"
+        }
       },
       "wave_forward_time": {
         "name": "Voorwaartse tijd"
@@ -616,26 +614,26 @@
       },
       "wave_type": {
         "name": "Golf type",
-	"state":{
-	  "nw":"Geen golf",
-	  "ra":"Willekeurig",
-	  "re":"Regelmatig",
-	  "st":"Stap",
-	  "su":"Oppervlakte",
-	  "un":"Uniform"
-	}
+        "state": {
+          "nw": "Geen golf",
+          "ra": "Willekeurig",
+          "re": "Regelmatig",
+          "st": "Stap",
+          "su": "Oppervlakte",
+          "un": "Uniform"
+        }
       },
       "white": {
         "name": "Wit"
       },
       "wifi_quality": {
         "name": "WIFI signaalkwaliteit",
-	"state":{
-          "Poor":"Slecht",
-          "Low": "Laag",
-          "Medium":"Gemiddeld",
-          "Good":"Goed",
-          "Excellent":"Uitstekend"
+        "state": {
+          "poor": "Slecht",
+          "low": "Laag",
+          "medium": "Gemiddeld",
+          "good": "Goed",
+          "excellent": "Uitstekend"
         }
       },
       "wifi_signal": {

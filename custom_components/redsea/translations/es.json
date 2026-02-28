@@ -342,11 +342,9 @@
       },
       "cloud_account": {
         "name": "Vinculado a la cuenta",
-        "state":
-        { 
-          "None":"Ninguno"
+        "state": {
+          "none": "Ninguno"
         }
-	
       },
       "country": {
         "name": "País"
@@ -589,12 +587,12 @@
       },
       "wifi_quality": {
         "name": "Calidad de señal WiFi",
-        "state":{
-          "Poor":"Pobre",
-          "Low": "Bajo",
-          "Medium":"Medio",
-          "Good":"Bueno",
-          "Excellent":"Excelente"
+        "state": {
+          "poor": "Pobre",
+          "low": "Bajo",
+          "medium": "Medio",
+          "good": "Bueno",
+          "excellent": "Excelente"
         }
       },
       "wifi_signal": {

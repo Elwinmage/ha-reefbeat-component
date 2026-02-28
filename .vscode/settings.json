@@ -1,15 +1,15 @@
 {
   "[json]": {
     "editor.defaultFormatter": "vscode.json-language-features",
-    "editor.tabSize": 4,
+    "editor.tabSize": 4
   },
   "[jsonc]": {
     "editor.defaultFormatter": "vscode.json-language-features",
-    "editor.tabSize": 4,
+    "editor.tabSize": 4
   },
   "[json5]": {
     "editor.defaultFormatter": "vscode.json-language-features",
-    "editor.tabSize": 4,
+    "editor.tabSize": 4
   },
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff",
@@ -30,13 +30,9 @@
   "prettier.enable": false,
   "python.analysis.diagnosticMode": "workspace",
   "ruff.lineLength": 88,
-  "ruff.lint.select": [
-    "I"
-  ],
+  "ruff.lint.select": ["I"],
   "ruff.useBundled": false,
-  "ruff.path": [
-    ".venv/bin/ruff"
-  ],
+  "ruff.path": [".venv/bin/ruff"],
   "python.defaultInterpreterPath": ".venv/bin/python",
   "files.watcherExclude": {
     "**/.git/objects/**": true,

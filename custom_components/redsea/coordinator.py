@@ -415,7 +415,7 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
 
     def cloud_link(self) -> str:
         """Return linked cloud account name, or 'None'."""
-        return self._cloud_link.title if self._cloud_link is not None else "None"
+        return self._cloud_link.title if self._cloud_link is not None else "none"
 
 
 # REEFLED

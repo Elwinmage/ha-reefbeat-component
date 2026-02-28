@@ -29,7 +29,7 @@
 
 # Compatibilité
 
-✅ Testé ☑️ Doit fonctionner (Si vous en possédez un, pouvez-vous confirmer son fonctionnement [ici](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8))❌ No Supported Yet 
+✅ Testé ☑️ Doit fonctionner (Si vous en possédez un, pouvez-vous confirmer son fonctionnement [ici](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8))❌ No Supported Yet
 <table>
 <th>
 <td colspan="2"><b>Modèle</b></td>
@@ -54,7 +54,7 @@
       <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:bug" style="text-decoration:none">🐛</a>
     </td>
 
-  </tr>  
+  </tr>
 <tr>
 <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
 <td colspan="2">RSDOSE2</td>
@@ -173,7 +173,7 @@ Ou recherchez « redsea » ou « reefbeat » dans HACS.
 
 # Fonctions communes
 
-# Icônes 
+# Icônes
 Cette intégration fournit des icônes personnelles accessbiles via "redsea:icon-name":
 
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/icons_feeding_maintenance.png"/>
@@ -229,14 +229,14 @@ Vous pouvez saisir l'adresse IP ou l'adresse réseau de votre appareil pour une 
 </p>
 
 ## Mise à jour du Microgiciel
-Vous pouvez être notifié et mettre à jour votre appareil lorsqu'une nouvelle version du firmware. Vous devez disposer d'un composant actif ["cloud api"](README.fr.md#ajout-de-lapi-cloud) avec vos identifiants et l'interrupteur « Utiliser l'API cloud » doit être activé. 
+Vous pouvez être notifié et mettre à jour votre appareil lorsqu'une nouvelle version du firmware. Vous devez disposer d'un composant actif ["cloud api"](README.fr.md#ajout-de-lapi-cloud) avec vos identifiants et l'interrupteur « Utiliser l'API cloud » doit être activé.
 > [!TIP]
 > L'« API cloud » est uniquement nécessaire pour obtenir le numéro de version de la nouvelle version et le comparer à la version installée. Pour mettre à jour votre firmware, l'API cloud n'est pas indispensable.
 > Si vous n'utilisez pas l'« API cloud » (option désactivée ou composant API cloud non installé), vous ne serez pas averti lorsqu'une nouvelle version sera disponible, mais vous pourrez toujours utiliser le bouton caché « Forcer la mise à jour du firmware ». Si une nouvelle version est disponible, elle sera installée.
 <p align="center">
   <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/firmware_update_1.png" alt="Image">
   <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/firmware_update_2.png" alt="Image">
-</p> 
+</p>
 
 
 # ReefATO :
@@ -289,7 +289,7 @@ Non supporté pour l'instant. Si vous en avez un, contactez-moi [ici](https://gi
 >  3. Pressez "Set Calibration Value"
 >  4. Videz l'éprouvette et pressez "Test new Calibration". Si la valeur obtenue est différente de 4mL, revenez à l'étape 1.
 >  5. Pressez "Stop and Save Graduation"
-> 
+>
 > <ins>For priming</ins>:
 >  1. (a) Pressez "Start Priming"
 >  2. (b) Lorsque le liquide coule pressez "Stop Priming"
@@ -298,10 +298,10 @@ Non supporté pour l'instant. Si vous en avez un, contactez-moi [ici](https://gi
 >  5. (3) Pressez "Set Calibration Value"
 >  6. (4) Videz l'éprouvette et pressez "Test new Calibration". Si la valeur obtenue est différente de 4mL, revenez à l'étape 1.
 >  7. (5) Pressez "Stop and Save Graduation"
->        
+>
 > ⚠️ Un amorçage doit forcément être suivi d'une calibration (étapes 1 à 5)!⚠️
 
-<p align="center"> 
+<p align="center">
   <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/calibration.png" alt="Image">
 </p>
 
@@ -350,11 +350,11 @@ L'interface des lamptes G2 ne supporte par l'intégralité de la plage de tempé
 ### LAMPES G1
 
 Les LED G1 utilisent le contrôle des canaux blanc et bleu, ce qui permet une pleine puissance sur toute la plage, mais pas une intensité constante sans compensation.
-C'est pourquoi j'ai mis en place une compensation d'intensité. 
+C'est pourquoi j'ai mis en place une compensation d'intensité.
 Cette compenstation vous assure d'avoir le même [PAR](https://fr.wikipedia.org/wiki/Rayonnement_photosynth%C3%A9tiquement_actif) (intensité lumineuse) quelque soit le choix de votre couleur (dans la plage 12 000 à 23 000K].
 > [!NOTE]
 > Comem RedSea ne publie pas les valeurs de PAR en dessous de 12 000K, la compensation ne fonctionne que dans la plage 12 000 à 23 000K. Si vous avez une LED G1 et un PARmètre, vous pouvez me [contacter](https://github.com/Elwinmage/ha-reefbeat-component/discussions/) afin que j'ajoute la compensation sur la plage complète (9 000 à 23 000K).
-> 
+>
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/intensity_compensation.png" alt="Image">
 </p>
@@ -368,7 +368,7 @@ Voici les courbes de puissance:
 
 Si vous souhaitez exploiter pleinement la puissance de votre LED, désactivez la compensation d'intensité (par défaut).
 
-Si vous activez la compensation d'intensité, l'intensité lumineuse sera constante sur toutes les valeurs de température, mais en milieu de plage, vous n'utiliserez pas la pleine capacité de vos LED (comme sur les modèles G2). 
+Si vous activez la compensation d'intensité, l'intensité lumineuse sera constante sur toutes les valeurs de température, mais en milieu de plage, vous n'utiliserez pas la pleine capacité de vos LED (comme sur les modèles G2).
 
 N'oubliez pas non plus que, si vous activez le mode compensation, le facteur d'intensité peut dépasser les 100% pour les G1 si vous touchez manuellement aux canaux mode Blanc/Bleu. Vous pouvez ainsi exploiter toute la puissance de vos LED !
 

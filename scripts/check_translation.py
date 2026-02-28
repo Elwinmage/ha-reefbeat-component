@@ -63,9 +63,11 @@ for entity_domain in entity_domains:
         # Find all translation_key entries
         translation_keys = list(
             map(
-                lambda x: entity_domain
-                + "."
-                + x.replace(r"translation_key=", "").replace('"', ""),
+                lambda x: (
+                    entity_domain
+                    + "."
+                    + x.replace(r"translation_key=", "").replace('"', "")
+                ),
                 re.findall(r"translation_key=\"[a-zA-Z0-9\-\_]*\"", content),
             )
         )

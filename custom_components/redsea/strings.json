@@ -279,28 +279,28 @@
       },
       "preview_wave_direction": {
         "name": "Preview Waves Direction",
-	"state":{
-	  "alt":"Alternate",
-	  "fw":"Forward",
-	  "rw":"Reward"
-	}
+        "state": {
+          "alt": "Alternate",
+          "fw": "Forward",
+          "rw": "Reward"
+        }
       },
       "preview_wave_type": {
         "name": "Preview Waves Type",
-	"state":{
-	  "nw":"No Wave",
-	  "ra":"Random",
-	  "re":"Regular",
-	  "st":"Step",
-	  "su":"Surface",
-	  "un":"Uniform"
-	}
+        "state": {
+          "nw": "No Wave",
+          "ra": "Random",
+          "re": "Regular",
+          "st": "Step",
+          "su": "Surface",
+          "un": "Uniform"
+        }
       },
       "supplements": {
         "name": "Supplements",
-	"state":{
-	  "other":"Other"
-	}
+        "state": {
+          "other": "Other"
+        }
       }
     },
     "sensor": {
@@ -342,9 +342,9 @@
       },
       "cloud_account": {
         "name": "Linked to account",
-	"state":{
-	  "None":"None"
-	}
+        "state": {
+          "none": "None"
+        }
       },
       "country": {
         "name": "Country"
@@ -386,9 +386,9 @@
       },
       "dosing_queue": {
         "name": "Dosing Queue",
-	"state":{
-	  "empty": "Empty"
-	}
+        "state": {
+          "empty": "Empty"
+        }
       },
       "email": {
         "name": "Email"
@@ -432,38 +432,38 @@
       "mode": {
         "name": "Mode",
         "state": {
-	  "auto": "Auto",
-	  "blockage": "Blockage",
-	  "calibration": "Calibration",
-	  "controller": "Controller",
-	  "emergency": "Emergency",
-	  "empty": "Empty",
-	  "end_of_roll": "End of roll",
-	  "feeding": "Feeding",
-	  "high_water": "High water level",
-	  "leak": "Leak",
-	  "maintenance": "Maintenance",
-	  "malfunction": "Malfunction",
-	  "manual": "Manual",
-	  "mat_error": "Material error",
-	  "missing_pump": "Pump missing",
-	  "missing_sensor": "Sensor missing",
-	  "no_ec_sensor": "No EC sensor",
-	  "off": "Off",
-	  "overheating": "Overheating",
-	  "partial_auto": "Semi-automatic",
-	  "preview": "Preview",
-	  "priming": "Priming",
-	  "pump_timeout": "Pump timeout",
-	  "setup": "Setup",
-	  "setup_error_high": "Setup error: too high",
-	  "setup_error_torn": "Setup error: torn",
-	  "shortcut_off_delay": "Shortcut off delay",
-	  "stalled": "Stalled",
-	  "timer": "Timer",
-	  "torn_mat": "Torn material",
-	  "user_test": "User test",
-	  "no_roll": "No roll"
+          "auto": "Auto",
+          "blockage": "Blockage",
+          "calibration": "Calibration",
+          "controller": "Controller",
+          "emergency": "Emergency",
+          "empty": "Empty",
+          "end_of_roll": "End of roll",
+          "feeding": "Feeding",
+          "high_water": "High water level",
+          "leak": "Leak",
+          "maintenance": "Maintenance",
+          "malfunction": "Malfunction",
+          "manual": "Manual",
+          "mat_error": "Material error",
+          "missing_pump": "Pump missing",
+          "missing_sensor": "Sensor missing",
+          "no_ec_sensor": "No EC sensor",
+          "off": "Off",
+          "overheating": "Overheating",
+          "partial_auto": "Semi-automatic",
+          "preview": "Preview",
+          "priming": "Priming",
+          "pump_timeout": "Pump timeout",
+          "setup": "Setup",
+          "setup_error_high": "Setup error: too high",
+          "setup_error_torn": "Setup error: torn",
+          "shortcut_off_delay": "Shortcut off delay",
+          "stalled": "Stalled",
+          "timer": "Timer",
+          "torn_mat": "Torn material",
+          "user_test": "User test",
+          "no_roll": "No roll"
         }
       },
       "model": {
@@ -589,19 +589,19 @@
       },
       "wave_direction": {
         "name": "Waves Direction",
-	"state":{
-	  "alt":"Alternate",
-	  "fw":"Forward",
-	  "rw":"Reward"
-	}
+        "state": {
+          "alt": "Alternate",
+          "fw": "Forward",
+          "rw": "Reward"
+        }
       },
       "wave_forward_intensity": {
         "name": "Forward Intensity",
-	"state":{
-	  "alt":"Alternate",
-	  "fw":"Forward",
-	  "rw":"Reward"
-	}
+        "state": {
+          "alt": "Alternate",
+          "fw": "Forward",
+          "rw": "Reward"
+        }
       },
       "wave_forward_time": {
         "name": "Forward Time"
@@ -614,27 +614,27 @@
       },
       "wave_type": {
         "name": "Waves Type",
-	"state":{
-	  "nw":"No Wave",
-	  "ra":"Random",
-	  "re":"Regular",
-	  "st":"Step",
-	  "su":"Surface",
-	  "un":"Uniform"
-	}
+        "state": {
+          "nw": "No Wave",
+          "ra": "Random",
+          "re": "Regular",
+          "st": "Step",
+          "su": "Surface",
+          "un": "Uniform"
+        }
       },
       "white": {
         "name": "White"
       },
       "wifi_quality": {
         "name": "WIFI signal quality",
-	"state":{
-	  "Poor":"Poor",
-	  "Low": "Low",
-	  "Medium":"Medium",
-	  "Good":"Good",
-	  "Excellent":"Excellent"
-	}
+        "state": {
+          "poor": "Poor",
+          "low": "Low",
+          "medium": "Medium",
+          "good": "Good",
+          "excellent": "Excellent"
+        }
       },
       "wifi_signal": {
         "name": "WIFI Signal Strength"

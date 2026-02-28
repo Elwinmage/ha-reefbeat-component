@@ -409,11 +409,11 @@ COMMON_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         icon="mdi:wifi-strength-4",
         device_class=SensorDeviceClass.ENUM,
         options=[
-            "Poor",
-            "Low",
-            "Medium",
-            "Good",
-            "Excellent",
+            "poor",
+            "low",
+            "medium",
+            "good",
+            "excellent",
         ],
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
@@ -563,10 +563,9 @@ MAT_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfLength.METERS,
         device_class=SensorDeviceClass.DISTANCE,
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.total_usage"
-        )
-        / 100,
+        value_fn=lambda device: (
+            device.get_data("$.sources[?(@.name=='/dashboard')].data.total_usage") / 100
+        ),
         icon="mdi:paper-roll",
         suggested_display_precision=2,
     ),
@@ -576,10 +575,10 @@ MAT_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfLength.METERS,
         device_class=SensorDeviceClass.DISTANCE,
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.remaining_length"
-        )
-        / 100,
+        value_fn=lambda device: (
+            device.get_data("$.sources[?(@.name=='/dashboard')].data.remaining_length")
+            / 100
+        ),
         icon="mdi:paper-roll-outline",
         suggested_display_precision=2,
     ),
@@ -608,10 +607,10 @@ for auto_id in range(1, 8):
                 value_name="$.sources[?(@.name=='/preset_name')].data[?(@.day=="
                 + str(auto_id)
                 + ")].name",
-                exists_fn=lambda device: device.get_data(
-                    "$.sources[?(@.name=='/preset_name')].data", True
-                )
-                is not None,
+                exists_fn=lambda device: (
+                    device.get_data("$.sources[?(@.name=='/preset_name')].data", True)
+                    is not None
+                ),
                 id_name=auto_id,
                 icon="mdi:calendar",
             ),
@@ -621,13 +620,15 @@ for auto_id in range(1, 8):
                 value_name="$.sources[?(@.name=='/preset_name/"
                 + str(auto_id)
                 + "')].data.name",
-                exists_fn=lambda device: device.get_data(
-                    "$.sources[?(@.name=='/preset_name/"
-                    + str(auto_id)
-                    + "')].data.name",
-                    True,
-                )
-                is not None,
+                exists_fn=lambda device: (
+                    device.get_data(
+                        "$.sources[?(@.name=='/preset_name/"
+                        + str(auto_id)
+                        + "')].data.name",
+                        True,
+                    )
+                    is not None
+                ),
                 id_name=auto_id,
                 icon="mdi:calendar",
             ),
@@ -1305,18 +1306,18 @@ class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore
             )
             if signal_strength < -80:
                 self._attr_icon = "mdi:wifi-outline"
-                self._attr_native_value = "Poor"
+                self._attr_native_value = "poor"
             elif signal_strength < -70:
                 self._attr_icon = "mdi:wifi-strength-1"
-                self._attr_native_value = "Low"
+                self._attr_native_value = "low"
             elif signal_strength < -60:
                 self._attr_icon = "mdi:wifi-strength-2"
-                self._attr_native_value = "Medium"
+                self._attr_native_value = "medium"
             elif signal_strength < -50:
                 self._attr_icon = "mdi:wifi-strength-3"
-                self._attr_native_value = "Good"
+                self._attr_native_value = "good"
             else:
-                self._attr_native_value = "Excellent"
+                self._attr_native_value = "excellent"
             return
 
         self._attr_native_value = self._get_value()

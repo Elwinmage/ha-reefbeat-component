@@ -6,7 +6,7 @@ on:
   schedule:
     - cron: "0 0 * * *" # Vérification quotidienne pour anticiper les cassures dues aux MAJ de HA
   workflow_dispatch:
-  
+
 permissions:
   contents: write
 
@@ -37,7 +37,7 @@ jobs:
       fail-fast: false
       matrix:
         # On teste contre la version stable actuelle et la version de développement (beta)
-        python-version: ["3.13"] 
+        python-version: ["3.13"]
         ha-version: ["stable", "beta"]
 
     steps:
@@ -55,11 +55,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest-homeassistant-custom-component
-          
+
           # Installation des dépendances du manifest
           python -c "import json; print('\n'.join(json.load(open('custom_components/redsea/manifest.json'))['requirements']))" > requirements_manifest.txt
           pip install -r requirements_manifest.txt
-          
+
           # Installation de HA (Stable ou Beta)
           if [[ "${{ matrix.ha-version }}" == "stable" ]]; then
             pip install homeassistant

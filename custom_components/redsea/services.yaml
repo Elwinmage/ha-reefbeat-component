@@ -7,7 +7,7 @@ clean_message:
       required: true
       selector:
         config_entry:
-          integration: redsea    
+          integration: redsea
     msg_type:
       required: true
       description: Type of message to clean
@@ -28,7 +28,7 @@ request:
       required: true
       selector:
         config_entry:
-          integration: redsea    
+          integration: redsea
     access_path:
       required: true
       description: Access pass

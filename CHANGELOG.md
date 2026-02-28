@@ -9,7 +9,7 @@ CLOUD: Correct #63 - Cant log to redsea account
 
 ## GENERAL
 
-### Compatibility with the new ha-reef-card 
+### Compatibility with the new ha-reef-card
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reef-card/refs/heads/main/doc/img/rsdose/rsdose4_ex1.png" />
 
 Follow this link to install it:
@@ -30,13 +30,13 @@ Because the device id creation changed to be compliant with HA standards, RSDOSE
  - Use strandard HA translations method for all devices and entities.
  - Add check_translation utility
  - Add de, es, it ,pl and pt languge support.
-   
+
 ### CLOUD
 - Add schortcut support.
 - Correct scan_interval.
 
 ### RSATO
-- Remove ato_mode. 
+- Remove ato_mode.
 
 ### RSDOSE
 - Correct supplement is_name_editable for specific supplement
@@ -51,7 +51,7 @@ Because the device id creation changed to be compliant with HA standards, RSDOSE
 
 ### RSWAVE
 - Correct load preview.
-  
-### Icons 
+
+### Icons
  - Add personnal icons for redsea domain.
 

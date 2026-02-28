@@ -1,7 +1,31 @@
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-json
+      - id: trailing-whitespace
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        types: [json]
+
+  - repo: local
+    hooks:
+      - id: hassfest
+        name: hassfest
+        # On appelle directement le fichier python par son chemin dans le conteneur
+        # entry: env PYTHONPATH=/usr/src/homeassistant python3 /usr/src/homeassistant/script/hassfest
+        entry: env PYTHONPATH=/usr/src/homeassistant python3 -m script.hassfest
+        language: system
+        args: ["--integration-path", "custom_components/redsea"]
+        pass_filenames: false
+        always_run: true
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.14.9
+    rev: v0.15.4
     hooks:
       # Run the linter.
       - id: ruff-check
@@ -9,7 +33,7 @@ repos:
         files: ^(custom_components/.*\.py|scripts/.*\.py|tests/.*\.py)$
       # Run the formatter.
       - id: ruff-format
-        files: ^(custom_components/.*\.py|scripts/.*\.py|tests/.*\.py)$	
+        files: ^(custom_components/.*\.py|scripts/.*\.py|tests/.*\.py)$
 
   - repo: local
     hooks:
