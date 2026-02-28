@@ -4,8 +4,8 @@
       "already_configured": "Device Already configured",
       "cannot_create": "Unable to create ReefBeat device with specified parameters"
     },
-    "error":{
-      "auth_failed":"Authentification failed, check your crendentials",
+    "error": {
+      "auth_failed": "Authentification failed, check your crendentials",
       "nothing_detected": "No device detected"
     },
     "flow_title": "ReefBeat configuration",
@@ -13,12 +13,12 @@
       "user": {
         "data": {
           "add_type": "Choose your adding method",
-	    "disable_supplements": "Disable Supplements",
-            "hw_model": "Hardware Model",
+          "disable_supplements": "Disable Supplements",
+          "hw_model": "Hardware Model",
           "ip_address": "IP or subnet Addr. (ex:10.0.1.0/255.255.255.0)",
           "platform": "Platform",
           "scan_interval": "scan interval",
-            "virtual_led": "New virtual LED Controler"
+          "virtual_led": "New virtual LED Controler"
         },
         "title": "Add new Device"
       }
@@ -29,7 +29,7 @@
       "battery_level": {
         "name": "Battery Level"
       },
-      "bundled_heads":{
+      "bundled_heads": {
         "name": "Bundled heads"
       },
       "buzzer_enabled": {
@@ -78,7 +78,7 @@
         "name": "Controlled by Sensor"
       },
       "status": {
-	"name": "Status"
+        "name": "Status"
       },
       "unclean_sensor": {
         "name": "Sensor State"
@@ -91,10 +91,10 @@
       "advance": {
         "name": "Advance"
       },
-     	"delete_emergency":{
-	    "name": "Delete emergency alert"
-    	},
-    	"delete_supplement": {
+      "delete_emergency": {
+        "name": "Delete emergency alert"
+      },
+      "delete_supplement": {
         "name": "Delete Supplement"
       },
       "end_calibration": {
@@ -140,10 +140,10 @@
         "name": "Set Calibration volume"
       },
       "set_supplement": {
-        "name": "Set new Supplement"
+        "name": "Set new supplement"
       },
       "set_supplement_name": {
-        "name": "Set new upplement name"
+        "name": "Set new supplement name"
       },
       "start_calibration": {
         "name": "Start  Calibration"
@@ -257,7 +257,15 @@
     },
     "select": {
       "mode": {
-        "name": "Mode"
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "end_of_roll": "End of Roll",
+          "manual": "Manual",
+          "timer": "Timer",
+          "other": "Other",
+          "off": "Off"
+        }
       },
       "model": {
         "name": "Model"
@@ -333,7 +341,10 @@
         "name": "Blue"
       },
       "cloud_account": {
-        "name": "Linked to account"
+        "name": "Linked to account",
+	"state":{
+	  "None":"None"
+	}
       },
       "country": {
         "name": "Country"
@@ -471,7 +482,11 @@
         "name": "Next New Moon"
       },
       "pump_state": {
-        "name": "Pump State"
+        "name": "Pump State",
+        "state": {
+          "malfunction": "Malfunction",
+          "pump_on": "On"
+        }
       },
       "remaining_days": {
         "name": "Remaining days"
@@ -490,21 +505,21 @@
       },
       "state": {
         "name": "State",
-	"state":{
-          "calibration":"Calibration",
-          "dry-run":"Dry run",
-          "emergency":"Emergency",
-          "feeding":"Feeding",
-          "full-cup":"Full-cup",
-          "locked-rotor":"Locked Rotor",
-          "maintenance":"Maintenance",
-          "not-connected":"Not connected",
-          "operational":"Operational",
-          "over-skimming":"Over-skimming",
-          "preview":"Preview",
-          "shortcut-off-delay":"Shortcut off delay",
-          "wrong-pump":"Wrong pump"
-	}
+        "state": {
+          "calibration": "Calibration",
+          "dry-run": "Dry run",
+          "emergency": "Emergency",
+          "feeding": "Feeding",
+          "full-cup": "Full-cup",
+          "locked-rotor": "Locked Rotor",
+          "maintenance": "Maintenance",
+          "not-connected": "Not connected",
+          "operational": "Operational",
+          "over-skimming": "Over-skimming",
+          "preview": "Preview",
+          "shortcut-off-delay": "Shortcut off delay",
+          "wrong-pump": "Wrong pump"
+        }
       },
       "supplement": {
         "name": "Supplement"
@@ -545,11 +560,11 @@
       },
       "type": {
         "name": "Type",
-	"state":{
-	  "return":"Return",
-	  "skimmer":"Skimmer",
-	  "unknown":"Unknown"
-	}
+        "state": {
+          "return": "Return",
+          "skimmer": "Skimmer",
+          "unknown": "Unknown"
+        }
       },
       "volume_left": {
         "name": "Volume left"
@@ -560,6 +575,7 @@
           "above": "Above",
           "acceptable": "Acceptable",
           "below": "Below",
+          "danger": "Danger",
           "desired": "Desired",
           "desired_level_1": "Desired Level 1",
           "desired_level_2": "Desired Level 2"
@@ -580,7 +596,12 @@
 	}
       },
       "wave_forward_intensity": {
-        "name": "Forward Intensity"
+        "name": "Forward Intensity",
+	"state":{
+	  "alt":"Alternate",
+	  "fw":"Forward",
+	  "rw":"Reward"
+	}
       },
       "wave_forward_time": {
         "name": "Forward Time"
@@ -606,7 +627,14 @@
         "name": "White"
       },
       "wifi_quality": {
-        "name": "WIFI signal quality"
+        "name": "WIFI signal quality",
+	"state":{
+	  "Poor":"Poor",
+	  "Low": "Low",
+	  "Medium":"Medium",
+	  "Good":"Good",
+	  "Excellent":"Excellent"
+	}
       },
       "wifi_signal": {
         "name": "WIFI Signal Strength"
@@ -625,8 +653,8 @@
       "auto_advance": {
         "name": "Auto advance"
       },
-      "auto_fill":{
-	"name": "Auto fill"
+      "auto_fill": {
+        "name": "Auto fill"
       },
       "cloud_connect": {
         "name": "Connect to cloud"
@@ -655,14 +683,14 @@
       "slm": {
         "name": "Volume Controller"
       },
-      "shortcut_emergency":{
-	"name": "ShortCut Emergency"
+      "shortcut_emergency": {
+        "name": "ShortCut Emergency"
       },
-      "shortcut_feeding":{
-	"name": "ShortCut Feeding"
+      "shortcut_feeding": {
+        "name": "ShortCut Feeding"
       },
-      "shortcut_maintenance":{
-	"name": "ShortCut maintenance"
+      "shortcut_maintenance": {
+        "name": "ShortCut maintenance"
       },
       "use_cloud_api": {
         "name": "Use cloud API"
@@ -694,13 +722,14 @@
     }
   },
   "options": {
-    "error":{
-      "auth_failed":"Authentification failed, check your crendentials"
+    "error": {
+      "auth_failed": "Authentification failed, check your crendentials"
     },
     "step": {
       "init": {
         "data": {
           "live_config_update": "Live Configuration Update",
+          "disable_supplements": "Disable Supplements",
           "not_virtual": "Not configurable",
           "slaves": "LED"
         },

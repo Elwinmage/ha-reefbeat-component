@@ -341,7 +341,12 @@
         "name": "Blauw"
       },
       "cloud_account": {
-        "name": "Gekoppeld aan account"
+        "name": "Gekoppeld aan account",
+	"state":
+        { 
+          "None":"Geen"
+        }
+
       },
       "country": {
         "name": "Land"
@@ -544,7 +549,7 @@
         "name": "Volumeverbruik vandaag"
       },
       "todays_moon_day": {
-        "name": "Maandag vandaag"
+	"name": "Maanstand van vandaag"
       },
       "total_fills": {
         "name": "Totaal aantal vullingen"
@@ -624,7 +629,14 @@
         "name": "Wit"
       },
       "wifi_quality": {
-        "name": "WIFI signaalkwaliteit"
+        "name": "WIFI signaalkwaliteit",
+	"state":{
+          "Poor":"Slecht",
+          "Low": "Laag",
+          "Medium":"Gemiddeld",
+          "Good":"Goed",
+          "Excellent":"Uitstekend"
+        }
       },
       "wifi_signal": {
         "name": "WIFI signaalsterkte"

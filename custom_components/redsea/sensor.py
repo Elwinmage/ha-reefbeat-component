@@ -407,6 +407,14 @@ COMMON_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
             "$.sources[?(@.name=='/wifi')].data.signal_dBm"
         ),
         icon="mdi:wifi-strength-4",
+        device_class=SensorDeviceClass.ENUM,
+        options=[
+            "Poor",
+            "Low",
+            "Medium",
+            "Good",
+            "Excellent",
+        ],
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
 )

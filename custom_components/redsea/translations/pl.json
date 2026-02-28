@@ -1,738 +1,750 @@
 {
-    "config": {
-        "abort": {
-            "already_configured": "Urządzenie już skonfigurowane",
-            "cannot_create": "Nie można utworzyć urządzenia ReefBeat z podanymi parametrami"
-        },
-        "error": {
-            "auth_failed": "Uwierzytelnianie nie powiodło się, sprawdź swoje dane logowania",
-            "nothing_detected": "Nie wykryto żadnego urządzenia"
-        },
-        "flow_title": "Konfiguracja ReefBeat",
-        "step": {
-            "user": {
-                "data": {
-                    "add_type": "Wybierz metodę dodawania",
-                    "disable_supplements": "Wyłącz suplementy",
-                    "hw_model": "Model sprzętu",
-                    "ip_address": "Adres IP lub podsieci (np.: 10.0.1.0/255.255.255.0)",
-                    "platform": "Platforma",
-                    "scan_interval": "Interwał skanowania",
-                    "virtual_led": "Nowy wirtualny sterownik LED"
-                },
-                "title": "Dodaj nowe urządzenie"
-            }
-        }
+  "config": {
+    "abort": {
+      "already_configured": "Urządzenie już skonfigurowane",
+      "cannot_create": "Nie można utworzyć urządzenia ReefBeat z podanymi parametrami"
     },
-    "entity": {
-        "binary_sensor": {
-            "battery_level": {
-                "name": "Poziom baterii"
-            },
-            "bundled_heads": {
-                "name": "Zgrupowane głowice"
-            },
-            "buzzer_enabled": {
-                "name": "Buzzer włączony"
-            },
-            "cloud_state": {
-                "name": "Stan połączenia z chmurą"
-            },
-            "connected": {
-                "name": "Czujnik wycieku podłączony"
-            },
-            "constant_speed": {
-                "name": "Stała prędkość"
-            },
-            "ec_sensor_connected": {
-                "name": "Czujnik EC podłączony"
-            },
-            "enabled": {
-                "name": "Czujnik wycieku włączony"
-            },
-            "is_ec_sensor_connected": {
-                "name": "Czujnik EC podłączony?"
-            },
-            "is_pump_on": {
-                "name": "Pompa włączona?"
-            },
-            "is_sensor_error": {
-                "name": "Błąd czujnika?"
-            },
-            "is_temp_enabled": {
-                "name": "Temperatura włączona?"
-            },
-            "missing_pump": {
-                "name": "Brak pompy"
-            },
-            "missing_sensor": {
-                "name": "Brak czujnika"
-            },
-            "recalibration_required": {
-                "name": "Kalibracja"
-            },
-            "schedule_enabled": {
-                "name": "Harmonogram włączony"
-            },
-            "sensor_controlled": {
-                "name": "Sterowany przez czujnik"
-            },
-            "status": {
-                "name": "Status"
-            },
-            "unclean_sensor": {
-                "name": "Stan czujnika"
-            },
-            "water_level": {
-                "name": "Poziom wody"
-            }
-        },
-        "button": {
-            "advance": {
-                "name": "Posuw"
-            },
-            "delete_emergency": {
-                "name": "Usuń alert awaryjny"
-            },
-            "delete_supplement": {
-                "name": "Usuń suplement"
-            },
-            "end_calibration": {
-                "name": "Zatrzymaj i zapisz kalibrację"
-            },
-            "fetch_config": {
-                "name": "Pobierz konfigurację"
-            },
-            "fill": {
-                "name": "Napełnij"
-            },
-            "firmware_update": {
-                "name": "Wymuś aktualizację firmware"
-            },
-            "led_identify": {
-                "name": "Identyfikuj"
-            },
-            "manual_head": {
-                "name": "Ręczne dozowanie"
-            },
-            "new_roll": {
-                "name": "Nowa rolka"
-            },
-            "preview_save": {
-                "name": "Zapisz podgląd"
-            },
-            "preview_set_from_current": {
-                "name": "Podgląd z bieżącego"
-            },
-            "preview_start": {
-                "name": "Rozpocznij podgląd"
-            },
-            "preview_stop": {
-                "name": "Zatrzymaj podgląd"
-            },
-            "reset": {
-                "name": "Uruchom ponownie"
-            },
-            "resume": {
-                "name": "Wznów"
-            },
-            "set_calibration_value": {
-                "name": "Ustaw objętość kalibracji"
-            },
-            "set_supplement": {
-                "name": "Ustaw nowy suplement"
-            },
-            "set_supplement_name": {
-                "name": "Ustaw nową nazwę"
-            },
-            "start_calibration": {
-                "name": "Rozpocznij kalibrację"
-            },
-            "start_priming": {
-                "name": "Rozpocznij napełnianie przewodów"
-            },
-            "stop_fill": {
-                "name": "Zatrzymaj napełnianie"
-            },
-            "stop_priming": {
-                "name": "Zatrzymaj napełnianie przewodów"
-            },
-            "test_calibration": {
-                "name": "Testuj nową kalibrację"
-            }
-        },
-        "light": {
-            "blue": {
-                "name": "Niebieski"
-            },
-            "kelvin_intensity": {
-                "name": "Kelvin"
-            },
-            "moon": {
-                "name": "Księżyc"
-            },
-            "white": {
-                "name": "Biały"
-            }
-        },
-        "number": {
-            "acclimation_duration": {
-                "name": "Czas aklimatyzacji"
-            },
-            "acclimation_start_intensity_factor": {
-                "name": "Początkowy współczynnik intensywności aklimatyzacji"
-            },
-            "ato_volume_left": {
-                "name": "Pozostała objętość ATO"
-            },
-            "calibration_dose_value": {
-                "name": "Dawka kalibracyjna"
-            },
-            "container_volume": {
-                "name": "Objętość pojemnika"
-            },
-            "custom_advance_value": {
-                "name": "Wartość posuwu"
-            },
-            "daily_dose": {
-                "name": "Aktualizuj dzienną dawkę"
-            },
-            "dosing_waiting_period": {
-                "name": "Okres oczekiwania na dozowanie"
-            },
-            "manual_duration": {
-                "name": "Czas ręczny"
-            },
-            "manual_head_volume": {
-                "name": "Objętość ręczna"
-            },
-            "moon_day": {
-                "name": "Dzień księżycowy"
-            },
-            "overskimming_threshold": {
-                "name": "Próg nadmiernego spienienia"
-            },
-            "preview_speed": {
-                "name": "Prędkość podglądu"
-            },
-            "save_initial_container_volume": {
-                "name": "Początkowa objętość pojemnika"
-            },
-            "schedule_length": {
-                "name": "Długość harmonogramu"
-            },
-            "shortcut_off_delay": {
-                "name": "Opóźnienie wyłączenia skrótu"
-            },
-            "speed": {
-                "name": "Prędkość"
-            },
-            "started_roll_diameter": {
-                "name": "Średnica rolki"
-            },
-            "stock_alert_days": {
-                "name": "Dni alertu zapasów"
-            },
-            "wave_backward_intensity": {
-                "name": "Podgląd intensyw. wstecz"
-            },
-            "wave_backward_time": {
-                "name": "Podgląd czas wstecz"
-            },
-            "wave_forward_intensity": {
-                "name": "Podgląd intensyw. wprzód"
-            },
-            "wave_forward_time": {
-                "name": "Podgląd czas wprzód"
-            },
-            "wave_preview_duration": {
-                "name": "Czas trwania podglądu"
-            },
-            "wave_preview_step": {
-                "name": "Krok podglądu"
-            },
-            "wave_preview_wave_duration": {
-                "name": "Podgląd czas trwania fali"
-            }
-        },
-        "select": {
-            "mode": {
-                "name": "Tryb",
-                "state": {
-                    "auto": "Auto",
-                    "end_of_roll": "Koniec rolki",
-                    "manual": "Ręczny",
-                    "timer": "Timer",
-                    "other": "Inne",
-                    "off": "Wyłączony"
-                }
-            },
-            "model": {
-                "name": "Model"
-            },
-            "position": {
-                "name": "Pozycja",
-                "state": {
-                    "left": "Lewo",
-                    "right": "Prawo"
-                }
-            },
-            "preview_wave_direction": {
-                "name": "Kierunek fal w podglądzie",
-                "state": {
-                    "alt": "Naprzemienny",
-                    "fw": "Wprzód",
-                    "rw": "Wstecz"
-                }
-            },
-            "preview_wave_type": {
-                "name": "Typ fali w podglądzie",
-                "state": {
-                    "nw": "Brak fali",
-                    "ra": "Losowy",
-                    "re": "Regularny",
-                    "st": "Skokowy",
-                    "su": "Powierzchniowy",
-                    "un": "Jednorodny"
-                }
-            },
-            "supplements": {
-                "name": "Suplementy",
-                "state": {
-                    "other": "Inne"
-                }
-            }
-        },
-        "sensor": {
-            "acclimation_duration": {
-                "name": "Czas aklimatyzacji"
-            },
-            "acclimation_start_intensity_factor": {
-                "name": "Początkowy współczynnik intensywności aklimatyzacji"
-            },
-            "auto_1": {
-                "name": "Niedziela"
-            },
-            "auto_2": {
-                "name": "Poniedziałek"
-            },
-            "auto_3": {
-                "name": "Wtorek"
-            },
-            "auto_4": {
-                "name": "Środa"
-            },
-            "auto_5": {
-                "name": "Czwartek"
-            },
-            "auto_6": {
-                "name": "Piątek"
-            },
-            "auto_7": {
-                "name": "Sobota"
-            },
-            "auto_dosed_today": {
-                "name": "Automatycznie dozowano dziś"
-            },
-            "backup_email": {
-                "name": "Zapasowy e-mail"
-            },
-            "blue": {
-                "name": "Niebieski"
-            },
-            "cloud_account": {
-                "name": "Połączono z kontem"
-            },
-            "country": {
-                "name": "Kraj"
-            },
-            "current_level": {
-                "name": "Aktualny poziom"
-            },
-            "daily_dose": {
-                "name": "Dzienna dawka"
-            },
-            "first_name": {
-                "name": "Imię"
-            },
-            "head_state": {
-                "name": "Status"
-            },
-            "ip": {
-                "name": "Adres IP"
-            },
-            "language": {
-                "name": "Język"
-            },
-            "last_alert_message": {
-                "name": "Ostatni komunikat alertu"
-            },
-            "last_calibration": {
-                "name": "Ostatnia kalibracja"
-            },
-            "last_message": {
-                "name": "Ostatni komunikat"
-            },
-            "last_name": {
-                "name": "Nazwisko"
-            },
-            "led_program": {
-                "name": "Program LED"
-            },
-            "manual_dosed_today": {
-                "name": "Ręcznie dozowano dziś"
-            },
-            "mobile_number": {
-                "name": "Numer telefonu"
-            },
-            "mode": {
-                "name": "Tryb",
-                "state": {
-                    "auto": "Auto",
-                    "blockage": "Zablokowanie",
-                    "calibration": "Kalibracja",
-                    "controller": "Sterownik",
-                    "emergency": "Awaryjny",
-                    "empty": "Pusty",
-                    "end_of_roll": "Koniec rolki",
-                    "feeding": "Karmienie",
-                    "high_water": "Wysoki poziom wody",
-                    "leak": "Wyciek",
-                    "maintenance": "Konserwacja",
-                    "malfunction": "Awaria",
-                    "manual": "Ręczny",
-                    "mat_error": "Błąd materiału",
-                    "missing_pump": "Brak pompy",
-                    "missing_sensor": "Brak czujnika",
-                    "no_ec_sensor": "Brak czujnika EC",
-                    "off": "Wyłączony",
-                    "overheating": "Przegrzanie",
-                    "partial_auto": "Półautomatyczny",
-                    "preview": "Podgląd",
-                    "priming": "Napełnianie przewodów",
-                    "pump_timeout": "Przekroczenie czasu pompy",
-                    "setup": "Konfiguracja",
-                    "setup_error_high": "Błąd konfiguracji: za wysoko",
-                    "setup_error_torn": "Błąd konfiguracji: rozdarty",
-                    "shortcut_off_delay": "Opóźnienie wyłączenia skrótu",
-                    "stalled": "Zablokowany",
-                    "timer": "Timer",
-                    "torn_mat": "Rozdarty materiał",
-                    "user_test": "Test użytkownika",
-                    "no_roll": "Brak rolki"
-                }
-            },
-            "model": {
-                "name": "Model"
-            },
-            "moon_intensity": {
-                "name": "Intensywność fazy księżyca"
-            },
-            "name": {
-                "name": "Nazwa"
-            },
-            "next_full_moon": {
-                "name": "Następna pełnia księżyca"
-            },
-            "next_new_moon": {
-                "name": "Następny nów księżyca"
-            },
-            "pump_state": {
-                "name": "Stan pompy",
-                "state": {
-                    "malfunction": "Awaria",
-                    "pump_on": "Włączona"
-                }
-            },
-            "remaining_days": {
-                "name": "Pozostałe dni"
-            },
-            "remaining_length": {
-                "name": "Pozostała długość"
-            },
-            "schedule_head": {
-                "name": "Harmonogram głowicy",
-                "state": {
-                    "custom": "Niestandardowy",
-                    "daily": "Dzienny",
-                    "hourly": "Godzinowy",
-                    "single": "Jednorazowy"
-                }
-            },
-            "state": {
-                "name": "Stan",
-                "state": {
-                    "calibration": "Kalibracja",
-                    "dry-run": "Praca na sucho",
-                    "emergency": "Awaryjny",
-                    "feeding": "Karmienie",
-                    "full-cup": "Pełny pojemnik",
-                    "locked-rotor": "Zablokowany wirnik",
-                    "maintenance": "Konserwacja",
-                    "not-connected": "Niepodłączony",
-                    "operational": "Sprawny",
-                    "over-skimming": "Nadmierne spienienie",
-                    "preview": "Podgląd",
-                    "shortcut-off-delay": "Opóźnienie wyłączenia skrótu",
-                    "wrong-pump": "Niewłaściwa pompa"
-                }
-            },
-            "supplement": {
-                "name": "Suplement"
-            },
-            "supplement_program": {
-                "name": "Suplement"
-            },
-            "temperature": {
-                "name": "Temperatura"
-            },
-            "temperature_probe_status": {
-                "name": "Stan sondy temperatury",
-                "state": {
-                    "connected": "Podłączony",
-                    "disconnected": "Odłączony"
-                }
-            },
-            "today_fills": {
-                "name": "Dzisiejsze napełnienia"
-            },
-            "today_usage": {
-                "name": "Dzisiejsze zużycie"
-            },
-            "today_volume_usage": {
-                "name": "Dzisiejsze zużycie objętości"
-            },
-            "todays_moon_day": {
-                "name": "Dzisiejszy dzień księżycowy"
-            },
-            "total_fills": {
-                "name": "Łączna liczba napełnień"
-            },
-            "total_usage": {
-                "name": "Łączne zużycie"
-            },
-            "total_volume_usage": {
-                "name": "Łączne zużycie objętości"
-            },
-            "type": {
-                "name": "Typ",
-                "state": {
-                    "return": "Powrót",
-                    "skimmer": "Skimmer",
-                    "unknown": "Nieznany"
-                }
-            },
-            "volume_left": {
-                "name": "Pozostała objętość"
-            },
-            "water_level": {
-                "name": "Poziom wody",
-                "state": {
-                    "above": "Powyżej",
-                    "acceptable": "Akceptowalny",
-                    "below": "Poniżej",
-                    "danger": "Niebezpieczny",
-                    "desired": "Pożądany",
-                    "desired_level_1": "Pożądany poziom 1",
-                    "desired_level_2": "Pożądany poziom 2"
-                }
-            },
-            "wave_backward_intensity": {
-                "name": "Intensywność wstecz"
-            },
-            "wave_backward_time": {
-                "name": "Czas wstecz"
-            },
-            "wave_direction": {
-                "name": "Kierunek fal",
-                "state": {
-                    "alt": "Naprzemienny",
-                    "fw": "Wprzód",
-                    "rw": "Wstecz"
-                }
-            },
-            "wave_forward_intensity": {
-                "name": "Intensywność wprzód",
-                "state": {
-                    "alt": "Naprzemienny",
-                    "fw": "Wprzód",
-                    "rw": "Wstecz"
-                }
-            },
-            "wave_forward_time": {
-                "name": "Czas wprzód"
-            },
-            "wave_program": {
-                "name": "Program fal"
-            },
-            "wave_step": {
-                "name": "Kroki"
-            },
-            "wave_type": {
-                "name": "Typ fali",
-                "state": {
-                    "nw": "Brak fali",
-                    "ra": "Losowy",
-                    "re": "Regularny",
-                    "st": "Skokowy",
-                    "su": "Powierzchniowy",
-                    "un": "Jednorodny"
-                }
-            },
-            "white": {
-                "name": "Biały"
-            },
-            "wifi_quality": {
-                "name": "Jakość sygnału WiFi"
-            },
-            "wifi_signal": {
-                "name": "Siła sygnału WiFi"
-            },
-            "wifi_ssid": {
-                "name": "SSID WiFi"
-            },
-            "zip_code": {
-                "name": "Kod pocztowy"
-            },
-            "daily_fills_average": {
-                "name": "Daily fills average"
-            },
-            "days_till_end_of_roll": {
-                "name": "Days till end of roll"
-            },
-            "current_read": {
-                "name": "Temperature"
-            },
-            "daily_doses": {
-                "name": "Daily doses"
-            },
-            "email": {
-                "name": "Email"
-            },
-            "fan": {
-                "name": "Fan"
-            },
-            "daily_average_usage": {
-                "name": "Daily Average Usage"
-            },
-            "daily_volume_average": {
-                "name": "Daily volume average"
-            },
-            "dosing_queue": {
-                "name": "Dosing Queue",
-                "state": {
-                    "empty": "Empty"
-                }
-            },
-            "doses_today": {
-                "name": "Doses today"
-            }
-        },
-        "switch": {
-            "acclimation": {
-                "name": "Aklimatyzacja"
-            },
-            "auto_advance": {
-                "name": "Automatyczny posuw"
-            },
-            "auto_fill": {
-                "name": "Automatyczne napełnianie"
-            },
-            "cloud_connect": {
-                "name": "Połącz z chmurą"
-            },
-            "device_state": {
-                "name": "Stan urządzenia"
-            },
-            "fullcup_enabled": {
-                "name": "Wykrywanie pełnego pojemnika"
-            },
-            "maintenance": {
-                "name": "Konserwacja"
-            },
-            "moon_phase": {
-                "name": "Faza księżyca"
-            },
-            "overskimming_enabled": {
-                "name": "Nadmierne spienienie"
-            },
-            "schedule_enabled": {
-                "name": "Harmonogram włączony"
-            },
-            "scheduled_advance": {
-                "name": "Zaplanowany posuw"
-            },
-            "slm": {
-                "name": "Sterownik objętości"
-            },
-            "shortcut_emergency": {
-                "name": "Skrót awaryjny"
-            },
-            "shortcut_feeding": {
-                "name": "Skrót karmienie"
-            },
-            "shortcut_maintenance": {
-                "name": "Skrót konserwacja"
-            },
-            "use_cloud_api": {
-                "name": "Użyj API chmury"
-            }
-        },
-        "text": {
-            "new_supplement_brand_name": {
-                "name": "Nazwa marki"
-            },
-            "new_supplement_display_name": {
-                "name": "Wyświetlana nazwa suplementu"
-            },
-            "new_supplement_name": {
-                "name": "Nazwa suplementu"
-            },
-            "new_supplement_short_name": {
-                "name": "Skrócona nazwa suplementu"
-            }
-        },
-        "time": {
-            "schedule_time": {
-                "name": "Godzina harmonogramu"
-            }
-        },
-        "update": {
-            "firmware_update": {
-                "name": "Aktualizacja firmware"
-            }
-        }
+    "error": {
+      "auth_failed": "Uwierzytelnianie nie powiodło się, sprawdź swoje dane logowania",
+      "nothing_detected": "Nie wykryto żadnego urządzenia"
     },
-    "options": {
-        "error": {
-            "auth_failed": "Uwierzytelnianie nie powiodło się, sprawdź swoje dane logowania"
+    "flow_title": "Konfiguracja ReefBeat",
+    "step": {
+      "user": {
+        "data": {
+          "add_type": "Wybierz metodę dodawania",
+          "disable_supplements": "Wyłącz suplementy",
+          "hw_model": "Model sprzętu",
+          "ip_address": "Adres IP lub podsieci (np.: 10.0.1.0/255.255.255.0)",
+          "platform": "Platforma",
+          "scan_interval": "Interwał skanowania",
+          "virtual_led": "Nowy wirtualny sterownik LED"
         },
-        "step": {
-            "init": {
-                "data": {
-                    "live_config_update": "Aktualizacja konfiguracji na żywo",
-                    "disable_supplements": "Wyłącz suplementy",
-                    "not_virtual": "Nie do konfiguracji",
-                    "slaves": "LED"
-                },
-                "title": "Konfiguracja"
-            }
-        }
+        "title": "Dodaj nowe urządzenie"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "battery_level": {
+        "name": "Poziom baterii"
+      },
+      "bundled_heads": {
+        "name": "Zgrupowane głowice"
+      },
+      "buzzer_enabled": {
+        "name": "Buzzer włączony"
+      },
+      "cloud_state": {
+        "name": "Stan połączenia z chmurą"
+      },
+      "connected": {
+        "name": "Czujnik wycieku podłączony"
+      },
+      "constant_speed": {
+        "name": "Stała prędkość"
+      },
+      "ec_sensor_connected": {
+        "name": "Czujnik EC podłączony"
+      },
+      "enabled": {
+        "name": "Czujnik wycieku włączony"
+      },
+      "is_ec_sensor_connected": {
+        "name": "Czujnik EC podłączony?"
+      },
+      "is_pump_on": {
+        "name": "Pompa włączona?"
+      },
+      "is_sensor_error": {
+        "name": "Błąd czujnika?"
+      },
+      "is_temp_enabled": {
+        "name": "Temperatura włączona?"
+      },
+      "missing_pump": {
+        "name": "Brak pompy"
+      },
+      "missing_sensor": {
+        "name": "Brak czujnika"
+      },
+      "recalibration_required": {
+        "name": "Kalibracja"
+      },
+      "schedule_enabled": {
+        "name": "Harmonogram włączony"
+      },
+      "sensor_controlled": {
+        "name": "Sterowany przez czujnik"
+      },
+      "status": {
+        "name": "Status"
+      },
+      "unclean_sensor": {
+        "name": "Stan czujnika"
+      },
+      "water_level": {
+        "name": "Poziom wody"
+      }
     },
-    "selector": {
-        "add_type": {
-            "options": {
-                "cloud_api": "Konto chmury",
-                "local_detect": "Lokalne wykrywanie",
-                "manual_mode": "Tryb ręczny",
-                "virtual_led": "Wirtualny LED"
-            }
+    "button": {
+      "advance": {
+        "name": "Posuw"
+      },
+      "delete_emergency": {
+        "name": "Usuń alert awaryjny"
+      },
+      "delete_supplement": {
+        "name": "Usuń suplement"
+      },
+      "end_calibration": {
+        "name": "Zatrzymaj i zapisz kalibrację"
+      },
+      "fetch_config": {
+        "name": "Pobierz konfigurację"
+      },
+      "fill": {
+        "name": "Napełnij"
+      },
+      "firmware_update": {
+        "name": "Wymuś aktualizację firmware"
+      },
+      "led_identify": {
+        "name": "Identyfikuj"
+      },
+      "manual_head": {
+        "name": "Ręczne dozowanie"
+      },
+      "new_roll": {
+        "name": "Nowa rolka"
+      },
+      "preview_save": {
+        "name": "Zapisz podgląd"
+      },
+      "preview_set_from_current": {
+        "name": "Podgląd z bieżącego"
+      },
+      "preview_start": {
+        "name": "Rozpocznij podgląd"
+      },
+      "preview_stop": {
+        "name": "Zatrzymaj podgląd"
+      },
+      "reset": {
+        "name": "Uruchom ponownie"
+      },
+      "resume": {
+        "name": "Wznów"
+      },
+      "set_calibration_value": {
+        "name": "Ustaw objętość kalibracji"
+      },
+      "set_supplement": {
+        "name": "Ustaw nowy suplement"
+      },
+      "set_supplement_name": {
+        "name": "Ustaw nową nazwę"
+      },
+      "start_calibration": {
+        "name": "Rozpocznij kalibrację"
+      },
+      "start_priming": {
+        "name": "Rozpocznij napełnianie przewodów"
+      },
+      "stop_fill": {
+        "name": "Zatrzymaj napełnianie"
+      },
+      "stop_priming": {
+        "name": "Zatrzymaj napełnianie przewodów"
+      },
+      "test_calibration": {
+        "name": "Testuj nową kalibrację"
+      }
+    },
+    "light": {
+      "blue": {
+        "name": "Niebieski"
+      },
+      "kelvin_intensity": {
+        "name": "Kelvin"
+      },
+      "moon": {
+        "name": "Księżyc"
+      },
+      "white": {
+        "name": "Biały"
+      }
+    },
+    "number": {
+      "acclimation_duration": {
+        "name": "Czas aklimatyzacji"
+      },
+      "acclimation_start_intensity_factor": {
+        "name": "Początkowy współczynnik intensywności aklimatyzacji"
+      },
+      "ato_volume_left": {
+        "name": "Pozostała objętość ATO"
+      },
+      "calibration_dose_value": {
+        "name": "Dawka kalibracyjna"
+      },
+      "container_volume": {
+        "name": "Objętość pojemnika"
+      },
+      "custom_advance_value": {
+        "name": "Wartość posuwu"
+      },
+      "daily_dose": {
+        "name": "Aktualizuj dzienną dawkę"
+      },
+      "dosing_waiting_period": {
+        "name": "Okres oczekiwania na dozowanie"
+      },
+      "manual_duration": {
+        "name": "Czas ręczny"
+      },
+      "manual_head_volume": {
+        "name": "Objętość ręczna"
+      },
+      "moon_day": {
+        "name": "Dzień księżycowy"
+      },
+      "overskimming_threshold": {
+        "name": "Próg nadmiernego spienienia"
+      },
+      "preview_speed": {
+        "name": "Prędkość podglądu"
+      },
+      "save_initial_container_volume": {
+        "name": "Początkowa objętość pojemnika"
+      },
+      "schedule_length": {
+        "name": "Długość harmonogramu"
+      },
+      "shortcut_off_delay": {
+        "name": "Opóźnienie wyłączenia skrótu"
+      },
+      "speed": {
+        "name": "Prędkość"
+      },
+      "started_roll_diameter": {
+        "name": "Średnica rolki"
+      },
+      "stock_alert_days": {
+        "name": "Dni alertu zapasów"
+      },
+      "wave_backward_intensity": {
+        "name": "Podgląd intensyw. wstecz"
+      },
+      "wave_backward_time": {
+        "name": "Podgląd czas wstecz"
+      },
+      "wave_forward_intensity": {
+        "name": "Podgląd intensyw. wprzód"
+      },
+      "wave_forward_time": {
+        "name": "Podgląd czas wprzód"
+      },
+      "wave_preview_duration": {
+        "name": "Czas trwania podglądu"
+      },
+      "wave_preview_step": {
+        "name": "Krok podglądu"
+      },
+      "wave_preview_wave_duration": {
+        "name": "Podgląd czas trwania fali"
+      }
+    },
+    "select": {
+      "mode": {
+        "name": "Tryb",
+        "state": {
+          "auto": "Auto",
+          "end_of_roll": "Koniec rolki",
+          "manual": "Ręczny",
+          "timer": "Timer",
+          "other": "Inne",
+          "off": "Wyłączony"
+        }
+      },
+      "model": {
+        "name": "Model"
+      },
+      "position": {
+        "name": "Pozycja",
+        "state": {
+          "left": "Lewo",
+          "right": "Prawo"
+        }
+      },
+      "preview_wave_direction": {
+        "name": "Kierunek fal w podglądzie",
+        "state": {
+          "alt": "Naprzemienny",
+          "fw": "Wprzód",
+          "rw": "Wstecz"
+        }
+      },
+      "preview_wave_type": {
+        "name": "Typ fali w podglądzie",
+        "state": {
+          "nw": "Brak fali",
+          "ra": "Losowy",
+          "re": "Regularny",
+          "st": "Skokowy",
+          "su": "Powierzchniowy",
+          "un": "Jednorodny"
+        }
+      },
+      "supplements": {
+        "name": "Suplementy",
+        "state": {
+          "other": "Inne"
+        }
+      }
+    },
+    "sensor": {
+      "acclimation_duration": {
+        "name": "Czas aklimatyzacji"
+      },
+      "acclimation_start_intensity_factor": {
+        "name": "Początkowy współczynnik intensywności aklimatyzacji"
+      },
+      "auto_1": {
+        "name": "Niedziela"
+      },
+      "auto_2": {
+        "name": "Poniedziałek"
+      },
+      "auto_3": {
+        "name": "Wtorek"
+      },
+      "auto_4": {
+        "name": "Środa"
+      },
+      "auto_5": {
+        "name": "Czwartek"
+      },
+      "auto_6": {
+        "name": "Piątek"
+      },
+      "auto_7": {
+        "name": "Sobota"
+      },
+      "auto_dosed_today": {
+        "name": "Automatycznie dozowano dziś"
+      },
+      "backup_email": {
+        "name": "Zapasowy e-mail"
+      },
+      "blue": {
+        "name": "Niebieski"
+      },
+      "cloud_account": {
+        "name": "Połączono z kontem",
+	"state":
+        { 
+          "None":"żaden"
+        }
+      },
+      "country": {
+        "name": "Kraj"
+      },
+      "current_level": {
+        "name": "Aktualny poziom"
+      },
+      "daily_dose": {
+        "name": "Dzienna dawka"
+      },
+      "first_name": {
+        "name": "Imię"
+      },
+      "head_state": {
+        "name": "Status"
+      },
+      "ip": {
+        "name": "Adres IP"
+      },
+      "language": {
+        "name": "Język"
+      },
+      "last_alert_message": {
+        "name": "Ostatni komunikat alertu"
+      },
+      "last_calibration": {
+        "name": "Ostatnia kalibracja"
+      },
+      "last_message": {
+        "name": "Ostatni komunikat"
+      },
+      "last_name": {
+        "name": "Nazwisko"
+      },
+      "led_program": {
+        "name": "Program LED"
+      },
+      "manual_dosed_today": {
+        "name": "Ręcznie dozowano dziś"
+      },
+      "mobile_number": {
+        "name": "Numer telefonu"
+      },
+      "mode": {
+        "name": "Tryb",
+        "state": {
+          "auto": "Auto",
+          "blockage": "Zablokowanie",
+          "calibration": "Kalibracja",
+          "controller": "Sterownik",
+          "emergency": "Awaryjny",
+          "empty": "Pusty",
+          "end_of_roll": "Koniec rolki",
+          "feeding": "Karmienie",
+          "high_water": "Wysoki poziom wody",
+          "leak": "Wyciek",
+          "maintenance": "Konserwacja",
+          "malfunction": "Awaria",
+          "manual": "Ręczny",
+          "mat_error": "Błąd materiału",
+          "missing_pump": "Brak pompy",
+          "missing_sensor": "Brak czujnika",
+          "no_ec_sensor": "Brak czujnika EC",
+          "off": "Wyłączony",
+          "overheating": "Przegrzanie",
+          "partial_auto": "Półautomatyczny",
+          "preview": "Podgląd",
+          "priming": "Napełnianie przewodów",
+          "pump_timeout": "Przekroczenie czasu pompy",
+          "setup": "Konfiguracja",
+          "setup_error_high": "Błąd konfiguracji: za wysoko",
+          "setup_error_torn": "Błąd konfiguracji: rozdarty",
+          "shortcut_off_delay": "Opóźnienie wyłączenia skrótu",
+          "stalled": "Zablokowany",
+          "timer": "Timer",
+          "torn_mat": "Rozdarty materiał",
+          "user_test": "Test użytkownika",
+          "no_roll": "Brak rolki"
+        }
+      },
+      "model": {
+        "name": "Model"
+      },
+      "moon_intensity": {
+        "name": "Intensywność fazy księżyca"
+      },
+      "name": {
+        "name": "Nazwa"
+      },
+      "next_full_moon": {
+        "name": "Następna pełnia księżyca"
+      },
+      "next_new_moon": {
+        "name": "Następny nów księżyca"
+      },
+      "pump_state": {
+        "name": "Stan pompy",
+        "state": {
+          "malfunction": "Awaria",
+          "pump_on": "Włączona"
+        }
+      },
+      "remaining_days": {
+        "name": "Pozostałe dni"
+      },
+      "remaining_length": {
+        "name": "Pozostała długość"
+      },
+      "schedule_head": {
+        "name": "Harmonogram głowicy",
+        "state": {
+          "custom": "Niestandardowy",
+          "daily": "Dzienny",
+          "hourly": "Godzinowy",
+          "single": "Jednorazowy"
+        }
+      },
+      "state": {
+        "name": "Stan",
+        "state": {
+          "calibration": "Kalibracja",
+          "dry-run": "Praca na sucho",
+          "emergency": "Awaryjny",
+          "feeding": "Karmienie",
+          "full-cup": "Pełny pojemnik",
+          "locked-rotor": "Zablokowany wirnik",
+          "maintenance": "Konserwacja",
+          "not-connected": "Niepodłączony",
+          "operational": "Sprawny",
+          "over-skimming": "Nadmierne spienienie",
+          "preview": "Podgląd",
+          "shortcut-off-delay": "Opóźnienie wyłączenia skrótu",
+          "wrong-pump": "Niewłaściwa pompa"
+        }
+      },
+      "supplement": {
+        "name": "Suplement"
+      },
+      "supplement_program": {
+        "name": "Suplement"
+      },
+      "temperature": {
+        "name": "Temperatura"
+      },
+      "temperature_probe_status": {
+        "name": "Stan sondy temperatury",
+        "state": {
+          "connected": "Podłączony",
+          "disconnected": "Odłączony"
+        }
+      },
+      "today_fills": {
+        "name": "Dzisiejsze napełnienia"
+      },
+      "today_usage": {
+        "name": "Dzisiejsze zużycie"
+      },
+      "today_volume_usage": {
+        "name": "Dzisiejsze zużycie objętości"
+      },
+      "todays_moon_day": {
+        "name": "Dzisiejszy dzień księżycowy"
+      },
+      "total_fills": {
+        "name": "Łączna liczba napełnień"
+      },
+      "total_usage": {
+        "name": "Łączne zużycie"
+      },
+      "total_volume_usage": {
+        "name": "Łączne zużycie objętości"
+      },
+      "type": {
+        "name": "Typ",
+        "state": {
+          "return": "Powrót",
+          "skimmer": "Skimmer",
+          "unknown": "Nieznany"
+        }
+      },
+      "volume_left": {
+        "name": "Pozostała objętość"
+      },
+      "water_level": {
+        "name": "Poziom wody",
+        "state": {
+          "above": "Powyżej",
+          "acceptable": "Akceptowalny",
+          "below": "Poniżej",
+          "danger": "Niebezpieczny",
+          "desired": "Pożądany",
+          "desired_level_1": "Pożądany poziom 1",
+          "desired_level_2": "Pożądany poziom 2"
+        }
+      },
+      "wave_backward_intensity": {
+        "name": "Intensywność wstecz"
+      },
+      "wave_backward_time": {
+        "name": "Czas wstecz"
+      },
+      "wave_direction": {
+        "name": "Kierunek fal",
+        "state": {
+          "alt": "Naprzemienny",
+          "fw": "Wprzód",
+          "rw": "Wstecz"
+        }
+      },
+      "wave_forward_intensity": {
+        "name": "Intensywność wprzód",
+        "state": {
+          "alt": "Naprzemienny",
+          "fw": "Wprzód",
+          "rw": "Wstecz"
+        }
+      },
+      "wave_forward_time": {
+        "name": "Czas wprzód"
+      },
+      "wave_program": {
+        "name": "Program fal"
+      },
+      "wave_step": {
+        "name": "Kroki"
+      },
+      "wave_type": {
+        "name": "Typ fali",
+        "state": {
+          "nw": "Brak fali",
+          "ra": "Losowy",
+          "re": "Regularny",
+          "st": "Skokowy",
+          "su": "Powierzchniowy",
+          "un": "Jednorodny"
+        }
+      },
+      "white": {
+        "name": "Biały"
+      },
+      "wifi_quality": {
+        "name": "Jakość sygnału WiFi",
+	"state":{
+          "Poor":"Słaby",
+          "Low": "Niski",
+          "Medium":"Średni",
+          "Good":"Dobry",
+          "Excellent":"Doskonały"
+        }
+
+      },
+      "wifi_signal": {
+        "name": "Siła sygnału WiFi"
+      },
+      "wifi_ssid": {
+        "name": "SSID WiFi"
+      },
+      "zip_code": {
+        "name": "Kod pocztowy"
+      },
+      "daily_fills_average": {
+        "name": "Daily fills average"
+      },
+      "days_till_end_of_roll": {
+        "name": "Days till end of roll"
+      },
+      "current_read": {
+        "name": "Temperature"
+      },
+      "daily_doses": {
+        "name": "Daily doses"
+      },
+      "email": {
+        "name": "Email"
+      },
+      "fan": {
+        "name": "Fan"
+      },
+      "daily_average_usage": {
+        "name": "Daily Average Usage"
+      },
+      "daily_volume_average": {
+        "name": "Daily volume average"
+      },
+      "dosing_queue": {
+        "name": "Dosing Queue",
+        "state": {
+          "empty": "Empty"
+        }
+      },
+      "doses_today": {
+        "name": "Doses today"
+      }
+    },
+    "switch": {
+      "acclimation": {
+        "name": "Aklimatyzacja"
+      },
+      "auto_advance": {
+        "name": "Automatyczny posuw"
+      },
+      "auto_fill": {
+        "name": "Automatyczne napełnianie"
+      },
+      "cloud_connect": {
+        "name": "Połącz z chmurą"
+      },
+      "device_state": {
+        "name": "Stan urządzenia"
+      },
+      "fullcup_enabled": {
+        "name": "Wykrywanie pełnego pojemnika"
+      },
+      "maintenance": {
+        "name": "Konserwacja"
+      },
+      "moon_phase": {
+        "name": "Faza księżyca"
+      },
+      "overskimming_enabled": {
+        "name": "Nadmierne spienienie"
+      },
+      "schedule_enabled": {
+        "name": "Harmonogram włączony"
+      },
+      "scheduled_advance": {
+        "name": "Zaplanowany posuw"
+      },
+      "slm": {
+        "name": "Sterownik objętości"
+      },
+      "shortcut_emergency": {
+        "name": "Skrót awaryjny"
+      },
+      "shortcut_feeding": {
+        "name": "Skrót karmienie"
+      },
+      "shortcut_maintenance": {
+        "name": "Skrót konserwacja"
+      },
+      "use_cloud_api": {
+        "name": "Użyj API chmury"
+      }
+    },
+    "text": {
+      "new_supplement_brand_name": {
+        "name": "Nazwa marki"
+      },
+      "new_supplement_display_name": {
+        "name": "Wyświetlana nazwa suplementu"
+      },
+      "new_supplement_name": {
+        "name": "Nazwa suplementu"
+      },
+      "new_supplement_short_name": {
+        "name": "Skrócona nazwa suplementu"
+      }
+    },
+    "time": {
+      "schedule_time": {
+        "name": "Godzina harmonogramu"
+      }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "Aktualizacja firmware"
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "auth_failed": "Uwierzytelnianie nie powiodło się, sprawdź swoje dane logowania"
+    },
+    "step": {
+      "init": {
+        "data": {
+          "live_config_update": "Aktualizacja konfiguracji na żywo",
+          "disable_supplements": "Wyłącz suplementy",
+          "not_virtual": "Nie do konfiguracji",
+          "slaves": "LED"
         },
-        "ip_address": {
-            "options": {
-                "virtual_led": "Dodaj wirtualny LED"
-            }
-        }
+        "title": "Konfiguracja"
+      }
+    }
+  },
+  "selector": {
+    "add_type": {
+      "options": {
+        "cloud_api": "Konto chmury",
+        "local_detect": "Lokalne wykrywanie",
+        "manual_mode": "Tryb ręczny",
+        "virtual_led": "Wirtualny LED"
+      }
     },
-    "title": "ReefBeat"
+    "ip_address": {
+      "options": {
+        "virtual_led": "Dodaj wirtualny LED"
+      }
+    }
+  },
+  "title": "ReefBeat"
 }

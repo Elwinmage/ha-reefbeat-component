@@ -340,7 +340,10 @@
         "name": "Bleu"
       },
       "cloud_account": {
-        "name": "Lié au compte"
+        "name": "Lié au compte",
+	"state":{
+	  "None": "Aucun"
+	}
       },
       "country": {
         "name": "Pays"
@@ -614,7 +617,14 @@
         "name": "Blanc"
       },
       "wifi_quality": {
-        "name": "Qualité du signal Wifi"
+        "name": "Qualité du signal Wifi",
+	"state":{
+	  "Poor":"Médiocre",
+	  "Low": "Mauvais",
+	  "Medium":"Moyen",
+	  "Good":"Bon",
+	  "Excellent":"Excellent"
+	}
       },
       "wifi_signal": {
         "name": "Signal WIFI"
