@@ -785,6 +785,16 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         suggested_display_precision=0,
     ),
     ReefBeatSensorEntityDescription(
+        key="days_till_empty",
+        translation_key="days_till_empty",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.days_till_empty"
+        ),
+        icon="mdi:counter",
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
         key="current_level",
         translation_key="current_level",
         value_fn=lambda device: device.get_data(
@@ -812,6 +822,25 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         ),
         icon="mdi:thermometer-check",
     ),
+    ReefBeatSensorEntityDescription(
+        key="leak_sensor_status",
+        translation_key="leak_sensor_status",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.leak_sensor.status"
+        ),
+        icon="mdi:pipe-leak",
+    ),
+    ReefBeatSensorEntityDescription(
+        key="leak_sensor_current_read",
+        translation_key="leak_sensor_current_read",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.leak_sensor.current_read"
+        ),
+        icon="mdi:pipe-leak",
+      suggested_display_precision=0,
+    ),  
     ReefBeatSensorEntityDescription(
         key="pump_state",
         translation_key="pump_state",
