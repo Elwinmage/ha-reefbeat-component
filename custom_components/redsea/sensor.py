@@ -825,7 +825,6 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription(
         key="leak_sensor_status",
         translation_key="leak_sensor_status",
-        state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda device: device.get_data(
             "$.sources[?(@.name=='/dashboard')].data.leak_sensor.status"
         ),
