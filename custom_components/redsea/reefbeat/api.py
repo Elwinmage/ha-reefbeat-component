@@ -398,22 +398,37 @@ class ReefBeatAPI:
         """DELETE a resource by source path (e.g. '/something')."""
         await self._http_send(self._base_url + source, method="delete")
 
-    def get_path(self, obj: Any) -> str:
-        """Return a Python-access path for a JSONPath match context.
+    # def get_path(self, obj: Any) -> str:
+    #     """Return a Python-access path for a JSONPath match context.
 
-        This builds a string such as `["sources"][0]["data"]` which is later used
-        to build a cached `eval()` expression for fast `get_data()` access.
-        """
+    #     This builds a string such as `["sources"][0]["data"]` which is later used
+    #     to build a cached `eval()` expression for fast `get_data()` access.
+    #     """
+    #     res = ""
+    #     if hasattr(obj, "context") and obj.context is not None:
+    #         res += self.get_path(obj.context)
+    #     if hasattr(obj, "path"):
+    #         if str(obj.path) != "$":
+    #             res += (
+    #                 '["' + str(obj.path) + '"]'
+    #                 if str(obj.path)[0] != "["
+    #                 else str(obj.path)
+    #             )
+    #     return res
+
+    def get_path(self, obj: Any) -> str:
         res = ""
         if hasattr(obj, "context") and obj.context is not None:
             res += self.get_path(obj.context)
         if hasattr(obj, "path"):
-            if str(obj.path) != "$":
-                res += (
-                    '["' + str(obj.path) + '"]'
-                    if str(obj.path)[0] != "["
-                    else str(obj.path)
-                )
+            path_str = str(obj.path)
+            if path_str != "$":
+                # Strip spurious quotes that jsonpath-ng adds for string keys
+                clean = path_str.strip("'\"")
+                if path_str[0] != "[":
+                    res += '["' + clean + '"]'
+                else:
+                    res += path_str
         return res
 
     def get_data_link(self, data_name: str) -> Optional[str]:
