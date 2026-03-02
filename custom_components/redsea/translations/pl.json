@@ -528,6 +528,15 @@
       "volume_left": {
         "name": "Pozostała objętość"
       },
+      "leak_sensor_status": {
+        "name": "Stan czujnika wycieku"
+      },
+      "leak_sensor_current_read": {
+        "name": "Aktualne odczyty czujnika wycieku"
+      },
+      "days_till_empty": {
+        "name": "Dni do opróżnienia"
+      },
       "water_level": {
         "name": "Poziom wody",
         "state": {

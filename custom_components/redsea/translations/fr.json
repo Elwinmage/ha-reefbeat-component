@@ -565,6 +565,15 @@
       "volume_left": {
         "name": "Volume restant"
       },
+      "leak_sensor_status": {
+        "name": "Statut du capteur de fuite"
+      },
+      "leak_sensor_current_read": {
+        "name": "Lecture actuelle du capteur de fuite"
+      },
+      "days_till_empty": {
+        "name": "Jours restants avant vide"
+      },
       "water_level": {
         "name": "Niveau d'eau",
         "state": {

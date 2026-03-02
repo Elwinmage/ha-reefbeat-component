@@ -569,6 +569,15 @@
       "volume_left": {
         "name": "Volume left"
       },
+      "leak_sensor_status": {
+        "name": "Leak sensor status"
+      },
+      "leak_sensor_current_read": {
+        "name": "Leak sensor current read"
+      },
+      "days_till_empty": {
+        "name": "Days till empty"
+      },
       "water_level": {
         "name": "Water level",
         "state": {
