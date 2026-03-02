@@ -569,6 +569,15 @@
       "volume_left": {
         "name": "Volume over"
       },
+      "leak_sensor_status": {
+        "name": "Status lekkagesensor"
+      },
+      "leak_sensor_current_read": {
+        "name": "Huidige uitlezing lekkagesensor"
+      },
+      "days_till_empty": {
+        "name": "Dagen tot leeg"
+      },
       "water_level": {
         "name": "Waterniveau",
         "state": {

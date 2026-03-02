@@ -528,6 +528,15 @@
       "volume_left": {
         "name": "Verbleibendes Volumen"
       },
+      "leak_sensor_status": {
+        "name": "Lecksensorstatus"
+      },
+      "leak_sensor_current_read": {
+        "name": "Aktuelle Lecksensorablesung"
+      },
+      "days_till_empty": {
+        "name": "Tage bis leer"
+      },
       "water_level": {
         "name": "Wasserstand",
         "state": {

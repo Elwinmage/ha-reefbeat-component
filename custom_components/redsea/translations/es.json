@@ -528,6 +528,15 @@
       "volume_left": {
         "name": "Volumen restante"
       },
+      "leak_sensor_status": {
+        "name": "Estado del sensor de fugas"
+      },
+      "leak_sensor_current_read": {
+        "name": "Lectura actual del sensor de fugas"
+      },
+      "days_till_empty": {
+        "name": "ías hasta vacío"
+      },
       "water_level": {
         "name": "Nivel de agua",
         "state": {
