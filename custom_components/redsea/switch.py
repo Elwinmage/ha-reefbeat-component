@@ -291,7 +291,8 @@ MAT_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         key="auto_advance",
         translation_key="auto_advance",
         value_name=MAT_AUTO_ADVANCE_INTERNAL_NAME,
-        icon="mdi:auto-mode",
+        icon="mdi:autorenew",
+        icon_off="mdi:autorenew-off",
         entity_category=EntityCategory.CONFIG,
     ),
     ReefBeatSwitchEntityDescription(
