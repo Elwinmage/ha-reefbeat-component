@@ -1,0 +1,30 @@
+name: Update Estimated Stats
+on:
+  schedule:
+    - cron: '0 0 * * *' # Tourne tous les jours à minuit
+  workflow_dispatch:      # Permet de le lancer manuellement
+
+jobs:
+  update-badge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Fetch and Calculate
+        run: |
+          # 1. Récupère le JSON officiel
+          DATA=$(curl -s https://analytics.home-assistant.io/custom_integrations.json)
+          # 2. Extrait la valeur de redsea et multiplie par 3
+          REAL_COUNT=$(echo $DATA | jq '.redsea.total')
+          ESTIMATED_COUNT=$((REAL_COUNT * 3))
+          # 3. Écrit le nouveau fichier JSON
+          echo "{\"estimated\": $ESTIMATED_COUNT}" > ./badges/stats.json
+
+      - name: Commit and Push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add ./badges/stats.json
+          git commit -m "Update estimated stats" || exit 0
+          git push
