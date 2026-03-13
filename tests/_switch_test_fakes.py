@@ -36,6 +36,7 @@ class FakeCoordinator:
     deleted: list[str] = field(default_factory=list)
     fetched: list[str] = field(default_factory=list)
     pushed: list[tuple[str, str]] = field(default_factory=list)
+    post_specifics: list[str] = field(default_factory=list)
     refreshed: list[str] = field(default_factory=list)
 
     _listeners: list[Callable[[], None]] = field(default_factory=list)
@@ -73,6 +74,9 @@ class FakeCoordinator:
 
     async def push_values(self, source: str, method: str = "put") -> None:
         self.pushed.append((source, method))
+
+    async def post_specific(self, source: str) -> None:
+        self.post_specifics.append(source)
 
     async def async_request_refresh(
         self, source: str, config: bool = False, wait: int = 2
