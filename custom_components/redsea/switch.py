@@ -101,6 +101,8 @@ class _HasPushValuesBySource(Protocol):
 
     async def push_values(self, source: str, method: str = "put") -> None: ...
     async def async_request_refresh(self, source: str) -> None: ...
+    async def post_specific(self, source: str) -> None: ...
+    async def delete(self, source: str) -> None: ...
 
 
 @runtime_checkable
@@ -291,7 +293,8 @@ MAT_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         key="auto_advance",
         translation_key="auto_advance",
         value_name=MAT_AUTO_ADVANCE_INTERNAL_NAME,
-        icon="mdi:auto-mode",
+        icon="mdi:autorenew",
+        icon_off="mdi:autorenew-off",
         entity_category=EntityCategory.CONFIG,
     ),
     ReefBeatSwitchEntityDescription(
@@ -757,7 +760,7 @@ class ReefLedSwitchEntity(ReefBeatSwitchEntity):
         self.async_write_ha_state()
         if self._source:
             pusher = cast(_HasPushValuesBySource, self._device)
-            await pusher.push_values(self._source, self._typed_desc.method)
+            await pusher.post_specific(self._source)
             await pusher.async_request_refresh(source=self._source)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
@@ -769,7 +772,7 @@ class ReefLedSwitchEntity(ReefBeatSwitchEntity):
         self.async_write_ha_state()
         if self._source:
             pusher = cast(_HasPushValuesBySource, self._device)
-            await pusher.push_values(self._source, self._typed_desc.method)
+            await pusher.delete(self._source)
             await pusher.async_request_refresh(source=self._source)
 
 

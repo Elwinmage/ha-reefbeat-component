@@ -37,7 +37,7 @@ async def test_led_switch_turn_on_pushes_source(hass: Any) -> None:
     entity.async_write_ha_state = lambda: None  # type: ignore[assignment]
 
     await entity.async_turn_on()
-    assert device.pushed == [("/manual", "post")]
+    assert device.post_specifics == ["/manual"]
     assert device.refreshed == ["/manual"]
 
 
@@ -59,7 +59,7 @@ async def test_led_switch_turn_off_pushes_source(hass: Any) -> None:
     entity.async_write_ha_state = lambda: None  # type: ignore[assignment]
 
     await entity.async_turn_off()
-    assert device.pushed == [("/manual", "post")]
+    assert device.deleted == ["/manual"]
     assert device.refreshed == ["/manual"]
 
 
