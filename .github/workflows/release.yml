@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - name: "Set version number from trigger's tag"
         id: update_manifest
         run: |
@@ -28,7 +28,7 @@ jobs:
           echo "tag_sha=${SHA}" >> $GITHUB_OUTPUT
       - name: Create tag
         if: steps.update_manifest.outcome == 'success'
-        uses: actions/github-script@v5
+        uses: actions/github-script@v8
         id: create_tag
         with:
           script: |
