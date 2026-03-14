@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Mise à jour des Actions GitHub
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly" # Peut être daily, weekly ou monthly
+
+  # Mise à jour des dépendances (ex: npm, pip, gomod)
+  - package-ecosystem: "npm" # Remplacez par votre écosystème
+    directory: "/"
+    schedule:
+      interval: "weekly"
