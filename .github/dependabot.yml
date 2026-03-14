@@ -10,4 +10,9 @@ updates:
   - package-ecosystem: "npm" # Remplacez par votre écosystème
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "weekly
+    groups:
+      vitest-ecosystem:
+        patterns:
+          - "vitest*"
+          - "@vitest/*"
