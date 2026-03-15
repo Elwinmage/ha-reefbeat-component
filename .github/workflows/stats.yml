@@ -1,4 +1,4 @@
-name: Update Estimated Stats
+name: Update Stats
 on:
   schedule:
     - cron: '0 0 * * *'
