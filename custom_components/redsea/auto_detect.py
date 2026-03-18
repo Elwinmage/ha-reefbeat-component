@@ -16,7 +16,7 @@ import json
 import socket
 import xml.etree.ElementTree as ET
 from collections.abc import Iterable
-from multiprocessing import Pool
+from concurrent.futures import ThreadPoolExecutor
 from typing import TypedDict
 
 import requests
@@ -61,24 +61,23 @@ def _iter_ipv4s(cidr: str) -> Iterable[str]:
 
 
 def get_local_ips(subnetwork: str | None = None) -> list[str]:
-    """Return IPv4 addresses for the local network or the given subnetwork.
-
-    Args:
-        subnetwork: CIDR like "192.168.1.0/24". If None, attempt to infer the
-            local interface subnet.
-
-    Returns:
-        List of IPv4 addresses as strings.
-    """
+    """Return IPv4 addresses for the local network or the given subnetwork."""
     if subnetwork:
         return list(_iter_ipv4s(subnetwork))
 
-    # Infer local IP by connecting a UDP socket; no packets are sent.
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.connect(("8.8.8.8", 80))
             local_ip = s.getsockname()[0]
-    except OSError:
+    except OSError as exc:
+        # Log so HA logs show why detection returned nothing
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "auto_detect: cannot determine local IP (%s); "
+            "pass an explicit subnetwork CIDR to bypass this.",
+            exc,
+        )
         return []
 
     # If netifaces is available, prefer using it to derive an accurate subnet.
@@ -150,26 +149,25 @@ def is_reefbeat(ip: str) -> tuple[bool, str, str | None, str | None, str | None]
         return False, ip, None, None, None
 
 
+# APRÈS — utiliser ThreadPoolExecutor au lieu de multiprocessing.Pool
+
+
 def get_reefbeats(
     subnetwork: str | None = None, nb_of_threads: int = 64
 ) -> list[ReefBeatInfo]:
     """Scan the network and return detected ReefBeat devices.
 
-    Args:
-        subnetwork: CIDR like "192.168.1.0/24", or None to infer the local subnet.
-        nb_of_threads: Process pool size. If 1, will scan in-process.
-
-    Returns:
-        List of device dicts, each containing ip/hw_model/friendly_name/uuid.
+    Uses ThreadPoolExecutor instead of multiprocessing.Pool to avoid
+    fork() issues when called from within a Home Assistant executor thread
+    (forking from an asyncio process corrupts open sockets/event loops).
     """
     ips = get_local_ips(subnetwork)
 
-    results: list[tuple[bool, str, str | None, str | None, str | None]]
     if nb_of_threads <= 1:
         results = [is_reefbeat(ip) for ip in ips]
     else:
-        with Pool(nb_of_threads) as pool:
-            results = pool.map(is_reefbeat, ips)
+        with ThreadPoolExecutor(max_workers=nb_of_threads) as executor:
+            results = list(executor.map(is_reefbeat, ips))
 
     reefbeats: list[ReefBeatInfo] = []
     for status, ip, hw_model, friendly_name, uuid in results:
