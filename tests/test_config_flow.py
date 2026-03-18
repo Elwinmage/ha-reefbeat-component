@@ -277,6 +277,38 @@ async def test_add_local_detect_calls_auto_detect_and_filters_existing(
 
 
 @pytest.mark.asyncio
+async def test_auto_detect_get_reefbeats_exception_shows_form(
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Cover the except branch: when get_reefbeats raises, show the manual IP form."""
+    import custom_components.redsea.config_flow as cf
+
+    def _get_rb_raises(*, subnetwork: str | None = None) -> None:  # type: ignore[return]
+        raise RuntimeError("network failure")
+
+    monkeypatch.setattr(cf, "get_reefbeats", _get_rb_raises)
+
+    flow = cast(Any, hass.config_entries.flow)
+    result = cast(
+        dict[str, Any], await flow.async_init(DOMAIN, context={"source": "user"})
+    )
+    assert result["type"] == FlowResultType.FORM
+
+    result2 = cast(
+        dict[str, Any],
+        await flow.async_configure(
+            result["flow_id"],
+            user_input={CONFIG_FLOW_ADD_TYPE: ADD_LOCAL_DETECT},
+        ),
+    )
+
+    # Exception path must return a form (not crash HA) with nothing_detected error
+    assert result2["type"] == FlowResultType.FORM
+    assert result2.get("errors", {}).get("base") == "nothing_detected"
+
+
+@pytest.mark.asyncio
 async def test_add_type_virtual_led_creates_entry(hass: HomeAssistant) -> None:
     flow = cast(Any, hass.config_entries.flow)
     result = cast(
