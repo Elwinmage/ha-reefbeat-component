@@ -371,9 +371,21 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, subnetwork: str | None
     ) -> config_entries.ConfigFlowResult:
         """Auto-detect ReefBeat devices and present a selection list."""
-        detected_devices: list[ReefBeatInfo] = await self.hass.async_add_executor_job(
-            partial(get_reefbeats, subnetwork=subnetwork)
-        )
+
+        try:
+            detected_devices: list[
+                ReefBeatInfo
+            ] = await self.hass.async_add_executor_job(
+                partial(get_reefbeats, subnetwork=subnetwork)
+            )
+        except Exception:
+            _LOGGER.exception("auto_detect: get_reefbeats failed")
+            # Fall through to the manual IP form with a generic error
+            return self.async_show_form(
+                step_id="user",
+                data_schema=vol.Schema({vol.Required(CONFIG_FLOW_IP_ADDRESS): str}),
+                errors={"base": "nothing_detected"},
+            )
         # No need for deepcopy; we only remove items from the "available" view.
         available_devices: list[ReefBeatInfo] = list(detected_devices)
 
