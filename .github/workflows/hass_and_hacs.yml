@@ -76,7 +76,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
+          files: ./coverage.xml
 
       # Génération du badge (uniquement sur le push main pour la version stable)
       - name: Update coverage badge
