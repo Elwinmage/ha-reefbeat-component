@@ -85,6 +85,9 @@
       },
       "water_level": {
         "name": "Poziom wody"
+      },
+      "reconnect_pump": {
+        "name": "Ponowne połączenie pompy"
       }
     },
     "button": {
@@ -159,6 +162,24 @@
       },
       "test_calibration": {
         "name": "Testuj nową kalibrację"
+      },
+      "detect_pump": {
+        "name": "Wykryj pompę"
+      },
+      "ec_calibration_cup": {
+        "name": "Kalibracja EC Pełny kubek"
+      },
+      "ec_calibration_skim": {
+        "name": "Kalibracja EC Nadmierne odtłuszczanie"
+      },
+      "ec_calibration_end": {
+        "name": "Kalibracja EC Zakończ"
+      },
+      "delete_pump": {
+        "name": "Usuń pompę"
+      },
+      "ec_calibration_start": {
+        "name": "Kalibracja EC Start"
       }
     },
     "light": {
@@ -645,6 +666,12 @@
       },
       "doses_today": {
         "name": "Doses today"
+      },
+      "cup_last_calibration": {
+        "name": "Ostatnia kalibracja kubka"
+      },
+      "skim_last_calibration": {
+        "name": "Ostatnia kalibracja przeodtłuszczania"
       }
     },
     "switch": {
@@ -695,6 +722,9 @@
       },
       "use_cloud_api": {
         "name": "Użyj API chmury"
+      },
+      "sensor_controlled_switch": {
+        "name": "Sterowanie przez sondę"
       }
     },
     "text": {

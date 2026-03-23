@@ -463,6 +463,19 @@ async def async_setup_entry(
                     entity_category=EntityCategory.CONFIG,
                 )
             )
+            run_descs.append(
+                ReefRunSwitchEntityDescription(
+                    key="sensor_controlled_pump_" + str(pump),
+                    translation_key="sensor_controlled_switch",
+                    icon="mdi:car-speed-limiter",
+                    icon_off="mdi:car-speed-limiter",
+                    value_name="$.sources[?(@.name=='/pump/settings')].data.pump_"
+                    + str(pump)
+                    + ".sensor_controlled",
+                    pump=pump,
+                    entity_category=EntityCategory.CONFIG,
+                )
+            )
 
         entities.extend(
             ReefRunSwitchEntity(device, description)

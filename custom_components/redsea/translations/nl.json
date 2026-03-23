@@ -85,6 +85,9 @@
       },
       "water_level": {
         "name": "Waterniveau"
+      },
+      "reconnect_pump": {
+        "name": "Pomp opnieuw verbinden"
       }
     },
     "button": {
@@ -159,6 +162,24 @@
       },
       "test_calibration": {
         "name": "Test nieuwe kalibratie"
+      },
+      "detect_pump": {
+        "name": "Pomp detecteren"
+      },
+      "ec_calibration_cup": {
+        "name": "EC-kalibratie Volle beker"
+      },
+      "ec_calibration_skim": {
+        "name": "EC-kalibratie Overschuimen"
+      },
+      "ec_calibration_end": {
+        "name": "EC-kalibratie Beëindigen"
+      },
+      "delete_pump": {
+        "name": "Pomp verwijderen"
+      },
+      "ec_calibration_start": {
+        "name": "EC-kalibratie Starten"
       }
     },
     "light": {
@@ -653,6 +674,12 @@
       },
       "zip_code": {
         "name": "Postcode"
+      },
+      "cup_last_calibration": {
+        "name": "Laatste beker-kalibratie"
+      },
+      "skim_last_calibration": {
+        "name": "Laatste afschuim-kalibratie"
       }
     },
     "switch": {
@@ -703,6 +730,9 @@
       },
       "use_cloud_api": {
         "name": "Gebruik cloud-API"
+      },
+      "sensor_controlled_switch": {
+        "name": "Sondegestuurd"
       }
     },
     "text": {

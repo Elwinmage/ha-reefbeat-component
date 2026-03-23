@@ -85,6 +85,9 @@
       },
       "water_level": {
         "name": "Livello acqua"
+      },
+      "reconnect_pump": {
+        "name": "Riconnetti pompa"
       }
     },
     "button": {
@@ -159,6 +162,24 @@
       },
       "test_calibration": {
         "name": "Testa nuova calibrazione"
+      },
+      "detect_pump": {
+        "name": "Rileva pompa"
+      },
+      "ec_calibration_cup": {
+        "name": "Calibrazione EC Coppa piena"
+      },
+      "ec_calibration_skim": {
+        "name": "Calibrazione EC Sovra-schiumatura"
+      },
+      "ec_calibration_end": {
+        "name": "Calibrazione EC Fine"
+      },
+      "delete_pump": {
+        "name": "Elimina pompa"
+      },
+      "ec_calibration_start": {
+        "name": "Calibrazione EC Avvia"
       }
     },
     "light": {
@@ -645,6 +666,12 @@
       },
       "doses_today": {
         "name": "Doses today"
+      },
+      "cup_last_calibration": {
+        "name": "Ultima calibrazione coppa piena"
+      },
+      "skim_last_calibration": {
+        "name": "Ultima calibrazione schiumatura"
       }
     },
     "switch": {
@@ -695,6 +722,9 @@
       },
       "use_cloud_api": {
         "name": "Usa API cloud"
+      },
+      "sensor_controlled_switch": {
+        "name": "Controllo da sonda"
       }
     },
     "text": {

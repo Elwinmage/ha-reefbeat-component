@@ -68,9 +68,95 @@ class ReefRunAPI(ReefBeatAPI):
             },
         )
 
-        # TODO: calibration
-        # Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/24
-        # labels: enhancement, rsrun
+        # Calibration data source (last calibration dates)
+        self.data["sources"].insert(
+            len(self.data["sources"]),
+            {"name": "/calibration", "type": "data", "data": ""},
+        )
+
+        # Per-pump shortcuts (feeding, maintenance, emergency, etc.)
+        self.data["sources"].insert(
+            len(self.data["sources"]),
+            {"name": "/pump/shortcuts", "type": "config", "data": ""},
+        )
+
+    async def calibration_start(self, point: int = 2) -> None:
+        """Start EC sensor calibration.
+
+        Args:
+            point: Calibration point (default 2 for 2-point calibration).
+        """
+        _LOGGER.debug("Starting EC calibration (point=%d)", point)
+        await self._http_send(self._base_url + f"/calibration/{point}", {}, "post")
+
+    async def calibration_skim(self) -> None:
+        """Start overskimming calibration step."""
+        _LOGGER.debug("Starting overskimming calibration")
+        await self._http_send(self._base_url + "/calibration/skim", {}, "post")
+
+    async def calibration_cup(self) -> None:
+        """Start full-cup calibration step."""
+        _LOGGER.debug("Starting full-cup calibration")
+        await self._http_send(self._base_url + "/calibration/cup", {}, "post")
+
+    async def calibration_end(self) -> None:
+        """End EC sensor calibration (DELETE /calibration)."""
+        _LOGGER.debug("Ending EC calibration")
+        await self._http_send(self._base_url + "/calibration", method="delete")
+
+    async def detect_pump(self, pump: int) -> dict[str, Any] | None:
+        """Detect which pump is physically connected to a channel.
+
+        Args:
+            pump: Pump number (1 or 2).
+
+        Returns:
+            Detection result dict (e.g. {"type": "skimmer", "model": "rsk-300"})
+            or None on failure.
+        """
+        _LOGGER.debug("Detecting pump on channel %d", pump)
+        result = await self.http_get(f"/pump/{pump}/detection")
+        if result and result.get("ok"):
+            return result.get("json")
+        return None
+
+    async def delete_pump(self, pump: int) -> None:
+        """Reset a pump channel to factory defaults.
+
+        Args:
+            pump: Pump number (1 or 2).
+        """
+        _LOGGER.debug("Deleting pump %d settings (factory reset)", pump)
+        await self._http_send(
+            self._base_url + f"/pump/{pump}/settings", method="delete"
+        )
+
+    async def configure_pump(
+        self, pump: int, name: str, model: str, pump_type: str
+    ) -> None:
+        """Configure a pump channel with name, model and type.
+
+        Args:
+            pump: Pump number (1 or 2).
+            name: Display name for the pump.
+            model: Model identifier (e.g. "rsk-900", "return-12000").
+            pump_type: Pump type ("skimmer" or "return").
+        """
+        _LOGGER.debug(
+            "Configuring pump %d: name=%s model=%s type=%s",
+            pump,
+            name,
+            model,
+            pump_type,
+        )
+        payload: dict[str, Any] = {
+            f"pump_{pump}": {
+                "name": name,
+                "model": model,
+                "type": pump_type,
+            }
+        }
+        await self._http_send(self._base_url + "/pump/settings", payload, "put")
 
     async def push_values(
         self, source: str, method: str = "put", pump: Optional[int] = None

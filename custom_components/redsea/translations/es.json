@@ -85,6 +85,9 @@
       },
       "water_level": {
         "name": "Nivel de agua"
+      },
+      "reconnect_pump": {
+        "name": "Reconectar bomba"
       }
     },
     "button": {
@@ -159,6 +162,24 @@
       },
       "test_calibration": {
         "name": "Probar nueva calibración"
+      },
+      "detect_pump": {
+        "name": "Detectar bomba"
+      },
+      "ec_calibration_cup": {
+        "name": "Calibración EC Vaso lleno"
+      },
+      "ec_calibration_skim": {
+        "name": "Calibración EC Sobreespumado"
+      },
+      "ec_calibration_end": {
+        "name": "Calibración EC Finalizar"
+      },
+      "delete_pump": {
+        "name": "Eliminar bomba"
+      },
+      "ec_calibration_start": {
+        "name": "Calibración EC Iniciar"
       }
     },
     "light": {
@@ -645,6 +666,12 @@
       },
       "doses_today": {
         "name": "Doses today"
+      },
+      "cup_last_calibration": {
+        "name": "Última calibración de vaso"
+      },
+      "skim_last_calibration": {
+        "name": "Última calibración de sobreespumado"
       }
     },
     "switch": {
@@ -695,6 +722,9 @@
       },
       "use_cloud_api": {
         "name": "Usar API en la nube"
+      },
+      "sensor_controlled_switch": {
+        "name": "Control por sonda"
       }
     },
     "text": {

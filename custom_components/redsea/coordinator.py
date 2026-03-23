@@ -932,6 +932,40 @@ class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
         """Push changed values to the device (optionally pump-scoped)."""
         await self.my_api.push_values(source, method, pump)
 
+    # -- EC calibration workflow ------------------------------------------------
+
+    async def calibration_start(self, point: int = 2) -> None:
+        """Start EC sensor calibration (2-point)."""
+        await self.my_api.calibration_start(point)
+
+    async def calibration_skim(self) -> None:
+        """Run the overskimming calibration step."""
+        await self.my_api.calibration_skim()
+
+    async def calibration_cup(self) -> None:
+        """Run the full-cup calibration step."""
+        await self.my_api.calibration_cup()
+
+    async def calibration_end(self) -> None:
+        """Finish and save EC calibration."""
+        await self.my_api.calibration_end()
+
+    # -- Pump management -------------------------------------------------------
+
+    async def detect_pump(self, pump: int) -> dict[str, Any] | None:
+        """Detect which pump is physically connected to a channel."""
+        return await self.my_api.detect_pump(pump)
+
+    async def delete_pump(self, pump: int) -> None:
+        """Reset a pump channel to factory defaults."""
+        await self.my_api.delete_pump(pump)
+
+    async def configure_pump(
+        self, pump: int, name: str, model: str, pump_type: str
+    ) -> None:
+        """Configure a pump channel after detection or manual setup."""
+        await self.my_api.configure_pump(pump, name, model, pump_type)
+
     def pump_device_info(self, pump_id: int):
         """Return per-pump device info for ReefRun."""
         if pump_id <= 0:

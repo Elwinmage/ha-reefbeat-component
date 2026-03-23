@@ -368,6 +368,19 @@ async def async_setup_entry(
                     pump=pump,
                 )
             )
+            run_descs.append(
+                ReefRunBinarySensorEntityDescription(
+                    key="reconnect_pump_pump_" + str(pump),
+                    translation_key="reconnect_pump",
+                    device_class=BinarySensorDeviceClass.PROBLEM,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                    icon="mdi:connection",
+                    value_name="$.sources[?(@.name=='/dashboard')].data.pump_"
+                    + str(pump)
+                    + ".reconnect_pump",
+                    pump=pump,
+                )
+            )
 
         entities.extend(ReefRunBinarySensorEntity(device, desc) for desc in run_descs)
         entities.extend(

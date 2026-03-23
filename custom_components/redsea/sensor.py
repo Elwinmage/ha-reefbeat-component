@@ -829,8 +829,8 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
             "$.sources[?(@.name=='/dashboard')].data.leak_sensor.current_read"
         ),
         icon="mdi:pipe-leak",
-      suggested_display_precision=0,
-    ),  
+        suggested_display_precision=0,
+    ),
     ReefBeatSensorEntityDescription(
         key="pump_state",
         translation_key="pump_state",
@@ -1138,6 +1138,30 @@ async def async_setup_entry(
                     ),
                 ]
             )
+
+        # -- Device-level calibration date sensors ----------------------------
+        ds_run.extend(
+            [
+                ReefRunSensorEntityDescription(
+                    key="skim_last_calibration_date",
+                    translation_key="skim_last_calibration",
+                    icon="mdi:calendar-clock",
+                    value_name="$.sources[?(@.name=='/calibration')].data.skim_last_calibration_date",
+                    device_class=SensorDeviceClass.DATE,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                    pump=0,
+                ),
+                ReefRunSensorEntityDescription(
+                    key="cup_last_calibration_date",
+                    translation_key="cup_last_calibration",
+                    icon="mdi:calendar-clock",
+                    value_name="$.sources[?(@.name=='/calibration')].data.cup_last_calibration_date",
+                    device_class=SensorDeviceClass.DATE,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                    pump=0,
+                ),
+            ]
+        )
 
         entities.extend(
             ReefRunSensorEntity(device, description)
@@ -1520,7 +1544,9 @@ class RestoreSensorEntity(ReefDoseSensorEntity):
 class ReefRunSensorEntity(ReefBeatSensorEntity):
     """Per-pump ReefRun sensor entity.
 
-    Only specialization is per-pump device info identifiers.
+    Specializations:
+    - per-pump device info identifiers
+    - epoch-to-date conversion for calibration date sensors
     """
 
     _attr_has_entity_name = True
@@ -1533,9 +1559,25 @@ class ReefRunSensorEntity(ReefBeatSensorEntity):
         super().__init__(device, entity_description)
         self._pump: int = entity_description.pump
 
+    def _get_value(self) -> SensorNativeValue:
+        desc = cast(ReefRunSensorEntityDescription, self._description)
+        # Convert epoch timestamps to date objects for calibration sensors
+        if desc.translation_key in ("skim_last_calibration", "cup_last_calibration"):
+            raw = self._device.get_data(desc.value_name, is_None_possible=True)
+            if raw is None:
+                return None
+            try:
+                ts = int(cast(int, raw))
+            except (TypeError, ValueError):
+                return None
+            dt = datetime.datetime.fromtimestamp(ts, tz=datetime.UTC).date()
+            return dt
+
+        return self._device.get_data(desc.value_name, is_None_possible=True)
+
     @cached_property
     def device_info(self) -> DeviceInfo:
-        """Return per-pump device info for ReefDose."""
+        """Return per-pump device info for ReefRun."""
         return cast(ReefRunCoordinator, self._device).pump_device_info(self._pump)
 
 

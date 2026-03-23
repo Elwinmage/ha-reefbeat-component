@@ -85,6 +85,9 @@
       },
       "water_level": {
         "name": "Wasserstand"
+      },
+      "reconnect_pump": {
+        "name": "Pumpe neu verbinden"
       }
     },
     "button": {
@@ -159,6 +162,24 @@
       },
       "test_calibration": {
         "name": "Neue Kalibrierung testen"
+      },
+      "detect_pump": {
+        "name": "Pumpe erkennen"
+      },
+      "ec_calibration_cup": {
+        "name": "EC-Kalibrierung Voller Becher"
+      },
+      "ec_calibration_skim": {
+        "name": "EC-Kalibrierung Überschäumen"
+      },
+      "ec_calibration_end": {
+        "name": "EC-Kalibrierung Beenden"
+      },
+      "delete_pump": {
+        "name": "Pumpe löschen"
+      },
+      "ec_calibration_start": {
+        "name": "EC-Kalibrierung Starten"
       }
     },
     "light": {
@@ -645,6 +666,12 @@
       },
       "doses_today": {
         "name": "Doses today"
+      },
+      "cup_last_calibration": {
+        "name": "Letzte Becher-Kalibrierung"
+      },
+      "skim_last_calibration": {
+        "name": "Letzte Abschäum-Kalibrierung"
       }
     },
     "switch": {
@@ -695,6 +722,9 @@
       },
       "use_cloud_api": {
         "name": "Cloud-API verwenden"
+      },
+      "sensor_controlled_switch": {
+        "name": "Sondengesteuerter Betrieb"
       }
     },
     "text": {

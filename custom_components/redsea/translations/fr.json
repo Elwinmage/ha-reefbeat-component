@@ -84,6 +84,9 @@
       },
       "water_level": {
         "name": "Niveau d'eau"
+      },
+      "reconnect_pump": {
+        "name": "Reconnexion pompe"
       }
     },
     "button": {
@@ -158,6 +161,24 @@
       },
       "test_calibration": {
         "name": "Tester la Calibration"
+      },
+      "ec_calibration_start": {
+        "name": "Calibration EC Démarrer"
+      },
+      "ec_calibration_skim": {
+        "name": "Calibration EC Écumage"
+      },
+      "ec_calibration_cup": {
+        "name": "Calibration EC Gobelet"
+      },
+      "ec_calibration_end": {
+        "name": "Calibration EC Fin"
+      },
+      "delete_pump": {
+        "name": "Supprimer pompe"
+      },
+      "detect_pump": {
+        "name": "Détecter pompe"
       }
     },
     "light": {
@@ -643,6 +664,12 @@
       },
       "zip_code": {
         "name": "Code Postal"
+      },
+      "skim_last_calibration": {
+        "name": "Dernière calibration écumage"
+      },
+      "cup_last_calibration": {
+        "name": "Dernière calibration gobelet"
       }
     },
     "switch": {
@@ -693,6 +720,9 @@
       },
       "use_cloud_api": {
         "name": "Utiliser l'API cloud"
+      },
+      "sensor_controlled_switch": {
+        "name": "Contrôle par sonde"
       }
     },
     "text": {

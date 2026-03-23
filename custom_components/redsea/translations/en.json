@@ -85,6 +85,9 @@
       },
       "water_level": {
         "name": "Water level"
+      },
+      "reconnect_pump": {
+        "name": "Reconnect Pump"
       }
     },
     "button": {
@@ -159,6 +162,24 @@
       },
       "test_calibration": {
         "name": "Test new Calibration"
+      },
+      "ec_calibration_start": {
+        "name": "EC Calibration Start"
+      },
+      "ec_calibration_skim": {
+        "name": "EC Calibration Overskimming"
+      },
+      "ec_calibration_cup": {
+        "name": "EC Calibration Full Cup"
+      },
+      "ec_calibration_end": {
+        "name": "EC Calibration End"
+      },
+      "delete_pump": {
+        "name": "Delete Pump"
+      },
+      "detect_pump": {
+        "name": "Detect Pump"
       }
     },
     "light": {
@@ -653,6 +674,12 @@
       },
       "zip_code": {
         "name": "ZIP Code"
+      },
+      "skim_last_calibration": {
+        "name": "Last Overskimming Calibration"
+      },
+      "cup_last_calibration": {
+        "name": "Last Full Cup Calibration"
       }
     },
     "switch": {
@@ -703,6 +730,9 @@
       },
       "use_cloud_api": {
         "name": "Use cloud API"
+      },
+      "sensor_controlled_switch": {
+        "name": "Sensor Controlled"
       }
     },
     "text": {
