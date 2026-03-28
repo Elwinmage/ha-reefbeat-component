@@ -73,7 +73,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: matrix.ha-version == 'stable'
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
