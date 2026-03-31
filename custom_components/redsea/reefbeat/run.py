@@ -54,7 +54,7 @@ class ReefRunAPI(ReefBeatAPI):
 
         self.data["sources"].insert(
             len(self.data["sources"]),
-            {"name": "/pump/settings", "type": "config", "data": ""},
+            {"name": "/pump/settings", "type": "data", "data": ""},
         )
         self.data["sources"].insert(
             len(self.data["sources"]),

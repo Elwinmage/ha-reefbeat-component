@@ -71,9 +71,6 @@
       "recalibration_required": {
         "name": "Kalibracja"
       },
-      "schedule_enabled": {
-        "name": "Harmonogram włączony"
-      },
       "sensor_controlled": {
         "name": "Sterowany przez czujnik"
       },

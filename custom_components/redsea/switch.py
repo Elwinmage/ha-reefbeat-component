@@ -454,8 +454,8 @@ async def async_setup_entry(
                 ReefRunSwitchEntityDescription(
                     key="schedule_enabled_pump_" + str(pump),
                     translation_key="schedule_enabled",
-                    icon="mdi:pump",
-                    icon_off="mdi:pump-off",
+                    icon="mdi:play",
+                    icon_off="mdi:pause",
                     value_name="$.sources[?(@.name=='/pump/settings')].data.pump_"
                     + str(pump)
                     + ".schedule_enabled",

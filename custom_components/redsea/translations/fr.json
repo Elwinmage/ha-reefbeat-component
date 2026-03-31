@@ -70,9 +70,6 @@
       "recalibration_required": {
         "name": "Calibration"
       },
-      "schedule_enabled": {
-        "name": "Planification Activée"
-      },
       "sensor_controlled": {
         "name": "Contrôlé par capteur"
       },

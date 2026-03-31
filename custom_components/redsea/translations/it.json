@@ -71,9 +71,6 @@
       "recalibration_required": {
         "name": "Calibrazione"
       },
-      "schedule_enabled": {
-        "name": "Programmazione abilitata"
-      },
       "sensor_controlled": {
         "name": "Controllato da sensore"
       },

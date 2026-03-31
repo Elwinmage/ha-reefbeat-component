@@ -71,9 +71,6 @@
       "recalibration_required": {
         "name": "Kalibratie"
       },
-      "schedule_enabled": {
-        "name": "Schema ingeschakeld"
-      },
       "sensor_controlled": {
         "name": "Aangestuurd door sensor"
       },

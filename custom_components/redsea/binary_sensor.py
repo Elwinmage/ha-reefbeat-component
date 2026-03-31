@@ -333,17 +333,6 @@ async def async_setup_entry(
             )
             run_descs.append(
                 ReefRunBinarySensorEntityDescription(
-                    key="schedule_enabled_pump_" + str(pump),
-                    translation_key="schedule_enabled",
-                    icon="mdi:calendar-arrow-right",
-                    value_name="$.sources[?(@.name=='/dashboard')].data.pump_"
-                    + str(pump)
-                    + ".schedule_enabled",
-                    pump=pump,
-                )
-            )
-            run_descs.append(
-                ReefRunBinarySensorEntityDescription(
                     key="missing_sensor_pump_" + str(pump),
                     translation_key="missing_sensor",
                     device_class=BinarySensorDeviceClass.PROBLEM,
