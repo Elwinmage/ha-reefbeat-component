@@ -28,7 +28,7 @@ jobs:
           echo "tag_sha=${SHA}" >> $GITHUB_OUTPUT
       - name: Create tag
         if: steps.update_manifest.outcome == 'success'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         id: create_tag
         with:
           script: |
