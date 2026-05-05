@@ -27,7 +27,7 @@ from datetime import datetime, timedelta
 from time import time
 from typing import Any, cast
 
-import async_timeout
+from asyncio import timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import HomeAssistant, callback
@@ -139,14 +139,14 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # own per-request timeout and retry loop in the API layer.
             #
             # If this coordinator timeout is shorter than the API retry budget, HA will
-            # cancel the update (CancelledError) and async_timeout will surface it as a
+            # cancel the update (CancelledError) and timeout will surface it as a
             # TimeoutError (exactly what we saw in logs). Compute an upper bound that
             # matches the API behavior.
             per_try_timeout = int(getattr(self.my_api, "_timeout", 10))
             overall_timeout = (
                 (per_try_timeout + HTTP_DELAY_BETWEEN_RETRY) * HTTP_MAX_RETRY
             ) + 5  # small buffer
-            async with async_timeout.timeout(overall_timeout):
+            async with timeout(overall_timeout):
                 res = cast(dict[str, Any] | None, await self.my_api.fetch_data())
             if res is None:
                 raise UpdateFailed(f"No data received from API: {self._title}")
@@ -1207,10 +1207,16 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
         await self.my_api.http_send("/auto/apply", payload)
 
     def get_current_value(self, value_basename: str, value_name: str) -> Any:
-        """Return the current schedule segment value for a named key."""
+        """Return the current schedule segment value for a named key.
+
+        Returns None when the schedule is absent or empty (e.g. /auto data: {}).
+        """
         now = datetime.now()
         now_minutes = now.hour * 60 + now.minute
         schedule = self.my_api.get_data(value_basename)
+        # Guard: schedule may be None or empty when the device returns no data yet.
+        if not schedule:
+            return None
         cur_prog = schedule[0]
         for prog in schedule[1:]:
             if int(prog["st"]) < now_minutes:

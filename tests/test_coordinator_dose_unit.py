@@ -66,6 +66,10 @@ async def test_dose_creates_parent_and_head_devices(
     ]
     assert len(attached) >= 1
 
+    # Unload the entry to cancel coordinator Debouncer timer before teardown.
+    assert await hass.config_entries.async_unload(local_dose_config_entry.entry_id)
+    await hass.async_block_till_done()
+
 
 class _FakeAPI:
     def __init__(

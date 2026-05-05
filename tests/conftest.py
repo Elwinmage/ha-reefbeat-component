@@ -251,12 +251,29 @@ def _index_local_sources(probe_by_type: dict[str, Any]) -> dict[str, dict[str, A
 
 @pytest.fixture(autouse=True)
 def patch_reefbeat_network(
+    request: pytest.FixtureRequest,
     hass: HomeAssistant,
     monkeypatch: pytest.MonkeyPatch,
     devices_dir: Path,
 ) -> None:
     from custom_components.redsea.reefbeat.api import ReefBeatAPI  # type: ignore
     from custom_components.redsea.reefbeat.cloud import ReefBeatCloudAPI  # type: ignore
+    from custom_components.redsea.reefbeat.led import ReefLedAPI  # type: ignore
+
+    # Prevent LED probe from opening real sockets during tests.
+    # Skip this mock for unit tests that exercise _probe_path directly.
+    # Use request.node to detect the test module reliably (inspect.stack()
+    # is fragile under Python 3.14 because the fixture runs before the test
+    # body is on the call stack).
+    _test_module = getattr(request.node, "fspath", None) or ""
+    _is_probe_unit_test = "test_reefbeat_led_unit" in str(_test_module)
+
+    if not _is_probe_unit_test:
+
+        async def _fake_probe_path(self: Any, path: str) -> str | None:
+            return None
+
+        monkeypatch.setattr(ReefLedAPI, "_probe_path", _fake_probe_path, raising=True)
 
     # Map host/ip -> simulator profile based on captured fixture payloads.
     ip_to_profile = _build_ip_to_profile(devices_dir)
@@ -361,3 +378,17 @@ def local_wave_config_entry(devices_dir: Path) -> MockConfigEntry:
 @pytest.fixture
 def local_led_config_entry(devices_dir: Path) -> MockConfigEntry:
     return _local_config_entry_from_profile(devices_dir, "LED")
+
+
+@pytest.fixture
+def expected_lingering_timers() -> bool:
+    """Allow Debouncer timers left by DataUpdateCoordinator to linger.
+
+    HA's DataUpdateCoordinator schedules a Debouncer._on_debounce() timer on
+    the first listener registration.  This timer is an internal HA detail and
+    is cancelled automatically on a real HA shutdown, but in unit tests the
+    event loop stops before that teardown runs.  Returning True here tells
+    pytest-homeassistant-custom-component to tolerate those timers instead of
+    failing with "Lingering timer after test".
+    """
+    return True

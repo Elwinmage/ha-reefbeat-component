@@ -329,7 +329,7 @@ RUN_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         key="overskimming_enabled",
         translation_key="overskimming_enabled",
         value_name=OVERSKIMMING_ENABLED_INTERNAL_NAME,
-        icon="mdi:stack-overflow",
+        icon="mdi:water-percent",
         entity_category=EntityCategory.CONFIG,
     ),
 )

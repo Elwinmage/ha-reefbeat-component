@@ -133,7 +133,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <tr>
 <td rowspan="2"><a href="#reefwave">ReefWave (*)</a></td>
 <td colspan="2">RSWAVE25</td>
-<td>☑️</td>
+<td>✅</td>
 <td width="200px" rowspan="2"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSWAVE.png"/></td>
 <td rowspan="2">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rswave,all label:enhancement" style="text-decoration:none">📆</a>
