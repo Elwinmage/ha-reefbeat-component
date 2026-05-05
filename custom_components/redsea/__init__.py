@@ -195,10 +195,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         with suppress(Exception):
             if hasattr(coordinator, "_debounced_refresh"):
                 coordinator._debounced_refresh.async_cancel()
-        with suppress(Exception):
-            if hasattr(coordinator, "_unsub_refresh") and coordinator._unsub_refresh:
-                coordinator._unsub_refresh()
-                coordinator._unsub_refresh = None
         # coordinator may provide additional unload() cleanup (best-effort)
         with suppress(Exception):
             coordinator.unload()
