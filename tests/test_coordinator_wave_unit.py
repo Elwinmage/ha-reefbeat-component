@@ -188,13 +188,22 @@ async def test_wave_set_wave_local_api_calls_http_sequence(
 
     await wave.set_wave()
 
-    # Local API writes should use the /auto init/complete/apply handshake.
+    # Local API writes should use the /auto init/complete/apply handshake,
+    # with one POST /auto per interval (small-JSON-buffer firmware fix).
     assert [p for (p, _pl) in api.http_calls] == [
         "/auto/init",
+        "/auto",
         "/auto",
         "/auto/complete",
         "/auto/apply",
     ]
+
+    # Each interval is pushed individually, wrapped in {"intervals": [...]}.
+    auto_payloads = [pl for (p, pl) in api.http_calls if p == "/auto"]
+    assert [pl["intervals"][0]["wave_uid"] for pl in auto_payloads] == ["w0", "w1"]
+    # The matching slot (w1, current at 10:30) gets the rebuilt wave but keeps
+    # its own start time; the non-matching slot (w0) is left untouched.
+    assert auto_payloads[1]["intervals"][0]["st"] == 600
 
 
 @pytest.mark.asyncio

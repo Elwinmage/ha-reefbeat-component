@@ -11,13 +11,25 @@ repos:
       - id: prettier
         types: [json]
 
+  # - repo: local
+  #   hooks:
+  #     - id: hassfest
+  #       name: hassfest
+  #       # On appelle directement le fichier python par son chemin dans le conteneur
+  #       # entry: env PYTHONPATH=/usr/src/homeassistant python3 /usr/src/homeassistant/script/hassfest
+  #       entry: env PYTHONPATH=/usr/src/homeassistant/homeassistant python3 -m script.hassfest
+  #       language: system
+  #       args: ["--integration-path", "custom_components/redsea"]
+  #       pass_filenames: false
+  #       always_run: true
+
   - repo: local
     hooks:
       - id: hassfest
         name: hassfest
         # On appelle directement le fichier python par son chemin dans le conteneur
         # entry: env PYTHONPATH=/usr/src/homeassistant python3 /usr/src/homeassistant/script/hassfest
-        entry: env PYTHONPATH=/usr/src/homeassistant python3 -m script.hassfest
+        entry: env PYTHONPATH=/usr/src/ha-hassfest python3 -m script.hassfest
         language: system
         args: ["--integration-path", "custom_components/redsea"]
         pass_filenames: false
@@ -25,7 +37,7 @@ repos:
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.15.5
+    rev: v0.15.14
     hooks:
       # Run the linter.
       - id: ruff-check
