@@ -582,3 +582,70 @@ async def test_wave_set_wave_cloud_api_edit_path_replaces_matching_interval(
     assert cloud.sent[0][2] == "put"
     assert cloud.sent[1][0] == "/reef-wave/schedule/" + wave.model_id
     assert cloud.sent[1][2] == "post"
+
+
+@pytest.mark.asyncio
+async def test_wave_set_wave_local_api_preserves_start_key(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """When an interval carries a 'start' key, the rebuilt slot keeps its own
+    start time under that key too (covers coordinator.py:1235)."""
+    entry = _make_entry(title="WAVE", ip="192.0.2.10", hw_model="RSWAVE25")
+    wave = coord.ReefWaveCoordinator(hass, cast(Any, entry))
+
+    # Deterministic time/uuid.
+    monkeypatch.setattr(coord, "time", lambda: 12345.6, raising=True)
+
+    class _FixedUUID:
+        @staticmethod
+        def uuid4() -> str:  # type: ignore[no-untyped-def]
+            return "uuid-1"
+
+    monkeypatch.setattr(coord, "uuid", _FixedUUID, raising=True)
+
+    # Fix current time so _get_current_schedule selects the second interval.
+    class _FixedDateTime:
+        @classmethod
+        def now(cls):  # type: ignore[no-untyped-def]
+            class _Now:
+                hour = 10
+                minute = 30
+
+            return _Now()
+
+    monkeypatch.setattr(coord, "datetime", _FixedDateTime, raising=True)
+
+    # The current interval (st=600, active at 10:30) also carries a 'start' key.
+    api = _FakeWaveAPI(
+        get_data_map={
+            "$.sources[?(@.name=='/mode')].data.mode": "auto",
+            "$.local.use_cloud_api": False,
+            "$.sources[?(@.name=='/auto')].data": {
+                "uid": "auto-uid",
+                "intervals": [
+                    {"st": 0, "wave_uid": "w0"},
+                    {"st": 600, "start": 600, "wave_uid": "w1"},
+                ],
+            },
+            "$.sources[?(@.name=='/preview')].data.type": "gy",
+            "$.sources[?(@.name=='/preview')].data.direction": "fw",
+            "$.sources[?(@.name=='/preview')].data.frt": 1,
+            "$.sources[?(@.name=='/preview')].data.rrt": 2,
+            "$.sources[?(@.name=='/preview')].data.fti": 3,
+            "$.sources[?(@.name=='/preview')].data.rti": 4,
+            "$.sources[?(@.name=='/preview')].data.pd": 5,
+            "$.sources[?(@.name=='/preview')].data.sn": 6,
+        }
+    )
+    wave.my_api = cast(Any, api)
+
+    # Avoid sleeping/refresh complexity.
+    wave.async_request_refresh = AsyncMock()  # type: ignore[assignment]
+
+    await wave.set_wave()
+
+    # The matching slot keeps both st and start equal to its own start time.
+    auto_payloads = [pl for (p, pl) in api.http_calls if p == "/auto"]
+    w1 = auto_payloads[1]["intervals"][0]
+    assert w1["st"] == 600
+    assert w1["start"] == 600
