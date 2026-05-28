@@ -15,7 +15,7 @@ from contextlib import suppress
 from typing import Any, Awaitable, Dict, List, Optional, Protocol, TypedDict, cast
 
 import aiohttp
-import async_timeout
+from asyncio import timeout
 from jsonpath_ng.ext import parse as _parse  # type: ignore
 
 from ..const import DEFAULT_TIMEOUT, HTTP_DELAY_BETWEEN_RETRY, HTTP_MAX_RETRY
@@ -195,7 +195,7 @@ class ReefBeatAPI:
         started = time.time()
         _LOGGER.debug("http_get %s", url)
         try:
-            async with async_timeout.timeout(DEFAULT_TIMEOUT):
+            async with timeout(DEFAULT_TIMEOUT):
                 async with self._session.get(
                     url, headers=self._header, ssl=False
                 ) as resp:
@@ -231,8 +231,8 @@ class ReefBeatAPI:
         _LOGGER.debug("_http_get %s", url)
 
         try:
-            timeout = getattr(self, "_timeout", 10)
-            async with async_timeout.timeout(timeout):
+            req_timeout = getattr(self, "_timeout", 10)
+            async with timeout(req_timeout):
                 async with session.get(url, headers=self._header, ssl=False) as resp:
                     if resp.status == 401 and self._secure:
                         # token expired — renew once
@@ -527,7 +527,7 @@ class ReefBeatAPI:
         while status_ok is False and error_count < HTTP_MAX_RETRY:
             started = time.time()
             try:
-                async with async_timeout.timeout(DEFAULT_TIMEOUT):
+                async with timeout(DEFAULT_TIMEOUT):
                     if method_l in ("post", "put"):
                         req = getattr(self._session, method_l)
                         async with req(

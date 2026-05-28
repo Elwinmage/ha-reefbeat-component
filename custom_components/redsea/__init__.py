@@ -187,7 +187,15 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     coordinator = hass.data[DOMAIN].pop(entry.entry_id, None)
     if coordinator is not None:
-        # coordinator may provide unload() (best-effort)
+        # Cancel the DataUpdateCoordinator's internal Debouncer timer.
+        # Try async_shutdown() first (HA 2024.x+), then fall back to
+        # directly cancelling _debounced_refresh (older HA versions).
+        with suppress(Exception):
+            await coordinator.async_shutdown()
+        with suppress(Exception):
+            if hasattr(coordinator, "_debounced_refresh"):
+                coordinator._debounced_refresh.async_cancel()
+        # coordinator may provide additional unload() cleanup (best-effort)
         with suppress(Exception):
             coordinator.unload()
 

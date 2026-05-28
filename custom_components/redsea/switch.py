@@ -329,7 +329,7 @@ RUN_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         key="overskimming_enabled",
         translation_key="overskimming_enabled",
         value_name=OVERSKIMMING_ENABLED_INTERNAL_NAME,
-        icon="mdi:stack-overflow",
+        icon="mdi:water-percent",
         entity_category=EntityCategory.CONFIG,
     ),
 )
@@ -454,11 +454,24 @@ async def async_setup_entry(
                 ReefRunSwitchEntityDescription(
                     key="schedule_enabled_pump_" + str(pump),
                     translation_key="schedule_enabled",
-                    icon="mdi:pump",
-                    icon_off="mdi:pump-off",
+                    icon="mdi:play",
+                    icon_off="mdi:pause",
                     value_name="$.sources[?(@.name=='/pump/settings')].data.pump_"
                     + str(pump)
                     + ".schedule_enabled",
+                    pump=pump,
+                    entity_category=EntityCategory.CONFIG,
+                )
+            )
+            run_descs.append(
+                ReefRunSwitchEntityDescription(
+                    key="sensor_controlled_pump_" + str(pump),
+                    translation_key="sensor_controlled_switch",
+                    icon="mdi:car-speed-limiter",
+                    icon_off="mdi:car-speed-limiter",
+                    value_name="$.sources[?(@.name=='/pump/settings')].data.pump_"
+                    + str(pump)
+                    + ".sensor_controlled",
                     pump=pump,
                     entity_category=EntityCategory.CONFIG,
                 )

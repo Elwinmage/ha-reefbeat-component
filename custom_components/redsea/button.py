@@ -134,7 +134,7 @@ class ReefRunButtonEntityDescription(ButtonEntityDescription):
 
     exists_fn: Callable[[ReefRunCoordinator], bool] = lambda _: True
     press_fn: (
-        Callable[[ReefRunCoordinator], StateType | Awaitable[StateType]] | None
+        Callable[[ReefRunCoordinator], StateType | Awaitable[Any] | None] | None
     ) = None
     pump: int = 0
 
@@ -323,6 +323,91 @@ async def async_setup_entry(
         _add_described_entities(
             entities, device, ReefBeatButtonEntity, EMERGENCY_BUTTON
         )
+
+        # -- EC calibration buttons (device-level) ----------------------------
+        RUN_CALIBRATION_BUTTONS: tuple[ReefRunButtonEntityDescription, ...] = (
+            ReefRunButtonEntityDescription(
+                key="ec_calibration_start",
+                translation_key="ec_calibration_start",
+                icon="mdi:beaker-outline",
+                press_fn=lambda device: cast(
+                    ReefRunCoordinator, device
+                ).calibration_start(),
+                entity_category=EntityCategory.CONFIG,
+                entity_registry_visible_default=False,
+            ),
+            ReefRunButtonEntityDescription(
+                key="ec_calibration_skim",
+                translation_key="ec_calibration_skim",
+                icon="mdi:beaker-check-outline",
+                press_fn=lambda device: cast(
+                    ReefRunCoordinator, device
+                ).calibration_skim(),
+                entity_category=EntityCategory.CONFIG,
+                entity_registry_visible_default=False,
+            ),
+            ReefRunButtonEntityDescription(
+                key="ec_calibration_cup",
+                translation_key="ec_calibration_cup",
+                icon="mdi:cup-outline",
+                press_fn=lambda device: cast(
+                    ReefRunCoordinator, device
+                ).calibration_cup(),
+                entity_category=EntityCategory.CONFIG,
+                entity_registry_visible_default=False,
+            ),
+            ReefRunButtonEntityDescription(
+                key="ec_calibration_end",
+                translation_key="ec_calibration_end",
+                icon="mdi:beaker-remove-outline",
+                press_fn=lambda device: cast(
+                    ReefRunCoordinator, device
+                ).calibration_end(),
+                entity_category=EntityCategory.CONFIG,
+                entity_registry_visible_default=False,
+            ),
+        )
+        _add_described_entities(
+            entities, device, ReefRunButtonEntity, RUN_CALIBRATION_BUTTONS
+        )
+
+        # -- Per-pump management buttons (delete / detect) --------------------
+        for pump in range(1, 3):
+            RUN_PUMP_MGMT_BUTTONS: tuple[ReefRunButtonEntityDescription, ...] = (
+                ReefRunButtonEntityDescription(
+                    key=f"delete_pump_{pump}",
+                    translation_key="delete_pump",
+                    icon="mdi:delete-outline",
+                    press_fn=(
+                        lambda p: (
+                            lambda device: cast(ReefRunCoordinator, device).delete_pump(
+                                p
+                            )
+                        )
+                    )(pump),
+                    entity_category=EntityCategory.CONFIG,
+                    pump=pump,
+                    entity_registry_visible_default=False,
+                ),
+                ReefRunButtonEntityDescription(
+                    key=f"detect_pump_{pump}",
+                    translation_key="detect_pump",
+                    icon="mdi:magnify-scan",
+                    press_fn=(
+                        lambda p: (
+                            lambda device: cast(ReefRunCoordinator, device).detect_pump(
+                                p
+                            )
+                        )
+                    )(pump),
+                    entity_category=EntityCategory.CONFIG,
+                    pump=pump,
+                    entity_registry_visible_default=False,
+                ),
+            )
+            _add_described_entities(
+                entities, device, ReefRunButtonEntity, RUN_PUMP_MGMT_BUTTONS
+            )
         if not device.my_api.live_config_update:
             for pump in range(1, 3):
                 CONFIG_PREVIEW_BUTTONS: tuple[ReefRunButtonEntityDescription, ...] = (

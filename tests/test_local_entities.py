@@ -57,3 +57,7 @@ async def test_local_device_profiles_have_entities(
     )
     identifier = str(device_info.get("hwid") or device_info.get("id") or "unknown")
     await _assert_device_has_entities(hass, identifier)
+
+    # Unload the entry to cancel coordinator Debouncer timer before teardown.
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()

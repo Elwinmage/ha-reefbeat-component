@@ -111,6 +111,10 @@ async def test_setup_cloud_entry(
     assert isinstance(devices, list)
     assert len(cast(list[Any], devices)) >= 1
 
+    # Unload the entry so the coordinator's Debouncer timer is cancelled before teardown.
+    assert await hass.config_entries.async_unload(cloud_config_entry.entry_id)
+    await hass.async_block_till_done()
+
 
 @pytest.mark.asyncio
 async def test_async_setup_entry_returns_false_when_building_coordinator_fails(

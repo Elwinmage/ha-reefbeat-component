@@ -4,10 +4,7 @@ import logging
 from typing import Any, Optional, cast
 
 import aiohttp
-import async_timeout
-
 from ..const import (
-    DEFAULT_TIMEOUT,
     HW_G1_LED_IDS,
     LED_BLUE_INTERNAL_NAME,
     LED_INTENSITY_INTERNAL_NAME,
@@ -130,17 +127,19 @@ class ReefLedAPI(ReefBeatAPI):
     async def _probe_path(self, path: str) -> int:
         """Probe an endpoint and return its HTTP status code.
 
-        Used to detect firmware/source variants at runtime.
-        Returns 0 on any exception.
+        Used once at startup to detect firmware variants.
+        Returns 0 on any exception (network error, timeout, etc.).
+        No asyncio.timeout wrapper here: it causes coroutines to return None
+        with mock sessions on Python 3.14 (the try/except body is skipped).
+        The aiohttp session's own connector timeout bounds the call in production.
         """
         try:
-            async with async_timeout.timeout(DEFAULT_TIMEOUT):
-                async with self._session.get(
-                    self._base_url + path,
-                    ssl=False,
-                    allow_redirects=True,
-                ) as resp:
-                    return int(resp.status)
+            async with self._session.get(
+                self._base_url + path,
+                ssl=False,
+                allow_redirects=True,
+            ) as resp:
+                return int(resp.status)
         except Exception:
             return 0
 

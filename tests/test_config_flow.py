@@ -175,6 +175,11 @@ async def test_manual_mode_unique_id_falls_back_to_ip(
     entry = cast(Any, result3["result"])
     assert entry.unique_id == "192.0.2.10"
 
+    # Unload to cancel the coordinator's Debouncer timer before teardown.
+    await hass.async_block_till_done()
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+
 
 @pytest.mark.asyncio
 async def test_manual_mode_unique_id_resolves_uuid_first_try(
@@ -221,6 +226,11 @@ async def test_manual_mode_unique_id_resolves_uuid_first_try(
 
     entry = cast(Any, result3["result"])
     assert entry.unique_id == "uuid-ok"
+
+    # Unload to cancel the coordinator's Debouncer timer before teardown.
+    await hass.async_block_till_done()
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
 
 
 @pytest.mark.asyncio
@@ -641,6 +651,12 @@ async def test_config_flow_cloud_creates_entry(
     assert result3_dict["title"]
     # Entry keys are component-defined; just assert username-like value exists.
     assert "test@example.com" in str(result3_dict["data"]).lower()
+
+    # Unload the created entry so its coordinator's Debouncer timer is cancelled.
+    entry = cast(Any, result3_dict["result"])
+    await hass.async_block_till_done()
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
 
 
 @pytest.mark.asyncio

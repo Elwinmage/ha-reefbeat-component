@@ -59,6 +59,8 @@ class ReefBeatBinarySensorEntityDescription(
     exists_fn: Callable[[TCoord], bool] = lambda _: True
     value_fn: Callable[[TCoord], StateType] | None = None
     value_name: str | None = None
+    with_attr_name: str | None = None
+    with_attr_value: str | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -113,7 +115,6 @@ BATTERY_SENSORS: tuple[
             device.get_data("$.sources[?(@.name=='/dashboard')].data.battery_level")
             == "low"
         ),
-        icon="mdi:battery-outline",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
 )
@@ -316,6 +317,10 @@ async def async_setup_entry(
                         )
                         == 1
                     ),
+                    with_attr_name="schedule",
+                    with_attr_value="$.sources[?(@.name=='/pump/settings')].data.pump_"
+                    + str(pump)
+                    + ".schedule",
                     pump=pump,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 )
@@ -328,17 +333,6 @@ async def async_setup_entry(
                     value_name="$.sources[?(@.name=='/dashboard')].data.pump_"
                     + str(pump)
                     + ".sensor_controlled",
-                    pump=pump,
-                )
-            )
-            run_descs.append(
-                ReefRunBinarySensorEntityDescription(
-                    key="schedule_enabled_pump_" + str(pump),
-                    translation_key="schedule_enabled",
-                    icon="mdi:calendar-arrow-right",
-                    value_name="$.sources[?(@.name=='/dashboard')].data.pump_"
-                    + str(pump)
-                    + ".schedule_enabled",
                     pump=pump,
                 )
             )
@@ -365,6 +359,19 @@ async def async_setup_entry(
                     value_name="$.sources[?(@.name=='/dashboard')].data.pump_"
                     + str(pump)
                     + ".missing_pump",
+                    pump=pump,
+                )
+            )
+            run_descs.append(
+                ReefRunBinarySensorEntityDescription(
+                    key="reconnect_pump_pump_" + str(pump),
+                    translation_key="reconnect_pump",
+                    device_class=BinarySensorDeviceClass.PROBLEM,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                    icon="mdi:connection",
+                    value_name="$.sources[?(@.name=='/dashboard')].data.pump_"
+                    + str(pump)
+                    + ".reconnect_pump",
                     pump=pump,
                 )
             )
@@ -449,6 +456,12 @@ class ReefBeatBinarySensorEntity(  # pyright: ignore[reportIncompatibleVariableO
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._attr_is_on = self._coerce_bool(self._get_value())
+        with_attr_name = getattr(self.entity_description, "with_attr_name", None)
+        with_attr_value = getattr(self.entity_description, "with_attr_value", None)
+        if with_attr_name and with_attr_value:
+            self._attr_extra_state_attributes = {
+                with_attr_name: self._device.get_data(with_attr_value)
+            }
         self.async_write_ha_state()
 
     def _get_value(self) -> StateType:

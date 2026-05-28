@@ -1,4 +1,9 @@
 # Red Sea (urządzenia ReefBeat) 🐠
+> Część **[Ekosystemu ReefTech Project](https://elwinmage.github.io/reeftank/pl.html)**
+<p align="center">
+  <img src="../../icon.png" width="50%"/>
+</p>
+
 [![HACS Badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=flat-square)](https://github.com/hacs/default)
 [![IoT Class](https://img.shields.io/badge/IoT%20Class-Local%20Polling-green?style=flat-square)](https://developers.home-assistant.io/docs/architecture_index/#branding)
 ![Installations](https://img.shields.io/badge/dynamic/json?label=Aktywne%20instalacje&query=estimated&url=https%3A%2F%2Fraw.githubusercontent.com%2FElwinmage%2Fha-reefbeat-component%2Fmain%2Fbadges%2Fstats.json&color=CE1126&logo=home-assistant)
@@ -128,7 +133,7 @@ Aby pomóc w tłumaczeniu, postępuj zgodnie z tym [przewodnikiem](https://githu
 <tr>
 <td rowspan="2"><a href="#reefwave">ReefWave (*)</a></td>
 <td colspan="2">RSWAVE25</td>
-<td>☑️</td>
+<td>✅</td>
 <td width="200px" rowspan="2"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSWAVE.png"/></td>
 <td rowspan="2">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rswave,all label:enhancement" style="text-decoration:none">📆</a>

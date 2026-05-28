@@ -17,7 +17,8 @@ from functools import partial
 from time import time
 from typing import Any, cast
 
-import async_timeout
+from asyncio import timeout
+
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
@@ -90,7 +91,7 @@ async def validate_cloud_input(
     session = async_get_clientsession(hass)
 
     try:
-        async with async_timeout.timeout(10):
+        async with timeout(10):
             async with session.post(
                 f"https://{CLOUD_SERVER_ADDR}/oauth/token",
                 data=payload,

@@ -365,6 +365,9 @@ async def test_clean_message_updates_listeners(hass: HomeAssistant) -> None:
     assert called == ["last_message"]
     assert updated == 1
 
+    # Shut down the coordinator to cancel any pending Debouncer timers.
+    await coordinator.async_shutdown()
+
 
 @pytest.mark.asyncio
 async def test_device_info_properties_and_fallbacks(hass: HomeAssistant) -> None:
