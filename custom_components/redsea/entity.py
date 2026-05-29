@@ -48,6 +48,29 @@ class RestoreSpec(Generic[_T]):
 # -----------------------------------------------------------------------------
 
 
+# REEF ROLE MIXIN
+class ReefRoleMixin:
+    """Expose `translation_key` as a stable `reef_role` state attribute.
+
+    Lets blueprints and templates target entities by their stable role
+    (e.g. 'mode', 'last_calibration', 'battery_level') via
+    `state_attr(entity_id, 'reef_role')`, independently of the install
+    language, user-renamed entity_ids, or HA slug rules.
+
+    This mixin must come FIRST in the MRO of the entity class so its
+    `extra_state_attributes` property wins over the default `Entity` one
+    while still picking up `_attr_extra_state_attributes` set by subclasses.
+    """
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        base = getattr(self, "_attr_extra_state_attributes", None) or {}
+        tk = getattr(self, "translation_key", None)
+        if tk:
+            return {**base, "reef_role": tk}
+        return dict(base) if base else None
+
+
 # REEFBEAT
 class ReefBeatEntity(CoordinatorEntity[ReefBeatCoordinator]):
     """CoordinatorEntity base for all entities."""

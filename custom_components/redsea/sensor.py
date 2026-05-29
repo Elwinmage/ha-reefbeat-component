@@ -95,7 +95,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
-from .entity import ReefBeatRestoreEntity, RestoreSpec
+from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1273,7 +1273,7 @@ async def async_setup_entry(
 
 
 # REEFBEAT
-class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class ReefBeatSensorEntity(ReefRoleMixin, ReefBeatRestoreEntity, SensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Base sensor entity backed by a ReefBeat device/coordinator.
 
     Responsibilities:

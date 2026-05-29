@@ -44,7 +44,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
-from .entity import ReefBeatRestoreEntity, RestoreSpec
+from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
 from .i18n import translate, translate_list
 from .supplements_list import SUPPLEMENTS as SUPPLEMENTS_LIST
 
@@ -276,7 +276,7 @@ async def async_setup_entry(
 
 
 # REEFBEAT
-class ReefBeatSelectEntity(ReefBeatRestoreEntity, SelectEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class ReefBeatSelectEntity(ReefRoleMixin, ReefBeatRestoreEntity, SelectEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Generic ReefBeat-backed select entity.
 
     We intentionally do not subclass `CoordinatorEntity` (see number.py rationale).
