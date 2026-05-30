@@ -44,14 +44,27 @@ blueprint:
       name: Notification targets
       icon: mdi:bell-outline
       input:
-        notify_actions:
-          name: Actions to run
+        notify_targets:
+          name: Mobile notification services
           description: >
-            One or more actions (typically `notify.mobile_app_xxx`).
-            Tip: add `data.tag: "redsea_{{ device_name }}_{{ alert_type }}"`
-            (mobile_app) to prevent notification stacking.
+            List of `notify.mobile_app_xxx` services to call. Enter the name
+            **without** the `notify.` prefix (e.g. `mobile_app_pixel_8`,
+            `mobile_app_iphone_john`). One notification is sent per target.
+            A unique tag per (device, alert type) is added automatically so
+            new notifications replace older ones instead of stacking.
+          default: ["mobile_app"]
           selector:
-            action: {}
+            text:
+              multiple: true
+        notify_channel:
+          name: Android channel (optional)
+          description: >
+            Channel name passed in `data.channel`. Lets you group ReefBeat
+            notifications and apply dedicated sound/priority from the HA app.
+            Leave empty for the default channel. iOS ignores this field.
+          default: "ReefBeat"
+          selector:
+            text:
 
     mode_section:
       name: Abnormal mode
@@ -206,6 +219,9 @@ variables:
   expected_modes_common: !input expected_modes_common
   expected_modes_led: !input expected_modes_led
   calibration_max_days: !input calibration_max_days
+
+  notify_targets: !input notify_targets
+  notify_channel: !input notify_channel
 
   notify_mode: !input notify_mode
   notify_calibration: !input notify_calibration
@@ -415,6 +431,21 @@ action:
                 model: "{{ repeat.item.model }}"
                 title: "ReefBeat \u2014 {{ repeat.item.device }}"
                 message: "{{ repeat.item.message }}"
-            - alias: "Run user-defined notification actions"
-              choose: []
-              default: !input notify_actions
+                # Unique tag per (device, alert_type) so notifications
+                # replace each other instead of stacking.
+                notif_tag: "redsea_{{ repeat.item.device }}_{{ repeat.item.type }}"
+            - alias: "Dispatch to each mobile_app target"
+              repeat:
+                for_each: "{{ notify_targets }}"
+                sequence:
+                  - service: "notify.{{ repeat.item }}"
+                    data:
+                      title: "{{ title }}"
+                      message: "{{ message }}"
+                      data: >-
+                        {{
+                          {
+                            'tag': notif_tag,
+                            'channel': notify_channel
+                          } if notify_channel else {'tag': notif_tag}
+                        }}
