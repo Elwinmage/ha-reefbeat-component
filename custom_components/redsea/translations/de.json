@@ -177,6 +177,39 @@
       },
       "ec_calibration_start": {
         "name": "EC-Kalibrierung Starten"
+      },
+      "maint_ato_ec_sensor": {
+        "name": "EC-Sensor reinigen"
+      },
+      "maint_ato_return_pump": {
+        "name": "Rückförderpumpe reinigen"
+      },
+      "maint_dose_heads_replace": {
+        "name": "Dosierkopf und Schläuche ersetzen"
+      },
+      "maint_run_pump_motor": {
+        "name": "Motor und Rotor reinigen"
+      },
+      "maint_run_pump_strainer": {
+        "name": "Ansaugsieb reinigen"
+      },
+      "maint_run_skim_venturi": {
+        "name": "Venturi und Luftschlauch reinigen"
+      },
+      "maint_run_skim_rotor": {
+        "name": "Rotor der Abschäumerpumpe reinigen"
+      },
+      "maint_wave_rotor_cages": {
+        "name": "Rotorkäfige reinigen"
+      },
+      "maint_mat_carbon_replace": {
+        "name": "Aktivkohle ersetzen"
+      },
+      "maint_led_lens": {
+        "name": "Linse reinigen"
+      },
+      "maint_led_fan": {
+        "name": "Lüfter und Gitter entstauben"
       }
     },
     "light": {
@@ -271,6 +304,39 @@
       },
       "wave_preview_wave_duration": {
         "name": "Vorsch. Wellendauer"
+      },
+      "maint_ato_ec_sensor_interval_weeks": {
+        "name": "EC-Sensor reinigen (Wochen)"
+      },
+      "maint_ato_return_pump_interval_months": {
+        "name": "Rückförderpumpe reinigen (Monate)"
+      },
+      "maint_dose_heads_replace_interval_months": {
+        "name": "Dosierkopf und Schläuche ersetzen (Monate)"
+      },
+      "maint_run_pump_motor_interval_months": {
+        "name": "Motor und Rotor reinigen (Monate)"
+      },
+      "maint_run_pump_strainer_interval_weeks": {
+        "name": "Ansaugsieb reinigen (Wochen)"
+      },
+      "maint_run_skim_venturi_interval_weeks": {
+        "name": "Venturi und Luftschlauch reinigen (Wochen)"
+      },
+      "maint_run_skim_rotor_interval_months": {
+        "name": "Rotor der Abschäumerpumpe reinigen (Monate)"
+      },
+      "maint_wave_rotor_cages_interval_months": {
+        "name": "Rotorkäfige reinigen (Monate)"
+      },
+      "maint_mat_carbon_replace_interval_weeks": {
+        "name": "Aktivkohle ersetzen (Wochen)"
+      },
+      "maint_led_lens_interval_weeks": {
+        "name": "Linse reinigen (Wochen)"
+      },
+      "maint_led_fan_interval_months": {
+        "name": "Lüfter und Gitter entstauben (Monate)"
       }
     },
     "select": {
@@ -780,5 +846,21 @@
       }
     }
   },
-  "title": "ReefBeat"
+  "title": "ReefBeat",
+  "services": {
+    "reset_maintenance": {
+      "name": "Wartung zurücksetzen",
+      "description": "Eine Wartungsaufgabe für ein Gerät oder Untergerät als gerade erledigt markieren.",
+      "fields": {
+        "device_id": {
+          "name": "Gerät",
+          "description": "Zielgerät (oder Untergerät, z. B. RSDOSE-Kopf, RSRUN-Pumpe)."
+        },
+        "task_key": {
+          "name": "Aufgaben-Schlüssel",
+          "description": "Stabile Kennung der Wartungsaufgabe (z. B. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
+        }
+      }
+    }
+  }
 }

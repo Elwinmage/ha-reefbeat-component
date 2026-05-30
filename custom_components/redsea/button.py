@@ -25,6 +25,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import (
     HomeAssistant,
+    callback,
 )
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -46,6 +47,13 @@ from .coordinator import (
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
+)
+from .entity import ReefRoleMixin
+from .maintenance import (
+    MaintenanceStore,
+    MaintenanceTask,
+    compute_days_left,
+    tasks_for,
 )
 from .supplements_list import SUPPLEMENTS
 
@@ -594,7 +602,78 @@ async def async_setup_entry(
         _add_described_entities(
             entities, device, ReefBeatButtonEntity, FIRMWARE_UPDATE_BUTTON
         )
+
+    # ---- Maintenance buttons -------------------------------------------------
+    # One button per task per (sub-)device, driven by the static catalogue
+    # in maintenance.TASKS. Skipped silently for cloud / virtual devices and
+    # for hw_models with no tasks declared.
+    _add_maintenance_buttons(device, entities)
+
     async_add_entities(entities, True)
+
+
+def _add_maintenance_buttons(
+    device: ReefBeatCoordinator,
+    entities: list[ButtonEntity],
+) -> None:
+    """Create one MaintenanceButtonEntity per applicable task instance.
+
+    Iterates the catalogue for the device's hw_model and resolves sub-device
+    iteration:
+      - 'head'         -> one button per RSDOSE head
+      - 'pump_return'  -> one button per RSRUN pump whose type == 'return'
+      - 'pump_skimmer' -> one button per RSRUN pump whose type == 'skimmer'
+      - None           -> a single button on the main device
+    """
+    if isinstance(device, (ReefBeatCloudCoordinator, ReefVirtualLedCoordinator)):
+        return
+
+    # Coordinator stores its hw_model in `_hw` (set from CONFIG_FLOW_HW_MODEL
+    # in coordinator.py:113). It's effectively internal-but-stable.
+    hw_model = getattr(device, "_hw", None)
+    if not isinstance(hw_model, str):
+        return
+
+    tasks = tasks_for(hw_model)
+    if not tasks:
+        return
+
+    for task in tasks:
+        if task.applies_to_sub == "head" and isinstance(device, ReefDoseCoordinator):
+            for head in range(1, device.heads_nb + 1):
+                entities.append(MaintenanceButtonEntity(device, task, sub_id=head))
+
+        elif task.applies_to_sub in ("pump_return", "pump_skimmer") and isinstance(
+            device, ReefRunCoordinator
+        ):
+            wanted = "return" if task.applies_to_sub == "pump_return" else "skimmer"
+            for pump_id in _iter_run_pumps(device, wanted):
+                entities.append(MaintenanceButtonEntity(device, task, sub_id=pump_id))
+
+        else:
+            entities.append(MaintenanceButtonEntity(device, task, sub_id=0))
+
+
+def _iter_run_pumps(device: ReefRunCoordinator, wanted_type: str) -> list[int]:
+    """Return pump indices whose configured type matches wanted_type.
+
+    RSRUN is hardware-fixed to exactly 2 pumps (pump_1 and pump_2). The
+    integration also exposes a "common parts" device which has no pump_N,
+    so iterating only over [1, 2] avoids spurious ERROR logs from get_data
+    on non-existent paths.
+    """
+    out: list[int] = []
+    for pump_id in (1, 2):
+        try:
+            pump = device.get_data(
+                f"$.sources[?(@.name=='/dashboard')].data.pump_{pump_id}",
+                True,  # is_None_possible: silent if the common-parts device
+            )
+        except Exception:
+            pump = None
+        if isinstance(pump, dict) and pump.get("type") == wanted_type:
+            out.append(pump_id)
+    return out
 
 
 # -----------------------------------------------------------------------------
@@ -926,3 +1005,148 @@ class ReefWaveButtonEntity(ButtonEntity):
             self._device.set_data("$.sources[?(@.name=='/mode')].data.mode", "auto")
 
         await self._device.async_request_refresh()
+
+
+# =============================================================================
+# MAINTENANCE BUTTONS
+# =============================================================================
+
+
+# Maintenance buttons share the ReefRoleMixin so their translation_key is
+# also exposed as `reef_role` (consumed by the blueprint + custom card).
+class MaintenanceButtonEntity(ReefRoleMixin, ButtonEntity):  # type: ignore[misc]
+    """Button that records a user-confirmed maintenance event.
+
+    Pressing the button stamps "now" as the last_reset for the (device,
+    sub_id, task) triple in the persistent MaintenanceStore. Derived values
+    (days_left, overdue, last_reset, interval_days) are exposed as state
+    attributes alongside `reef_role`, so a single entity per task is enough
+    for both the blueprint (alerts) and the custom card (gauge + label).
+
+    Sub-devices
+    -----------
+    For RSDOSE heads and RSRUN pumps, `sub_id` > 0 binds the entity to the
+    sub-device's DeviceInfo (head_device_info / pump_device_info), so the
+    button appears on the correct device card.
+    """
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        task: "MaintenanceTask",
+        sub_id: int = 0,
+    ) -> None:
+        self._device = device
+        self._task = task
+        self._sub_id = sub_id
+
+        # Per-task icon from the catalogue (defaults to mdi:wrench-check).
+        self._attr_icon = task.icon
+
+        # Stable per-instance unique_id; sub_id is part of the key for
+        # multi-head / multi-pump devices.
+        suffix = f"_{sub_id}" if sub_id > 0 else ""
+        self._attr_unique_id = f"{device.serial}_{task.key}{suffix}"
+
+        # translation_key drives both the friendly name and `reef_role`.
+        self._attr_translation_key = task.translation_key
+
+        # Bind to the right device (main or sub) for proper UI grouping.
+        if (
+            sub_id > 0
+            and hasattr(device, "head_device_info")
+            and task.applies_to_sub == "head"
+        ):
+            self._attr_device_info = cast(Any, device).head_device_info(sub_id)
+        elif sub_id > 0 and hasattr(device, "pump_device_info"):
+            self._attr_device_info = cast(Any, device).pump_device_info(sub_id)
+        else:
+            self._attr_device_info = device.device_info
+
+        self._attr_available = True
+        self._unsub: Callable[[], None] | None = None
+
+    # ---- attributes ------------------------------------------------------
+
+    @property
+    def _store(self) -> "MaintenanceStore":
+        """Return the device's MaintenanceStore.
+
+        We assert this lazily because:
+        - Different coordinator subclasses are wired in `__init__.py`, and a
+          subclass refactor could break the attribute attachment.
+        - Test fixtures don't always wire the store.
+        If the attribute is missing, we lazily create a per-coordinator
+        in-memory MaintenanceStore (no disk persistence). This keeps entities
+        usable instead of crashing the platform; a WARNING is logged once so
+        the misconfiguration is visible.
+        """
+        device = cast(Any, self._device)
+        store = getattr(device, "maintenance", None)
+        if store is None:
+            _LOGGER.warning(
+                "MaintenanceStore missing on %s; using ephemeral fallback "
+                "(resets will not persist across restarts)",
+                getattr(device, "_title", device.__class__.__name__),
+            )
+            # Build a Store-less instance: load() is a no-op when never
+            # written, and saves go to a unique key so they don't conflict.
+            store = MaintenanceStore(
+                getattr(device, "_hass"),
+                f"fallback_{id(device)}",
+            )
+            device.maintenance = store
+        return store
+
+    def _compute_attrs(self) -> dict[str, Any]:
+        store = self._store
+        serial = self._device.serial
+        last = store.get_last_reset(serial, self._sub_id, self._task.key)
+        interval = store.get_interval(
+            serial, self._sub_id, self._task.key, self._task.default_days
+        )
+        days_left = compute_days_left(last, interval)
+        return {
+            "last_reset": last.isoformat() if last is not None else None,
+            "interval_days": interval,
+            "days_left": days_left,
+            "overdue": (days_left is not None and days_left < 0),
+            "task_key": self._task.key,
+        }
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:  # pyright: ignore[reportIncompatibleVariableOverride]
+        # Compose with ReefRoleMixin: it adds reef_role on top of the dict
+        # returned here via the mixin's own property. We expose our computed
+        # values as `_attr_extra_state_attributes` so the mixin picks them up.
+        self._attr_extra_state_attributes = self._compute_attrs()
+        return super().extra_state_attributes  # type: ignore[misc]
+
+    # ---- lifecycle -------------------------------------------------------
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        # Re-render attributes whenever the store changes for our instance.
+        @callback
+        def _on_store_change() -> None:
+            self.async_write_ha_state()
+
+        self._unsub = self._store.async_add_listener(
+            self._device.serial, self._sub_id, self._task.key, _on_store_change
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsub is not None:
+            self._unsub()
+            self._unsub = None
+        await super().async_will_remove_from_hass()
+
+    # ---- action ----------------------------------------------------------
+
+    async def async_press(self) -> None:
+        """Record a reset event for this maintenance instance."""
+        await self._store.async_reset(self._device.serial, self._sub_id, self._task.key)
+        # The store will notify our listener, which calls async_write_ha_state.

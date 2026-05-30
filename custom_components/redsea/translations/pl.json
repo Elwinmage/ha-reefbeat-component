@@ -177,6 +177,39 @@
       },
       "ec_calibration_start": {
         "name": "Kalibracja EC Start"
+      },
+      "maint_ato_ec_sensor": {
+        "name": "Wyczyścić czujnik EC"
+      },
+      "maint_ato_return_pump": {
+        "name": "Wyczyścić pompę powrotną"
+      },
+      "maint_dose_heads_replace": {
+        "name": "Wymienić głowicę dozującą i wężyki"
+      },
+      "maint_run_pump_motor": {
+        "name": "Wyczyścić silnik i wirnik"
+      },
+      "maint_run_pump_strainer": {
+        "name": "Wyczyścić sitko zasysające"
+      },
+      "maint_run_skim_venturi": {
+        "name": "Wyczyścić venturi i wąż powietrzny"
+      },
+      "maint_run_skim_rotor": {
+        "name": "Wyczyścić wirnik pompy odpieniacza"
+      },
+      "maint_wave_rotor_cages": {
+        "name": "Wyczyścić klatki wirnika"
+      },
+      "maint_mat_carbon_replace": {
+        "name": "Wymienić węgiel aktywny"
+      },
+      "maint_led_lens": {
+        "name": "Wyczyścić soczewkę"
+      },
+      "maint_led_fan": {
+        "name": "Odkurzyć wentylator i kratki"
       }
     },
     "light": {
@@ -271,6 +304,39 @@
       },
       "wave_preview_wave_duration": {
         "name": "Podgląd czas trwania fali"
+      },
+      "maint_ato_ec_sensor_interval_weeks": {
+        "name": "Wyczyścić czujnik EC (tygodnie)"
+      },
+      "maint_ato_return_pump_interval_months": {
+        "name": "Wyczyścić pompę powrotną (miesiące)"
+      },
+      "maint_dose_heads_replace_interval_months": {
+        "name": "Wymienić głowicę dozującą i wężyki (miesiące)"
+      },
+      "maint_run_pump_motor_interval_months": {
+        "name": "Wyczyścić silnik i wirnik (miesiące)"
+      },
+      "maint_run_pump_strainer_interval_weeks": {
+        "name": "Wyczyścić sitko zasysające (tygodnie)"
+      },
+      "maint_run_skim_venturi_interval_weeks": {
+        "name": "Wyczyścić venturi i wąż powietrzny (tygodnie)"
+      },
+      "maint_run_skim_rotor_interval_months": {
+        "name": "Wyczyścić wirnik pompy odpieniacza (miesiące)"
+      },
+      "maint_wave_rotor_cages_interval_months": {
+        "name": "Wyczyścić klatki wirnika (miesiące)"
+      },
+      "maint_mat_carbon_replace_interval_weeks": {
+        "name": "Wymienić węgiel aktywny (tygodnie)"
+      },
+      "maint_led_lens_interval_weeks": {
+        "name": "Wyczyścić soczewkę (tygodnie)"
+      },
+      "maint_led_fan_interval_months": {
+        "name": "Odkurzyć wentylator i kratki (miesiące)"
       }
     },
     "select": {
@@ -780,5 +846,21 @@
       }
     }
   },
-  "title": "ReefBeat"
+  "title": "ReefBeat",
+  "services": {
+    "reset_maintenance": {
+      "name": "Zresetuj konserwację",
+      "description": "Oznacz zadanie konserwacji jako właśnie wykonane dla urządzenia lub pod-urządzenia.",
+      "fields": {
+        "device_id": {
+          "name": "Urządzenie",
+          "description": "Urządzenie docelowe (lub pod-urządzenie, np. głowica RSDOSE, pompa RSRUN)."
+        },
+        "task_key": {
+          "name": "Identyfikator zadania",
+          "description": "Stabilny identyfikator zadania (np. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
+        }
+      }
+    }
+  }
 }

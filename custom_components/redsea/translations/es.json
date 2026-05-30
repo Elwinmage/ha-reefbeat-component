@@ -177,6 +177,39 @@
       },
       "ec_calibration_start": {
         "name": "Calibración EC Iniciar"
+      },
+      "maint_ato_ec_sensor": {
+        "name": "Limpiar el sensor EC"
+      },
+      "maint_ato_return_pump": {
+        "name": "Limpiar la bomba de retorno"
+      },
+      "maint_dose_heads_replace": {
+        "name": "Sustituir cabezal y tubos de dosificación"
+      },
+      "maint_run_pump_motor": {
+        "name": "Limpiar motor y rotor"
+      },
+      "maint_run_pump_strainer": {
+        "name": "Limpiar el filtro de aspiración"
+      },
+      "maint_run_skim_venturi": {
+        "name": "Limpiar venturi y tubo de aire"
+      },
+      "maint_run_skim_rotor": {
+        "name": "Limpiar el rotor de la bomba del skimmer"
+      },
+      "maint_wave_rotor_cages": {
+        "name": "Limpiar las jaulas del rotor"
+      },
+      "maint_mat_carbon_replace": {
+        "name": "Sustituir el carbón activado"
+      },
+      "maint_led_lens": {
+        "name": "Limpiar la lente"
+      },
+      "maint_led_fan": {
+        "name": "Quitar el polvo del ventilador y rejillas"
       }
     },
     "light": {
@@ -271,6 +304,39 @@
       },
       "wave_preview_wave_duration": {
         "name": "Vista prev. duración de ola"
+      },
+      "maint_ato_ec_sensor_interval_weeks": {
+        "name": "Limpiar el sensor EC (semanas)"
+      },
+      "maint_ato_return_pump_interval_months": {
+        "name": "Limpiar la bomba de retorno (meses)"
+      },
+      "maint_dose_heads_replace_interval_months": {
+        "name": "Sustituir cabezal y tubos de dosificación (meses)"
+      },
+      "maint_run_pump_motor_interval_months": {
+        "name": "Limpiar motor y rotor (meses)"
+      },
+      "maint_run_pump_strainer_interval_weeks": {
+        "name": "Limpiar el filtro de aspiración (semanas)"
+      },
+      "maint_run_skim_venturi_interval_weeks": {
+        "name": "Limpiar venturi y tubo de aire (semanas)"
+      },
+      "maint_run_skim_rotor_interval_months": {
+        "name": "Limpiar el rotor de la bomba del skimmer (meses)"
+      },
+      "maint_wave_rotor_cages_interval_months": {
+        "name": "Limpiar las jaulas del rotor (meses)"
+      },
+      "maint_mat_carbon_replace_interval_weeks": {
+        "name": "Sustituir el carbón activado (semanas)"
+      },
+      "maint_led_lens_interval_weeks": {
+        "name": "Limpiar la lente (semanas)"
+      },
+      "maint_led_fan_interval_months": {
+        "name": "Quitar el polvo del ventilador y rejillas (meses)"
       }
     },
     "select": {
@@ -780,5 +846,21 @@
       }
     }
   },
-  "title": "ReefBeat"
+  "title": "ReefBeat",
+  "services": {
+    "reset_maintenance": {
+      "name": "Restablecer mantenimiento",
+      "description": "Marcar una tarea de mantenimiento como realizada para un equipo o sub-equipo.",
+      "fields": {
+        "device_id": {
+          "name": "Equipo",
+          "description": "Equipo objetivo (o sub-equipo, ej. cabezal RSDOSE, bomba RSRUN)."
+        },
+        "task_key": {
+          "name": "Identificador de tarea",
+          "description": "Identificador estable de la tarea (ej. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
+        }
+      }
+    }
+  }
 }

@@ -103,7 +103,11 @@ def test_update_val_sets_extra_attributes_from_with_attr_fields() -> None:
     entity._update_val()
 
     assert entity.native_value == "v"
-    assert entity.extra_state_attributes == {"extra": {"k": "v"}}
+    # ReefRoleMixin adds `reef_role`; check the with_attr fields separately.
+    attrs = entity.extra_state_attributes
+    assert attrs is not None
+    assert attrs["extra"] == {"k": "v"}
+    assert attrs["reef_role"] == "x"
 
 
 def test_get_value_dosing_queue_non_empty(monkeypatch: Any) -> None:

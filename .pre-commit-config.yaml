@@ -17,7 +17,8 @@ repos:
         name: hassfest
         # On appelle directement le fichier python par son chemin dans le conteneur
         # entry: env PYTHONPATH=/usr/src/homeassistant python3 /usr/src/homeassistant/script/hassfest
-        entry: env PYTHONPATH=/usr/src/homeassistant python3 -m script.hassfest
+        # entry: env PYTHONPATH=/usr/src/homeassistant python3 -m script.hassfest
+        entry: env PYTHONPATH=/usr/src/ha-hassfest python3 -m script.hassfest
         language: system
         args: ["--integration-path", "custom_components/redsea"]
         pass_filenames: false
@@ -66,7 +67,7 @@ repos:
 
       - id: pytest
         name: pytest (-q)
-        entry: pytest -q --cov=custom_components.redsea --cov-report=xml:reports/coverage.xml --cov-report=term-missing --cov-report=html:reports/htmlcov
+        entry: pytest -q --cov=custom_components.redsea --cov-report=xml:reports/coverage.xml --cov-report=term-missing --cov-report=html:reports/htmlcov --cov-config=.coveragerc
         language: python
         always_run: true
         pass_filenames: false

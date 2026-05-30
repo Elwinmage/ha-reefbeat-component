@@ -1,11 +1,20 @@
+# Coverage.py configuration for the redsea integration.
+
 [run]
-source =
-    custom_components
+source = custom_components/redsea
+branch = False
 
 [report]
-exclude_lines =
-    pragma: no cover
-    raise NotImplemented\(\)
+# `exclude_also` ADDS to the built-in defaults (which already include
+# "pragma: no cover", "raise NotImplementedError", etc.). The older
+# `exclude_lines` would have REPLACED them entirely.
+exclude_also =
+    ^\s*#\s*-+
+    ^\s*\)\s*(->\s*.+)?:\s*$
+    ^\s*\)\s*$
     if __name__ == .__main__.:
-    main\(\)
+    def __repr__
+    raise AssertionError
+
 show_missing = True
+skip_covered = False

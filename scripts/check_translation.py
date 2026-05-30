@@ -137,6 +137,38 @@ keys_in_code.remove("sensor.auto_")
 keys_in_code.remove("sensor.auto_")
 ## End of patch
 
+# ---------------------------------------------------------------------------
+# Maintenance tasks (button + number entities are built dynamically)
+# ---------------------------------------------------------------------------
+# The `translation_key` for these entities is not a string literal in the
+# entity files; it's pulled at runtime from MaintenanceTask.translation_key
+# (defined in maintenance.py) and suffixed with `_interval_<unit>` for the
+# matching number entity. Parse maintenance.py directly to collect the same
+# set of keys the runtime would register.
+maintenance_file = os.path.join(base_path, "maintenance.py")
+if os.path.exists(maintenance_file):
+    with open(maintenance_file) as f:
+        maint_src = f.read()
+    # Each task block carries `translation_key="..."` and `unit="..."`.
+    # We iterate over MaintenanceTask(...) calls and pair the two within
+    # each block to derive `button.<key>` and `number.<key>_interval_<unit>`.
+    for block in re.split(r"MaintenanceTask\(", maint_src)[1:]:
+        # Limit each block to the matching closing parenthesis at column 4
+        # (siblings inside the file are indented at 8 spaces; closing at 4).
+        end = re.search(r"\n        \),", block) or re.search(r"\n    \),", block)
+        if end:
+            block = block[: end.start()]
+        tk_match = re.search(r'translation_key="([a-zA-Z0-9\-\_]+)"', block)
+        unit_match = re.search(r'unit="([a-zA-Z0-9\-\_]+)"', block)
+        if not tk_match:
+            continue
+        tk = tk_match.group(1)
+        keys_in_code.append(f"button.{tk}")
+        unit = unit_match.group(1) if unit_match else "weeks"
+        keys_in_code.append(f"number.{tk}_interval_{unit}")
+    keys_in_code = sorted(set(keys_in_code))
+## End maintenance patch
+
 all_good: bool = True
 
 for lang in langs:
