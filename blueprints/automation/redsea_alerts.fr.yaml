@@ -43,17 +43,17 @@ blueprint:
       name: Cibles de notification
       icon: mdi:bell-outline
       input:
-        notify_targets:
-          name: Services de notification mobile
+        notify_devices:
+          name: Appareils mobiles à notifier
           description: >
-            Liste des services `notify.mobile_app_xxx` à appeler. Saisir le nom
-            **sans** le préfixe `notify.` (ex. `mobile_app_pixel_8`,
-            `mobile_app_iphone_jean`). Une notification est envoyée à chaque
-            cible. Un `tag` unique par (équipement, type d'alerte) est ajouté
-            automatiquement pour éviter l'empilement.
-          default: ["mobile_app"]
+            Sélectionne le(s) appareil(s) qui recevront les notifications.
+            Seuls les téléphones/tablettes enregistrés via l'app Home Assistant
+            Companion apparaissent. Une notification est envoyée à chaque
+            appareil ; un `tag` unique par (équipement, type d'alerte) est
+            ajouté pour éviter l'empilement.
           selector:
-            text:
+            device:
+              integration: mobile_app
               multiple: true
         notify_channel:
           name: Canal Android (optionnel)
@@ -220,7 +220,7 @@ variables:
   expected_modes_led: !input expected_modes_led
   calibration_max_days: !input calibration_max_days
 
-  notify_targets: !input notify_targets
+  notify_devices: !input notify_devices
   notify_channel: !input notify_channel
 
   notify_mode: !input notify_mode
@@ -434,11 +434,21 @@ action:
                 # Unique tag per (device, alert_type) so notifications
                 # replace each other instead of stacking.
                 notif_tag: "redsea_{{ repeat.item.device }}_{{ repeat.item.type }}"
-            - alias: "Dispatch to each mobile_app target"
+            - alias: "Dispatch to each selected mobile device"
               repeat:
-                for_each: "{{ notify_targets }}"
+                for_each: "{{ notify_devices }}"
                 sequence:
-                  - service: "notify.{{ repeat.item }}"
+                  - variables:
+                      # Resolve the device_id picked in the UI into the
+                      # `notify.mobile_app_<slug>` service registered by
+                      # the HA Companion app. The Companion uses the device
+                      # name slugified (HA Jinja `slugify` lowercases and
+                      # replaces non-alphanumerics with underscores).
+                      mobile_slug: >-
+                        {{ (device_attr(repeat.item, 'name_by_user')
+                            or device_attr(repeat.item, 'name')
+                            or repeat.item) | slugify }}
+                  - service: "notify.mobile_app_{{ mobile_slug }}"
                     data:
                       title: "{{ title }}"
                       message: "{{ message }}"
