@@ -289,12 +289,15 @@ action:
         {%- set ns = namespace(items=[], dev_ents={}) -%}
         {%- set ents = integration_entities('redsea') | list -%}
 
-        {#- Group entities by device for the unreachable check. -#}
+        {#- Group entities by device for the unreachable check. The HA
+            Jinja sandbox forbids dict.update(), so we rebuild ns.dev_ents
+            from scratch on each iteration using ** dict-merge syntax
+            (allowed because it produces a new dict, no mutation). -#}
         {%- for e in ents -%}
           {%- set d = device_id(e) -%}
           {%- if d -%}
             {%- set lst = ns.dev_ents.get(d, []) + [e] -%}
-            {%- set _ = ns.dev_ents.update({d: lst}) -%}
+            {%- set ns.dev_ents = dict(ns.dev_ents, **{d: lst}) -%}
           {%- endif -%}
         {%- endfor -%}
 
