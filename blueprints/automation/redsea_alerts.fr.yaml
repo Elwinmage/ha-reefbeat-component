@@ -1,7 +1,17 @@
+# Version: 0.2.0
+# Changelog:
+#   0.2.0 - Notification target changed to a multi-device selector
+#           (mobile_app picker). Optional `channel` input added.
+#           Maintenance overdue detection (button.* with reef_role
+#           starting with "maint_") and per-device exclusions.
+#           Sandbox-safe dict merge (replaces dict.update()).
+#   0.1.0 - Initial release.
+
 blueprint:
-  name: Surveillance ReefBeat (redsea)
+  name: Surveillance ReefBeat (redsea) — v0.2.0
   description: >
-    Notifications pour les équipements ReefBeat de l'intégration `redsea`.
+    **Version 0.2.0** — Notifications pour les équipements ReefBeat de
+    l'intégration `redsea`.
 
 
     Surveille automatiquement **tous** les équipements de l'intégration
