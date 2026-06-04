@@ -1,7 +1,11 @@
 # English version of redsea_alerts.fr.yaml (kept structurally identical).
 #
-# Version: 0.2.2
+# Version: 0.2.3
 # Changelog:
+#   0.2.3 - Fix mobile_app notify slug resolution: use `device_attr(d, 'name')`
+#           instead of `name_by_user`. The Companion service is frozen at
+#           install time using the OS-reported device name; user renames in
+#           HA do not affect the `notify.mobile_app_<slug>` service name.
 #   0.2.2 - Fix TypeError when subtracting calibration datetimes: some
 #           timestamps come back tz-naive from the integration. Switched
 #           to as_timestamp() on both sides for tz-agnostic comparison.
@@ -16,9 +20,9 @@
 #   0.1.0 - Initial release.
 
 blueprint:
-  name: ReefBeat watch (redsea) — v0.2.2
+  name: ReefBeat watch (redsea) — v0.2.3
   description: >
-    **Version 0.2.2** — Notifications for ReefBeat devices of the `redsea`
+    **Version 0.2.3** — Notifications for ReefBeat devices of the `redsea`
     integration.
 
 
@@ -464,12 +468,17 @@ action:
                   - variables:
                       # Resolve the device_id picked in the UI into the
                       # `notify.mobile_app_<slug>` service registered by
-                      # the HA Companion app. The Companion uses the device
-                      # name slugified (HA Jinja `slugify` lowercases and
-                      # replaces non-alphanumerics with underscores).
+                      # the HA Companion app.
+                      #
+                      # IMPORTANT: we use `name` (the device name as the
+                      # OS reported it at registration time) and NOT
+                      # `name_by_user` (a UI-only override). The notify
+                      # service slug is frozen at install time and ignores
+                      # later user-renames -- if a user renamed their
+                      # "SM-S721B" device to "SM-S721B_Eric" in HA, the
+                      # service is still `notify.mobile_app_sm_s721b`.
                       mobile_slug: >-
-                        {{ (device_attr(repeat.item, 'name_by_user')
-                            or device_attr(repeat.item, 'name')
+                        {{ (device_attr(repeat.item, 'name')
                             or repeat.item) | slugify }}
                   - service: "notify.mobile_app_{{ mobile_slug }}"
                     data:
