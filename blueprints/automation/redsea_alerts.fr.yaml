@@ -1,5 +1,8 @@
-# Version: 0.2.0
+# Version: 0.2.1
 # Changelog:
+#   0.2.1 - Sandbox-safe list append: replace `ns.items.append(...)` by
+#           `ns.items = ns.items + [...]`. HA's Jinja sandbox forbids
+#           in-place mutation of both dicts and lists.
 #   0.2.0 - Notification target changed to a multi-device selector
 #           (mobile_app picker). Optional `channel` input added.
 #           Maintenance overdue detection (button.* with reef_role
@@ -8,9 +11,9 @@
 #   0.1.0 - Initial release.
 
 blueprint:
-  name: Surveillance ReefBeat (redsea) — v0.2.0
+  name: Surveillance ReefBeat (redsea) — v0.2.1
   description: >
-    **Version 0.2.0** — Notifications pour les équipements ReefBeat de
+    **Version 0.2.1** — Notifications pour les équipements ReefBeat de
     l'intégration `redsea`.
 
 
@@ -318,12 +321,12 @@ action:
               {%- set total = dents | count -%}
               {%- set unav = dents | select('is_state', 'unavailable') | list | count -%}
               {%- if total > 0 and unav == total -%}
-                {%- set _ = ns.items.append({
+                {%- set ns.items = ns.items + [{
                   'type': 'unreachable',
                   'device': device_attr(d, 'name_by_user') or device_attr(d, 'name') or d,
                   'model': device_attr(d, 'model') or '',
                   'message': 'Équipement injoignable',
-                }) -%}
+                }] -%}
               {%- endif -%}
             {%- endif -%}
           {%- endfor -%}
@@ -345,12 +348,12 @@ action:
                    and is_excluded(d, mode_exclude) | trim != 'True' -%}
               {%- set expected = expected_modes_led if model.startswith('RSLED') else expected_modes_common -%}
               {%- if s not in expected -%}
-                {%- set _ = ns.items.append({
+                {%- set ns.items = ns.items + [{
                   'type': 'mode',
                   'device': dname,
                   'model': model,
                   'message': 'Mode inattendu: ' ~ s,
-                }) -%}
+                }] -%}
               {%- endif -%}
             {%- endif -%}
 
@@ -359,12 +362,12 @@ action:
                    and e.startswith('sensor.')
                    and role_or_suffix(e, role_alert_message, alert_message_suffixes) | trim == 'True'
                    and is_excluded(d, alert_message_exclude) | trim != 'True' -%}
-              {%- set _ = ns.items.append({
+              {%- set ns.items = ns.items + [{
                 'type': 'alert_message',
                 'device': dname,
                 'model': model,
                 'message': "Message d'alarme: " ~ s,
-              }) -%}
+              }] -%}
             {%- endif -%}
 
             {#- Battery low: binary_sensor.battery, state "on" = low. -#}
@@ -373,12 +376,12 @@ action:
                    and s == 'on'
                    and role_or_suffix(e, role_battery, battery_suffixes) | trim == 'True'
                    and is_excluded(d, battery_exclude) | trim != 'True' -%}
-              {%- set _ = ns.items.append({
+              {%- set ns.items = ns.items + [{
                 'type': 'battery',
                 'device': dname,
                 'model': model,
                 'message': 'Batterie faible',
-              }) -%}
+              }] -%}
             {%- endif -%}
 
             {#- Calibration overdue. -#}
@@ -398,12 +401,12 @@ action:
                   {%- else -%}
                     {%- set kind = 'tête' -%}
                   {%- endif -%}
-                  {%- set _ = ns.items.append({
+                  {%- set ns.items = ns.items + [{
                     'type': 'calibration',
                     'device': dname,
                     'model': model,
                     'message': 'Calibration (' ~ kind ~ ') en retard: ' ~ days ~ ' jours',
-                  }) -%}
+                  }] -%}
                 {%- endif -%}
               {%- endif -%}
             {%- endif -%}
@@ -417,12 +420,12 @@ action:
                    and is_excluded(d, maintenance_exclude) | trim != 'True' -%}
               {%- set dl = state_attr(e, 'days_left') -%}
               {%- if dl is number and dl < 0 -%}
-                {%- set _ = ns.items.append({
+                {%- set ns.items = ns.items + [{
                   'type': 'maintenance',
                   'device': dname,
                   'model': model,
                   'message': "Maintenance en retard de " ~ (-dl) ~ " jours: " ~ (state_attr(e, 'friendly_name') or e),
-                }) -%}
+                }] -%}
               {%- endif -%}
             {%- endif -%}
 
