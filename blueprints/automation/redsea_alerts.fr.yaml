@@ -1,5 +1,8 @@
-# Version: 0.2.1
+# Version: 0.2.2
 # Changelog:
+#   0.2.2 - Fix TypeError when subtracting calibration datetimes: some
+#           timestamps come back tz-naive from the integration. Switched
+#           to as_timestamp() on both sides for tz-agnostic comparison.
 #   0.2.1 - Sandbox-safe list append: replace `ns.items.append(...)` by
 #           `ns.items = ns.items + [...]`. HA's Jinja sandbox forbids
 #           in-place mutation of both dicts and lists.
@@ -11,9 +14,9 @@
 #   0.1.0 - Initial release.
 
 blueprint:
-  name: Surveillance ReefBeat (redsea) — v0.2.1
+  name: Surveillance ReefBeat (redsea) — v0.2.2
   description: >
-    **Version 0.2.1** — Notifications pour les équipements ReefBeat de
+    **Version 0.2.2** — Notifications pour les équipements ReefBeat de
     l'intégration `redsea`.
 
 
@@ -391,7 +394,10 @@ action:
                    and is_excluded(d, calibration_exclude) | trim != 'True' -%}
               {%- set dt = as_datetime(s) -%}
               {%- if dt -%}
-                {%- set days = (now() - dt).days -%}
+                {#- Use as_timestamp() on both sides: it returns a plain
+                    float regardless of whether the datetime is tz-aware
+                    or tz-naive, so the subtraction never raises. -#}
+                {%- set days = ((as_timestamp(now()) - as_timestamp(dt)) / 86400) | int -%}
                 {%- if days >= calibration_max_days -%}
                   {%- set r = state_attr(e, 'reef_role') -%}
                   {%- if r == 'skim_last_calibration' or e.endswith('_derniere_calibration_ecumage') or e.endswith('_skim_last_calibration') -%}
