@@ -1,7 +1,10 @@
 # English version of redsea_alerts.fr.yaml (kept structurally identical).
 #
-# Version: 0.2.3
+# Version: 0.2.4
 # Changelog:
+#   0.2.4 - Mode anomaly detection now also covers RSDOSE/RSRUN/RSMAT/RSATO/
+#           RSWAVE: these expose their mode as `sensor.*_mode` (read-only),
+#           not as `select.*_mode` like RSLED. Both prefixes are now matched.
 #   0.2.3 - Fix mobile_app notify slug resolution: use `device_attr(d, 'name')`
 #           instead of `name_by_user`. The Companion service is frozen at
 #           install time using the OS-reported device name; user renames in
@@ -20,9 +23,9 @@
 #   0.1.0 - Initial release.
 
 blueprint:
-  name: ReefBeat watch (redsea) — v0.2.3
+  name: ReefBeat watch (redsea) — v0.2.4
   description: >
-    **Version 0.2.3** — Notifications for ReefBeat devices of the `redsea`
+    **Version 0.2.4** — Notifications for ReefBeat devices of the `redsea`
     integration.
 
 
@@ -349,9 +352,13 @@ action:
 
           {%- if s not in ['unavailable', 'unknown', 'none', 'None', '', None] -%}
 
-            {#- Mode anomaly. -#}
+            {#- Mode anomaly. RSLED exposes its mode as a `select.*_mode`
+                (user-settable). All other devices (RSDOSE, RSRUN, RSMAT,
+                RSATO, RSWAVE) expose it as a read-only `sensor.*_mode`.
+                Match both prefixes; the role/suffix filter then keeps
+                only the genuine mode entity per device. -#}
             {%- if notify_mode
-                   and e.startswith('select.')
+                   and (e.startswith('select.') or e.startswith('sensor.'))
                    and role_or_suffix(e, role_mode, mode_suffixes) | trim == 'True'
                    and is_excluded(d, mode_exclude) | trim != 'True' -%}
               {%- set expected = expected_modes_led if model.startswith('RSLED') else expected_modes_common -%}
