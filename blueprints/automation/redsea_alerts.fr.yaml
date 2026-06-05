@@ -1,5 +1,10 @@
-# Version: 0.2.4
+# Version: 0.2.5
 # Changelog:
+#   0.2.5 - New input `off_grace_minutes`: an `off` mode state is reported
+#           only if the device stays off longer than this delay. Lets the
+#           user dodge false alerts during a feeding cycle (RSWAVE off for
+#           2 min) or a short manual intervention. Other unexpected modes
+#           alert immediately without any grace.
 #   0.2.4 - Mode anomaly detection now also covers RSDOSE/RSRUN/RSMAT/RSATO/
 #           RSWAVE: these expose their mode as `sensor.*_mode` (read-only),
 #           not as `select.*_mode` like RSLED. Both prefixes are now matched.
@@ -21,9 +26,9 @@
 #   0.1.0 - Initial release.
 
 blueprint:
-  name: Surveillance ReefBeat (redsea) — v0.2.4
+  name: Surveillance ReefBeat (redsea) — v0.2.5
   description: >
-    **Version 0.2.4** — Notifications pour les équipements ReefBeat de
+    **Version 0.2.5** — Notifications pour les équipements ReefBeat de
     l'intégration `redsea`.
 
 
@@ -226,6 +231,22 @@ blueprint:
                 - manual
                 - "off"
                 - cloud
+        off_grace_minutes:
+          name: Délai de tolérance pour "off" (minutes)
+          description: >
+            Un passage en mode `off` n'est signalé que si l'équipement y reste
+            **plus longtemps que ce délai**. Évite les fausses alertes pendant
+            un nourrissage (RSWAVE coupé 2 min) ou une intervention courte.
+            Les autres modes hors-liste (`blockage`, mode inconnu...) sont
+            signalés immédiatement sans délai. Mettre à 0 pour désactiver.
+          default: 5
+          selector:
+            number:
+              min: 0
+              max: 120
+              step: 1
+              unit_of_measurement: min
+              mode: slider
 
 mode: single
 max_exceeded: silent
@@ -241,6 +262,7 @@ trigger:
 variables:
   expected_modes_common: !input expected_modes_common
   expected_modes_led: !input expected_modes_led
+  off_grace_minutes: !input off_grace_minutes
   calibration_max_days: !input calibration_max_days
 
   notify_devices: !input notify_devices
@@ -362,12 +384,24 @@ action:
                    and is_excluded(d, mode_exclude) | trim != 'True' -%}
               {%- set expected = expected_modes_led if model.startswith('RSLED') else expected_modes_common -%}
               {%- if s not in expected -%}
-                {%- set ns.items = ns.items + [{
-                  'type': 'mode',
-                  'device': dname,
-                  'model': model,
-                  'message': 'Mode inattendu: ' ~ s,
-                }] -%}
+                {#- Grace period: an "off" state is alerted only if the
+                    device has been off for longer than off_grace_minutes.
+                    Other unexpected modes (blockage, unknown...) alert
+                    immediately. Mettre off_grace_minutes a 0 desactive
+                    le delai. last_changed of the state object is the
+                    timestamp of the most recent value change. -#}
+                {%- set off_grace_s = (off_grace_minutes | int(0)) * 60 -%}
+                {%- set last_change = states[e].last_changed if states[e] is not none else none -%}
+                {%- set elapsed = (as_timestamp(now()) - as_timestamp(last_change)) if last_change else 0 -%}
+                {%- set skip_due_to_grace = (s == 'off') and (off_grace_s > 0) and (elapsed < off_grace_s) -%}
+                {%- if not skip_due_to_grace -%}
+                  {%- set ns.items = ns.items + [{
+                    'type': 'mode',
+                    'device': dname,
+                    'model': model,
+                    'message': 'Mode inattendu: ' ~ s,
+                  }] -%}
+                {%- endif -%}
               {%- endif -%}
             {%- endif -%}
 
