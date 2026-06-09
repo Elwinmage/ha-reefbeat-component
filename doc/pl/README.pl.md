@@ -181,8 +181,7 @@ Lub wyszukaj «redsea» lub «reefbeat» w HACS.
 # Ikony
 Ta integracja udostępnia niestandardowe ikony dostępne przez "redsea:icon-name":
 
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/icons_feeding_maintenance.png"/>
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/icons_devices.png"/>
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/redsea-icons.png"/>
 
 ## Dodaj urządzenie
 Przy dodawaniu nowego urządzenia masz 4 opcje:
