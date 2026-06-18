@@ -1348,7 +1348,7 @@ class ReefBeatSensorEntity(ReefRoleMixin, ReefBeatRestoreEntity, SensorEntity): 
                 self._device.get_data("$.sources[?(@.name=='/wifi')].data.signal_dBm"),
             )
             if signal_strength < -80:
-                self._attr_icon = "mdi:wifi-outline"
+                self._attr_icon = "mdi:wifi-strength-outline"
                 self._attr_native_value = "poor"
             elif signal_strength < -70:
                 self._attr_icon = "mdi:wifi-strength-1"
