@@ -269,7 +269,7 @@ variables:
   battery_exclude: !input battery_exclude
   unavailable_exclude: !input unavailable_exclude
   maintenance_exclude: !input maintenance_exclude
-  calibration_max_days: !input calibration_max_days
+  # (calibration_max_days removed - each device now has its own interval)
   # Préfixes de rôle ReefBeat (standards)
   role_mode: "mode"
   role_alert_message: "alert_message"
@@ -466,36 +466,6 @@ action:
                 'model': model,
                 'message': 'Batterie faible',
               }] -%}
-            {%- endif -%}
-
-            {#- Étalonnage expiré. -#}
-            {%- if notify_calibration
-                   and e.startswith('sensor.')
-                   and role_or_suffix(e, roles_calibration, calibration_suffixes) | trim == 'True'
-                   and is_excluded(d, calibration_exclude) | trim != 'True' -%}
-              {%- set dt = as_datetime(s) -%}
-              {%- if dt -%}
-                {#- Utilise as_timestamp() des deux côtés : retourne un float
-                    indépendamment du fuseau horaire, donc la soustraction
-                    ne lève jamais. -#}
-                {%- set days = ((as_timestamp(now()) - as_timestamp(dt)) / 86400) | int -%}
-                {%- if days >= calibration_max_days -%}
-                  {%- set r = state_attr(e, 'reef_role') -%}
-                  {%- if r == 'skim_last_calibration' or e.endswith('_derniere_calibration_ecumage') or e.endswith('_skim_last_calibration') -%}
-                    {%- set kind = 'écumeur' -%}
-                  {%- elif r == 'cup_last_calibration' or e.endswith('_derniere_calibration_gobelet') or e.endswith('_cup_last_calibration') -%}
-                    {%- set kind = 'gobelet' -%}
-                  {%- else -%}
-                    {%- set kind = 'tête' -%}
-                  {%- endif -%}
-                  {%- set ns.items = ns.items + [{
-                    'type': 'calibration',
-                    'device': dname,
-                    'model': model,
-                    'message': 'Étalonnage (' ~ kind ~ ') expiré : ' ~ days ~ ' jours',
-                  }] -%}
-                {%- endif -%}
-              {%- endif -%}
             {%- endif -%}
 
             {#- Délai d'étalonnage capteur : vérifie RSRUN skimmers pour

@@ -273,7 +273,6 @@ variables:
   battery_exclude: !input battery_exclude
   unavailable_exclude: !input unavailable_exclude
   maintenance_exclude: !input maintenance_exclude
-  calibration_max_days: !input calibration_max_days
   # ReefBeat role prefixes (standard)
   role_mode: "mode"
   role_alert_message: "alert_message"
@@ -473,36 +472,6 @@ action:
                 'model': model,
                 'message': 'Low battery',
               }] -%}
-            {%- endif -%}
-
-            {#- Calibration overdue. -#}
-            {%- if notify_calibration
-                   and e.startswith('sensor.')
-                   and role_or_suffix(e, roles_calibration, calibration_suffixes) | trim == 'True'
-                   and is_excluded(d, calibration_exclude) | trim != 'True' -%}
-              {%- set dt = as_datetime(s) -%}
-              {%- if dt -%}
-                {#- Use as_timestamp() on both sides: it returns a plain
-                    float regardless of whether the datetime is tz-aware
-                    or tz-naive, so the subtraction never raises. -#}
-                {%- set days = ((as_timestamp(now()) - as_timestamp(dt)) / 86400) | int -%}
-                {%- if days >= calibration_max_days -%}
-                  {%- set r = state_attr(e, 'reef_role') -%}
-                  {%- if r == 'skim_last_calibration' or e.endswith('_derniere_calibration_ecumage') or e.endswith('_skim_last_calibration') -%}
-                    {%- set kind = 'skimmer' -%}
-                  {%- elif r == 'cup_last_calibration' or e.endswith('_derniere_calibration_gobelet') or e.endswith('_cup_last_calibration') -%}
-                    {%- set kind = 'cup' -%}
-                  {%- else -%}
-                    {%- set kind = 'head' -%}
-                  {%- endif -%}
-                  {%- set ns.items = ns.items + [{
-                    'type': 'calibration',
-                    'device': dname,
-                    'model': model,
-                    'message': 'Calibration (' ~ kind ~ ') overdue: ' ~ days ~ ' days',
-                  }] -%}
-                {%- endif -%}
-              {%- endif -%}
             {%- endif -%}
 
             {#- Sensor calibration delay: check RSRUN skimmers for
