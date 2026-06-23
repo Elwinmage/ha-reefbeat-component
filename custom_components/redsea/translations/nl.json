@@ -199,6 +199,12 @@
       "maint_run_skim_rotor": {
         "name": "Rotor van eiwitafschuimerpomp reinigen"
       },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Fullcup-sensor kalibreren"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Overskimming-sensor kalibreren"
+      },
       "maint_wave_rotor_cages": {
         "name": "Rotorkooien reinigen"
       },
@@ -325,6 +331,12 @@
       },
       "maint_run_skim_rotor_interval_months": {
         "name": "Rotor van eiwitafschuimerpomp reinigen (maanden)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Fullcup-sensor kalibreren (weken)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Overskimming-sensor kalibreren (weken)"
       },
       "maint_wave_rotor_cages_interval_months": {
         "name": "Rotorkooien reinigen (maanden)"

@@ -199,6 +199,12 @@
       "maint_run_skim_rotor": {
         "name": "Limpar o rotor da bomba do escumador"
       },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Calibrar o sensor de xícara cheia"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Calibrar o sensor de excesso de espuma"
+      },
       "maint_wave_rotor_cages": {
         "name": "Limpar as gaiolas do rotor"
       },
@@ -325,6 +331,12 @@
       },
       "maint_run_skim_rotor_interval_months": {
         "name": "Limpar o rotor da bomba do escumador (meses)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Calibrar o sensor de xícara cheia (semanas)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Calibrar o sensor de excesso de espuma (semanas)"
       },
       "maint_wave_rotor_cages_interval_months": {
         "name": "Limpar as gaiolas do rotor (meses)"

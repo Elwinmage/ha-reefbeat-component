@@ -199,6 +199,12 @@
       "maint_run_skim_rotor": {
         "name": "Clean skimmer pump rotor"
       },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Calibrate fullcup sensor"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Calibrate overskimming sensor"
+      },
       "maint_wave_rotor_cages": {
         "name": "Clean rotor cages"
       },
@@ -325,6 +331,12 @@
       },
       "maint_run_skim_rotor_interval_months": {
         "name": "Clean skimmer pump rotor (months)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Calibrate fullcup sensor (weeks)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Calibrate overskimming sensor (weeks)"
       },
       "maint_wave_rotor_cages_interval_months": {
         "name": "Clean rotor cages (months)"

@@ -199,6 +199,12 @@
       "maint_run_skim_rotor": {
         "name": "Pulire il rotore della pompa schiumatoio"
       },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Calibrare il sensore fullcup"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Calibrare il sensore overskimming"
+      },
       "maint_wave_rotor_cages": {
         "name": "Pulire le gabbie del rotore"
       },
@@ -325,6 +331,12 @@
       },
       "maint_run_skim_rotor_interval_months": {
         "name": "Pulire il rotore della pompa schiumatoio (mesi)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Calibrare il sensore fullcup (settimane)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Calibrare il sensore overskimming (settimane)"
       },
       "maint_wave_rotor_cages_interval_months": {
         "name": "Pulire le gabbie del rotore (mesi)"

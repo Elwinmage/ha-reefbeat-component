@@ -189,6 +189,26 @@ TASKS: Final[dict[str, tuple[MaintenanceTask, ...]]] = {
             icon="mdi:fan",
             unit="months",
         ),
+        MaintenanceTask(
+            key="run_skim_fullcup_calibration",
+            translation_key="maint_run_skim_fullcup_calibration",
+            default_days=28,  # 4 weeks
+            min_days=14,  # 2 weeks
+            max_days=42,  # 6 weeks
+            applies_to_sub="pump_skimmer",
+            icon="mdi:water-check",
+            unit="weeks",
+        ),
+        MaintenanceTask(
+            key="run_skim_overskimming_calibration",
+            translation_key="maint_run_skim_overskimming_calibration",
+            default_days=28,  # 4 weeks
+            min_days=14,  # 2 weeks
+            max_days=42,  # 6 weeks
+            applies_to_sub="pump_skimmer",
+            icon="mdi:water-check",
+            unit="weeks",
+        ),
     ),
     # --- RSWAVE -------------------------------------------------------------
     "RSWAVE25": (

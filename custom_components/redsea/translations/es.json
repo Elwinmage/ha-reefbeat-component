@@ -199,6 +199,12 @@
       "maint_run_skim_rotor": {
         "name": "Limpiar el rotor de la bomba del skimmer"
       },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Calibrar sensor fullcup"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Calibrar sensor overskimming"
+      },
       "maint_wave_rotor_cages": {
         "name": "Limpiar las jaulas del rotor"
       },
@@ -325,6 +331,12 @@
       },
       "maint_run_skim_rotor_interval_months": {
         "name": "Limpiar el rotor de la bomba del skimmer (meses)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Calibrar sensor fullcup (semanas)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Calibrar sensor overskimming (semanas)"
       },
       "maint_wave_rotor_cages_interval_months": {
         "name": "Limpiar las jaulas del rotor (meses)"

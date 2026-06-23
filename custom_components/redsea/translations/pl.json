@@ -199,6 +199,12 @@
       "maint_run_skim_rotor": {
         "name": "Wyczyścić wirnik pompy odpieniacza"
       },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Kalibracja czujnika fullcup"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Kalibracja czujnika overskimming"
+      },
       "maint_wave_rotor_cages": {
         "name": "Wyczyścić klatki wirnika"
       },
@@ -325,6 +331,12 @@
       },
       "maint_run_skim_rotor_interval_months": {
         "name": "Wyczyścić wirnik pompy odpieniacza (miesiące)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Kalibracja czujnika fullcup (tygodnie)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Kalibracja czujnika overskimming (tygodnie)"
       },
       "maint_wave_rotor_cages_interval_months": {
         "name": "Wyczyścić klatki wirnika (miesiące)"

@@ -198,6 +198,12 @@
       "maint_run_skim_rotor": {
         "name": "Nettoyer le rotor de la pompe écumeur"
       },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Étalonner le capteur fullcup"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Étalonner le capteur overskimming"
+      },
       "maint_wave_rotor_cages": {
         "name": "Nettoyer les cages de rotor"
       },
@@ -324,6 +330,12 @@
       },
       "maint_run_skim_rotor_interval_months": {
         "name": "Nettoyer le rotor de la pompe écumeur (mois)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Étalonner le capteur fullcup (semaines)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Étalonner le capteur overskimming (semaines)"
       },
       "maint_wave_rotor_cages_interval_months": {
         "name": "Nettoyer les cages de rotor (mois)"

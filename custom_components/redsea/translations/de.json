@@ -199,6 +199,12 @@
       "maint_run_skim_rotor": {
         "name": "Rotor der Abschäumerpumpe reinigen"
       },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Fullcup-Sensor kalibrieren"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Überschäumungs-Sensor kalibrieren"
+      },
       "maint_wave_rotor_cages": {
         "name": "Rotorkäfige reinigen"
       },
@@ -325,6 +331,12 @@
       },
       "maint_run_skim_rotor_interval_months": {
         "name": "Rotor der Abschäumerpumpe reinigen (Monate)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Fullcup-Sensor kalibrieren (Wochen)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Überschäumungs-Sensor kalibrieren (Wochen)"
       },
       "maint_wave_rotor_cages_interval_months": {
         "name": "Rotorkäfige reinigen (Monate)"
