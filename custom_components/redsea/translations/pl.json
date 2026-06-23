@@ -184,6 +184,9 @@
       "maint_ato_return_pump": {
         "name": "Wyczyścić pompę powrotną"
       },
+      "maint_dose_heads_calibration": {
+        "name": "Kalibracja głowicy dozującej"
+      },
       "maint_dose_heads_replace": {
         "name": "Wymienić głowicę dozującą i wężyki"
       },
@@ -316,6 +319,9 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Wyczyścić pompę powrotną (miesiące)"
+      },
+      "maint_dose_heads_calibration_interval_days": {
+        "name": "Kalibracja głowicy dozującej (tygodnie)"
       },
       "maint_dose_heads_replace_interval_months": {
         "name": "Wymienić głowicę dozującą i wężyki (miesiące)"

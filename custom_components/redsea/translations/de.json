@@ -184,6 +184,9 @@
       "maint_ato_return_pump": {
         "name": "Rückförderpumpe reinigen"
       },
+      "maint_dose_heads_calibration": {
+        "name": "Dosierkopf kalibrieren"
+      },
       "maint_dose_heads_replace": {
         "name": "Dosierkopf und Schläuche ersetzen"
       },
@@ -316,6 +319,9 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Rückförderpumpe reinigen (Monate)"
+      },
+      "maint_dose_heads_calibration_interval_days": {
+        "name": "Dosierkopf kalibrieren (Wochen)"
       },
       "maint_dose_heads_replace_interval_months": {
         "name": "Dosierkopf und Schläuche ersetzen (Monate)"

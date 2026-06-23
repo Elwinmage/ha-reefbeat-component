@@ -119,20 +119,24 @@ blueprint:
       input:
         notify_calibration:
           name: Activer
+          description: >
+            Vérifie l'étalonnage expiré pour :
+
+            • **RSDOSE** : vérifie chaque tête individuellement en utilisant
+              l'intervalle unique `number.rsdose_*_dose_heads_calibration_interval`
+
+            • **RSRUN** : vérifie chaque pompe skimmer individuellement en utilisant
+              ses intervals configurables `number.*_calibration_interval`
           default: true
           selector: {boolean: {}}
         calibration_exclude:
           name: Exclure ces appareils
+          description: Pas de notification "calibration" pour ces appareils.
           default: []
           selector:
             device:
               integration: redsea
               multiple: true
-        calibration_max_days:
-          name: Nombre max de jours depuis la dernière calibration
-          default: 30
-          selector:
-            number: {min: 1, max: 365, mode: box, unit_of_measurement: jours}
 
     sensor_calib_section:
       name: Délai d'étalonnage capteur (RSRUN)
@@ -149,6 +153,26 @@ blueprint:
         sensor_calib_exclude:
           name: Exclure ces appareils
           description: Pas de notification "calibration capteur" pour ces appareils.
+          default: []
+          selector:
+            device:
+              integration: redsea
+              multiple: true
+
+    rsdose_calib_section:
+      name: Étalonnage des têtes RSDOSE
+      icon: mdi:water-check
+      input:
+        notify_rsdose_calibration:
+          name: Activer
+          description: >
+            Vérifie chaque tête RSDOSE individuellement en utilisant
+            l'intervalle unique `number.rsdose_*_dose_heads_calibration_interval`.
+          default: true
+          selector: {boolean: {}}
+        rsdose_calib_exclude:
+          name: Exclure ces appareils
+          description: Pas de notification "calibration RSDOSE" pour ces appareils.
           default: []
           selector:
             device:
@@ -230,6 +254,7 @@ variables:
   notify_mode: !input notify_mode
   notify_calibration: !input notify_calibration
   notify_sensor_calibration: !input notify_sensor_calibration
+  notify_rsdose_calibration: !input notify_rsdose_calibration
   notify_alert_message: !input notify_alert_message
   notify_battery: !input notify_battery
   notify_unavailable: !input notify_unavailable
@@ -239,6 +264,7 @@ variables:
   mode_exclude: !input mode_exclude
   calibration_exclude: !input calibration_exclude
   sensor_calib_exclude: !input sensor_calib_exclude
+  rsdose_calib_exclude: !input rsdose_calib_exclude
   alert_message_exclude: !input alert_message_exclude
   battery_exclude: !input battery_exclude
   unavailable_exclude: !input unavailable_exclude
@@ -557,6 +583,68 @@ action:
                       {%- endif -%}
                     {%- endif -%}
                   {%- endfor -%}
+                {%- endif -%}
+              {%- endif -%}
+            {%- endif -%}
+
+            {#- Étalonnage RSDOSE : vérifie chaque tête individuellement
+                en utilisant l'intervalle unique au niveau du device.
+                Cherche sensor.*_derniere_calibration_* avec un parent RSDOSE -#}
+            {%- if notify_rsdose_calibration
+                   and e.startswith('sensor.')
+                   and is_excluded(d, rsdose_calib_exclude) | trim != 'True' -%}
+              {%- if ('derniere_calibration' in e and '_tete' in e)
+                      or ('derniere_calibration' in e and '_head' in e)
+                      or (e.endswith('_derniere_calibration_1') or e.endswith('_derniere_calibration_2')
+                          or e.endswith('_derniere_calibration_3') or e.endswith('_derniere_calibration_4'))
+                      or (e.endswith('_last_calibration_1') or e.endswith('_last_calibration_2')
+                          or e.endswith('_last_calibration_3') or e.endswith('_last_calibration_4')) -%}
+                {%- set s_val = states(e) -%}
+                {%- if s_val not in ['unavailable', 'unknown', 'none', None, ''] -%}
+                  {%- set dt = as_datetime(s_val) -%}
+                  {%- if dt -%}
+                    {#- Extrait le numéro de tête (1-4) -#}
+                    {%- set head_num = e | regex_findall_index('_(\d)$') -%}
+                    {%- if head_num is string -%}
+                      {%- set head_id = head_num -%}
+                    {%- else -%}
+                      {%- set head_id = 'unknown' -%}
+                    {%- endif -%}
+
+                    {#- Cherche l'intervalle au niveau du device RSDOSE -#}
+                    {%- set parent_dev = device_attr(d, 'parent_device_id') or d -%}
+                    {%- set parent_name = device_attr(parent_dev, 'name_by_user') or device_attr(parent_dev, 'name') or '' -%}
+                    {%- set serial = device_attr(parent_dev, 'serial_number') or device_attr(parent_dev, 'identifiers') | string -%}
+
+                    {#- Cherche les patterns possibles de l'intervalle -#}
+                    {%- set interval_val = None -%}
+                    {%- if states.number is defined -%}
+                      {%- for ent_id in states.number -%}
+                        {%- if 'dose_heads_calibration_interval' in ent_id
+                                and ('rsdose' in ent_id | lower or parent_dev in (device_id(ent_id) or '')) -%}
+                          {%- set iv = state_attr(ent_id, 'native_value') or state_attr(ent_id, 'value') -%}
+                          {%- if iv is number -%}
+                            {%- set interval_val = iv -%}
+                            {%- break -%}
+                          {%- endif -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                    {%- endif -%}
+
+                    {#- Si intervalle trouvé, vérifier la calibration -#}
+                    {%- if interval_val is number -%}
+                      {%- set days_interval = (interval_val | int) * 7 -%}
+                      {%- set days = ((as_timestamp(now()) - as_timestamp(dt)) / 86400) | int -%}
+                      {%- if days >= days_interval -%}
+                        {%- set ns.items = ns.items + [{
+                          'type': 'rsdose_calibration',
+                          'device': dname,
+                          'model': model,
+                          'message': 'Étalonnage tête ' ~ head_id ~ ' en retard : ' ~ days ~ ' jours depuis la dernière calibration',
+                        }] -%}
+                      {%- endif -%}
+                    {%- endif -%}
+                  {%- endif -%}
                 {%- endif -%}
               {%- endif -%}
             {%- endif -%}

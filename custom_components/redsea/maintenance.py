@@ -123,6 +123,16 @@ TASKS: Final[dict[str, tuple[MaintenanceTask, ...]]] = {
     # device already exposes `last_calibration` natively.
     "RSDOSE2": (
         MaintenanceTask(
+            key="dose_heads_calibration",
+            translation_key="maint_dose_heads_calibration",
+            default_days=90,  # 90 days default
+            min_days=80,  # 80 days minimum
+            max_days=120,  # 120 days maximum
+            applies_to_sub=None,  # Device level, not per-head
+            icon="mdi:water-check",
+            unit="days",
+        ),
+        MaintenanceTask(
             key="dose_heads_replace",
             translation_key="maint_dose_heads_replace",
             default_days=450,  # 15 months (median of 11-19m)
@@ -134,6 +144,16 @@ TASKS: Final[dict[str, tuple[MaintenanceTask, ...]]] = {
         ),
     ),
     "RSDOSE4": (
+        MaintenanceTask(
+            key="dose_heads_calibration",
+            translation_key="maint_dose_heads_calibration",
+            default_days=90,  # 90 days default
+            min_days=80,  # 80 days minimum
+            max_days=120,  # 120 days maximum
+            applies_to_sub=None,  # Device level, not per-head
+            icon="mdi:water-check",
+            unit="days",
+        ),
         MaintenanceTask(
             key="dose_heads_replace",
             translation_key="maint_dose_heads_replace",

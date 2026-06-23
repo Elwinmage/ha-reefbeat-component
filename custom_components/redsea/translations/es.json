@@ -184,6 +184,9 @@
       "maint_ato_return_pump": {
         "name": "Limpiar la bomba de retorno"
       },
+      "maint_dose_heads_calibration": {
+        "name": "Calibrar cabezal de dosificación"
+      },
       "maint_dose_heads_replace": {
         "name": "Sustituir cabezal y tubos de dosificación"
       },
@@ -316,6 +319,9 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Limpiar la bomba de retorno (meses)"
+      },
+      "maint_dose_heads_calibration_interval_days": {
+        "name": "Calibrar cabezal de dosificación (semanas)"
       },
       "maint_dose_heads_replace_interval_months": {
         "name": "Sustituir cabezal y tubos de dosificación (meses)"
