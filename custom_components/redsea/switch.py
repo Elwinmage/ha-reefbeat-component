@@ -512,6 +512,19 @@ async def async_setup_entry(
                     notify=True,
                 )
             )
+            dose_descs.append(
+                ReefDoseSwitchEntityDescription(
+                    key="dose_compensation_head_" + str(head),
+                    translation_key="dose_compensation",
+                    icon="mdi:water-plus",
+                    value_name="$.sources[?(@.name=='/head/"
+                    + str(head)
+                    + "/settings')].data.dc",
+                    head=head,
+                    entity_category=EntityCategory.CONFIG,
+                    notify=True,
+                )
+            )
 
         entities.extend(
             ReefDoseSwitchEntity(device, description)
