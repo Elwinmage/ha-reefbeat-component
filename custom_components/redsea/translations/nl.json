@@ -695,6 +695,9 @@
       "device_state": {
         "name": "Apparaat status"
       },
+      "dose_compensation": {
+        "name": "Doseringcompensatie"
+      },
       "fullcup_enabled": {
         "name": "Beker vol detectie"
       },

@@ -687,6 +687,9 @@
       "device_state": {
         "name": "Gerätestatus"
       },
+      "dose_compensation": {
+        "name": "Dosiskompensation"
+      },
       "fullcup_enabled": {
         "name": "Voller-Behälter-Erkennung"
       },

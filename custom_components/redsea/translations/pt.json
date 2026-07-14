@@ -687,6 +687,9 @@
       "device_state": {
         "name": "Estado do dispositivo"
       },
+      "dose_compensation": {
+        "name": "Compensação de dose"
+      },
       "fullcup_enabled": {
         "name": "Deteção de copo cheio"
       },

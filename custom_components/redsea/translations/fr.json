@@ -685,6 +685,9 @@
       "device_state": {
         "name": "Etat du périphérique"
       },
+      "dose_compensation": {
+        "name": "Compensation de dose"
+      },
       "fullcup_enabled": {
         "name": "Détection du Bol Plein"
       },
