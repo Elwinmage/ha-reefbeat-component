@@ -1074,9 +1074,12 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
     def _compute_is_on(self) -> bool:
         if not self._present:
             return False
-        # Safely get the value, return False if shortcut was deleted
+        # Safely get the value, return False if shortcut was deleted.
+        # Use `_coerce_enabled` because the cloud may return `enabled` as a
+        # string ("true"/"false"); `bool("false")` is True, which would pin
+        # the switch to ON.
         try:
-            return bool(self._device.get_data(self._desc.value_name))
+            return self._coerce_enabled(self._device.get_data(self._desc.value_name))
         except (KeyError, ValueError):
             # Shortcut was deleted or data is invalid
             return False
