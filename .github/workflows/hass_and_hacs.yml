@@ -78,7 +78,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
 
-      # Génération du badge (uniquement sur le push main pour la version stable)
+
       - name: Update coverage badge
         if: github.event_name == 'push' && matrix.ha-version == 'stable'
         run: |
@@ -89,6 +89,20 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add badges/coverage.svg
-            git commit -m "chore: update coverage badge"
-            git push
+            # [skip ci] is defensive: today GITHUB_TOKEN pushes don't
+            # re-trigger workflows, but explicit is better than implicit.
+            git commit -m "chore: update coverage badge [skip ci]"
+            # main may have advanced during the pytest run (which takes
+            # several minutes). Rebase on the remote tip and retry a few
+            # times to survive concurrent human pushes.
+            branch="${GITHUB_REF#refs/heads/}"
+            for i in 1 2 3 4 5; do
+              if git pull --rebase --autostash origin "$branch" && git push; then
+                exit 0
+              fi
+              echo "Push attempt $i failed, retrying in $((i * 5))s..."
+              sleep $((i * 5))
+            done
+            echo "Failed to push coverage badge after 5 retries" >&2
+            exit 1
           fi
