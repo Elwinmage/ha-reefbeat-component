@@ -192,8 +192,10 @@ def test_cloud_shortcut_recomputes_active_switches_from_aquarium_data() -> None:
         {
             "uid": "a1",
             "properties": {
-                "feeding_1": {"enabled": True},
-                "feeding_2": {"enabled": True},
+                # Include `type` to match the real ReefBeat cloud payload
+                # (the recompute logic filters on recognized shortcut types).
+                "feeding_1": {"type": "feeding", "enabled": True},
+                "feeding_2": {"type": "feeding", "enabled": True},
             },
         }
     ]
