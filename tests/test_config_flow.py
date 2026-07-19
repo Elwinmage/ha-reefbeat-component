@@ -29,16 +29,20 @@ from custom_components.redsea.const import (
     CONFIG_FLOW_INTENSITY_COMPENSATION,
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_SCAN_INTERVAL,
+    CONTROL_SCAN_INTERVAL,
     DOMAIN,
     DOSE_SCAN_INTERVAL,
     HW_ATO_IDS,
+    HW_CONTROL_IDS,
     HW_DOSE_IDS,
     HW_LED_IDS,
     HW_MAT_IDS,
+    HW_POWER_IDS,
     HW_RUN_IDS,
     LED_SCAN_INTERVAL,
     LINKED_LED,
     MAT_SCAN_INTERVAL,
+    POWER_SCAN_INTERVAL,
     RUN_SCAN_INTERVAL,
     SCAN_INTERVAL,
     VIRTUAL_LED,
@@ -53,6 +57,8 @@ def test_scan_interval_helpers() -> None:
     assert get_scan_interval(next(iter(HW_ATO_IDS))) == ATO_SCAN_INTERVAL
     assert get_scan_interval(next(iter(HW_LED_IDS))) == LED_SCAN_INTERVAL
     assert get_scan_interval(next(iter(HW_RUN_IDS))) == RUN_SCAN_INTERVAL
+    assert get_scan_interval(next(iter(HW_POWER_IDS))) == POWER_SCAN_INTERVAL
+    assert get_scan_interval(next(iter(HW_CONTROL_IDS))) == CONTROL_SCAN_INTERVAL
     assert get_scan_interval(CLOUD_DEVICE_TYPE) == CLOUD_SCAN_INTERVAL
     assert get_scan_interval("unknown-model") == SCAN_INTERVAL
 

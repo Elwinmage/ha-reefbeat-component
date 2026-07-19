@@ -44,19 +44,23 @@ from .const import (
     CONFIG_FLOW_INTENSITY_COMPENSATION,
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_SCAN_INTERVAL,
+    CONTROL_SCAN_INTERVAL,
     DOMAIN,
     DOSE_SCAN_INTERVAL,
     HTTP_DELAY_BETWEEN_RETRY,
     HTTP_MAX_RETRY,
     HW_ATO_IDS,
+    HW_CONTROL_IDS,
     HW_DOSE_IDS,
     HW_LED_IDS,
     HW_MAT_IDS,
+    HW_POWER_IDS,
     HW_RUN_IDS,
     LED_SCAN_INTERVAL,
     LEDS_INTENSITY_COMPENSATION,
     LINKED_LED,
     MAT_SCAN_INTERVAL,
+    POWER_SCAN_INTERVAL,
     RUN_SCAN_INTERVAL,
     SCAN_INTERVAL,
     VIRTUAL_LED,
@@ -127,6 +131,10 @@ def get_scan_interval(hw_model: str) -> int:
         return LED_SCAN_INTERVAL
     if hw_model in HW_RUN_IDS:
         return RUN_SCAN_INTERVAL
+    if hw_model in HW_POWER_IDS:
+        return POWER_SCAN_INTERVAL
+    if hw_model in HW_CONTROL_IDS:
+        return CONTROL_SCAN_INTERVAL
     if hw_model == CLOUD_DEVICE_TYPE:
         return CLOUD_SCAN_INTERVAL
     return SCAN_INTERVAL

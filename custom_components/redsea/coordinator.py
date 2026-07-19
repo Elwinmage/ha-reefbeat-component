@@ -49,10 +49,12 @@ from .const import (
     HTTP_DELAY_BETWEEN_RETRY,
     HTTP_MAX_RETRY,
     HW_ATO_IDS,
+    HW_CONTROL_IDS,
     HW_DOSE_IDS,
     HW_G2_LED_IDS,
     HW_LED_IDS,
     HW_MAT_IDS,
+    HW_POWER_IDS,
     HW_RUN_IDS,
     HW_WAVE_IDS,
     LED_BLUE_INTERNAL_NAME,
@@ -67,9 +69,11 @@ from .reefbeat import (
     ReefATOAPI,
     ReefBeatAPI,
     ReefBeatCloudAPI,
+    ReefControlAPI,
     ReefDoseAPI,
     ReefLedAPI,
     ReefMatAPI,
+    ReefPowerAPI,
     ReefRunAPI,
     ReefWaveAPI,
     parse,
@@ -394,6 +398,10 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
             return "reef-run"
         if model in HW_WAVE_IDS:
             return "reef-wave"
+        if model in HW_POWER_IDS:
+            return "reef-power"
+        if model in HW_CONTROL_IDS:
+            return "reef-control"
         _LOGGER.error("unknown model: %s", model)
         return None
 
@@ -1285,6 +1293,52 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
             else:
                 break
         cur_prog[value_name] = value
+
+
+# REEFPOWER
+class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
+    """Coordinator for ReefControl Power devices (RSPOWER6, RSPOWER8).
+
+    Owns a :class:`ReefPowerAPI` instance and exposes:
+    - `socket_count`: number of AC sockets for this model (6 or 8)
+
+    Currently read-only; write endpoints (per-socket on/off/mode) are not yet
+    reverse-engineered.
+    """
+
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        """Initialize the ReefPower coordinator and its API."""
+        super().__init__(hass, entry)
+        self.my_api = ReefPowerAPI(self._ip, self._live_config_update, self._session)
+
+        # Derive socket count from the trailing digits of the hw_model
+        # (RSPOWER6 -> 6, RSPOWER8 -> 8). Default to 6 for unknown variants.
+        hw_model = str(entry.data.get(CONFIG_FLOW_HW_MODEL, ""))
+        try:
+            self.socket_count: int = int(hw_model.replace("RSPOWER", "").strip() or "6")
+        except (ValueError, TypeError):
+            self.socket_count = 6
+
+
+# REEFCONTROL
+class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
+    """Coordinator for ReefControl hub devices (RSCONTROLPRO, RSCONTROLLITE).
+
+    Owns a :class:`ReefControlAPI` instance and exposes:
+    - `port_count`: number of 12V DC output ports (Lite=1, Pro=2)
+
+    Currently read-only; write endpoints for probe calibration and per-port
+    control are not yet reverse-engineered.
+    """
+
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        """Initialize the ReefControl coordinator and its API."""
+        super().__init__(hass, entry)
+        self.my_api = ReefControlAPI(self._ip, self._live_config_update, self._session)
+
+        hw_model = str(entry.data.get(CONFIG_FLOW_HW_MODEL, ""))
+        # Lite exposes 1 port, Pro exposes 2. Anything else falls back to Pro.
+        self.port_count: int = 1 if "LITE" in hw_model.upper() else 2
 
 
 # CLOUD
