@@ -85,6 +85,33 @@
       },
       "reconnect_pump": {
         "name": "Reconectar bomba"
+      },
+      "is_internet_connected": {
+        "name": "Internet connected"
+      },
+      "auto_from_buttons": {
+        "name": "Auto from buttons"
+      },
+      "control_link_up": {
+        "name": "Control hub link"
+      },
+      "cable_connected": {
+        "name": "Cable connected"
+      },
+      "buzzer_active": {
+        "name": "Buzzer active"
+      },
+      "buzzer_dismissed": {
+        "name": "Buzzer dismissed"
+      },
+      "leak_detector": {
+        "name": "Leak detector"
+      },
+      "power_link_up": {
+        "name": "Power center link"
+      },
+      "socket_enabled": {
+        "name": "Socket {socket} enabled"
       }
     },
     "button": {
@@ -669,6 +696,77 @@
       },
       "skim_last_calibration": {
         "name": "Última calibração de sobreespumação"
+      },
+      "power_mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "off": "Desligado",
+          "setup": "Configuração",
+          "feeding": "Alimentação",
+          "maintenance": "Manutenção"
+        }
+      },
+      "battery_level": {
+        "name": "Battery level"
+      },
+      "power_temperature": {
+        "name": "Temperature"
+      },
+      "max_sockets": {
+        "name": "Max sockets"
+      },
+      "model_type": {
+        "name": "Model region"
+      },
+      "connected_control": {
+        "name": "Paired control hub"
+      },
+      "socket_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_mode": {
+        "name": "Socket {socket} mode"
+      },
+      "socket_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "control_mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "off": "Desligado",
+          "setup": "Configuração",
+          "feeding": "Alimentação",
+          "maintenance": "Manutenção"
+        }
+      },
+      "buzzer_cause": {
+        "name": "Buzzer cause"
+      },
+      "connected_power": {
+        "name": "Paired power center"
+      },
+      "connected_power_state": {
+        "name": "Paired power center state"
+      },
+      "port_name": {
+        "name": "Port {port} name"
+      },
+      "port_state": {
+        "name": "Port {port} state"
+      },
+      "port_mode": {
+        "name": "Port {port} mode"
+      },
+      "port_type": {
+        "name": "Port {port} type"
+      },
+      "port_consumption": {
+        "name": "Port {port} consumption"
       }
     },
     "switch": {

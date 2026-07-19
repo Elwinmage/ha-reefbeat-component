@@ -87,10 +87,12 @@ from .coordinator import (
     ReefATOCoordinator,
     ReefBeatCloudCoordinator,
     ReefBeatCoordinator,
+    ReefControlCoordinator,
     ReefDoseCoordinator,
     ReefLedCoordinator,
     ReefLedG2Coordinator,
     ReefMatCoordinator,
+    ReefPowerCoordinator,
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
@@ -841,6 +843,117 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
     ),
 )
 
+# -----------------------------------------------------------------------------
+# ReefControl Power (RSPOWER6, RSPOWER8) — read-only sensors
+# -----------------------------------------------------------------------------
+
+# Fixed (non-per-socket) sensors. Per-socket sensors are built dynamically in
+# async_setup_entry so we can iterate up to `device.socket_count`.
+POWER_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
+    ReefBeatSensorEntityDescription(
+        key="power_mode",
+        translation_key="power_mode",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/mode')].data.mode"
+        ),
+        icon="mdi:power-settings",
+        device_class=SensorDeviceClass.ENUM,
+        options=["auto", "off", "setup", "feeding", "maintenance"],
+    ),
+    ReefBeatSensorEntityDescription(
+        key="battery_level",
+        translation_key="battery_level",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.battery_level"
+        ),
+        icon="mdi:battery",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="power_temperature",
+        translation_key="power_temperature",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.temperature"
+        ),
+        icon="mdi:thermometer",
+        suggested_display_precision=1,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="max_sockets",
+        translation_key="max_sockets",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/configuration')].data.max_sockets"
+        ),
+        icon="mdi:power-socket-eu",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="model_type",
+        translation_key="model_type",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/configuration')].data.model_type"
+        ),
+        icon="mdi:earth",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="connected_control",
+        translation_key="connected_control",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid"
+        ),
+        icon="mdi:link-variant",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+)
+
+# -----------------------------------------------------------------------------
+# ReefControl hub (RSCONTROLPRO, RSCONTROLLITE) — read-only sensors
+# -----------------------------------------------------------------------------
+
+CONTROL_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
+    ReefBeatSensorEntityDescription(
+        key="control_mode",
+        translation_key="control_mode",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/mode')].data.mode"
+        ),
+        icon="mdi:power-settings",
+        device_class=SensorDeviceClass.ENUM,
+        options=["auto", "off", "setup", "feeding", "maintenance"],
+    ),
+    ReefBeatSensorEntityDescription(
+        key="buzzer_cause",
+        translation_key="buzzer_cause",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.buzzer.cause"
+        ),
+        icon="mdi:bell-alert",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="connected_power",
+        translation_key="connected_power",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid"
+        ),
+        icon="mdi:link-variant",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="connected_power_state",
+        translation_key="connected_power_state",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.state"
+        ),
+        icon="mdi:transit-connection-variant",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+)
+
 
 # -----------------------------------------------------------------------------
 # Platform setup
@@ -1167,6 +1280,134 @@ async def async_setup_entry(
             ReefRunSensorEntity(device, description)
             for description in tuple(ds_run)
             if description.exists_fn(run_device)
+        )
+
+    elif isinstance(device, ReefPowerCoordinator):
+        # Fixed (non-per-socket) sensors first.
+        entities.extend(
+            ReefBeatSensorEntity(device, description)
+            for description in POWER_SENSORS
+            if description.exists_fn(device)
+        )
+
+        # Per-socket sensors: name, state, mode, consumption.
+        # `sockets` is a JSON array indexed 0..socket_count-1.
+        power_descs: list[ReefBeatSensorEntityDescription] = []
+        for socket_idx in range(device.socket_count):
+            # Capture socket_idx in default arg to avoid late-binding in the closure.
+            base = f"$.sources[?(@.name=='/dashboard')].data.sockets[{socket_idx}]"
+            power_descs.extend(
+                [
+                    ReefBeatSensorEntityDescription(
+                        key=f"socket_{socket_idx}_name",
+                        translation_key="socket_name",
+                        translation_placeholders={"socket": str(socket_idx + 1)},
+                        icon="mdi:power-socket-eu",
+                        value_fn=lambda d, p=f"{base}.name": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                    ),
+                    ReefBeatSensorEntityDescription(
+                        key=f"socket_{socket_idx}_state",
+                        translation_key="socket_state",
+                        translation_placeholders={"socket": str(socket_idx + 1)},
+                        icon="mdi:electric-switch",
+                        value_fn=lambda d, p=f"{base}.state": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                    ),
+                    ReefBeatSensorEntityDescription(
+                        key=f"socket_{socket_idx}_mode",
+                        translation_key="socket_mode",
+                        translation_placeholders={"socket": str(socket_idx + 1)},
+                        icon="mdi:cog-outline",
+                        value_fn=lambda d, p=f"{base}.mode": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                    ),
+                    ReefBeatSensorEntityDescription(
+                        key=f"socket_{socket_idx}_consumption",
+                        translation_key="socket_consumption",
+                        translation_placeholders={"socket": str(socket_idx + 1)},
+                        icon="mdi:flash",
+                        value_fn=lambda d, p=f"{base}.consumption": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                        state_class=SensorStateClass.MEASUREMENT,
+                        suggested_display_precision=1,
+                    ),
+                ]
+            )
+        entities.extend(
+            ReefBeatSensorEntity(device, description) for description in power_descs
+        )
+
+    elif isinstance(device, ReefControlCoordinator):
+        # Fixed (non-per-port) sensors first.
+        entities.extend(
+            ReefBeatSensorEntity(device, description)
+            for description in CONTROL_SENSORS
+            if description.exists_fn(device)
+        )
+
+        # Per-port sensors (12V DC ports). Only 1 for Lite, 2 for Pro.
+        control_descs: list[ReefBeatSensorEntityDescription] = []
+        for port_idx in range(device.port_count):
+            base = f"$.sources[?(@.name=='/dashboard')].data.ports[{port_idx}]"
+            control_descs.extend(
+                [
+                    ReefBeatSensorEntityDescription(
+                        key=f"port_{port_idx}_name",
+                        translation_key="port_name",
+                        translation_placeholders={"port": str(port_idx + 1)},
+                        icon="mdi:usb-port",
+                        value_fn=lambda d, p=f"{base}.name": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                    ),
+                    ReefBeatSensorEntityDescription(
+                        key=f"port_{port_idx}_state",
+                        translation_key="port_state",
+                        translation_placeholders={"port": str(port_idx + 1)},
+                        icon="mdi:electric-switch",
+                        value_fn=lambda d, p=f"{base}.state": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                    ),
+                    ReefBeatSensorEntityDescription(
+                        key=f"port_{port_idx}_mode",
+                        translation_key="port_mode",
+                        translation_placeholders={"port": str(port_idx + 1)},
+                        icon="mdi:cog-outline",
+                        value_fn=lambda d, p=f"{base}.mode": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                    ),
+                    ReefBeatSensorEntityDescription(
+                        key=f"port_{port_idx}_type",
+                        translation_key="port_type",
+                        translation_placeholders={"port": str(port_idx + 1)},
+                        icon="mdi:import",
+                        value_fn=lambda d, p=f"{base}.type": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                    ),
+                    ReefBeatSensorEntityDescription(
+                        key=f"port_{port_idx}_consumption",
+                        translation_key="port_consumption",
+                        translation_placeholders={"port": str(port_idx + 1)},
+                        icon="mdi:flash",
+                        value_fn=lambda d, p=f"{base}.consumption": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                        state_class=SensorStateClass.MEASUREMENT,
+                        suggested_display_precision=1,
+                    ),
+                ]
+            )
+        entities.extend(
+            ReefBeatSensorEntity(device, description) for description in control_descs
         )
 
     # Schedule sensors (LED coordinators)

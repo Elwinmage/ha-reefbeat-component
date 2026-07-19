@@ -110,8 +110,20 @@ HW_ATO_IDS: Final[tuple[str, ...]] = ("RSATO+",)
 HW_RUN_IDS: Final[tuple[str, ...]] = ("RSRUN",)
 HW_WAVE_IDS: Final[tuple[str, ...]] = ("RSWAVE25", "RSWAVE45")
 
+# ReefControl smart power center (AC sockets)
+HW_POWER_IDS: Final[tuple[str, ...]] = ("RSPOWER6", "RSPOWER8")
+# ReefControl hub (ReefSense probes + 12V DC ports)
+HW_CONTROL_IDS: Final[tuple[str, ...]] = ("RSCONTROLPRO", "RSCONTROLLITE")
+
 HW_DEVICES_IDS: Final[tuple[str, ...]] = (
-    HW_LED_IDS + HW_DOSE_IDS + HW_MAT_IDS + HW_RUN_IDS + HW_ATO_IDS + HW_WAVE_IDS
+    HW_LED_IDS
+    + HW_DOSE_IDS
+    + HW_MAT_IDS
+    + HW_RUN_IDS
+    + HW_ATO_IDS
+    + HW_WAVE_IDS
+    + HW_POWER_IDS
+    + HW_CONTROL_IDS
 )
 
 # -----------------------------------------------------------------------------
@@ -312,6 +324,67 @@ WAVE_SHORTCUT_OFF_DELAY: Final[JsonPath] = (
 
 WAVE_TYPES: Final[list[str]] = ["nw", "ra", "re", "st", "su", "un"]
 WAVE_DIRECTIONS: Final[list[str]] = ["alt", "fw", "rw"]
+
+# -----------------------------------------------------------------------------
+# REEFPOWER
+# -----------------------------------------------------------------------------
+
+POWER_SCAN_INTERVAL: Final[int] = 60  # seconds
+
+# Socket count per model (used to build per-socket entities)
+HW_POWER_SOCKET_COUNT: Final[dict[str, int]] = {
+    "RSPOWER6": 6,
+    "RSPOWER8": 8,
+}
+
+POWER_MODE_INTERNAL_NAME: Final[JsonPath] = "$.sources[?(@.name=='/mode')].data.mode"
+POWER_MODES: Final[tuple[str, ...]] = ("auto", "off", "setup", "feeding", "maintenance")
+
+POWER_BATTERY_LEVEL_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/dashboard')].data.battery_level"
+)
+POWER_TEMPERATURE_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/dashboard')].data.temperature"
+)
+
+# Per-socket configuration modes accepted by the device
+POWER_SOCKET_MODES: Final[tuple[str, ...]] = (
+    "auto",
+    "on",
+    "off",
+    "setup",
+    "schedule",
+    "sensor",
+    "feeding",
+    "maintenance",
+    "master",
+    "emergency",
+)
+
+# -----------------------------------------------------------------------------
+# REEFCONTROL
+# -----------------------------------------------------------------------------
+
+CONTROL_SCAN_INTERVAL: Final[int] = 60  # seconds
+
+# 12V DC port count per model (Lite = 1, Pro = 2)
+HW_CONTROL_PORT_COUNT: Final[dict[str, int]] = {
+    "RSCONTROLLITE": 1,
+    "RSCONTROLPRO": 2,
+}
+
+CONTROL_MODE_INTERNAL_NAME: Final[JsonPath] = "$.sources[?(@.name=='/mode')].data.mode"
+CONTROL_MODES: Final[tuple[str, ...]] = (
+    "auto",
+    "off",
+    "setup",
+    "feeding",
+    "maintenance",
+)
+
+CONTROL_LEAK_DETECTOR_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/configuration')].data.leak_detector"
+)
 
 # -----------------------------------------------------------------------------
 # Libraries / endpoints
