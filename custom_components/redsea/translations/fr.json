@@ -84,6 +84,33 @@
       },
       "reconnect_pump": {
         "name": "Reconnexion pompe"
+      },
+      "is_internet_connected": {
+        "name": "Internet connecté"
+      },
+      "auto_from_buttons": {
+        "name": "Auto depuis les boutons"
+      },
+      "control_link_up": {
+        "name": "Liaison hub Control"
+      },
+      "cable_connected": {
+        "name": "Câble connecté"
+      },
+      "buzzer_active": {
+        "name": "Buzzer actif"
+      },
+      "buzzer_dismissed": {
+        "name": "Buzzer acquitté"
+      },
+      "leak_detector": {
+        "name": "Détecteur de fuite"
+      },
+      "power_link_up": {
+        "name": "Liaison centrale Power"
+      },
+      "socket_enabled": {
+        "name": "Prise {socket} activée"
       }
     },
     "button": {
@@ -751,6 +778,77 @@
       },
       "cup_last_calibration": {
         "name": "Dernière calibration gobelet"
+      },
+      "power_mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "off": "Arrêt",
+          "setup": "Configuration",
+          "feeding": "Nourrissage",
+          "maintenance": "Maintenance"
+        }
+      },
+      "battery_level": {
+        "name": "Niveau de batterie"
+      },
+      "power_temperature": {
+        "name": "Température"
+      },
+      "max_sockets": {
+        "name": "Nombre max de prises"
+      },
+      "model_type": {
+        "name": "Région du modèle"
+      },
+      "connected_control": {
+        "name": "Hub Control apparié"
+      },
+      "socket_name": {
+        "name": "Nom prise {socket}"
+      },
+      "socket_state": {
+        "name": "État prise {socket}"
+      },
+      "socket_mode": {
+        "name": "Mode prise {socket}"
+      },
+      "socket_consumption": {
+        "name": "Consommation prise {socket}"
+      },
+      "control_mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "off": "Arrêt",
+          "setup": "Configuration",
+          "feeding": "Nourrissage",
+          "maintenance": "Maintenance"
+        }
+      },
+      "buzzer_cause": {
+        "name": "Cause du buzzer"
+      },
+      "connected_power": {
+        "name": "Centrale Power appariée"
+      },
+      "connected_power_state": {
+        "name": "État de la centrale Power appariée"
+      },
+      "port_name": {
+        "name": "Nom port {port}"
+      },
+      "port_state": {
+        "name": "État port {port}"
+      },
+      "port_mode": {
+        "name": "Mode port {port}"
+      },
+      "port_type": {
+        "name": "Type port {port}"
+      },
+      "port_consumption": {
+        "name": "Consommation port {port}"
       }
     },
     "switch": {
@@ -768,6 +866,9 @@
       },
       "device_state": {
         "name": "Etat du périphérique"
+      },
+      "dose_compensation": {
+        "name": "Compensation de dose"
       },
       "fullcup_enabled": {
         "name": "Détection du Bol Plein"

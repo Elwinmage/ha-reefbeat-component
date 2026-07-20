@@ -29,16 +29,20 @@ from custom_components.redsea.const import (
     CONFIG_FLOW_INTENSITY_COMPENSATION,
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_SCAN_INTERVAL,
+    CONTROL_SCAN_INTERVAL,
     DOMAIN,
     DOSE_SCAN_INTERVAL,
     HW_ATO_IDS,
+    HW_CONTROL_IDS,
     HW_DOSE_IDS,
     HW_LED_IDS,
     HW_MAT_IDS,
+    HW_POWER_IDS,
     HW_RUN_IDS,
     LED_SCAN_INTERVAL,
     LINKED_LED,
     MAT_SCAN_INTERVAL,
+    POWER_SCAN_INTERVAL,
     RUN_SCAN_INTERVAL,
     SCAN_INTERVAL,
     VIRTUAL_LED,
@@ -53,6 +57,8 @@ def test_scan_interval_helpers() -> None:
     assert get_scan_interval(next(iter(HW_ATO_IDS))) == ATO_SCAN_INTERVAL
     assert get_scan_interval(next(iter(HW_LED_IDS))) == LED_SCAN_INTERVAL
     assert get_scan_interval(next(iter(HW_RUN_IDS))) == RUN_SCAN_INTERVAL
+    assert get_scan_interval(next(iter(HW_POWER_IDS))) == POWER_SCAN_INTERVAL
+    assert get_scan_interval(next(iter(HW_CONTROL_IDS))) == CONTROL_SCAN_INTERVAL
     assert get_scan_interval(CLOUD_DEVICE_TYPE) == CLOUD_SCAN_INTERVAL
     assert get_scan_interval("unknown-model") == SCAN_INTERVAL
 
@@ -284,6 +290,38 @@ async def test_add_local_detect_calls_auto_detect_and_filters_existing(
     assert result2["type"] == FlowResultType.FORM
     # Should include VIRTUAL_LED and exclude already-configured device
     assert "192.0.2.10" not in str(result2.get("data_schema"))
+
+
+@pytest.mark.asyncio
+async def test_auto_detect_get_reefbeats_exception_shows_form(
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Cover the except branch: when get_reefbeats raises, show the manual IP form."""
+    import custom_components.redsea.config_flow as cf
+
+    def _get_rb_raises(*, subnetwork: str | None = None) -> None:  # type: ignore[return]
+        raise RuntimeError("network failure")
+
+    monkeypatch.setattr(cf, "get_reefbeats", _get_rb_raises)
+
+    flow = cast(Any, hass.config_entries.flow)
+    result = cast(
+        dict[str, Any], await flow.async_init(DOMAIN, context={"source": "user"})
+    )
+    assert result["type"] == FlowResultType.FORM
+
+    result2 = cast(
+        dict[str, Any],
+        await flow.async_configure(
+            result["flow_id"],
+            user_input={CONFIG_FLOW_ADD_TYPE: ADD_LOCAL_DETECT},
+        ),
+    )
+
+    # Exception path must return a form (not crash HA) with nothing_detected error
+    assert result2["type"] == FlowResultType.FORM
+    assert result2.get("errors", {}).get("base") == "nothing_detected"
 
 
 @pytest.mark.asyncio

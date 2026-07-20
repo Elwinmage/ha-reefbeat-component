@@ -512,6 +512,19 @@ async def async_setup_entry(
                     notify=True,
                 )
             )
+            dose_descs.append(
+                ReefDoseSwitchEntityDescription(
+                    key="dose_compensation_head_" + str(head),
+                    translation_key="dose_compensation",
+                    icon="mdi:water-plus",
+                    value_name="$.sources[?(@.name=='/head/"
+                    + str(head)
+                    + "/settings')].data.dc",
+                    head=head,
+                    entity_category=EntityCategory.CONFIG,
+                    notify=True,
+                )
+            )
 
         entities.extend(
             ReefDoseSwitchEntity(device, description)
@@ -908,6 +921,28 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
     _attr_has_entity_name = True
     _active_switches: dict[str, str] = {}
 
+    # Recognized shortcut types (lowercased for case-insensitive matching).
+    # The ReefBeat cloud has been observed to return `"type": "EMERGENCY"` on
+    # some accounts, so we normalize both sides before comparing.
+    _SHORTCUT_TYPES: frozenset[str] = frozenset({"feeding", "maintenance", "emergency"})
+
+    @staticmethod
+    def _coerce_enabled(value: Any) -> bool:
+        """Coerce ReefBeat 'enabled' field to a real bool.
+
+        The cloud API is inconsistent across accounts/firmwares: `enabled`
+        may come back as a real bool (``true``/``false``) or as a JSON
+        string (``"true"``/``"false"``). A raw truthiness check on the
+        string ``"false"`` returns ``True`` (non-empty string), which
+        incorrectly flags the shortcut as active and marks every shortcut
+        switch as unavailable via the active-switch comparison.
+        """
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.strip().lower() == "true"
+        return bool(value)
+
     @classmethod
     def _recompute_active_switches(cls, device: ReefBeatCoordinator) -> None:
         cls._active_switches.clear()
@@ -915,9 +950,23 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
         for aquarium in aquariums:
             uid = aquarium["uid"]
             for key, value in aquarium.get("properties", {}).items():
-                if isinstance(value, dict) and value.get("enabled"):
-                    cls._active_switches[uid] = key
-                    break
+                if not isinstance(value, dict):
+                    continue
+                # Restrict to actual shortcut entries. Without this filter any
+                # unrelated dict property with a truthy `enabled` (or a string
+                # `"false"`) would be misdetected as the active shortcut.
+                stype = str(value.get("type", "")).lower()
+                if stype not in cls._SHORTCUT_TYPES:
+                    continue
+                if not cls._coerce_enabled(value.get("enabled")):
+                    continue
+                # Store the shortcut `code` (normalized to lowercase). The
+                # availability comparison in `available` uses the same
+                # normalization on the entity side, so mixed-case codes like
+                # "EMERGENCY_1" vs "emergency_1" still match.
+                code = str(value.get("code") or key).lower()
+                cls._active_switches[uid] = code
+                break
 
     def __init__(
         self,
@@ -941,10 +990,14 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
             device, cast(ReefBeatSwitchEntityDescription, entity_description)
         )
 
-        if self._present and self._shortcut.get("enabled"):
-            ReefCloudSwitchEntity._active_switches[self._aquarium["uid"]] = (
-                self.entity_description.key
-            )
+        # Store the normalized `code` (lowercase), matching
+        # `_recompute_active_switches`. Previously this branch stored
+        # `entity_description.key` (e.g. "shortcut_emergency_1"), which never
+        # matched `self._shortcut["code"]` (e.g. "emergency_1") in the
+        # availability check.
+        if self._present and self._coerce_enabled(self._shortcut.get("enabled")):
+            code = str(self._shortcut.get("code", "")).lower()
+            ReefCloudSwitchEntity._active_switches[self._aquarium["uid"]] = code
             self._attr_is_on = True
         else:
             self._attr_is_on = False
@@ -1021,9 +1074,12 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
     def _compute_is_on(self) -> bool:
         if not self._present:
             return False
-        # Safely get the value, return False if shortcut was deleted
+        # Safely get the value, return False if shortcut was deleted.
+        # Use `_coerce_enabled` because the cloud may return `enabled` as a
+        # string ("true"/"false"); `bool("false")` is True, which would pin
+        # the switch to ON.
         try:
-            return bool(self._device.get_data(self._desc.value_name))
+            return self._coerce_enabled(self._device.get_data(self._desc.value_name))
         except (KeyError, ValueError):
             # Shortcut was deleted or data is invalid
             return False
@@ -1047,8 +1103,11 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
         active_switch = ReefCloudSwitchEntity._active_switches.get(
             self._aquarium["uid"]
         )
-        # Return true if all shortcut switches are off, or if only this switch is on
-        return not active_switch or active_switch == self._shortcut["code"]
+        # Return true if all shortcut switches are off, or if only this switch
+        # is on. Both sides are lowercased so that servers returning mixed-case
+        # codes (e.g. "EMERGENCY_1") don't cause spurious unavailability.
+        my_code = str(self._shortcut.get("code", "")).lower()
+        return not active_switch or active_switch == my_code
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
@@ -1060,7 +1119,10 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
     @cached_property
     def icon(self):
         if self._shortcut:
-            mdi_icon = "redsea:" + self._shortcut["type"]
+            # Normalize `type` to lowercase: the cloud has been observed to
+            # return "EMERGENCY" on some accounts, which would resolve to a
+            # non-existent "redsea:EMERGENCY" icon.
+            mdi_icon = "redsea:" + str(self._shortcut["type"]).lower()
             if "icon" in self._shortcut:
                 mdi_icon = "redsea:" + self._shortcut["icon"]
                 return mdi_icon

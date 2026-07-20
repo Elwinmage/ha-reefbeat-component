@@ -31,10 +31,12 @@ from .coordinator import (
     ReefATOCoordinator,
     ReefBeatCloudCoordinator,
     ReefBeatCoordinator,
+    ReefControlCoordinator,
     ReefDoseCoordinator,
     ReefLedCoordinator,
     ReefLedG2Coordinator,
     ReefMatCoordinator,
+    ReefPowerCoordinator,
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
 )
@@ -240,6 +242,111 @@ RUN_SENSORS: tuple[ReefBeatBinarySensorEntityDescription[ReefRunCoordinator], ..
     ),
 )
 
+# ReefPower binary sensors (read-only)
+POWER_SENSORS: tuple[
+    ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], ...
+] = (
+    ReefBeatBinarySensorEntityDescription(
+        key="is_internet_connected",
+        translation_key="is_internet_connected",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.is_internet_connected"
+        ),
+        icon="mdi:web",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key="auto_from_buttons",
+        translation_key="auto_from_buttons",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.auto_from_buttons"
+        ),
+        icon="mdi:gesture-tap-button",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key="control_link_up",
+        translation_key="control_link_up",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        value_fn=lambda device: (
+            device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.connected_device.status",
+                is_None_possible=True,
+            )
+            == "connected"
+        ),
+        icon="mdi:link-variant",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+)
+
+# ReefControl binary sensors (read-only)
+CONTROL_SENSORS: tuple[
+    ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], ...
+] = (
+    ReefBeatBinarySensorEntityDescription(
+        key="is_internet_connected",
+        translation_key="is_internet_connected",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.is_internet_connected"
+        ),
+        icon="mdi:web",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key="cable_connected",
+        translation_key="cable_connected",
+        device_class=BinarySensorDeviceClass.PLUG,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.cable_connected"
+        ),
+        icon="mdi:cable-data",
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key="buzzer_active",
+        translation_key="buzzer_active",
+        device_class=BinarySensorDeviceClass.SOUND,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.buzzer.active"
+        ),
+        icon="mdi:bell-ring",
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key="buzzer_dismissed",
+        translation_key="buzzer_dismissed",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.buzzer.dismissed"
+        ),
+        icon="mdi:bell-off",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key="leak_detector",
+        translation_key="leak_detector",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.leak_detector"
+        ),
+        icon="mdi:leak",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key="power_link_up",
+        translation_key="power_link_up",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        value_fn=lambda device: (
+            device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.connected_device.state",
+                is_None_possible=True,
+            )
+            == "paired_connected"
+        ),
+        icon="mdi:link-variant",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+)
+
 
 # Platform setup
 async def async_setup_entry(
@@ -384,6 +491,43 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
+    elif isinstance(device, ReefPowerCoordinator):
+        entities.extend(
+            ReefBeatBinarySensorEntity(device, description)
+            for description in POWER_SENSORS
+            if description.exists_fn(device)
+        )
+
+        # Per-socket enabled + missing/malfunction flags (best-effort — some fields
+        # only exist once a socket is configured; get_data will return None otherwise).
+        power_descs: list[
+            ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator]
+        ] = []
+        for socket_idx in range(device.socket_count):
+            base = f"$.sources[?(@.name=='/dashboard')].data.sockets[{socket_idx}]"
+            power_descs.append(
+                ReefBeatBinarySensorEntityDescription(
+                    key=f"socket_{socket_idx}_enabled",
+                    translation_key="socket_enabled",
+                    translation_placeholders={"socket": str(socket_idx + 1)},
+                    value_fn=lambda d, p=f"{base}.enabled": d.get_data(
+                        p, is_None_possible=True
+                    ),
+                    icon="mdi:power-plug",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                )
+            )
+        entities.extend(
+            ReefBeatBinarySensorEntity(device, desc) for desc in power_descs
+        )
+
+    elif isinstance(device, ReefControlCoordinator):
+        entities.extend(
+            ReefBeatBinarySensorEntity(device, description)
+            for description in CONTROL_SENSORS
+            if description.exists_fn(device)
+        )
+
     # Common sensors (device dependent)
     if isinstance(
         device, (ReefRunCoordinator, ReefLedCoordinator, ReefDoseCoordinator)
@@ -414,7 +558,11 @@ TDevice = TypeVar("TDevice", bound=ReefBeatCoordinator)
 
 # REEFBEAT
 class ReefBeatBinarySensorEntity(  # pyright: ignore[reportIncompatibleVariableOverride]
-    ReefRoleMixin, RestoreEntity, CoordinatorEntity[TDevice], BinarySensorEntity, Generic[TDevice]
+    ReefRoleMixin,
+    RestoreEntity,
+    CoordinatorEntity[TDevice],
+    BinarySensorEntity,
+    Generic[TDevice],
 ):
     """Binary sensor backed by a ReefBeat coordinator."""
 

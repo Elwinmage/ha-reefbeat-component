@@ -13,20 +13,24 @@ from custom_components.redsea.const import (
     CONFIG_FLOW_IP_ADDRESS,
     DOMAIN,
     HW_ATO_IDS,
+    HW_CONTROL_IDS,
     HW_DOSE_IDS,
     HW_G1_LED_IDS,
     HW_G2_LED_IDS,
     HW_MAT_IDS,
+    HW_POWER_IDS,
     HW_RUN_IDS,
     HW_WAVE_IDS,
     VIRTUAL_LED,
 )
 from custom_components.redsea.coordinator import (
     ReefATOCoordinator,
+    ReefControlCoordinator,
     ReefDoseCoordinator,
     ReefLedCoordinator,
     ReefLedG2Coordinator,
     ReefMatCoordinator,
+    ReefPowerCoordinator,
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
@@ -78,6 +82,28 @@ async def test_build_coordinator_maps_hw_models(hass: HomeAssistant) -> None:
     entry = _entry(ip="192.0.2.7", hw=HW_WAVE_IDS[0])
     c = redsea_init._build_coordinator(hass, cast(Any, entry))
     assert isinstance(c, ReefWaveCoordinator)
+
+    entry = _entry(ip="192.0.2.8", hw=HW_POWER_IDS[0])
+    c = redsea_init._build_coordinator(hass, cast(Any, entry))
+    assert isinstance(c, ReefPowerCoordinator)
+    # First entry is RSPOWER6 -> 6 sockets
+    assert c.socket_count == 6
+
+    entry = _entry(ip="192.0.2.9", hw="RSPOWER8")
+    c = redsea_init._build_coordinator(hass, cast(Any, entry))
+    assert isinstance(c, ReefPowerCoordinator)
+    assert c.socket_count == 8
+
+    entry = _entry(ip="192.0.2.10", hw=HW_CONTROL_IDS[0])
+    c = redsea_init._build_coordinator(hass, cast(Any, entry))
+    assert isinstance(c, ReefControlCoordinator)
+    # First entry is RSCONTROLPRO -> 2 ports
+    assert c.port_count == 2
+
+    entry = _entry(ip="192.0.2.11", hw="RSCONTROLLITE")
+    c = redsea_init._build_coordinator(hass, cast(Any, entry))
+    assert isinstance(c, ReefControlCoordinator)
+    assert c.port_count == 1
 
 
 @pytest.mark.asyncio

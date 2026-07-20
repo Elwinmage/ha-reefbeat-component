@@ -423,18 +423,20 @@ def test_is_reefbeat_exception_returns_false(monkeypatch: pytest.MonkeyPatch) ->
     assert status is False
 
 
-def test_get_reefbeats_uses_pool_when_threads_gt_1(
+def test_get_reefbeats_uses_thread_pool_when_threads_gt_1(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from custom_components.redsea import auto_detect
 
     monkeypatch.setattr(auto_detect, "get_local_ips", lambda _s=None: ["1.1.1.1"])
 
-    class _FakePool:
-        def __init__(self, n: int) -> None:
-            self.n = n
+    captured_workers: list[int] = []
 
-        def __enter__(self) -> "_FakePool":
+    class _FakeExecutor:
+        def __init__(self, max_workers: int) -> None:
+            captured_workers.append(max_workers)
+
+        def __enter__(self) -> "_FakeExecutor":
             return self
 
         def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
@@ -443,12 +445,15 @@ def test_get_reefbeats_uses_pool_when_threads_gt_1(
         def map(
             self, fn: Any, items: list[str]
         ) -> list[tuple[bool, str, str | None, str | None, str | None]]:
-            assert items == ["1.1.1.1"]
+            assert list(items) == ["1.1.1.1"]
             return [(True, "1.1.1.1", "HW", "Name", "uuid")]
 
-    monkeypatch.setattr(auto_detect, "Pool", _FakePool)
+    monkeypatch.setattr(auto_detect, "ThreadPoolExecutor", _FakeExecutor)
 
     devices = auto_detect.get_reefbeats(subnetwork="192.0.2.0/30", nb_of_threads=2)
+
+    # Verify ThreadPoolExecutor was instantiated with the correct worker count
+    assert captured_workers == [2]
     assert devices == [
         {"ip": "1.1.1.1", "hw_model": "HW", "friendly_name": "Name", "uuid": "uuid"}
     ]

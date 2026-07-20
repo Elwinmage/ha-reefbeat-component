@@ -36,10 +36,12 @@ from .const import (
     CONFIG_FLOW_IP_ADDRESS,
     DOMAIN,
     HW_ATO_IDS,
+    HW_CONTROL_IDS,
     HW_DOSE_IDS,
     HW_G1_LED_IDS,
     HW_G2_LED_IDS,
     HW_MAT_IDS,
+    HW_POWER_IDS,
     HW_RUN_IDS,
     HW_WAVE_IDS,
     PLATFORMS,
@@ -49,10 +51,12 @@ from .coordinator import (
     ReefATOCoordinator,
     ReefBeatCloudCoordinator,
     ReefBeatCoordinator,
+    ReefControlCoordinator,
     ReefDoseCoordinator,
     ReefLedCoordinator,
     ReefLedG2Coordinator,
     ReefMatCoordinator,
+    ReefPowerCoordinator,
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
@@ -128,6 +132,10 @@ def _build_coordinator(hass: HomeAssistant, entry: ConfigEntry) -> ReefBeatCoord
         return ReefRunCoordinator(hass, entry)
     if hw in HW_WAVE_IDS:
         return ReefWaveCoordinator(hass, entry)
+    if hw in HW_POWER_IDS:
+        return ReefPowerCoordinator(hass, entry)
+    if hw in HW_CONTROL_IDS:
+        return ReefControlCoordinator(hass, entry)
 
     raise ValueError(f"Unsupported hardware model or configuration: ip={ip} hw={hw}")
 

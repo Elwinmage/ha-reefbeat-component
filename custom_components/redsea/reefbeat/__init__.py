@@ -12,9 +12,11 @@ from .api import ReefBeatAPI, parse
 # Device/cloud implementations (import and re-export)
 from .ato import ReefATOAPI
 from .cloud import InvalidAuth, ReefBeatCloudAPI
+from .control import ReefControlAPI
 from .dose import ReefDoseAPI
 from .led import ReefLedAPI
 from .mat import ReefMatAPI
+from .power import ReefPowerAPI
 from .run import ReefRunAPI
 from .wave import ReefWaveAPI
 
@@ -29,4 +31,6 @@ __all__ = [
     "ReefATOAPI",
     "ReefRunAPI",
     "ReefWaveAPI",
+    "ReefPowerAPI",
+    "ReefControlAPI",
 ]

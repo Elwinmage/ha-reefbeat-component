@@ -49,10 +49,12 @@ from .const import (
     HTTP_DELAY_BETWEEN_RETRY,
     HTTP_MAX_RETRY,
     HW_ATO_IDS,
+    HW_CONTROL_IDS,
     HW_DOSE_IDS,
     HW_G2_LED_IDS,
     HW_LED_IDS,
     HW_MAT_IDS,
+    HW_POWER_IDS,
     HW_RUN_IDS,
     HW_WAVE_IDS,
     LED_BLUE_INTERNAL_NAME,
@@ -67,9 +69,11 @@ from .reefbeat import (
     ReefATOAPI,
     ReefBeatAPI,
     ReefBeatCloudAPI,
+    ReefControlAPI,
     ReefDoseAPI,
     ReefLedAPI,
     ReefMatAPI,
+    ReefPowerAPI,
     ReefRunAPI,
     ReefWaveAPI,
     parse,
@@ -394,6 +398,10 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
             return "reef-run"
         if model in HW_WAVE_IDS:
             return "reef-wave"
+        if model in HW_POWER_IDS:
+            return "reef-power"
+        if model in HW_CONTROL_IDS:
+            return "reef-control"
         _LOGGER.error("unknown model: %s", model)
         return None
 
@@ -897,6 +905,12 @@ class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
     async def set_pump_intensity(self, pump: int, intensity: int) -> None:
         """Update the currently active schedule segment intensity for a pump."""
         _LOGGER.debug("coordinator.ReefRunCoordinator.set_pump_intensity pump=%s", pump)
+        if intensity > 0 and intensity < 40:
+            _LOGGER.warn(
+                "coordinator.ReefRunCoordinator.set_pump_intensity %d value lower than min, setting it to 40",
+                intensity,
+            )
+            intensity = 40
         await self.my_api.fetch_config()
 
         schedule_path = (
@@ -1087,9 +1101,17 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
                     _LOGGER.debug(
                         "Replace %s with %s", wave["wave_uid"], new_wave["wave_uid"]
                     )
-                    cur_schedule["schedule"]["intervals"][pos] = new_wave
+                    # Use a COPY: the same wave_uid can appear in several
+                    # slots (e.g. a "nuit" wave used before AND after
+                    # midnight). Assigning the shared new_wave object to
+                    # multiple positions would make them alias each other,
+                    # and the per-slot start/st below would then clobber
+                    # each other (the first slot ends up with the last
+                    # slot's start), corrupting the schedule.
+                    cur_schedule["schedule"]["intervals"][pos] = dict(new_wave)
                 # Keep both keys for compatibility (device expects start in cloud payload)
                 cur_schedule["schedule"]["intervals"][pos]["start"] = wave["st"]
+                cur_schedule["schedule"]["intervals"][pos]["st"] = wave["st"]
 
             await self._cloud_link.send_cmd(
                 "/reef-wave/schedule/" + self.model_id, cur_schedule["schedule"], "post"
@@ -1155,9 +1177,14 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
             for pos, wave in enumerate(cur_schedule["schedule"]["intervals"]):
                 if wave["wave_uid"] == new_wave["wave_uid"]:
                     _LOGGER.debug("Replace %s with %s", new_wave["wave_uid"], new_uid)
-                    cur_schedule["schedule"]["intervals"][pos] = new_wave
-                    cur_schedule["schedule"]["intervals"][pos]["wave_uid"] = new_uid
+                    # Copy per slot (same wave_uid may occur in several
+                    # slots); a shared object would alias and the per-slot
+                    # start below would corrupt the earlier slot.
+                    replacement = dict(new_wave)
+                    replacement["wave_uid"] = new_uid
+                    cur_schedule["schedule"]["intervals"][pos] = replacement
                 cur_schedule["schedule"]["intervals"][pos]["start"] = wave["st"]
+                cur_schedule["schedule"]["intervals"][pos]["st"] = wave["st"]
 
             _LOGGER.debug("POST new schedule %s", cur_schedule["schedule"])
             await self._cloud_link.send_cmd(
@@ -1175,8 +1202,12 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
 
             for pos, wave in enumerate(cur_schedule["schedule"]["intervals"]):
                 if wave["wave_uid"] == new_wave["wave_uid"]:
-                    cur_schedule["schedule"]["intervals"][pos] = new_wave
+                    # Copy per slot: the same wave_uid may appear in several
+                    # slots; a shared object would alias them and the
+                    # per-slot start below would clobber the earlier slot.
+                    cur_schedule["schedule"]["intervals"][pos] = dict(new_wave)
                 cur_schedule["schedule"]["intervals"][pos]["start"] = wave["st"]
+                cur_schedule["schedule"]["intervals"][pos]["st"] = wave["st"]
 
             _LOGGER.debug("POST new schedule %s", cur_schedule["schedule"])
             # TODO : When rswave are grouped, setting values do not work with standard API
@@ -1191,18 +1222,40 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
     async def _set_wave_local_api(
         self, cur_schedule: dict[str, Any], new_wave: dict[str, Any]
     ) -> None:
-        """Update schedule using the local device API."""
+        """Update schedule using the local device API.
+
+        Two fixes baked in here:
+
+        1. Per-slot copy: the same wave_uid can appear in several slots
+           (e.g. a "nuit" wave used before AND after midnight). Assigning
+           the shared new_wave object to every matching slot would make them
+           alias each other and collapse onto a single start time — the slot
+           at st=0 would inherit the other slot's st and the device would
+           reject the corrupted schedule. We copy per slot and preserve each
+           slot's own start time.
+
+        2. One interval at a time: the older ESP8266-based ReefWave firmware
+           has a small JSON parse buffer and rejects a single POST /auto
+           carrying 3+ intervals ("could not parse the received JSON"), even
+           though it stores and runs 5+ intervals fine. Pushing them
+           individually keeps each request tiny and the device appends them.
+           This also works on newer ESP32 firmware, so it's one code path.
+        """
         for pos, wave in enumerate(cur_schedule["schedule"]["intervals"]):
             if wave["wave_uid"] == new_wave["wave_uid"]:
-                cur_schedule["schedule"]["intervals"][pos] = new_wave
+                replacement = dict(new_wave)
+                replacement["st"] = wave["st"]
+                if "start" in wave:
+                    replacement["start"] = wave["st"]
+                cur_schedule["schedule"]["intervals"][pos] = replacement
 
         payload = {"uid": str(uuid.uuid4())}
         await self.my_api.http_send("/auto/init", payload)
 
-        auto_copy = cur_schedule["schedule"].copy()
-        auto_copy.pop("uid", None)
+        intervals = cur_schedule["schedule"].get("intervals", [])
+        for interval in intervals:
+            await self.my_api.http_send("/auto", {"intervals": [interval]})
 
-        await self.my_api.http_send("/auto", auto_copy)
         await self.my_api.http_send("/auto/complete", payload)
         await self.my_api.http_send("/auto/apply", payload)
 
@@ -1240,6 +1293,52 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
             else:
                 break
         cur_prog[value_name] = value
+
+
+# REEFPOWER
+class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
+    """Coordinator for ReefControl Power devices (RSPOWER6, RSPOWER8).
+
+    Owns a :class:`ReefPowerAPI` instance and exposes:
+    - `socket_count`: number of AC sockets for this model (6 or 8)
+
+    Currently read-only; write endpoints (per-socket on/off/mode) are not yet
+    reverse-engineered.
+    """
+
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        """Initialize the ReefPower coordinator and its API."""
+        super().__init__(hass, entry)
+        self.my_api = ReefPowerAPI(self._ip, self._live_config_update, self._session)
+
+        # Derive socket count from the trailing digits of the hw_model
+        # (RSPOWER6 -> 6, RSPOWER8 -> 8). Default to 6 for unknown variants.
+        hw_model = str(entry.data.get(CONFIG_FLOW_HW_MODEL, ""))
+        try:
+            self.socket_count: int = int(hw_model.replace("RSPOWER", "").strip() or "6")
+        except (ValueError, TypeError):
+            self.socket_count = 6
+
+
+# REEFCONTROL
+class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
+    """Coordinator for ReefControl hub devices (RSCONTROLPRO, RSCONTROLLITE).
+
+    Owns a :class:`ReefControlAPI` instance and exposes:
+    - `port_count`: number of 12V DC output ports (Lite=1, Pro=2)
+
+    Currently read-only; write endpoints for probe calibration and per-port
+    control are not yet reverse-engineered.
+    """
+
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        """Initialize the ReefControl coordinator and its API."""
+        super().__init__(hass, entry)
+        self.my_api = ReefControlAPI(self._ip, self._live_config_update, self._session)
+
+        hw_model = str(entry.data.get(CONFIG_FLOW_HW_MODEL, ""))
+        # Lite exposes 1 port, Pro exposes 2. Anything else falls back to Pro.
+        self.port_count: int = 1 if "LITE" in hw_model.upper() else 2
 
 
 # CLOUD
