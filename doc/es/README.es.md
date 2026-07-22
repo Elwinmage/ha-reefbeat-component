@@ -17,7 +17,7 @@
 Para ayudarnos a traducir, siga esta [guía](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/TRANSLATION.md).
 
 # Descripción general
-***Gestión local de dispositivos HomeAssistant RedSea Reefbeat (sin nube): ReefATO+, ReefDose, ReefLed, ReefMat, ReefRun y ReefWave***
+***Gestión local de dispositivos HomeAssistant RedSea Reefbeat (sin nube): ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun y ReefWave***
 
 > [!TIP]
 > ***Para editar la programación avanzada de ReefDose, ReefLed, ReefRun y ReefWave, use la [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) (currently under development)***
@@ -36,7 +36,7 @@ Para ayudarnos a traducir, siga esta [guía](https://github.com/Elwinmage/ha-ree
 
 # Compatibilidad
 
-✅ Probado ☑️ Debería funcionar (Si tiene uno, ¿puede confirmar que funciona [aquí](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8)) ❌ Not Supported Yet
+✅ Probado ☑️ Debería funcionar (Si tiene uno, ¿puede confirmar que funciona [aquí](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8))
 <table>
 <th>
 <td colspan="2"><b>Model</b></td>
@@ -262,6 +262,12 @@ Puede ser notificado y actualizar su dispositivo cuando haya disponible una nuev
 </p>
 
 # ReefControl:
+> [!NOTE]
+> Los dispositivos RSPOWER (Power Center) tienen su propia dirección IP y aparecen como dispositivos separados en Home Assistant, aunque funcionen como una extensión del hub RSCONTROL.
+<p align="center">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_devices.png" alt="Image">
+</p>
+
 - Lectura de todas las sondas ReefSense conectadas (pH, ORP, salinidad, temperatura, ATO, fuga) con valor y nivel de calidad
 - Estado del zumbador y del detector de fugas
 - Encendido/apagado de los puertos 12V DC (RSCONTROL)
