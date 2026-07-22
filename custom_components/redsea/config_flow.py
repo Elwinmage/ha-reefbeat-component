@@ -23,6 +23,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .auto_detect import ReefBeatInfo, get_reefbeats, get_unique_id, is_reefbeat
@@ -379,7 +380,15 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def auto_detect(
         self, subnetwork: str | None
     ) -> config_entries.ConfigFlowResult:
-        """Auto-detect ReefBeat devices and present a selection list."""
+        """Auto-detect ReefBeat devices and present a bulk selection list.
+
+        The form is a multi-select with every discovered device pre-checked, so
+        the user can hit Submit once to add them all. Individual boxes can be
+        unchecked to skip a device. The submission is handled by
+        :meth:`async_step_select_devices`, which spawns one background import
+        flow per extra device and finalises the current flow with the first
+        selected device.
+        """
 
         try:
             detected_devices: list[
@@ -422,13 +431,69 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data_schema=vol.Schema({vol.Required(CONFIG_FLOW_IP_ADDRESS): str}),
                 errors=errors,
             )
-        # Propose detected devices
+        # Propose detected devices as a multi-select. cv.multi_select needs a
+        # {key: label} mapping; we re-use the encoded string as both because
+        # the async_step_user parser already knows how to split it back.
+        options = {value: value for value in available_devices_s}
         return self.async_show_form(
-            step_id="user",
+            step_id="select_devices",
             data_schema=vol.Schema(
-                {vol.Required(CONFIG_FLOW_IP_ADDRESS): vol.In(available_devices_s)}
+                {
+                    vol.Required(
+                        CONFIG_FLOW_IP_ADDRESS,
+                        default=list(options.keys()),
+                    ): cv.multi_select(options)
+                }
             ),
         )
+
+    async def async_step_select_devices(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle the multi-select submission from :meth:`auto_detect`.
+
+        Config flows can only create one entry per flow (``async_create_entry``
+        terminates the flow). To bulk-add N devices in a single user gesture we
+        finish the *current* flow with the first selected device and spawn one
+        background import flow per remaining device via
+        ``hass.config_entries.flow.async_init``. Each imported flow enters
+        through :meth:`async_step_import` which just delegates to the normal
+        user path — so the create/validate/dedup logic lives in one place.
+        """
+        if not user_input:
+            # Empty submission — bounce back to the picker.
+            return await self.auto_detect(None)
+
+        selected: list[str] = list(user_input.get(CONFIG_FLOW_IP_ADDRESS) or [])
+        if not selected:
+            # User unchecked every box. Nothing to do, abort cleanly.
+            return self.async_abort(reason="nothing_detected")
+
+        # Fan out: schedule an import flow for every device except the first.
+        # The first one goes through the current flow to give the user visible
+        # feedback (the "Success" dialog closes on that entry).
+        for device_str in selected[1:]:
+            self.hass.async_create_task(
+                self.hass.config_entries.flow.async_init(
+                    DOMAIN,
+                    context={"source": config_entries.SOURCE_IMPORT},
+                    data={CONFIG_FLOW_IP_ADDRESS: device_str},
+                )
+            )
+
+        # Finalise the current flow with the first device by re-entering the
+        # user step with a single-IP payload — same code path as before.
+        return await self.async_step_user({CONFIG_FLOW_IP_ADDRESS: selected[0]})
+
+    async def async_step_import(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Entry point for the background flows spawned by bulk add.
+
+        Delegates straight to :meth:`async_step_user` so all the create logic,
+        unique-id resolution and dedup happen in exactly one place.
+        """
+        return await self.async_step_user(user_input)
 
 
 # Options flow

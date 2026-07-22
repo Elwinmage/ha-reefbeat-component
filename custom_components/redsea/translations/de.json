@@ -21,6 +21,13 @@
           "virtual_led": "Neuer virtueller LED-Regler"
         },
         "title": "Neues Gerät hinzufügen"
+      },
+      "select_devices": {
+        "data": {
+          "ip_address": "Hinzuzufügende Geräte"
+        },
+        "description": "Alle im Netzwerk gefundenen Geräte sind vorausgewählt. Deaktivieren Sie die Geräte, die Sie nicht hinzufügen möchten, und bestätigen Sie — alle verbleibenden Geräte werden auf einmal hinzugefügt.",
+        "title": "Erkannte Geräte hinzufügen"
       }
     }
   },

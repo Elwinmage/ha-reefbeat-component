@@ -21,6 +21,13 @@
           "virtual_led": "New virtual LED Controler"
         },
         "title": "Add new Device"
+      },
+      "select_devices": {
+        "data": {
+          "ip_address": "Devices to add"
+        },
+        "description": "Every device found on the network is pre-checked. Uncheck any device you don't want to add, then submit — all remaining devices will be added at once.",
+        "title": "Add discovered devices"
       }
     }
   },

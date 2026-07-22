@@ -20,6 +20,13 @@
           "virtual_led": "Nouvelle Led virtuelle"
         },
         "title": "Définir une nouvelle entitée"
+      },
+      "select_devices": {
+        "data": {
+          "ip_address": "Appareils à ajouter"
+        },
+        "description": "Tous les appareils trouvés sur le réseau sont pré-cochés. Décochez ceux que vous ne voulez pas ajouter, puis validez — tous les appareils restants seront ajoutés en une seule fois.",
+        "title": "Ajouter les appareils détectés"
       }
     }
   },
