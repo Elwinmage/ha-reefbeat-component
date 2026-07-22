@@ -906,7 +906,7 @@ class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
         """Update the currently active schedule segment intensity for a pump."""
         _LOGGER.debug("coordinator.ReefRunCoordinator.set_pump_intensity pump=%s", pump)
         if intensity > 0 and intensity < 40:
-            _LOGGER.warn(
+            _LOGGER.warning(
                 "coordinator.ReefRunCoordinator.set_pump_intensity %d value lower than min, setting it to 40",
                 intensity,
             )

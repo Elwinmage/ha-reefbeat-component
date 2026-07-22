@@ -160,3 +160,50 @@ def test_handle_coordinator_update_sets_is_on_and_writes_state(
 
     assert ent.is_on is True
     assert wrote == [True]
+
+
+# ---------------------------------------------------------------------------
+# _handle_coordinator_update with_attr_name + with_attr_value branch
+# ---------------------------------------------------------------------------
+
+
+def test_handle_coordinator_update_sets_extra_state_attributes() -> None:
+    """Descriptions declaring `with_attr_name` + `with_attr_value` publish a
+    matching extra_state_attribute dict on each update (used by the RSRUN
+    per-pump schedule sensor)."""
+    from unittest.mock import MagicMock
+
+    from custom_components.redsea.binary_sensor import (
+        ReefBeatBinarySensorEntity,
+        ReefBeatBinarySensorEntityDescription,
+    )
+
+    class _Device(_FakeCoordinator):
+        def get_data(self, path: str, _is_None_possible: bool = False) -> Any:  # noqa: N803
+            # Route two separate paths: the value_name lookup returns True to
+            # give the entity an "on" state; the with_attr_value lookup returns
+            # the JSON we want to see mirrored into extra_state_attributes.
+            if path == "$.value":
+                return True
+            if path == "$.attr":
+                return {"schedule": "07:00-19:00"}
+            return None
+
+    desc = ReefBeatBinarySensorEntityDescription(
+        key="x",
+        translation_key="x",
+        value_fn=None,
+        value_name="$.value",
+        with_attr_name="schedule_config",
+        with_attr_value="$.attr",
+    )
+
+    ent = ReefBeatBinarySensorEntity(cast(Any, _Device()), desc)
+    # `async_write_ha_state` needs an attached hass; short-circuit it so we
+    # can call the update callback purely as a unit test.
+    ent.async_write_ha_state = MagicMock()  # type: ignore[method-assign]
+    ent._handle_coordinator_update()
+
+    assert ent._attr_extra_state_attributes == {
+        "schedule_config": {"schedule": "07:00-19:00"}
+    }
