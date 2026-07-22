@@ -59,7 +59,7 @@ To help us with translation, follow this [guide](https://github.com/Elwinmage/ha
 <tr>
 <td rowspan="4"><a href="#reefcontrol">ReefControl</a></td>
 <td colspan="2">RSCONTROLPRO</td><td>✅</td>
-<td width="200px" rowspan="2"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROL.png"/></td>
+<td width="200px" rowspan="4"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROL.png"/></td>
 <td rowspan="4">
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:enhancement" style="text-decoration:none">📆</a>
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:bug" style="text-decoration:none">🐛</a>
@@ -70,7 +70,6 @@ To help us with translation, follow this [guide](https://github.com/Elwinmage/ha
 </tr>
 <tr>
 <td colspan="2">RSPOWER6</td><td>✅</td>
-<td width="200px" rowspan="2"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSPOWER.png"/></td>
 </tr>
 <tr>
 <td colspan="2">RSPOWER8</td><td>☑️</td>
