@@ -287,3 +287,94 @@ async def test_async_setup_entry_rspower8_creates_8_entities(
         e for e in added[0] if isinstance(e, ReefPowerSocketSwitchEntity)
     ]
     assert len(socket_entities) == 8
+
+
+# ---------------------------------------------------------------------------
+# Restore / async_added_to_hass / device_info — coverage top-up
+# ---------------------------------------------------------------------------
+
+
+def test_restore_is_on_helper() -> None:
+    """The static helper decodes a persisted state string back into a bool."""
+    from custom_components.redsea.switch import ReefPowerSocketSwitchEntity
+
+    assert ReefPowerSocketSwitchEntity._restore_is_on("on") is True
+    assert ReefPowerSocketSwitchEntity._restore_is_on("off") is False
+    assert ReefPowerSocketSwitchEntity._restore_is_on("something_else") is False
+
+
+@pytest.mark.asyncio
+async def test_added_to_hass_restores_from_last_state() -> None:
+    """When HA reboots with a persisted state, the entity picks it up."""
+    from unittest.mock import AsyncMock
+
+    device = FakePowerCoordinator()
+    # No coordinator data available yet — this is the case the restore path
+    # is designed for.
+    entity = _make(device, 0)
+
+    class _LastState:
+        state = "on"
+
+    # Neutralize the super().async_added_to_hass() chain (RestoreEntity needs
+    # a running hass) and inject a persisted state.
+    entity.async_get_last_state = AsyncMock(return_value=_LastState())  # type: ignore[assignment]
+
+    async def _noop() -> None:
+        return None
+
+    # Bypass the RestoreEntity super chain by monkey-patching the MRO parent.
+    import custom_components.redsea.switch as switch_module
+
+    orig = switch_module.ReefBeatRestoreEntity.async_added_to_hass  # type: ignore[attr-defined]
+
+    async def _stub(self):
+        return None
+
+    switch_module.ReefBeatRestoreEntity.async_added_to_hass = _stub  # type: ignore[attr-defined]
+    try:
+        await entity.async_added_to_hass()
+    finally:
+        switch_module.ReefBeatRestoreEntity.async_added_to_hass = orig  # type: ignore[attr-defined]
+
+    assert entity._attr_is_on is True
+    assert entity._attr_available is True
+
+
+@pytest.mark.asyncio
+async def test_added_to_hass_no_last_state_falls_back_to_coordinator() -> None:
+    """No persisted state → entity primes itself from coordinator data."""
+    from unittest.mock import AsyncMock
+
+    device = FakePowerCoordinator()
+    device.get_data_map["$.sources[?(@.name=='/dashboard')].data.sockets[0].mode"] = (
+        "schedule"
+    )
+    device.get_data_map["$.sources[?(@.name=='/dashboard')].data.sockets[0].state"] = (
+        "on"
+    )
+
+    entity = _make(device, 0)
+    entity.async_get_last_state = AsyncMock(return_value=None)  # type: ignore[assignment]
+
+    import custom_components.redsea.switch as switch_module
+
+    orig = switch_module.ReefBeatRestoreEntity.async_added_to_hass  # type: ignore[attr-defined]
+
+    async def _stub(self):
+        return None
+
+    switch_module.ReefBeatRestoreEntity.async_added_to_hass = _stub  # type: ignore[attr-defined]
+    try:
+        await entity.async_added_to_hass()
+    finally:
+        switch_module.ReefBeatRestoreEntity.async_added_to_hass = orig  # type: ignore[attr-defined]
+
+    assert entity._attr_is_on is True
+
+
+def test_device_info_returns_coordinator_info() -> None:
+    """The socket switch groups itself under the parent RSPOWER device."""
+    device = FakePowerCoordinator()
+    entity = _make(device, 0)
+    assert entity.device_info == device.device_info

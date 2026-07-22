@@ -213,3 +213,84 @@ async def test_async_setup_entry_control_pro_creates_2_entities(
     assert len(port_entities) == 2
     keys = {e.entity_description.key for e in port_entities}
     assert keys == {"port_0_on_off", "port_1_on_off"}
+
+
+# ---------------------------------------------------------------------------
+# Restore / async_added_to_hass / device_info — coverage top-up
+# ---------------------------------------------------------------------------
+
+
+def test_restore_is_on_helper() -> None:
+    """The static helper decodes a persisted state string back into a bool."""
+    from custom_components.redsea.switch import ReefControlPortSwitchEntity
+
+    assert ReefControlPortSwitchEntity._restore_is_on("on") is True
+    assert ReefControlPortSwitchEntity._restore_is_on("off") is False
+    assert ReefControlPortSwitchEntity._restore_is_on("standby") is False
+
+
+@pytest.mark.asyncio
+async def test_added_to_hass_restores_from_last_state() -> None:
+    """When HA reboots with a persisted state, the entity picks it up."""
+    from unittest.mock import AsyncMock
+
+    device = FakeControlCoordinator()
+    entity = _make(device, 0)
+
+    class _LastState:
+        state = "on"
+
+    entity.async_get_last_state = AsyncMock(return_value=_LastState())  # type: ignore[assignment]
+
+    import custom_components.redsea.switch as switch_module
+
+    orig = switch_module.ReefBeatRestoreEntity.async_added_to_hass  # type: ignore[attr-defined]
+
+    async def _stub(self):
+        return None
+
+    switch_module.ReefBeatRestoreEntity.async_added_to_hass = _stub  # type: ignore[attr-defined]
+    try:
+        await entity.async_added_to_hass()
+    finally:
+        switch_module.ReefBeatRestoreEntity.async_added_to_hass = orig  # type: ignore[attr-defined]
+
+    assert entity._attr_is_on is True
+    assert entity._attr_available is True
+
+
+@pytest.mark.asyncio
+async def test_added_to_hass_no_last_state_falls_back_to_coordinator() -> None:
+    """No persisted state → entity primes itself from coordinator data."""
+    from unittest.mock import AsyncMock
+
+    device = FakeControlCoordinator()
+    device.get_data_map["$.sources[?(@.name=='/dashboard')].data.ports[0].mode"] = (
+        "sensor"
+    )
+    device.get_data_map["$.sources[?(@.name=='/dashboard')].data.ports[0].state"] = "on"
+
+    entity = _make(device, 0)
+    entity.async_get_last_state = AsyncMock(return_value=None)  # type: ignore[assignment]
+
+    import custom_components.redsea.switch as switch_module
+
+    orig = switch_module.ReefBeatRestoreEntity.async_added_to_hass  # type: ignore[attr-defined]
+
+    async def _stub(self):
+        return None
+
+    switch_module.ReefBeatRestoreEntity.async_added_to_hass = _stub  # type: ignore[attr-defined]
+    try:
+        await entity.async_added_to_hass()
+    finally:
+        switch_module.ReefBeatRestoreEntity.async_added_to_hass = orig  # type: ignore[attr-defined]
+
+    assert entity._attr_is_on is True
+
+
+def test_device_info_returns_coordinator_info() -> None:
+    """The port switch groups itself under the parent RSCONTROL device."""
+    device = FakeControlCoordinator()
+    entity = _make(device, 0)
+    assert entity.device_info == device.device_info
