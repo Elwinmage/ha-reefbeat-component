@@ -57,13 +57,23 @@ To help us with translation, follow this [guide](https://github.com/Elwinmage/ha
 </td>
 </tr>
 <tr>
-<td><a href="#reefcontrol">ReefControl</a></td>
-<td colspan="2">RSSENSE<br />If you have one, contact me <a href="https://github.com/Elwinmage/ha-reefbeat-component/discussions/8">here</a> and I will add its support.</td><td>❌</td>
-<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROL.png"/></td>
-<td>
+<td rowspan="4"><a href="#reefcontrol">ReefControl</a></td>
+<td colspan="2">RSCONTROLPRO</td><td>✅</td>
+<td width="200px" rowspan="2"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROL.png"/></td>
+<td rowspan="4">
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:enhancement" style="text-decoration:none">📆</a>
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:bug" style="text-decoration:none">🐛</a>
 </td>
+</tr>
+<tr>
+<td colspan="2">RSCONTROLLITE</td><td>☑️</td>
+</tr>
+<tr>
+<td colspan="2">RSPOWER6</td><td>✅</td>
+<td width="200px" rowspan="2"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSPOWER.png"/></td>
+</tr>
+<tr>
+<td colspan="2">RSPOWER8</td><td>☑️</td>
 </tr>
 <tr>
 <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
@@ -258,7 +268,16 @@ You can be notified and update your device when a new firmware version is availa
 </p>
 
 # ReefControl:
-Not supported yet. If you have one, contact me [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) and I will add its support.
+- Read all connected ReefSense probes (pH, ORP, salinity, temperature, ATO, leak) with value and quality level
+- Buzzer and leak-detector state
+- 12V DC port on/off toggle (RSCONTROL)
+- Per-socket state, mode, consumption and on/off toggle (RSPOWER)
+<p align="center">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
+</p>
 
 # ReefDose:
 - Edit daily dose
