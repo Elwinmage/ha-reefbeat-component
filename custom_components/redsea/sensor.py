@@ -956,6 +956,324 @@ CONTROL_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
 
 
 # -----------------------------------------------------------------------------
+# ReefSense probes (dynamic) — helper for ReefControl hub
+# -----------------------------------------------------------------------------
+
+
+def _epoch_to_iso(ts: Any) -> str | None:
+    """Convert a Unix epoch (int/float) into a tz-aware UTC datetime.
+
+    Home Assistant's ``SensorDeviceClass.TIMESTAMP`` requires a tz-aware
+    ``datetime`` (not a bare int, not a naive datetime). Returns ``None`` for
+    unusable inputs so the entity gracefully reports "unavailable".
+    """
+    if ts is None:
+        return None
+    try:
+        # Some payloads report the epoch as a string; be permissive.
+        epoch = int(float(ts))
+    except (TypeError, ValueError):
+        return None
+    if epoch <= 0:
+        return None
+    return datetime.datetime.fromtimestamp(epoch, tz=datetime.UTC).isoformat()
+
+
+# Modes under which the firmware forces `state` to a meaningless "unknown".
+# On these modes we derive the effective state from the mode itself.
+_MANUAL_OVERRIDE_MODES: frozenset[str] = frozenset({"on", "off"})
+
+
+def _effective_socket_state(mode: Any, state: Any) -> str | None:
+    """Return a meaningful on/standby/off value for a RSPOWER socket or a
+    RSCONTROL 12V port, working around a Red Sea firmware quirk.
+
+    The `sockets[]` / `ports[]` entries in `/dashboard` expose two fields:
+
+        - `mode`: how the socket is driven — one of ``auto``, ``on``, ``off``,
+          ``setup``, ``schedule``, ``sensor``, ``feeding``, ``maintenance``,
+          ``master``, ``emergency``.
+        - `state`: whether the socket is currently powered — expected values
+          are ``on`` or ``standby``.
+
+    The firmware only populates `state` when the socket is driven by a
+    program (``schedule``, ``sensor``, ``auto``, ``feeding``, ...). When the
+    user has forced the socket via a manual override (``mode == "on"`` or
+    ``mode == "off"``), `state` comes back as the literal string
+    ``"unknown"``, which shows up in HA as an unhelpful sensor value.
+
+    This helper collapses the two fields into a single reliable answer:
+
+        - manual on  -> "on"
+        - manual off -> "off"
+        - anything else -> the raw `state` value (typically "on" or "standby")
+    """
+    if isinstance(mode, str) and mode in _MANUAL_OVERRIDE_MODES:
+        return mode
+    if isinstance(state, str):
+        return state
+    return None
+
+
+# JSONPath selector to find a probe by its stable `uid` (independent of the
+# probe's array position, so plug/unplug reordering doesn't break entities).
+def _probe_path(uid: str, field: str) -> str:
+    """Return the JSONPath to `<field>` of the probe with the given uid."""
+    return f"$.sources[?(@.name=='/dashboard')].data.probes[?(@.uid=='{uid}')].{field}"
+
+
+# Icons per probe type — falls back to a generic sensor icon if unknown.
+# Six types exist in the Red Sea protocol: temperature, ph, ec (salinity),
+# orp, leak, ato (LevelAndATO). See ControlProbeType enum in the app.
+_PROBE_ICONS: dict[str, str] = {
+    "temperature": "mdi:thermometer",
+    "ph": "mdi:ph",
+    "ec": "mdi:water-percent",
+    "orp": "mdi:flash-triangle",
+    "leak": "mdi:water-alert",
+    "ato": "mdi:cup-water",
+}
+
+# Quality-level enum values reported by the hub. Matches the app's
+# ControlProbeType.CurrentLevel enum: SensorDataError, Desired, Acceptable,
+# Danger. The API string form of SensorDataError is "sensor_data_error".
+_PROBE_LEVEL_OPTIONS: tuple[str, ...] = (
+    "desired",
+    "acceptable",
+    "danger",
+    "sensor_data_error",
+)
+
+
+def _build_probe_descriptions(
+    probe: dict[str, Any],
+) -> list[ReefBeatSensorEntityDescription]:
+    """Build the list of sensor descriptions for a single ReefSense probe.
+
+    The probe's ``uid`` (e.g. ``0x0071C``) is used as a stable key so entities
+    survive plug/unplug reordering in the ``probes`` array. Extra entities
+    (temperature, calibration date, salinity units...) are added based on the
+    probe's ``type``.
+    """
+    uid = str(probe.get("uid", ""))
+    ptype = str(probe.get("type", "")).lower()
+    if not uid or not ptype:
+        return []
+
+    # Sanitise uid for use in an entity key: keep only alnum, lowercase.
+    uid_key = "".join(c for c in uid.lower() if c.isalnum())
+    tp = {"probe": probe.get("name") or uid}
+    icon = _PROBE_ICONS.get(ptype, "mdi:test-tube")
+
+    # Unit of the main `value` field varies by probe type.
+    value_unit: str | None
+    value_precision: int
+    value_device_class: SensorDeviceClass | None = None
+    if ptype == "ph":
+        value_unit = None  # dimensionless
+        value_precision = 2
+    elif ptype == "orp":
+        value_unit = "mV"
+        value_precision = 0
+    elif ptype == "ec":
+        # `value` mirrors whatever the device is displaying (ppt by default);
+        # dedicated ec/ppt/sg sensors below give access to each raw form.
+        value_unit = str(probe.get("measurement_unit") or "")
+        value_precision = 2
+    elif ptype == "temperature":
+        # Standalone temperature probe: the main value IS the temperature.
+        value_unit = UnitOfTemperature.CELSIUS
+        value_device_class = SensorDeviceClass.TEMPERATURE
+        value_precision = 1
+    elif ptype == "ato":
+        # LevelAndATO probe: water-level reading (proximity/depth). No canonical
+        # unit — the app renders it dimensionless, matching the raw JSON.
+        value_unit = None
+        value_precision = 1
+    elif ptype == "leak":
+        # Leak probe: exact payload shape unknown until a real probe reports.
+        # The `level` field carries the actionable info; the numeric `value`
+        # (if any) is exposed as-is for diagnostics.
+        value_unit = None
+        value_precision = 0
+    else:
+        value_unit = None
+        value_precision = 2
+
+    # Translation key for the value entity is per-type so users see e.g.
+    # "{probe} pH" vs "{probe} ORP" vs "{probe} water level".
+    value_translation_key = {
+        "ph": "probe_ph_value",
+        "orp": "probe_orp_value",
+        "ec": "probe_ec_value",
+        "temperature": "probe_temperature",
+        "ato": "probe_ato_value",
+        "leak": "probe_leak_value",
+    }.get(ptype, "probe_value")
+
+    descs: list[ReefBeatSensorEntityDescription] = [
+        # Main measurement
+        ReefBeatSensorEntityDescription(
+            key=f"probe_{uid_key}_value",
+            translation_key=value_translation_key,
+            translation_placeholders=tp,
+            icon=icon,
+            native_unit_of_measurement=value_unit or None,
+            device_class=value_device_class,
+            state_class=SensorStateClass.MEASUREMENT,
+            suggested_display_precision=value_precision,
+            value_fn=lambda d, p=_probe_path(uid, "value"): d.get_data(
+                p, is_None_possible=True
+            ),
+        ),
+        # Quality level (enum)
+        ReefBeatSensorEntityDescription(
+            key=f"probe_{uid_key}_level",
+            translation_key="probe_level",
+            translation_placeholders=tp,
+            icon="mdi:alert-circle-outline",
+            device_class=SensorDeviceClass.ENUM,
+            options=list(_PROBE_LEVEL_OPTIONS),
+            value_fn=lambda d, p=_probe_path(uid, "level"): d.get_data(
+                p, is_None_possible=True
+            ),
+        ),
+        # Status (auto / manual / setup — inferred; unknown states appear as-is)
+        ReefBeatSensorEntityDescription(
+            key=f"probe_{uid_key}_status",
+            translation_key="probe_status",
+            translation_placeholders=tp,
+            icon="mdi:cog-outline",
+            entity_category=EntityCategory.DIAGNOSTIC,
+            value_fn=lambda d, p=_probe_path(uid, "status"): d.get_data(
+                p, is_None_possible=True
+            ),
+        ),
+        # User-configured name (diagnostic string)
+        ReefBeatSensorEntityDescription(
+            key=f"probe_{uid_key}_name",
+            translation_key="probe_name",
+            translation_placeholders=tp,
+            icon="mdi:tag-outline",
+            entity_category=EntityCategory.DIAGNOSTIC,
+            value_fn=lambda d, p=_probe_path(uid, "name"): d.get_data(
+                p, is_None_possible=True
+            ),
+        ),
+        # Installation date (unix timestamp → HA converts to datetime)
+        ReefBeatSensorEntityDescription(
+            key=f"probe_{uid_key}_last_installation",
+            translation_key="probe_last_installation",
+            translation_placeholders=tp,
+            icon="mdi:calendar-clock",
+            device_class=SensorDeviceClass.TIMESTAMP,
+            entity_category=EntityCategory.DIAGNOSTIC,
+            value_fn=lambda d, p=_probe_path(uid, "last_installation_date"): (
+                _epoch_to_iso(d.get_data(p, is_None_possible=True))
+            ),
+        ),
+    ]
+
+    # pH, EC and ATO probes also expose a temperature reading and calibration
+    # date. (Standalone Temp probe already has the temperature as main value.)
+    if ptype in ("ph", "ec", "ato"):
+        descs.extend(
+            [
+                ReefBeatSensorEntityDescription(
+                    key=f"probe_{uid_key}_temp_value",
+                    translation_key="probe_temperature",
+                    translation_placeholders=tp,
+                    icon="mdi:thermometer",
+                    device_class=SensorDeviceClass.TEMPERATURE,
+                    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                    state_class=SensorStateClass.MEASUREMENT,
+                    suggested_display_precision=1,
+                    value_fn=lambda d, p=_probe_path(uid, "temp_value"): d.get_data(
+                        p, is_None_possible=True
+                    ),
+                ),
+                ReefBeatSensorEntityDescription(
+                    key=f"probe_{uid_key}_temp_level",
+                    translation_key="probe_temp_level",
+                    translation_placeholders=tp,
+                    icon="mdi:thermometer-alert",
+                    device_class=SensorDeviceClass.ENUM,
+                    options=list(_PROBE_LEVEL_OPTIONS),
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                    value_fn=lambda d, p=_probe_path(uid, "temp_level"): d.get_data(
+                        p, is_None_possible=True
+                    ),
+                ),
+                ReefBeatSensorEntityDescription(
+                    key=f"probe_{uid_key}_last_adjustment",
+                    translation_key="probe_last_adjustment",
+                    translation_placeholders=tp,
+                    icon="mdi:tune-vertical",
+                    device_class=SensorDeviceClass.TIMESTAMP,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                    value_fn=lambda d, p=_probe_path(uid, "last_adjustment_date"): (
+                        _epoch_to_iso(d.get_data(p, is_None_possible=True))
+                    ),
+                ),
+            ]
+        )
+
+    # EC probe: expose the three raw derived values plus the display unit.
+    if ptype == "ec":
+        descs.extend(
+            [
+                ReefBeatSensorEntityDescription(
+                    key=f"probe_{uid_key}_ec",
+                    translation_key="probe_ec",
+                    translation_placeholders=tp,
+                    icon="mdi:current-ac",
+                    native_unit_of_measurement="mS/cm",
+                    state_class=SensorStateClass.MEASUREMENT,
+                    suggested_display_precision=2,
+                    value_fn=lambda d, p=_probe_path(uid, "ec"): d.get_data(
+                        p, is_None_possible=True
+                    ),
+                ),
+                ReefBeatSensorEntityDescription(
+                    key=f"probe_{uid_key}_ppt",
+                    translation_key="probe_ppt",
+                    translation_placeholders=tp,
+                    icon="mdi:water-percent",
+                    native_unit_of_measurement="ppt",
+                    state_class=SensorStateClass.MEASUREMENT,
+                    suggested_display_precision=2,
+                    value_fn=lambda d, p=_probe_path(uid, "ppt"): d.get_data(
+                        p, is_None_possible=True
+                    ),
+                ),
+                ReefBeatSensorEntityDescription(
+                    key=f"probe_{uid_key}_sg",
+                    translation_key="probe_sg",
+                    translation_placeholders=tp,
+                    icon="mdi:scale-balance",
+                    state_class=SensorStateClass.MEASUREMENT,
+                    suggested_display_precision=4,
+                    value_fn=lambda d, p=_probe_path(uid, "sg"): d.get_data(
+                        p, is_None_possible=True
+                    ),
+                ),
+                ReefBeatSensorEntityDescription(
+                    key=f"probe_{uid_key}_measurement_unit",
+                    translation_key="probe_measurement_unit",
+                    translation_placeholders=tp,
+                    icon="mdi:ruler",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                    value_fn=lambda d, p=_probe_path(uid, "measurement_unit"): (
+                        d.get_data(p, is_None_possible=True)
+                    ),
+                ),
+            ]
+        )
+
+    return descs
+
+
+# -----------------------------------------------------------------------------
 # Platform setup
 # -----------------------------------------------------------------------------
 
@@ -1312,8 +1630,20 @@ async def async_setup_entry(
                         translation_key="socket_state",
                         translation_placeholders={"socket": str(socket_idx + 1)},
                         icon="mdi:electric-switch",
-                        value_fn=lambda d, p=f"{base}.state": d.get_data(
-                            p, is_None_possible=True
+                        # Derive effective state from (mode, state):
+                        # firmware returns state="unknown" whenever the socket
+                        # is under manual override (mode == "on" | "off"), and
+                        # only fills state ("on" | "standby") when the socket
+                        # is driven by a program (mode == "schedule" | "sensor"
+                        # | "auto" | "feeding" | "maintenance" | ...).
+                        # We surface a single boolean-like value the user can
+                        # trust: mode wins when it is a manual override, state
+                        # wins otherwise.
+                        value_fn=lambda d, m=f"{base}.mode", s=f"{base}.state": (
+                            _effective_socket_state(
+                                d.get_data(m, is_None_possible=True),
+                                d.get_data(s, is_None_possible=True),
+                            )
                         ),
                     ),
                     ReefBeatSensorEntityDescription(
@@ -1370,8 +1700,14 @@ async def async_setup_entry(
                         translation_key="port_state",
                         translation_placeholders={"port": str(port_idx + 1)},
                         icon="mdi:electric-switch",
-                        value_fn=lambda d, p=f"{base}.state": d.get_data(
-                            p, is_None_possible=True
+                        # Same firmware quirk as sockets: mode == "on" | "off"
+                        # forces state to "unknown". See _effective_socket_state
+                        # for the derivation rules.
+                        value_fn=lambda d, m=f"{base}.mode", s=f"{base}.state": (
+                            _effective_socket_state(
+                                d.get_data(m, is_None_possible=True),
+                                d.get_data(s, is_None_possible=True),
+                            )
                         ),
                     ),
                     ReefBeatSensorEntityDescription(
@@ -1409,6 +1745,31 @@ async def async_setup_entry(
         entities.extend(
             ReefBeatSensorEntity(device, description) for description in control_descs
         )
+
+        # Discover connected ReefSense probes (dynamic — depends on physical
+        # cabling at HA startup). Reload the config entry to pick up new ones.
+        #
+        # We read the /dashboard.probes array directly here rather than going
+        # through a helper method on the coordinator, so this platform stays
+        # decoupled from any refactor of the ReefControl coordinator surface.
+        raw_probes = device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes",
+            is_None_possible=True,
+        )
+        probes: list[dict[str, Any]] = (
+            [
+                p
+                for p in raw_probes
+                if isinstance(p, dict) and p.get("uid") and p.get("type")
+            ]
+            if isinstance(raw_probes, list)
+            else []
+        )
+        for probe in probes:
+            entities.extend(
+                ReefBeatSensorEntity(device, description)
+                for description in _build_probe_descriptions(probe)
+            )
 
     # Schedule sensors (LED coordinators)
     if isinstance(device, (ReefLedCoordinator, ReefVirtualLedCoordinator)):

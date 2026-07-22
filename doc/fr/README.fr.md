@@ -15,7 +15,7 @@
 # Supported Languages: [<img src="https://flagicons.lipis.dev/flags/4x3/fr.svg" style="width: 5%;"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/fr/README.fr.md) [<img src="https://flagicons.lipis.dev/flags/4x3/gb.svg" style="width: 5%"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/README.md) [<img src="https://flagicons.lipis.dev/flags/4x3/es.svg" style="width: 5%"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/es/README.es.md) [<img src="https://flagicons.lipis.dev/flags/4x3/de.svg" style="width: 5%"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/README.de.md) [<img src="https://flagicons.lipis.dev/flags/4x3/pl.svg" style="width: 5%"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/pl/README.pl.md) [<img src="https://flagicons.lipis.dev/flags/4x3/pt.svg" style="width: 5%"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/pt/README.pt.md) [<img src="https://flagicons.lipis.dev/flags/4x3/it.svg" style="width: 5%"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/it/README.it.md)
 
 # Présentation
-***Gestion locale des appareils HomeAssitant RedSea Reefbeat (hors cloud) : ReefATO+, ReefDose, ReefLed, ReefMat, ReefRun et ReefWave***
+***Gestion locale des appareils HomeAssitant RedSea Reefbeat (hors cloud) : ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun et ReefWave***
 
 > [!TIP]
 > ***Pour modifier la programmation avancée de ReefDose, ReefLed, ReefRun et ReefWave, vous devez utiliser la [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) (en cours de développement)***
@@ -34,7 +34,7 @@
 
 # Compatibilité
 
-✅ Testé ☑️ Doit fonctionner (Si vous en possédez un, pouvez-vous confirmer son fonctionnement [ici](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8))❌ No Supported Yet
+✅ Testé ☑️ Doit fonctionner (Si vous en possédez un, pouvez-vous confirmer son fonctionnement [ici](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8))
 <table>
 <th>
 <td colspan="2"><b>Modèle</b></td>
@@ -51,15 +51,23 @@
 </td>
 </tr>
     <tr>
-    <td><a href="#reefcontrol">ReefControl</a></td>
-    <td colspan="2">RSSENSE<br />Vous en avez un, contactez-moi <a href="https://github.com/Elwinmage/ha-reefbeat-component/discussions/8">ici</a> pour que je l'ajoute.</td><td>❌</td>
-    <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROL.png"/></td>
-    <td>
+    <td rowspan="4"><a href="#reefcontrol">ReefControl</a></td>
+    <td colspan="2">RSCONTROLPRO</td><td>✅</td>
+    <td width="200px" rowspan="4"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROL.png"/></td>
+    <td rowspan="4">
       <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:enhancement" style="text-decoration:none">📆</a>
       <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:bug" style="text-decoration:none">🐛</a>
     </td>
-
-  </tr>
+    </tr>
+    <tr>
+    <td colspan="2">RSCONTROLLITE</td><td>☑️</td>
+    </tr>
+    <tr>
+    <td colspan="2">RSPOWER6</td><td>✅</td>
+    </tr>
+    <tr>
+    <td colspan="2">RSPOWER8</td><td>☑️</td>
+    </tr>
 <tr>
 <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
 <td colspan="2">RSDOSE2</td>
@@ -252,7 +260,22 @@ Vous pouvez être notifié et mettre à jour votre appareil lorsqu'une nouvelle 
 </p>
 
 # ReefControl:
-Non supporté pour l'instant. Si vous en avez un, contactez-moi [ici](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) pour que je l'ajoute.
+> [!NOTE]
+> Les RSPOWER (Power Center) ont leur propre adresse IP et sont exposés comme des devices séparés dans Home Assistant, bien qu'ils fonctionnent comme une extension du hub RSCONTROL.
+<p align="center">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_devices.png" alt="Image">
+</p>
+
+- Lecture de toutes les sondes ReefSense connectées (pH, ORP, salinité, température, ATO, fuite) avec valeur et niveau de qualité
+- État du buzzer et du détecteur de fuite
+- Contrôle on/off des ports 12V DC (RSCONTROL)
+- Sondes d'état, mode, consommation et contrôle on/off par prise (RSPOWER)
+<p align="center">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
+</p>
 
 # ReefDose :
 - Modification de la dose quotidienne

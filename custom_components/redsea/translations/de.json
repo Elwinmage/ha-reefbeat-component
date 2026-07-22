@@ -851,6 +851,69 @@
       },
       "port_consumption": {
         "name": "Port {port} consumption"
+      },
+      "probe_ph_value": {
+        "name": "{probe} pH"
+      },
+      "probe_orp_value": {
+        "name": "{probe} ORP"
+      },
+      "probe_ec_value": {
+        "name": "{probe} value"
+      },
+      "probe_level": {
+        "name": "{probe} level",
+        "state": {
+          "desired": "Optimal",
+          "acceptable": "Akzeptabel",
+          "danger": "Gefahr",
+          "sensor_data_error": "Sensorfehler"
+        }
+      },
+      "probe_status": {
+        "name": "{probe} status"
+      },
+      "probe_name": {
+        "name": "{probe} name"
+      },
+      "probe_last_installation": {
+        "name": "{probe} last installation"
+      },
+      "probe_last_adjustment": {
+        "name": "{probe} last calibration"
+      },
+      "probe_temperature": {
+        "name": "{probe} temperature"
+      },
+      "probe_temp_level": {
+        "name": "{probe} temperature level",
+        "state": {
+          "desired": "Optimal",
+          "acceptable": "Akzeptabel",
+          "danger": "Gefahr",
+          "sensor_data_error": "Sensorfehler"
+        }
+      },
+      "probe_ec": {
+        "name": "{probe} conductivity"
+      },
+      "probe_ppt": {
+        "name": "{probe} salinity"
+      },
+      "probe_sg": {
+        "name": "{probe} specific gravity"
+      },
+      "probe_measurement_unit": {
+        "name": "{probe} display unit"
+      },
+      "probe_ato_value": {
+        "name": "{probe} water level"
+      },
+      "probe_leak_value": {
+        "name": "{probe} leak"
+      },
+      "probe_value": {
+        "name": "{probe} value"
       }
     },
     "switch": {
@@ -907,6 +970,12 @@
       },
       "sensor_controlled_switch": {
         "name": "Sondengesteuerter Betrieb"
+      },
+      "socket_on_off": {
+        "name": "Steckdose {socket}"
+      },
+      "port_on_off": {
+        "name": "Anschluss {port}"
       }
     },
     "text": {

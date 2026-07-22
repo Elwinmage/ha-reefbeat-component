@@ -17,7 +17,7 @@
 Para ayudarnos a traducir, siga esta [guía](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/TRANSLATION.md).
 
 # Descripción general
-***Gestión local de dispositivos HomeAssistant RedSea Reefbeat (sin nube): ReefATO+, ReefDose, ReefLed, ReefMat, ReefRun y ReefWave***
+***Gestión local de dispositivos HomeAssistant RedSea Reefbeat (sin nube): ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun y ReefWave***
 
 > [!TIP]
 > ***Para editar la programación avanzada de ReefDose, ReefLed, ReefRun y ReefWave, use la [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) (currently under development)***
@@ -36,7 +36,7 @@ Para ayudarnos a traducir, siga esta [guía](https://github.com/Elwinmage/ha-ree
 
 # Compatibilidad
 
-✅ Probado ☑️ Debería funcionar (Si tiene uno, ¿puede confirmar que funciona [aquí](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8)) ❌ Not Supported Yet
+✅ Probado ☑️ Debería funcionar (Si tiene uno, ¿puede confirmar que funciona [aquí](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8))
 <table>
 <th>
 <td colspan="2"><b>Model</b></td>
@@ -53,13 +53,22 @@ Para ayudarnos a traducir, siga esta [guía](https://github.com/Elwinmage/ha-ree
 </td>
 </tr>
 <tr>
-<td><a href="#reefcontrol">ReefControl</a></td>
-<td colspan="2">RSSENSE<br />Si tiene uno, contácteme <a href="https://github.com/Elwinmage/ha-reefbeat-component/discussions/8">aquí</a> y añadiré su soporte.</td><td>❌</td>
-<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROL.png"/></td>
-<td>
+<td rowspan="4"><a href="#reefcontrol">ReefControl</a></td>
+<td colspan="2">RSCONTROLPRO</td><td>✅</td>
+<td width="200px" rowspan="4"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROL.png"/></td>
+<td rowspan="4">
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:enhancement" style="text-decoration:none">📆</a>
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:bug" style="text-decoration:none">🐛</a>
 </td>
+</tr>
+<tr>
+<td colspan="2">RSCONTROLLITE</td><td>☑️</td>
+</tr>
+<tr>
+<td colspan="2">RSPOWER6</td><td>✅</td>
+</tr>
+<tr>
+<td colspan="2">RSPOWER8</td><td>☑️</td>
 </tr>
 <tr>
 <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
@@ -252,7 +261,22 @@ Puede ser notificado y actualizar su dispositivo cuando haya disponible una nuev
 </p>
 
 # ReefControl:
-No soportado aún. If you have one, contact me [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8) and I will add its support.
+> [!NOTE]
+> Los dispositivos RSPOWER (Power Center) tienen su propia dirección IP y aparecen como dispositivos separados en Home Assistant, aunque funcionen como una extensión del hub RSCONTROL.
+<p align="center">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_devices.png" alt="Image">
+</p>
+
+- Lectura de todas las sondas ReefSense conectadas (pH, ORP, salinidad, temperatura, ATO, fuga) con valor y nivel de calidad
+- Estado del zumbador y del detector de fugas
+- Encendido/apagado de los puertos 12V DC (RSCONTROL)
+- Sensores de estado, modo, consumo y encendido/apagado por toma (RSPOWER)
+<p align="center">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
+</p>
 
 # ReefDose:
 - Modificar la dosis diaria

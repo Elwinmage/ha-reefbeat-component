@@ -1,3 +1,4 @@
+import ast
 import json
 import os
 import re
@@ -54,67 +55,176 @@ for file in os.listdir(translations_path):
                 }
             ]
 
+
+# -----------------------------------------------------------------------------
+# AST-based extraction of translation_key values
+# -----------------------------------------------------------------------------
+#
+# The naive regex `translation_key="literal"` misses valid patterns:
+#   - variable indirection:  translation_key=my_var  (where my_var = "foo")
+#   - dict lookup:           translation_key={"a": "foo"}.get(k, "bar")
+#   - dict pool + variable:  tk = {...}.get(k, "d");  translation_key=tk
+#   - if/elif branches:      per-branch string assignments to a common var
+#
+# All of these are valid Python that should not force contorted code just to
+# satisfy the linter. This AST walker collects every string literal that could
+# ever end up passed as `translation_key=` — following one level of variable
+# indirection and inspecting dict literals in-place.
+
+
+def _string_values_from_expr(node: ast.AST) -> set[str]:
+    """Extract string constants that this expression could evaluate to.
+
+    Handles:
+      - ast.Constant                    -> {value} if str
+      - ast.Dict                        -> {every str value in the dict}
+      - ast.Call to .get on ast.Dict   -> dict values + default arg
+    """
+    result: set[str] = set()
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        result.add(node.value)
+    elif isinstance(node, ast.Dict):
+        for val in node.values:
+            result |= _string_values_from_expr(val)
+    elif (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "get"
+    ):
+        # Extract values from the dict being called
+        result |= _string_values_from_expr(node.func.value)
+        # And from the default value (second positional arg)
+        if len(node.args) >= 2:
+            result |= _string_values_from_expr(node.args[1])
+    return result
+
+
+def _string_list_from_expr(
+    node: ast.AST, list_pool: dict[str, list[str]]
+) -> list[str] | None:
+    """Extract a list of string constants from an `options=` expression.
+
+    Handles:
+      - ast.List([str, ...])
+      - ast.Tuple((str, ...))
+      - ast.Call: list(NAME) or tuple(NAME) where NAME is a known list/tuple
+      - ast.Name: direct reference to a known list/tuple variable
+    """
+    if isinstance(node, (ast.List, ast.Tuple)):
+        out: list[str] = []
+        for elt in node.elts:
+            if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
+                out.append(elt.value)
+        return out or None
+    if isinstance(node, ast.Name):
+        return list_pool.get(node.id)
+    if (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id in ("list", "tuple")
+        and len(node.args) == 1
+    ):
+        return _string_list_from_expr(node.args[0], list_pool)
+    return None
+
+
+def _collect_string_pool(
+    tree: ast.AST,
+) -> tuple[dict[str, set[str]], dict[str, list[str]]]:
+    """Return (str_pool, list_pool) computed from module-level assignments.
+
+    * str_pool  maps a variable name to every string literal it might hold
+    * list_pool maps a variable name to a list of strings if it's assigned a
+      list/tuple of string constants (useful for `options=list(FOO_TUPLE)`)
+
+    Both plain `x = ...` and annotated `x: T = ...` assignments are handled.
+    """
+    str_pool: dict[str, set[str]] = {}
+    list_pool: dict[str, list[str]] = {}
+    for node in ast.walk(tree):
+        # Normalize both Assign (`x = ...`) and AnnAssign (`x: T = ...`) to
+        # a list of (target, value) pairs.
+        pairs: list[tuple[ast.expr, ast.expr]] = []
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                pairs.append((target, node.value))
+        elif isinstance(node, ast.AnnAssign) and node.value is not None:
+            pairs.append((node.target, node.value))
+        else:
+            continue
+
+        for target, value in pairs:
+            if not isinstance(target, ast.Name):
+                continue
+            values = _string_values_from_expr(value)
+            if values:
+                str_pool.setdefault(target.id, set()).update(values)
+            if isinstance(value, (ast.List, ast.Tuple)):
+                strs = [
+                    e.value
+                    for e in value.elts
+                    if isinstance(e, ast.Constant) and isinstance(e.value, str)
+                ]
+                if strs:
+                    list_pool[target.id] = strs
+    return str_pool, list_pool
+
+
+def _extract_translation_keys(content: str) -> tuple[list[str], dict[str, list[str]]]:
+    """Return (translation_keys, options_per_key) for a module.
+
+    `translation_keys` is the flat list of every string that appears as the
+    value of a `translation_key=` keyword argument (possibly via indirection).
+
+    `options_per_key` maps `<translation_key>` -> list of option strings when
+    a description bundle also provides `options=[...]`. This mirrors the
+    previous regex-based behavior for enum state validation.
+    """
+    tree = ast.parse(content)
+    str_pool, list_pool = _collect_string_pool(tree)
+
+    keys: list[str] = []
+    options: dict[str, list[str]] = {}
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+
+        # Find the translation_key= and options= keyword args on this Call.
+        tk_values: set[str] = set()
+        opt_strings: list[str] | None = None
+        for kw in node.keywords:
+            if kw.arg == "translation_key":
+                if isinstance(kw.value, ast.Name):
+                    tk_values |= str_pool.get(kw.value.id, set())
+                else:
+                    tk_values |= _string_values_from_expr(kw.value)
+            elif kw.arg == "options":
+                opt_strings = _string_list_from_expr(kw.value, list_pool)
+
+        for tk in tk_values:
+            keys.append(tk)
+            if opt_strings:
+                options[tk] = opt_strings
+
+    return keys, options
+
+
 for entity_domain in entity_domains:
     # Get keys in code
     entity_file = os.path.join(base_path, f"{entity_domain}.py")
     with open(entity_file) as f:
         content = f.read()
 
-        # Find all translation_key entries
-        translation_keys = list(
-            map(
-                lambda x: (
-                    entity_domain
-                    + "."
-                    + x.replace(r"translation_key=", "").replace('"', "")
-                ),
-                re.findall(r"translation_key=\"[a-zA-Z0-9\-\_]*\"", content),
-            )
-        )
-        keys_in_code += translation_keys
-
-        # For each translation_key, try to find associated options
-        # We need to split the file into entity description blocks
-        # Pattern: look for blocks that contain both translation_key and options
-
-        # Split by common patterns that indicate new entity descriptions
-        # Look for EntityDescription( blocks
-        blocks = re.split(
-            r"\n\s*(?:ReefBeat|ReefLed|ReefWave|ReefDose|ReefATO|ReefMat|ReefRun)\w*(?:Sensor|Select)EntityDescription\(",
-            content,
-        )
-
-        for block in blocks:
-            # Find translation_key in this block
-            trans_key_match = re.search(
-                r"translation_key=\"([a-zA-Z0-9\-\_]*)\"", block
-            )
-            if trans_key_match:
-                trans_key = trans_key_match.group(1)
-
-                # Find options in the same block (must come after translation_key and before next entity)
-                # Look for options=[ followed by content until ]
-                options_match = re.search(r"options=\[(.*?)\]", block, re.DOTALL)
-
-                if options_match:
-                    options_str = options_match.group(1)
-                    # Parse the options list - extract quoted strings
-                    options = re.findall(r"\"([a-zA-Z0-9\-\_]+)\"", options_str)
-
-                    # Also check for list() or constants like WAVE_TYPES
-                    if not options:
-                        # Check for things like list(HW_MAT_MODEL) or WAVE_TYPES
-                        const_match = re.search(
-                            r"options=\s*(?:list\()?([\w_]+)\)?", block
-                        )
-                        if const_match:
-                            # For now, we'll note this but can't extract from constants
-                            # unless we parse const.py as well
-                            pass
-
-                    if options:
-                        full_key = f"{entity_domain}.{trans_key}"
-                        entity_options[full_key] = options
+        # AST-based extraction — see helpers above. This is aware of variable
+        # indirection and dict lookups, so patterns like
+        #     tk = {"ph": "probe_ph_value", ...}.get(ptype, "probe_value")
+        #     ReefBeatSensorEntityDescription(translation_key=tk, ...)
+        # are correctly detected without forcing per-branch literal spelling.
+        module_keys, module_options = _extract_translation_keys(content)
+        keys_in_code += [f"{entity_domain}.{k}" for k in module_keys]
+        for tk, opts in module_options.items():
+            entity_options[f"{entity_domain}.{tk}"] = opts
 
     # Get translation keys from JSON files
     for lang in langs:
@@ -129,12 +239,13 @@ for entity_domain in entity_domains:
                 state_options = list(value["state"].keys())
                 lang["state_keys"][lang_key] = state_options
 
-# Patch for RSLED auto_[1-7]
+# RSLED sensor.auto_[1-7] are built with a runtime string concat:
+#   translation_key="auto_" + str(auto_id)
+# The AST walker can't statically evaluate the concatenation and therefore
+# does not emit any partial "auto_" key. We add the real 7 keys explicitly.
 for cpt in range(1, 8):
     keys_in_code += ["sensor.auto_" + str(cpt)]
 keys_in_code.sort()
-keys_in_code.remove("sensor.auto_")
-keys_in_code.remove("sensor.auto_")
 ## End of patch
 
 # ---------------------------------------------------------------------------

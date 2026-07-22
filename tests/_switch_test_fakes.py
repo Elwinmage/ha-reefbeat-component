@@ -121,3 +121,53 @@ class FakeRunCoordinator(FakeCoordinator):
             res["identifiers"] = {("redsea", f"{self.serial}_pump_{pump_id}")}
             res["name"] = f"Device pump {pump_id}"
             return res
+
+
+@dataclass
+class _FakeApi:
+    """Minimal `my_api` stub that records http_send calls.
+
+    Each entry in `sent` is `(action, payload, method)` so tests can assert
+    both the endpoint reached (e.g. `/socket/2/toggle`) and the HTTP verb.
+    """
+
+    sent: list[tuple[str, Any, str]] = field(default_factory=list)
+
+    async def http_send(
+        self, action: str, payload: Any = None, method: str = "post"
+    ) -> None:
+        self.sent.append((action, payload, method))
+
+
+@dataclass
+class FakePowerCoordinator(FakeCoordinator):
+    """Fake RSPOWER coordinator with a socket_count and a recording api."""
+
+    socket_count: int = 6
+    my_api: _FakeApi = field(default_factory=_FakeApi)
+    refreshed_all: int = 0
+
+    async def async_request_refresh(  # type: ignore[override]
+        self, source: str | None = None, config: bool = False, wait: int = 2
+    ) -> None:
+        if source is None:
+            self.refreshed_all += 1
+        else:
+            self.refreshed.append(source)
+
+
+@dataclass
+class FakeControlCoordinator(FakeCoordinator):
+    """Fake RSCONTROL coordinator with a port_count and a recording api."""
+
+    port_count: int = 2
+    my_api: _FakeApi = field(default_factory=_FakeApi)
+    refreshed_all: int = 0
+
+    async def async_request_refresh(  # type: ignore[override]
+        self, source: str | None = None, config: bool = False, wait: int = 2
+    ) -> None:
+        if source is None:
+            self.refreshed_all += 1
+        else:
+            self.refreshed.append(source)

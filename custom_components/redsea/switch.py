@@ -57,10 +57,12 @@ from .coordinator import (
     ReefATOCoordinator,
     ReefBeatCloudCoordinator,
     ReefBeatCoordinator,
+    ReefControlCoordinator,
     ReefDoseCoordinator,
     ReefLedCoordinator,
     ReefLedG2Coordinator,
     ReefMatCoordinator,
+    ReefPowerCoordinator,
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
 )
@@ -205,6 +207,36 @@ class ReefCloudSwitchEntityDescription(SwitchEntityDescription):
     icon_off: str = ""
     notify: bool = True
     aquarium: dict = field(default_factory=dict)
+
+
+@dataclass(kw_only=True, frozen=True)
+class ReefPowerSocketSwitchEntityDescription(SwitchEntityDescription):
+    """Description for a per-socket toggle switch on a RSPOWER device.
+
+    The switch backs `POST /socket/{n}/toggle`. Because that endpoint is a
+    firmware-level toggle (it flips whichever state the socket currently
+    holds), the switch has to compare the desired state against the current
+    effective state before firing, so that HA-issued `turn_on`/`turn_off`
+    do not accidentally invert an already-correct state.
+    """
+
+    exists_fn: Callable[[ReefPowerCoordinator], bool] = lambda _: True
+    socket: int = 0  # 1-based socket index as used in the URL path
+    icon_off: str = ""
+
+
+@dataclass(kw_only=True, frozen=True)
+class ReefControlPortSwitchEntityDescription(SwitchEntityDescription):
+    """Description for a per-port toggle switch on a RSCONTROL device.
+
+    Same pattern as sockets: `POST /port/{n}/toggle` is a firmware-level
+    flip, so the entity must reconcile desired vs current state before
+    firing.
+    """
+
+    exists_fn: Callable[[ReefControlCoordinator], bool] = lambda _: True
+    port: int = 0  # 1-based port index as used in the URL path
+    icon_off: str = ""
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -480,6 +512,54 @@ async def async_setup_entry(
         entities.extend(
             ReefRunSwitchEntity(device, description)
             for description in run_descs
+            if description.exists_fn(device)
+        )
+
+    elif isinstance(device, ReefPowerCoordinator):
+        # Per-socket toggle switch — one per AC socket.
+        # Endpoint: `POST /socket/{n}/toggle`; `n` is the 0-based socket
+        # index (RSPOWER6 exposes 0..5, RSPOWER8 exposes 0..7). The array
+        # index in /dashboard.sockets[] uses the same 0-based scheme.
+        # The user-facing display uses n+1 to match the existing sensor /
+        # binary_sensor convention in this integration.
+        socket_descs: list[ReefPowerSocketSwitchEntityDescription] = []
+        for socket_idx in range(device.socket_count):
+            socket_descs.append(
+                ReefPowerSocketSwitchEntityDescription(
+                    key=f"socket_{socket_idx}_on_off",
+                    translation_key="socket_on_off",
+                    translation_placeholders={"socket": str(socket_idx + 1)},
+                    icon="mdi:power-plug",
+                    icon_off="mdi:power-plug-off",
+                    socket=socket_idx,
+                )
+            )
+        entities.extend(
+            ReefPowerSocketSwitchEntity(device, description)
+            for description in socket_descs
+            if description.exists_fn(device)
+        )
+
+    elif isinstance(device, ReefControlCoordinator):
+        # Per-port toggle switch — one per 12V DC port.
+        # Endpoint: `POST /port/{n}/toggle`; `n` is the 0-based port index
+        # (RSCONTROLLITE exposes 0, RSCONTROLPRO exposes 0..1). The array
+        # index in /dashboard.ports[] uses the same 0-based scheme.
+        port_descs: list[ReefControlPortSwitchEntityDescription] = []
+        for port_idx in range(device.port_count):
+            port_descs.append(
+                ReefControlPortSwitchEntityDescription(
+                    key=f"port_{port_idx}_on_off",
+                    translation_key="port_on_off",
+                    translation_placeholders={"port": str(port_idx + 1)},
+                    icon="mdi:electric-switch-closed",
+                    icon_off="mdi:electric-switch",
+                    port=port_idx,
+                )
+            )
+        entities.extend(
+            ReefControlPortSwitchEntity(device, description)
+            for description in port_descs
             if description.exists_fn(device)
         )
 
@@ -912,6 +992,252 @@ class ReefRunSwitchEntity(ReefBeatSwitchEntity):
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the pump identifier."""
         return cast(ReefRunCoordinator, self._device).pump_device_info(self._pump)
+
+
+# -----------------------------------------------------------------------------
+# Shared derivation helper for socket / port state
+# -----------------------------------------------------------------------------
+
+
+# Manual override modes: firmware reports state="unknown" in these modes and
+# the effective on/off answer is carried by `mode` itself.
+_MANUAL_OVERRIDE_MODES: frozenset[str] = frozenset({"on", "off"})
+
+
+def _effective_state_is_on(mode: Any, state: Any) -> bool | None:
+    """Return the effective on/off state for a RSPOWER socket or RSCONTROL port.
+
+    Mirrors ``_effective_socket_state`` in ``sensor.py`` but returns a bool
+    suitable for a switch's ``_attr_is_on``:
+
+        - mode == "on"                            -> True
+        - mode == "off"                           -> False
+        - state == "on"                           -> True
+        - state == "standby" | any other string   -> False
+        - both unknown                            -> None (leave as-is)
+    """
+    if isinstance(mode, str) and mode in _MANUAL_OVERRIDE_MODES:
+        return mode == "on"
+    if isinstance(state, str):
+        return state == "on"
+    return None
+
+
+# REEFPOWER — per-socket toggle
+class ReefPowerSocketSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """Toggle a single AC socket on a RSPOWER device.
+
+    Backing endpoint: ``POST /socket/{n}/toggle`` with an empty JSON body.
+    That endpoint flips whichever state the socket currently holds, so the
+    entity guards the call with a desired-vs-effective comparison to avoid
+    inverting an already-correct state.
+    """
+
+    _attr_has_entity_name = True
+
+    @staticmethod
+    def _restore_is_on(state: str) -> bool:
+        return state == "on"
+
+    def __init__(
+        self,
+        device: ReefPowerCoordinator,
+        entity_description: ReefPowerSocketSwitchEntityDescription,
+    ) -> None:
+        ReefBeatRestoreEntity.__init__(
+            self,
+            device,
+            restore=RestoreSpec("_attr_is_on", self._restore_is_on),
+        )
+        self._device: ReefPowerCoordinator = device
+        self._desc: ReefPowerSocketSwitchEntityDescription = entity_description
+        self.entity_description = cast(SwitchEntityDescription, entity_description)
+        self._socket: int = entity_description.socket
+
+        self._attr_available = False
+        self._attr_unique_id = f"{device.serial}_{entity_description.key}"
+        self._attr_is_on = False
+
+        # Both the URL path and the sockets[] array use the same 0-based
+        # index — RSPOWER6 numbers sockets 0..5, RSPOWER8 numbers them 0..7.
+        base = f"$.sources[?(@.name=='/dashboard')].data.sockets[{self._socket}]"
+        self._mode_path = f"{base}.mode"
+        self._state_path = f"{base}.state"
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            if self._attr_is_on is None or not self._attr_available:
+                self._attr_is_on = last_state.state == "on"
+                self._attr_available = True
+                self.async_write_ha_state()
+
+        self._handle_coordinator_update()
+        self.async_write_ha_state()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._attr_available = True
+        effective = _effective_state_is_on(
+            self._device.get_data(self._mode_path, is_None_possible=True),
+            self._device.get_data(self._state_path, is_None_possible=True),
+        )
+        if effective is not None:
+            self._attr_is_on = effective
+        self._set_icon()
+        super()._handle_coordinator_update()
+
+    def _set_icon(self) -> None:
+        if self._attr_is_on:
+            self._attr_icon = self._desc.icon
+        elif self._desc.icon_off:
+            self._attr_icon = self._desc.icon_off
+
+    async def _send_toggle(self) -> None:
+        # `POST /socket/{n}/toggle` with `{}` is a firmware flip.
+        await self._device.my_api.http_send(
+            f"/socket/{self._socket}/toggle", payload={}, method="post"
+        )
+        await self._device.async_request_refresh()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        current = _effective_state_is_on(
+            self._device.get_data(self._mode_path, is_None_possible=True),
+            self._device.get_data(self._state_path, is_None_possible=True),
+        )
+        # Optimistic update for immediate UI feedback.
+        self._attr_is_on = True
+        self._set_icon()
+        self.async_write_ha_state()
+
+        # Only toggle if we would actually change the state, so a redundant
+        # turn_on from an automation does not accidentally flip a socket
+        # that is already on.
+        if current is not True:
+            await self._send_toggle()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        current = _effective_state_is_on(
+            self._device.get_data(self._mode_path, is_None_possible=True),
+            self._device.get_data(self._state_path, is_None_possible=True),
+        )
+        self._attr_is_on = False
+        self._set_icon()
+        self.async_write_ha_state()
+
+        if current is not False:
+            await self._send_toggle()
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
+    def device_info(self) -> DeviceInfo:
+        return self._device.device_info
+
+
+# REEFCONTROL — per-port toggle
+class ReefControlPortSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """Toggle a single 12V DC port on a RSCONTROL device.
+
+    Backing endpoint: ``POST /port/{n}/toggle``. Same firmware-flip semantics
+    as sockets — see :class:`ReefPowerSocketSwitchEntity` for the rationale.
+    """
+
+    _attr_has_entity_name = True
+
+    @staticmethod
+    def _restore_is_on(state: str) -> bool:
+        return state == "on"
+
+    def __init__(
+        self,
+        device: ReefControlCoordinator,
+        entity_description: ReefControlPortSwitchEntityDescription,
+    ) -> None:
+        ReefBeatRestoreEntity.__init__(
+            self,
+            device,
+            restore=RestoreSpec("_attr_is_on", self._restore_is_on),
+        )
+        self._device: ReefControlCoordinator = device
+        self._desc: ReefControlPortSwitchEntityDescription = entity_description
+        self.entity_description = cast(SwitchEntityDescription, entity_description)
+        self._port: int = entity_description.port
+
+        self._attr_available = False
+        self._attr_unique_id = f"{device.serial}_{entity_description.key}"
+        self._attr_is_on = False
+
+        # Both the URL path and the ports[] array use the same 0-based index —
+        # RSCONTROLLITE numbers its port 0, RSCONTROLPRO numbers them 0..1.
+        base = f"$.sources[?(@.name=='/dashboard')].data.ports[{self._port}]"
+        self._mode_path = f"{base}.mode"
+        self._state_path = f"{base}.state"
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            if self._attr_is_on is None or not self._attr_available:
+                self._attr_is_on = last_state.state == "on"
+                self._attr_available = True
+                self.async_write_ha_state()
+
+        self._handle_coordinator_update()
+        self.async_write_ha_state()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._attr_available = True
+        effective = _effective_state_is_on(
+            self._device.get_data(self._mode_path, is_None_possible=True),
+            self._device.get_data(self._state_path, is_None_possible=True),
+        )
+        if effective is not None:
+            self._attr_is_on = effective
+        self._set_icon()
+        super()._handle_coordinator_update()
+
+    def _set_icon(self) -> None:
+        if self._attr_is_on:
+            self._attr_icon = self._desc.icon
+        elif self._desc.icon_off:
+            self._attr_icon = self._desc.icon_off
+
+    async def _send_toggle(self) -> None:
+        await self._device.my_api.http_send(
+            f"/port/{self._port}/toggle", payload={}, method="post"
+        )
+        await self._device.async_request_refresh()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        current = _effective_state_is_on(
+            self._device.get_data(self._mode_path, is_None_possible=True),
+            self._device.get_data(self._state_path, is_None_possible=True),
+        )
+        self._attr_is_on = True
+        self._set_icon()
+        self.async_write_ha_state()
+
+        if current is not True:
+            await self._send_toggle()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        current = _effective_state_is_on(
+            self._device.get_data(self._mode_path, is_None_possible=True),
+            self._device.get_data(self._state_path, is_None_possible=True),
+        )
+        self._attr_is_on = False
+        self._set_icon()
+        self.async_write_ha_state()
+
+        if current is not False:
+            await self._send_toggle()
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
+    def device_info(self) -> DeviceInfo:
+        return self._device.device_info
 
 
 # REEFCLOUD
