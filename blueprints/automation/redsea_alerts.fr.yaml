@@ -1,0 +1,688 @@
+# Version française de redsea_alerts.en.yaml (structure identique).
+#
+# Version: 0.2.6
+# Changelog:
+#   0.2.6 - Vérification des délais d'étalonnage des capteurs : pour RSRUN
+#           skimmers, si des entités number.* suivent les intervalles
+#           fullcup/overskimming, vérifie si now > last_calibration + interval_weeks
+#           et alerte en conséquence.
+#   0.2.5 - Nouveau paramètre `off_grace_minutes` : un état "off" n'est signalé
+#           que si l'appareil reste off plus longtemps que ce délai. Permet d'éviter
+#           les fausses alertes lors d'un cycle d'alimentation (RSWAVE off 2 min)
+#           ou d'une intervention manuelle brève.
+#   0.2.4 - La détection d'anomalie de mode couvre maintenant aussi RSDOSE/RSRUN/
+#           RSMAT/RSATO/RSWAVE : ces appareils exposent le mode comme
+#           `sensor.*_mode` (lecture seule), pas `select.*_mode` comme RSLED.
+#   0.2.3 - Correction résolution slug notify mobile_app : utilise
+#           `device_attr(d, 'name')` au lieu de `name_by_user`.
+#   0.2.2 - Correction TypeError lors de la soustraction des timestamps
+#           de calibration : utilise `as_timestamp()` des deux côtés.
+#   0.2.1 - Append sandbox-safe : remplace `ns.items.append(...)` par
+#           `ns.items = ns.items + [...]`.
+#   0.2.0 - Cible de notification changée en multi-device selector (mobile_app).
+#           Input `channel` optionnel. Détection maintenance overdue
+#           (button.* avec reef_role commençant par "maint_") et exclusions
+#           par appareil.
+#   0.1.0 - Version initiale.
+
+blueprint:
+  name: Surveillance ReefBeat (redsea) — v0.2.6
+  description: >
+    **Version 0.2.6** — Notifications pour les appareils ReefBeat de l'intégration
+    `redsea`.
+
+
+    Surveille automatiquement **tous** les appareils de l'intégration
+    (RSLED, RSDOSE, RSRUN, RSMAT, RSATO, RSWAVE) et leurs sous-appareils
+    (têtes RSDOSE, pompes RSRUN). L'ajout ou la suppression d'un appareil
+    est détecté au cycle suivant.
+
+
+    **Conditions surveillées (chacune peut être basculée, avec exclusions
+    par appareil) :**
+
+
+    - Mode anormal (en dehors de la liste des modes attendus)
+
+    - Étalonnage expiré (RSDOSE : 4 têtes ; RSRUN : skim + gobelet)
+
+    - Délai d'étalonnage capteur (RSRUN skimmers : fullcup et overskimming)
+
+    - Message d'alerte reçu
+
+    - Batterie faible (RSLED, RSDOSE, RSRUN)
+
+    - Appareil inaccessible (toutes les entités "unavailable")
+
+
+    **Variables dans vos actions de notification :** `{{ title }}`,
+    `{{ message }}`, `{{ alert_type }}`, `{{ device_name }}`, `{{ model }}`.
+
+
+    **Identification des entités :** si l'intégration expose l'attribut
+    `reef_role` (mixin `ReefRoleMixin`), il est utilisé en priorité — robuste,
+    indépendant de la langue. Sinon, fallback automatique sur les suffixes
+    d'entity_id (FR/EN).
+
+
+    **Cascade d'exclusion :** exclure un appareil parent exclut aussi
+    ses sous-appareils (ex. exclure "Doseur 1" exclut aussi ses 4 têtes).
+  domain: automation
+  source_url: https://github.com/Elwinmage/ha-reefbeat-component
+  input:
+    notify_section:
+      name: Cibles de notification
+      icon: mdi:bell-outline
+      input:
+        notify_devices:
+          name: Appareils mobiles à notifier
+          description: >
+            Sélectionnez le(s) appareil(s) qui recevront les notifications.
+            Seuls les téléphones/tablettes enregistrés via l'appli Home
+            Assistant Companion sont listés. Une notification par appareil ;
+            une balise unique par (appareil, type_alerte) est ajoutée pour
+            que les nouvelles notifications remplacent les anciennes.
+          selector:
+            device:
+              integration: mobile_app
+              multiple: true
+        notify_channel:
+          name: Canal Android (optionnel)
+          description: >
+            Nom du canal passé dans `data.channel`. Permet de grouper les
+            notifications ReefBeat et d'appliquer son/priorité depuis l'appli HA.
+            Laisser vide pour le canal par défaut. iOS ignore ce champ.
+          default: "ReefBeat"
+          selector:
+            text:
+
+    mode_section:
+      name: Mode anormal
+      icon: mdi:auto-mode
+      input:
+        notify_mode:
+          name: Activer
+          default: true
+          selector: {boolean: {}}
+        mode_exclude:
+          name: Exclure ces appareils
+          description: Pas de notification "mode" pour ces appareils (et sous-appareils).
+          default: []
+          selector:
+            device:
+              integration: redsea
+              multiple: true
+
+    calibration_section:
+      name: Étalonnage expiré
+      icon: mdi:calendar-clock
+      input:
+        notify_calibration:
+          name: Activer
+          description: >
+            Vérifie l'étalonnage expiré pour :
+
+            • **RSDOSE** : vérifie chaque tête individuellement en utilisant
+              l'intervalle unique `number.rsdose_*_dose_heads_calibration_interval`
+
+            • **RSRUN** : vérifie chaque pompe skimmer individuellement en utilisant
+              ses intervals configurables `number.*_calibration_interval`
+          default: true
+          selector: {boolean: {}}
+        calibration_exclude:
+          name: Exclure ces appareils
+          description: Pas de notification "calibration" pour ces appareils.
+          default: []
+          selector:
+            device:
+              integration: redsea
+              multiple: true
+
+    sensor_calib_section:
+      name: Délai d'étalonnage capteur (RSRUN)
+      icon: mdi:water-check
+      input:
+        notify_sensor_calibration:
+          name: Activer
+          description: >
+            Vérifie les senseurs du skimmer RSRUN (fullcup/overskimming)
+            pour les délais de recalibration. Nécessite que les entités
+            d'intervalle soient actives.
+          default: true
+          selector: {boolean: {}}
+        sensor_calib_exclude:
+          name: Exclure ces appareils
+          description: Pas de notification "calibration capteur" pour ces appareils.
+          default: []
+          selector:
+            device:
+              integration: redsea
+              multiple: true
+
+    rsdose_calib_section:
+      name: Étalonnage des têtes RSDOSE
+      icon: mdi:water-check
+      input:
+        notify_rsdose_calibration:
+          name: Activer
+          description: >
+            Vérifie chaque tête RSDOSE individuellement en utilisant
+            l'intervalle unique `number.rsdose_*_dose_heads_calibration_interval`.
+          default: true
+          selector: {boolean: {}}
+        rsdose_calib_exclude:
+          name: Exclure ces appareils
+          description: Pas de notification "calibration RSDOSE" pour ces appareils.
+          default: []
+          selector:
+            device:
+              integration: redsea
+              multiple: true
+
+    alert_message_section:
+      name: Message d'alerte appareil
+      icon: mdi:alert
+      input:
+        notify_alert_message:
+          name: Activer
+          default: true
+          selector: {boolean: {}}
+        alert_message_exclude:
+          name: Exclure ces appareils
+          default: []
+          selector:
+            device:
+              integration: redsea
+              multiple: true
+
+    battery_section:
+      name: Batterie faible
+      icon: mdi:battery-alert
+      input:
+        notify_battery:
+          name: Activer
+          default: true
+          selector: {boolean: {}}
+        battery_exclude:
+          name: Exclure ces appareils
+          default: []
+          selector:
+            device:
+              integration: redsea
+              multiple: true
+
+    unavailable_section:
+      name: Appareil inaccessible
+      icon: mdi:lan-disconnect
+      input:
+        notify_unavailable:
+          name: Activer
+          default: true
+          selector: {boolean: {}}
+        unavailable_exclude:
+          name: Exclure ces appareils
+          default: []
+          selector:
+            device:
+              integration: redsea
+              multiple: true
+
+    maintenance_section:
+      name: Maintenance expirée
+      icon: mdi:wrench-clock
+      input:
+        notify_maintenance:
+          name: Activer
+          description: >
+            Surveille les entités button.* avec reef_role commençant par
+            "maint_" et se déclenche quand days_left < 0 (expiré).
+          default: true
+          selector: {boolean: {}}
+        maintenance_exclude:
+          name: Exclure ces appareils
+          default: []
+          selector:
+            device:
+              integration: redsea
+              multiple: true
+
+trigger:
+  - platform: time_pattern
+    minutes: "/5"
+
+variables:
+  notify_mode: !input notify_mode
+  notify_calibration: !input notify_calibration
+  notify_sensor_calibration: !input notify_sensor_calibration
+  notify_rsdose_calibration: !input notify_rsdose_calibration
+  notify_alert_message: !input notify_alert_message
+  notify_battery: !input notify_battery
+  notify_unavailable: !input notify_unavailable
+  notify_maintenance: !input notify_maintenance
+  notify_devices: !input notify_devices
+  notify_channel: !input notify_channel
+  mode_exclude: !input mode_exclude
+  calibration_exclude: !input calibration_exclude
+  sensor_calib_exclude: !input sensor_calib_exclude
+  rsdose_calib_exclude: !input rsdose_calib_exclude
+  alert_message_exclude: !input alert_message_exclude
+  battery_exclude: !input battery_exclude
+  unavailable_exclude: !input unavailable_exclude
+  maintenance_exclude: !input maintenance_exclude
+  # (calibration_max_days removed - each device now has its own interval)
+  # Préfixes de rôle ReefBeat (standards)
+  role_mode: "mode"
+  role_alert_message: "alert_message"
+  role_battery: "battery"
+  role_calibration: "last_calibration"
+  roles_calibration: "last_calibration,skim_last_calibration,cup_last_calibration"
+  role_maintenance_prefix: "maint_"
+  # Fallbacks de suffixes d'entité (EN/FR) pour instances sans rôle
+  mode_suffixes: "_mode"
+  alert_message_suffixes: "_alerte_message,_alert_message"
+  battery_suffixes: "_batterie_faible,_low_battery"
+  calibration_suffixes: "_derniere_calibration,_ecumage,_gobelet,_last_calibration,_skim_last_calibration,_cup_last_calibration"
+
+action:
+  - variables:
+      ns:
+        items: []
+        dev_ents: {}
+      # Helper commun de correspondance de rôle
+      def_role_or_suffix: |
+        {%- macro role_or_suffix(entity, role, suffixes_str) -%}
+          {%- set attr_role = state_attr(entity, 'reef_role') or '' -%}
+          {%- if attr_role.startswith(role) -%}
+            True
+          {%- else -%}
+            {%- set suf_list = suffixes_str.split(',') -%}
+            {%- for suf in suf_list -%}
+              {%- if entity.endswith(suf) -%}
+                True
+              {%- endif -%}
+            {%- endfor -%}
+            False
+          {%- endif -%}
+        {%- endmacro -%}
+        {{ role_or_suffix }}
+      def_expected_modes_led: |
+        {%- macro expected_modes_led() -%}
+          ["auto", "timer", "manual"]
+        {%- endmacro -%}
+        {{ expected_modes_led() }}
+      def_expected_modes_common: |
+        {%- macro expected_modes_common() -%}
+          ["on"]
+        {%- endmacro -%}
+        {{ expected_modes_common() }}
+      def_is_excluded: |
+        {%- macro is_excluded(device_id, exclude_list) -%}
+          {%- if device_id in exclude_list -%}
+            True
+          {%- else -%}
+            {%- set parent = device_attr(device_id, 'via_device_id') -%}
+            {%- if parent and parent in exclude_list -%}
+              True
+            {%- else -%}
+              False
+            {%- endif -%}
+          {%- endif -%}
+        {%- endmacro -%}
+        {{ is_excluded }}
+      off_grace_minutes: 5
+      expected_modes_led: ["auto", "timer", "manual"]
+      expected_modes_common: ["on"]
+
+  - alias: "Collecter tous les entités des appareils redsea"
+    variables:
+      ents: >
+        {%- set res = [] -%}
+        {%- for d in device_entities('redsea') -%}
+          {%- set res = res + [d] -%}
+        {%- endfor -%}
+        {{ res }}
+
+  - alias: "Construire la liste des alertes"
+    variables:
+      alerts: >
+        {%- macro role_or_suffix(entity, role, suffixes_str) -%}
+          {%- set attr_role = state_attr(entity, 'reef_role') or '' -%}
+          {%- if attr_role.startswith(role) -%}
+            True
+          {%- else -%}
+            {%- set suf_list = suffixes_str.split(',') -%}
+            {%- for suf in suf_list -%}
+              {%- if entity.endswith(suf) -%}
+                True
+              {%- endif -%}
+            {%- endfor -%}
+            False
+          {%- endif -%}
+        {%- endmacro -%}
+
+        {%- macro is_excluded(device_id, exclude_list) -%}
+          {%- if device_id in exclude_list -%}
+            True
+          {%- else -%}
+            {%- set parent = device_attr(device_id, 'via_device_id') -%}
+            {%- if parent and parent in exclude_list -%}
+              True
+            {%- else -%}
+              False
+            {%- endif -%}
+          {%- endif -%}
+        {%- endmacro -%}
+
+        {%- set ns = namespace(items=[]) -%}
+        {%- set ns.dev_ents = {} -%}
+
+        {#- Grouper les entités par appareil : utilisé pour détecter les inaccessibles. -#}
+        {%- for e in ents -%}
+          {%- set d = device_id(e) -%}
+          {%- if d -%}
+            {%- set lst = ns.dev_ents.get(d, []) + [e] -%}
+            {%- set ns.dev_ents = dict(ns.dev_ents, **{d: lst}) -%}
+          {%- endif -%}
+        {%- endfor -%}
+
+        {#- 1) Appareils inaccessibles : toutes les entités unavailable. -#}
+        {%- if notify_unavailable -%}
+          {%- for d, dents in ns.dev_ents.items() -%}
+            {%- if is_excluded(d, unavailable_exclude) | trim != 'True' -%}
+              {%- set total = dents | count -%}
+              {%- set unav = dents | select('is_state', 'unavailable') | list | count -%}
+              {%- if total > 0 and unav == total -%}
+                {%- set ns.items = ns.items + [{
+                  'type': 'unreachable',
+                  'device': device_attr(d, 'name_by_user') or device_attr(d, 'name') or d,
+                  'model': device_attr(d, 'model') or '',
+                  'message': 'Appareil inaccessible',
+                }] -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
+
+        {#- 2) Vérifications par entité. -#}
+        {%- for e in ents -%}
+          {%- set s = states(e) -%}
+          {%- set d = device_id(e) -%}
+          {%- set dname = (d and (device_attr(d, 'name_by_user') or device_attr(d, 'name'))) or e -%}
+          {%- set model = (d and device_attr(d, 'model')) or '' -%}
+
+          {%- if s not in ['unavailable', 'unknown', 'none', 'None', '', None] -%}
+
+            {#- Anomalie de mode. RSLED expose son mode comme `select.*_mode`
+                (réglable par l'utilisateur). Tous les autres appareils (RSDOSE,
+                RSRUN, RSMAT, RSATO, RSWAVE) l'exposent comme `sensor.*_mode`
+                (lecture seule). Correspond aux deux préfixes. -#}
+            {%- if notify_mode
+                   and (e.startswith('select.') or e.startswith('sensor.'))
+                   and role_or_suffix(e, role_mode, mode_suffixes) | trim == 'True'
+                   and is_excluded(d, mode_exclude) | trim != 'True' -%}
+              {%- set expected = expected_modes_led if model.startswith('RSLED') else expected_modes_common -%}
+              {%- if s not in expected -%}
+                {#- Période de grâce : un état "off" n'est alerte que si
+                    l'appareil reste off plus longtemps que off_grace_minutes.
+                    Les autres modes inattendus (blocage, unknown...) alertent
+                    immédiatement. -#}
+                {%- set off_grace_s = (off_grace_minutes | int(0)) * 60 -%}
+                {%- set last_change = states[e].last_changed if states[e] is not none else none -%}
+                {%- set elapsed = (as_timestamp(now()) - as_timestamp(last_change)) if last_change else 0 -%}
+                {%- set skip_due_to_grace = (s == 'off') and (off_grace_s > 0) and (elapsed < off_grace_s) -%}
+                {%- if not skip_due_to_grace -%}
+                  {%- set ns.items = ns.items + [{
+                    'type': 'mode',
+                    'device': dname,
+                    'model': model,
+                    'message': 'Mode inattendu : ' ~ s,
+                  }] -%}
+                {%- endif -%}
+              {%- endif -%}
+            {%- endif -%}
+
+            {#- Message d'alerte. -#}
+            {%- if notify_alert_message
+                   and e.startswith('sensor.')
+                   and role_or_suffix(e, role_alert_message, alert_message_suffixes) | trim == 'True'
+                   and is_excluded(d, alert_message_exclude) | trim != 'True' -%}
+              {%- set ns.items = ns.items + [{
+                'type': 'alert_message',
+                'device': dname,
+                'model': model,
+                'message': 'Message d\'alerte : ' ~ s,
+              }] -%}
+            {%- endif -%}
+
+            {#- Batterie faible : binary_sensor.battery, état "on" = faible. -#}
+            {%- if notify_battery
+                   and e.startswith('binary_sensor.')
+                   and s == 'on'
+                   and role_or_suffix(e, role_battery, battery_suffixes) | trim == 'True'
+                   and is_excluded(d, battery_exclude) | trim != 'True' -%}
+              {%- set ns.items = ns.items + [{
+                'type': 'battery',
+                'device': dname,
+                'model': model,
+                'message': 'Batterie faible',
+              }] -%}
+            {%- endif -%}
+
+            {#- Délai d'étalonnage capteur : vérifie RSRUN skimmers pour
+                les entités number des intervalles de calibration
+                fullcup/overskimming. -#}
+            {%- if notify_sensor_calibration
+                   and e.startswith('sensor.')
+                   and is_excluded(d, sensor_calib_exclude) | trim != 'True' -%}
+              {%- set r = state_attr(e, 'reef_role') or '' -%}
+              {%- if (r == 'skim_last_calibration'
+                      or e.endswith('_derniere_calibration_ecumage')
+                      or e.endswith('_skim_last_calibration')) -%}
+                {%- set dt = as_datetime(s) -%}
+                {%- if dt -%}
+                  {#- Extrait le numéro de pompe de l'entity_id
+                      (ex. pump_1 du nom d'entité) -#}
+                  {%- set pump_match = e | regex_findall_index('pump_(\d+)') -%}
+                  {%- if pump_match is string -%}
+                    {%- set pump_id = pump_match -%}
+                  {%- else -%}
+                    {%- set pump_id = None -%}
+                  {%- endif -%}
+
+                  {#- Trouve l'entité number correspondante pour l'intervalle -#}
+                  {%- set sensor_type = 'fullcup' -%}
+                  {%- set interval_entity_patterns = [
+                        'number.run_skim_fullcup_calibration_interval',
+                        'number.*pump_' ~ pump_id ~ '*fullcup*interval',
+                        'number.*fullcup*calibration*interval'
+                      ] -%}
+
+                  {%- for pattern in interval_entity_patterns -%}
+                    {%- if pattern == 'number.run_skim_fullcup_calibration_interval' -%}
+                      {%- set interval_val = state_attr(pattern, 'native_value') or state_attr(pattern, 'value') -%}
+                      {%- if interval_val is number -%}
+                        {%- set days_interval = (interval_val | int) * 7 -%}
+                        {%- set days = ((as_timestamp(now()) - as_timestamp(dt)) / 86400) | int -%}
+                        {%- if days >= days_interval -%}
+                          {%- set ns.items = ns.items + [{
+                            'type': 'sensor_calibration',
+                            'device': dname,
+                            'model': model,
+                            'message': 'Recalibrer le capteur fullcup : ' ~ days ~ ' jours depuis la dernière étalonnage',
+                          }] -%}
+                        {%- endif -%}
+                        {%- break -%}
+                      {%- endif -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endif -%}
+              {%- elif (r == 'cup_last_calibration'
+                        or e.endswith('_derniere_calibration_gobelet')
+                        or e.endswith('_cup_last_calibration')) -%}
+                {%- set dt = as_datetime(s) -%}
+                {%- if dt -%}
+                  {%- set pump_match = e | regex_findall_index('pump_(\d+)') -%}
+                  {%- if pump_match is string -%}
+                    {%- set pump_id = pump_match -%}
+                  {%- else -%}
+                    {%- set pump_id = None -%}
+                  {%- endif -%}
+
+                  {%- set sensor_type = 'overskimming' -%}
+                  {%- set interval_entity_patterns = [
+                        'number.run_skim_overskimming_calibration_interval',
+                        'number.*pump_' ~ pump_id ~ '*overskimming*interval',
+                        'number.*overskimming*calibration*interval'
+                      ] -%}
+
+                  {%- for pattern in interval_entity_patterns -%}
+                    {%- if pattern == 'number.run_skim_overskimming_calibration_interval' -%}
+                      {%- set interval_val = state_attr(pattern, 'native_value') or state_attr(pattern, 'value') -%}
+                      {%- if interval_val is number -%}
+                        {%- set days_interval = (interval_val | int) * 7 -%}
+                        {%- set days = ((as_timestamp(now()) - as_timestamp(dt)) / 86400) | int -%}
+                        {%- if days >= days_interval -%}
+                          {%- set ns.items = ns.items + [{
+                            'type': 'sensor_calibration',
+                            'device': dname,
+                            'model': model,
+                            'message': 'Recalibrer le capteur overskimming : ' ~ days ~ ' jours depuis la dernière étalonnage',
+                          }] -%}
+                        {%- endif -%}
+                        {%- break -%}
+                      {%- endif -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endif -%}
+              {%- endif -%}
+            {%- endif -%}
+
+            {#- Étalonnage RSDOSE : vérifie chaque tête individuellement
+                en utilisant l'intervalle unique au niveau du device.
+                Cherche sensor.*_derniere_calibration_* avec un parent RSDOSE -#}
+            {%- if notify_rsdose_calibration
+                   and e.startswith('sensor.')
+                   and is_excluded(d, rsdose_calib_exclude) | trim != 'True' -%}
+              {%- if ('derniere_calibration' in e and '_tete' in e)
+                      or ('derniere_calibration' in e and '_head' in e)
+                      or (e.endswith('_derniere_calibration_1') or e.endswith('_derniere_calibration_2')
+                          or e.endswith('_derniere_calibration_3') or e.endswith('_derniere_calibration_4'))
+                      or (e.endswith('_last_calibration_1') or e.endswith('_last_calibration_2')
+                          or e.endswith('_last_calibration_3') or e.endswith('_last_calibration_4')) -%}
+                {%- set s_val = states(e) -%}
+                {%- if s_val not in ['unavailable', 'unknown', 'none', None, ''] -%}
+                  {%- set dt = as_datetime(s_val) -%}
+                  {%- if dt -%}
+                    {#- Extrait le numéro de tête (1-4) -#}
+                    {%- set head_num = e | regex_findall_index('_(\d)$') -%}
+                    {%- if head_num is string -%}
+                      {%- set head_id = head_num -%}
+                    {%- else -%}
+                      {%- set head_id = 'unknown' -%}
+                    {%- endif -%}
+
+                    {#- Cherche l'intervalle au niveau du device RSDOSE -#}
+                    {%- set parent_dev = device_attr(d, 'parent_device_id') or d -%}
+                    {%- set parent_name = device_attr(parent_dev, 'name_by_user') or device_attr(parent_dev, 'name') or '' -%}
+                    {%- set serial = device_attr(parent_dev, 'serial_number') or device_attr(parent_dev, 'identifiers') | string -%}
+
+                    {#- Cherche les patterns possibles de l'intervalle -#}
+                    {%- set interval_val = None -%}
+                    {%- if states.number is defined -%}
+                      {%- for ent_id in states.number -%}
+                        {%- if 'dose_heads_calibration_interval' in ent_id
+                                and ('rsdose' in ent_id | lower or parent_dev in (device_id(ent_id) or '')) -%}
+                          {%- set iv = state_attr(ent_id, 'native_value') or state_attr(ent_id, 'value') -%}
+                          {%- if iv is number -%}
+                            {%- set interval_val = iv -%}
+                            {%- break -%}
+                          {%- endif -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                    {%- endif -%}
+
+                    {#- Si intervalle trouvé, vérifier la calibration -#}
+                    {%- if interval_val is number -%}
+                      {%- set days_interval = (interval_val | int) * 7 -%}
+                      {%- set days = ((as_timestamp(now()) - as_timestamp(dt)) / 86400) | int -%}
+                      {%- if days >= days_interval -%}
+                        {%- set ns.items = ns.items + [{
+                          'type': 'rsdose_calibration',
+                          'device': dname,
+                          'model': model,
+                          'message': 'Étalonnage tête ' ~ head_id ~ ' en retard : ' ~ days ~ ' jours depuis la dernière calibration',
+                        }] -%}
+                      {%- endif -%}
+                    {%- endif -%}
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endif -%}
+            {%- endif -%}
+
+            {#- Maintenance expirée : button.* avec reef_role commençant par
+                "maint_" et un attribut `days_left` négatif. Le bouton est la
+                source unique de vérité (voir MaintenanceButtonEntity). -#}
+            {%- if notify_maintenance
+                   and e.startswith('button.')
+                   and (state_attr(e, 'reef_role') or '').startswith('maint_')
+                   and is_excluded(d, maintenance_exclude) | trim != 'True' -%}
+              {%- set dl = state_attr(e, 'days_left') -%}
+              {%- if dl is number and dl < 0 -%}
+                {%- set ns.items = ns.items + [{
+                  'type': 'maintenance',
+                  'device': dname,
+                  'model': model,
+                  'message': 'Maintenance expirée de ' ~ (-dl) ~ ' jours : ' ~ (state_attr(e, 'friendly_name') or e),
+                }] -%}
+              {%- endif -%}
+            {%- endif -%}
+
+          {%- endif -%}
+        {%- endfor -%}
+
+        {{ ns.items }}
+
+  - alias: "Notifier pour chaque alerte"
+    if:
+      - "{{ alerts | length > 0 }}"
+    then:
+      - repeat:
+          for_each: "{{ alerts }}"
+          sequence:
+            - variables:
+                alert_type: "{{ repeat.item.type }}"
+                device_name: "{{ repeat.item.device }}"
+                model: "{{ repeat.item.model }}"
+                title: "ReefBeat — {{ repeat.item.device }}"
+                message: "{{ repeat.item.message }}"
+                # Balise unique par (appareil, type_alerte) pour que les
+                # notifications se remplacent au lieu de s'empiler.
+                notif_tag: "redsea_{{ repeat.item.device }}_{{ repeat.item.type }}"
+            - alias: "Distribuer à chaque appareil mobile sélectionné"
+              repeat:
+                for_each: "{{ notify_devices }}"
+                sequence:
+                  - variables:
+                      # Résout le device_id sélectionné dans l'UI en le service
+                      # `notify.mobile_app_<slug>` enregistré par l'appli
+                      # HA Companion.
+                      #
+                      # IMPORTANT : on utilise `name` (le nom d'appareil tel que
+                      # rapporté par le OS au moment de l'enregistrement) et NON
+                      # `name_by_user` (un changement d'UI seulement). Le service
+                      # notify est gelé à l'installation et ignore les
+                      # renommages utilisateur ultérieurs.
+                      mobile_slug: >-
+                        {{ (device_attr(repeat.item, 'name')
+                            or repeat.item) | slugify }}
+                  - service: "notify.mobile_app_{{ mobile_slug }}"
+                    data:
+                      title: "{{ title }}"
+                      message: "{{ message }}"
+                      data: >-
+                        {{
+                          {
+                            'tag': notif_tag,
+                            'channel': notify_channel
+                          } if notify_channel else {'tag': notif_tag}
+                        }}

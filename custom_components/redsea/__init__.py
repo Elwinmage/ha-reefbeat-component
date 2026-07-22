@@ -61,6 +61,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
+from .maintenance import MaintenanceStore, register_led_tasks
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -171,6 +172,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.exception("Failed to setup coordinator for entry_id=%s", entry.entry_id)
         return False
 
+    # Per-entry persistent storage for user-driven maintenance tasks.
+    # Loaded eagerly so platforms read fully-populated state at setup time.
+    maintenance_store = MaintenanceStore(hass, entry.entry_id)
+    await maintenance_store.async_load()
+    # Attach to the coordinator so platforms find it without going through
+    # hass.data again; also keeps the lifecycle tied to the entry.
+    coordinator.maintenance = maintenance_store  # type: ignore[attr-defined]
+
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -220,6 +229,10 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema("redsea")
 # Services
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the integration (register services and frontend resources)."""
+
+    # RSLED hw ids share the same maintenance task list; register them once
+    # at integration setup so const.py stays the single source of truth.
+    register_led_tasks(HW_G1_LED_IDS + HW_G2_LED_IDS)
 
     # Serve the frontend/ directory as a static path and register the icon JS
     if hass.http:
@@ -320,4 +333,76 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         handle_clean_message,
         supports_response=SupportsResponse.NONE,
     )
+
+    @callback
+    async def handle_reset_maintenance(call: ServiceCall) -> ServiceResponse:
+        """Mark a maintenance task as just-done for the targeted device.
+
+        Parameters
+        ----------
+        device_id : str
+            HA device registry id. May be a main device or a sub-device
+            (RSDOSE head, RSRUN pump); the helper resolves the parent and
+            the sub_id (head/pump index) accordingly.
+        task_key : str
+            Stable task key as declared in maintenance.TASKS.
+        """
+        device_id = call.data.get("device_id")
+        task_key = call.data.get("task_key")
+        if not isinstance(device_id, str) or not isinstance(task_key, str):
+            return {"error": "device_id and task_key are required strings"}
+
+        dev_reg = dr.async_get(hass)
+        ha_device = dev_reg.async_get(device_id)
+        if ha_device is None:
+            return {"error": "Unknown device_id"}
+
+        # Resolve the redsea identifier "<serial>" or "<serial>_head_N" /
+        # "<serial>_pump_N" from the device's identifiers tuple.
+        serial: str | None = None
+        sub_id = 0
+        for domain, ident in ha_device.identifiers:
+            if domain != DOMAIN:
+                continue
+            # Sub-device identifier: <serial>_head_<n> or <serial>_pump_<n>
+            for kind in ("head", "pump"):
+                token = f"_{kind}_"
+                if token in ident:
+                    base, _, tail = ident.rpartition(token)
+                    if tail.isdigit():
+                        serial = base
+                        sub_id = int(tail)
+                        break
+            else:
+                serial = ident
+            if serial:
+                break
+
+        if serial is None:
+            return {"error": "Device is not part of redsea"}
+
+        # Locate the coordinator owning this serial (any entry_id).
+        coordinator = None
+        for entry_data in hass.data.get(DOMAIN, {}).values():
+            if getattr(entry_data, "serial", None) == serial:
+                coordinator = entry_data
+                break
+        if coordinator is None:
+            return {"error": f"No active coordinator for serial '{serial}'"}
+
+        store: MaintenanceStore | None = getattr(coordinator, "maintenance", None)
+        if store is None:
+            return {"error": "Maintenance store unavailable"}
+
+        now = await store.async_reset(serial, sub_id, task_key)
+        return {"reset_at": now.isoformat(), "serial": serial, "sub_id": sub_id}
+
+    _LOGGER.debug("Registering service redsea.reset_maintenance")
+    hass.services.async_register(
+        DOMAIN,
+        "reset_maintenance",
+        handle_reset_maintenance,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
     return True

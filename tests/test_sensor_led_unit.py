@@ -60,10 +60,12 @@ def test_led_schedule_sensor_sets_value_and_attributes() -> None:
     entity._update_val()
 
     assert entity.native_value == "Prog"
-    assert entity.extra_state_attributes == {
-        "data": {"auto": True},
-        "clouds": {"cloud": True},
-    }
+    # ReefRoleMixin adds `reef_role`; verify the schedule-specific fields.
+    attrs = entity.extra_state_attributes
+    assert attrs is not None
+    assert attrs["data"] == {"auto": True}
+    assert attrs["clouds"] == {"cloud": True}
+    assert attrs["reef_role"] == "sched"
 
 
 @pytest.mark.asyncio

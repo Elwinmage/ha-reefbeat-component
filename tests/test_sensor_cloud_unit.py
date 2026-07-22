@@ -107,9 +107,15 @@ def test_cloud_sensor_formats_value_and_sets_attributes() -> None:
     entity = ReefBeatCloudSensorEntity(cast(Any, device), desc)
 
     assert entity._get_value() == "Prog-Tank"
-    assert entity.extra_state_attributes == {"uid": 1}
+    # ReefRoleMixin adds `reef_role` to extra_state_attributes; check the
+    # entity-specific keys are present alongside it.
+    attrs = entity.extra_state_attributes
+    assert attrs is not None
+    assert attrs["uid"] == 1
+    assert attrs["reef_role"] == "led_program"
 
     di = entity.device_info
+    assert di is not None
     assert di.get("name") == "Tank"
 
 

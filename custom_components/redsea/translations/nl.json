@@ -204,6 +204,48 @@
       },
       "ec_calibration_start": {
         "name": "EC-kalibratie Starten"
+      },
+      "maint_ato_ec_sensor": {
+        "name": "EC-sensor reinigen"
+      },
+      "maint_ato_return_pump": {
+        "name": "Opvoerpomp reinigen"
+      },
+      "maint_dose_heads_calibration": {
+        "name": "Doseerkop kalibreren"
+      },
+      "maint_dose_heads_replace": {
+        "name": "Doseerkop en slangen vervangen"
+      },
+      "maint_run_pump_motor": {
+        "name": "Motor en rotor reinigen"
+      },
+      "maint_run_pump_strainer": {
+        "name": "Aanzuigzeef reinigen"
+      },
+      "maint_run_skim_venturi": {
+        "name": "Venturi en luchtslang reinigen"
+      },
+      "maint_run_skim_rotor": {
+        "name": "Rotor van eiwitafschuimerpomp reinigen"
+      },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Fullcup-sensor kalibreren"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Overskimming-sensor kalibreren"
+      },
+      "maint_wave_rotor_cages": {
+        "name": "Rotorkooien reinigen"
+      },
+      "maint_mat_carbon_replace": {
+        "name": "Actieve kool vervangen"
+      },
+      "maint_led_lens": {
+        "name": "Lens reinigen"
+      },
+      "maint_led_fan": {
+        "name": "Stof verwijderen van ventilator en roosters"
       }
     },
     "light": {
@@ -298,6 +340,48 @@
       },
       "wave_preview_wave_duration": {
         "name": "Voorvertoning golfduur"
+      },
+      "maint_ato_ec_sensor_interval_weeks": {
+        "name": "EC-sensor reinigen (weken)"
+      },
+      "maint_ato_return_pump_interval_months": {
+        "name": "Opvoerpomp reinigen (maanden)"
+      },
+      "maint_dose_heads_calibration_interval_days": {
+        "name": "Doseerkop kalibreren (weken)"
+      },
+      "maint_dose_heads_replace_interval_months": {
+        "name": "Doseerkop en slangen vervangen (maanden)"
+      },
+      "maint_run_pump_motor_interval_months": {
+        "name": "Motor en rotor reinigen (maanden)"
+      },
+      "maint_run_pump_strainer_interval_weeks": {
+        "name": "Aanzuigzeef reinigen (weken)"
+      },
+      "maint_run_skim_venturi_interval_weeks": {
+        "name": "Venturi en luchtslang reinigen (weken)"
+      },
+      "maint_run_skim_rotor_interval_months": {
+        "name": "Rotor van eiwitafschuimerpomp reinigen (maanden)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Fullcup-sensor kalibreren (weken)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Overskimming-sensor kalibreren (weken)"
+      },
+      "maint_wave_rotor_cages_interval_months": {
+        "name": "Rotorkooien reinigen (maanden)"
+      },
+      "maint_mat_carbon_replace_interval_weeks": {
+        "name": "Actieve kool vervangen (weken)"
+      },
+      "maint_led_lens_interval_weeks": {
+        "name": "Lens reinigen (weken)"
+      },
+      "maint_led_fan_interval_months": {
+        "name": "Stof verwijderen van ventilator en roosters (maanden)"
       }
     },
     "select": {
@@ -958,5 +1042,21 @@
       }
     }
   },
-  "title": "ReefBeat"
+  "title": "ReefBeat",
+  "services": {
+    "reset_maintenance": {
+      "name": "Onderhoud resetten",
+      "description": "Een onderhoudstaak markeren als zojuist uitgevoerd voor een apparaat of subapparaat.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat",
+          "description": "Doelapparaat (of subapparaat, bv. RSDOSE-kop, RSRUN-pomp)."
+        },
+        "task_key": {
+          "name": "Taak-id",
+          "description": "Stabiele identifier van de onderhoudstaak (bv. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
+        }
+      }
+    }
+  }
 }

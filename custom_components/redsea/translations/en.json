@@ -204,6 +204,48 @@
       },
       "detect_pump": {
         "name": "Detect Pump"
+      },
+      "maint_ato_ec_sensor": {
+        "name": "Clean EC sensor"
+      },
+      "maint_ato_return_pump": {
+        "name": "Clean return pump"
+      },
+      "maint_dose_heads_calibration": {
+        "name": "Calibrate dosing heads"
+      },
+      "maint_dose_heads_replace": {
+        "name": "Replace dosing heads & tubes"
+      },
+      "maint_run_pump_motor": {
+        "name": "Clean motor and rotor"
+      },
+      "maint_run_pump_strainer": {
+        "name": "Clean intake strainer"
+      },
+      "maint_run_skim_venturi": {
+        "name": "Clean venturi & air tube"
+      },
+      "maint_run_skim_rotor": {
+        "name": "Clean skimmer pump rotor"
+      },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Calibrate fullcup sensor"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Calibrate overskimming sensor"
+      },
+      "maint_wave_rotor_cages": {
+        "name": "Clean rotor cages"
+      },
+      "maint_mat_carbon_replace": {
+        "name": "Replace activated carbon"
+      },
+      "maint_led_lens": {
+        "name": "Clean lens"
+      },
+      "maint_led_fan": {
+        "name": "Dust the fan and grilles"
       }
     },
     "light": {
@@ -298,6 +340,48 @@
       },
       "wave_preview_wave_duration": {
         "name": "Prev. wave duration"
+      },
+      "maint_ato_ec_sensor_interval_weeks": {
+        "name": "Clean EC sensor (weeks)"
+      },
+      "maint_ato_return_pump_interval_months": {
+        "name": "Clean return pump (months)"
+      },
+      "maint_dose_heads_calibration_interval_days": {
+        "name": "Calibrate dosing heads (weeks)"
+      },
+      "maint_dose_heads_replace_interval_months": {
+        "name": "Replace dosing heads & tubes (months)"
+      },
+      "maint_run_pump_motor_interval_months": {
+        "name": "Clean motor and rotor (months)"
+      },
+      "maint_run_pump_strainer_interval_weeks": {
+        "name": "Clean intake strainer (weeks)"
+      },
+      "maint_run_skim_venturi_interval_weeks": {
+        "name": "Clean venturi & air tube (weeks)"
+      },
+      "maint_run_skim_rotor_interval_months": {
+        "name": "Clean skimmer pump rotor (months)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Calibrate fullcup sensor (weeks)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Calibrate overskimming sensor (weeks)"
+      },
+      "maint_wave_rotor_cages_interval_months": {
+        "name": "Clean rotor cages (months)"
+      },
+      "maint_mat_carbon_replace_interval_weeks": {
+        "name": "Replace activated carbon (weeks)"
+      },
+      "maint_led_lens_interval_weeks": {
+        "name": "Clean lens (weeks)"
+      },
+      "maint_led_fan_interval_months": {
+        "name": "Dust the fan and grilles (months)"
       }
     },
     "select": {
@@ -958,5 +1042,21 @@
       }
     }
   },
-  "title": "ReefBeat"
+  "title": "ReefBeat",
+  "services": {
+    "reset_maintenance": {
+      "name": "Reset maintenance",
+      "description": "Mark a maintenance task as just performed for a device or sub-device.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "Target device (or sub-device, e.g. RSDOSE head, RSRUN pump)."
+        },
+        "task_key": {
+          "name": "Task key",
+          "description": "Stable maintenance task identifier (e.g. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
+        }
+      }
+    }
+  }
 }

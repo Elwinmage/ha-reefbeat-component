@@ -204,6 +204,48 @@
       },
       "ec_calibration_start": {
         "name": "Calibração EC Iniciar"
+      },
+      "maint_ato_ec_sensor": {
+        "name": "Limpar o sensor EC"
+      },
+      "maint_ato_return_pump": {
+        "name": "Limpar a bomba de retorno"
+      },
+      "maint_dose_heads_calibration": {
+        "name": "Calibrar cabeça de doseamento"
+      },
+      "maint_dose_heads_replace": {
+        "name": "Substituir cabeça e tubos de doseamento"
+      },
+      "maint_run_pump_motor": {
+        "name": "Limpar o motor e o rotor"
+      },
+      "maint_run_pump_strainer": {
+        "name": "Limpar o filtro de aspiração"
+      },
+      "maint_run_skim_venturi": {
+        "name": "Limpar o venturi e o tubo de ar"
+      },
+      "maint_run_skim_rotor": {
+        "name": "Limpar o rotor da bomba do escumador"
+      },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Calibrar o sensor de xícara cheia"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Calibrar o sensor de excesso de espuma"
+      },
+      "maint_wave_rotor_cages": {
+        "name": "Limpar as gaiolas do rotor"
+      },
+      "maint_mat_carbon_replace": {
+        "name": "Substituir o carvão ativado"
+      },
+      "maint_led_lens": {
+        "name": "Limpar a lente"
+      },
+      "maint_led_fan": {
+        "name": "Limpar o pó do ventilador e das grelhas"
       }
     },
     "light": {
@@ -298,6 +340,48 @@
       },
       "wave_preview_wave_duration": {
         "name": "Pré-vis. duração da onda"
+      },
+      "maint_ato_ec_sensor_interval_weeks": {
+        "name": "Limpar o sensor EC (semanas)"
+      },
+      "maint_ato_return_pump_interval_months": {
+        "name": "Limpar a bomba de retorno (meses)"
+      },
+      "maint_dose_heads_calibration_interval_days": {
+        "name": "Calibrar cabeça de doseamento (semanas)"
+      },
+      "maint_dose_heads_replace_interval_months": {
+        "name": "Substituir cabeça e tubos de doseamento (meses)"
+      },
+      "maint_run_pump_motor_interval_months": {
+        "name": "Limpar o motor e o rotor (meses)"
+      },
+      "maint_run_pump_strainer_interval_weeks": {
+        "name": "Limpar o filtro de aspiração (semanas)"
+      },
+      "maint_run_skim_venturi_interval_weeks": {
+        "name": "Limpar o venturi e o tubo de ar (semanas)"
+      },
+      "maint_run_skim_rotor_interval_months": {
+        "name": "Limpar o rotor da bomba do escumador (meses)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Calibrar o sensor de xícara cheia (semanas)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Calibrar o sensor de excesso de espuma (semanas)"
+      },
+      "maint_wave_rotor_cages_interval_months": {
+        "name": "Limpar as gaiolas do rotor (meses)"
+      },
+      "maint_mat_carbon_replace_interval_weeks": {
+        "name": "Substituir o carvão ativado (semanas)"
+      },
+      "maint_led_lens_interval_weeks": {
+        "name": "Limpar a lente (semanas)"
+      },
+      "maint_led_fan_interval_months": {
+        "name": "Limpar o pó do ventilador e das grelhas (meses)"
       }
     },
     "select": {
@@ -950,5 +1034,21 @@
       }
     }
   },
-  "title": "ReefBeat"
+  "title": "ReefBeat",
+  "services": {
+    "reset_maintenance": {
+      "name": "Repor manutenção",
+      "description": "Marcar uma tarefa de manutenção como acabada de realizar para um dispositivo ou subdispositivo.",
+      "fields": {
+        "device_id": {
+          "name": "Dispositivo",
+          "description": "Dispositivo alvo (ou subdispositivo, ex. cabeça RSDOSE, bomba RSRUN)."
+        },
+        "task_key": {
+          "name": "Identificador da tarefa",
+          "description": "Identificador estável da tarefa (ex. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
+        }
+      }
+    }
+  }
 }

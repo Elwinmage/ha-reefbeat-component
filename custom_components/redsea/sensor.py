@@ -97,7 +97,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
-from .entity import ReefBeatRestoreEntity, RestoreSpec
+from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1875,7 +1875,7 @@ async def async_setup_entry(
 
 
 # REEFBEAT
-class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class ReefBeatSensorEntity(ReefRoleMixin, ReefBeatRestoreEntity, SensorEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Base sensor entity backed by a ReefBeat device/coordinator.
 
     Responsibilities:
@@ -1950,7 +1950,7 @@ class ReefBeatSensorEntity(ReefBeatRestoreEntity, SensorEntity):  # type: ignore
                 self._device.get_data("$.sources[?(@.name=='/wifi')].data.signal_dBm"),
             )
             if signal_strength < -80:
-                self._attr_icon = "mdi:wifi-outline"
+                self._attr_icon = "mdi:wifi-strength-outline"
                 self._attr_native_value = "poor"
             elif signal_strength < -70:
                 self._attr_icon = "mdi:wifi-strength-1"

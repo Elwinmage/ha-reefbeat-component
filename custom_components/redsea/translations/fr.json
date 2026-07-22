@@ -203,6 +203,48 @@
       },
       "detect_pump": {
         "name": "Détecter pompe"
+      },
+      "maint_ato_ec_sensor": {
+        "name": "Nettoyer le capteur EC"
+      },
+      "maint_ato_return_pump": {
+        "name": "Nettoyer la pompe de remontée"
+      },
+      "maint_dose_heads_calibration": {
+        "name": "Étalonner les têtes de dosage"
+      },
+      "maint_dose_heads_replace": {
+        "name": "Remplacer la tête et les tubes"
+      },
+      "maint_run_pump_motor": {
+        "name": "Nettoyer le moteur et le rotor"
+      },
+      "maint_run_pump_strainer": {
+        "name": "Nettoyer la crépine d'aspiration"
+      },
+      "maint_run_skim_venturi": {
+        "name": "Nettoyer le venturi et le tuyau d'air"
+      },
+      "maint_run_skim_rotor": {
+        "name": "Nettoyer le rotor de la pompe écumeur"
+      },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Étalonner le capteur fullcup"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Étalonner le capteur overskimming"
+      },
+      "maint_wave_rotor_cages": {
+        "name": "Nettoyer les cages de rotor"
+      },
+      "maint_mat_carbon_replace": {
+        "name": "Remplacer le charbon actif"
+      },
+      "maint_led_lens": {
+        "name": "Nettoyer la lentille"
+      },
+      "maint_led_fan": {
+        "name": "Dépoussiérer le ventilateur et les grilles"
       }
     },
     "light": {
@@ -297,6 +339,48 @@
       },
       "wave_preview_wave_duration": {
         "name": "Prev. durée vague"
+      },
+      "maint_ato_ec_sensor_interval_weeks": {
+        "name": "Nettoyer le capteur EC (semaines)"
+      },
+      "maint_ato_return_pump_interval_months": {
+        "name": "Nettoyer la pompe de remontée (mois)"
+      },
+      "maint_dose_heads_calibration_interval_days": {
+        "name": "Étalonner les têtes de dosage (semaines)"
+      },
+      "maint_dose_heads_replace_interval_months": {
+        "name": "Remplacer la tête et les tubes (mois)"
+      },
+      "maint_run_pump_motor_interval_months": {
+        "name": "Nettoyer le moteur et le rotor (mois)"
+      },
+      "maint_run_pump_strainer_interval_weeks": {
+        "name": "Nettoyer la crépine d'aspiration (semaines)"
+      },
+      "maint_run_skim_venturi_interval_weeks": {
+        "name": "Nettoyer le venturi et le tuyau d'air (semaines)"
+      },
+      "maint_run_skim_rotor_interval_months": {
+        "name": "Nettoyer le rotor de la pompe écumeur (mois)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Étalonner le capteur fullcup (semaines)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Étalonner le capteur overskimming (semaines)"
+      },
+      "maint_wave_rotor_cages_interval_months": {
+        "name": "Nettoyer les cages de rotor (mois)"
+      },
+      "maint_mat_carbon_replace_interval_weeks": {
+        "name": "Remplacer le charbon actif (semaines)"
+      },
+      "maint_led_lens_interval_weeks": {
+        "name": "Nettoyer la lentille (semaines)"
+      },
+      "maint_led_fan_interval_months": {
+        "name": "Dépoussiérer le ventilateur et les grilles (mois)"
       }
     },
     "select": {
@@ -948,5 +1032,21 @@
       }
     }
   },
-  "title": "ReefBeat"
+  "title": "ReefBeat",
+  "services": {
+    "reset_maintenance": {
+      "name": "Réinitialiser la maintenance",
+      "description": "Marquer une tâche de maintenance comme effectuée pour un équipement ou sous-équipement.",
+      "fields": {
+        "device_id": {
+          "name": "Équipement",
+          "description": "Équipement cible (ou sous-équipement, ex. tête RSDOSE, pompe RSRUN)."
+        },
+        "task_key": {
+          "name": "Identifiant de tâche",
+          "description": "Identifiant stable de la tâche (ex. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
+        }
+      }
+    }
+  }
 }

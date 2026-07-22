@@ -40,6 +40,7 @@ from .coordinator import (
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
 )
+from .entity import ReefRoleMixin
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -557,7 +558,11 @@ TDevice = TypeVar("TDevice", bound=ReefBeatCoordinator)
 
 # REEFBEAT
 class ReefBeatBinarySensorEntity(  # pyright: ignore[reportIncompatibleVariableOverride]
-    RestoreEntity, CoordinatorEntity[TDevice], BinarySensorEntity, Generic[TDevice]
+    ReefRoleMixin,
+    RestoreEntity,
+    CoordinatorEntity[TDevice],
+    BinarySensorEntity,
+    Generic[TDevice],
 ):
     """Binary sensor backed by a ReefBeat coordinator."""
 

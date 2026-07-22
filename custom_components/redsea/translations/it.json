@@ -204,6 +204,48 @@
       },
       "ec_calibration_start": {
         "name": "Calibrazione EC Avvia"
+      },
+      "maint_ato_ec_sensor": {
+        "name": "Pulire il sensore EC"
+      },
+      "maint_ato_return_pump": {
+        "name": "Pulire la pompa di risalita"
+      },
+      "maint_dose_heads_calibration": {
+        "name": "Calibrare testina di dosaggio"
+      },
+      "maint_dose_heads_replace": {
+        "name": "Sostituire testa e tubi di dosaggio"
+      },
+      "maint_run_pump_motor": {
+        "name": "Pulire motore e rotore"
+      },
+      "maint_run_pump_strainer": {
+        "name": "Pulire il filtro di aspirazione"
+      },
+      "maint_run_skim_venturi": {
+        "name": "Pulire venturi e tubo dell'aria"
+      },
+      "maint_run_skim_rotor": {
+        "name": "Pulire il rotore della pompa schiumatoio"
+      },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Calibrare il sensore fullcup"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Calibrare il sensore overskimming"
+      },
+      "maint_wave_rotor_cages": {
+        "name": "Pulire le gabbie del rotore"
+      },
+      "maint_mat_carbon_replace": {
+        "name": "Sostituire il carbone attivo"
+      },
+      "maint_led_lens": {
+        "name": "Pulire la lente"
+      },
+      "maint_led_fan": {
+        "name": "Spolverare la ventola e le griglie"
       }
     },
     "light": {
@@ -298,6 +340,48 @@
       },
       "wave_preview_wave_duration": {
         "name": "Ant. durata onda"
+      },
+      "maint_ato_ec_sensor_interval_weeks": {
+        "name": "Pulire il sensore EC (settimane)"
+      },
+      "maint_ato_return_pump_interval_months": {
+        "name": "Pulire la pompa di risalita (mesi)"
+      },
+      "maint_dose_heads_calibration_interval_days": {
+        "name": "Calibrare testina di dosaggio (settimane)"
+      },
+      "maint_dose_heads_replace_interval_months": {
+        "name": "Sostituire testa e tubi di dosaggio (mesi)"
+      },
+      "maint_run_pump_motor_interval_months": {
+        "name": "Pulire motore e rotore (mesi)"
+      },
+      "maint_run_pump_strainer_interval_weeks": {
+        "name": "Pulire il filtro di aspirazione (settimane)"
+      },
+      "maint_run_skim_venturi_interval_weeks": {
+        "name": "Pulire venturi e tubo dell'aria (settimane)"
+      },
+      "maint_run_skim_rotor_interval_months": {
+        "name": "Pulire il rotore della pompa schiumatoio (mesi)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Calibrare il sensore fullcup (settimane)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Calibrare il sensore overskimming (settimane)"
+      },
+      "maint_wave_rotor_cages_interval_months": {
+        "name": "Pulire le gabbie del rotore (mesi)"
+      },
+      "maint_mat_carbon_replace_interval_weeks": {
+        "name": "Sostituire il carbone attivo (settimane)"
+      },
+      "maint_led_lens_interval_weeks": {
+        "name": "Pulire la lente (settimane)"
+      },
+      "maint_led_fan_interval_months": {
+        "name": "Spolverare la ventola e le griglie (mesi)"
       }
     },
     "select": {
@@ -950,5 +1034,21 @@
       }
     }
   },
-  "title": "ReefBeat"
+  "title": "ReefBeat",
+  "services": {
+    "reset_maintenance": {
+      "name": "Reimposta manutenzione",
+      "description": "Contrassegna un'attività di manutenzione come appena eseguita per un dispositivo o sotto-dispositivo.",
+      "fields": {
+        "device_id": {
+          "name": "Dispositivo",
+          "description": "Dispositivo di destinazione (o sotto-dispositivo, es. testa RSDOSE, pompa RSRUN)."
+        },
+        "task_key": {
+          "name": "Identificatore attività",
+          "description": "Identificatore stabile dell'attività (es. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
+        }
+      }
+    }
+  }
 }

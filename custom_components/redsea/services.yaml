@@ -55,3 +55,24 @@ request:
       default: "{}"
       selector:
         text:
+
+# Reset a maintenance task: stamps "now" as the new last_reset for the
+# (device, task) instance and recomputes derived values (days_left, overdue).
+reset_maintenance:
+  fields:
+    device_id:
+      name: Device
+      description: Target device (or sub-device, e.g. RSDOSE head, RSRUN pump).
+      required: true
+      selector:
+        device:
+          integration: redsea
+    task_key:
+      name: Task key
+      description: >
+        Stable maintenance task identifier (see maintenance.TASKS keys, e.g.
+        'ato_ec_sensor', 'run_skim_venturi', 'led_lens').
+      required: true
+      example: "led_lens"
+      selector:
+        text:

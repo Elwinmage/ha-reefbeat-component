@@ -51,6 +51,7 @@ from .const import (
 )
 from .coordinator import (
     ReefATOCoordinator,
+    ReefBeatCloudCoordinator,
     ReefBeatCoordinator,
     ReefDoseCoordinator,
     ReefLedCoordinator,
@@ -59,6 +60,12 @@ from .coordinator import (
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
+)
+from .entity import ReefRoleMixin
+from .maintenance import (
+    MaintenanceStore,
+    MaintenanceTask,
+    tasks_for,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -607,7 +614,59 @@ async def async_setup_entry(
             )
         )
 
+    # ---- Maintenance interval numbers ---------------------------------------
+    # One number entity per task instance, paired with the matching button.
+    # Mirrors the button's sub-device fan-out (heads / pumps).
+    _add_maintenance_numbers(device, entities)
+
     async_add_entities(entities, update_before_add=True)
+
+
+def _add_maintenance_numbers(
+    device: ReefBeatCoordinator,
+    entities: list[NumberEntity],
+) -> None:
+    """Create one MaintenanceIntervalNumberEntity per applicable task instance."""
+    if isinstance(device, (ReefBeatCloudCoordinator, ReefVirtualLedCoordinator)):
+        return
+
+    # The coordinator stores its hw model id in `_hw` (set from
+    # CONFIG_FLOW_HW_MODEL in coordinator.py). Match button.py.
+    hw_model = getattr(device, "_hw", None)
+    if not isinstance(hw_model, str):
+        return
+
+    tasks = tasks_for(hw_model)
+    if not tasks:
+        return
+
+    for task in tasks:
+        if task.applies_to_sub == "head" and isinstance(device, ReefDoseCoordinator):
+            for head in range(1, device.heads_nb + 1):
+                entities.append(
+                    MaintenanceIntervalNumberEntity(device, task, sub_id=head)
+                )
+        elif task.applies_to_sub in ("pump_return", "pump_skimmer") and isinstance(
+            device, ReefRunCoordinator
+        ):
+            wanted = "return" if task.applies_to_sub == "pump_return" else "skimmer"
+            # RSRUN is hardware-fixed to 2 pumps; the "common parts" device
+            # exposed by the integration has no pump_N data, so we keep
+            # `is_None_possible=True` to suppress its ERROR log silently.
+            for pump_id in (1, 2):
+                try:
+                    pump = device.get_data(
+                        f"$.sources[?(@.name=='/dashboard')].data.pump_{pump_id}",
+                        True,  # is_None_possible
+                    )
+                except Exception:
+                    pump = None
+                if isinstance(pump, dict) and pump.get("type") == wanted:
+                    entities.append(
+                        MaintenanceIntervalNumberEntity(device, task, sub_id=pump_id)
+                    )
+        else:
+            entities.append(MaintenanceIntervalNumberEntity(device, task, sub_id=0))
 
 
 # -----------------------------------------------------------------------------
@@ -979,3 +1038,152 @@ class ReefATOVolumeLeftNumberEntity(ReefBeatNumberEntity):
             await self._device.push_values(self._source)
 
         await self._device.async_request_refresh()
+
+
+# =============================================================================
+# MAINTENANCE INTERVAL NUMBER
+# =============================================================================
+
+
+class MaintenanceIntervalNumberEntity(ReefRoleMixin, NumberEntity):  # type: ignore[misc]
+    """Number entity exposing the per-instance maintenance interval (days).
+
+    The entity is a thin facade over the persistent MaintenanceStore: its
+    native_value reads `store.get_interval(...)` and `async_set_native_value`
+    writes back. The matching MaintenanceButtonEntity reads the same value
+    when computing `days_left`.
+
+    `reef_role` (via the mixin) is set to "<task.translation_key>_interval"
+    so blueprints and cards can distinguish the interval entity from the
+    main maintenance entity (the button).
+    """
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:calendar-range"
+    _attr_entity_category = EntityCategory.CONFIG
+    # Slider gives an immediate visual of the tunable range; min/max and unit
+    # come from the task definition (see catalogue in maintenance.py).
+    _attr_mode = NumberMode.SLIDER
+    _attr_native_step = 1.0
+    # Intervals are inherently integer; hide trailing ".0" in the UI.
+    _attr_suggested_display_precision = 0
+
+    # Days-per-unit conversion factors. Storage stays in days everywhere;
+    # only this entity converts to/from the task's display unit.
+    _DAYS_PER_UNIT: dict[str, int] = {"weeks": 7, "months": 30}
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        task: "MaintenanceTask",
+        sub_id: int = 0,
+    ) -> None:
+        self._device = device
+        self._task = task
+        self._sub_id = sub_id
+
+        suffix = f"_{sub_id}" if sub_id > 0 else ""
+        self._attr_unique_id = f"{device.serial}_{task.key}_interval{suffix}"
+
+        # translation_key is the task's role with "_interval" appended; the
+        # mixin exposes this as reef_role so blueprints can target intervals
+        # separately from the action button.
+        # translation_key carries the display unit suffix so the entity name
+        # can be properly localized in each language (e.g. "Clean lens (weeks)"
+        # vs "Clean motor (months)"). Storage remains in days regardless.
+        unit = getattr(task, "unit", "weeks")
+        self._attr_translation_key = f"{task.translation_key}_interval_{unit}"
+
+        # Convert the day-based bounds into the task's display unit (weeks/months).
+        # Storage remains in days; only the slider UI sees the converted values.
+        factor = self._DAYS_PER_UNIT.get(unit, 7)
+        self._unit_factor = factor
+        # No native_unit_of_measurement: the unit is encoded in the entity
+        # name via the translation_key, so the same slider works for weeks
+        # and months without requiring HA to localize a custom unit string.
+        self._attr_native_min_value = float(task.min_days // factor)
+        self._attr_native_max_value = float(task.max_days // factor)
+
+        # Bind to the right (sub-)device for UI grouping.
+        if (
+            sub_id > 0
+            and hasattr(device, "head_device_info")
+            and task.applies_to_sub == "head"
+        ):
+            self._attr_device_info = cast(Any, device).head_device_info(sub_id)
+        elif sub_id > 0 and hasattr(device, "pump_device_info"):
+            self._attr_device_info = cast(Any, device).pump_device_info(sub_id)
+        else:
+            self._attr_device_info = device.device_info
+
+        self._attr_available = True
+        self._unsub: Callable[[], None] | None = None
+
+    # ---- store access -----------------------------------------------------
+
+    @property
+    def _store(self) -> "MaintenanceStore":
+        """Return the device's MaintenanceStore, lazy-creating a fallback.
+
+        See `MaintenanceButtonEntity._store` for the rationale.
+        """
+        device = cast(Any, self._device)
+        store = getattr(device, "maintenance", None)
+        if store is None:
+            _LOGGER.warning(
+                "MaintenanceStore missing on %s; using ephemeral fallback "
+                "(intervals will revert to defaults across restarts)",
+                getattr(device, "_title", device.__class__.__name__),
+            )
+            store = MaintenanceStore(
+                getattr(device, "_hass"),
+                f"fallback_{id(device)}",
+            )
+            device.maintenance = store
+        return store
+
+    @property
+    def native_value(self) -> float | None:  # pyright: ignore[reportIncompatibleVariableOverride]
+        """Return the stored interval (days) converted to the display unit."""
+        try:
+            days = self._store.get_interval(
+                self._device.serial,
+                self._sub_id,
+                self._task.key,
+                self._task.default_days,
+            )
+        except Exception:
+            days = self._task.default_days
+        # Integer floor-division: 35 days / 7 = 5 weeks; 90 days / 30 = 3 months.
+        return float(days // self._unit_factor)
+
+    # NOTE: the blank line between methods plus the next `async def` signature
+    # are occasionally mis-reported as uncovered by coverage.py under Python
+    # 3.14, even though the test suite exercises `async_set_native_value`. The
+    # `noqa` on the next line prevents linters from joining them while keeping
+    # tracing happy on both old and new Python versions.
+    async def async_set_native_value(self, value: float) -> None:  # noqa: E303
+        """Persist the slider value as days (converted from the display unit)."""
+        days = int(round(value)) * self._unit_factor
+        await self._store.async_set_interval(
+            self._device.serial, self._sub_id, self._task.key, days
+        )
+
+    # ---- lifecycle --------------------------------------------------------
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        @callback
+        def _on_store_change() -> None:
+            self.async_write_ha_state()
+
+        self._unsub = self._store.async_add_listener(
+            self._device.serial, self._sub_id, self._task.key, _on_store_change
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsub is not None:
+            self._unsub()
+            self._unsub = None
+        await super().async_will_remove_from_hass()
