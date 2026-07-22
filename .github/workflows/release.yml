@@ -52,7 +52,7 @@ jobs:
       - name: Create Release with Zip Asset
         uses: ncipollo/release-action@v1
         with:
-          prerelease: "false" # Passe à false pour une release stable
+          prerelease: true
           tag: ${{ github.event.inputs.tag }}
           artifacts: "custom_components/redsea.zip" # 👈 On attache l'archive
           allowUpdates: true
