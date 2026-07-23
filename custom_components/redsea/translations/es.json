@@ -21,6 +21,13 @@
           "virtual_led": "Nuevo controlador LED virtual"
         },
         "title": "Añadir nuevo dispositivo"
+      },
+      "select_devices": {
+        "data": {
+          "ip_address": "Dispositivos a añadir"
+        },
+        "description": "Todos los dispositivos encontrados en la red están preseleccionados. Desmarque los que no desea añadir y confirme — todos los dispositivos restantes se añadirán a la vez.",
+        "title": "Añadir dispositivos detectados"
       }
     }
   },

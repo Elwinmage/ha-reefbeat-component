@@ -21,6 +21,13 @@
           "virtual_led": "Nowy wirtualny sterownik LED"
         },
         "title": "Dodaj nowe urządzenie"
+      },
+      "select_devices": {
+        "data": {
+          "ip_address": "Urządzenia do dodania"
+        },
+        "description": "Wszystkie urządzenia znalezione w sieci są wstępnie zaznaczone. Odznacz te, których nie chcesz dodawać, a następnie zatwierdź — pozostałe urządzenia zostaną dodane za jednym razem.",
+        "title": "Dodaj wykryte urządzenia"
       }
     }
   },

@@ -21,6 +21,13 @@
           "virtual_led": "Nieuwe virtuele LED-controller"
         },
         "title": "Nieuw apparaat toevoegen"
+      },
+      "select_devices": {
+        "data": {
+          "ip_address": "Toe te voegen apparaten"
+        },
+        "description": "Alle op het netwerk gevonden apparaten zijn vooraf aangevinkt. Vink apparaten uit die u niet wilt toevoegen en bevestig — alle overige apparaten worden in één keer toegevoegd.",
+        "title": "Gedetecteerde apparaten toevoegen"
       }
     }
   },
