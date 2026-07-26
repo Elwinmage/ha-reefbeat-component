@@ -33,14 +33,26 @@
   },
   "entity": {
     "binary_sensor": {
+      "auto_from_buttons": {
+        "name": "Auto from buttons"
+      },
       "battery_level": {
         "name": "Batteriestand"
       },
       "bundled_heads": {
         "name": "Gebündelte Köpfe"
       },
+      "buzzer_active": {
+        "name": "Buzzer active"
+      },
+      "buzzer_dismissed": {
+        "name": "Buzzer dismissed"
+      },
       "buzzer_enabled": {
         "name": "Summer aktiviert"
+      },
+      "cable_connected": {
+        "name": "Cable connected"
       },
       "cloud_state": {
         "name": "Cloud-Verbindungsstatus"
@@ -51,6 +63,9 @@
       "constant_speed": {
         "name": "Konstante Geschwindigkeit"
       },
+      "control_link_up": {
+        "name": "Control hub link"
+      },
       "ec_sensor_connected": {
         "name": "EC-Sensor verbunden"
       },
@@ -59,6 +74,9 @@
       },
       "is_ec_sensor_connected": {
         "name": "Ist EC-Sensor verbunden"
+      },
+      "is_internet_connected": {
+        "name": "Internet connected"
       },
       "is_pump_on": {
         "name": "Ist Pumpe an?"
@@ -69,17 +87,41 @@
       "is_temp_enabled": {
         "name": "Ist Temperatur aktiviert"
       },
+      "leak_detector": {
+        "name": "Leak detector"
+      },
       "missing_pump": {
         "name": "Pumpe fehlt"
       },
       "missing_sensor": {
         "name": "Sensor fehlt"
       },
+      "port_check_sensor": {
+        "name": "Port {port} Sensor prüfen"
+      },
+      "port_is_advancing": {
+        "name": "Port {port} läuft"
+      },
+      "port_is_pump_on": {
+        "name": "Port {port} Pumpe"
+      },
+      "port_leak_sensor": {
+        "name": "Port {port} Leck-Sensor"
+      },
+      "power_link_up": {
+        "name": "Power center link"
+      },
       "recalibration_required": {
         "name": "Kalibrierung"
       },
+      "reconnect_pump": {
+        "name": "Pumpe neu verbinden"
+      },
       "sensor_controlled": {
         "name": "Sensorgesteuert"
+      },
+      "socket_enabled": {
+        "name": "Socket {socket} enabled"
       },
       "status": {
         "name": "Status"
@@ -89,47 +131,44 @@
       },
       "water_level": {
         "name": "Wasserstand"
-      },
-      "reconnect_pump": {
-        "name": "Pumpe neu verbinden"
-      },
-      "is_internet_connected": {
-        "name": "Internet connected"
-      },
-      "auto_from_buttons": {
-        "name": "Auto from buttons"
-      },
-      "control_link_up": {
-        "name": "Control hub link"
-      },
-      "cable_connected": {
-        "name": "Cable connected"
-      },
-      "buzzer_active": {
-        "name": "Buzzer active"
-      },
-      "buzzer_dismissed": {
-        "name": "Buzzer dismissed"
-      },
-      "leak_detector": {
-        "name": "Leak detector"
-      },
-      "power_link_up": {
-        "name": "Power center link"
-      },
-      "socket_enabled": {
-        "name": "Socket {socket} enabled"
       }
     },
     "button": {
       "advance": {
         "name": "Vorschub"
       },
+      "ato_manual_pump": {
+        "name": "Port {port} manuell nachfüllen"
+      },
+      "ato_resume": {
+        "name": "Port {port} fortsetzen"
+      },
+      "ato_stop": {
+        "name": "Port {port} stopp"
+      },
       "delete_emergency": {
         "name": "Notfallalarm löschen"
       },
+      "delete_pump": {
+        "name": "Pumpe löschen"
+      },
       "delete_supplement": {
         "name": "Nahrungsergänzungsmittel löschen"
+      },
+      "detect_pump": {
+        "name": "Pumpe erkennen"
+      },
+      "ec_calibration_cup": {
+        "name": "EC-Kalibrierung Voller Becher"
+      },
+      "ec_calibration_end": {
+        "name": "EC-Kalibrierung Beenden"
+      },
+      "ec_calibration_skim": {
+        "name": "EC-Kalibrierung Überschäumen"
+      },
+      "ec_calibration_start": {
+        "name": "EC-Kalibrierung Starten"
       },
       "end_calibration": {
         "name": "Kalibrierung stoppen und speichern"
@@ -145,6 +184,48 @@
       },
       "led_identify": {
         "name": "Identifizieren"
+      },
+      "maint_ato_ec_sensor": {
+        "name": "EC-Sensor reinigen"
+      },
+      "maint_ato_return_pump": {
+        "name": "Rückförderpumpe reinigen"
+      },
+      "maint_dose_heads_calibration": {
+        "name": "Dosierkopf kalibrieren"
+      },
+      "maint_dose_heads_replace": {
+        "name": "Dosierkopf und Schläuche ersetzen"
+      },
+      "maint_led_fan": {
+        "name": "Lüfter und Gitter entstauben"
+      },
+      "maint_led_lens": {
+        "name": "Linse reinigen"
+      },
+      "maint_mat_carbon_replace": {
+        "name": "Aktivkohle ersetzen"
+      },
+      "maint_run_pump_motor": {
+        "name": "Motor und Rotor reinigen"
+      },
+      "maint_run_pump_strainer": {
+        "name": "Ansaugsieb reinigen"
+      },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Fullcup-Sensor kalibrieren"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Überschäumungs-Sensor kalibrieren"
+      },
+      "maint_run_skim_rotor": {
+        "name": "Rotor der Abschäumerpumpe reinigen"
+      },
+      "maint_run_skim_venturi": {
+        "name": "Venturi und Luftschlauch reinigen"
+      },
+      "maint_wave_rotor_cages": {
+        "name": "Rotorkäfige reinigen"
       },
       "manual_head": {
         "name": "Manuelle Dosierung"
@@ -193,66 +274,6 @@
       },
       "test_calibration": {
         "name": "Neue Kalibrierung testen"
-      },
-      "detect_pump": {
-        "name": "Pumpe erkennen"
-      },
-      "ec_calibration_cup": {
-        "name": "EC-Kalibrierung Voller Becher"
-      },
-      "ec_calibration_skim": {
-        "name": "EC-Kalibrierung Überschäumen"
-      },
-      "ec_calibration_end": {
-        "name": "EC-Kalibrierung Beenden"
-      },
-      "delete_pump": {
-        "name": "Pumpe löschen"
-      },
-      "ec_calibration_start": {
-        "name": "EC-Kalibrierung Starten"
-      },
-      "maint_ato_ec_sensor": {
-        "name": "EC-Sensor reinigen"
-      },
-      "maint_ato_return_pump": {
-        "name": "Rückförderpumpe reinigen"
-      },
-      "maint_dose_heads_calibration": {
-        "name": "Dosierkopf kalibrieren"
-      },
-      "maint_dose_heads_replace": {
-        "name": "Dosierkopf und Schläuche ersetzen"
-      },
-      "maint_run_pump_motor": {
-        "name": "Motor und Rotor reinigen"
-      },
-      "maint_run_pump_strainer": {
-        "name": "Ansaugsieb reinigen"
-      },
-      "maint_run_skim_venturi": {
-        "name": "Venturi und Luftschlauch reinigen"
-      },
-      "maint_run_skim_rotor": {
-        "name": "Rotor der Abschäumerpumpe reinigen"
-      },
-      "maint_run_skim_fullcup_calibration": {
-        "name": "Fullcup-Sensor kalibrieren"
-      },
-      "maint_run_skim_overskimming_calibration": {
-        "name": "Überschäumungs-Sensor kalibrieren"
-      },
-      "maint_wave_rotor_cages": {
-        "name": "Rotorkäfige reinigen"
-      },
-      "maint_mat_carbon_replace": {
-        "name": "Aktivkohle ersetzen"
-      },
-      "maint_led_lens": {
-        "name": "Linse reinigen"
-      },
-      "maint_led_fan": {
-        "name": "Lüfter und Gitter entstauben"
       }
     },
     "light": {
@@ -293,6 +314,48 @@
       },
       "dosing_waiting_period": {
         "name": "Dosierwartezeit"
+      },
+      "maint_ato_ec_sensor_interval_weeks": {
+        "name": "EC-Sensor reinigen (Wochen)"
+      },
+      "maint_ato_return_pump_interval_months": {
+        "name": "Rückförderpumpe reinigen (Monate)"
+      },
+      "maint_dose_heads_calibration_interval_days": {
+        "name": "Dosierkopf kalibrieren (Wochen)"
+      },
+      "maint_dose_heads_replace_interval_months": {
+        "name": "Dosierkopf und Schläuche ersetzen (Monate)"
+      },
+      "maint_led_fan_interval_months": {
+        "name": "Lüfter und Gitter entstauben (Monate)"
+      },
+      "maint_led_lens_interval_weeks": {
+        "name": "Linse reinigen (Wochen)"
+      },
+      "maint_mat_carbon_replace_interval_weeks": {
+        "name": "Aktivkohle ersetzen (Wochen)"
+      },
+      "maint_run_pump_motor_interval_months": {
+        "name": "Motor und Rotor reinigen (Monate)"
+      },
+      "maint_run_pump_strainer_interval_weeks": {
+        "name": "Ansaugsieb reinigen (Wochen)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Fullcup-Sensor kalibrieren (Wochen)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Überschäumungs-Sensor kalibrieren (Wochen)"
+      },
+      "maint_run_skim_rotor_interval_months": {
+        "name": "Rotor der Abschäumerpumpe reinigen (Monate)"
+      },
+      "maint_run_skim_venturi_interval_weeks": {
+        "name": "Venturi und Luftschlauch reinigen (Wochen)"
+      },
+      "maint_wave_rotor_cages_interval_months": {
+        "name": "Rotorkäfige reinigen (Monate)"
       },
       "manual_duration": {
         "name": "Manuelle Dauer"
@@ -347,48 +410,6 @@
       },
       "wave_preview_wave_duration": {
         "name": "Vorsch. Wellendauer"
-      },
-      "maint_ato_ec_sensor_interval_weeks": {
-        "name": "EC-Sensor reinigen (Wochen)"
-      },
-      "maint_ato_return_pump_interval_months": {
-        "name": "Rückförderpumpe reinigen (Monate)"
-      },
-      "maint_dose_heads_calibration_interval_days": {
-        "name": "Dosierkopf kalibrieren (Wochen)"
-      },
-      "maint_dose_heads_replace_interval_months": {
-        "name": "Dosierkopf und Schläuche ersetzen (Monate)"
-      },
-      "maint_run_pump_motor_interval_months": {
-        "name": "Motor und Rotor reinigen (Monate)"
-      },
-      "maint_run_pump_strainer_interval_weeks": {
-        "name": "Ansaugsieb reinigen (Wochen)"
-      },
-      "maint_run_skim_venturi_interval_weeks": {
-        "name": "Venturi und Luftschlauch reinigen (Wochen)"
-      },
-      "maint_run_skim_rotor_interval_months": {
-        "name": "Rotor der Abschäumerpumpe reinigen (Monate)"
-      },
-      "maint_run_skim_fullcup_calibration_interval_weeks": {
-        "name": "Fullcup-Sensor kalibrieren (Wochen)"
-      },
-      "maint_run_skim_overskimming_calibration_interval_weeks": {
-        "name": "Überschäumungs-Sensor kalibrieren (Wochen)"
-      },
-      "maint_wave_rotor_cages_interval_months": {
-        "name": "Rotorkäfige reinigen (Monate)"
-      },
-      "maint_mat_carbon_replace_interval_weeks": {
-        "name": "Aktivkohle ersetzen (Wochen)"
-      },
-      "maint_led_lens_interval_weeks": {
-        "name": "Linse reinigen (Wochen)"
-      },
-      "maint_led_fan_interval_months": {
-        "name": "Lüfter und Gitter entstauben (Monate)"
       }
     },
     "select": {
@@ -473,8 +494,14 @@
       "backup_email": {
         "name": "Backup-E-Mail"
       },
+      "battery_level": {
+        "name": "Battery level"
+      },
       "blue": {
         "name": "Blau"
+      },
+      "buzzer_cause": {
+        "name": "Buzzer cause"
       },
       "cloud_account": {
         "name": "Verknüpft mit Konto",
@@ -482,14 +509,72 @@
           "none": "Keiner"
         }
       },
+      "connected_control": {
+        "name": "Paired control hub"
+      },
+      "connected_power": {
+        "name": "Paired power center"
+      },
+      "connected_power_state": {
+        "name": "Paired power center state"
+      },
+      "control_mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Automatik",
+          "off": "Aus",
+          "setup": "Einrichtung",
+          "feeding": "Fütterung",
+          "maintenance": "Wartung"
+        }
+      },
       "country": {
         "name": "Land"
+      },
+      "cup_last_calibration": {
+        "name": "Letzte Becher-Kalibrierung"
       },
       "current_level": {
         "name": "Aktueller Stand"
       },
+      "current_read": {
+        "name": "Temperature"
+      },
+      "daily_average_usage": {
+        "name": "Daily Average Usage"
+      },
       "daily_dose": {
         "name": "Tagesdosis"
+      },
+      "daily_doses": {
+        "name": "Daily doses"
+      },
+      "daily_fills_average": {
+        "name": "Daily fills average"
+      },
+      "daily_volume_average": {
+        "name": "Daily volume average"
+      },
+      "days_till_empty": {
+        "name": "Tage bis leer"
+      },
+      "days_till_end_of_roll": {
+        "name": "Days till end of roll"
+      },
+      "doses_today": {
+        "name": "Doses today"
+      },
+      "dosing_queue": {
+        "name": "Dosing Queue",
+        "state": {
+          "empty": "Empty"
+        }
+      },
+      "email": {
+        "name": "Email"
+      },
+      "fan": {
+        "name": "Fan"
       },
       "first_name": {
         "name": "Vorname"
@@ -515,11 +600,20 @@
       "last_name": {
         "name": "Nachname"
       },
+      "leak_sensor_current_read": {
+        "name": "Aktuelle Lecksensorablesung"
+      },
+      "leak_sensor_status": {
+        "name": "Lecksensorstatus"
+      },
       "led_program": {
         "name": "LED-Programm"
       },
       "manual_dosed_today": {
         "name": "Heute manuell dosiert"
+      },
+      "max_sockets": {
+        "name": "Max sockets"
       },
       "mobile_number": {
         "name": "Mobilnummer"
@@ -564,6 +658,9 @@
       "model": {
         "name": "Modell"
       },
+      "model_type": {
+        "name": "Model region"
+      },
       "moon_intensity": {
         "name": "Mondphasenintensität"
       },
@@ -575,6 +672,131 @@
       },
       "next_new_moon": {
         "name": "Nächster Neumond"
+      },
+      "port_consumption": {
+        "name": "Port {port} consumption"
+      },
+      "port_last_fill_date": {
+        "name": "Port {port} letzte Füllung"
+      },
+      "port_last_pump_on_cause": {
+        "name": "Port {port} letzter Pumpengrund",
+        "state": {
+          "unknown": "Unbekannt",
+          "manual": "Manuell",
+          "auto": "Automatisch",
+          "schedule": "Zeitplan",
+          "user": "Benutzer"
+        }
+      },
+      "port_leak_status": {
+        "name": "Port {port} Leck-Status",
+        "state": {
+          "aquarium": "Aquarium",
+          "dry": "Trocken",
+          "rodi": "RO/DI"
+        }
+      },
+      "port_mode": {
+        "name": "Port {port} mode"
+      },
+      "port_name": {
+        "name": "Port {port} name"
+      },
+      "port_state": {
+        "name": "Port {port} state"
+      },
+      "port_today_volume": {
+        "name": "Port {port} heutige Menge"
+      },
+      "port_type": {
+        "name": "Port {port} type"
+      },
+      "port_volume_left": {
+        "name": "Port {port} Restvolumen"
+      },
+      "power_mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Automatik",
+          "off": "Aus",
+          "setup": "Einrichtung",
+          "feeding": "Fütterung",
+          "maintenance": "Wartung"
+        }
+      },
+      "power_temperature": {
+        "name": "Temperature"
+      },
+      "probe_ec": {
+        "name": "{probe} conductivity"
+      },
+      "probe_ec_value": {
+        "name": "{probe} value"
+      },
+      "probe_last_adjustment": {
+        "name": "{probe} last calibration"
+      },
+      "probe_last_installation": {
+        "name": "{probe} last installation"
+      },
+      "probe_leak_value": {
+        "name": "{probe} leak"
+      },
+      "probe_level": {
+        "name": "{probe} level",
+        "state": {
+          "desired": "Optimal",
+          "acceptable": "Akzeptabel",
+          "danger": "Gefahr",
+          "sensor_data_error": "Sensorfehler"
+        }
+      },
+      "probe_measurement_unit": {
+        "name": "{probe} display unit"
+      },
+      "probe_name": {
+        "name": "{probe} name"
+      },
+      "probe_orp_value": {
+        "name": "{probe} ORP"
+      },
+      "probe_ph_value": {
+        "name": "{probe} pH"
+      },
+      "probe_ppt": {
+        "name": "{probe} salinity"
+      },
+      "probe_sg": {
+        "name": "{probe} specific gravity"
+      },
+      "probe_status": {
+        "name": "{probe} status"
+      },
+      "probe_temp_level": {
+        "name": "{probe} temperature level",
+        "state": {
+          "desired": "Optimal",
+          "acceptable": "Akzeptabel",
+          "danger": "Gefahr",
+          "sensor_data_error": "Sensorfehler"
+        }
+      },
+      "probe_temperature": {
+        "name": "{probe} temperature"
+      },
+      "probe_value": {
+        "name": "{probe} value"
+      },
+      "probe_water_level": {
+        "name": "{probe} Wasserstand",
+        "state": {
+          "above": "Zu hoch",
+          "below": "Zu niedrig",
+          "desired_level_1": "Sollwert (Sensor 1)",
+          "desired_level_2": "Sollwert (Sensor 2)",
+          "error": "Sensor-Fehler"
+        }
       },
       "pump_state": {
         "name": "Pumpenstatus",
@@ -597,6 +819,21 @@
           "hourly": "Stündlich",
           "single": "Einzeln"
         }
+      },
+      "skim_last_calibration": {
+        "name": "Letzte Abschäum-Kalibrierung"
+      },
+      "socket_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_mode": {
+        "name": "Socket {socket} mode"
+      },
+      "socket_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_state": {
+        "name": "Socket {socket} state"
       },
       "state": {
         "name": "Zustand",
@@ -663,15 +900,6 @@
       },
       "volume_left": {
         "name": "Verbleibendes Volumen"
-      },
-      "leak_sensor_status": {
-        "name": "Lecksensorstatus"
-      },
-      "leak_sensor_current_read": {
-        "name": "Aktuelle Lecksensorablesung"
-      },
-      "days_till_empty": {
-        "name": "Tage bis leer"
       },
       "water_level": {
         "name": "Wasserstand",
@@ -748,184 +976,14 @@
       },
       "zip_code": {
         "name": "Postleitzahl"
-      },
-      "daily_fills_average": {
-        "name": "Daily fills average"
-      },
-      "days_till_end_of_roll": {
-        "name": "Days till end of roll"
-      },
-      "current_read": {
-        "name": "Temperature"
-      },
-      "daily_doses": {
-        "name": "Daily doses"
-      },
-      "email": {
-        "name": "Email"
-      },
-      "fan": {
-        "name": "Fan"
-      },
-      "daily_average_usage": {
-        "name": "Daily Average Usage"
-      },
-      "daily_volume_average": {
-        "name": "Daily volume average"
-      },
-      "dosing_queue": {
-        "name": "Dosing Queue",
-        "state": {
-          "empty": "Empty"
-        }
-      },
-      "doses_today": {
-        "name": "Doses today"
-      },
-      "cup_last_calibration": {
-        "name": "Letzte Becher-Kalibrierung"
-      },
-      "skim_last_calibration": {
-        "name": "Letzte Abschäum-Kalibrierung"
-      },
-      "power_mode": {
-        "name": "Mode",
-        "state": {
-          "auto": "Automatik",
-          "off": "Aus",
-          "setup": "Einrichtung",
-          "feeding": "Fütterung",
-          "maintenance": "Wartung"
-        }
-      },
-      "battery_level": {
-        "name": "Battery level"
-      },
-      "power_temperature": {
-        "name": "Temperature"
-      },
-      "max_sockets": {
-        "name": "Max sockets"
-      },
-      "model_type": {
-        "name": "Model region"
-      },
-      "connected_control": {
-        "name": "Paired control hub"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "control_mode": {
-        "name": "Mode",
-        "state": {
-          "auto": "Automatik",
-          "off": "Aus",
-          "setup": "Einrichtung",
-          "feeding": "Fütterung",
-          "maintenance": "Wartung"
-        }
-      },
-      "buzzer_cause": {
-        "name": "Buzzer cause"
-      },
-      "connected_power": {
-        "name": "Paired power center"
-      },
-      "connected_power_state": {
-        "name": "Paired power center state"
-      },
-      "port_name": {
-        "name": "Port {port} name"
-      },
-      "port_state": {
-        "name": "Port {port} state"
-      },
-      "port_mode": {
-        "name": "Port {port} mode"
-      },
-      "port_type": {
-        "name": "Port {port} type"
-      },
-      "port_consumption": {
-        "name": "Port {port} consumption"
-      },
-      "probe_ph_value": {
-        "name": "{probe} pH"
-      },
-      "probe_orp_value": {
-        "name": "{probe} ORP"
-      },
-      "probe_ec_value": {
-        "name": "{probe} value"
-      },
-      "probe_level": {
-        "name": "{probe} level",
-        "state": {
-          "desired": "Optimal",
-          "acceptable": "Akzeptabel",
-          "danger": "Gefahr",
-          "sensor_data_error": "Sensorfehler"
-        }
-      },
-      "probe_status": {
-        "name": "{probe} status"
-      },
-      "probe_name": {
-        "name": "{probe} name"
-      },
-      "probe_last_installation": {
-        "name": "{probe} last installation"
-      },
-      "probe_last_adjustment": {
-        "name": "{probe} last calibration"
-      },
-      "probe_temperature": {
-        "name": "{probe} temperature"
-      },
-      "probe_temp_level": {
-        "name": "{probe} temperature level",
-        "state": {
-          "desired": "Optimal",
-          "acceptable": "Akzeptabel",
-          "danger": "Gefahr",
-          "sensor_data_error": "Sensorfehler"
-        }
-      },
-      "probe_ec": {
-        "name": "{probe} conductivity"
-      },
-      "probe_ppt": {
-        "name": "{probe} salinity"
-      },
-      "probe_sg": {
-        "name": "{probe} specific gravity"
-      },
-      "probe_measurement_unit": {
-        "name": "{probe} display unit"
-      },
-      "probe_ato_value": {
-        "name": "{probe} water level"
-      },
-      "probe_leak_value": {
-        "name": "{probe} leak"
-      },
-      "probe_value": {
-        "name": "{probe} value"
       }
     },
     "switch": {
       "acclimation": {
         "name": "Akklimatisierung"
+      },
+      "ato_auto_fill": {
+        "name": "Port {port} Auto-Nachfüllung"
       },
       "auto_advance": {
         "name": "Automatischer Vorschub"
@@ -954,14 +1012,17 @@
       "overskimming_enabled": {
         "name": "Überschäumung"
       },
+      "port_on_off": {
+        "name": "Anschluss {port}"
+      },
       "schedule_enabled": {
         "name": "Zeitplan aktiviert"
       },
       "scheduled_advance": {
         "name": "Geplanter Vorschub"
       },
-      "slm": {
-        "name": "Volumenregler"
+      "sensor_controlled_switch": {
+        "name": "Sondengesteuerter Betrieb"
       },
       "shortcut_emergency": {
         "name": "Verknüpfung Notfall"
@@ -972,17 +1033,14 @@
       "shortcut_maintenance": {
         "name": "Verknüpfung Wartung"
       },
-      "use_cloud_api": {
-        "name": "Cloud-API verwenden"
-      },
-      "sensor_controlled_switch": {
-        "name": "Sondengesteuerter Betrieb"
+      "slm": {
+        "name": "Volumenregler"
       },
       "socket_on_off": {
         "name": "Steckdose {socket}"
       },
-      "port_on_off": {
-        "name": "Anschluss {port}"
+      "use_cloud_api": {
+        "name": "Cloud-API verwenden"
       }
     },
     "text": {

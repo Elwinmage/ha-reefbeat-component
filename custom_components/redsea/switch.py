@@ -240,6 +240,21 @@ class ReefControlPortSwitchEntityDescription(SwitchEntityDescription):
 
 
 @dataclass(kw_only=True, frozen=True)
+class ReefControlATOSwitchEntityDescription(SwitchEntityDescription):
+    """Description for the per-port ATO auto-fill switch.
+
+    Unlike the port toggle, this switch has a definite state boolean stored
+    on the coordinator (`ports[?(@.number==N)].auto_fill`) and its update
+    endpoint expects the full config payload, so we don't need any of the
+    "compare current vs desired" gymnastics used by the socket/port toggle.
+    """
+
+    exists_fn: Callable[[ReefControlCoordinator], bool] = lambda _: True
+    port: int = 0
+    icon_off: str = ""
+
+
+@dataclass(kw_only=True, frozen=True)
 class SaveStateSwitchEntityDescription(SwitchEntityDescription):
     """Description for switches that persist their state locally across restarts."""
 
@@ -560,6 +575,44 @@ async def async_setup_entry(
         entities.extend(
             ReefControlPortSwitchEntity(device, description)
             for description in port_descs
+            if description.exists_fn(device)
+        )
+
+        # ATO auto-fill switch per ATO port. Discovered by walking the
+        # /dashboard payload (`type == "ato"` on a `ports[]` entry), same
+        # rule as the sensor/binary_sensor/button platforms. This is
+        # coordinator-surface-agnostic.
+        raw_ports = device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.ports",
+            is_None_possible=True,
+        )
+        ato_port_indices: list[int] = (
+            [
+                p["number"]
+                for p in raw_ports
+                if isinstance(p, dict)
+                and p.get("type") == "ato"
+                and isinstance(p.get("number"), int)
+            ]
+            if isinstance(raw_ports, list)
+            else []
+        )
+        ato_switch_descs: list[ReefControlATOSwitchEntityDescription] = []
+        for port_idx in ato_port_indices:
+            ato_switch_descs.append(
+                ReefControlATOSwitchEntityDescription(
+                    key=f"port_{port_idx}_ato_auto_fill",
+                    translation_key="ato_auto_fill",
+                    translation_placeholders={"port": str(port_idx + 1)},
+                    icon="mdi:waves-arrow-up",
+                    icon_off="mdi:waves",
+                    port=port_idx,
+                    entity_category=EntityCategory.CONFIG,
+                )
+            )
+        entities.extend(
+            ReefControlATOSwitchEntity(device, description)
+            for description in ato_switch_descs
             if description.exists_fn(device)
         )
 
@@ -1234,6 +1287,92 @@ class ReefControlPortSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type:
 
         if current is not False:
             await self._send_toggle()
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
+    def device_info(self) -> DeviceInfo:
+        return self._device.device_info
+
+
+# REEFCONTROL — per-port ATO auto-fill toggle
+class ReefControlATOSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """Toggle the ``auto_fill`` flag on an ATO 12V port.
+
+    Backing endpoint: ``PUT /port/{n}/ato/configuration`` with a JSON body
+    ``{"auto_fill": bool}``. Unlike the socket/port toggle switches, the
+    firmware maintains a proper boolean state here, so we can drive
+    ``_attr_is_on`` directly from ``ports[?(@.number==N)].auto_fill``.
+    """
+
+    _attr_has_entity_name = True
+
+    @staticmethod
+    def _restore_is_on(state: str) -> bool:
+        return state == "on"
+
+    def __init__(
+        self,
+        device: ReefControlCoordinator,
+        entity_description: ReefControlATOSwitchEntityDescription,
+    ) -> None:
+        ReefBeatRestoreEntity.__init__(
+            self,
+            device,
+            restore=RestoreSpec("_attr_is_on", self._restore_is_on),
+        )
+        self._device: ReefControlCoordinator = device
+        self._desc: ReefControlATOSwitchEntityDescription = entity_description
+        self.entity_description = cast(SwitchEntityDescription, entity_description)
+        self._port: int = entity_description.port
+
+        self._attr_available = False
+        self._attr_unique_id = f"{device.serial}_{entity_description.key}"
+        self._attr_is_on = False
+
+        base = f"$.sources[?(@.name=='/dashboard')].data.ports[{self._port}]"
+        self._auto_fill_path = f"{base}.auto_fill"
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            if self._attr_is_on is None or not self._attr_available:
+                self._attr_is_on = last_state.state == "on"
+                self._attr_available = True
+                self.async_write_ha_state()
+
+        self._handle_coordinator_update()
+        self.async_write_ha_state()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._attr_available = True
+        auto_fill = self._device.get_data(self._auto_fill_path, is_None_possible=True)
+        if isinstance(auto_fill, bool):
+            self._attr_is_on = auto_fill
+        self._set_icon()
+        super()._handle_coordinator_update()
+
+    def _set_icon(self) -> None:
+        if self._attr_is_on:
+            self._attr_icon = self._desc.icon
+        elif self._desc.icon_off:
+            self._attr_icon = self._desc.icon_off
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        # Optimistic update for immediate UI feedback.
+        self._attr_is_on = True
+        self._set_icon()
+        self.async_write_ha_state()
+        await self._device.my_api.push_ato_configuration(self._port, True)
+        await self._device.async_request_refresh()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self._attr_is_on = False
+        self._set_icon()
+        self.async_write_ha_state()
+        await self._device.my_api.push_ato_configuration(self._port, False)
+        await self._device.async_request_refresh()
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:

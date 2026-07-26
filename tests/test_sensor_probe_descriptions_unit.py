@@ -115,12 +115,34 @@ def test_build_probe_descriptions_ec() -> None:
 
 
 def test_build_probe_descriptions_ato() -> None:
-    """ATO probes have no canonical unit and 1-decimal display precision."""
+    """ATO probes: main sensor is `water_level` (enum), not a numeric `value`.
+
+    The firmware ships a discrete `water_level` string ("desired_level_1",
+    "danger_low", …) rather than a scalar reading, so the main entity is an
+    ENUM sensor and there is no `probe_XXX_value` entity at all.
+    """
+    from homeassistant.components.sensor import SensorDeviceClass
+
     descs = _build_probe_descriptions({"uid": "0x0AT01", "type": "ato", "name": "ATO1"})
-    main = next(d for d in descs if d.key == "probe_0x0at01_value")
+    keys = _keys(descs)
+
+    # No numeric `_value` entity for ATO probes.
+    assert "probe_0x0at01_value" not in keys
+    # Enum `water_level` entity is present.
+    main = next(d for d in descs if d.key == "probe_0x0at01_water_level")
     assert main.native_unit_of_measurement is None
-    assert main.suggested_display_precision == 1
-    assert main.translation_key == "probe_ato_value"
+    assert main.device_class == SensorDeviceClass.ENUM
+    assert main.translation_key == "probe_water_level"
+    assert main.options is not None
+    # Firmware-observed values must all be advertised.
+    for opt in (
+        "above",
+        "below",
+        "desired_level_1",
+        "desired_level_2",
+        "error",
+    ):
+        assert opt in main.options
 
 
 def test_build_probe_descriptions_leak() -> None:

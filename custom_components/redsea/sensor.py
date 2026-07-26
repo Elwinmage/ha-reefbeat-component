@@ -1044,6 +1044,41 @@ _PROBE_LEVEL_OPTIONS: tuple[str, ...] = (
     "sensor_data_error",
 )
 
+# ATO probe `water_level` enum. Confirmed against the decompiled Red Sea app's
+# `AtoWaterLevel` enum (5 possible values):
+#   - `above`           water above the target band (overflow risk)
+#   - `below`           water below the target band (needs refill)
+#   - `desired_level_1` water at sensor 1 (nominal)
+#   - `desired_level_2` water at sensor 2 (nominal)
+#   - `error`           sensor unable to read (probe fault / disconnected)
+_ATO_WATER_LEVEL_OPTIONS: tuple[str, ...] = (
+    "above",
+    "below",
+    "desired_level_1",
+    "desired_level_2",
+    "error",
+)
+
+# Possible values for `last_pump_on_cause` on an ATO port. Confirmed against
+# the Red Sea app string pool: unknown / manual / auto / schedule / user.
+_ATO_PUMP_CAUSE_OPTIONS: tuple[str, ...] = (
+    "unknown",
+    "manual",
+    "auto",
+    "schedule",
+    "user",
+)
+
+# `leak_status` enum on ATO ports. Confirmed from decompiled `AtoLeakStatus`
+# ($Keys.aquarium / .dry / .rodi). `dry` is the healthy state — the leak
+# sensor is dry. `aquarium` and `rodi` indicate water where it should not
+# be, from the aquarium side or from the RO/DI feed side respectively.
+_ATO_LEAK_STATUS_OPTIONS: tuple[str, ...] = (
+    "aquarium",
+    "dry",
+    "rodi",
+)
+
 
 def _build_probe_descriptions(
     probe: dict[str, Any],
@@ -1086,10 +1121,12 @@ def _build_probe_descriptions(
         value_device_class = SensorDeviceClass.TEMPERATURE
         value_precision = 1
     elif ptype == "ato":
-        # LevelAndATO probe: water-level reading (proximity/depth). No canonical
-        # unit — the app renders it dimensionless, matching the raw JSON.
+        # LevelAndATO probe on RSCONTROL — the "main value" is NOT numeric;
+        # the payload's `water_level` field is an enum ("desired_level_1",
+        # "danger_low", …), so we branch the sensor definition entirely
+        # below and keep the placeholder values here inert.
         value_unit = None
-        value_precision = 1
+        value_precision = 0
     elif ptype == "leak":
         # Leak probe: exact payload shape unknown until a real probe reports.
         # The `level` field carries the actionable info; the numeric `value`
@@ -1107,13 +1144,29 @@ def _build_probe_descriptions(
         "orp": "probe_orp_value",
         "ec": "probe_ec_value",
         "temperature": "probe_temperature",
-        "ato": "probe_ato_value",
         "leak": "probe_leak_value",
     }.get(ptype, "probe_value")
 
-    descs: list[ReefBeatSensorEntityDescription] = [
-        # Main measurement
-        ReefBeatSensorEntityDescription(
+    # Main measurement. ATO probes are special: the firmware exposes a
+    # discrete `water_level` enum instead of a numeric `value`, so we build an
+    # ENUM sensor for them and a numeric MEASUREMENT sensor for every other
+    # probe type. The ATO branch uses a static translation_key literal so that
+    # the check_translation AST walker doesn't cross-attribute the
+    # water_level enum options to the numeric probes.
+    if ptype == "ato":
+        main_descriptor = ReefBeatSensorEntityDescription(
+            key=f"probe_{uid_key}_water_level",
+            translation_key="probe_water_level",
+            translation_placeholders=tp,
+            icon="mdi:water",
+            device_class=SensorDeviceClass.ENUM,
+            options=list(_ATO_WATER_LEVEL_OPTIONS),
+            value_fn=lambda d, p=_probe_path(uid, "water_level"): d.get_data(
+                p, is_None_possible=True
+            ),
+        )
+    else:
+        main_descriptor = ReefBeatSensorEntityDescription(
             key=f"probe_{uid_key}_value",
             translation_key=value_translation_key,
             translation_placeholders=tp,
@@ -1125,7 +1178,10 @@ def _build_probe_descriptions(
             value_fn=lambda d, p=_probe_path(uid, "value"): d.get_data(
                 p, is_None_possible=True
             ),
-        ),
+        )
+
+    descs: list[ReefBeatSensorEntityDescription] = [
+        main_descriptor,
         # Quality level (enum)
         ReefBeatSensorEntityDescription(
             key=f"probe_{uid_key}_level",
@@ -1744,6 +1800,104 @@ async def async_setup_entry(
             )
         entities.extend(
             ReefBeatSensorEntity(device, description) for description in control_descs
+        )
+
+        # ATO-only per-port sensors. Ports that carry an ATO probe expose
+        # extra fields (today_volume, volume_left, last_pump_on_cause) that
+        # are absent from generic "other" ports (Ozone, etc.). We walk the
+        # /dashboard payload directly rather than going through a coordinator
+        # helper so this stays independent of the coordinator surface.
+        raw_ports = device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.ports",
+            is_None_possible=True,
+        )
+        ato_ports: list[dict[str, Any]] = (
+            [
+                p
+                for p in raw_ports
+                if isinstance(p, dict)
+                and p.get("type") == "ato"
+                and isinstance(p.get("number"), int)
+            ]
+            if isinstance(raw_ports, list)
+            else []
+        )
+        ato_port_descs: list[ReefBeatSensorEntityDescription] = []
+        for port in ato_ports:
+            port_idx = port["number"]
+            base = f"$.sources[?(@.name=='/dashboard')].data.ports[{port_idx}]"
+            ato_port_descs.extend(
+                [
+                    ReefBeatSensorEntityDescription(
+                        key=f"port_{port_idx}_today_volume",
+                        translation_key="port_today_volume",
+                        translation_placeholders={"port": str(port_idx + 1)},
+                        icon="mdi:cup-water",
+                        native_unit_of_measurement="mL",
+                        state_class=SensorStateClass.TOTAL_INCREASING,
+                        suggested_display_precision=0,
+                        value_fn=lambda d, p=f"{base}.today_volume": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                    ),
+                    ReefBeatSensorEntityDescription(
+                        key=f"port_{port_idx}_volume_left",
+                        translation_key="port_volume_left",
+                        translation_placeholders={"port": str(port_idx + 1)},
+                        icon="mdi:beaker-outline",
+                        native_unit_of_measurement="mL",
+                        state_class=SensorStateClass.MEASUREMENT,
+                        suggested_display_precision=0,
+                        value_fn=lambda d, p=f"{base}.volume_left": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                    ),
+                    ReefBeatSensorEntityDescription(
+                        key=f"port_{port_idx}_last_pump_on_cause",
+                        translation_key="port_last_pump_on_cause",
+                        translation_placeholders={"port": str(port_idx + 1)},
+                        icon="mdi:history",
+                        device_class=SensorDeviceClass.ENUM,
+                        options=list(_ATO_PUMP_CAUSE_OPTIONS),
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                        value_fn=lambda d, p=f"{base}.last_pump_on_cause": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                    ),
+                    # Timestamp of the last successful ATO fill. Field
+                    # `last_fill_date` in the firmware payload; may be absent
+                    # until at least one fill happens.
+                    ReefBeatSensorEntityDescription(
+                        key=f"port_{port_idx}_last_fill_date",
+                        translation_key="port_last_fill_date",
+                        translation_placeholders={"port": str(port_idx + 1)},
+                        icon="mdi:calendar-check",
+                        device_class=SensorDeviceClass.TIMESTAMP,
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                        value_fn=lambda d, p=f"{base}.last_fill_date": _epoch_to_iso(
+                            d.get_data(p, is_None_possible=True)
+                        ),
+                    ),
+                    # Water source detected by the leak probe. `dry` = healthy,
+                    # `aquarium` / `rodi` = leak from the tank vs the RO/DI
+                    # feed. Field `leak_status` in the payload; only present
+                    # when the ATO module has a leak sensor.
+                    ReefBeatSensorEntityDescription(
+                        key=f"port_{port_idx}_leak_status",
+                        translation_key="port_leak_status",
+                        translation_placeholders={"port": str(port_idx + 1)},
+                        icon="mdi:water-alert-outline",
+                        device_class=SensorDeviceClass.ENUM,
+                        options=list(_ATO_LEAK_STATUS_OPTIONS),
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                        value_fn=lambda d, p=f"{base}.leak_status": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                    ),
+                ]
+            )
+        entities.extend(
+            ReefBeatSensorEntity(device, description) for description in ato_port_descs
         )
 
         # Discover connected ReefSense probes (dynamic — depends on physical
