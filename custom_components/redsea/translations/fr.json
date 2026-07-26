@@ -32,14 +32,26 @@
   },
   "entity": {
     "binary_sensor": {
+      "auto_from_buttons": {
+        "name": "Auto depuis les boutons"
+      },
       "battery_level": {
         "name": "Batterie"
       },
       "bundled_heads": {
         "name": "Têtes liées"
       },
+      "buzzer_active": {
+        "name": "Buzzer actif"
+      },
+      "buzzer_dismissed": {
+        "name": "Buzzer acquitté"
+      },
       "buzzer_enabled": {
         "name": "Buzzer"
+      },
+      "cable_connected": {
+        "name": "Câble connecté"
       },
       "cloud_state": {
         "name": "Connecté au Cloud"
@@ -50,6 +62,9 @@
       "constant_speed": {
         "name": "Vitesse constante"
       },
+      "control_link_up": {
+        "name": "Liaison hub Control"
+      },
       "ec_sensor_connected": {
         "name": "Détecteur"
       },
@@ -58,6 +73,9 @@
       },
       "is_ec_sensor_connected": {
         "name": "Capteur connecté?"
+      },
+      "is_internet_connected": {
+        "name": "Internet connecté"
       },
       "is_pump_on": {
         "name": "Pompe"
@@ -68,17 +86,41 @@
       "is_temp_enabled": {
         "name": "Capteur de température"
       },
+      "leak_detector": {
+        "name": "Détecteur de fuite"
+      },
       "missing_pump": {
         "name": "Pompe"
       },
       "missing_sensor": {
         "name": "Détecteur"
       },
+      "port_check_sensor": {
+        "name": "Port {port} vérifier capteur"
+      },
+      "port_is_advancing": {
+        "name": "Port {port} en progression"
+      },
+      "port_is_pump_on": {
+        "name": "Port {port} pompe"
+      },
+      "port_leak_sensor": {
+        "name": "Port {port} capteur de fuite"
+      },
+      "power_link_up": {
+        "name": "Liaison centrale Power"
+      },
       "recalibration_required": {
         "name": "Calibration"
       },
+      "reconnect_pump": {
+        "name": "Reconnexion pompe"
+      },
       "sensor_controlled": {
         "name": "Contrôlé par capteur"
+      },
+      "socket_enabled": {
+        "name": "Prise {socket} activée"
       },
       "status": {
         "name": "Statut"
@@ -88,47 +130,44 @@
       },
       "water_level": {
         "name": "Niveau d'eau"
-      },
-      "reconnect_pump": {
-        "name": "Reconnexion pompe"
-      },
-      "is_internet_connected": {
-        "name": "Internet connecté"
-      },
-      "auto_from_buttons": {
-        "name": "Auto depuis les boutons"
-      },
-      "control_link_up": {
-        "name": "Liaison hub Control"
-      },
-      "cable_connected": {
-        "name": "Câble connecté"
-      },
-      "buzzer_active": {
-        "name": "Buzzer actif"
-      },
-      "buzzer_dismissed": {
-        "name": "Buzzer acquitté"
-      },
-      "leak_detector": {
-        "name": "Détecteur de fuite"
-      },
-      "power_link_up": {
-        "name": "Liaison centrale Power"
-      },
-      "socket_enabled": {
-        "name": "Prise {socket} activée"
       }
     },
     "button": {
       "advance": {
         "name": "Faire dérouler"
       },
+      "ato_manual_pump": {
+        "name": "Port {port} remplissage manuel"
+      },
+      "ato_resume": {
+        "name": "Port {port} reprendre"
+      },
+      "ato_stop": {
+        "name": "Port {port} stop"
+      },
       "delete_emergency": {
         "name": "Effacer le message d'alerte"
       },
+      "delete_pump": {
+        "name": "Supprimer pompe"
+      },
       "delete_supplement": {
         "name": "Supprimer le Suplément"
+      },
+      "detect_pump": {
+        "name": "Détecter pompe"
+      },
+      "ec_calibration_cup": {
+        "name": "Calibration EC Gobelet"
+      },
+      "ec_calibration_end": {
+        "name": "Calibration EC Fin"
+      },
+      "ec_calibration_skim": {
+        "name": "Calibration EC Écumage"
+      },
+      "ec_calibration_start": {
+        "name": "Calibration EC Démarrer"
       },
       "end_calibration": {
         "name": "Arréter et Sauvegarder la  Calibration"
@@ -144,6 +183,48 @@
       },
       "led_identify": {
         "name": "Identifier"
+      },
+      "maint_ato_ec_sensor": {
+        "name": "Nettoyer le capteur EC"
+      },
+      "maint_ato_return_pump": {
+        "name": "Nettoyer la pompe de remontée"
+      },
+      "maint_dose_heads_calibration": {
+        "name": "Étalonner les têtes de dosage"
+      },
+      "maint_dose_heads_replace": {
+        "name": "Remplacer la tête et les tubes"
+      },
+      "maint_led_fan": {
+        "name": "Dépoussiérer le ventilateur et les grilles"
+      },
+      "maint_led_lens": {
+        "name": "Nettoyer la lentille"
+      },
+      "maint_mat_carbon_replace": {
+        "name": "Remplacer le charbon actif"
+      },
+      "maint_run_pump_motor": {
+        "name": "Nettoyer le moteur et le rotor"
+      },
+      "maint_run_pump_strainer": {
+        "name": "Nettoyer la crépine d'aspiration"
+      },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Étalonner le capteur fullcup"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Étalonner le capteur overskimming"
+      },
+      "maint_run_skim_rotor": {
+        "name": "Nettoyer le rotor de la pompe écumeur"
+      },
+      "maint_run_skim_venturi": {
+        "name": "Nettoyer le venturi et le tuyau d'air"
+      },
+      "maint_wave_rotor_cages": {
+        "name": "Nettoyer les cages de rotor"
       },
       "manual_head": {
         "name": "Dosage manuel"
@@ -192,66 +273,6 @@
       },
       "test_calibration": {
         "name": "Tester la Calibration"
-      },
-      "ec_calibration_start": {
-        "name": "Calibration EC Démarrer"
-      },
-      "ec_calibration_skim": {
-        "name": "Calibration EC Écumage"
-      },
-      "ec_calibration_cup": {
-        "name": "Calibration EC Gobelet"
-      },
-      "ec_calibration_end": {
-        "name": "Calibration EC Fin"
-      },
-      "delete_pump": {
-        "name": "Supprimer pompe"
-      },
-      "detect_pump": {
-        "name": "Détecter pompe"
-      },
-      "maint_ato_ec_sensor": {
-        "name": "Nettoyer le capteur EC"
-      },
-      "maint_ato_return_pump": {
-        "name": "Nettoyer la pompe de remontée"
-      },
-      "maint_dose_heads_calibration": {
-        "name": "Étalonner les têtes de dosage"
-      },
-      "maint_dose_heads_replace": {
-        "name": "Remplacer la tête et les tubes"
-      },
-      "maint_run_pump_motor": {
-        "name": "Nettoyer le moteur et le rotor"
-      },
-      "maint_run_pump_strainer": {
-        "name": "Nettoyer la crépine d'aspiration"
-      },
-      "maint_run_skim_venturi": {
-        "name": "Nettoyer le venturi et le tuyau d'air"
-      },
-      "maint_run_skim_rotor": {
-        "name": "Nettoyer le rotor de la pompe écumeur"
-      },
-      "maint_run_skim_fullcup_calibration": {
-        "name": "Étalonner le capteur fullcup"
-      },
-      "maint_run_skim_overskimming_calibration": {
-        "name": "Étalonner le capteur overskimming"
-      },
-      "maint_wave_rotor_cages": {
-        "name": "Nettoyer les cages de rotor"
-      },
-      "maint_mat_carbon_replace": {
-        "name": "Remplacer le charbon actif"
-      },
-      "maint_led_lens": {
-        "name": "Nettoyer la lentille"
-      },
-      "maint_led_fan": {
-        "name": "Dépoussiérer le ventilateur et les grilles"
       }
     },
     "light": {
@@ -292,6 +313,48 @@
       },
       "dosing_waiting_period": {
         "name": "Délais d'attente entre têtes différentes"
+      },
+      "maint_ato_ec_sensor_interval_weeks": {
+        "name": "Nettoyer le capteur EC (semaines)"
+      },
+      "maint_ato_return_pump_interval_months": {
+        "name": "Nettoyer la pompe de remontée (mois)"
+      },
+      "maint_dose_heads_calibration_interval_days": {
+        "name": "Étalonner les têtes de dosage (semaines)"
+      },
+      "maint_dose_heads_replace_interval_months": {
+        "name": "Remplacer la tête et les tubes (mois)"
+      },
+      "maint_led_fan_interval_months": {
+        "name": "Dépoussiérer le ventilateur et les grilles (mois)"
+      },
+      "maint_led_lens_interval_weeks": {
+        "name": "Nettoyer la lentille (semaines)"
+      },
+      "maint_mat_carbon_replace_interval_weeks": {
+        "name": "Remplacer le charbon actif (semaines)"
+      },
+      "maint_run_pump_motor_interval_months": {
+        "name": "Nettoyer le moteur et le rotor (mois)"
+      },
+      "maint_run_pump_strainer_interval_weeks": {
+        "name": "Nettoyer la crépine d'aspiration (semaines)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Étalonner le capteur fullcup (semaines)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Étalonner le capteur overskimming (semaines)"
+      },
+      "maint_run_skim_rotor_interval_months": {
+        "name": "Nettoyer le rotor de la pompe écumeur (mois)"
+      },
+      "maint_run_skim_venturi_interval_weeks": {
+        "name": "Nettoyer le venturi et le tuyau d'air (semaines)"
+      },
+      "maint_wave_rotor_cages_interval_months": {
+        "name": "Nettoyer les cages de rotor (mois)"
       },
       "manual_duration": {
         "name": "Durée du mode manuel"
@@ -346,48 +409,6 @@
       },
       "wave_preview_wave_duration": {
         "name": "Prev. durée vague"
-      },
-      "maint_ato_ec_sensor_interval_weeks": {
-        "name": "Nettoyer le capteur EC (semaines)"
-      },
-      "maint_ato_return_pump_interval_months": {
-        "name": "Nettoyer la pompe de remontée (mois)"
-      },
-      "maint_dose_heads_calibration_interval_days": {
-        "name": "Étalonner les têtes de dosage (semaines)"
-      },
-      "maint_dose_heads_replace_interval_months": {
-        "name": "Remplacer la tête et les tubes (mois)"
-      },
-      "maint_run_pump_motor_interval_months": {
-        "name": "Nettoyer le moteur et le rotor (mois)"
-      },
-      "maint_run_pump_strainer_interval_weeks": {
-        "name": "Nettoyer la crépine d'aspiration (semaines)"
-      },
-      "maint_run_skim_venturi_interval_weeks": {
-        "name": "Nettoyer le venturi et le tuyau d'air (semaines)"
-      },
-      "maint_run_skim_rotor_interval_months": {
-        "name": "Nettoyer le rotor de la pompe écumeur (mois)"
-      },
-      "maint_run_skim_fullcup_calibration_interval_weeks": {
-        "name": "Étalonner le capteur fullcup (semaines)"
-      },
-      "maint_run_skim_overskimming_calibration_interval_weeks": {
-        "name": "Étalonner le capteur overskimming (semaines)"
-      },
-      "maint_wave_rotor_cages_interval_months": {
-        "name": "Nettoyer les cages de rotor (mois)"
-      },
-      "maint_mat_carbon_replace_interval_weeks": {
-        "name": "Remplacer le charbon actif (semaines)"
-      },
-      "maint_led_lens_interval_weeks": {
-        "name": "Nettoyer la lentille (semaines)"
-      },
-      "maint_led_fan_interval_months": {
-        "name": "Dépoussiérer le ventilateur et les grilles (mois)"
       }
     },
     "select": {
@@ -472,8 +493,14 @@
       "backup_email": {
         "name": "Email de secour"
       },
+      "battery_level": {
+        "name": "Niveau de batterie"
+      },
       "blue": {
         "name": "Bleu"
+      },
+      "buzzer_cause": {
+        "name": "Cause du buzzer"
       },
       "cloud_account": {
         "name": "Lié au compte",
@@ -481,8 +508,30 @@
           "none": "Aucun"
         }
       },
+      "connected_control": {
+        "name": "Hub Control apparié"
+      },
+      "connected_power": {
+        "name": "Centrale Power appariée"
+      },
+      "connected_power_state": {
+        "name": "État de la centrale Power appariée"
+      },
+      "control_mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "off": "Arrêt",
+          "setup": "Configuration",
+          "feeding": "Nourrissage",
+          "maintenance": "Maintenance"
+        }
+      },
       "country": {
         "name": "Pays"
+      },
+      "cup_last_calibration": {
+        "name": "Dernière calibration gobelet"
       },
       "current_level": {
         "name": "Niveau actuel",
@@ -513,6 +562,9 @@
       },
       "daily_volume_average": {
         "name": "Volume journalier moyen"
+      },
+      "days_till_empty": {
+        "name": "Jours restants avant vide"
       },
       "days_till_end_of_roll": {
         "name": "Jours avant la fin du rouleau"
@@ -556,11 +608,20 @@
       "last_name": {
         "name": "Nom"
       },
+      "leak_sensor_current_read": {
+        "name": "Lecture actuelle du capteur de fuite"
+      },
+      "leak_sensor_status": {
+        "name": "Statut du capteur de fuite"
+      },
       "led_program": {
         "name": "Programme LED"
       },
       "manual_dosed_today": {
         "name": "Dose manuelle du jour"
+      },
+      "max_sockets": {
+        "name": "Nombre max de prises"
       },
       "mobile_number": {
         "name": "Numéro de mobile"
@@ -605,6 +666,9 @@
       "model": {
         "name": "Modèle"
       },
+      "model_type": {
+        "name": "Région du modèle"
+      },
       "moon_intensity": {
         "name": "Intensité de la Lune dans ce cycle"
       },
@@ -616,6 +680,131 @@
       },
       "next_new_moon": {
         "name": "Prochaine nouvelle lune"
+      },
+      "port_consumption": {
+        "name": "Consommation port {port}"
+      },
+      "port_last_fill_date": {
+        "name": "Port {port} dernier remplissage"
+      },
+      "port_last_pump_on_cause": {
+        "name": "Port {port} cause dernier pompage",
+        "state": {
+          "unknown": "Inconnue",
+          "manual": "Manuel",
+          "auto": "Automatique",
+          "schedule": "Programme",
+          "user": "Utilisateur"
+        }
+      },
+      "port_leak_status": {
+        "name": "Port {port} détection de fuite",
+        "state": {
+          "aquarium": "Eau d'aquarium",
+          "dry": "Sec",
+          "rodi": "Eau osmosée"
+        }
+      },
+      "port_mode": {
+        "name": "Mode port {port}"
+      },
+      "port_name": {
+        "name": "Nom port {port}"
+      },
+      "port_state": {
+        "name": "État port {port}"
+      },
+      "port_today_volume": {
+        "name": "Port {port} volume du jour"
+      },
+      "port_type": {
+        "name": "Type port {port}"
+      },
+      "port_volume_left": {
+        "name": "Port {port} volume restant"
+      },
+      "power_mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "off": "Arrêt",
+          "setup": "Configuration",
+          "feeding": "Nourrissage",
+          "maintenance": "Maintenance"
+        }
+      },
+      "power_temperature": {
+        "name": "Température"
+      },
+      "probe_ec": {
+        "name": "{probe} conductivité"
+      },
+      "probe_ec_value": {
+        "name": "{probe} valeur"
+      },
+      "probe_last_adjustment": {
+        "name": "{probe} dernière calibration"
+      },
+      "probe_last_installation": {
+        "name": "{probe} dernière installation"
+      },
+      "probe_leak_value": {
+        "name": "{probe} fuite"
+      },
+      "probe_level": {
+        "name": "{probe} niveau",
+        "state": {
+          "desired": "Optimal",
+          "acceptable": "Acceptable",
+          "danger": "Danger",
+          "sensor_data_error": "Erreur capteur"
+        }
+      },
+      "probe_measurement_unit": {
+        "name": "{probe} unité d'affichage"
+      },
+      "probe_name": {
+        "name": "{probe} nom"
+      },
+      "probe_orp_value": {
+        "name": "{probe} ORP"
+      },
+      "probe_ph_value": {
+        "name": "{probe} pH"
+      },
+      "probe_ppt": {
+        "name": "{probe} salinité"
+      },
+      "probe_sg": {
+        "name": "{probe} densité"
+      },
+      "probe_status": {
+        "name": "{probe} statut"
+      },
+      "probe_temp_level": {
+        "name": "{probe} niveau température",
+        "state": {
+          "desired": "Optimal",
+          "acceptable": "Acceptable",
+          "danger": "Danger",
+          "sensor_data_error": "Erreur capteur"
+        }
+      },
+      "probe_temperature": {
+        "name": "{probe} température"
+      },
+      "probe_value": {
+        "name": "{probe} valeur"
+      },
+      "probe_water_level": {
+        "name": "{probe} niveau d'eau",
+        "state": {
+          "above": "Trop haut",
+          "below": "Trop bas",
+          "desired_level_1": "Niveau désiré (capteur 1)",
+          "desired_level_2": "Niveau désiré (capteur 2)",
+          "error": "Erreur capteur"
+        }
       },
       "pump_state": {
         "name": "Etat de la pompe"
@@ -634,6 +823,21 @@
           "hourly": "Horaire",
           "single": "Unique"
         }
+      },
+      "skim_last_calibration": {
+        "name": "Dernière calibration écumage"
+      },
+      "socket_consumption": {
+        "name": "Consommation prise {socket}"
+      },
+      "socket_mode": {
+        "name": "Mode prise {socket}"
+      },
+      "socket_name": {
+        "name": "Nom prise {socket}"
+      },
+      "socket_state": {
+        "name": "État prise {socket}"
       },
       "state": {
         "name": "Etat",
@@ -700,15 +904,6 @@
       },
       "volume_left": {
         "name": "Volume restant"
-      },
-      "leak_sensor_status": {
-        "name": "Statut du capteur de fuite"
-      },
-      "leak_sensor_current_read": {
-        "name": "Lecture actuelle du capteur de fuite"
-      },
-      "days_till_empty": {
-        "name": "Jours restants avant vide"
       },
       "water_level": {
         "name": "Niveau d'eau",
@@ -779,151 +974,14 @@
       },
       "zip_code": {
         "name": "Code Postal"
-      },
-      "skim_last_calibration": {
-        "name": "Dernière calibration écumage"
-      },
-      "cup_last_calibration": {
-        "name": "Dernière calibration gobelet"
-      },
-      "power_mode": {
-        "name": "Mode",
-        "state": {
-          "auto": "Auto",
-          "off": "Arrêt",
-          "setup": "Configuration",
-          "feeding": "Nourrissage",
-          "maintenance": "Maintenance"
-        }
-      },
-      "battery_level": {
-        "name": "Niveau de batterie"
-      },
-      "power_temperature": {
-        "name": "Température"
-      },
-      "max_sockets": {
-        "name": "Nombre max de prises"
-      },
-      "model_type": {
-        "name": "Région du modèle"
-      },
-      "connected_control": {
-        "name": "Hub Control apparié"
-      },
-      "socket_name": {
-        "name": "Nom prise {socket}"
-      },
-      "socket_state": {
-        "name": "État prise {socket}"
-      },
-      "socket_mode": {
-        "name": "Mode prise {socket}"
-      },
-      "socket_consumption": {
-        "name": "Consommation prise {socket}"
-      },
-      "control_mode": {
-        "name": "Mode",
-        "state": {
-          "auto": "Auto",
-          "off": "Arrêt",
-          "setup": "Configuration",
-          "feeding": "Nourrissage",
-          "maintenance": "Maintenance"
-        }
-      },
-      "buzzer_cause": {
-        "name": "Cause du buzzer"
-      },
-      "connected_power": {
-        "name": "Centrale Power appariée"
-      },
-      "connected_power_state": {
-        "name": "État de la centrale Power appariée"
-      },
-      "port_name": {
-        "name": "Nom port {port}"
-      },
-      "port_state": {
-        "name": "État port {port}"
-      },
-      "port_mode": {
-        "name": "Mode port {port}"
-      },
-      "port_type": {
-        "name": "Type port {port}"
-      },
-      "port_consumption": {
-        "name": "Consommation port {port}"
-      },
-      "probe_ph_value": {
-        "name": "{probe} pH"
-      },
-      "probe_orp_value": {
-        "name": "{probe} ORP"
-      },
-      "probe_ec_value": {
-        "name": "{probe} valeur"
-      },
-      "probe_level": {
-        "name": "{probe} niveau",
-        "state": {
-          "desired": "Optimal",
-          "acceptable": "Acceptable",
-          "danger": "Danger",
-          "sensor_data_error": "Erreur capteur"
-        }
-      },
-      "probe_status": {
-        "name": "{probe} statut"
-      },
-      "probe_name": {
-        "name": "{probe} nom"
-      },
-      "probe_last_installation": {
-        "name": "{probe} dernière installation"
-      },
-      "probe_last_adjustment": {
-        "name": "{probe} dernière calibration"
-      },
-      "probe_temperature": {
-        "name": "{probe} température"
-      },
-      "probe_temp_level": {
-        "name": "{probe} niveau température",
-        "state": {
-          "desired": "Optimal",
-          "acceptable": "Acceptable",
-          "danger": "Danger",
-          "sensor_data_error": "Erreur capteur"
-        }
-      },
-      "probe_ec": {
-        "name": "{probe} conductivité"
-      },
-      "probe_ppt": {
-        "name": "{probe} salinité"
-      },
-      "probe_sg": {
-        "name": "{probe} densité"
-      },
-      "probe_measurement_unit": {
-        "name": "{probe} unité d'affichage"
-      },
-      "probe_ato_value": {
-        "name": "{probe} niveau d'eau"
-      },
-      "probe_leak_value": {
-        "name": "{probe} fuite"
-      },
-      "probe_value": {
-        "name": "{probe} valeur"
       }
     },
     "switch": {
       "acclimation": {
         "name": "Acclimatation"
+      },
+      "ato_auto_fill": {
+        "name": "Port {port} remplissage auto"
       },
       "auto_advance": {
         "name": "Avance automatique"
@@ -952,14 +1010,17 @@
       "overskimming_enabled": {
         "name": "Auto Régulation Ecummage"
       },
+      "port_on_off": {
+        "name": "Sortie {port}"
+      },
       "schedule_enabled": {
         "name": "Planification activée"
       },
       "scheduled_advance": {
         "name": "Avance Programmée"
       },
-      "slm": {
-        "name": "Contrôleur du Volume"
+      "sensor_controlled_switch": {
+        "name": "Contrôle par sonde"
       },
       "shortcut_emergency": {
         "name": "Raccourci Urgence"
@@ -970,17 +1031,14 @@
       "shortcut_maintenance": {
         "name": "Raccourci Maintenance"
       },
-      "use_cloud_api": {
-        "name": "Utiliser l'API cloud"
-      },
-      "sensor_controlled_switch": {
-        "name": "Contrôle par sonde"
+      "slm": {
+        "name": "Contrôleur du Volume"
       },
       "socket_on_off": {
         "name": "Prise {socket}"
       },
-      "port_on_off": {
-        "name": "Sortie {port}"
+      "use_cloud_api": {
+        "name": "Utiliser l'API cloud"
       }
     },
     "text": {

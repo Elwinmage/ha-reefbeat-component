@@ -40,6 +40,7 @@ from .coordinator import (
     ReefATOCoordinator,
     ReefBeatCloudCoordinator,
     ReefBeatCoordinator,
+    ReefControlCoordinator,
     ReefDoseCoordinator,
     ReefLedCoordinator,
     ReefLedG2Coordinator,
@@ -302,6 +303,76 @@ async def async_setup_entry(
 
     elif isinstance(device, ReefATOCoordinator):
         _add_described_entities(entities, device, ReefBeatButtonEntity, ATO_BUTTONS)
+
+    elif isinstance(device, ReefControlCoordinator):
+        # Discover ATO ports the same way sensor.py does — walk the
+        # /dashboard payload rather than going through a coordinator helper,
+        # so this stays decoupled from the ReefControlCoordinator surface.
+        raw_ports = device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.ports",
+            is_None_possible=True,
+        )
+        ato_port_indices: list[int] = (
+            [
+                p["number"]
+                for p in raw_ports
+                if isinstance(p, dict)
+                and p.get("type") == "ato"
+                and isinstance(p.get("number"), int)
+            ]
+            if isinstance(raw_ports, list)
+            else []
+        )
+        control_ato_buttons: list[ReefBeatButtonEntityDescription] = []
+        for port_idx in ato_port_indices:
+            # Bind `port_idx` in the default so each lambda captures its own
+            # value (avoids the "late binding closure" trap on the loop var).
+            control_ato_buttons.extend(
+                [
+                    ReefBeatButtonEntityDescription(
+                        key=f"port_{port_idx}_ato_manual_pump",
+                        translation_key="ato_manual_pump",
+                        translation_placeholders={"port": str(port_idx + 1)},
+                        exists_fn=lambda _: True,
+                        press_fn=(
+                            lambda d, n=port_idx: cast(
+                                ReefControlCoordinator, d
+                            ).my_api.ato_manual_pump(n)
+                        ),
+                        icon="mdi:water-pump",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    ReefBeatButtonEntityDescription(
+                        key=f"port_{port_idx}_ato_stop",
+                        translation_key="ato_stop",
+                        translation_placeholders={"port": str(port_idx + 1)},
+                        exists_fn=lambda _: True,
+                        press_fn=(
+                            lambda d, n=port_idx: cast(
+                                ReefControlCoordinator, d
+                            ).my_api.ato_stop(n)
+                        ),
+                        icon="mdi:water-pump-off",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    ReefBeatButtonEntityDescription(
+                        key=f"port_{port_idx}_ato_resume",
+                        translation_key="ato_resume",
+                        translation_placeholders={"port": str(port_idx + 1)},
+                        exists_fn=lambda _: True,
+                        press_fn=(
+                            lambda d, n=port_idx: cast(
+                                ReefControlCoordinator, d
+                            ).my_api.ato_resume(n)
+                        ),
+                        icon="mdi:play-circle-outline",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                ]
+            )
+        _add_described_entities(
+            entities, device, ReefBeatButtonEntity, tuple(control_ato_buttons)
+        )
 
     elif isinstance(device, ReefWaveCoordinator):
         _add_described_entities(entities, device, ReefWaveButtonEntity, PREVIEW_BUTTONS)

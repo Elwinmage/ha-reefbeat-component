@@ -33,14 +33,26 @@
   },
   "entity": {
     "binary_sensor": {
+      "auto_from_buttons": {
+        "name": "Auto from buttons"
+      },
       "battery_level": {
         "name": "Batterijniveau"
       },
       "bundled_heads": {
         "name": "Gebundelde koppen"
       },
+      "buzzer_active": {
+        "name": "Buzzer active"
+      },
+      "buzzer_dismissed": {
+        "name": "Buzzer dismissed"
+      },
       "buzzer_enabled": {
         "name": "Buzzer ingeschakeld"
+      },
+      "cable_connected": {
+        "name": "Cable connected"
       },
       "cloud_state": {
         "name": "Cloud verbindingsstatus"
@@ -51,6 +63,9 @@
       "constant_speed": {
         "name": "Constante snelheid"
       },
+      "control_link_up": {
+        "name": "Control hub link"
+      },
       "ec_sensor_connected": {
         "name": "EC-sensor verbonden"
       },
@@ -59,6 +74,9 @@
       },
       "is_ec_sensor_connected": {
         "name": "Is EC-sensor verbonden"
+      },
+      "is_internet_connected": {
+        "name": "Internet connected"
       },
       "is_pump_on": {
         "name": "Staat de pomp aan?"
@@ -69,17 +87,41 @@
       "is_temp_enabled": {
         "name": "Is temperatuur ingeschakeld"
       },
+      "leak_detector": {
+        "name": "Leak detector"
+      },
       "missing_pump": {
         "name": "Pomp ontbreekt"
       },
       "missing_sensor": {
         "name": "Sensor ontbreekt"
       },
+      "port_check_sensor": {
+        "name": "Poort {port} sensor controleren"
+      },
+      "port_is_advancing": {
+        "name": "Poort {port} bezig"
+      },
+      "port_is_pump_on": {
+        "name": "Poort {port} pomp"
+      },
+      "port_leak_sensor": {
+        "name": "Poort {port} leksensor"
+      },
+      "power_link_up": {
+        "name": "Power center link"
+      },
       "recalibration_required": {
         "name": "Kalibratie"
       },
+      "reconnect_pump": {
+        "name": "Pomp opnieuw verbinden"
+      },
       "sensor_controlled": {
         "name": "Aangestuurd door sensor"
+      },
+      "socket_enabled": {
+        "name": "Socket {socket} enabled"
       },
       "status": {
         "name": "Status"
@@ -89,47 +131,44 @@
       },
       "water_level": {
         "name": "Waterniveau"
-      },
-      "reconnect_pump": {
-        "name": "Pomp opnieuw verbinden"
-      },
-      "is_internet_connected": {
-        "name": "Internet connected"
-      },
-      "auto_from_buttons": {
-        "name": "Auto from buttons"
-      },
-      "control_link_up": {
-        "name": "Control hub link"
-      },
-      "cable_connected": {
-        "name": "Cable connected"
-      },
-      "buzzer_active": {
-        "name": "Buzzer active"
-      },
-      "buzzer_dismissed": {
-        "name": "Buzzer dismissed"
-      },
-      "leak_detector": {
-        "name": "Leak detector"
-      },
-      "power_link_up": {
-        "name": "Power center link"
-      },
-      "socket_enabled": {
-        "name": "Socket {socket} enabled"
       }
     },
     "button": {
       "advance": {
         "name": "Vooruit"
       },
+      "ato_manual_pump": {
+        "name": "Poort {port} handmatig vullen"
+      },
+      "ato_resume": {
+        "name": "Poort {port} hervatten"
+      },
+      "ato_stop": {
+        "name": "Poort {port} stop"
+      },
       "delete_emergency": {
         "name": "Noodmelding verwijderen"
       },
+      "delete_pump": {
+        "name": "Pomp verwijderen"
+      },
       "delete_supplement": {
         "name": "Supplement verwijderen"
+      },
+      "detect_pump": {
+        "name": "Pomp detecteren"
+      },
+      "ec_calibration_cup": {
+        "name": "EC-kalibratie Volle beker"
+      },
+      "ec_calibration_end": {
+        "name": "EC-kalibratie Beëindigen"
+      },
+      "ec_calibration_skim": {
+        "name": "EC-kalibratie Overschuimen"
+      },
+      "ec_calibration_start": {
+        "name": "EC-kalibratie Starten"
       },
       "end_calibration": {
         "name": "Stop en sla kalibratie op"
@@ -145,6 +184,48 @@
       },
       "led_identify": {
         "name": "Identificeren"
+      },
+      "maint_ato_ec_sensor": {
+        "name": "EC-sensor reinigen"
+      },
+      "maint_ato_return_pump": {
+        "name": "Opvoerpomp reinigen"
+      },
+      "maint_dose_heads_calibration": {
+        "name": "Doseerkop kalibreren"
+      },
+      "maint_dose_heads_replace": {
+        "name": "Doseerkop en slangen vervangen"
+      },
+      "maint_led_fan": {
+        "name": "Stof verwijderen van ventilator en roosters"
+      },
+      "maint_led_lens": {
+        "name": "Lens reinigen"
+      },
+      "maint_mat_carbon_replace": {
+        "name": "Actieve kool vervangen"
+      },
+      "maint_run_pump_motor": {
+        "name": "Motor en rotor reinigen"
+      },
+      "maint_run_pump_strainer": {
+        "name": "Aanzuigzeef reinigen"
+      },
+      "maint_run_skim_fullcup_calibration": {
+        "name": "Fullcup-sensor kalibreren"
+      },
+      "maint_run_skim_overskimming_calibration": {
+        "name": "Overskimming-sensor kalibreren"
+      },
+      "maint_run_skim_rotor": {
+        "name": "Rotor van eiwitafschuimerpomp reinigen"
+      },
+      "maint_run_skim_venturi": {
+        "name": "Venturi en luchtslang reinigen"
+      },
+      "maint_wave_rotor_cages": {
+        "name": "Rotorkooien reinigen"
       },
       "manual_head": {
         "name": "Handmatige dosering"
@@ -193,66 +274,6 @@
       },
       "test_calibration": {
         "name": "Test nieuwe kalibratie"
-      },
-      "detect_pump": {
-        "name": "Pomp detecteren"
-      },
-      "ec_calibration_cup": {
-        "name": "EC-kalibratie Volle beker"
-      },
-      "ec_calibration_skim": {
-        "name": "EC-kalibratie Overschuimen"
-      },
-      "ec_calibration_end": {
-        "name": "EC-kalibratie Beëindigen"
-      },
-      "delete_pump": {
-        "name": "Pomp verwijderen"
-      },
-      "ec_calibration_start": {
-        "name": "EC-kalibratie Starten"
-      },
-      "maint_ato_ec_sensor": {
-        "name": "EC-sensor reinigen"
-      },
-      "maint_ato_return_pump": {
-        "name": "Opvoerpomp reinigen"
-      },
-      "maint_dose_heads_calibration": {
-        "name": "Doseerkop kalibreren"
-      },
-      "maint_dose_heads_replace": {
-        "name": "Doseerkop en slangen vervangen"
-      },
-      "maint_run_pump_motor": {
-        "name": "Motor en rotor reinigen"
-      },
-      "maint_run_pump_strainer": {
-        "name": "Aanzuigzeef reinigen"
-      },
-      "maint_run_skim_venturi": {
-        "name": "Venturi en luchtslang reinigen"
-      },
-      "maint_run_skim_rotor": {
-        "name": "Rotor van eiwitafschuimerpomp reinigen"
-      },
-      "maint_run_skim_fullcup_calibration": {
-        "name": "Fullcup-sensor kalibreren"
-      },
-      "maint_run_skim_overskimming_calibration": {
-        "name": "Overskimming-sensor kalibreren"
-      },
-      "maint_wave_rotor_cages": {
-        "name": "Rotorkooien reinigen"
-      },
-      "maint_mat_carbon_replace": {
-        "name": "Actieve kool vervangen"
-      },
-      "maint_led_lens": {
-        "name": "Lens reinigen"
-      },
-      "maint_led_fan": {
-        "name": "Stof verwijderen van ventilator en roosters"
       }
     },
     "light": {
@@ -293,6 +314,48 @@
       },
       "dosing_waiting_period": {
         "name": "Doseer wachttijd"
+      },
+      "maint_ato_ec_sensor_interval_weeks": {
+        "name": "EC-sensor reinigen (weken)"
+      },
+      "maint_ato_return_pump_interval_months": {
+        "name": "Opvoerpomp reinigen (maanden)"
+      },
+      "maint_dose_heads_calibration_interval_days": {
+        "name": "Doseerkop kalibreren (weken)"
+      },
+      "maint_dose_heads_replace_interval_months": {
+        "name": "Doseerkop en slangen vervangen (maanden)"
+      },
+      "maint_led_fan_interval_months": {
+        "name": "Stof verwijderen van ventilator en roosters (maanden)"
+      },
+      "maint_led_lens_interval_weeks": {
+        "name": "Lens reinigen (weken)"
+      },
+      "maint_mat_carbon_replace_interval_weeks": {
+        "name": "Actieve kool vervangen (weken)"
+      },
+      "maint_run_pump_motor_interval_months": {
+        "name": "Motor en rotor reinigen (maanden)"
+      },
+      "maint_run_pump_strainer_interval_weeks": {
+        "name": "Aanzuigzeef reinigen (weken)"
+      },
+      "maint_run_skim_fullcup_calibration_interval_weeks": {
+        "name": "Fullcup-sensor kalibreren (weken)"
+      },
+      "maint_run_skim_overskimming_calibration_interval_weeks": {
+        "name": "Overskimming-sensor kalibreren (weken)"
+      },
+      "maint_run_skim_rotor_interval_months": {
+        "name": "Rotor van eiwitafschuimerpomp reinigen (maanden)"
+      },
+      "maint_run_skim_venturi_interval_weeks": {
+        "name": "Venturi en luchtslang reinigen (weken)"
+      },
+      "maint_wave_rotor_cages_interval_months": {
+        "name": "Rotorkooien reinigen (maanden)"
       },
       "manual_duration": {
         "name": "Handmatige duur"
@@ -347,48 +410,6 @@
       },
       "wave_preview_wave_duration": {
         "name": "Voorvertoning golfduur"
-      },
-      "maint_ato_ec_sensor_interval_weeks": {
-        "name": "EC-sensor reinigen (weken)"
-      },
-      "maint_ato_return_pump_interval_months": {
-        "name": "Opvoerpomp reinigen (maanden)"
-      },
-      "maint_dose_heads_calibration_interval_days": {
-        "name": "Doseerkop kalibreren (weken)"
-      },
-      "maint_dose_heads_replace_interval_months": {
-        "name": "Doseerkop en slangen vervangen (maanden)"
-      },
-      "maint_run_pump_motor_interval_months": {
-        "name": "Motor en rotor reinigen (maanden)"
-      },
-      "maint_run_pump_strainer_interval_weeks": {
-        "name": "Aanzuigzeef reinigen (weken)"
-      },
-      "maint_run_skim_venturi_interval_weeks": {
-        "name": "Venturi en luchtslang reinigen (weken)"
-      },
-      "maint_run_skim_rotor_interval_months": {
-        "name": "Rotor van eiwitafschuimerpomp reinigen (maanden)"
-      },
-      "maint_run_skim_fullcup_calibration_interval_weeks": {
-        "name": "Fullcup-sensor kalibreren (weken)"
-      },
-      "maint_run_skim_overskimming_calibration_interval_weeks": {
-        "name": "Overskimming-sensor kalibreren (weken)"
-      },
-      "maint_wave_rotor_cages_interval_months": {
-        "name": "Rotorkooien reinigen (maanden)"
-      },
-      "maint_mat_carbon_replace_interval_weeks": {
-        "name": "Actieve kool vervangen (weken)"
-      },
-      "maint_led_lens_interval_weeks": {
-        "name": "Lens reinigen (weken)"
-      },
-      "maint_led_fan_interval_months": {
-        "name": "Stof verwijderen van ventilator en roosters (maanden)"
       }
     },
     "select": {
@@ -473,8 +494,14 @@
       "backup_email": {
         "name": "Back-up e-mail"
       },
+      "battery_level": {
+        "name": "Battery level"
+      },
       "blue": {
         "name": "Blauw"
+      },
+      "buzzer_cause": {
+        "name": "Buzzer cause"
       },
       "cloud_account": {
         "name": "Gekoppeld aan account",
@@ -482,8 +509,30 @@
           "none": "Geen"
         }
       },
+      "connected_control": {
+        "name": "Paired control hub"
+      },
+      "connected_power": {
+        "name": "Paired power center"
+      },
+      "connected_power_state": {
+        "name": "Paired power center state"
+      },
+      "control_mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Automatisch",
+          "off": "Uit",
+          "setup": "Instellen",
+          "feeding": "Voeding",
+          "maintenance": "Onderhoud"
+        }
+      },
       "country": {
         "name": "Land"
+      },
+      "cup_last_calibration": {
+        "name": "Laatste beker-kalibratie"
       },
       "current_level": {
         "name": "Huidig niveau",
@@ -513,6 +562,9 @@
       },
       "daily_volume_average": {
         "name": "Gemiddeld dagelijks volume"
+      },
+      "days_till_empty": {
+        "name": "Dagen tot leeg"
       },
       "days_till_end_of_roll": {
         "name": "Dagen tot einde rol"
@@ -556,11 +608,20 @@
       "last_name": {
         "name": "Achternaam"
       },
+      "leak_sensor_current_read": {
+        "name": "Huidige uitlezing lekkagesensor"
+      },
+      "leak_sensor_status": {
+        "name": "Status lekkagesensor"
+      },
       "led_program": {
         "name": "LED programma"
       },
       "manual_dosed_today": {
         "name": "Vandaag handmatig gedoseerd"
+      },
+      "max_sockets": {
+        "name": "Max sockets"
       },
       "mobile_number": {
         "name": "Mobiel nummer"
@@ -605,6 +666,9 @@
       "model": {
         "name": "Model"
       },
+      "model_type": {
+        "name": "Model region"
+      },
       "moon_intensity": {
         "name": "Maanfase intensiteit"
       },
@@ -616,6 +680,131 @@
       },
       "next_new_moon": {
         "name": "Volgende nieuwe maan"
+      },
+      "port_consumption": {
+        "name": "Port {port} consumption"
+      },
+      "port_last_fill_date": {
+        "name": "Poort {port} laatste vulling"
+      },
+      "port_last_pump_on_cause": {
+        "name": "Poort {port} oorzaak laatste pomp",
+        "state": {
+          "unknown": "Onbekend",
+          "manual": "Handmatig",
+          "auto": "Automatisch",
+          "schedule": "Schema",
+          "user": "Gebruiker"
+        }
+      },
+      "port_leak_status": {
+        "name": "Poort {port} lekstatus",
+        "state": {
+          "aquarium": "Aquarium",
+          "dry": "Droog",
+          "rodi": "RO/DI"
+        }
+      },
+      "port_mode": {
+        "name": "Port {port} mode"
+      },
+      "port_name": {
+        "name": "Port {port} name"
+      },
+      "port_state": {
+        "name": "Port {port} state"
+      },
+      "port_today_volume": {
+        "name": "Poort {port} volume vandaag"
+      },
+      "port_type": {
+        "name": "Port {port} type"
+      },
+      "port_volume_left": {
+        "name": "Poort {port} resterend volume"
+      },
+      "power_mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Automatisch",
+          "off": "Uit",
+          "setup": "Instellen",
+          "feeding": "Voeding",
+          "maintenance": "Onderhoud"
+        }
+      },
+      "power_temperature": {
+        "name": "Temperature"
+      },
+      "probe_ec": {
+        "name": "{probe} conductivity"
+      },
+      "probe_ec_value": {
+        "name": "{probe} value"
+      },
+      "probe_last_adjustment": {
+        "name": "{probe} last calibration"
+      },
+      "probe_last_installation": {
+        "name": "{probe} last installation"
+      },
+      "probe_leak_value": {
+        "name": "{probe} leak"
+      },
+      "probe_level": {
+        "name": "{probe} level",
+        "state": {
+          "desired": "Optimaal",
+          "acceptable": "Acceptabel",
+          "danger": "Gevaar",
+          "sensor_data_error": "Sensorfout"
+        }
+      },
+      "probe_measurement_unit": {
+        "name": "{probe} display unit"
+      },
+      "probe_name": {
+        "name": "{probe} name"
+      },
+      "probe_orp_value": {
+        "name": "{probe} ORP"
+      },
+      "probe_ph_value": {
+        "name": "{probe} pH"
+      },
+      "probe_ppt": {
+        "name": "{probe} salinity"
+      },
+      "probe_sg": {
+        "name": "{probe} specific gravity"
+      },
+      "probe_status": {
+        "name": "{probe} status"
+      },
+      "probe_temp_level": {
+        "name": "{probe} temperature level",
+        "state": {
+          "desired": "Optimaal",
+          "acceptable": "Acceptabel",
+          "danger": "Gevaar",
+          "sensor_data_error": "Sensorfout"
+        }
+      },
+      "probe_temperature": {
+        "name": "{probe} temperature"
+      },
+      "probe_value": {
+        "name": "{probe} value"
+      },
+      "probe_water_level": {
+        "name": "{probe} waterniveau",
+        "state": {
+          "above": "Boven",
+          "below": "Onder",
+          "desired_level_1": "Gewenst niveau (sensor 1)",
+          "desired_level_2": "Gewenst niveau (sensor 2)",
+          "error": "Sensorfout"
+        }
       },
       "pump_state": {
         "name": "Pomp status",
@@ -638,6 +827,21 @@
           "hourly": "Per uur",
           "single": "Eenmalig"
         }
+      },
+      "skim_last_calibration": {
+        "name": "Laatste afschuim-kalibratie"
+      },
+      "socket_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_mode": {
+        "name": "Socket {socket} mode"
+      },
+      "socket_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_state": {
+        "name": "Socket {socket} state"
       },
       "state": {
         "name": "Staat",
@@ -704,15 +908,6 @@
       },
       "volume_left": {
         "name": "Volume over"
-      },
-      "leak_sensor_status": {
-        "name": "Status lekkagesensor"
-      },
-      "leak_sensor_current_read": {
-        "name": "Huidige uitlezing lekkagesensor"
-      },
-      "days_till_empty": {
-        "name": "Dagen tot leeg"
       },
       "water_level": {
         "name": "Waterniveau",
@@ -789,151 +984,14 @@
       },
       "zip_code": {
         "name": "Postcode"
-      },
-      "cup_last_calibration": {
-        "name": "Laatste beker-kalibratie"
-      },
-      "skim_last_calibration": {
-        "name": "Laatste afschuim-kalibratie"
-      },
-      "power_mode": {
-        "name": "Mode",
-        "state": {
-          "auto": "Automatisch",
-          "off": "Uit",
-          "setup": "Instellen",
-          "feeding": "Voeding",
-          "maintenance": "Onderhoud"
-        }
-      },
-      "battery_level": {
-        "name": "Battery level"
-      },
-      "power_temperature": {
-        "name": "Temperature"
-      },
-      "max_sockets": {
-        "name": "Max sockets"
-      },
-      "model_type": {
-        "name": "Model region"
-      },
-      "connected_control": {
-        "name": "Paired control hub"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "control_mode": {
-        "name": "Mode",
-        "state": {
-          "auto": "Automatisch",
-          "off": "Uit",
-          "setup": "Instellen",
-          "feeding": "Voeding",
-          "maintenance": "Onderhoud"
-        }
-      },
-      "buzzer_cause": {
-        "name": "Buzzer cause"
-      },
-      "connected_power": {
-        "name": "Paired power center"
-      },
-      "connected_power_state": {
-        "name": "Paired power center state"
-      },
-      "port_name": {
-        "name": "Port {port} name"
-      },
-      "port_state": {
-        "name": "Port {port} state"
-      },
-      "port_mode": {
-        "name": "Port {port} mode"
-      },
-      "port_type": {
-        "name": "Port {port} type"
-      },
-      "port_consumption": {
-        "name": "Port {port} consumption"
-      },
-      "probe_ph_value": {
-        "name": "{probe} pH"
-      },
-      "probe_orp_value": {
-        "name": "{probe} ORP"
-      },
-      "probe_ec_value": {
-        "name": "{probe} value"
-      },
-      "probe_level": {
-        "name": "{probe} level",
-        "state": {
-          "desired": "Optimaal",
-          "acceptable": "Acceptabel",
-          "danger": "Gevaar",
-          "sensor_data_error": "Sensorfout"
-        }
-      },
-      "probe_status": {
-        "name": "{probe} status"
-      },
-      "probe_name": {
-        "name": "{probe} name"
-      },
-      "probe_last_installation": {
-        "name": "{probe} last installation"
-      },
-      "probe_last_adjustment": {
-        "name": "{probe} last calibration"
-      },
-      "probe_temperature": {
-        "name": "{probe} temperature"
-      },
-      "probe_temp_level": {
-        "name": "{probe} temperature level",
-        "state": {
-          "desired": "Optimaal",
-          "acceptable": "Acceptabel",
-          "danger": "Gevaar",
-          "sensor_data_error": "Sensorfout"
-        }
-      },
-      "probe_ec": {
-        "name": "{probe} conductivity"
-      },
-      "probe_ppt": {
-        "name": "{probe} salinity"
-      },
-      "probe_sg": {
-        "name": "{probe} specific gravity"
-      },
-      "probe_measurement_unit": {
-        "name": "{probe} display unit"
-      },
-      "probe_ato_value": {
-        "name": "{probe} water level"
-      },
-      "probe_leak_value": {
-        "name": "{probe} leak"
-      },
-      "probe_value": {
-        "name": "{probe} value"
       }
     },
     "switch": {
       "acclimation": {
         "name": "Acclimatisatie"
+      },
+      "ato_auto_fill": {
+        "name": "Poort {port} automatisch vullen"
       },
       "auto_advance": {
         "name": "Automatisch vooruit"
@@ -962,14 +1020,17 @@
       "overskimming_enabled": {
         "name": "Over-skimming"
       },
+      "port_on_off": {
+        "name": "Poort {port}"
+      },
       "schedule_enabled": {
         "name": "Schema ingeschakeld"
       },
       "scheduled_advance": {
         "name": "Gepland vooruit"
       },
-      "slm": {
-        "name": "Volumecontroller"
+      "sensor_controlled_switch": {
+        "name": "Sondegestuurd"
       },
       "shortcut_emergency": {
         "name": "Sneltoets noodgeval"
@@ -980,17 +1041,14 @@
       "shortcut_maintenance": {
         "name": "Sneltoets onderhoud"
       },
-      "use_cloud_api": {
-        "name": "Gebruik cloud-API"
-      },
-      "sensor_controlled_switch": {
-        "name": "Sondegestuurd"
+      "slm": {
+        "name": "Volumecontroller"
       },
       "socket_on_off": {
         "name": "Stopcontact {socket}"
       },
-      "port_on_off": {
-        "name": "Poort {port}"
+      "use_cloud_api": {
+        "name": "Gebruik cloud-API"
       }
     },
     "text": {
