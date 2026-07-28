@@ -178,13 +178,13 @@ async def test_sensor_platform_builds_ato_port_sensors(
     await sensor_platform.async_setup_entry(hass, cast(Any, entry), cast(Any, _add))
 
     keys = {e.entity_description.key for e in added}
-    # ATO-only entities on port 0
+    # ATO-only entities on port 0. Note: `port_N_volume_left` used to be a
+    # sensor but is now exposed only as the editable `number` entity — the
+    # sensor was a duplicate.
     assert "port_0_today_volume" in keys
-    assert "port_0_volume_left" in keys
     assert "port_0_last_pump_on_cause" in keys
     # Not created on the generic port
     assert "port_1_today_volume" not in keys
-    assert "port_1_volume_left" not in keys
     assert "port_1_last_pump_on_cause" not in keys
 
 
@@ -219,7 +219,7 @@ async def test_sensor_platform_builds_two_ato_ports_when_both_are_ato(
 
     keys = {e.entity_description.key for e in added}
     for port_idx in (0, 1):
-        for suffix in ("today_volume", "volume_left", "last_pump_on_cause"):
+        for suffix in ("today_volume", "last_pump_on_cause"):
             assert f"port_{port_idx}_{suffix}" in keys
 
 

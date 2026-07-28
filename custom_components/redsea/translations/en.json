@@ -720,9 +720,6 @@
       "port_type": {
         "name": "Port {port} type"
       },
-      "port_volume_left": {
-        "name": "Port {port} volume left"
-      },
       "power_mode": {
         "name": "Mode",
         "state": {

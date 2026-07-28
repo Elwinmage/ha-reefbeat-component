@@ -1182,53 +1182,65 @@ def _build_probe_descriptions(
 
     descs: list[ReefBeatSensorEntityDescription] = [
         main_descriptor,
-        # Quality level (enum)
-        ReefBeatSensorEntityDescription(
-            key=f"probe_{uid_key}_level",
-            translation_key="probe_level",
-            translation_placeholders=tp,
-            icon="mdi:alert-circle-outline",
-            device_class=SensorDeviceClass.ENUM,
-            options=list(_PROBE_LEVEL_OPTIONS),
-            value_fn=lambda d, p=_probe_path(uid, "level"): d.get_data(
-                p, is_None_possible=True
-            ),
-        ),
-        # Status (auto / manual / setup — inferred; unknown states appear as-is)
-        ReefBeatSensorEntityDescription(
-            key=f"probe_{uid_key}_status",
-            translation_key="probe_status",
-            translation_placeholders=tp,
-            icon="mdi:cog-outline",
-            entity_category=EntityCategory.DIAGNOSTIC,
-            value_fn=lambda d, p=_probe_path(uid, "status"): d.get_data(
-                p, is_None_possible=True
-            ),
-        ),
-        # User-configured name (diagnostic string)
-        ReefBeatSensorEntityDescription(
-            key=f"probe_{uid_key}_name",
-            translation_key="probe_name",
-            translation_placeholders=tp,
-            icon="mdi:tag-outline",
-            entity_category=EntityCategory.DIAGNOSTIC,
-            value_fn=lambda d, p=_probe_path(uid, "name"): d.get_data(
-                p, is_None_possible=True
-            ),
-        ),
-        # Installation date (unix timestamp → HA converts to datetime)
-        ReefBeatSensorEntityDescription(
-            key=f"probe_{uid_key}_last_installation",
-            translation_key="probe_last_installation",
-            translation_placeholders=tp,
-            icon="mdi:calendar-clock",
-            device_class=SensorDeviceClass.TIMESTAMP,
-            entity_category=EntityCategory.DIAGNOSTIC,
-            value_fn=lambda d, p=_probe_path(uid, "last_installation_date"): (
-                _epoch_to_iso(d.get_data(p, is_None_possible=True))
-            ),
-        ),
     ]
+
+    # Quality level (enum) — only for probes that actually report a `level`
+    # field in the payload. ATO probes have `water_level` (already the main
+    # sensor) and `temp_level` (added below), but no top-level `level`, so a
+    # generic quality-level entity would be permanently unavailable — skip it.
+    if ptype != "ato":
+        descs.append(
+            ReefBeatSensorEntityDescription(
+                key=f"probe_{uid_key}_level",
+                translation_key="probe_level",
+                translation_placeholders=tp,
+                icon="mdi:alert-circle-outline",
+                device_class=SensorDeviceClass.ENUM,
+                options=list(_PROBE_LEVEL_OPTIONS),
+                value_fn=lambda d, p=_probe_path(uid, "level"): d.get_data(
+                    p, is_None_possible=True
+                ),
+            )
+        )
+
+    descs.extend(
+        [
+            # Status (auto / manual / setup — inferred; unknown states appear as-is)
+            ReefBeatSensorEntityDescription(
+                key=f"probe_{uid_key}_status",
+                translation_key="probe_status",
+                translation_placeholders=tp,
+                icon="mdi:cog-outline",
+                entity_category=EntityCategory.DIAGNOSTIC,
+                value_fn=lambda d, p=_probe_path(uid, "status"): d.get_data(
+                    p, is_None_possible=True
+                ),
+            ),
+            # User-configured name (diagnostic string)
+            ReefBeatSensorEntityDescription(
+                key=f"probe_{uid_key}_name",
+                translation_key="probe_name",
+                translation_placeholders=tp,
+                icon="mdi:tag-outline",
+                entity_category=EntityCategory.DIAGNOSTIC,
+                value_fn=lambda d, p=_probe_path(uid, "name"): d.get_data(
+                    p, is_None_possible=True
+                ),
+            ),
+            # Installation date (unix timestamp → HA converts to datetime)
+            ReefBeatSensorEntityDescription(
+                key=f"probe_{uid_key}_last_installation",
+                translation_key="probe_last_installation",
+                translation_placeholders=tp,
+                icon="mdi:calendar-clock",
+                device_class=SensorDeviceClass.TIMESTAMP,
+                entity_category=EntityCategory.DIAGNOSTIC,
+                value_fn=lambda d, p=_probe_path(uid, "last_installation_date"): (
+                    _epoch_to_iso(d.get_data(p, is_None_possible=True))
+                ),
+            ),
+        ]
+    )
 
     # pH, EC and ATO probes also expose a temperature reading and calibration
     # date. (Standalone Temp probe already has the temperature as main value.)
@@ -1837,18 +1849,6 @@ async def async_setup_entry(
                         state_class=SensorStateClass.TOTAL_INCREASING,
                         suggested_display_precision=0,
                         value_fn=lambda d, p=f"{base}.today_volume": d.get_data(
-                            p, is_None_possible=True
-                        ),
-                    ),
-                    ReefBeatSensorEntityDescription(
-                        key=f"port_{port_idx}_volume_left",
-                        translation_key="port_volume_left",
-                        translation_placeholders={"port": str(port_idx + 1)},
-                        icon="mdi:beaker-outline",
-                        native_unit_of_measurement="mL",
-                        state_class=SensorStateClass.MEASUREMENT,
-                        suggested_display_precision=0,
-                        value_fn=lambda d, p=f"{base}.volume_left": d.get_data(
                             p, is_None_possible=True
                         ),
                     ),

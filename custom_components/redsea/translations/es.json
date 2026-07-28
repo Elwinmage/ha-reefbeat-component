@@ -712,9 +712,6 @@
       "port_type": {
         "name": "Port {port} type"
       },
-      "port_volume_left": {
-        "name": "Puerto {port} volumen restante"
-      },
       "power_mode": {
         "name": "Mode",
         "state": {

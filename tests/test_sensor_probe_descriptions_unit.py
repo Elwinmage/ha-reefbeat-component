@@ -128,6 +128,11 @@ def test_build_probe_descriptions_ato() -> None:
 
     # No numeric `_value` entity for ATO probes.
     assert "probe_0x0at01_value" not in keys
+    # ATO probes have `water_level` (main) and `temp_level` (diagnostic) but
+    # no top-level `level` field in the firmware payload — the generic
+    # quality-level entity would be permanently unavailable, so it must NOT
+    # be emitted.
+    assert "probe_0x0at01_level" not in keys
     # Enum `water_level` entity is present.
     main = next(d for d in descs if d.key == "probe_0x0at01_water_level")
     assert main.native_unit_of_measurement is None
