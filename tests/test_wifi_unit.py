@@ -956,6 +956,31 @@ def test_list_routed_subnets_missing_file_returns_empty() -> None:
     assert auto_detect.list_routed_subnets("/nonexistent/route/file") == []
 
 
+def test_list_routed_subnets_tolerates_malformed_rows(tmp_path: Any) -> None:
+    """Short, non-hex, and out-of-range rows are skipped; valid rows survive."""
+    from custom_components.redsea import auto_detect
+
+    header = (
+        "Iface\tDestination\tGateway\tFlags\tRefCnt\tUse\tMetric\tMask\tMTU\t"
+        "Window\tIRTT\n"
+    )
+    body = "".join(
+        [
+            "short\tline\n",  # < 8 fields → skipped (len check)
+            # non-hex destination → int(..., 16) raises → skipped
+            "eth0\tZZZZZZZZ\t0\t0001\t0\t0\t0\t00FFFFFF\t0\t0\t0\n",
+            # destination out of 32-bit range → struct.pack raises → skipped
+            "eth0\t1FFFFFFFF\t0\t0001\t0\t0\t0\t00FFFFFF\t0\t0\t0\n",
+            # valid 192.168.5.0/24 → kept
+            "eth0\t0005A8C0\t0\t0001\t0\t0\t0\t00FFFFFF\t0\t0\t0\n",
+        ]
+    )
+    path = tmp_path / "route"
+    path.write_text(header + body, encoding="ascii")
+
+    assert auto_detect.list_routed_subnets(str(path)) == ["192.168.5.0/24"]
+
+
 def test_list_scannable_subnets_merges_local_and_routed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
