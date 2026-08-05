@@ -686,8 +686,19 @@ async def test_options_flow_led_with_intensity_compensation_updates_entry(
     )
     entry.add_to_hass(hass)
 
+    # Local entries with a known hw_model land on the menu first, so pick
+    # "settings" to reach the classic form.
     result = cast(
         dict[str, Any], await hass.config_entries.options.async_init(entry.entry_id)
+    )
+    assert result["type"] == FlowResultType.MENU
+
+    result = cast(
+        dict[str, Any],
+        await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={"next_step_id": "settings"},
+        ),
     )
     assert result["type"] == FlowResultType.FORM
 
