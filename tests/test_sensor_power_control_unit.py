@@ -185,3 +185,57 @@ async def test_rscontrol_setup_builds_probe_sensors_from_dashboard(
     # At least one entity per surviving probe (uid is sanitised, hex only).
     assert any(k.startswith("probe_0x0071c") for k in keys)
     assert any(k.startswith("probe_0x00842") for k in keys)
+
+
+# =============================================================================
+# connected_device == null must be a quiet no-op, not a logged error
+# =============================================================================
+
+
+class _RecordingDevice:
+    """Fake device whose get_data mimics the real one for connected_device.
+
+    The real ReefBeat.get_data() logs an error when a JSONPath does not
+    resolve and is_None_possible is False. When the /dashboard payload has
+    ``connected_device: null`` the ...connected_device.<field> path does not
+    resolve, so the entity descriptions must pass is_None_possible=True. We
+    reproduce that contract here: a connected_device lookup with
+    is_None_possible=False raises (stands in for "logged an error"), while
+    is_None_possible=True returns None quietly.
+    """
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, bool]] = []
+
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+        self.calls.append((name, is_None_possible))
+        if "connected_device" in name:
+            if not is_None_possible:
+                raise AssertionError(
+                    "connected_device lookup must pass is_None_possible=True "
+                    f"(null connected_device is a normal state): {name}"
+                )
+            return None
+        return None
+
+
+@pytest.mark.parametrize(
+    ("tuple_name", "key"),
+    [
+        ("POWER_SENSORS", "connected_control"),
+        ("CONTROL_SENSORS", "connected_power"),
+        ("CONTROL_SENSORS", "connected_power_state"),
+    ],
+)
+def test_connected_device_null_is_quiet(tuple_name: str, key: str) -> None:
+    """value_fn returns None without erroring when connected_device is null."""
+    descriptions = getattr(sensor_platform, tuple_name)
+    description = next(d for d in descriptions if d.key == key)
+
+    device = _RecordingDevice()
+    # Must not raise (i.e. must pass is_None_possible=True to get_data).
+    assert description.value_fn(cast(Any, device)) is None
+    # And it actually queried the connected_device path with the flag set.
+    assert any(
+        "connected_device" in name and flag is True for name, flag in device.calls
+    )

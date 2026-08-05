@@ -1066,8 +1066,23 @@
     }
   },
   "options": {
+    "abort": {
+      "wifi_change_success": "Rede Wi-Fi alterada com sucesso. Equipamento acessível em {new_ip}.",
+      "wifi_change_failed_connect": "Não foi possível enviar as novas credenciais Wi-Fi para o equipamento.",
+      "wifi_change_failed_reset": "Não foi possível reiniciar o equipamento após enviar as novas credenciais Wi-Fi.",
+      "wifi_change_failed_rediscover": "O equipamento reiniciou mas não foi encontrado na rede. Verifica se aderiu a {ssid} e reconfigura o IP manualmente se necessário.",
+      "wifi_change_failed_unknown": "Erro inesperado ao alterar a rede Wi-Fi."
+    },
     "error": {
-      "auth_failed": "Autenticação falhada, verifique as suas credenciais"
+      "auth_failed": "Falha de autenticação, verifica as credenciais",
+      "wifi_scan_failed": "Não foi possível consultar o equipamento para as redes Wi-Fi disponíveis.",
+      "wifi_no_networks": "O equipamento não indica redes Wi-Fi disponíveis.",
+      "wifi_no_ssid": "Seleciona uma rede antes de submeter.",
+      "wifi_bad_cidr": "CIDR IPv4 inválido (esperado, por exemplo, 10.0.0.0/24).",
+      "wifi_manual_not_found": "Equipamento não encontrado nessa sub-rede. Tenta outro CIDR ou deixa o campo vazio para desistir."
+    },
+    "progress": {
+      "applying": "A aplicar as novas credenciais Wi-Fi e a localizar o equipamento na rede..."
     },
     "step": {
       "init": {
@@ -1077,7 +1092,41 @@
           "not_virtual": "Não configurável",
           "slaves": "LED"
         },
+        "menu_options": {
+          "settings": "Definições do equipamento",
+          "wifi_scan": "Alterar rede Wi-Fi"
+        },
         "title": "Configuração"
+      },
+      "settings": {
+        "data": {
+          "live_config_update": "Atualização de configuração em direto",
+          "disable_supplements": "Desativar suplementos",
+          "intensity_compensation": "Compensação de intensidade",
+          "scan_interval": "Intervalo de atualização",
+          "not_virtual": "Não configurável",
+          "slaves": "LED"
+        },
+        "title": "Definições do equipamento"
+      },
+      "wifi_scan": {
+        "data": {
+          "wifi_ssid": "Rede Wi-Fi",
+          "wifi_password": "Palavra-passe",
+          "wifi_rescan": "Voltar a analisar redes"
+        },
+        "description": "Redes visíveis a partir do equipamento em {ip}: {count}. Escolhe uma e introduz a palavra-passe, ou marca «Voltar a analisar redes» e envia para atualizar a lista.",
+        "title": "Alterar rede Wi-Fi"
+      },
+      "wifi_apply": {
+        "title": "A alterar a rede Wi-Fi"
+      },
+      "wifi_manual_subnet": {
+        "data": {
+          "wifi_manual_subnet": "CIDR da sub-rede"
+        },
+        "description": "O equipamento aderiu a {ssid} mas não foi encontrado em nenhuma das sub-redes diretamente ligadas ao Home Assistant (tentadas: {tried_subnets}). Se sabes em que rede o equipamento chegou e o Home Assistant o consegue alcançar através de um router, indica aqui o CIDR (ex. 10.0.0.0/24). Deixa o campo vazio e submete para desistir.",
+        "title": "Localizar o equipamento noutra sub-rede"
       }
     }
   },

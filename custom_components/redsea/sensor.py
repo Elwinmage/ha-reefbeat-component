@@ -903,7 +903,8 @@ POWER_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         key="connected_control",
         translation_key="connected_control",
         value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid"
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid",
+            is_None_possible=True,
         ),
         icon="mdi:link-variant",
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -938,7 +939,8 @@ CONTROL_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         key="connected_power",
         translation_key="connected_power",
         value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid"
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid",
+            is_None_possible=True,
         ),
         icon="mdi:link-variant",
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -947,7 +949,8 @@ CONTROL_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         key="connected_power_state",
         translation_key="connected_power_state",
         value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.connected_device.state"
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.state",
+            is_None_possible=True,
         ),
         icon="mdi:transit-connection-variant",
         entity_category=EntityCategory.DIAGNOSTIC,

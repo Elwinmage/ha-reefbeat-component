@@ -53,22 +53,30 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 </td>
 </tr>
 <tr>
-<td rowspan="4"><a href="#reefcontrol">ReefControl</a></td>
+<td rowspan="2"><a href="#reefcontrol">ReefControl</a></td>
 <td colspan="2">RSCONTROLPRO</td><td>✅</td>
-<td width="200px" rowspan="4"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROL.png"/></td>
-<td rowspan="4">
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROLPRO.png"/></td>
+<td rowspan="2">
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:enhancement" style="text-decoration:none">📆</a>
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:bug" style="text-decoration:none">🐛</a>
 </td>
 </tr>
 <tr>
 <td colspan="2">RSCONTROLLITE</td><td>☑️</td>
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROLLITE.png"/></td>
 </tr>
 <tr>
+<td rowspan="2"><a href="#reefcontrol-power">ReefControl-Power</a></td>
 <td colspan="2">RSPOWER6</td><td>✅</td>
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSPOWER6.png"/></td>
+<td rowspan="2">
+  <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rspower,all label:enhancement" style="text-decoration:none">📆</a>
+  <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rspower,all label:bug" style="text-decoration:none">🐛</a>
+</td>
 </tr>
 <tr>
 <td colspan="2">RSPOWER8</td><td>☑️</td>
+<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSPOWER8.png"/></td>
 </tr>
 <tr>
 <td rowspan="2"><a href="#reefdose">ReefDose</a></td>
@@ -161,6 +169,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 - [Gemeinsame Funktionen](https://github.com/Elwinmage/ha-reefbeat-component/#common-functions)
 - [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/#reefato)
 - [ReefControl](https://github.com/Elwinmage/ha-reefbeat-component/#reefcontrol)
+- [ReefControl-Power](https://github.com/Elwinmage/ha-reefbeat-component/#reefcontrol-power)
 - [ReefDose](https://github.com/Elwinmage/ha-reefbeat-component/#reefdose)
 - [ReefLED](https://github.com/Elwinmage/ha-reefbeat-component/#reefled)
 - [Virtuelle LED](https://github.com/Elwinmage/ha-reefbeat-component/#virtual-led)
@@ -224,14 +233,40 @@ Sie können die IP-Adresse Ihres Geräts oder die Netzwerkadresse für die autom
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/add_devices_manual.png" alt="Image">
 </p>
 
-### Scan-Intervall für das Gerät festlegen
+## Gerätekonfiguration
+
+Klicken Sie mit der rechten Maustaste auf ein Gerät (oder öffnen Sie seine Optionen über die Integrationsseite), um zu seiner Konfiguration zu gelangen. Der erste Bildschirm legt fest, wie die Integration mit dem Gerät kommuniziert.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/configure_device_1.png" alt="Image">
 </p>
+
+### Scan-Intervall für das Gerät festlegen
+
+Legen Sie fest, wie oft (in Sekunden) die Integration das Gerät nach neuen Daten abfragt.
+
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/configure_device_2.png" alt="Image">
 </p>
+
+### WLAN-Netzwerk ändern
+
+Sie können ein Gerät direkt aus Home Assistant in ein anderes WLAN-Netzwerk verschieben, ohne zur ReefBeat-App zurückzukehren.
+
+Wählen Sie im Gerätekonfigurationsmenü **WLAN-Netzwerk ändern**. Die Integration fordert das Gerät auf, nach Netzwerken in der Nähe zu suchen, und zeigt sie in einer Dropdown-Liste an, sortiert nach Signalstärke. Das Netzwerk, mit dem das Gerät aktuell verbunden ist, ist vorausgewählt. Wenn Sie also nur das Passwort aktualisieren möchten, können Sie die Auswahl unverändert lassen.
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/device_cfg.png" alt="Image">
+</p>
+
+Wählen Sie das Zielnetzwerk, geben Sie dessen Passwort ein und bestätigen Sie. Die Integration sendet die neuen Zugangsdaten an das Gerät, startet es neu und sucht es anschließend automatisch im Netzwerk, um seine IP-Adresse zu aktualisieren.
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/wifi_choice.png" alt="Image">
+</p>
+
+> [!NOTE]
+> Nach einem WLAN-Wechsel kann das Gerät einem anderen Subnetz beitreten (zum Beispiel von `192.168.0.x` zu `10.0.0.x`). Die Integration durchsucht jedes Subnetz, mit dem Home Assistant direkt verbunden ist. Wenn das Gerät in einem Subnetz landet, das Home Assistant nur über einen Router erreichen kann, schlägt die Wiedererkennung fehl und Sie werden aufgefordert, das Zielsubnetz manuell einzugeben (zum Beispiel `10.0.0.0/24`).
 
 ## Live-Aktualisierung
 
@@ -261,8 +296,6 @@ Sie können benachrichtigt werden und Ihr Gerät aktualisieren, wenn eine neue F
 </p>
 
 # ReefControl:
-> [!NOTE]
-> RSPOWER-Geräte (Power Center) haben eine eigene IP-Adresse und werden in Home Assistant als separate Geräte angezeigt, auch wenn sie als Erweiterung des RSCONTROL-Hubs arbeiten.
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_devices.png" alt="Image">
 </p>
@@ -270,12 +303,26 @@ Sie können benachrichtigt werden und Ihr Gerät aktualisieren, wenn eine neue F
 - Auslesen aller angeschlossenen ReefSense-Sonden (pH, ORP, Salinität, Temperatur, ATO, Leck) mit Wert und Qualitätsstufe
 - Zustand des Summers und des Lecksensors
 - Ein/Aus-Umschaltung der 12V-DC-Anschlüsse (RSCONTROL)
-- Zustands-, Modus-, Verbrauchssensoren und Ein/Aus-Umschaltung pro Steckdose (RSPOWER)
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
+</p>
+
+## ReefControl-Power
+
+Das RSPOWER (Power Center) ist ein eigenständiges Gerät mit eigener IP-Adresse und wird in Home Assistant separat angezeigt.
+
+- Zustand, Modus, Verbrauch und Ein/Aus-Umschaltung pro Steckdose
+- 6 oder 8 steuerbare Steckdosen je nach Modell (RSPOWER6 / RSPOWER8)
+<p align="center">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
+</p>
+<p align="center">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_ctrl.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
 </p>
 
 # ReefDose:

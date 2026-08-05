@@ -1074,18 +1074,67 @@
     }
   },
   "options": {
+    "abort": {
+      "wifi_change_success": "Wi-Fi-netwerk succesvol gewijzigd. Apparaat bereikbaar op {new_ip}.",
+      "wifi_change_failed_connect": "Kan de nieuwe Wi-Fi-inloggegevens niet naar het apparaat sturen.",
+      "wifi_change_failed_reset": "Kan het apparaat niet herstarten na het versturen van de nieuwe Wi-Fi-inloggegevens.",
+      "wifi_change_failed_rediscover": "Het apparaat is opnieuw opgestart maar niet gevonden op het netwerk. Controleer of het {ssid} heeft bereikt en configureer indien nodig het IP-adres opnieuw.",
+      "wifi_change_failed_unknown": "Onverwachte fout bij het wijzigen van het Wi-Fi-netwerk."
+    },
     "error": {
-      "auth_failed": "Authenticatie mislukt, controleer je gegevens"
+      "auth_failed": "Verificatie mislukt, controleer je gegevens",
+      "wifi_scan_failed": "Kan het apparaat niet raadplegen voor beschikbare Wi-Fi-netwerken.",
+      "wifi_no_networks": "Het apparaat meldt geen beschikbare Wi-Fi-netwerken.",
+      "wifi_no_ssid": "Kies een netwerk voordat je verzendt.",
+      "wifi_bad_cidr": "Geen geldige IPv4-CIDR (verwacht bv. 10.0.0.0/24).",
+      "wifi_manual_not_found": "Apparaat niet gevonden op dat subnet. Probeer een andere CIDR of laat het veld leeg om op te geven."
+    },
+    "progress": {
+      "applying": "Nieuwe Wi-Fi-inloggegevens toepassen en het apparaat op het netwerk lokaliseren..."
     },
     "step": {
       "init": {
         "data": {
-          "live_config_update": "Live configuratie update",
+          "live_config_update": "Live-configuratie-update",
           "disable_supplements": "Supplementen uitschakelen",
           "not_virtual": "Niet configureerbaar",
           "slaves": "LED"
         },
+        "menu_options": {
+          "settings": "Apparaatinstellingen",
+          "wifi_scan": "Wi-Fi-netwerk wijzigen"
+        },
         "title": "Configuratie"
+      },
+      "settings": {
+        "data": {
+          "live_config_update": "Live-configuratie-update",
+          "disable_supplements": "Supplementen uitschakelen",
+          "intensity_compensation": "Intensiteitscompensatie",
+          "scan_interval": "Verversingsinterval",
+          "not_virtual": "Niet configureerbaar",
+          "slaves": "LED"
+        },
+        "title": "Apparaatinstellingen"
+      },
+      "wifi_scan": {
+        "data": {
+          "wifi_ssid": "Wi-Fi-netwerk",
+          "wifi_password": "Wachtwoord",
+          "wifi_rescan": "Netwerken opnieuw scannen"
+        },
+        "description": "Zichtbaar vanaf het apparaat op {ip}: {count} netwerken. Kies er een en voer het wachtwoord in, of vink 'Netwerken opnieuw scannen' aan en verzend om de lijst te vernieuwen.",
+        "title": "Wi-Fi-netwerk wijzigen"
+      },
+      "wifi_apply": {
+        "title": "Wi-Fi-netwerk wordt gewijzigd"
+      },
+      "wifi_manual_subnet": {
+        "data": {
+          "wifi_manual_subnet": "Subnet-CIDR"
+        },
+        "description": "Het apparaat heeft zich bij {ssid} aangemeld maar is niet gevonden op een van de subnetten waar Home Assistant direct op is aangesloten (geprobeerd: {tried_subnets}). Als je weet op welk netwerk het apparaat is beland en Home Assistant het via een router kan bereiken, voer hier de CIDR in (bv. 10.0.0.0/24). Laat het veld leeg en verzend om op te geven.",
+        "title": "Apparaat op een ander subnet zoeken"
       }
     }
   },

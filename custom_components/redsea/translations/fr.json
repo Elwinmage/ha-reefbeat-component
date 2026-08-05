@@ -1064,8 +1064,23 @@
     }
   },
   "options": {
+    "abort": {
+      "wifi_change_success": "Réseau Wi-Fi changé avec succès. Équipement joignable à {new_ip}.",
+      "wifi_change_failed_connect": "Impossible d'envoyer les nouvelles informations Wi-Fi à l'équipement.",
+      "wifi_change_failed_reset": "Impossible de redémarrer l'équipement après l'envoi des nouvelles informations Wi-Fi.",
+      "wifi_change_failed_rediscover": "L'équipement a redémarré mais n'a pas été retrouvé sur le réseau. Vérifiez qu'il a rejoint {ssid} et reconfigurez son IP manuellement si nécessaire.",
+      "wifi_change_failed_unknown": "Erreur inattendue lors du changement de réseau Wi-Fi."
+    },
     "error": {
-      "auth_failed": "Erreur d'authentification, vérifiez vos informations d'identification"
+      "auth_failed": "Erreur d'authentification, vérifiez vos informations d'identification",
+      "wifi_scan_failed": "Impossible d'interroger l'équipement pour la liste des réseaux Wi-Fi.",
+      "wifi_no_networks": "L'équipement ne détecte aucun réseau Wi-Fi.",
+      "wifi_no_ssid": "Sélectionnez un réseau avant de valider.",
+      "wifi_bad_cidr": "CIDR IPv4 invalide (exemple attendu : 10.0.0.0/24).",
+      "wifi_manual_not_found": "Équipement introuvable sur ce sous-réseau. Essayez un autre CIDR, ou laissez le champ vide pour abandonner."
+    },
+    "progress": {
+      "applying": "Envoi des nouvelles informations d'identification Wi-Fi et localisation de l'équipement sur le réseau..."
     },
     "step": {
       "init": {
@@ -1075,7 +1090,41 @@
           "not_virtual": "Pas de configuration disponible",
           "slaves": "LED"
         },
+        "menu_options": {
+          "settings": "Paramètres de l'équipement",
+          "wifi_scan": "Changer de réseau Wi-Fi"
+        },
         "title": "Configuration"
+      },
+      "settings": {
+        "data": {
+          "live_config_update": "MAJ de la configuration en direct",
+          "disable_supplements": "Désactiver la récupération des suppléments",
+          "intensity_compensation": "Compensation d'intensité",
+          "scan_interval": "Intervalle de rafraichissement",
+          "not_virtual": "Pas de configuration disponible",
+          "slaves": "LED"
+        },
+        "title": "Paramètres de l'équipement"
+      },
+      "wifi_scan": {
+        "data": {
+          "wifi_ssid": "Réseau Wi-Fi",
+          "wifi_password": "Mot de passe",
+          "wifi_rescan": "Relancer un scan des réseaux"
+        },
+        "description": "Réseaux visibles depuis l'équipement à {ip} : {count}. Choisissez-en un et saisissez son mot de passe, ou cochez « Relancer un scan » puis validez pour rafraîchir la liste.",
+        "title": "Changer de réseau Wi-Fi"
+      },
+      "wifi_apply": {
+        "title": "Changement de réseau Wi-Fi en cours"
+      },
+      "wifi_manual_subnet": {
+        "data": {
+          "wifi_manual_subnet": "CIDR du sous-réseau"
+        },
+        "description": "L'équipement a rejoint {ssid} mais n'a été trouvé sur aucun des sous-réseaux directement accessibles à Home Assistant (essayés : {tried_subnets}). Si vous savez sur quel réseau l'équipement est arrivé et que Home Assistant peut l'y atteindre via un routeur, indiquez le CIDR ici (exemple : 10.0.0.0/24). Laissez le champ vide et validez pour abandonner.",
+        "title": "Localiser l'équipement sur un autre sous-réseau"
       }
     }
   },

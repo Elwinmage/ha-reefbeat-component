@@ -17,7 +17,15 @@ from pathlib import Path
 from typing import Any
 
 from homeassistant.components.frontend import add_extra_js_url
-from homeassistant.components.http import StaticPathConfig
+
+try:
+    # Home Assistant 2025.2+ exposes it from the http.server submodule.
+    from homeassistant.components.http.server import StaticPathConfig
+except ImportError:  # pragma: no cover - depends on the installed HA version
+    # Older Home Assistant kept StaticPathConfig in the package root.
+    from homeassistant.components.http import (
+        StaticPathConfig,  # pyright: ignore[reportPrivateImportUsage]
+    )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import (
     HomeAssistant,

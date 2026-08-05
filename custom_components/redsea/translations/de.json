@@ -1066,8 +1066,23 @@
     }
   },
   "options": {
+    "abort": {
+      "wifi_change_success": "WLAN-Netzwerk erfolgreich geändert. Gerät erreichbar unter {new_ip}.",
+      "wifi_change_failed_connect": "Die neuen WLAN-Zugangsdaten konnten nicht an das Gerät gesendet werden.",
+      "wifi_change_failed_reset": "Das Gerät konnte nach dem Senden der neuen WLAN-Zugangsdaten nicht neu gestartet werden.",
+      "wifi_change_failed_rediscover": "Das Gerät wurde neu gestartet, konnte aber im Netzwerk nicht gefunden werden. Prüfen Sie, ob es {ssid} beigetreten ist, und konfigurieren Sie die IP bei Bedarf manuell neu.",
+      "wifi_change_failed_unknown": "Unerwarteter Fehler beim Ändern des WLAN-Netzwerks."
+    },
     "error": {
-      "auth_failed": "Authentifizierung fehlgeschlagen, Anmeldedaten prüfen"
+      "auth_failed": "Authentifizierung fehlgeschlagen, Anmeldedaten prüfen",
+      "wifi_scan_failed": "Konnte das Gerät nicht nach verfügbaren WLAN-Netzwerken abfragen.",
+      "wifi_no_networks": "Das Gerät meldet keine verfügbaren WLAN-Netzwerke.",
+      "wifi_no_ssid": "Bitte wählen Sie ein Netzwerk aus, bevor Sie absenden.",
+      "wifi_bad_cidr": "Kein gültiger IPv4-CIDR (erwartet z. B. 10.0.0.0/24).",
+      "wifi_manual_not_found": "Gerät auf diesem Subnetz nicht gefunden. Versuchen Sie einen anderen CIDR oder lassen Sie das Feld leer, um aufzugeben."
+    },
+    "progress": {
+      "applying": "Die neuen WLAN-Zugangsdaten werden gesendet und das Gerät im Netzwerk gesucht..."
     },
     "step": {
       "init": {
@@ -1077,7 +1092,41 @@
           "not_virtual": "Nicht konfigurierbar",
           "slaves": "LED"
         },
+        "menu_options": {
+          "settings": "Geräteeinstellungen",
+          "wifi_scan": "WLAN-Netzwerk ändern"
+        },
         "title": "Konfiguration"
+      },
+      "settings": {
+        "data": {
+          "live_config_update": "Live-Konfigurationsaktualisierung",
+          "disable_supplements": "Nahrungsergänzungsmittel deaktivieren",
+          "intensity_compensation": "Intensitätskompensation",
+          "scan_interval": "Aktualisierungsintervall",
+          "not_virtual": "Nicht konfigurierbar",
+          "slaves": "LED"
+        },
+        "title": "Geräteeinstellungen"
+      },
+      "wifi_scan": {
+        "data": {
+          "wifi_ssid": "WLAN-Netzwerk",
+          "wifi_password": "Passwort",
+          "wifi_rescan": "Netzwerke erneut scannen"
+        },
+        "description": "Vom Gerät bei {ip} sichtbare Netzwerke: {count}. Wählen Sie eines aus und geben Sie das Passwort ein, oder aktivieren Sie „Netzwerke erneut scannen“ und senden Sie ab, um die Liste zu aktualisieren.",
+        "title": "WLAN-Netzwerk ändern"
+      },
+      "wifi_apply": {
+        "title": "WLAN-Netzwerk wird geändert"
+      },
+      "wifi_manual_subnet": {
+        "data": {
+          "wifi_manual_subnet": "Subnetz-CIDR"
+        },
+        "description": "Das Gerät ist {ssid} beigetreten, wurde jedoch in keinem der direkt an Home Assistant angebundenen Subnetze gefunden (versucht: {tried_subnets}). Wenn Sie wissen, in welchem Netzwerk das Gerät gelandet ist und Home Assistant es über einen Router erreichen kann, geben Sie hier den CIDR ein (z. B. 10.0.0.0/24). Lassen Sie das Feld leer und senden Sie ab, um aufzugeben.",
+        "title": "Gerät in einem anderen Subnetz suchen"
       }
     }
   },

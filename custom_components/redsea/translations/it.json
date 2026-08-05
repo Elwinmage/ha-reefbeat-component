@@ -1066,18 +1066,67 @@
     }
   },
   "options": {
+    "abort": {
+      "wifi_change_success": "Rete Wi-Fi cambiata con successo. Dispositivo raggiungibile su {new_ip}.",
+      "wifi_change_failed_connect": "Impossibile inviare le nuove credenziali Wi-Fi al dispositivo.",
+      "wifi_change_failed_reset": "Impossibile riavviare il dispositivo dopo l'invio delle nuove credenziali Wi-Fi.",
+      "wifi_change_failed_rediscover": "Il dispositivo si è riavviato ma non è stato trovato sulla rete. Verificare che abbia raggiunto {ssid} e riconfigurare l'IP manualmente se necessario.",
+      "wifi_change_failed_unknown": "Errore imprevisto durante il cambio di rete Wi-Fi."
+    },
     "error": {
-      "auth_failed": "Autenticazione fallita, verificare le credenziali"
+      "auth_failed": "Autenticazione fallita, verifica le credenziali",
+      "wifi_scan_failed": "Impossibile interrogare il dispositivo per le reti Wi-Fi disponibili.",
+      "wifi_no_networks": "Il dispositivo non segnala reti Wi-Fi disponibili.",
+      "wifi_no_ssid": "Seleziona una rete prima di inviare.",
+      "wifi_bad_cidr": "CIDR IPv4 non valido (atteso ad esempio 10.0.0.0/24).",
+      "wifi_manual_not_found": "Dispositivo non trovato su questa sottorete. Prova un altro CIDR oppure lascia il campo vuoto per rinunciare."
+    },
+    "progress": {
+      "applying": "Applicazione delle nuove credenziali Wi-Fi e ricerca del dispositivo sulla rete..."
     },
     "step": {
       "init": {
         "data": {
           "live_config_update": "Aggiornamento configurazione in tempo reale",
-          "disable_supplements": "Disabilita integratori",
+          "disable_supplements": "Disattiva integratori",
           "not_virtual": "Non configurabile",
           "slaves": "LED"
         },
+        "menu_options": {
+          "settings": "Impostazioni dispositivo",
+          "wifi_scan": "Cambia rete Wi-Fi"
+        },
         "title": "Configurazione"
+      },
+      "settings": {
+        "data": {
+          "live_config_update": "Aggiornamento configurazione in tempo reale",
+          "disable_supplements": "Disattiva integratori",
+          "intensity_compensation": "Compensazione dell'intensità",
+          "scan_interval": "Intervallo di aggiornamento",
+          "not_virtual": "Non configurabile",
+          "slaves": "LED"
+        },
+        "title": "Impostazioni dispositivo"
+      },
+      "wifi_scan": {
+        "data": {
+          "wifi_ssid": "Rete Wi-Fi",
+          "wifi_password": "Password",
+          "wifi_rescan": "Riesegui la scansione delle reti"
+        },
+        "description": "Reti visibili dal dispositivo su {ip}: {count}. Sceglierne una e inserire la password, oppure spuntare «Riesegui la scansione» e inviare per aggiornare l'elenco.",
+        "title": "Cambia rete Wi-Fi"
+      },
+      "wifi_apply": {
+        "title": "Cambio della rete Wi-Fi in corso"
+      },
+      "wifi_manual_subnet": {
+        "data": {
+          "wifi_manual_subnet": "CIDR della sottorete"
+        },
+        "description": "Il dispositivo si è unito a {ssid} ma non è stato trovato su nessuna delle sottoreti direttamente accessibili a Home Assistant (provate: {tried_subnets}). Se sai in quale rete è finito il dispositivo e Home Assistant può raggiungerlo tramite un router, indica qui il CIDR (ad esempio 10.0.0.0/24). Lascia il campo vuoto e invia per rinunciare.",
+        "title": "Localizzare il dispositivo su un'altra sottorete"
       }
     }
   },

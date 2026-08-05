@@ -171,6 +171,8 @@ def test_get_local_ips_socket_error_returns_empty(
 ) -> None:
     from custom_components.redsea import auto_detect
 
+    monkeypatch.setattr(auto_detect, "list_scannable_subnets", list)
+
     class _Sock:
         def __enter__(self) -> "_Sock":
             return self
@@ -189,6 +191,8 @@ def test_get_local_ips_prefers_netifaces_when_available(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from custom_components.redsea import auto_detect
+
+    monkeypatch.setattr(auto_detect, "list_routed_subnets", list)
 
     _patch_socket_local_ip(monkeypatch, local_ip="192.0.2.1")
 
@@ -221,6 +225,8 @@ def test_get_local_ips_netifaces_iface_error_continues(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from custom_components.redsea import auto_detect
+
+    monkeypatch.setattr(auto_detect, "list_routed_subnets", list)
 
     _patch_socket_local_ip(monkeypatch, local_ip="192.0.2.1")
 
@@ -259,6 +265,8 @@ def test_get_local_ips_netifaces_empty_inet_addrs_falls_back(
 ) -> None:
     from custom_components.redsea import auto_detect
 
+    monkeypatch.setattr(auto_detect, "list_scannable_subnets", list)
+
     _patch_socket_local_ip(monkeypatch, local_ip="192.0.2.1")
     monkeypatch.setattr(auto_detect, "_DEFAULT_PREFIXLEN", 30)
 
@@ -287,6 +295,8 @@ def test_get_local_ips_netifaces_invalid_netmask_falls_back(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from custom_components.redsea import auto_detect
+
+    monkeypatch.setattr(auto_detect, "list_scannable_subnets", list)
 
     _patch_socket_local_ip(monkeypatch, local_ip="192.0.2.1")
     monkeypatch.setattr(auto_detect, "_DEFAULT_PREFIXLEN", 30)
@@ -340,6 +350,8 @@ def test_get_local_ips_falls_back_to_default_prefixlen_when_no_netifaces(
 ) -> None:
     from custom_components.redsea import auto_detect
 
+    monkeypatch.setattr(auto_detect, "list_scannable_subnets", list)
+
     _patch_socket_local_ip(monkeypatch, local_ip="192.0.2.1")
     monkeypatch.setattr(auto_detect, "netifaces", None)
     monkeypatch.setattr(auto_detect, "_DEFAULT_PREFIXLEN", 30)
@@ -356,6 +368,8 @@ def test_get_local_ips_netifaces_mismatch_falls_back(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from custom_components.redsea import auto_detect
+
+    monkeypatch.setattr(auto_detect, "list_scannable_subnets", list)
 
     _patch_socket_local_ip(monkeypatch, local_ip="192.0.2.1")
     monkeypatch.setattr(auto_detect, "_DEFAULT_PREFIXLEN", 30)
@@ -390,6 +404,8 @@ def test_get_local_ips_netifaces_exception_falls_back(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from custom_components.redsea import auto_detect
+
+    monkeypatch.setattr(auto_detect, "list_scannable_subnets", list)
 
     _patch_socket_local_ip(monkeypatch, local_ip="192.0.2.1")
     monkeypatch.setattr(auto_detect, "_DEFAULT_PREFIXLEN", 30)

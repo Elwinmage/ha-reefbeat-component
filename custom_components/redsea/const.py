@@ -95,6 +95,33 @@ HTTP_MAX_RETRY: Final[int] = 5
 HTTP_DELAY_BETWEEN_RETRY: Final[int] = 2
 
 # -----------------------------------------------------------------------------
+# Wi-Fi provisioning (options flow)
+# -----------------------------------------------------------------------------
+
+# Options-flow menu entries
+OPTIONS_MENU_SETTINGS: Final[str] = "settings"
+OPTIONS_MENU_WIFI: Final[str] = "wifi_scan"
+
+# Form field keys used by the Wi-Fi steps of the options flow
+CONFIG_FLOW_WIFI_SSID: Final[str] = "wifi_ssid"
+CONFIG_FLOW_WIFI_PASSWORD: Final[str] = "wifi_password"
+CONFIG_FLOW_WIFI_RESCAN: Final[str] = "wifi_rescan"
+# Manual subnet fallback: presented when neither the default subnet nor
+# any of the locally-attached subnets contained the device after reboot.
+CONFIG_FLOW_WIFI_MANUAL_SUBNET: Final[str] = "wifi_manual_subnet"
+
+# Timing budget for the Wi-Fi provisioning sequence.
+# The overall wait is at least: POST_CONNECT_WAIT + POST_RESET_WAIT
+#   + REDISCOVER_MAX_ATTEMPTS * REDISCOVER_INTERVAL   (worst case).
+WIFI_SCAN_TIMEOUT: Final[int] = 15  # seconds — HTTP timeout for GET /wifi/scan
+WIFI_CONNECT_TIMEOUT: Final[int] = 10  # seconds — HTTP timeout for POST /wifi/connect
+WIFI_RESET_TIMEOUT: Final[int] = 5  # seconds — HTTP timeout for POST /reset
+WIFI_POST_CONNECT_WAIT: Final[int] = 5  # seconds between /wifi/connect and /reset
+WIFI_POST_RESET_WAIT: Final[int] = 20  # seconds waited after /reset before rediscovery
+WIFI_REDISCOVER_MAX_ATTEMPTS: Final[int] = 6
+WIFI_REDISCOVER_INTERVAL: Final[int] = 10  # seconds between rediscovery attempts
+
+# -----------------------------------------------------------------------------
 # Hardware model identifiers
 # -----------------------------------------------------------------------------
 

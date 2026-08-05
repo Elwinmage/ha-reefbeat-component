@@ -1074,8 +1074,23 @@
     }
   },
   "options": {
+    "abort": {
+      "wifi_change_success": "Wi-Fi network changed successfully. Device reachable at {new_ip}.",
+      "wifi_change_failed_connect": "Could not send the new Wi-Fi credentials to the device.",
+      "wifi_change_failed_reset": "Could not reboot the device after sending the new Wi-Fi credentials.",
+      "wifi_change_failed_rediscover": "The device rebooted but could not be found on the network. Check that it joined {ssid} and reconfigure its IP manually if needed.",
+      "wifi_change_failed_unknown": "Unexpected error while changing Wi-Fi network."
+    },
     "error": {
-      "auth_failed": "Authentification failed, check your crendentials"
+      "auth_failed": "Authentification failed, check your crendentials",
+      "wifi_scan_failed": "Could not query the device for available Wi-Fi networks.",
+      "wifi_no_networks": "The device reported no available Wi-Fi networks.",
+      "wifi_no_ssid": "Please pick a network before submitting.",
+      "wifi_bad_cidr": "That is not a valid IPv4 CIDR (expected e.g. 10.0.0.0/24).",
+      "wifi_manual_not_found": "The device could not be found on that subnet. Try another CIDR, or leave the field empty to give up."
+    },
+    "progress": {
+      "applying": "Applying the new Wi-Fi credentials and locating the device on the network..."
     },
     "step": {
       "init": {
@@ -1085,7 +1100,41 @@
           "not_virtual": "Not configurable",
           "slaves": "LED"
         },
+        "menu_options": {
+          "settings": "Device settings",
+          "wifi_scan": "Change Wi-Fi network"
+        },
         "title": "Configuration"
+      },
+      "settings": {
+        "data": {
+          "live_config_update": "Live Configuration Update",
+          "disable_supplements": "Disable Supplements",
+          "intensity_compensation": "Intensity compensation",
+          "scan_interval": "Scan interval",
+          "not_virtual": "Not configurable",
+          "slaves": "LED"
+        },
+        "title": "Device settings"
+      },
+      "wifi_scan": {
+        "data": {
+          "wifi_ssid": "Wi-Fi network",
+          "wifi_password": "Password",
+          "wifi_rescan": "Re-scan networks"
+        },
+        "description": "Networks visible from the device at {ip}: {count}. Pick one and enter its password, or tick 'Re-scan networks' and submit to refresh the list.",
+        "title": "Change Wi-Fi network"
+      },
+      "wifi_apply": {
+        "title": "Changing Wi-Fi network"
+      },
+      "wifi_manual_subnet": {
+        "data": {
+          "wifi_manual_subnet": "Subnet CIDR"
+        },
+        "description": "The device joined {ssid} but was not found on any subnet Home Assistant is directly attached to (tried: {tried_subnets}). If you know which network the device landed on and Home Assistant can reach it through a router, enter the CIDR here (e.g. 10.0.0.0/24). Leave the field empty and submit to give up.",
+        "title": "Locate the device on another subnet"
       }
     }
   },

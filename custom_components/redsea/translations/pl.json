@@ -1066,18 +1066,67 @@
     }
   },
   "options": {
+    "abort": {
+      "wifi_change_success": "Sieć Wi-Fi zmieniona pomyślnie. Urządzenie dostępne pod adresem {new_ip}.",
+      "wifi_change_failed_connect": "Nie udało się wysłać nowych danych uwierzytelniających Wi-Fi do urządzenia.",
+      "wifi_change_failed_reset": "Nie udało się zrestartować urządzenia po wysłaniu nowych danych uwierzytelniających Wi-Fi.",
+      "wifi_change_failed_rediscover": "Urządzenie zostało zrestartowane, ale nie znaleziono go w sieci. Sprawdź, czy dołączyło do {ssid}, i w razie potrzeby ręcznie skonfiguruj jego adres IP.",
+      "wifi_change_failed_unknown": "Nieoczekiwany błąd podczas zmiany sieci Wi-Fi."
+    },
     "error": {
-      "auth_failed": "Uwierzytelnianie nie powiodło się, sprawdź swoje dane logowania"
+      "auth_failed": "Uwierzytelnianie nie powiodło się, sprawdź dane logowania",
+      "wifi_scan_failed": "Nie można odpytać urządzenia o dostępne sieci Wi-Fi.",
+      "wifi_no_networks": "Urządzenie nie zgłasza żadnych dostępnych sieci Wi-Fi.",
+      "wifi_no_ssid": "Wybierz sieć przed wysłaniem.",
+      "wifi_bad_cidr": "Nieprawidłowy IPv4 CIDR (oczekiwano np. 10.0.0.0/24).",
+      "wifi_manual_not_found": "Nie znaleziono urządzenia w tej podsieci. Spróbuj innego CIDR lub zostaw pole puste, aby zrezygnować."
+    },
+    "progress": {
+      "applying": "Wysyłanie nowych danych uwierzytelniających Wi-Fi i lokalizowanie urządzenia w sieci..."
     },
     "step": {
       "init": {
         "data": {
           "live_config_update": "Aktualizacja konfiguracji na żywo",
           "disable_supplements": "Wyłącz suplementy",
-          "not_virtual": "Nie do konfiguracji",
+          "not_virtual": "Nie można konfigurować",
           "slaves": "LED"
         },
+        "menu_options": {
+          "settings": "Ustawienia urządzenia",
+          "wifi_scan": "Zmień sieć Wi-Fi"
+        },
         "title": "Konfiguracja"
+      },
+      "settings": {
+        "data": {
+          "live_config_update": "Aktualizacja konfiguracji na żywo",
+          "disable_supplements": "Wyłącz suplementy",
+          "intensity_compensation": "Kompensacja intensywności",
+          "scan_interval": "Interwał odświeżania",
+          "not_virtual": "Nie można konfigurować",
+          "slaves": "LED"
+        },
+        "title": "Ustawienia urządzenia"
+      },
+      "wifi_scan": {
+        "data": {
+          "wifi_ssid": "Sieć Wi-Fi",
+          "wifi_password": "Hasło",
+          "wifi_rescan": "Ponów skanowanie sieci"
+        },
+        "description": "Sieci widoczne z urządzenia pod adresem {ip}: {count}. Wybierz jedną i wpisz hasło lub zaznacz „Ponów skanowanie sieci” i wyślij, aby odświeżyć listę.",
+        "title": "Zmień sieć Wi-Fi"
+      },
+      "wifi_apply": {
+        "title": "Zmiana sieci Wi-Fi w toku"
+      },
+      "wifi_manual_subnet": {
+        "data": {
+          "wifi_manual_subnet": "CIDR podsieci"
+        },
+        "description": "Urządzenie dołączyło do {ssid}, ale nie zostało znalezione w żadnej z podsieci bezpośrednio podłączonych do Home Assistant (sprawdzone: {tried_subnets}). Jeśli wiesz, do której sieci trafiło urządzenie i Home Assistant może dotrzeć do niego przez router, wpisz tutaj CIDR (np. 10.0.0.0/24). Zostaw pole puste i wyślij, aby zrezygnować.",
+        "title": "Znajdź urządzenie w innej podsieci"
       }
     }
   },
