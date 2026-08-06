@@ -16,12 +16,10 @@ from __future__ import annotations
 import datetime as _datetime
 from typing import Any
 
-
 from custom_components.redsea.sensor import (
     _build_probe_descriptions,
     _epoch_to_iso,
 )
-
 
 # ---------------------------------------------------------------------------
 # _epoch_to_iso
@@ -183,7 +181,7 @@ class _StaticDevice:
     def __init__(self, value: Any) -> None:
         self._value = value
 
-    def get_data(self, _path: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, _path: str, is_None_possible: bool = False) -> Any:
         return self._value
 
 

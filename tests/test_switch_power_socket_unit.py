@@ -66,7 +66,7 @@ async def test_socket_is_on_when_mode_is_manual_on() -> None:
     )
 
     entity = _make(device, 0)
-    entity._handle_coordinator_update()  # noqa: SLF001 — testing derived state
+    entity._handle_coordinator_update()
 
     assert entity.is_on is True
 
@@ -82,7 +82,7 @@ async def test_socket_is_off_when_mode_is_manual_off() -> None:
     )
 
     entity = _make(device, 0)
-    entity._handle_coordinator_update()  # noqa: SLF001
+    entity._handle_coordinator_update()
 
     assert entity.is_on is False
 
@@ -99,7 +99,7 @@ async def test_socket_uses_state_when_scheduled() -> None:
     )
 
     entity = _make(device, 2)
-    entity._handle_coordinator_update()  # noqa: SLF001
+    entity._handle_coordinator_update()
 
     assert entity.is_on is True
 
@@ -115,7 +115,7 @@ async def test_socket_is_off_when_scheduled_standby() -> None:
     )
 
     entity = _make(device, 2)
-    entity._handle_coordinator_update()  # noqa: SLF001
+    entity._handle_coordinator_update()
 
     assert entity.is_on is False
 

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 import pytest
 from homeassistant.const import STATE_UNKNOWN

@@ -57,7 +57,7 @@ class _CloudLinkedCoordinator(Protocol):
     sw_version: str | None
     latest_firmware_url: str | None
 
-    cloud_coordinator: "ReefBeatCloudCoordinator | None"
+    cloud_coordinator: ReefBeatCloudCoordinator | None
 
     def async_add_listener(
         self, update_callback: Callable[[], None]

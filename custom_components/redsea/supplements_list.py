@@ -1,10 +1,10 @@
-from typing import Any, Dict, List
+from typing import Any
 
 # =============================================================================
 # Constants
 # =============================================================================
 
-SUPPLEMENTS: List[Dict[str, Any]] = [
+SUPPLEMENTS: list[dict[str, Any]] = [
     {
         "uid": "0e63ba83-3ec4-445e-a3dd-7f2dbdc7f964",
         "name": "Calcium (Powder)",

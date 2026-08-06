@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 from typing import Any, cast
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.redsea.const import DOMAIN
-
-from unittest.mock import MagicMock, patch, AsyncMock
 
 
 @pytest.mark.asyncio

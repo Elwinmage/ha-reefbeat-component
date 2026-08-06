@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass, field
 from types import SimpleNamespace
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 import pytest
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -152,14 +153,14 @@ async def test_async_setup_entry_wave_branch(monkeypatch: Any, hass: Any) -> Non
         value_name="direction",
     )
 
-    monkeypatch.setattr(sensor_platform, "CLOUD_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "G2_LED_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "LED_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", tuple())
+    monkeypatch.setattr(sensor_platform, "CLOUD_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "G2_LED_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "LED_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", ())
     monkeypatch.setattr(sensor_platform, "WAVE_SCHEDULE_SENSORS", (one,))
-    monkeypatch.setattr(sensor_platform, "LED_SCHEDULES", tuple())
-    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "USER_SENSORS", tuple())
+    monkeypatch.setattr(sensor_platform, "LED_SCHEDULES", ())
+    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "USER_SENSORS", ())
 
     entry = MockConfigEntry(domain=DOMAIN, data={"host": "1.2.3.4"})
     entry.add_to_hass(hass)

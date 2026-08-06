@@ -56,7 +56,7 @@ def _patch_network(monkeypatch: pytest.MonkeyPatch) -> None:
         async def post_specific(self, _source: str) -> None:
             return None
 
-        def get_data(self, _name: str, _is_None_possible: bool = False) -> Any:  # noqa: N803
+        def get_data(self, _name: str, _is_None_possible: bool = False) -> Any:
             return None
 
         def set_data(self, _name: str, _value: Any) -> None:
@@ -115,7 +115,7 @@ class _LinkedLed:
     posted: list[str] = field(default_factory=list)
     refresh_calls: list[tuple[str | None, int]] = field(default_factory=list)
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_map.get(name)
 
     def set_data(self, name: str, value: Any) -> None:

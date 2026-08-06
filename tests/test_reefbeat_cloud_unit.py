@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any, cast
 
 import pytest
+from typing_extensions import Self
 
 import custom_components.redsea.reefbeat.cloud as cloud_mod
 from custom_components.redsea.reefbeat.cloud import ReefBeatCloudAPI
@@ -16,7 +17,7 @@ class _FakeResponse:
     text_body: str = ""
     json_body: Any | None = None
 
-    async def __aenter__(self) -> "_FakeResponse":
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(
@@ -30,7 +31,7 @@ class _FakeResponse:
     async def text(self) -> str:
         return self.text_body
 
-    async def json(self, content_type: Any = None) -> Any:  # noqa: ARG002
+    async def json(self, content_type: Any = None) -> Any:
         return self.json_body
 
 
@@ -39,7 +40,7 @@ class _FakeSession:
     response: _FakeResponse
     called: int = 0
 
-    def post(self, url: str, *args: Any, **kwargs: Any) -> _FakeResponse:  # noqa: ARG002
+    def post(self, url: str, *args: Any, **kwargs: Any) -> _FakeResponse:
         self.called += 1
         return self.response
 

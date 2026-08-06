@@ -14,14 +14,12 @@ import json
 import sys
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-
-from unittest.mock import patch
 
 
 @pytest.fixture(autouse=True)
@@ -239,7 +237,7 @@ def _index_cloud_sources(cloud_dump: dict[str, Any]) -> dict[str, Any]:
 def _index_local_sources(probe_by_type: dict[str, Any]) -> dict[str, dict[str, Any]]:
     """Map ip -> endpoint -> payload from the captured local probe dump."""
     out: dict[str, dict[str, Any]] = {}
-    for _dev_type, block in probe_by_type.items():
+    for block in probe_by_type.values():
         device = block.get("device") or {}
         ip = device.get("ip_address")
         if not isinstance(ip, str):

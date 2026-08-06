@@ -40,7 +40,7 @@ class _FakeRunAPI:
     async def fetch_config(self, _config_path: str | None = None) -> None:
         self.fetched_config += 1
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map[name]
 
     def set_data(self, name: str, value: Any) -> None:

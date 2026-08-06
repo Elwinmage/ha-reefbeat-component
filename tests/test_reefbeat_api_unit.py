@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, cast
 
 import pytest
+from typing_extensions import Self
 
 import custom_components.redsea.reefbeat.api as api_mod
 from custom_components.redsea.reefbeat.api import ReefBeatAPI
@@ -25,7 +26,7 @@ class _FakeResponse:
     body_json: Any | None = None
     json_raises: bool = False
 
-    async def __aenter__(self) -> "_FakeResponse":
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(

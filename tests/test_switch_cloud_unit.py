@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 import custom_components.redsea.switch as platform
 from custom_components.redsea.const import DOMAIN
@@ -50,7 +50,7 @@ class _FakeSwitchCoordinator:
         self._listeners.append(update_callback)
         return lambda: None
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
     def set_data(self, name: str, value: Any) -> None:
@@ -309,7 +309,7 @@ def test_cloud_switch_compute_is_on_returns_false_on_key_error() -> None:
     device.get_data_map.clear()
 
     # Simuler KeyError en remplaçant get_data
-    def _raise_key_error(name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def _raise_key_error(name: str, is_None_possible: bool = False) -> Any:
         raise KeyError("shortcut deleted")
 
     device.get_data = _raise_key_error  # type: ignore[method-assign]
@@ -342,7 +342,7 @@ def test_cloud_switch_compute_is_on_returns_false_on_value_error() -> None:
     entity = ReefCloudSwitchEntity(cast(Any, device), desc)
     assert entity._present is True
 
-    def _raise_value_error(name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def _raise_value_error(name: str, is_None_possible: bool = False) -> Any:
         raise ValueError("invalid data")
 
     device.get_data = _raise_value_error  # type: ignore[method-assign]

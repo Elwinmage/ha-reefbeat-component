@@ -33,7 +33,7 @@ class _FakeCoordinator:
 
         return _remove
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return None
 
 
@@ -56,15 +56,15 @@ async def test_async_setup_entry_ato_branch(monkeypatch: Any, hass: Any) -> None
         key="ato", translation_key="ato", value_fn=lambda _: 1
     )
 
-    monkeypatch.setattr(sensor_platform, "CLOUD_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "G2_LED_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "LED_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "WAVE_SCHEDULE_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "LED_SCHEDULES", tuple())
+    monkeypatch.setattr(sensor_platform, "CLOUD_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "G2_LED_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "LED_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "WAVE_SCHEDULE_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "LED_SCHEDULES", ())
     monkeypatch.setattr(sensor_platform, "ATO_SENSORS", (one,))
-    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "USER_SENSORS", tuple())
+    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "USER_SENSORS", ())
 
     entry = MockConfigEntry(domain=DOMAIN, data={"host": "1.2.3.4"})
     entry.add_to_hass(hass)

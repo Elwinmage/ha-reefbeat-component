@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 import pytest
 from homeassistant.components.number import NumberDeviceClass, RestoreNumber
 from homeassistant.const import PERCENTAGE, UnitOfTime
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 import custom_components.redsea.number as number_platform
@@ -57,7 +58,7 @@ class _FakeNumberCoordinator:
 
         return _remove
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
     def set_data(self, name: str, value: Any) -> None:

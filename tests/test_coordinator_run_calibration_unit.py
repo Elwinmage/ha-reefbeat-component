@@ -7,6 +7,7 @@ from typing import Any, cast
 
 import pytest
 from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 import custom_components.redsea.coordinator as coord
 from custom_components.redsea.const import (
@@ -15,7 +16,6 @@ from custom_components.redsea.const import (
     CONFIG_FLOW_IP_ADDRESS,
     DOMAIN,
 )
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
 def _make_entry(*, title: str = "RUN", ip: str = "192.0.2.10") -> MockConfigEntry:

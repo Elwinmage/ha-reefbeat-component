@@ -274,6 +274,9 @@
       },
       "test_calibration": {
         "name": "Testuj nową kalibrację"
+      },
+      "setup_finish": {
+        "name": "Zakończ konfigurację"
       }
     },
     "light": {
@@ -457,6 +460,14 @@
         "name": "Suplementy",
         "state": {
           "other": "Inne"
+        }
+      },
+      "socket_mode": {
+        "name": "Tryb gniazda {socket}",
+        "state": {
+          "off": "Wyłączony",
+          "on": "Włączony",
+          "schedule": "Harmonogram"
         }
       }
     },
@@ -1052,6 +1063,9 @@
       },
       "new_supplement_short_name": {
         "name": "Skrócona nazwa suplementu"
+      },
+      "socket_name": {
+        "name": "Nazwa gniazda {socket}"
       }
     },
     "time": {

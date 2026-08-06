@@ -21,16 +21,16 @@ from .run import ReefRunAPI
 from .wave import ReefWaveAPI
 
 __all__ = [
-    "ReefBeatAPI",
-    "parse",
-    "ReefBeatCloudAPI",
     "InvalidAuth",
+    "ReefATOAPI",
+    "ReefBeatAPI",
+    "ReefBeatCloudAPI",
+    "ReefControlAPI",
+    "ReefDoseAPI",
     "ReefLedAPI",
     "ReefMatAPI",
-    "ReefDoseAPI",
-    "ReefATOAPI",
+    "ReefPowerAPI",
     "ReefRunAPI",
     "ReefWaveAPI",
-    "ReefPowerAPI",
-    "ReefControlAPI",
+    "parse",
 ]

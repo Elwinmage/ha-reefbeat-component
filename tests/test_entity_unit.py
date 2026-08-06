@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 import pytest
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -135,4 +136,6 @@ async def test_restore_entity_sets_attribute_on_success(
 
     await ent.async_added_to_hass()
 
-    assert getattr(ent, "_attr_dummy") == 12
+    # _attr_dummy is set dynamically by the restore spec, so it isn't a
+    # statically-known attribute — read it via getattr to satisfy pyright.
+    assert getattr(ent, "_attr_dummy") == 12  # noqa: B009

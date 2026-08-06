@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 import pytest
 
@@ -36,7 +37,7 @@ class _FakeCoordinator:
 
         return _remove
 
-    def get_data(self, _path: str, _is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, _path: str, _is_None_possible: bool = False) -> Any:
         return None
 
 

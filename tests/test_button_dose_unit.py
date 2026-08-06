@@ -36,7 +36,7 @@ class _FakeDoseCoordinator:
     bundles: list[dict[str, Any]] = field(default_factory=list)
     refresh_count: int = 0
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
     async def delete(self, source: str) -> None:

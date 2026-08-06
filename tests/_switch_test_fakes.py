@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from contextlib import suppress
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from homeassistant.helpers.device_registry import DeviceInfo
 
@@ -56,7 +57,7 @@ class FakeCoordinator:
         for cb in list(self._listeners):
             cb()
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
     def set_data(self, name: str, value: Any) -> None:
@@ -146,6 +147,25 @@ class FakePowerCoordinator(FakeCoordinator):
     socket_count: int = 6
     my_api: _FakeApi = field(default_factory=_FakeApi)
     refreshed_all: int = 0
+    # Recorders for the socket-config control surface.
+    mode_calls: list[tuple[int, str]] = field(default_factory=list)
+    name_calls: list[tuple[int, str]] = field(default_factory=list)
+    schedule_calls: list[tuple[int, list[dict[str, int]]]] = field(default_factory=list)
+    setup_finished: int = 0
+
+    async def set_socket_mode(self, number: int, mode: str) -> None:
+        self.mode_calls.append((number, mode))
+
+    async def set_socket_name(self, number: int, name: str) -> None:
+        self.name_calls.append((number, name))
+
+    async def set_socket_schedule(
+        self, number: int, intervals: list[dict[str, int]]
+    ) -> None:
+        self.schedule_calls.append((number, intervals))
+
+    async def setup_finish(self) -> None:
+        self.setup_finished += 1
 
     async def async_request_refresh(  # type: ignore[override]
         self, source: str | None = None, config: bool = False, wait: int = 2

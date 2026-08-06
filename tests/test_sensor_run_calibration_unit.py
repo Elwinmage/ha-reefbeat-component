@@ -6,13 +6,13 @@ import datetime
 from dataclasses import dataclass, field
 from typing import Any, cast
 
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from custom_components.redsea.sensor import (
     ReefRunSensorEntity,
     ReefRunSensorEntityDescription,
 )
-from homeassistant.components.sensor import SensorDeviceClass
 
 
 @dataclass

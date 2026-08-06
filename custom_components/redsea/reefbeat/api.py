@@ -11,11 +11,12 @@ import asyncio
 import json
 import logging
 import time
+from asyncio import timeout
+from collections.abc import Awaitable
 from contextlib import suppress
-from typing import Any, Awaitable, Dict, List, Optional, Protocol, TypedDict, cast
+from typing import Any, Protocol, TypedDict, cast
 
 import aiohttp
-from asyncio import timeout
 from jsonpath_ng.ext import parse as _parse  # type: ignore
 
 from ..const import DEFAULT_TIMEOUT, HTTP_DELAY_BETWEEN_RETRY, HTTP_MAX_RETRY
@@ -37,14 +38,14 @@ class Match(Protocol):
     """Subset protocol for jsonpath-ng match objects."""
 
     value: Any
-    context: Optional[Any]
+    context: Any | None
     path: Any
 
 
 class JSONPathExpr(Protocol):
     """Subset protocol for parsed JSONPath expressions."""
 
-    def find(self, data: Any) -> List[Match]: ...
+    def find(self, data: Any) -> list[Match]: ...
     def update(self, data: Any, value: Any) -> Any: ...
 
 
@@ -74,7 +75,7 @@ class HttpResult(TypedDict, total=False):
     url: str
     status: int
     reason: str
-    headers: Dict[str, str]
+    headers: dict[str, str]
     text: str
     json: Any
     elapsed_ms: int
@@ -113,12 +114,12 @@ class ReefBeatAPI:
         self.ip = ip
         self._secure = secure
         self._session = session
-        self._auth_date: Optional[float] = None
+        self._auth_date: float | None = None
         self._in_error = False
 
         self._base_url = ("https://" if secure else "http://") + ip
 
-        self.data: Dict[str, Any] = {
+        self.data: dict[str, Any] = {
             "sources": cast(
                 list[SourceEntry],
                 [
@@ -137,12 +138,12 @@ class ReefBeatAPI:
         self.data["message"] = {}
 
         # Cache mapping JSONPath expression -> "self.data[...]..." eval string
-        self._data_db: Dict[str, str] = {}
+        self._data_db: dict[str, str] = {}
 
-        self.last_update_success: Optional[bool] = None
-        self.quick_refresh: Optional[str] = None
+        self.last_update_success: bool | None = None
+        self.quick_refresh: str | None = None
         self._live_config_update = bool(live_config_update)
-        self._header: Optional[Dict[str, str]] = None
+        self._header: dict[str, str] | None = None
 
     def _build_result(
         self,
@@ -189,7 +190,7 @@ class ReefBeatAPI:
         """
         return
 
-    async def http_get(self, access_path: str) -> Optional[HttpResult]:
+    async def http_get(self, access_path: str) -> HttpResult | None:
         """Perform a one-off GET request to `access_path` (debug-friendly)."""
         url = self._base_url + access_path
         started = time.time()
@@ -307,7 +308,7 @@ class ReefBeatAPI:
             )
             self._in_error = True
 
-    async def get_initial_data(self) -> Dict[str, Any]:
+    async def get_initial_data(self) -> dict[str, Any]:
         """Fetch initial device data.
 
         Fetches:
@@ -336,7 +337,7 @@ class ReefBeatAPI:
         _LOGGER.debug("Initial data loaded for %s", self.ip)
         return self.data
 
-    async def fetch_config(self, config_path: Optional[str] = None) -> None:
+    async def fetch_config(self, config_path: str | None = None) -> None:
         """Fetch cached configuration sources.
 
         Args:
@@ -381,7 +382,7 @@ class ReefBeatAPI:
 
         return self.data
 
-    async def press(self, action: str, head: Optional[int] = None) -> None:
+    async def press(self, action: str, head: int | None = None) -> None:
         """Trigger a button-like action.
 
         Args:
@@ -431,7 +432,7 @@ class ReefBeatAPI:
                     res += path_str
         return res
 
-    def get_data_link(self, data_name: str) -> Optional[str]:
+    def get_data_link(self, data_name: str) -> str | None:
         """Compute an eval()-able expression path into `self.data` for a JSONPath expression."""
         query = parse(data_name)
         res = query.find(self.data)
@@ -464,10 +465,10 @@ class ReefBeatAPI:
 
         try:
             return eval(self._data_db[name])
-        except Exception as e:
+        except Exception:
             if is_None_possible:
                 return None
-            raise e
+            raise
 
     def _get_data(self, data_name: str, is_None_possible: bool = False) -> Any:
         """Slow-path getter that evaluates JSONPath every call (debug/legacy)."""
@@ -496,7 +497,7 @@ class ReefBeatAPI:
 
     async def http_send(
         self, action: str, payload: Any = None, method: str = "post"
-    ) -> Optional[HttpResult]:
+    ) -> HttpResult | None:
         """Send an HTTP request to an action path relative to this API base URL.
 
         Args:
@@ -511,7 +512,7 @@ class ReefBeatAPI:
 
     async def _http_send(
         self, url: str, payload: Any = None, method: str = "post"
-    ) -> Optional[HttpResult]:
+    ) -> HttpResult | None:
         """Send an HTTP request with retries (aiohttp).
 
         Returns a structured `HttpResult` to make debugging (and the `redsea.request`
@@ -522,7 +523,7 @@ class ReefBeatAPI:
         error_count = 0
         _LOGGER.debug("%s data: %s to %s", method_l, payload, url)
 
-        last_result: Optional[HttpResult] = None
+        last_result: HttpResult | None = None
 
         while status_ok is False and error_count < HTTP_MAX_RETRY:
             started = time.time()

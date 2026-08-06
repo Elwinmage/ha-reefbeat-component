@@ -12,7 +12,7 @@ Notes:
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 import aiohttp
 
@@ -159,7 +159,7 @@ class ReefRunAPI(ReefBeatAPI):
         await self._http_send(self._base_url + "/pump/settings", payload, "put")
 
     async def push_values(
-        self, source: str, method: str = "put", pump: Optional[int] = None
+        self, source: str, method: str = "put", pump: int | None = None
     ) -> None:
         """Push cached values to the device.
 

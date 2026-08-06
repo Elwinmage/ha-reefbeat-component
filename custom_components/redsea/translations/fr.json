@@ -273,6 +273,9 @@
       },
       "test_calibration": {
         "name": "Tester la Calibration"
+      },
+      "setup_finish": {
+        "name": "Terminer la configuration"
       }
     },
     "light": {
@@ -456,6 +459,14 @@
         "name": "Suppléments",
         "state": {
           "other": "Autre"
+        }
+      },
+      "socket_mode": {
+        "name": "Mode prise {socket}",
+        "state": {
+          "off": "Éteint",
+          "on": "Allumé",
+          "schedule": "Programmation"
         }
       }
     },
@@ -1050,6 +1061,9 @@
       },
       "new_supplement_short_name": {
         "name": "Nom de la tête"
+      },
+      "socket_name": {
+        "name": "Nom prise {socket}"
       }
     },
     "time": {

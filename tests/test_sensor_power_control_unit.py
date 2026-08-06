@@ -40,7 +40,7 @@ class _FakeCoordinator:
 
         return _remove
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
 
@@ -207,7 +207,7 @@ class _RecordingDevice:
     def __init__(self) -> None:
         self.calls: list[tuple[str, bool]] = []
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         self.calls.append((name, is_None_possible))
         if "connected_device" in name:
             if not is_None_possible:

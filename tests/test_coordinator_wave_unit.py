@@ -82,7 +82,7 @@ class _FakeWaveAPI:
     async def fetch_config(self, config_path: str | None = None) -> None:
         self.fetched_config.append(config_path)
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
     def set_data(self, name: str, value: Any) -> None:
@@ -107,7 +107,7 @@ class _FakeCloud:
     def get_no_wave(self, _device: Any) -> dict[str, Any] | None:
         return self.get_data_map.get("no_wave")
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
     async def send_cmd(self, action: str, payload: Any, method: str = "post") -> Any:

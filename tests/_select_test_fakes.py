@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from homeassistant.core import HomeAssistant
 
@@ -36,7 +37,7 @@ class FakeCoordinator:
 
         return _remove
 
-    def get_data(self, path: str, _is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, path: str, _is_None_possible: bool = False) -> Any:
         return self._data.get(path)
 
     def set_data(self, path: str, value: Any) -> None:

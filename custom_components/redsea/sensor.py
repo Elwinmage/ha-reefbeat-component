@@ -613,10 +613,10 @@ for auto_id in range(1, 8):
                 value_name="$.sources[?(@.name=='/preset_name/"
                 + str(auto_id)
                 + "')].data.name",
-                exists_fn=lambda device: (
+                exists_fn=lambda device, _aid=auto_id: (
                     device.get_data(
                         "$.sources[?(@.name=='/preset_name/"
-                        + str(auto_id)
+                        + str(_aid)
                         + "')].data.name",
                         True,
                     )
@@ -1701,6 +1701,7 @@ async def async_setup_entry(
                         translation_key="socket_state",
                         translation_placeholders={"socket": str(socket_idx + 1)},
                         icon="mdi:electric-switch",
+                        entity_registry_enabled_default=False,
                         # Derive effective state from (mode, state):
                         # firmware returns state="unknown" whenever the socket
                         # is under manual override (mode == "on" | "off"), and
@@ -2102,10 +2103,16 @@ class ReefBeatSensorEntity(ReefRoleMixin, ReefBeatRestoreEntity, SensorEntity): 
         self._attr_available = True
 
         if self._description.key == "wifi_quality":
-            signal_strength = cast(
-                int,
-                self._device.get_data("$.sources[?(@.name=='/wifi')].data.signal_dBm"),
+            signal_strength = self._device.get_data(
+                "$.sources[?(@.name=='/wifi')].data.signal_dBm",
+                is_None_possible=True,
             )
+            if not isinstance(signal_strength, (int, float)):
+                # No signal reading yet (missing/null signal_dBm): leave the
+                # sensor unknown instead of crashing on a None comparison.
+                self._attr_available = False
+                self._attr_native_value = None
+                return
             if signal_strength < -80:
                 self._attr_icon = "mdi:wifi-strength-outline"
                 self._attr_native_value = "poor"
@@ -2144,7 +2151,7 @@ class ReefBeatSensorEntity(ReefRoleMixin, ReefBeatRestoreEntity, SensorEntity): 
             return self._description.value_fn(self._device)
 
         if hasattr(self._description, "value_name"):
-            value_name = cast(str, getattr(self._description, "value_name"))
+            value_name = cast(str, self._description.value_name)
             return self._device.get_data(value_name)
 
         _LOGGER.error("No method to get value for %s", self._description.key)
@@ -2227,13 +2234,12 @@ class ReefDoseSensorEntity(ReefBeatSensorEntity):
         super()._update_val()
 
         desc = cast(ReefDoseSensorEntityDescription, self._description)
-        if desc.translation_key == "container_volume":
-            if (
-                isinstance(new_value, (int, float))
-                and isinstance(old_value, (int, float))
-                and old_value < new_value
-            ):
-                self._device.hass.bus.fire(desc.value_name, {"value": new_value})
+        if desc.translation_key == "container_volume" and (
+            isinstance(new_value, (int, float))
+            and isinstance(old_value, (int, float))
+            and old_value < new_value
+        ):
+            self._device.hass.bus.fire(desc.value_name, {"value": new_value})
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:

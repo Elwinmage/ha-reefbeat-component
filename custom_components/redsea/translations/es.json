@@ -274,6 +274,9 @@
       },
       "test_calibration": {
         "name": "Probar nueva calibración"
+      },
+      "setup_finish": {
+        "name": "Finalizar configuración"
       }
     },
     "light": {
@@ -457,6 +460,14 @@
         "name": "Suplementos",
         "state": {
           "other": "Otro"
+        }
+      },
+      "socket_mode": {
+        "name": "Modo toma {socket}",
+        "state": {
+          "off": "Apagado",
+          "on": "Encendido",
+          "schedule": "Programación"
         }
       }
     },
@@ -1052,6 +1063,9 @@
       },
       "new_supplement_short_name": {
         "name": "Nombre corto del suplemento"
+      },
+      "socket_name": {
+        "name": "Nombre toma {socket}"
       }
     },
     "time": {

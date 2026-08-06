@@ -18,7 +18,7 @@ class _FakeMatCoordinator:
         # Minimal device_info surface for the `device_info` cached_property.
         self.device_info = {"identifiers": {("redsea", "SERIAL")}}
 
-    def get_data(self, path: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, path: str, is_None_possible: bool = False) -> Any:
         return self._data.get((path, bool(is_None_possible)))
 
     def set_data(self, path: str, value: Any) -> None:

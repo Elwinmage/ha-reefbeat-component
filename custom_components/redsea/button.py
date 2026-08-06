@@ -45,6 +45,7 @@ from .coordinator import (
     ReefLedCoordinator,
     ReefLedG2Coordinator,
     ReefMatCoordinator,
+    ReefPowerCoordinator,
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
@@ -201,6 +202,17 @@ LED_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         exists_fn=lambda _: True,
         press_fn=lambda device: device.press("identify"),
         icon="mdi:lightbulb-question-outline",
+        entity_category=EntityCategory.CONFIG,
+    ),
+)
+
+POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
+    ReefBeatButtonEntityDescription(
+        key="setup_finish",
+        translation_key="setup_finish",
+        exists_fn=lambda _: True,
+        press_fn=lambda device: cast(ReefPowerCoordinator, device).setup_finish(),
+        icon="mdi:check-circle-outline",
         entity_category=EntityCategory.CONFIG,
     ),
 )
@@ -373,6 +385,9 @@ async def async_setup_entry(
         _add_described_entities(
             entities, device, ReefBeatButtonEntity, tuple(control_ato_buttons)
         )
+
+    elif isinstance(device, ReefPowerCoordinator):
+        _add_described_entities(entities, device, ReefBeatButtonEntity, POWER_BUTTONS)
 
     elif isinstance(device, ReefWaveCoordinator):
         _add_described_entities(entities, device, ReefWaveButtonEntity, PREVIEW_BUTTONS)
@@ -1165,7 +1180,7 @@ class MaintenanceButtonEntity(ReefRoleMixin, ButtonEntity):  # type: ignore[misc
             # Build a Store-less instance: load() is a no-op when never
             # written, and saves go to a unique key so they don't conflict.
             store = MaintenanceStore(
-                getattr(device, "_hass"),
+                device._hass,
                 f"fallback_{id(device)}",
             )
             device.maintenance = store

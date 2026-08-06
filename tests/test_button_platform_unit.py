@@ -184,7 +184,7 @@ async def test_reefrun_button_entity_preview_save_and_preview_refresh_paths() ->
         refreshed: list[str] = []
         intensities: list[tuple[int, int]] = []
 
-        def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+        def get_data(self, name: str, is_None_possible: bool = False) -> Any:
             if "/preview" in name and ".ti" in name:
                 return 33
             if "/dashboard" in name and ".state" in name:
@@ -355,7 +355,7 @@ async def test_reefwave_button_entity_special_cases_and_mode_updates() -> None:
         listeners: int = 0
         refreshed: int = 0
 
-        def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+        def get_data(self, name: str, is_None_possible: bool = False) -> Any:
             # minimal JSONPath-like switch for what the entity asks for
             if "'/preview'" in name and name.endswith(".data.type"):
                 return self.data["sources"][0]["data"]["type"]
@@ -438,7 +438,7 @@ async def test_reefwave_button_entity_preview_save_and_default_paths(
         refreshed: int = 0
         wave_set: int = 0
 
-        def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+        def get_data(self, name: str, is_None_possible: bool = False) -> Any:
             if name.endswith(".data.type") and "'/preview'" in name:
                 return self.preview.get("type")
             if "'/preview'" in name and ".data." in name:
@@ -548,7 +548,7 @@ async def test_reefdose_button_entity_remaining_branches_and_device_info() -> No
                 res["name"] = f"{self.title} head {head_id}"
                 return res
 
-        def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+        def get_data(self, name: str, is_None_possible: bool = False) -> Any:
             return self.get_data_map.get(name)
 
         async def delete(self, source: str) -> None:
