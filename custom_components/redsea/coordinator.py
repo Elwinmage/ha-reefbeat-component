@@ -23,11 +23,11 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
+from asyncio import timeout
 from datetime import datetime, timedelta
 from time import time
 from typing import Any, cast
 
-from asyncio import timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import HomeAssistant, callback
@@ -318,7 +318,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def unload(self) -> None:
         """Hook for teardown if needed."""
-        return None
+        return
 
 
 # Cloud-linked base
@@ -407,7 +407,7 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
 
     async def set_cloud_link(self, cloud: ReefBeatCloudCoordinator) -> None:
         """Attach a cloud coordinator and register firmware endpoint subscription."""
-        _LOGGER.info("%s linked to cloud %s" % (self._title, cloud._title))
+        _LOGGER.info(f"{self._title} linked to cloud {cloud._title}")
         self._cloud_link = cloud
         model_type = self.get_model_type(self.model)
         if model_type is None:
@@ -417,7 +417,7 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
         await cloud.listen_for_firmware(self.latest_firmware_url, self._title)
 
     @property
-    def cloud_coordinator(self) -> "ReefBeatCloudCoordinator | None":
+    def cloud_coordinator(self) -> ReefBeatCloudCoordinator | None:
         """Return the linked cloud coordinator (if any)."""
         return self._cloud_link
 
@@ -519,7 +519,6 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
 
     async def async_setup(self) -> None:
         """Public entry-point for one-time initialization."""
-        pass
 
     @callback
     def _link_leds(self, event: Any | None = None) -> None:
@@ -551,7 +550,7 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
 
     def force_status_update(self, state: bool = False) -> None:
         """Virtual device does not force status on a single hardware light."""
-        return None
+        return
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Aggregate data updates from all linked LED coordinators."""
@@ -1089,7 +1088,7 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
     ) -> None:
         """Update schedule via the ReefBeat cloud API and propagate to devices."""
         if self._cloud_link is None:
-            raise TypeError("%s - Not linked to cloud account" % self._title)
+            raise TypeError(f"{self._title} - Not linked to cloud account")
 
         # No Wave: replace by cloud library wave (already has uid fields)
         if new_wave["type"] == "nw":
@@ -1318,6 +1317,42 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
             self.socket_count: int = int(hw_model.replace("RSPOWER", "").strip() or "6")
         except (ValueError, TypeError):
             self.socket_count = 6
+
+    async def set_socket_mode(self, number: int, mode: str) -> None:
+        """Set a socket's mode (off/on/schedule) and refresh."""
+        await cast(ReefPowerAPI, self.my_api).set_socket_mode(number, mode)
+        await self.async_request_refresh()
+
+    async def set_socket_name(self, number: int, name: str) -> None:
+        """Rename a socket and refresh.
+
+        The device always receives ``mode`` and ``name`` together in the
+        ``PUT /sockets/config`` body (the app never sends a name on its own),
+        so we resend the socket's current user-chosen mode alongside the new
+        name. If the current mode isn't one of the writable modes (e.g. the
+        socket is still in ``setup``), we fall back to ``off``.
+        """
+        mode = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.sockets"
+            f"[?(@.number=={number})].user_config_mode",
+            is_None_possible=True,
+        )
+        if mode not in ("off", "on", "schedule"):
+            mode = "off"
+        await cast(ReefPowerAPI, self.my_api).set_socket_mode(number, mode, name=name)
+        await self.async_request_refresh()
+
+    async def set_socket_schedule(
+        self, number: int, intervals: list[dict[str, int]]
+    ) -> None:
+        """Set a socket's daily schedule and refresh."""
+        await cast(ReefPowerAPI, self.my_api).set_socket_schedule(number, intervals)
+        await self.async_request_refresh()
+
+    async def setup_finish(self) -> None:
+        """Leave setup mode (device switches to auto) and refresh."""
+        await cast(ReefPowerAPI, self.my_api).setup_finish()
+        await self.async_request_refresh()
 
 
 # REEFCONTROL

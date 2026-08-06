@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import datetime
+from collections.abc import Callable
 from contextlib import suppress
 from copy import deepcopy
 from dataclasses import dataclass, field
 from types import SimpleNamespace
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 import pytest
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -68,7 +69,7 @@ class _FakeCoordinator:
     get_data_map: dict[str, Any] = field(default_factory=dict)
     set_calls: list[tuple[str, Any]] = field(default_factory=list)
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
     def set_data(self, name: str, value: Any) -> None:
@@ -244,15 +245,15 @@ async def test_async_setup_entry_dose_branch(monkeypatch: Any, hass: Any) -> Non
     monkeypatch.setattr(sensor_platform, "ReefRunCoordinator", type("R", (), {}))
     monkeypatch.setattr(sensor_platform, "ReefBeatCloudCoordinator", type("C", (), {}))
 
-    monkeypatch.setattr(sensor_platform, "CLOUD_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "G2_LED_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "LED_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "WAVE_SCHEDULE_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "LED_SCHEDULES", tuple())
-    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "USER_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "ATO_SENSORS", tuple())
+    monkeypatch.setattr(sensor_platform, "CLOUD_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "G2_LED_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "LED_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "WAVE_SCHEDULE_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "LED_SCHEDULES", ())
+    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "USER_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "ATO_SENSORS", ())
 
     entry = MockConfigEntry(domain=DOMAIN, data={"host": "1.2.3.4"})
     entry.add_to_hass(hass)

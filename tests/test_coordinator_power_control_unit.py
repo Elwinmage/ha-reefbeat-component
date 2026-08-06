@@ -27,7 +27,6 @@ from custom_components.redsea.const import (
     DOMAIN,
 )
 
-
 # ---------------------------------------------------------------------------
 # get_model_type — HW_POWER_IDS and HW_CONTROL_IDS branches
 # ---------------------------------------------------------------------------

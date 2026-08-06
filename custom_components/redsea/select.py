@@ -40,6 +40,7 @@ from .coordinator import (
     ReefLedCoordinator,
     ReefLedG2Coordinator,
     ReefMatCoordinator,
+    ReefPowerCoordinator,
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
@@ -107,11 +108,28 @@ class ReefDoseSelectEntityDescription(SelectEntityDescription):
     method: str = "post"
 
 
+@dataclass(kw_only=True, frozen=True)
+class ReefPowerSocketModeSelectEntityDescription(SelectEntityDescription):
+    """Describes a RSPOWER per-socket mode select (off/on/schedule).
+
+    Backed by ``PUT /sockets/config`` with a partial ``{"sockets":[{"mode",
+    "number"}]}`` body. The current value is read from the socket's
+    ``user_config_mode`` in ``/dashboard`` (the user's chosen mode, which
+    unlike ``mode`` isn't transiently overridden by a schedule window).
+    """
+
+    exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
+    value_name: str = ""
+    options: list[str] | None = None
+    socket: int = 0  # 0-based socket index used in the URL/payload
+
+
 DescriptionT = (
     ReefBeatSelectEntityDescription
     | ReefRunSelectEntityDescription
     | ReefWaveSelectEntityDescription
     | ReefDoseSelectEntityDescription
+    | ReefPowerSocketModeSelectEntityDescription
 )
 
 
@@ -267,6 +285,33 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
+    elif isinstance(device, ReefPowerCoordinator):
+        # One mode select per AC socket (off/on/schedule). Socket indices are
+        # 0-based (RSPOWER6 -> 0..5, RSPOWER8 -> 0..7); the user-facing label
+        # uses n+1 to match the sensor/switch convention.
+        power_descs: list[ReefPowerSocketModeSelectEntityDescription] = []
+        for socket_idx in range(device.socket_count):
+            power_descs.append(
+                ReefPowerSocketModeSelectEntityDescription(
+                    key=f"socket_{socket_idx}_mode",
+                    translation_key="socket_mode",
+                    translation_placeholders={"socket": str(socket_idx + 1)},
+                    icon="mdi:power-settings",
+                    value_name=(
+                        "$.sources[?(@.name=='/dashboard')].data.sockets"
+                        f"[?(@.number=={socket_idx})].user_config_mode"
+                    ),
+                    options=["off", "on", "schedule"],
+                    entity_category=EntityCategory.CONFIG,
+                    socket=socket_idx,
+                )
+            )
+        entities.extend(
+            ReefPowerSocketModeSelectEntity(device, description)
+            for description in power_descs
+            if description.exists_fn(device)
+        )
+
     async_add_entities(entities, True)
 
 
@@ -398,6 +443,48 @@ class ReefRunSelectEntity(ReefBeatSelectEntity):
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the pump identifier."""
         return cast(ReefRunCoordinator, self._device).pump_device_info(self._pump)
+
+
+# REEFPOWER
+class ReefPowerSocketModeSelectEntity(ReefBeatSelectEntity):
+    """Select entity for a RSPOWER socket's mode (off/on/schedule).
+
+    Unlike the generic select, the write is a partial ``PUT /sockets/config``
+    scoped to a single socket, so we override ``async_select_option`` to call
+    the coordinator's ``set_socket_mode`` rather than ``push_values``.
+    """
+
+    _attr_has_entity_name = True
+    _VALID_MODES = ("off", "on", "schedule")
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefPowerSocketModeSelectEntityDescription,
+    ) -> None:
+        """Initialize the per-socket mode select."""
+        self._socket: int = entity_description.socket
+        super().__init__(device, entity_description)
+        # Map a transient "setup" (or anything unexpected) to None so HA does
+        # not warn about a current option outside the selectable set.
+        self._update_val()
+
+    def _update_val(self) -> None:
+        val = self._device.get_data(self._value_name, is_None_possible=True)
+        self._attr_current_option = val if val in self._VALID_MODES else None
+
+    async def async_select_option(self, option: str) -> None:
+        """Push the new mode for this socket via PUT /sockets/config."""
+        self._attr_current_option = option
+        self.async_write_ha_state()
+        await cast(ReefPowerCoordinator, self._device).set_socket_mode(
+            self._socket, option
+        )
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return self._device.device_info
 
 
 # REEFDOSE

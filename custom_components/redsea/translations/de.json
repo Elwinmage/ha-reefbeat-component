@@ -274,6 +274,9 @@
       },
       "test_calibration": {
         "name": "Neue Kalibrierung testen"
+      },
+      "setup_finish": {
+        "name": "Einrichtung abschließen"
       }
     },
     "light": {
@@ -457,6 +460,14 @@
         "name": "Nahrungsergänzungsmittel",
         "state": {
           "other": "Sonstige"
+        }
+      },
+      "socket_mode": {
+        "name": "Modus Steckdose {socket}",
+        "state": {
+          "off": "Aus",
+          "on": "Ein",
+          "schedule": "Zeitplan"
         }
       }
     },
@@ -1052,6 +1063,9 @@
       },
       "new_supplement_short_name": {
         "name": "Kurzname des Nahrungsergänzungsmittels"
+      },
+      "socket_name": {
+        "name": "Name Steckdose {socket}"
       }
     },
     "time": {

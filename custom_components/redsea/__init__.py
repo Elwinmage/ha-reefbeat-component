@@ -26,6 +26,7 @@ except ImportError:  # pragma: no cover - depends on the installed HA version
     from homeassistant.components.http import (
         StaticPathConfig,  # pyright: ignore[reportPrivateImportUsage]
     )
+import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import (
     HomeAssistant,
@@ -35,7 +36,6 @@ from homeassistant.core import (
     callback,
 )
 from homeassistant.helpers import device_registry as dr
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -334,7 +334,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         type_msg = call.data.get("msg_type")
         device.clean_message(type_msg)
 
-    _LOGGER.debug("clean_message service REGISTERED %s" % config)
+    _LOGGER.debug(f"clean_message service REGISTERED {config}")
     hass.services.async_register(
         DOMAIN,
         "clean_message",

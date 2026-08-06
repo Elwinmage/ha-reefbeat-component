@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
+from typing_extensions import Self
 
 
 class _Resp:
@@ -174,7 +175,7 @@ def test_get_local_ips_socket_error_returns_empty(
     monkeypatch.setattr(auto_detect, "list_scannable_subnets", list)
 
     class _Sock:
-        def __enter__(self) -> "_Sock":
+        def __enter__(self) -> Self:
             return self
 
         def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
@@ -330,7 +331,7 @@ def _patch_socket_local_ip(
     from custom_components.redsea import auto_detect
 
     class _Sock:
-        def __enter__(self) -> "_Sock":
+        def __enter__(self) -> Self:
             return self
 
         def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
@@ -452,7 +453,7 @@ def test_get_reefbeats_uses_thread_pool_when_threads_gt_1(
         def __init__(self, max_workers: int) -> None:
             captured_workers.append(max_workers)
 
-        def __enter__(self) -> "_FakeExecutor":
+        def __enter__(self) -> Self:
             return self
 
         def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:

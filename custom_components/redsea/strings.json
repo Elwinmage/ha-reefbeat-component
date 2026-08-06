@@ -274,6 +274,9 @@
       },
       "test_calibration": {
         "name": "Test new Calibration"
+      },
+      "setup_finish": {
+        "name": "Finish setup"
       }
     },
     "light": {
@@ -457,6 +460,14 @@
         "name": "Supplements",
         "state": {
           "other": "Other"
+        }
+      },
+      "socket_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule"
         }
       }
     },
@@ -1060,6 +1071,9 @@
       },
       "new_supplement_short_name": {
         "name": "Supplement Short Name"
+      },
+      "socket_name": {
+        "name": "Socket {socket} name"
       }
     },
     "time": {

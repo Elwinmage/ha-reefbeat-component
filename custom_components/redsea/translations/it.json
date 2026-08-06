@@ -274,6 +274,9 @@
       },
       "test_calibration": {
         "name": "Testa nuova calibrazione"
+      },
+      "setup_finish": {
+        "name": "Completare la configurazione"
       }
     },
     "light": {
@@ -457,6 +460,14 @@
         "name": "Integratori",
         "state": {
           "other": "Altro"
+        }
+      },
+      "socket_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Spento",
+          "on": "Acceso",
+          "schedule": "Programmazione"
         }
       }
     },
@@ -1052,6 +1063,9 @@
       },
       "new_supplement_short_name": {
         "name": "Nome breve dell'integratore"
+      },
+      "socket_name": {
+        "name": "Nome presa {socket}"
       }
     },
     "time": {

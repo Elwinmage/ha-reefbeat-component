@@ -27,7 +27,11 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .coordinator import ReefBeatCoordinator, ReefDoseCoordinator
+from .coordinator import (
+    ReefBeatCoordinator,
+    ReefDoseCoordinator,
+    ReefPowerCoordinator,
+)
 from .entity import ReefBeatRestoreEntity, RestoreSpec
 
 _LOGGER = logging.getLogger(__name__)
@@ -57,6 +61,13 @@ class ReefDoseTextEntityDescription(ReefBeatTextEntityDescription):
     """Describes a ReefDose per-head text entity."""
 
     head: int
+
+
+@dataclass(kw_only=True, frozen=True)
+class ReefPowerSocketNameTextEntityDescription(ReefBeatTextEntityDescription):
+    """Describes a RSPOWER per-socket name text entity."""
+
+    socket: int = 0
 
 
 # -----------------------------------------------------------------------------
@@ -130,6 +141,31 @@ async def async_setup_entry(
         entities.extend(
             ReefDoseTextEntity(device, description)
             for description in dose_descs
+            if description.exists_fn(device)
+        )
+
+    elif isinstance(device, ReefPowerCoordinator):
+        # One editable name field per AC socket. Backed by the socket name in
+        # /dashboard; writes go through PUT /sockets/config (mode + name).
+        power_descs: list[ReefPowerSocketNameTextEntityDescription] = []
+        for socket_idx in range(device.socket_count):
+            power_descs.append(
+                ReefPowerSocketNameTextEntityDescription(
+                    key=f"socket_{socket_idx}_name",
+                    translation_key="socket_name",
+                    translation_placeholders={"socket": str(socket_idx + 1)},
+                    value_name=(
+                        "$.sources[?(@.name=='/dashboard')].data.sockets"
+                        f"[{socket_idx}].name"
+                    ),
+                    icon="mdi:rename-box",
+                    entity_category=EntityCategory.CONFIG,
+                    socket=socket_idx,
+                )
+            )
+        entities.extend(
+            ReefPowerSocketNameTextEntity(device, description)
+            for description in power_descs
             if description.exists_fn(device)
         )
 
@@ -274,3 +310,31 @@ class ReefDoseTextEntity(ReefBeatTextEntity):
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the head identifier (non-mutating)."""
         return cast(ReefDoseCoordinator, self._device).head_device_info(self._head)
+
+
+# REEFPOWER
+class ReefPowerSocketNameTextEntity(ReefBeatTextEntity):
+    """Editable name for a single RSPOWER socket.
+
+    Reads the current name from ``/dashboard`` and, on edit, writes it back
+    through ``PUT /sockets/config`` (the coordinator resends the socket's
+    current mode alongside the new name, as the firmware requires).
+    """
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefPowerSocketNameTextEntityDescription,
+    ) -> None:
+        super().__init__(device, entity_description)
+        self._socket: int = entity_description.socket
+
+    async def async_set_value(self, value: str) -> None:
+        """Push the new socket name to the device."""
+        self._attr_native_value = value
+        self.async_write_ha_state()
+        await cast(ReefPowerCoordinator, self._device).set_socket_name(
+            self._socket, value
+        )

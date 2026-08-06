@@ -1116,6 +1116,7 @@ class ReefPowerSocketSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type:
         base = f"$.sources[?(@.name=='/dashboard')].data.sockets[{self._socket}]"
         self._mode_path = f"{base}.mode"
         self._state_path = f"{base}.state"
+        self._name_path = f"{base}.name"
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -1182,6 +1183,21 @@ class ReefPowerSocketSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type:
 
         if current is not False:
             await self._send_toggle()
+
+    @property
+    def name(self) -> str | None:  # type: ignore[reportIncompatibleVariableOverride]
+        """Use the device-provided socket name as the entity's friendly name.
+
+        ``has_entity_name`` is True, so HA prepends the device name — the
+        result is e.g. "RSPOWER6 t1". Falls back to "Socket N" if the
+        firmware hasn't reported a name yet. This is a plain (non-cached)
+        property so a rename via the socket name text entity is reflected
+        immediately.
+        """
+        n = self._device.get_data(self._name_path, is_None_possible=True)
+        if isinstance(n, str) and n:
+            return n
+        return f"Socket {self._socket + 1}"
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
@@ -1447,8 +1463,9 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
         else:
             self._attr_name = entity_description.key
             _LOGGER.info(
-                "Shortcut %s not present in aquarium %s"
-                % (entity_description.key, entity_description.aquarium["name"])
+                "Shortcut {} not present in aquarium {}".format(
+                    entity_description.key, entity_description.aquarium["name"]
+                )
             )
 
         super().__init__(

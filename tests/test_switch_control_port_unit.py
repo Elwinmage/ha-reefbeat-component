@@ -49,7 +49,7 @@ async def test_port_is_on_when_manual_on() -> None:
     )
 
     entity = _make(device, 0)
-    entity._handle_coordinator_update()  # noqa: SLF001
+    entity._handle_coordinator_update()
 
     assert entity.is_on is True
 
@@ -63,7 +63,7 @@ async def test_port_is_off_when_manual_off() -> None:
     )
 
     entity = _make(device, 1)
-    entity._handle_coordinator_update()  # noqa: SLF001
+    entity._handle_coordinator_update()
 
     assert entity.is_on is False
 
@@ -77,7 +77,7 @@ async def test_port_uses_state_when_scheduled() -> None:
     device.get_data_map["$.sources[?(@.name=='/dashboard')].data.ports[0].state"] = "on"
 
     entity = _make(device, 0)
-    entity._handle_coordinator_update()  # noqa: SLF001
+    entity._handle_coordinator_update()
 
     assert entity.is_on is True
 

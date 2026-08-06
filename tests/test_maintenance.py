@@ -19,7 +19,6 @@ import custom_components.redsea as redsea_pkg
 import custom_components.redsea.maintenance as maint
 from custom_components.redsea.const import DOMAIN
 
-
 # =============================================================================
 # Pure helpers
 # =============================================================================
@@ -781,8 +780,8 @@ def test_iter_run_pumps_in_number_skips_on_exception(hass: HomeAssistant) -> Non
     # The number module inlines the pump iteration (no helper), so we drive
     # it by calling _add_maintenance_numbers on a device whose get_data
     # raises. The function must not propagate the exception.
-    from custom_components.redsea.number import _add_maintenance_numbers
     from custom_components.redsea.coordinator import ReefRunCoordinator
+    from custom_components.redsea.number import _add_maintenance_numbers
 
     class _ExplodingRun(ReefRunCoordinator):  # type: ignore[misc]
         # Bypass __init__: we only need get_data + _hw + serial to drive
@@ -790,7 +789,7 @@ def test_iter_run_pumps_in_number_skips_on_exception(hass: HomeAssistant) -> Non
         # override it rather than assigning to self.serial.
         serial = "boom"  # type: ignore[assignment]
 
-        def __init__(self) -> None:  # noqa: D401
+        def __init__(self) -> None:
             self._hw = "RSRUN"
 
         def get_data(self, name: str, is_None_possible: bool = False) -> Any:
@@ -910,8 +909,9 @@ async def test_button_callback_fires_on_store_change(
     `super().async_added_to_hass()` to be a no-op so the rest of the method
     executes — which is exactly what monkeypatching the parent does.
     """
-    from custom_components.redsea.button import MaintenanceButtonEntity
     from homeassistant.components.button import ButtonEntity
+
+    from custom_components.redsea.button import MaintenanceButtonEntity
 
     class _Device:
         def __init__(self) -> None:
@@ -952,8 +952,9 @@ async def test_number_callback_fires_on_store_change(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Same as the button test, for the number entity (covers number.py:1174)."""
-    from custom_components.redsea.number import MaintenanceIntervalNumberEntity
     from homeassistant.components.number import NumberEntity
+
+    from custom_components.redsea.number import MaintenanceIntervalNumberEntity
 
     class _Device:
         def __init__(self) -> None:

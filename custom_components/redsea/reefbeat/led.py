@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 import aiohttp
+
 from ..const import (
     HW_G1_LED_IDS,
     LED_BLUE_INTERNAL_NAME,
@@ -198,12 +199,12 @@ class ReefLedAPI(ReefBeatAPI):
         await self._apply_runtime_source_patches()
         data = await super().get_initial_data()
 
-        def _as_str_any_dict(obj: Any) -> Optional[dict[str, Any]]:
+        def _as_str_any_dict(obj: Any) -> dict[str, Any] | None:
             if isinstance(obj, dict):
                 return cast(dict[str, Any], obj)
             return None
 
-        def _find_model_params(table: Any) -> Optional[dict[str, Any]]:
+        def _find_model_params(table: Any) -> dict[str, Any] | None:
             # Accept either list-of-dicts with {"name": ...} or dict keyed by model
             if isinstance(table, list):
                 items = cast(list[Any], table)
@@ -273,8 +274,8 @@ class ReefLedAPI(ReefBeatAPI):
                             )
                             min_blue = float(self._intensity_compensation(0))
                             min_white = float(self._intensity_compensation(125))
-                            self._intensity_compensation_reference = (
-                                min_white if min_blue > min_white else min_blue
+                            self._intensity_compensation_reference = min(
+                                min_blue, min_white
                             )
             except Exception as e:
                 _LOGGER.debug("LED intensity compensation init failed: %s", e)

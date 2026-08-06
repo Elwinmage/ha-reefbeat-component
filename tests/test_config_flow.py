@@ -5,6 +5,7 @@ from typing import Any, cast
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from typing_extensions import Self
 
 from custom_components.redsea.config_flow import (
     _device_to_string,
@@ -92,7 +93,7 @@ async def test_validate_cloud_input_status_handling(
         def __init__(self, status: int) -> None:
             self.status = status
 
-        async def __aenter__(self) -> "_Resp":
+        async def __aenter__(self) -> Self:
             return self
 
         async def __aexit__(self, exc_type, exc, tb) -> None:  # type: ignore[no-untyped-def]
@@ -750,7 +751,7 @@ async def test_options_flow_missing_hw_model_falls_back_to_generic_schema(
 
     # Only validate that the form is shown; the update path requires hw_model.
     schema = result["data_schema"]
-    schema_keys = {str(k) for k in schema.schema.keys()}
+    schema_keys = {str(k) for k in schema.schema}
     assert CONFIG_FLOW_SCAN_INTERVAL in " ".join(schema_keys)
     assert CONFIG_FLOW_CONFIG_TYPE in " ".join(schema_keys)
 

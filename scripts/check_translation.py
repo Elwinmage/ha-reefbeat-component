@@ -23,12 +23,10 @@ keys_in_code: list[str] = []
 entity_options: dict[str, list[str]] = {}
 
 with open(const_file) as f:
-    entity_domains = list(
-        map(
-            lambda x: x.replace(r"Platform.", "").lower(),
-            re.findall(r"Platform\.[A-Z\_]*", f.read()),
-        )
-    )
+    entity_domains = [
+        x.replace(r"Platform.", "").lower()
+        for x in re.findall(r"Platform\.[A-Z\_]*", f.read())
+    ]
     entity_domains.sort()
 
 

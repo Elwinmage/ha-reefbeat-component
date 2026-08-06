@@ -1056,9 +1056,7 @@ class ReefWaveNumberEntity(ReefBeatNumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         """Set a new value and push to the device."""
-        _LOGGER.debug(
-            "redsea.number.set_native_value %s %s" % (self._description.key, value)
-        )
+        _LOGGER.debug(f"redsea.number.set_native_value {self._description.key} {value}")
 
         f_value: Any = (
             int(value)
@@ -1151,7 +1149,7 @@ class MaintenanceIntervalNumberEntity(ReefRoleMixin, NumberEntity):  # type: ign
     def __init__(
         self,
         device: ReefBeatCoordinator,
-        task: "MaintenanceTask",
+        task: MaintenanceTask,
         sub_id: int = 0,
     ) -> None:
         self._device = device
@@ -1198,7 +1196,7 @@ class MaintenanceIntervalNumberEntity(ReefRoleMixin, NumberEntity):  # type: ign
     # ---- store access -----------------------------------------------------
 
     @property
-    def _store(self) -> "MaintenanceStore":
+    def _store(self) -> MaintenanceStore:
         """Return the device's MaintenanceStore, lazy-creating a fallback.
 
         See `MaintenanceButtonEntity._store` for the rationale.
@@ -1212,7 +1210,7 @@ class MaintenanceIntervalNumberEntity(ReefRoleMixin, NumberEntity):  # type: ign
                 getattr(device, "_title", device.__class__.__name__),
             )
             store = MaintenanceStore(
-                getattr(device, "_hass"),
+                device._hass,
                 f"fallback_{id(device)}",
             )
             device.maintenance = store
@@ -1238,9 +1236,9 @@ class MaintenanceIntervalNumberEntity(ReefRoleMixin, NumberEntity):  # type: ign
     # 3.14, even though the test suite exercises `async_set_native_value`. The
     # `noqa` on the next line prevents linters from joining them while keeping
     # tracing happy on both old and new Python versions.
-    async def async_set_native_value(self, value: float) -> None:  # noqa: E303
+    async def async_set_native_value(self, value: float) -> None:
         """Persist the slider value as days (converted from the display unit)."""
-        days = int(round(value)) * self._unit_factor
+        days = round(value) * self._unit_factor
         await self._store.async_set_interval(
             self._device.serial, self._sub_id, self._task.key, days
         )

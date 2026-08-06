@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from contextlib import suppress
 from copy import deepcopy
 from dataclasses import dataclass, field
 from types import SimpleNamespace
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 import pytest
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -83,7 +84,7 @@ class _FakeCoordinator:
     def cloud_link(self) -> Any:
         return True
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
 
@@ -175,11 +176,11 @@ async def test_async_setup_entry_cloud_linked_branch(
             ),
         ),
     )
-    monkeypatch.setattr(sensor_platform, "G2_LED_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "LED_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "WAVE_SCHEDULE_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", tuple())
+    monkeypatch.setattr(sensor_platform, "G2_LED_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "LED_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "WAVE_SCHEDULE_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", ())
 
     monkeypatch.setattr(sensor_platform, "ReefBeatCloudCoordinator", type("X", (), {}))
     monkeypatch.setattr(sensor_platform, "ReefVirtualLedCoordinator", type("Y", (), {}))
@@ -219,12 +220,12 @@ async def test_async_setup_entry_cloud_library_dynamic_descriptions(
 
     monkeypatch.setattr(sensor_platform, "ReefBeatCloudCoordinator", _CloudCoord)
 
-    monkeypatch.setattr(sensor_platform, "CLOUD_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "G2_LED_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "LED_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "WAVE_SCHEDULE_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", tuple())
+    monkeypatch.setattr(sensor_platform, "CLOUD_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "G2_LED_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "LED_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "WAVE_SCHEDULE_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", ())
 
     monkeypatch.setattr(
         sensor_platform,

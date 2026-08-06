@@ -54,7 +54,7 @@ class _FakeAPI:
     async def delete(self, source: str) -> None:
         return None
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
     def set_data(self, name: str, value: Any) -> None:
@@ -599,7 +599,7 @@ def test_device_info_helpers_include_via_device_and_skip_non_str(
         async def get_initial_data(self) -> None:
             return None
 
-        def get_data(self, _name: str, _is_None_possible: bool = False) -> Any:  # noqa: N803
+        def get_data(self, _name: str, _is_None_possible: bool = False) -> Any:
             return None
 
         def set_data(self, _name: str, _value: Any) -> None:

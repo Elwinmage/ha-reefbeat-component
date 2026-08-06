@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 import time
 from contextlib import suppress
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 import aiohttp
 from homeassistant.exceptions import HomeAssistantError
@@ -81,7 +81,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
 
     async def http_send(
         self, action: str, payload: Any = None, method: str = "post"
-    ) -> Optional[HttpResult]:
+    ) -> HttpResult | None:
         """Send a cloud request.
 
         Args:
@@ -125,7 +125,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             "username": self._username,
             "password": self._password,
         }
-        _LOGGER.debug("AUTH %s" % self._session)
+        _LOGGER.debug(f"AUTH {self._session}")
         async with self._session.post(
             "https://" + self.ip + "/oauth/token",
             data=payload,

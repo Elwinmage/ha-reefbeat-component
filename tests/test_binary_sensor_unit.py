@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 import pytest
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -27,7 +28,7 @@ class _FakeCoordinator:
 
         return _remove
 
-    def get_data(self, _path: str, _is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, _path: str, _is_None_possible: bool = False) -> Any:
         return None
 
 
@@ -84,7 +85,7 @@ def test_get_value_uses_value_name_when_no_value_fn() -> None:
     )
 
     class _Device(_FakeCoordinator):
-        def get_data(self, path: str, _is_None_possible: bool = False) -> Any:  # noqa: N803
+        def get_data(self, path: str, _is_None_possible: bool = False) -> Any:
             assert path == "$.x"
             return False
 
@@ -179,7 +180,7 @@ def test_handle_coordinator_update_sets_extra_state_attributes() -> None:
     )
 
     class _Device(_FakeCoordinator):
-        def get_data(self, path: str, _is_None_possible: bool = False) -> Any:  # noqa: N803
+        def get_data(self, path: str, _is_None_possible: bool = False) -> Any:
             # Route two separate paths: the value_name lookup returns True to
             # give the entity an "on" state; the with_attr_value lookup returns
             # the JSON we want to see mirrored into extra_state_attributes.

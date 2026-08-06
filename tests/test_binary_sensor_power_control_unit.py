@@ -42,7 +42,7 @@ class _FakeCoordinator:
 
         return _remove
 
-    def get_data(self, _name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, _name: str, is_None_possible: bool = False) -> Any:
         return None
 
 

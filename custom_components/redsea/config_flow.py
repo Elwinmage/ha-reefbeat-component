@@ -25,8 +25,14 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .auto_detect import ReefBeatInfo, get_reefbeats, get_unique_id, is_reefbeat
-from .auto_detect import is_valid_cidr, list_scannable_subnets
+from .auto_detect import (
+    ReefBeatInfo,
+    get_reefbeats,
+    get_unique_id,
+    is_reefbeat,
+    is_valid_cidr,
+    list_scannable_subnets,
+)
 from .const import (
     ADD_CLOUD_API,
     ADD_LOCAL_DETECT,
@@ -45,10 +51,10 @@ from .const import (
     CONFIG_FLOW_INTENSITY_COMPENSATION,
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_SCAN_INTERVAL,
+    CONFIG_FLOW_WIFI_MANUAL_SUBNET,
     CONFIG_FLOW_WIFI_PASSWORD,
     CONFIG_FLOW_WIFI_RESCAN,
     CONFIG_FLOW_WIFI_SSID,
-    CONFIG_FLOW_WIFI_MANUAL_SUBNET,
     CONTROL_SCAN_INTERVAL,
     DOMAIN,
     DOSE_SCAN_INTERVAL,

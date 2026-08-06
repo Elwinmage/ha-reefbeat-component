@@ -41,7 +41,7 @@ class _FakeResponse:
         self._text = text
         self._raise = raise_on_call
 
-    async def __aenter__(self) -> _FakeResponse:  # noqa: PYI034
+    async def __aenter__(self) -> _FakeResponse:
         if self._raise is not None:
             raise self._raise
         return self
@@ -368,7 +368,7 @@ async def test_connect_wifi_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
             await asyncio.sleep(1)
             raise RuntimeError("should not reach here")
 
-        async def __aexit__(self, *_exc: Any) -> bool:
+        async def __aexit__(self, *_exc: object) -> bool:
             return False
 
     session = MagicMock()
@@ -964,17 +964,7 @@ def test_list_routed_subnets_tolerates_malformed_rows(tmp_path: Any) -> None:
         "Iface\tDestination\tGateway\tFlags\tRefCnt\tUse\tMetric\tMask\tMTU\t"
         "Window\tIRTT\n"
     )
-    body = "".join(
-        [
-            "short\tline\n",  # < 8 fields → skipped (len check)
-            # non-hex destination → int(..., 16) raises → skipped
-            "eth0\tZZZZZZZZ\t0\t0001\t0\t0\t0\t00FFFFFF\t0\t0\t0\n",
-            # destination out of 32-bit range → struct.pack raises → skipped
-            "eth0\t1FFFFFFFF\t0\t0001\t0\t0\t0\t00FFFFFF\t0\t0\t0\n",
-            # valid 192.168.5.0/24 → kept
-            "eth0\t0005A8C0\t0\t0001\t0\t0\t0\t00FFFFFF\t0\t0\t0\n",
-        ]
-    )
+    body = "short\tline\neth0\tZZZZZZZZ\t0\t0001\t0\t0\t0\t00FFFFFF\t0\t0\t0\neth0\t1FFFFFFFF\t0\t0001\t0\t0\t0\t00FFFFFF\t0\t0\t0\neth0\t0005A8C0\t0\t0001\t0\t0\t0\t00FFFFFF\t0\t0\t0\n"
     path = tmp_path / "route"
     path.write_text(header + body, encoding="ascii")
 

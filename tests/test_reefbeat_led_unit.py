@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, cast
 
 import pytest
+from typing_extensions import Self
 
 from custom_components.redsea.const import (
     HW_G1_LED_IDS,
@@ -175,7 +176,7 @@ async def test_probe_path_returns_status_on_success(monkeypatch: Any) -> None:
     class _Resp:
         status = 204
 
-        async def __aenter__(self) -> "_Resp":
+        async def __aenter__(self) -> Self:
             return self
 
         async def __aexit__(self, exc_type: Any, exc: Any, tb: Any) -> None:

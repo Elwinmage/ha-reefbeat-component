@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import importlib
+from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass, field
 from types import SimpleNamespace
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 import pytest
 from homeassistant.components.sensor import SensorEntityDescription
@@ -101,7 +102,7 @@ class _FakeCoordinator:
         for cb in list(self._listeners):
             cb()
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
     def set_data(self, name: str, value: Any) -> None:
@@ -238,6 +239,26 @@ def test_wifi_quality_thresholds(
     assert entity.native_value == expected_value
     if expected_icon is not None:
         assert entity.icon == expected_icon
+
+
+@pytest.mark.parametrize("signal", [None, "n/a"])
+def test_wifi_quality_without_signal_is_unavailable(signal: Any) -> None:
+    """A missing/non-numeric signal_dBm must not crash on a None comparison."""
+    device = _FakeCoordinator()
+    # signal is None (key absent) or a non-numeric placeholder.
+    if signal is not None:
+        device.get_data_map["$.sources[?(@.name=='/wifi')].data.signal_dBm"] = signal
+
+    desc = ReefBeatSensorEntityDescription(
+        key="wifi_quality",
+        translation_key="wifi_quality",
+        value_fn=lambda _: None,
+    )
+    entity = ReefBeatSensorEntity(cast(Any, device), desc)
+    entity._update_val()
+
+    assert entity.native_value is None
+    assert entity.available is False
 
 
 def test_handle_coordinator_update_updates_and_calls_base(monkeypatch: Any) -> None:

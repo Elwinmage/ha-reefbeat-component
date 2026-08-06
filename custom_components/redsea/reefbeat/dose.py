@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import copy
 import logging
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 import aiohttp
 
@@ -131,7 +131,7 @@ class ReefDoseAPI(ReefBeatAPI):
         """Start/continue bundle setup by posting to `/bundle/setup`."""
         await self._http_send(self._base_url + "/bundle/setup", param, method="post")
 
-    async def press(self, action: str, head: Optional[int] = None) -> None:
+    async def press(self, action: str, head: int | None = None) -> None:
         """Trigger an action.
 
         - If `head` is provided: POST to `/head/{head}/{action}` with a manual dose payload.
@@ -161,7 +161,7 @@ class ReefDoseAPI(ReefBeatAPI):
         self,
         source: str = "/configuration",
         method: str = "put",
-        head: Optional[int] = None,
+        head: int | None = None,
     ) -> None:
         """Push cached values to the device.
 
@@ -191,12 +191,11 @@ class ReefDoseAPI(ReefBeatAPI):
             if self.get_data(
                 "$.sources[?(@.name=='/dashboard')].data.bundled_heads",
                 is_None_possible=True,
-            ):
-                if isinstance(payload, dict):
-                    payload_dict = cast(dict[str, Any], payload)
-                    for field in ("supplement", "is_food_head", "food_delay"):
-                        payload_dict.pop(field, None)
-                    _LOGGER.debug("Remove fields for bundle %s", payload_dict)
+            ) and isinstance(payload, dict):
+                payload_dict = cast(dict[str, Any], payload)
+                for field in ("supplement", "is_food_head", "food_delay"):
+                    payload_dict.pop(field, None)
+                _LOGGER.debug("Remove fields for bundle %s", payload_dict)
 
             await self._http_send(
                 self._base_url + "/head/" + str(head) + "/settings", payload, "put"

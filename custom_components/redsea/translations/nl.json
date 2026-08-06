@@ -274,6 +274,9 @@
       },
       "test_calibration": {
         "name": "Test nieuwe kalibratie"
+      },
+      "setup_finish": {
+        "name": "Installatie voltooien"
       }
     },
     "light": {
@@ -457,6 +460,14 @@
         "name": "Supplementen",
         "state": {
           "other": "Overig"
+        }
+      },
+      "socket_mode": {
+        "name": "Modus stopcontact {socket}",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "schedule": "Schema"
         }
       }
     },
@@ -1060,6 +1071,9 @@
       },
       "new_supplement_short_name": {
         "name": "Korte naam supplement"
+      },
+      "socket_name": {
+        "name": "Naam stopcontact {socket}"
       }
     },
     "time": {

@@ -40,7 +40,7 @@ class _FakeCoordinator:
 
     get_data_map: dict[str, Any] = field(default_factory=dict)
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
 
@@ -90,15 +90,15 @@ async def test_async_setup_entry_led_g2_branch(monkeypatch: Any, hass: Any) -> N
         key="led", translation_key="led", value_fn=lambda _: 1
     )
 
-    monkeypatch.setattr(sensor_platform, "CLOUD_SENSORS", tuple())
+    monkeypatch.setattr(sensor_platform, "CLOUD_SENSORS", ())
     monkeypatch.setattr(sensor_platform, "G2_LED_SENSORS", (g2,))
     monkeypatch.setattr(sensor_platform, "LED_SENSORS", (led,))
-    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "WAVE_SCHEDULE_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "LED_SCHEDULES", tuple())
-    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "USER_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "ATO_SENSORS", tuple())
+    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "WAVE_SCHEDULE_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "LED_SCHEDULES", ())
+    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "USER_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "ATO_SENSORS", ())
 
     entry = MockConfigEntry(domain=DOMAIN, data={"host": "1.2.3.4"})
     entry.add_to_hass(hass)
@@ -138,14 +138,14 @@ async def test_async_setup_entry_led_schedule_branch(
         key="one", translation_key="one", value_fn=lambda _: 1
     )
 
-    monkeypatch.setattr(sensor_platform, "CLOUD_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "G2_LED_SENSORS", tuple())
+    monkeypatch.setattr(sensor_platform, "CLOUD_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "G2_LED_SENSORS", ())
     monkeypatch.setattr(sensor_platform, "LED_SENSORS", (one,))
-    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "WAVE_SCHEDULE_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "USER_SENSORS", tuple())
-    monkeypatch.setattr(sensor_platform, "ATO_SENSORS", tuple())
+    monkeypatch.setattr(sensor_platform, "MAT_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "WAVE_SCHEDULE_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "COMMON_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "USER_SENSORS", ())
+    monkeypatch.setattr(sensor_platform, "ATO_SENSORS", ())
 
     monkeypatch.setattr(
         sensor_platform,

@@ -86,7 +86,7 @@ class _FakeAPI:
     async def fetch_data(self) -> dict[str, Any] | None:
         return self.fetch_data_result
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
 

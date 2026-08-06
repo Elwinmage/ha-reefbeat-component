@@ -38,7 +38,7 @@ class _FakeAPI:
     get_data_map: dict[str, Any] = field(default_factory=dict)
     data: dict[str, Any] = field(default_factory=dict)
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
     def set_data(self, name: str, value: Any) -> None:

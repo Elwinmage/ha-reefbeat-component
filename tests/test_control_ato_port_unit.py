@@ -27,7 +27,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.redsea.const import DOMAIN
 
-
 # ---------------------------------------------------------------------------
 # Shared fake coordinator
 # ---------------------------------------------------------------------------
@@ -63,7 +62,7 @@ class _FakeControlDevice:
 
         return _remove
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:  # noqa: N803
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self.get_data_map.get(name)
 
     def set_data(self, name: str, value: Any) -> None:
@@ -535,7 +534,7 @@ async def test_ato_switch_handle_coordinator_update_reads_auto_fill(
     device.get_data_map[
         "$.sources[?(@.name=='/dashboard')].data.ports[0].auto_fill"
     ] = True
-    entity._handle_coordinator_update()  # noqa: SLF001
+    entity._handle_coordinator_update()
     assert entity._attr_available is True
     assert entity._attr_is_on is True
     assert entity._attr_icon == "mdi:waves-arrow-up"
@@ -544,7 +543,7 @@ async def test_ato_switch_handle_coordinator_update_reads_auto_fill(
     device.get_data_map[
         "$.sources[?(@.name=='/dashboard')].data.ports[0].auto_fill"
     ] = False
-    entity._handle_coordinator_update()  # noqa: SLF001
+    entity._handle_coordinator_update()
     assert entity._attr_is_on is False
     assert entity._attr_icon == "mdi:waves"
 
@@ -553,7 +552,7 @@ async def test_ato_switch_handle_coordinator_update_reads_auto_fill(
         "$.sources[?(@.name=='/dashboard')].data.ports[0].auto_fill", None
     )
     entity._attr_is_on = True  # simulate a prior known-on state
-    entity._handle_coordinator_update()  # noqa: SLF001
+    entity._handle_coordinator_update()
     assert entity._attr_is_on is True  # non-bool value should not overwrite
 
 
