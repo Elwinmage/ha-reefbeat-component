@@ -325,7 +325,7 @@
         "name": "Rückförderpumpe reinigen (Monate)"
       },
       "maint_dose_heads_calibration_interval_days": {
-        "name": "Dosierkopf kalibrieren (Wochen)"
+        "name": "Dosierkopf kalibrieren (Tage)"
       },
       "maint_dose_heads_replace_interval_months": {
         "name": "Dosierkopf und Schläuche ersetzen (Monate)"
@@ -1010,6 +1010,48 @@
       },
       "fullcup_enabled": {
         "name": "Voller-Behälter-Erkennung"
+      },
+      "maint_ato_ec_sensor_notify": {
+        "name": "EC-Sensor reinigen (Benachrichtigungen)"
+      },
+      "maint_ato_return_pump_notify": {
+        "name": "Rückförderpumpe reinigen (Benachrichtigungen)"
+      },
+      "maint_dose_heads_calibration_notify": {
+        "name": "Dosierkopf kalibrieren (Benachrichtigungen)"
+      },
+      "maint_dose_heads_replace_notify": {
+        "name": "Dosierkopf und Schläuche ersetzen (Benachrichtigungen)"
+      },
+      "maint_led_fan_notify": {
+        "name": "Lüfter und Gitter entstauben (Benachrichtigungen)"
+      },
+      "maint_led_lens_notify": {
+        "name": "Linse reinigen (Benachrichtigungen)"
+      },
+      "maint_mat_carbon_replace_notify": {
+        "name": "Aktivkohle ersetzen (Benachrichtigungen)"
+      },
+      "maint_run_pump_motor_notify": {
+        "name": "Motor und Rotor reinigen (Benachrichtigungen)"
+      },
+      "maint_run_pump_strainer_notify": {
+        "name": "Ansaugsieb reinigen (Benachrichtigungen)"
+      },
+      "maint_run_skim_fullcup_calibration_notify": {
+        "name": "Fullcup-Sensor kalibrieren (Benachrichtigungen)"
+      },
+      "maint_run_skim_overskimming_calibration_notify": {
+        "name": "Überschäumungs-Sensor kalibrieren (Benachrichtigungen)"
+      },
+      "maint_run_skim_rotor_notify": {
+        "name": "Rotor der Abschäumerpumpe reinigen (Benachrichtigungen)"
+      },
+      "maint_run_skim_venturi_notify": {
+        "name": "Venturi und Luftschlauch reinigen (Benachrichtigungen)"
+      },
+      "maint_wave_rotor_cages_notify": {
+        "name": "Rotorkäfige reinigen (Benachrichtigungen)"
       },
       "maintenance": {
         "name": "Wartung"

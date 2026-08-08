@@ -1144,7 +1144,10 @@ class MaintenanceIntervalNumberEntity(ReefRoleMixin, NumberEntity):  # type: ign
 
     # Days-per-unit conversion factors. Storage stays in days everywhere;
     # only this entity converts to/from the task's display unit.
-    _DAYS_PER_UNIT: dict[str, int] = {"weeks": 7, "months": 30}
+    # "days" must be listed explicitly: without it the `.get(unit, 7)` lookup
+    # below silently fell back to the weekly factor, so a task declared in
+    # days was displayed and stored as weeks (see MaintenanceTask.unit).
+    _DAYS_PER_UNIT: dict[str, int] = {"days": 1, "weeks": 7, "months": 30}
 
     def __init__(
         self,

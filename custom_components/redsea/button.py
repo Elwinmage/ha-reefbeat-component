@@ -1200,6 +1200,9 @@ class MaintenanceButtonEntity(ReefRoleMixin, ButtonEntity):  # type: ignore[misc
             "days_left": days_left,
             "overdue": (days_left is not None and days_left < 0),
             "task_key": self._task.key,
+            # Mirrors the companion notify switch so the blueprint and the
+            # card can read everything from this single entity.
+            "notify": store.get_notify(serial, self._sub_id, self._task.key),
         }
 
     @property

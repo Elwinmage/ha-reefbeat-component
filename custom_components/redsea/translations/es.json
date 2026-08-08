@@ -325,7 +325,7 @@
         "name": "Limpiar la bomba de retorno (meses)"
       },
       "maint_dose_heads_calibration_interval_days": {
-        "name": "Calibrar cabezal de dosificación (semanas)"
+        "name": "Calibrar cabezal de dosificación (días)"
       },
       "maint_dose_heads_replace_interval_months": {
         "name": "Sustituir cabezal y tubos de dosificación (meses)"
@@ -1010,6 +1010,48 @@
       },
       "fullcup_enabled": {
         "name": "Detección de vaso lleno"
+      },
+      "maint_ato_ec_sensor_notify": {
+        "name": "Limpiar el sensor EC (notificaciones)"
+      },
+      "maint_ato_return_pump_notify": {
+        "name": "Limpiar la bomba de retorno (notificaciones)"
+      },
+      "maint_dose_heads_calibration_notify": {
+        "name": "Calibrar cabezal de dosificación (notificaciones)"
+      },
+      "maint_dose_heads_replace_notify": {
+        "name": "Sustituir cabezal y tubos de dosificación (notificaciones)"
+      },
+      "maint_led_fan_notify": {
+        "name": "Quitar el polvo del ventilador y rejillas (notificaciones)"
+      },
+      "maint_led_lens_notify": {
+        "name": "Limpiar la lente (notificaciones)"
+      },
+      "maint_mat_carbon_replace_notify": {
+        "name": "Sustituir el carbón activado (notificaciones)"
+      },
+      "maint_run_pump_motor_notify": {
+        "name": "Limpiar motor y rotor (notificaciones)"
+      },
+      "maint_run_pump_strainer_notify": {
+        "name": "Limpiar el filtro de aspiración (notificaciones)"
+      },
+      "maint_run_skim_fullcup_calibration_notify": {
+        "name": "Calibrar sensor fullcup (notificaciones)"
+      },
+      "maint_run_skim_overskimming_calibration_notify": {
+        "name": "Calibrar sensor overskimming (notificaciones)"
+      },
+      "maint_run_skim_rotor_notify": {
+        "name": "Limpiar el rotor de la bomba del skimmer (notificaciones)"
+      },
+      "maint_run_skim_venturi_notify": {
+        "name": "Limpiar venturi y tubo de aire (notificaciones)"
+      },
+      "maint_wave_rotor_cages_notify": {
+        "name": "Limpiar las jaulas del rotor (notificaciones)"
       },
       "maintenance": {
         "name": "Mantenimiento"

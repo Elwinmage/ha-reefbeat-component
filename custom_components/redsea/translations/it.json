@@ -325,7 +325,7 @@
         "name": "Pulire la pompa di risalita (mesi)"
       },
       "maint_dose_heads_calibration_interval_days": {
-        "name": "Calibrare testina di dosaggio (settimane)"
+        "name": "Calibrare testina di dosaggio (giorni)"
       },
       "maint_dose_heads_replace_interval_months": {
         "name": "Sostituire testa e tubi di dosaggio (mesi)"
@@ -1010,6 +1010,48 @@
       },
       "fullcup_enabled": {
         "name": "Rilevamento coppa piena"
+      },
+      "maint_ato_ec_sensor_notify": {
+        "name": "Pulire il sensore EC (notifiche)"
+      },
+      "maint_ato_return_pump_notify": {
+        "name": "Pulire la pompa di risalita (notifiche)"
+      },
+      "maint_dose_heads_calibration_notify": {
+        "name": "Calibrare testina di dosaggio (notifiche)"
+      },
+      "maint_dose_heads_replace_notify": {
+        "name": "Sostituire testa e tubi di dosaggio (notifiche)"
+      },
+      "maint_led_fan_notify": {
+        "name": "Spolverare la ventola e le griglie (notifiche)"
+      },
+      "maint_led_lens_notify": {
+        "name": "Pulire la lente (notifiche)"
+      },
+      "maint_mat_carbon_replace_notify": {
+        "name": "Sostituire il carbone attivo (notifiche)"
+      },
+      "maint_run_pump_motor_notify": {
+        "name": "Pulire motore e rotore (notifiche)"
+      },
+      "maint_run_pump_strainer_notify": {
+        "name": "Pulire il filtro di aspirazione (notifiche)"
+      },
+      "maint_run_skim_fullcup_calibration_notify": {
+        "name": "Calibrare il sensore fullcup (notifiche)"
+      },
+      "maint_run_skim_overskimming_calibration_notify": {
+        "name": "Calibrare il sensore overskimming (notifiche)"
+      },
+      "maint_run_skim_rotor_notify": {
+        "name": "Pulire il rotore della pompa schiumatoio (notifiche)"
+      },
+      "maint_run_skim_venturi_notify": {
+        "name": "Pulire venturi e tubo dell'aria (notifiche)"
+      },
+      "maint_wave_rotor_cages_notify": {
+        "name": "Pulire le gabbie del rotore (notifiche)"
       },
       "maintenance": {
         "name": "Manutenzione"

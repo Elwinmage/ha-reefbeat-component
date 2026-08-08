@@ -1,0 +1,28 @@
+# Ruff 0.16 turns on a broad default ruleset (BLE, DTZ, TRY, RUF, ...) that
+# earlier versions did not. We keep those checks but silence the ones that
+# fire on patterns used deliberately and consistently across this integration,
+# so linting stays deterministic across ruff upgrades.
+
+[lint]
+ignore = [
+    "BLE001",  # blind `except Exception`: intentional defensive pattern
+    "B008",    # call in arg default: binds the loop var in value_fn lambdas
+    "DTZ005",  # datetime.now() without tz: local wall-clock is intended
+    "S110",    # try/except/pass: intentional
+    "S112",    # try/except/continue: intentional
+    "TRY002",  # raising a vanilla Exception: existing style
+    "TRY004",  # prefer TypeError over ValueError: existing style
+    "TRY201",  # raise without the exception name
+    "PLC3002", # lambda called directly (IIFE used to bind a loop var)
+    "SIM102",  # nested if kept for readability
+    "RUF012",  # mutable default class attrs (HA `_attr_*` + test fakes)
+    "EXE001",  # shebang present but file not executable (helper scripts)
+    "EXE002",  # file executable but no shebang (helper scripts)
+]
+
+[lint.per-file-ignores]
+"tests/**" = [
+    "PYI034",  # __enter__/__aenter__ return type in ad-hoc test helpers
+    "PYI036",  # __exit__/__aexit__ arg types in ad-hoc test helpers
+    "B017",    # pytest.raises(Exception) in a deliberate test
+]

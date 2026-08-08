@@ -260,7 +260,8 @@ if os.path.exists(maintenance_file):
         maint_src = f.read()
     # Each task block carries `translation_key="..."` and `unit="..."`.
     # We iterate over MaintenanceTask(...) calls and pair the two within
-    # each block to derive `button.<key>` and `number.<key>_interval_<unit>`.
+    # each block to derive `button.<key>`, `number.<key>_interval_<unit>`
+    # and `switch.<key>_notify` (the per-task notification switch).
     for block in re.split(r"MaintenanceTask\(", maint_src)[1:]:
         # Limit each block to the matching closing parenthesis at column 4
         # (siblings inside the file are indented at 8 spaces; closing at 4).
@@ -275,6 +276,7 @@ if os.path.exists(maintenance_file):
         keys_in_code.append(f"button.{tk}")
         unit = unit_match.group(1) if unit_match else "weeks"
         keys_in_code.append(f"number.{tk}_interval_{unit}")
+        keys_in_code.append(f"switch.{tk}_notify")
     keys_in_code = sorted(set(keys_in_code))
 ## End maintenance patch
 

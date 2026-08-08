@@ -325,7 +325,7 @@
         "name": "Opvoerpomp reinigen (maanden)"
       },
       "maint_dose_heads_calibration_interval_days": {
-        "name": "Doseerkop kalibreren (weken)"
+        "name": "Doseerkop kalibreren (dagen)"
       },
       "maint_dose_heads_replace_interval_months": {
         "name": "Doseerkop en slangen vervangen (maanden)"
@@ -1018,6 +1018,48 @@
       },
       "fullcup_enabled": {
         "name": "Beker vol detectie"
+      },
+      "maint_ato_ec_sensor_notify": {
+        "name": "EC-sensor reinigen (meldingen)"
+      },
+      "maint_ato_return_pump_notify": {
+        "name": "Opvoerpomp reinigen (meldingen)"
+      },
+      "maint_dose_heads_calibration_notify": {
+        "name": "Doseerkop kalibreren (meldingen)"
+      },
+      "maint_dose_heads_replace_notify": {
+        "name": "Doseerkop en slangen vervangen (meldingen)"
+      },
+      "maint_led_fan_notify": {
+        "name": "Stof verwijderen van ventilator en roosters (meldingen)"
+      },
+      "maint_led_lens_notify": {
+        "name": "Lens reinigen (meldingen)"
+      },
+      "maint_mat_carbon_replace_notify": {
+        "name": "Actieve kool vervangen (meldingen)"
+      },
+      "maint_run_pump_motor_notify": {
+        "name": "Motor en rotor reinigen (meldingen)"
+      },
+      "maint_run_pump_strainer_notify": {
+        "name": "Aanzuigzeef reinigen (meldingen)"
+      },
+      "maint_run_skim_fullcup_calibration_notify": {
+        "name": "Fullcup-sensor kalibreren (meldingen)"
+      },
+      "maint_run_skim_overskimming_calibration_notify": {
+        "name": "Overskimming-sensor kalibreren (meldingen)"
+      },
+      "maint_run_skim_rotor_notify": {
+        "name": "Rotor van eiwitafschuimerpomp reinigen (meldingen)"
+      },
+      "maint_run_skim_venturi_notify": {
+        "name": "Venturi en luchtslang reinigen (meldingen)"
+      },
+      "maint_wave_rotor_cages_notify": {
+        "name": "Rotorkooien reinigen (meldingen)"
       },
       "maintenance": {
         "name": "Onderhoud"
