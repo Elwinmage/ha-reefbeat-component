@@ -870,6 +870,26 @@ async def test_number_store_fallback_creates_ephemeral_store(
     assert getattr(device, "maintenance", None) is store
 
 
+@pytest.mark.asyncio
+async def test_switch_store_fallback_creates_ephemeral_store(
+    hass: HomeAssistant, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Same fallback path on the notification switch entity."""
+    from custom_components.redsea.switch import MaintenanceNotifySwitchEntity
+
+    device = _StoreLessDevice(hass)
+    task = next(t for t in maint.TASKS["RSRUN"] if t.key == "run_pump_motor")
+
+    entity = MaintenanceNotifySwitchEntity(cast(Any, device), task, sub_id=0)
+
+    with caplog.at_level("WARNING"):
+        store = entity._store
+
+    assert isinstance(store, maint.MaintenanceStore)
+    assert getattr(device, "maintenance", None) is store
+    assert any("MaintenanceStore missing" in r.message for r in caplog.records)
+
+
 def test_iter_run_pumps_returns_empty_on_get_data_exception() -> None:
     """Covers button.py:672-673 (`except Exception: pump = None`)."""
     from custom_components.redsea.button import _iter_run_pumps
@@ -1088,6 +1108,63 @@ async def test_button_callback_fires_on_store_change(
     # is what fires.
     await device.maintenance.async_reset(device.serial, 0, task.key)
     assert calls["n"] >= 1
+
+
+@pytest.mark.asyncio
+async def test_switch_callback_refreshes_state_on_store_change(
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The switch's nested callback must refresh `_attr_is_on` AND write state.
+
+    Unlike the button and number entities, this one recomputes its attributes
+    inside the callback (the base SwitchEntity declares `is_on` as a
+    cached_property, so it cannot be overridden as a live property).
+    """
+    from homeassistant.components.switch import SwitchEntity
+
+    from custom_components.redsea.switch import MaintenanceNotifySwitchEntity
+
+    class _Device:
+        def __init__(self) -> None:
+            self.serial = "CB-SW"
+            self._hass = hass
+            self.maintenance = maint.MaintenanceStore(hass, "cb-sw")
+            self.device_info = None
+
+    device = _Device()
+    await device.maintenance.async_load()
+    task = next(t for t in maint.TASKS["RSRUN"] if t.key == "run_pump_motor")
+    entity = MaintenanceNotifySwitchEntity(cast(Any, device), task, sub_id=0)
+
+    async def _noop(self: Any) -> None:
+        return None
+
+    monkeypatch.setattr(SwitchEntity, "async_added_to_hass", _noop, raising=False)
+
+    calls = {"n": 0}
+    entity.async_write_ha_state = lambda: calls.__setitem__("n", calls["n"] + 1)  # type: ignore[assignment]
+
+    # Pre-seed a muted state so we can prove the hook reads the store.
+    await device.maintenance.async_set_notify(device.serial, 0, task.key, False)
+    assert entity.is_on is True, "attribute not refreshed yet"
+
+    await entity.async_added_to_hass()
+    # async_added_to_hass refreshes before HA writes the first state.
+    assert entity.is_on is False
+    assert entity.icon == "mdi:bell-off"
+
+    # Now mutate the store: the production callback refreshes and writes.
+    await device.maintenance.async_set_notify(device.serial, 0, task.key, True)
+    assert calls["n"] >= 1
+    assert entity.is_on is True
+    assert entity.icon == "mdi:bell-ring"
+
+    # Unsubscribing stops the refresh.
+    await entity.async_will_remove_from_hass()
+    before = calls["n"]
+    await device.maintenance.async_set_notify(device.serial, 0, task.key, False)
+    assert calls["n"] == before
 
 
 @pytest.mark.asyncio
