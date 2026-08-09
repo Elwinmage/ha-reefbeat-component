@@ -39,7 +39,7 @@
 <th>
 <td colspan="2"><b>Modèle</b></td>
 <td colspan="2"><b>État</b></td>
-<td><b><a href="https://github.com/Elwinmage/reefbeatEnergyBackup">Backup</a></b></td>
+<td><b><a href="https://github.com/Elwinmage/reefbeatEnergyBackup">EnergyBackup</a></b></td>
 <td><b>Problèmes</b> <br/>📆(Planifié) <br/> 🐛(Bogues)</td>
 </th>
 <tr>

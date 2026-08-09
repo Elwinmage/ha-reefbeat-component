@@ -45,7 +45,7 @@ To help us with translation, follow this [guide](https://github.com/Elwinmage/ha
 <th>
 <td colspan="2"><b>Model</b></td>
 <td colspan="2"><b>Status</b></td>
-<td><b><a href="https://github.com/Elwinmage/reefbeatEnergyBackup">Backup</a></b></td>
+<td><b><a href="https://github.com/Elwinmage/reefbeatEnergyBackup">EnergyBackup</a></b></td>
 <td><b>Issues</b> <br/>📆(Planned) <br/> 🐛(Bugs)</td>
 </th>
 <tr>
