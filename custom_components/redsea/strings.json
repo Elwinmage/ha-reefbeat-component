@@ -156,7 +156,7 @@
         "name": "Delete Supplement"
       },
       "detect_pump": {
-        "name": "Detect Pump"
+        "name": "Detect and add pump"
       },
       "ec_calibration_cup": {
         "name": "EC Calibration Full Cup"

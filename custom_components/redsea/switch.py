@@ -52,6 +52,8 @@ from .const import (
     MAT_AUTO_ADVANCE_INTERNAL_NAME,
     MAT_SCHEDULE_ADVANCE_INTERNAL_NAME,
     OVERSKIMMING_ENABLED_INTERNAL_NAME,
+    REFRESH_DEVICE_DELAY,
+    SENSOR_CONTROLLED_REFRESH_DELAY,
 )
 from .coordinator import (
     ReefATOCoordinator,
@@ -131,7 +133,12 @@ class _RunPush(Protocol):
     async def push_values(
         self, source: str, method: str = "put", pump: int | None = None
     ) -> None: ...
-    async def async_request_refresh(self, source: str) -> None: ...
+    async def async_request_refresh(
+        self,
+        source: str | None = None,
+        config: bool = False,
+        wait: int = REFRESH_DEVICE_DELAY,
+    ) -> None: ...
 
 
 @runtime_checkable
@@ -200,6 +207,12 @@ class ReefRunSwitchEntityDescription(SwitchEntityDescription):
     pump: int = 0
     method: str = "put"
     notify: bool = False
+    # Source to re-read after a toggle. None means "refresh every data source",
+    # needed when the toggle changes what the pump actually does and therefore
+    # /dashboard, not only /pump/settings.
+    refresh_source: str | None = "/pump/settings"
+    # Seconds to wait before reading the device back
+    refresh_wait: int = REFRESH_DEVICE_DELAY
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -526,6 +539,11 @@ async def async_setup_entry(
                     + ".sensor_controlled",
                     pump=pump,
                     entity_category=EntityCategory.CONFIG,
+                    # Handing control over to the sensor changes the running
+                    # intensity, which lives in /dashboard: refresh everything,
+                    # and leave the pump time to ramp to its new speed.
+                    refresh_source=None,
+                    refresh_wait=SENSOR_CONTROLLED_REFRESH_DELAY,
                 )
             )
 
@@ -1077,11 +1095,7 @@ class ReefRunSwitchEntity(ReefBeatSwitchEntity):
         if self._typed_desc.notify:
             self._device.hass.bus.fire(self._typed_desc.value_name, {})
 
-        run = cast(_RunPush, self._device)
-        await run.push_values(
-            source="/pump/settings", method=self._typed_desc.method, pump=self._pump
-        )
-        await run.async_request_refresh(source="/pump/settings")
+        await self._push_and_refresh()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         self._attr_is_on = False
@@ -1092,11 +1106,23 @@ class ReefRunSwitchEntity(ReefBeatSwitchEntity):
         self.async_write_ha_state()
         if self._typed_desc.notify:
             self._device.hass.bus.fire(self._typed_desc.value_name, {})
+        await self._push_and_refresh()
+
+    async def _push_and_refresh(self) -> None:
+        """Send the new value then read the device back.
+
+        Which sources are re-read, and after how long, depends on the switch:
+        a schedule toggle only changes /pump/settings, while handing control
+        over to the sensor also changes the intensity reported by /dashboard.
+        """
         run = cast(_RunPush, self._device)
         await run.push_values(
             source="/pump/settings", method=self._typed_desc.method, pump=self._pump
         )
-        await run.async_request_refresh(source="/pump/settings")
+        await run.async_request_refresh(
+            source=self._typed_desc.refresh_source,
+            wait=self._typed_desc.refresh_wait,
+        )
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:

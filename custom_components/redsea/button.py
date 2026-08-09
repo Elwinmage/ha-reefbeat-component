@@ -486,12 +486,12 @@ async def async_setup_entry(
                 ReefRunButtonEntityDescription(
                     key=f"detect_pump_{pump}",
                     translation_key="detect_pump",
-                    icon="mdi:magnify-scan",
+                    icon="mdi:magnify-plus-outline",
                     press_fn=(
                         lambda p: (
-                            lambda device: cast(ReefRunCoordinator, device).detect_pump(
-                                p
-                            )
+                            lambda device: cast(
+                                ReefRunCoordinator, device
+                            ).detect_and_add_pump(p)
                         )
                     )(pump),
                     entity_category=EntityCategory.CONFIG,

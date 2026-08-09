@@ -155,7 +155,7 @@
         "name": "Supprimer le Suplément"
       },
       "detect_pump": {
-        "name": "Détecter pompe"
+        "name": "Détecter et ajouter la pompe"
       },
       "ec_calibration_cup": {
         "name": "Calibration EC Gobelet"

@@ -156,7 +156,7 @@
         "name": "Eliminar suplemento"
       },
       "detect_pump": {
-        "name": "Detectar bomba"
+        "name": "Detectar y añadir la bomba"
       },
       "ec_calibration_cup": {
         "name": "Calibración EC Vaso lleno"

@@ -156,7 +156,7 @@
         "name": "Usuń suplement"
       },
       "detect_pump": {
-        "name": "Wykryj pompę"
+        "name": "Wykryj i dodaj pompę"
       },
       "ec_calibration_cup": {
         "name": "Kalibracja EC Pełny kubek"

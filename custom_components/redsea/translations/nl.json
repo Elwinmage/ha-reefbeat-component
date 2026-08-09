@@ -156,7 +156,7 @@
         "name": "Supplement verwijderen"
       },
       "detect_pump": {
-        "name": "Pomp detecteren"
+        "name": "Pomp detecteren en toevoegen"
       },
       "ec_calibration_cup": {
         "name": "EC-kalibratie Volle beker"

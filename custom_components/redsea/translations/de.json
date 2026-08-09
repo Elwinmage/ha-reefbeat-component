@@ -156,7 +156,7 @@
         "name": "Nahrungsergänzungsmittel löschen"
       },
       "detect_pump": {
-        "name": "Pumpe erkennen"
+        "name": "Pumpe erkennen und hinzufügen"
       },
       "ec_calibration_cup": {
         "name": "EC-Kalibrierung Voller Becher"

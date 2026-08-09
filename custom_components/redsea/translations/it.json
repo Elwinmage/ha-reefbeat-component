@@ -156,7 +156,7 @@
         "name": "Elimina integratore"
       },
       "detect_pump": {
-        "name": "Rileva pompa"
+        "name": "Rileva e aggiungi la pompa"
       },
       "ec_calibration_cup": {
         "name": "Calibrazione EC Coppa piena"
