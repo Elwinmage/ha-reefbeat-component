@@ -48,10 +48,6 @@ class ReefRunAPI(ReefBeatAPI):
         """
         super().__init__(ip, live_config_update, session)
 
-        # TODO: add feeding, maintenance, emergency, shortcut_off_delay, and pump_on_delayed.
-        # Issue URL: https://github.com/Elwinmage/ha-reefbeat-component/issues/25
-        # labels: enhancement, rsrun
-
         self.data["sources"].insert(
             len(self.data["sources"]),
             {"name": "/pump/settings", "type": "data", "data": ""},
