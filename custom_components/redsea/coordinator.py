@@ -1044,6 +1044,38 @@ class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
         self._schedule_entry_reload()
         return detection
 
+    def _pump_field(self, pump: int, field: str) -> Any:
+        """Read one /dashboard field of a pump."""
+        return self.get_data(
+            f"$.sources[?(@.name=='/dashboard')].data.pump_{pump}.{field}"
+        )
+
+    async def set_pump_name(self, pump: int, name: str) -> None:
+        """Rename a pump.
+
+        The ReefRun has no dedicated rename endpoint: PUT /pump/settings takes
+        the whole pump entry, so the current type and model are resent with the
+        new name. Renaming an unconfigured pump is refused, as it would write
+        "unknown" as both type and model.
+
+        Args:
+            pump: Pump number (1 or 2).
+            name: New pump name.
+        """
+        pump_type = self._pump_field(pump, "type")
+        model = self._pump_field(pump, "model")
+        if not pump_type or not model or "unknown" in (pump_type, model):
+            _LOGGER.warning(
+                "Cannot rename pump %d: it is not configured yet (type=%s, model=%s)",
+                pump,
+                pump_type,
+                model,
+            )
+            return
+
+        await self.configure_pump(pump, name, model, pump_type)
+        await self.async_request_refresh(config=True, wait=REFRESH_DEVICE_DELAY)
+
     async def delete_pump(self, pump: int) -> None:
         """Reset a pump channel to factory defaults.
 

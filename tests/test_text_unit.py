@@ -7,6 +7,7 @@ from typing import Any, cast
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
 @dataclass
@@ -440,3 +441,98 @@ def test_text_available_with_dependency_true() -> None:
     entity = ReefBeatTextEntity(cast(Any, device), desc)
 
     assert entity.available is True
+
+
+# -- ReefRun pump name --------------------------------------------------------
+
+
+@dataclass
+class _FakeRunCoordinator(_FakeCoordinator):
+    """Fake ReefRun coordinator recording rename calls."""
+
+    renamed: list[tuple[int, str]] = field(default_factory=list)
+
+    def pump_device_info(self, pump_id: int) -> dict[str, Any]:
+        return {
+            "identifiers": {("redsea", f"{self.serial}_pump_{pump_id}")},
+            "name": f"Device pump {pump_id}",
+        }
+
+    async def set_pump_name(self, pump: int, name: str) -> None:
+        self.renamed.append((pump, name))
+
+
+@pytest.mark.asyncio
+async def test_run_pump_name_text_pushes_the_new_name() -> None:
+    from custom_components.redsea.text import (
+        ReefRunPumpNameTextEntity,
+        ReefRunPumpNameTextEntityDescription,
+    )
+
+    device = _FakeRunCoordinator()
+    desc = ReefRunPumpNameTextEntityDescription(
+        key="pump_2_name",
+        translation_key="pump_name",
+        value_name="$.pump_2.name",
+        pump=2,
+    )
+    entity = ReefRunPumpNameTextEntity(cast(Any, device), desc)
+    entity.async_write_ha_state = lambda: None  # type: ignore[assignment]
+
+    await entity.async_set_value("Skimmer sump")
+
+    assert entity.native_value == "Skimmer sump"
+    assert device.renamed == [(2, "Skimmer sump")]
+
+
+def test_run_pump_name_text_device_info_targets_the_pump() -> None:
+    from custom_components.redsea.text import (
+        ReefRunPumpNameTextEntity,
+        ReefRunPumpNameTextEntityDescription,
+    )
+
+    device = _FakeRunCoordinator()
+    desc = ReefRunPumpNameTextEntityDescription(
+        key="pump_1_name",
+        translation_key="pump_name",
+        value_name="$.pump_1.name",
+        pump=1,
+    )
+    entity = ReefRunPumpNameTextEntity(cast(Any, device), desc)
+
+    assert entity.device_info.get("identifiers") == {("redsea", "SERIAL_pump_1")}
+
+
+@pytest.mark.asyncio
+async def test_text_async_setup_entry_run_adds_one_name_per_pump(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import custom_components.redsea.text as platform
+    from custom_components.redsea.const import DOMAIN
+    from custom_components.redsea.text import ReefRunPumpNameTextEntity
+
+    class _Run(_FakeRunCoordinator):
+        pass
+
+    monkeypatch.setattr(platform, "ReefRunCoordinator", _Run, raising=True)
+    monkeypatch.setattr(
+        platform, "ReefDoseCoordinator", type("_Dose", (), {}), raising=True
+    )
+    monkeypatch.setattr(
+        platform, "ReefPowerCoordinator", type("_Power", (), {}), raising=True
+    )
+
+    entry = MockConfigEntry(domain=DOMAIN, title="run", data={}, unique_id="run_text")
+    entry.add_to_hass(hass)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = _Run()
+
+    added: list[Any] = []
+
+    def _add(new_entities: Any, update_before_add: bool = False) -> None:
+        added.extend(new_entities)
+
+    await platform.async_setup_entry(hass, cast(Any, entry), _add)
+
+    names = [e for e in added if isinstance(e, ReefRunPumpNameTextEntity)]
+    assert len(names) == 2
+    assert {e._pump for e in names} == {1, 2}

@@ -1114,6 +1114,9 @@
       "new_supplement_short_name": {
         "name": "Korte naam supplement"
       },
+      "pump_name": {
+        "name": "Pompnaam"
+      },
       "socket_name": {
         "name": "Naam stopcontact {socket}"
       }

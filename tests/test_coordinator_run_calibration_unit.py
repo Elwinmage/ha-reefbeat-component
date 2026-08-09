@@ -283,3 +283,50 @@ async def test_delete_pump_refreshes_and_reloads(hass: HomeAssistant) -> None:
     assert api.delete_pump_calls == [2]
     assert run.refreshes == [{"config": True, "wait": REFRESH_DEVICE_DELAY}]
     assert reloads == [True]
+
+
+# -- set_pump_name ------------------------------------------------------------
+
+
+def _dashboard_pump(run: Any, pump: int, pump_type: str, model: str) -> None:
+    """Seed the /dashboard cache entries read by set_pump_name."""
+    values = {"type": pump_type, "model": model}
+    run.get_data = lambda path, _is_None_possible=False: next(
+        (v for f, v in values.items() if path.endswith(f".data.pump_{pump}.{f}")),
+        None,
+    )
+
+
+@pytest.mark.asyncio
+async def test_set_pump_name_resends_type_and_model(hass: HomeAssistant) -> None:
+    """PUT /pump/settings needs the whole entry, not just the new name."""
+    run, api = _make_run(hass, None)
+    _dashboard_pump(run, 2, "skimmer", "rsk-900")
+
+    await run.set_pump_name(2, "Skimmer sump")
+
+    assert api.configure_pump_calls == [(2, "Skimmer sump", "rsk-900", "skimmer")]
+    assert run.refreshes == [{"config": True, "wait": REFRESH_DEVICE_DELAY}]
+
+
+@pytest.mark.parametrize(
+    ("pump_type", "model"),
+    [
+        ("unknown", "unknown"),
+        ("skimmer", "unknown"),
+        ("unknown", "rsk-300"),
+        ("", "rsk-300"),
+        ("skimmer", ""),
+    ],
+)
+@pytest.mark.asyncio
+async def test_set_pump_name_refuses_an_unconfigured_pump(
+    hass: HomeAssistant, pump_type: str, model: str
+) -> None:
+    run, api = _make_run(hass, None)
+    _dashboard_pump(run, 1, pump_type, model)
+
+    await run.set_pump_name(1, "Nope")
+
+    assert api.configure_pump_calls == []
+    assert run.refreshes == []

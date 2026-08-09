@@ -1104,6 +1104,9 @@
       "new_supplement_short_name": {
         "name": "Nom de la tête"
       },
+      "pump_name": {
+        "name": "Nom de la pompe"
+      },
       "socket_name": {
         "name": "Nom prise {socket}"
       }

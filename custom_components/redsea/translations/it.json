@@ -1106,6 +1106,9 @@
       "new_supplement_short_name": {
         "name": "Nome breve dell'integratore"
       },
+      "pump_name": {
+        "name": "Nome della pompa"
+      },
       "socket_name": {
         "name": "Nome presa {socket}"
       }

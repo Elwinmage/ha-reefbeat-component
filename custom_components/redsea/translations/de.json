@@ -1106,6 +1106,9 @@
       "new_supplement_short_name": {
         "name": "Kurzname des Nahrungsergänzungsmittels"
       },
+      "pump_name": {
+        "name": "Pumpenname"
+      },
       "socket_name": {
         "name": "Name Steckdose {socket}"
       }

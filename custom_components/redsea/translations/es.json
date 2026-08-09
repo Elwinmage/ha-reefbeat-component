@@ -1106,6 +1106,9 @@
       "new_supplement_short_name": {
         "name": "Nombre corto del suplemento"
       },
+      "pump_name": {
+        "name": "Nombre de la bomba"
+      },
       "socket_name": {
         "name": "Nombre toma {socket}"
       }

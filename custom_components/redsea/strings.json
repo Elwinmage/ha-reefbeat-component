@@ -1114,6 +1114,9 @@
       "new_supplement_short_name": {
         "name": "Supplement Short Name"
       },
+      "pump_name": {
+        "name": "Pump name"
+      },
       "socket_name": {
         "name": "Socket {socket} name"
       }
