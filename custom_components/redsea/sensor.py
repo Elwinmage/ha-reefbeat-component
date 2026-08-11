@@ -1570,15 +1570,6 @@ async def async_setup_entry(
             ds_run.extend(
                 [
                     ReefRunSensorEntityDescription(
-                        key="name_pump_" + str(pump),
-                        translation_key="name",
-                        icon="mdi:pump",
-                        value_name="$.sources[?(@.name=='/dashboard')].data.pump_"
-                        + str(pump)
-                        + ".name",
-                        pump=pump,
-                    ),
-                    ReefRunSensorEntityDescription(
                         key="type_pump_" + str(pump),
                         translation_key="type",
                         icon="mdi:pump",
