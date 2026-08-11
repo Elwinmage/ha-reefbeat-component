@@ -19,8 +19,17 @@ Para nos ajudar a traduzir, siga este [guia](https://github.com/Elwinmage/ha-ree
 # Apresentação
 ***Gestão local de dispositivos HomeAssistant RedSea Reefbeat (sem cloud): ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun e ReefWave***
 
-> [!TIP]
-> ***Para editar programações avançadas do ReefDose, ReefLed, ReefRun e ReefWave, use o [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) (currently under development)***
+## Projetos relacionados
+
+Esta integração é um dos três projetos complementares para um aquário de recife Red Sea:
+
+| Projeto | Função |
+| --- | --- |
+| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | Esta integração. Controlo local dos dispositivos ReefBeat a partir do Home Assistant, sem nuvem: ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun e ReefWave. |
+| [**ha-reef-card**](https://github.com/Elwinmage/ha-reef-card) | Cartão Lovelace complementar. Necessário para editar programações avançadas do ReefDose, ReefLed, ReefRun e ReefWave, e dá a cada dispositivo uma vista gráfica interativa. |
+| [**reefbeatEnergyBackup**](https://github.com/Elwinmage/reefbeatEnergyBackup) | Reserva por bateria em caso de falha de energia. Conjunto 24V LiFePO₄ comandado por um Raspberry Pi, com redução progressiva da velocidade das bombas conforme o estado de carga. Funciona sozinho ou a par desta integração. |
+
+Os três estão documentados em conjunto na [página do projeto](https://elwinmage.github.io/reeftank/).
 
 > [!TIP]
 > A lista de implementações futuras está disponível [aqui](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
@@ -559,6 +568,13 @@ As tarefas são associadas ao subaparelho bomba e dependem do seu tipo.
 As duas tarefas de calibração são também vigiadas pelo blueprint de alertas, que
 compara a data da última calibração comunicada pelo aparelho com o intervalo
 definido aqui. Ver a secção [Manutenção](README.pt.md#manutenção).
+
+### Chave para desmontar o rotor
+
+A tarefa *Limpar o rotor do escumador* acima obriga a desenroscar o
+corpo da bomba, que molhado quase não oferece pega. Uma chave imprimível em 3D
+para essa operação, com um vídeo de utilização, está disponível aqui:
+[Chave para rotor de DC Skimmer Red Sea](https://elwinmage.github.io/reeftank/#-red-sea-dc-skimmer-impeller-tool).
 
 # ReefWave:
 > [!IMPORTANT]

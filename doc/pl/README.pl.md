@@ -19,8 +19,17 @@ Aby pomóc w tłumaczeniu, postępuj zgodnie z tym [przewodnikiem](https://githu
 # Przegląd
 ***Lokalne zarządzanie urządzeniami HomeAssistant RedSea Reefbeat (bez chmury): ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun i ReefWave***
 
-> [!TIP]
-> ***Aby edytować zaawansowane harmonogramy dla ReefDose, ReefLed, ReefRun i ReefWave, użyj [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) (currently under development)***
+## Powiązane projekty
+
+Ta integracja jest jednym z trzech uzupełniających się projektów dla akwarium rafowego Red Sea:
+
+| Projekt | Rola |
+| --- | --- |
+| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | Ta integracja. Lokalne sterowanie urządzeniami ReefBeat z Home Assistant, bez chmury: ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun i ReefWave. |
+| [**ha-reef-card**](https://github.com/Elwinmage/ha-reef-card) | Towarzysząca karta Lovelace. Niezbędna do edycji zaawansowanych harmonogramów ReefDose, ReefLed, ReefRun i ReefWave; daje każdemu urządzeniu interaktywny widok graficzny. |
+| [**reefbeatEnergyBackup**](https://github.com/Elwinmage/reefbeatEnergyBackup) | Zasilanie awaryjne z akumulatora. Pakiet 24V LiFePO₄ sterowany przez Raspberry Pi, ze stopniowym ograniczaniem prędkości pomp zależnie od stanu naładowania. Działa samodzielnie lub razem z tą integracją. |
+
+Wszystkie trzy są opisane razem na [stronie projektu](https://elwinmage.github.io/reeftank/).
 
 > [!TIP]
 > Lista przyszłych implementacji jest dostępna [tutaj](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
@@ -558,6 +567,13 @@ Zadania są przypisane do podurządzenia pompy i zależą od jej typu.
 
 Oba zadania kalibracyjne nadzoruje również blueprint alertów, porównując datę
 ostatniej kalibracji zgłoszoną przez urządzenie z interwałem ustawionym tutaj. Zobacz sekcję [Konserwacja](README.pl.md#konserwacja).
+
+### Klucz do demontażu wirnika
+
+Powyższe zadanie *Czyszczenie wirnika odpieniacza* wymaga odkręcenia korpusu
+pompy, który mokry praktycznie nie daje się chwycić. Klucz do wydruku 3D do tego
+zadania, wraz z filmem pokazującym użycie, jest dostępny tutaj:
+[Klucz do wirnika DC Skimmer Red Sea](https://elwinmage.github.io/reeftank/#-red-sea-dc-skimmer-impeller-tool).
 
 # ReefWave:
 > [!IMPORTANT]

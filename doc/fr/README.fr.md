@@ -17,8 +17,17 @@
 # Présentation
 ***Gestion locale des appareils HomeAssitant RedSea Reefbeat (hors cloud) : ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun et ReefWave***
 
-> [!TIP]
-> ***Pour modifier la programmation avancée de ReefDose, ReefLed, ReefRun et ReefWave, vous devez utiliser la [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) (en cours de développement)***
+## Projets liés
+
+Cette intégration est l'un des trois projets complémentaires pour un aquarium récifal Red Sea :
+
+| Projet | Rôle |
+| --- | --- |
+| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | Cette intégration. Pilotage local des appareils ReefBeat depuis Home Assistant, sans cloud : ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun et ReefWave. |
+| [**ha-reef-card**](https://github.com/Elwinmage/ha-reef-card) | Carte Lovelace compagnon. Indispensable pour modifier la programmation avancée des ReefDose, ReefLed, ReefRun et ReefWave, et donne à chaque appareil une vue graphique interactive. |
+| [**reefbeatEnergyBackup**](https://github.com/Elwinmage/reefbeatEnergyBackup) | Secours sur batterie en cas de coupure. Pack 24V LiFePO₄ piloté par un Raspberry Pi, avec dégradation progressive de la vitesse des pompes selon l'état de charge. Fonctionne seul ou en complément de cette intégration. |
+
+Les trois sont documentés ensemble sur la [page du projet](https://elwinmage.github.io/reeftank/).
 
 > [!TIP]
 > La liste des futures implémentations est disponible [ici](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
@@ -560,6 +569,13 @@ Les tâches sont rattachées au sous-appareil pompe et dépendent de son type.
 Les deux tâches de calibration sont également surveillées par le blueprint
 d'alertes, qui compare la date de dernière calibration remontée par l'appareil à
 l'intervalle défini ici. Voir la section [Maintenance](README.fr.md#maintenance).
+
+### Clé de démontage du rotor
+
+La tâche *Nettoyer le rotor de l'écumeur* ci-dessus impose de dévisser le corps
+de pompe, qui n'offre pratiquement aucune prise une fois mouillé. Une clé
+imprimable en 3D pour cette opération, avec une vidéo de mise en œuvre, est
+disponible ici : [Clé pour rotor de DC Skimmer Red Sea](https://elwinmage.github.io/reeftank/#-red-sea-dc-skimmer-impeller-tool).
 
 # ReefWave :
 > [!IMPORTANT]

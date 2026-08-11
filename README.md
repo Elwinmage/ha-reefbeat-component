@@ -23,8 +23,17 @@ To help us with translation, follow this [guide](https://github.com/Elwinmage/ha
 # Overview
 ***HomeAssistant RedSea Reefbeat devices Local Management (no cloud): ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun and ReefWave***
 
-> [!TIP]
-> ***To edit advanced schedules for ReefDose, ReefLed, ReefRun and ReefWave, you need to use the [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) (currently under development)***
+## Related projects
+
+This integration is one of three complementary projects for a Red Sea reef tank:
+
+| Project | What it does |
+| --- | --- |
+| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | This integration. Local control of ReefBeat devices from Home Assistant, no cloud required: ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun and ReefWave. |
+| [**ha-reef-card**](https://github.com/Elwinmage/ha-reef-card) | Companion Lovelace card. Required to edit advanced schedules for ReefDose, ReefLed, ReefRun and ReefWave, and gives each device an interactive graphical view. |
+| [**reefbeatEnergyBackup**](https://github.com/Elwinmage/reefbeatEnergyBackup) | Battery backup for power outages. 24V LiFePO₄ pack driven by a Raspberry Pi, with pump speed degraded progressively according to the state of charge. Works standalone or alongside this integration. |
+
+All three are documented together on the [project page](https://elwinmage.github.io/reeftank/).
 
 > [!TIP]
 > The list of future implementations can be found [here](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
@@ -567,6 +576,13 @@ The two calibration tasks are also watched by the alert blueprint, which
 compares the last calibration date reported by the device with the interval you
 set here. See the
 [Maintenance](https://github.com/Elwinmage/ha-reefbeat-component/#maintenance) section.
+
+### Impeller removal tool
+
+The *Clean skimmer pump rotor* task above means unscrewing the pump body, which
+offers almost nothing to grip once wet. A 3D-printable tool for that job, with a
+video showing how it is used, is available here:
+[Red Sea DC Skimmer impeller tool](https://elwinmage.github.io/reeftank/#-red-sea-dc-skimmer-impeller-tool).
 
 # ReefWave:
 > [!IMPORTANT]

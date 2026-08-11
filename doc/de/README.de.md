@@ -19,8 +19,17 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 # Übersicht
 ***Lokale Verwaltung von HomeAssistant RedSea Reefbeat-Geräten (ohne Cloud): ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun und ReefWave***
 
-> [!TIP]
-> ***Um erweiterte Zeitpläne für ReefDose, ReefLed, ReefRun und ReefWave zu bearbeiten, verwenden Sie die [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) (currently under development)***
+## Verwandte Projekte
+
+Diese Integration ist eines von drei sich ergänzenden Projekten für ein Red-Sea-Riffaquarium:
+
+| Projekt | Aufgabe |
+| --- | --- |
+| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | Diese Integration. Lokale Steuerung der ReefBeat-Geräte aus Home Assistant, ohne Cloud: ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun und ReefWave. |
+| [**ha-reef-card**](https://github.com/Elwinmage/ha-reef-card) | Begleitende Lovelace-Karte. Erforderlich, um erweiterte Zeitpläne für ReefDose, ReefLed, ReefRun und ReefWave zu bearbeiten, und gibt jedem Gerät eine interaktive grafische Ansicht. |
+| [**reefbeatEnergyBackup**](https://github.com/Elwinmage/reefbeatEnergyBackup) | Batteriepuffer bei Stromausfall. 24V-LiFePO₄-Pack, gesteuert von einem Raspberry Pi, mit stufenweiser Drosselung der Pumpen je nach Ladezustand. Läuft eigenständig oder ergänzend zu dieser Integration. |
+
+Alle drei sind gemeinsam auf der [Projektseite](https://elwinmage.github.io/reeftank/) dokumentiert.
 
 > [!TIP]
 > Die Liste der zukünftigen Implementierungen ist [hier] verfügbar(https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
@@ -559,6 +568,13 @@ Die Aufgaben hängen am Untergerät Pumpe und richten sich nach deren Typ.
 Die beiden Kalibrieraufgaben überwacht auch das Alarm-Blueprint, das das vom
 Gerät gemeldete Datum der letzten Kalibrierung mit dem hier gesetzten Intervall
 vergleicht. Siehe den Abschnitt [Wartung](README.de.md#wartung).
+
+### Werkzeug zum Ausbau des Rotors
+
+Die obige Aufgabe *Rotor des Abschäumers reinigen* erfordert das Aufschrauben
+des Pumpenkörpers, der nass so gut wie keinen Griff bietet. Ein 3D-druckbares
+Werkzeug dafür, mit Video zur Anwendung, gibt es hier:
+[Red Sea DC Skimmer Rotorwerkzeug](https://elwinmage.github.io/reeftank/#-red-sea-dc-skimmer-impeller-tool).
 
 # ReefWave:
 > [!IMPORTANT]
