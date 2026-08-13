@@ -17,7 +17,7 @@
 Para ayudarnos a traducir, siga esta [guía](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/TRANSLATION.md).
 
 # Descripción general
-***Gestión local de dispositivos HomeAssistant RedSea Reefbeat (sin nube): ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun y ReefWave***
+***Gestión local de dispositivos HomeAssistant RedSea Reefbeat (sin nube): ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun y ReefWave***
 
 ## Proyectos relacionados
 
@@ -25,11 +25,12 @@ Esta integración es uno de los tres proyectos complementarios para un acuario d
 
 | Proyecto | Función |
 | --- | --- |
-| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | Esta integración. Control local de los dispositivos ReefBeat desde Home Assistant, sin nube: ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun y ReefWave. |
+| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | Esta integración. Control local de los dispositivos ReefBeat desde Home Assistant, sin nube: ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun y ReefWave. |
+| [**ReefBeat watch**](https://github.com/Elwinmage/ha-reefbeat-component/tree/main/blueprints/automation) | Blueprint de alertas incluido en esta integración. Te avisa de mantenimientos y calibraciones vencidos, modos anómalos, baterías bajas y dispositivos inaccesibles, en los móviles que elijas. [![Abre tu instancia de Home Assistant y muestra el diálogo de importación del blueprint.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/blueprints/automation/redsea_alerts.en.yaml) |
 | [**ha-reef-card**](https://github.com/Elwinmage/ha-reef-card) | Tarjeta Lovelace complementaria. Necesaria para editar la programación avanzada de ReefDose, ReefLed, ReefRun y ReefWave, y da a cada dispositivo una vista gráfica interactiva. |
 | [**reefbeatEnergyBackup**](https://github.com/Elwinmage/reefbeatEnergyBackup) | Respaldo por batería ante cortes de luz. Pack de 24V LiFePO₄ gobernado por una Raspberry Pi, con degradación progresiva de la velocidad de las bombas según el estado de carga. Funciona solo o junto a esta integración. |
 
-Los tres están documentados juntos en la [página del proyecto](https://elwinmage.github.io/reeftank/).
+Los tres, y otros proyectos de arrecife, están documentados juntos en la [página del proyecto](https://elwinmage.github.io/reeftank/).
 
 > [!TIP]
 > La lista de implementaciones futuras está disponible [aquí](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />

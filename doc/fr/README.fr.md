@@ -15,7 +15,7 @@
 # Supported Languages: [<img src="https://flagicons.lipis.dev/flags/4x3/fr.svg" style="width: 5%;"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/fr/README.fr.md) [<img src="https://flagicons.lipis.dev/flags/4x3/gb.svg" style="width: 5%"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/README.md) [<img src="https://flagicons.lipis.dev/flags/4x3/es.svg" style="width: 5%"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/es/README.es.md) [<img src="https://flagicons.lipis.dev/flags/4x3/de.svg" style="width: 5%"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/README.de.md) [<img src="https://flagicons.lipis.dev/flags/4x3/pl.svg" style="width: 5%"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/pl/README.pl.md) [<img src="https://flagicons.lipis.dev/flags/4x3/pt.svg" style="width: 5%"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/pt/README.pt.md) [<img src="https://flagicons.lipis.dev/flags/4x3/it.svg" style="width: 5%"/>](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/it/README.it.md)
 
 # Présentation
-***Gestion locale des appareils HomeAssitant RedSea Reefbeat (hors cloud) : ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun et ReefWave***
+***Gestion locale des appareils HomeAssitant RedSea Reefbeat (hors cloud) : ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun et ReefWave***
 
 ## Projets liés
 
@@ -23,11 +23,12 @@ Cette intégration est l'un des trois projets complémentaires pour un aquarium 
 
 | Projet | Rôle |
 | --- | --- |
-| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | Cette intégration. Pilotage local des appareils ReefBeat depuis Home Assistant, sans cloud : ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun et ReefWave. |
+| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | Cette intégration. Pilotage local des appareils ReefBeat depuis Home Assistant, sans cloud : ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun et ReefWave. |
+| [**ReefBeat watch**](https://github.com/Elwinmage/ha-reefbeat-component/tree/main/blueprints/automation) | Blueprint d'alertes livré avec cette intégration. Vous prévient des entretiens et calibrations en retard, des modes anormaux, des batteries faibles et des appareils injoignables, sur les mobiles de votre choix. [![Ouvrir votre instance Home Assistant et afficher la boîte de dialogue d'import de blueprint.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/blueprints/automation/redsea_alerts.fr.yaml) |
 | [**ha-reef-card**](https://github.com/Elwinmage/ha-reef-card) | Carte Lovelace compagnon. Indispensable pour modifier la programmation avancée des ReefDose, ReefLed, ReefRun et ReefWave, et donne à chaque appareil une vue graphique interactive. |
 | [**reefbeatEnergyBackup**](https://github.com/Elwinmage/reefbeatEnergyBackup) | Secours sur batterie en cas de coupure. Pack 24V LiFePO₄ piloté par un Raspberry Pi, avec dégradation progressive de la vitesse des pompes selon l'état de charge. Fonctionne seul ou en complément de cette intégration. |
 
-Les trois sont documentés ensemble sur la [page du projet](https://elwinmage.github.io/reeftank/).
+Les trois, ainsi que d'autres projets récifaux, sont documentés ensemble sur la [page du projet](https://elwinmage.github.io/reeftank/).
 
 > [!TIP]
 > La liste des futures implémentations est disponible [ici](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
