@@ -249,6 +249,14 @@ blueprint:
             device:
               integration: redsea
               multiple: true
+        maintenance_respect_switch:
+          name: Respect the per-task notification switches
+          description: >
+            When enabled, a maintenance task whose "(notifications)" switch is
+            turned off is skipped, even if it is overdue. Leave enabled unless
+            you want the alert to fire regardless of the switches.
+          default: true
+          selector: {boolean: {}}
 
 trigger:
   - platform: time_pattern
@@ -273,6 +281,7 @@ variables:
   battery_exclude: !input battery_exclude
   unavailable_exclude: !input unavailable_exclude
   maintenance_exclude: !input maintenance_exclude
+  maintenance_respect_switch: !input maintenance_respect_switch
   # ReefBeat role prefixes (standard)
   role_mode: "mode"
   role_alert_message: "alert_message"
@@ -631,8 +640,13 @@ action:
                    and e.startswith('button.')
                    and (state_attr(e, 'reef_role') or '').startswith('maint_')
                    and is_excluded(d, maintenance_exclude) | trim != 'True' -%}
+              {#- Per-task opt-out: the button mirrors its companion notify switch
+                     in the `notify` attribute. A missing attribute (older
+                     integration version) is treated as enabled. -#}
+              {%- set notify_flag = state_attr(e, 'notify') -%}
+              {%- set muted = maintenance_respect_switch and notify_flag is false -%}
               {%- set dl = state_attr(e, 'days_left') -%}
-              {%- if dl is number and dl < 0 -%}
+              {%- if dl is number and dl < 0 and not muted -%}
                 {%- set ns.items = ns.items + [{
                   'type': 'maintenance',
                   'device': dname,

@@ -969,9 +969,124 @@ class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
         """Detect which pump is physically connected to a channel."""
         return await self.my_api.detect_pump(pump)
 
+    @staticmethod
+    def default_pump_name(pump_type: str, model: str) -> str:
+        """Build the name given to a freshly detected pump.
+
+        The ReefBeat app asks the user for a name; here the model is turned
+        into the same kind of label the app proposes, and the user can rename
+        the pump afterwards through the `name` text entity.
+
+        Args:
+            pump_type: Detected type ("skimmer" or "return").
+            model: Detected model (e.g. "rsk-900", "return-12000").
+
+        Returns:
+            A human readable pump name.
+        """
+        if pump_type == "skimmer" and model.startswith("rsk-"):
+            return f"DC Skimmer {model[len('rsk-') :]}"
+        if pump_type == "return" and model.startswith("return-"):
+            return f"ReefRun {model[len('return-') :]}"
+        return model
+
+    def _schedule_entry_reload(self) -> None:
+        """Reload the config entry so type-dependent entities are rebuilt.
+
+        Which entities a pump owns depends on its type: the model select and
+        the skimmer calibration buttons only exist for a skimmer. They are
+        created at setup, so a pump added at runtime needs a reload to appear.
+        """
+        try:
+            self.hass.config_entries.async_schedule_reload(self._entry.entry_id)
+        except Exception:
+            # Best effort: a failed reload must not abort the pump creation
+            _LOGGER.debug("Could not schedule a reload after adding a pump")
+
+    async def detect_and_add_pump(self, pump: int) -> dict[str, Any] | None:
+        """Detect the pump plugged on a channel and register it in one step.
+
+        A pump that is plugged in but never configured stays "unknown" in
+        /dashboard: only a PUT /pump/settings names it. Detection alone
+        therefore changes nothing visible, hence this combined action.
+
+        Args:
+            pump: Pump number (1 or 2).
+
+        Returns:
+            The detection result, or None when nothing usable was detected.
+        """
+        detection = await self.detect_pump(pump)
+        if not detection:
+            _LOGGER.warning("No pump detected on channel %d", pump)
+            return None
+
+        pump_type = detection.get("type")
+        model = detection.get("model")
+        if not pump_type or not model or "unknown" in (pump_type, model):
+            _LOGGER.warning(
+                "Unusable detection for pump %d: %s",
+                pump,
+                detection,
+            )
+            return None
+
+        await self.configure_pump(
+            pump,
+            self.default_pump_name(pump_type, model),
+            model,
+            pump_type,
+        )
+        # /pump/settings and /dashboard are "data" sources: fetch_config() alone
+        # would not pick up the new pump, the values would stay stale until the
+        # next scan interval. The wait lets the device apply the PUT first.
+        await self.async_request_refresh(config=True, wait=REFRESH_DEVICE_DELAY)
+        self._schedule_entry_reload()
+        return detection
+
+    def _pump_field(self, pump: int, field: str) -> Any:
+        """Read one /dashboard field of a pump."""
+        return self.get_data(
+            f"$.sources[?(@.name=='/dashboard')].data.pump_{pump}.{field}"
+        )
+
+    async def set_pump_name(self, pump: int, name: str) -> None:
+        """Rename a pump.
+
+        The ReefRun has no dedicated rename endpoint: PUT /pump/settings takes
+        the whole pump entry, so the current type and model are resent with the
+        new name. Renaming an unconfigured pump is refused, as it would write
+        "unknown" as both type and model.
+
+        Args:
+            pump: Pump number (1 or 2).
+            name: New pump name.
+        """
+        pump_type = self._pump_field(pump, "type")
+        model = self._pump_field(pump, "model")
+        if not pump_type or not model or "unknown" in (pump_type, model):
+            _LOGGER.warning(
+                "Cannot rename pump %d: it is not configured yet (type=%s, model=%s)",
+                pump,
+                pump_type,
+                model,
+            )
+            return
+
+        await self.configure_pump(pump, name, model, pump_type)
+        await self.async_request_refresh(config=True, wait=REFRESH_DEVICE_DELAY)
+
     async def delete_pump(self, pump: int) -> None:
-        """Reset a pump channel to factory defaults."""
+        """Reset a pump channel to factory defaults.
+
+        The slot falls back to type "unknown", which changes both /dashboard
+        and the set of entities the pump owns, so refresh and reload.
+        """
         await self.my_api.delete_pump(pump)
+        # Give the ReefRun time to settle before reading it back: the delete
+        # rewrites the whole pump section, /dashboard lags behind it.
+        await self.async_request_refresh(config=True, wait=REFRESH_DEVICE_DELAY)
+        self._schedule_entry_reload()
 
     async def configure_pump(
         self, pump: int, name: str, model: str, pump_type: str

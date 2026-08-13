@@ -38,7 +38,9 @@ class FakeCoordinator:
     fetched: list[str] = field(default_factory=list)
     pushed: list[tuple[str, str]] = field(default_factory=list)
     post_specifics: list[str] = field(default_factory=list)
-    refreshed: list[str] = field(default_factory=list)
+    refreshed: list[str | None] = field(default_factory=list)
+    # (source, wait) of every refresh, to assert the settle delay
+    refresh_calls: list[tuple[str | None, int]] = field(default_factory=list)
 
     _listeners: list[Callable[[], None]] = field(default_factory=list)
 
@@ -80,9 +82,10 @@ class FakeCoordinator:
         self.post_specifics.append(source)
 
     async def async_request_refresh(
-        self, source: str, config: bool = False, wait: int = 2
+        self, source: str | None = None, config: bool = False, wait: int = 2
     ) -> None:
         self.refreshed.append(source)
+        self.refresh_calls.append((source, wait))
 
 
 @dataclass

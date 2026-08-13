@@ -31,6 +31,7 @@ from .coordinator import (
     ReefBeatCoordinator,
     ReefDoseCoordinator,
     ReefPowerCoordinator,
+    ReefRunCoordinator,
 )
 from .entity import ReefBeatRestoreEntity, RestoreSpec
 
@@ -68,6 +69,13 @@ class ReefPowerSocketNameTextEntityDescription(ReefBeatTextEntityDescription):
     """Describes a RSPOWER per-socket name text entity."""
 
     socket: int = 0
+
+
+@dataclass(kw_only=True, frozen=True)
+class ReefRunPumpNameTextEntityDescription(ReefBeatTextEntityDescription):
+    """Describes a ReefRun per-pump name text entity."""
+
+    pump: int = 0
 
 
 # -----------------------------------------------------------------------------
@@ -141,6 +149,30 @@ async def async_setup_entry(
         entities.extend(
             ReefDoseTextEntity(device, description)
             for description in dose_descs
+            if description.exists_fn(device)
+        )
+
+    elif isinstance(device, ReefRunCoordinator):
+        # One editable name field per pump. Backed by the name in /dashboard;
+        # writes go through PUT /pump/settings, which also carries the pump
+        # type and model.
+        run_descs: list[ReefRunPumpNameTextEntityDescription] = []
+        for pump in range(1, 3):
+            run_descs.append(
+                ReefRunPumpNameTextEntityDescription(
+                    key=f"pump_{pump}_name",
+                    translation_key="pump_name",
+                    value_name=(
+                        f"$.sources[?(@.name=='/dashboard')].data.pump_{pump}.name"
+                    ),
+                    icon="mdi:rename-box",
+                    entity_category=EntityCategory.CONFIG,
+                    pump=pump,
+                )
+            )
+        entities.extend(
+            ReefRunPumpNameTextEntity(device, description)
+            for description in run_descs
             if description.exists_fn(device)
         )
 
@@ -338,3 +370,34 @@ class ReefPowerSocketNameTextEntity(ReefBeatTextEntity):
         await cast(ReefPowerCoordinator, self._device).set_socket_name(
             self._socket, value
         )
+
+
+# REEFRUN
+class ReefRunPumpNameTextEntity(ReefBeatTextEntity):
+    """Editable name for a single ReefRun pump.
+
+    Reads the current name from ``/dashboard`` and, on edit, writes it back
+    through ``PUT /pump/settings``. The firmware expects the whole pump entry,
+    so the coordinator resends the current type and model alongside the name.
+    """
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefRunPumpNameTextEntityDescription,
+    ) -> None:
+        super().__init__(device, entity_description)
+        self._pump: int = entity_description.pump
+
+    async def async_set_value(self, value: str) -> None:
+        """Push the new pump name to the device."""
+        self._attr_native_value = value
+        self.async_write_ha_state()
+        await cast(ReefRunCoordinator, self._device).set_pump_name(self._pump, value)
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
+    def device_info(self) -> DeviceInfo:
+        """Return device info extended with the pump identifier."""
+        return cast(ReefRunCoordinator, self._device).pump_device_info(self._pump)

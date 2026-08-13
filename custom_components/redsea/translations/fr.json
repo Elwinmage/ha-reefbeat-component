@@ -155,7 +155,7 @@
         "name": "Supprimer le Suplément"
       },
       "detect_pump": {
-        "name": "Détecter pompe"
+        "name": "Détecter et ajouter la pompe"
       },
       "ec_calibration_cup": {
         "name": "Calibration EC Gobelet"
@@ -324,7 +324,7 @@
         "name": "Nettoyer la pompe de remontée (mois)"
       },
       "maint_dose_heads_calibration_interval_days": {
-        "name": "Étalonner les têtes de dosage (semaines)"
+        "name": "Étalonner les têtes de dosage (jours)"
       },
       "maint_dose_heads_replace_interval_months": {
         "name": "Remplacer la tête et les tubes (mois)"
@@ -1009,6 +1009,48 @@
       "fullcup_enabled": {
         "name": "Détection du Bol Plein"
       },
+      "maint_ato_ec_sensor_notify": {
+        "name": "Nettoyer le capteur EC (notifications)"
+      },
+      "maint_ato_return_pump_notify": {
+        "name": "Nettoyer la pompe de remontée (notifications)"
+      },
+      "maint_dose_heads_calibration_notify": {
+        "name": "Étalonner les têtes de dosage (notifications)"
+      },
+      "maint_dose_heads_replace_notify": {
+        "name": "Remplacer la tête et les tubes (notifications)"
+      },
+      "maint_led_fan_notify": {
+        "name": "Dépoussiérer le ventilateur et les grilles (notifications)"
+      },
+      "maint_led_lens_notify": {
+        "name": "Nettoyer la lentille (notifications)"
+      },
+      "maint_mat_carbon_replace_notify": {
+        "name": "Remplacer le charbon actif (notifications)"
+      },
+      "maint_run_pump_motor_notify": {
+        "name": "Nettoyer le moteur et le rotor (notifications)"
+      },
+      "maint_run_pump_strainer_notify": {
+        "name": "Nettoyer la crépine d'aspiration (notifications)"
+      },
+      "maint_run_skim_fullcup_calibration_notify": {
+        "name": "Étalonner le capteur fullcup (notifications)"
+      },
+      "maint_run_skim_overskimming_calibration_notify": {
+        "name": "Étalonner le capteur overskimming (notifications)"
+      },
+      "maint_run_skim_rotor_notify": {
+        "name": "Nettoyer le rotor de la pompe écumeur (notifications)"
+      },
+      "maint_run_skim_venturi_notify": {
+        "name": "Nettoyer le venturi et le tuyau d'air (notifications)"
+      },
+      "maint_wave_rotor_cages_notify": {
+        "name": "Nettoyer les cages de rotor (notifications)"
+      },
       "maintenance": {
         "name": "Maintenance"
       },
@@ -1061,6 +1103,9 @@
       },
       "new_supplement_short_name": {
         "name": "Nom de la tête"
+      },
+      "pump_name": {
+        "name": "Nom de la pompe"
       },
       "socket_name": {
         "name": "Nom prise {socket}"

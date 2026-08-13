@@ -192,6 +192,88 @@ class TestMaintenanceStore:
         await store.async_set_interval("s", 0, "led_fan", 200)
         assert calls_a == [1] and calls_b == [1]
 
+    async def test_notify_defaults_to_enabled(self, hass: HomeAssistant) -> None:
+        # A brand new instance must notify: disabling is always an explicit
+        # user action, never the default.
+        store = maint.MaintenanceStore(hass, "entry-notify-1")
+        await store.async_load()
+        assert store.get_notify("s", 0, "led_lens") is True
+        assert store.get_state("s", 0, "led_lens").notify is True
+
+    async def test_notify_roundtrip(self, hass: HomeAssistant) -> None:
+        store = maint.MaintenanceStore(hass, "entry-notify-2")
+        await store.async_load()
+        await store.async_set_notify("s", 0, "led_lens", False)
+        assert store.get_notify("s", 0, "led_lens") is False
+        await store.async_set_notify("s", 0, "led_lens", True)
+        assert store.get_notify("s", 0, "led_lens") is True
+
+    async def test_notify_is_persisted_only_when_disabled(
+        self, hass: HomeAssistant
+    ) -> None:
+        # Keeping the default out of the JSON avoids rewriting a "notify: true"
+        # entry for every task of every device on first start.
+        store = maint.MaintenanceStore(hass, "entry-notify-3")
+        await store.async_load()
+        await store.async_set_interval("s", 0, "led_fan", 200)
+        await store.async_set_notify("s", 0, "led_lens", False)
+
+        raw = await store._store.async_load()
+        # async_load() is typed `dict | None`; narrow it for pyright.
+        assert raw is not None
+        instances = raw["instances"]
+        assert instances["s:0:led_lens"]["notify"] is False
+        assert "notify" not in instances["s:0:led_fan"]
+
+    async def test_notify_survives_reload(self, hass: HomeAssistant) -> None:
+        store1 = maint.MaintenanceStore(hass, "entry-notify-4")
+        await store1.async_load()
+        await store1.async_set_notify("s", 0, "led_lens", False)
+
+        store2 = maint.MaintenanceStore(hass, "entry-notify-4")
+        await store2.async_load()
+        assert store2.get_notify("s", 0, "led_lens") is False
+        # A task never touched keeps the default.
+        assert store2.get_notify("s", 0, "led_fan") is True
+
+    async def test_notify_absent_key_is_enabled(self, hass: HomeAssistant) -> None:
+        # Stores written before the notify switch existed must keep alerting.
+        store = maint.MaintenanceStore(hass, "entry-notify-legacy")
+        await store._store.async_save(
+            {"instances": {"s:0:led_lens": {"interval_days": 30}}}
+        )
+        await store.async_load()
+        assert store.get_notify("s", 0, "led_lens") is True
+        assert store.get_interval("s", 0, "led_lens", 21) == 30
+
+    async def test_notify_is_per_instance(self, hass: HomeAssistant) -> None:
+        # Muting head 2 must not mute head 1 of the same RSDOSE.
+        store = maint.MaintenanceStore(hass, "entry-notify-5")
+        await store.async_load()
+        await store.async_set_notify("s", 2, "dose_heads_replace", False)
+        assert store.get_notify("s", 1, "dose_heads_replace") is True
+        assert store.get_notify("s", 2, "dose_heads_replace") is False
+
+    async def test_notify_change_fires_listener(self, hass: HomeAssistant) -> None:
+        # The button entity refreshes its `notify` attribute through this.
+        store = maint.MaintenanceStore(hass, "entry-notify-6")
+        await store.async_load()
+        calls: list[int] = []
+        store.async_add_listener("s", 0, "led_lens", lambda: calls.append(1))
+        await store.async_set_notify("s", 0, "led_lens", False)
+        assert calls == [1]
+
+    async def test_notify_does_not_disturb_reset_or_interval(
+        self, hass: HomeAssistant
+    ) -> None:
+        store = maint.MaintenanceStore(hass, "entry-notify-7")
+        await store.async_load()
+        ts = await store.async_reset("s", 0, "led_lens")
+        await store.async_set_interval("s", 0, "led_lens", 42)
+        await store.async_set_notify("s", 0, "led_lens", False)
+        assert store.get_last_reset("s", 0, "led_lens") == ts
+        assert store.get_interval("s", 0, "led_lens", 21) == 42
+
     async def test_listener_unsub(self, hass: HomeAssistant) -> None:
         store = maint.MaintenanceStore(hass, "entry-test-5")
         await store.async_load()
@@ -613,6 +695,68 @@ async def test_number_entity_write_converts_back_to_days(
 
 
 @pytest.mark.asyncio
+async def test_number_entity_days_unit_is_not_converted(
+    hass: HomeAssistant,
+) -> None:
+    """A day-based task must use a factor of 1, not the weekly fallback.
+
+    Regression test: "days" was missing from `_DAYS_PER_UNIT`, so the
+    `.get(unit, 7)` lookup silently applied the weekly factor. The slider
+    then offered 11-17 (labelled as weeks) instead of 80-120 days, and any
+    move of the slider rewrote the interval as a multiple of 7.
+    """
+    from custom_components.redsea.number import MaintenanceIntervalNumberEntity
+
+    device = _FakeNumberDevice(hass)
+    device.maintenance = maint.MaintenanceStore(hass, "n-test-days")
+    await device.maintenance.async_load()
+
+    task = next(t for t in maint.TASKS["RSDOSE4"] if t.key == "dose_heads_calibration")
+    assert task.unit == "days", "test fixture changed: expected days unit"
+
+    entity = MaintenanceIntervalNumberEntity(cast(Any, device), task, sub_id=0)
+
+    # Bounds are the raw day values, not divided by 7.
+    assert entity.native_min_value == float(task.min_days)
+    assert entity.native_max_value == float(task.max_days)
+
+    # The default round-trips exactly instead of being floored to 84.
+    assert entity.native_value == float(task.default_days)
+
+    await device.maintenance.async_set_interval(device.serial, 0, task.key, 100)
+    assert entity.native_value == 100.0
+
+
+@pytest.mark.asyncio
+async def test_number_entity_days_write_is_lossless(hass: HomeAssistant) -> None:
+    """Writing a day-based slider stores the very same number of days."""
+    from custom_components.redsea.number import MaintenanceIntervalNumberEntity
+
+    device = _FakeNumberDevice(hass)
+    device.maintenance = maint.MaintenanceStore(hass, "n-test-days-write")
+    await device.maintenance.async_load()
+
+    task = next(t for t in maint.TASKS["RSDOSE2"] if t.key == "dose_heads_calibration")
+    entity = MaintenanceIntervalNumberEntity(cast(Any, device), task, sub_id=0)
+
+    await entity.async_set_native_value(95.0)
+    assert device.maintenance.get_interval(device.serial, 0, task.key, 0) == 95
+
+
+def test_every_task_unit_has_a_conversion_factor() -> None:
+    """No task may declare a unit the number entity cannot convert.
+
+    Guards against re-introducing the silent weekly fallback for a new unit.
+    """
+    from custom_components.redsea.number import MaintenanceIntervalNumberEntity
+
+    known = set(MaintenanceIntervalNumberEntity._DAYS_PER_UNIT)
+    maint.register_led_tasks(("RSLED90",))
+    used = {t.unit for tasks in maint.TASKS.values() for t in tasks}
+    assert used <= known, f"units without a conversion factor: {used - known}"
+
+
+@pytest.mark.asyncio
 async def test_number_entity_falls_back_to_default_when_store_unset(
     hass: HomeAssistant,
 ) -> None:
@@ -724,6 +868,26 @@ async def test_number_store_fallback_creates_ephemeral_store(
 
     assert isinstance(store, maint.MaintenanceStore)
     assert getattr(device, "maintenance", None) is store
+
+
+@pytest.mark.asyncio
+async def test_switch_store_fallback_creates_ephemeral_store(
+    hass: HomeAssistant, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Same fallback path on the notification switch entity."""
+    from custom_components.redsea.switch import MaintenanceNotifySwitchEntity
+
+    device = _StoreLessDevice(hass)
+    task = next(t for t in maint.TASKS["RSRUN"] if t.key == "run_pump_motor")
+
+    entity = MaintenanceNotifySwitchEntity(cast(Any, device), task, sub_id=0)
+
+    with caplog.at_level("WARNING"):
+        store = entity._store
+
+    assert isinstance(store, maint.MaintenanceStore)
+    assert getattr(device, "maintenance", None) is store
+    assert any("MaintenanceStore missing" in r.message for r in caplog.records)
 
 
 def test_iter_run_pumps_returns_empty_on_get_data_exception() -> None:
@@ -944,6 +1108,63 @@ async def test_button_callback_fires_on_store_change(
     # is what fires.
     await device.maintenance.async_reset(device.serial, 0, task.key)
     assert calls["n"] >= 1
+
+
+@pytest.mark.asyncio
+async def test_switch_callback_refreshes_state_on_store_change(
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The switch's nested callback must refresh `_attr_is_on` AND write state.
+
+    Unlike the button and number entities, this one recomputes its attributes
+    inside the callback (the base SwitchEntity declares `is_on` as a
+    cached_property, so it cannot be overridden as a live property).
+    """
+    from homeassistant.components.switch import SwitchEntity
+
+    from custom_components.redsea.switch import MaintenanceNotifySwitchEntity
+
+    class _Device:
+        def __init__(self) -> None:
+            self.serial = "CB-SW"
+            self._hass = hass
+            self.maintenance = maint.MaintenanceStore(hass, "cb-sw")
+            self.device_info = None
+
+    device = _Device()
+    await device.maintenance.async_load()
+    task = next(t for t in maint.TASKS["RSRUN"] if t.key == "run_pump_motor")
+    entity = MaintenanceNotifySwitchEntity(cast(Any, device), task, sub_id=0)
+
+    async def _noop(self: Any) -> None:
+        return None
+
+    monkeypatch.setattr(SwitchEntity, "async_added_to_hass", _noop, raising=False)
+
+    calls = {"n": 0}
+    entity.async_write_ha_state = lambda: calls.__setitem__("n", calls["n"] + 1)  # type: ignore[assignment]
+
+    # Pre-seed a muted state so we can prove the hook reads the store.
+    await device.maintenance.async_set_notify(device.serial, 0, task.key, False)
+    assert entity.is_on is True, "attribute not refreshed yet"
+
+    await entity.async_added_to_hass()
+    # async_added_to_hass refreshes before HA writes the first state.
+    assert entity.is_on is False
+    assert entity.icon == "mdi:bell-off"
+
+    # Now mutate the store: the production callback refreshes and writes.
+    await device.maintenance.async_set_notify(device.serial, 0, task.key, True)
+    assert calls["n"] >= 1
+    assert entity.is_on is True
+    assert entity.icon == "mdi:bell-ring"
+
+    # Unsubscribing stops the refresh.
+    await entity.async_will_remove_from_hass()
+    before = calls["n"]
+    await device.maintenance.async_set_notify(device.serial, 0, task.key, False)
+    assert calls["n"] == before
 
 
 @pytest.mark.asyncio

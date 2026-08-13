@@ -486,12 +486,12 @@ async def async_setup_entry(
                 ReefRunButtonEntityDescription(
                     key=f"detect_pump_{pump}",
                     translation_key="detect_pump",
-                    icon="mdi:magnify-scan",
+                    icon="mdi:magnify-plus-outline",
                     press_fn=(
                         lambda p: (
-                            lambda device: cast(ReefRunCoordinator, device).detect_pump(
-                                p
-                            )
+                            lambda device: cast(
+                                ReefRunCoordinator, device
+                            ).detect_and_add_pump(p)
                         )
                     )(pump),
                     entity_category=EntityCategory.CONFIG,
@@ -1200,6 +1200,9 @@ class MaintenanceButtonEntity(ReefRoleMixin, ButtonEntity):  # type: ignore[misc
             "days_left": days_left,
             "overdue": (days_left is not None and days_left < 0),
             "task_key": self._task.key,
+            # Mirrors the companion notify switch so the blueprint and the
+            # card can read everything from this single entity.
+            "notify": store.get_notify(serial, self._sub_id, self._task.key),
         }
 
     @property

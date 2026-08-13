@@ -156,7 +156,7 @@
         "name": "Delete Supplement"
       },
       "detect_pump": {
-        "name": "Detect Pump"
+        "name": "Detect and add pump"
       },
       "ec_calibration_cup": {
         "name": "EC Calibration Full Cup"
@@ -325,7 +325,7 @@
         "name": "Clean return pump (months)"
       },
       "maint_dose_heads_calibration_interval_days": {
-        "name": "Calibrate dosing heads (weeks)"
+        "name": "Calibrate dosing heads (days)"
       },
       "maint_dose_heads_replace_interval_months": {
         "name": "Replace dosing heads & tubes (months)"
@@ -1019,6 +1019,48 @@
       "fullcup_enabled": {
         "name": "Full Cup Detection"
       },
+      "maint_ato_ec_sensor_notify": {
+        "name": "Clean EC sensor (notifications)"
+      },
+      "maint_ato_return_pump_notify": {
+        "name": "Clean return pump (notifications)"
+      },
+      "maint_dose_heads_calibration_notify": {
+        "name": "Calibrate dosing heads (notifications)"
+      },
+      "maint_dose_heads_replace_notify": {
+        "name": "Replace dosing heads & tubes (notifications)"
+      },
+      "maint_led_fan_notify": {
+        "name": "Dust the fan and grilles (notifications)"
+      },
+      "maint_led_lens_notify": {
+        "name": "Clean lens (notifications)"
+      },
+      "maint_mat_carbon_replace_notify": {
+        "name": "Replace activated carbon (notifications)"
+      },
+      "maint_run_pump_motor_notify": {
+        "name": "Clean motor and rotor (notifications)"
+      },
+      "maint_run_pump_strainer_notify": {
+        "name": "Clean intake strainer (notifications)"
+      },
+      "maint_run_skim_fullcup_calibration_notify": {
+        "name": "Calibrate fullcup sensor (notifications)"
+      },
+      "maint_run_skim_overskimming_calibration_notify": {
+        "name": "Calibrate overskimming sensor (notifications)"
+      },
+      "maint_run_skim_rotor_notify": {
+        "name": "Clean skimmer pump rotor (notifications)"
+      },
+      "maint_run_skim_venturi_notify": {
+        "name": "Clean venturi & air tube (notifications)"
+      },
+      "maint_wave_rotor_cages_notify": {
+        "name": "Clean rotor cages (notifications)"
+      },
       "maintenance": {
         "name": "Maintenance"
       },
@@ -1071,6 +1113,9 @@
       },
       "new_supplement_short_name": {
         "name": "Supplement Short Name"
+      },
+      "pump_name": {
+        "name": "Pump name"
       },
       "socket_name": {
         "name": "Socket {socket} name"

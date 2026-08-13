@@ -17,10 +17,20 @@
 Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/TRANSLATION.md).
 
 # Übersicht
-***Lokale Verwaltung von HomeAssistant RedSea Reefbeat-Geräten (ohne Cloud): ReefATO+, ReefControl, ReefDose, ReefLed, ReefMat, ReefRun und ReefWave***
+***Lokale Verwaltung von HomeAssistant RedSea Reefbeat-Geräten (ohne Cloud): ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun und ReefWave***
 
-> [!TIP]
-> ***Um erweiterte Zeitpläne für ReefDose, ReefLed, ReefRun und ReefWave zu bearbeiten, verwenden Sie die [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) (currently under development)***
+## Verwandte Projekte
+
+Diese Integration ist eines von drei sich ergänzenden Projekten für ein Red-Sea-Riffaquarium:
+
+| Projekt | Aufgabe |
+| --- | --- |
+| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | Diese Integration. Lokale Steuerung der ReefBeat-Geräte aus Home Assistant, ohne Cloud: ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun und ReefWave. |
+| [**ReefBeat watch**](https://github.com/Elwinmage/ha-reefbeat-component/tree/main/blueprints/automation) | Mit dieser Integration geliefertes Alarm-Blueprint. Benachrichtigt Sie über überfällige Wartungen und Kalibrierungen, abnormale Modi, schwache Batterien und nicht erreichbare Geräte, auf den von Ihnen gewählten Mobilgeräten. [![Öffnen Sie Ihre Home-Assistant-Instanz und zeigen Sie den Blueprint-Importdialog an.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/blueprints/automation/redsea_alerts.en.yaml) |
+| [**ha-reef-card**](https://github.com/Elwinmage/ha-reef-card) | Begleitende Lovelace-Karte. Erforderlich, um erweiterte Zeitpläne für ReefDose, ReefLed, ReefRun und ReefWave zu bearbeiten, und gibt jedem Gerät eine interaktive grafische Ansicht. |
+| [**reefbeatEnergyBackup**](https://github.com/Elwinmage/reefbeatEnergyBackup) | Batteriepuffer bei Stromausfall. 24V-LiFePO₄-Pack, gesteuert von einem Raspberry Pi, mit stufenweiser Drosselung der Pumpen je nach Ladezustand. Läuft eigenständig oder ergänzend zu dieser Integration. |
+
+Alle drei, sowie weitere Riff-Projekte, sind gemeinsam auf der [Projektseite](https://elwinmage.github.io/reeftank/) dokumentiert.
 
 > [!TIP]
 > Die Liste der zukünftigen Implementierungen ist [hier] verfügbar(https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
@@ -41,12 +51,14 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <th>
 <td colspan="2"><b>Model</b></td>
 <td colspan="2"><b>Status</b></td>
+<td><b><a href="https://github.com/Elwinmage/reefbeatEnergyBackup">EnergyBackup</a></b></td>
 <td><b>Issues</b> <br/>📆(Planned) <br/> 🐛(Bugs)</td>
 </th>
 <tr>
 <td><a href="#reefato">ReefATO+</a></td>
 <td colspan="2">RSATO+</td><td>✅ </td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSATO+.png"/></td>
+<td align="center">–</td>
 <td>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsato,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsato,all label:bug" style="text-decoration:none">🐛</a>
@@ -56,6 +68,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <td rowspan="2"><a href="#reefcontrol">ReefControl</a></td>
 <td colspan="2">RSCONTROLPRO</td><td>✅</td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROLPRO.png"/></td>
+<td align="center" rowspan="2">–</td>
 <td rowspan="2">
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:enhancement" style="text-decoration:none">📆</a>
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:bug" style="text-decoration:none">🐛</a>
@@ -69,6 +82,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <td rowspan="2"><a href="#reefcontrol-power">ReefControl-Power</a></td>
 <td colspan="2">RSPOWER6</td><td>✅</td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSPOWER6.png"/></td>
+<td align="center" rowspan="2">–</td>
 <td rowspan="2">
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rspower,all label:enhancement" style="text-decoration:none">📆</a>
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rspower,all label:bug" style="text-decoration:none">🐛</a>
@@ -83,6 +97,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <td colspan="2">RSDOSE2</td>
 <td>✅</td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSDOSE2.png"/></td>
+<td align="center" rowspan="2">–</td>
 <td rowspan="2">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsdose,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsdose,all label:bug" style="text-decoration:none">🐛</a>
@@ -98,6 +113,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <td>RSLED50</td>
 <td>✅</td>
 <td rowspan="3" width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_g1.png"/></td>
+<td align="center" rowspan="6">–</td>
 <td rowspan="6">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsled,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsled,RSLED90,all label:bug" style="text-decoration:none">🐛</a>
@@ -127,6 +143,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <td colspan="2">RSMAT250</td>
 <td>✅</td>
 <td rowspan="3" width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSMAT.png"/></td>
+<td align="center" rowspan="3">–</td>
 <td rowspan="3">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsmat,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsmat,all label:bug" style="text-decoration:none">🐛</a>
@@ -142,6 +159,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <td><a href="#reefrun">ReefRun & DC Skimmer</a></td>
 <td colspan="2">RSRUN</td><td>✅</td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSRUN.png"/></td>
+<td align="center">✅</td>
 <td>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsrun,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsrun,all label:bug" style="text-decoration:none">🐛</a>
@@ -152,6 +170,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 <td colspan="2">RSWAVE25</td>
 <td>✅</td>
 <td width="200px" rowspan="2"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSWAVE.png"/></td>
+<td align="center" rowspan="2">✅</td>
 <td rowspan="2">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rswave,all label:enhancement" style="text-decoration:none">📆</a>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rwave,all label:bug" style="text-decoration:none">🐛</a>
@@ -176,6 +195,7 @@ Um bei der Übersetzung zu helfen, folgen Sie dieser [Anleitung](https://github.
 - [ReefMat](https://github.com/Elwinmage/ha-reefbeat-component/#reefmat)
 - [ReefRun](https://github.com/Elwinmage/ha-reefbeat-component/#reefrun)
 - [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)
+- [Wartung](https://github.com/Elwinmage/ha-reefbeat-component/#maintenance)
 - [Cloud API](https://github.com/Elwinmage/ha-reefbeat-component/#cloud-api)
 - [FAQ](https://github.com/Elwinmage/ha-reefbeat-component/#faq)
 
@@ -295,6 +315,14 @@ Sie können benachrichtigt werden und Ihr Gerät aktualisieren, wenn eine neue F
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_diag.png" alt="Image">
 </p>
 
+### Wartungsaufgaben
+| Aufgabe | Standard | Spanne |
+| ------- | -------- | ------ |
+| EC-Sonde reinigen | 6 Wochen | 3 – 9 Wochen |
+| Rückförderpumpe reinigen | 4,5 Monate | 2 – 7 Monate |
+
+Siehe den Abschnitt [Wartung](README.de.md#wartung).
+
 # ReefControl:
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_devices.png" alt="Image">
@@ -379,6 +407,15 @@ Das RSPOWER (Power Center) ist ein eigenständiges Gerät mit eigener IP-Adresse
   <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/calibration.png" alt="Image">
 </p>
 
+### Wartungsaufgaben
+| Aufgabe | Ebene | Standard | Spanne |
+| ------- | ----- | -------- | ------ |
+| Dosierköpfe kalibrieren | Gerät | 90 Tage | 80 – 120 Tage |
+| Köpfe und Schläuche tauschen | Je Kopf | 15 Monate | 11 – 19 Monate |
+
+Der Tausch wird **je Kopf** verfolgt: Kopf 2 zu wechseln setzt den Countdown der
+anderen drei nicht zurück. Siehe den Abschnitt [Wartung](README.de.md#wartung).
+
 # ReefLED:
 
 - Weiß- und Blaukanal abrufen und einstellen (only for G1: RSLED50, RSLED90, RSLED160)
@@ -447,6 +484,15 @@ Also note that if compensation is enabled, the intensity factor can exceed 100% 
 
 ***
 
+### Wartungsaufgaben
+| Aufgabe | Standard | Spanne |
+| ------- | -------- | ------ |
+| Linsen reinigen | 3 Wochen | 1 – 5 Wochen |
+| Lüfter und Gitter entstauben | 6 Monate | 5 – 7 Monate |
+
+Diese beiden Aufgaben entstehen für alle ReefLED-Generationen, auch für die
+virtuelle LED. Siehe den Abschnitt [Wartung](README.de.md#wartung).
+
 # Virtuelle LED
 - LEDs mit einem virtuellen Gerät gruppieren und verwalten (create a virtual device from the integration panel, then use the configure button to link the LEDs).
 - Sie können Kelvin und Intensität zur Steuerung nur verwenden, wenn Sie G2 oder eine Mischung aus G1 und G2 haben.
@@ -471,6 +517,13 @@ Also note that if compensation is enabled, the intensity factor can exceed 100% 
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_diag.png" alt="Image">
 </p>
+
+### Wartungsaufgaben
+| Aufgabe | Standard | Spanne |
+| ------- | -------- | ------ |
+| Aktivkohle tauschen | 25 Tage | 2 – 5 Wochen |
+
+Siehe den Abschnitt [Wartung](README.de.md#wartung).
 
 # ReefRun:
 - Pumpengeschwindigkeit einstellen
@@ -500,6 +553,29 @@ Also note that if compensation is enabled, the intensity factor can exceed 100% 
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_diag.png" alt="Image">
 </p>
+
+### Wartungsaufgaben
+Die Aufgaben hängen am Untergerät Pumpe und richten sich nach deren Typ.
+
+| Aufgabe | Pumpe | Standard | Spanne |
+| ------- | ----- | -------- | ------ |
+| Motor und Rotor reinigen | Rückförderung | 4,5 Monate | 2 – 7 Monate |
+| Ansaugsieb reinigen | Rückförderung | 6 Wochen | 3 – 9 Wochen |
+| Venturi und Luftschlauch reinigen | Abschäumer | 5 Wochen | 3 – 7 Wochen |
+| Rotor des Abschäumers reinigen | Abschäumer | 4,5 Monate | 2 – 7 Monate |
+| Sonde für vollen Becher kalibrieren | Abschäumer | 4 Wochen | 2 – 6 Wochen |
+| Sonde für Überschäumen kalibrieren | Abschäumer | 4 Wochen | 2 – 6 Wochen |
+
+Die beiden Kalibrieraufgaben überwacht auch das Alarm-Blueprint, das das vom
+Gerät gemeldete Datum der letzten Kalibrierung mit dem hier gesetzten Intervall
+vergleicht. Siehe den Abschnitt [Wartung](README.de.md#wartung).
+
+### Werkzeug zum Ausbau des Rotors
+
+Die obige Aufgabe *Rotor des Abschäumers reinigen* erfordert das Aufschrauben
+des Pumpenkörpers, der nass so gut wie keinen Griff bietet. Ein 3D-druckbares
+Werkzeug dafür, mit Video zur Anwendung, gibt es hier:
+[Red Sea DC Skimmer Rotorwerkzeug](https://elwinmage.github.io/reeftank/#-red-sea-dc-skimmer-impeller-tool).
 
 # ReefWave:
 > [!IMPORTANT]
@@ -574,6 +650,134 @@ The behavior is the same as the ReefBeat mobile app. All waves with the same ID 
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_diag.png" alt="Image">
 </p>
+
+### Wartungsaufgaben
+| Aufgabe | Standard | Spanne |
+| ------- | -------- | ------ |
+| Rotorkäfige reinigen | 2 Monate | 1 – 3 Monate |
+
+Siehe den Abschnitt [Wartung](README.de.md#wartung).
+
+# Wartung
+
+Über die Steuerung der Hardware hinaus verfolgt die Integration die
+**wiederkehrenden Wartungsaufgaben** deiner Ausrüstung: das Venturi eines
+Abschäumers reinigen, die Schläuche einer Dosierpumpe wechseln, die Aktivkohle
+des ReefMat tauschen … Home Assistant erinnert sich daran, nicht mehr du.
+
+Aufgaben hängen am betreffenden Gerät und am **Untergerät**, wenn das genauer
+ist: einem ReefDose-Kopf, einer ReefRun-Pumpe. Ein ReefRun zeigt die Aufgaben
+der Rückförderpumpe an Pumpe 1 und die des Abschäumers an Pumpe 2, nie
+umgekehrt: die Liste folgt dem vom Gerät gemeldeten Pumpentyp.
+
+## Die drei Entitäten einer Aufgabe
+
+Jede Aufgabe erzeugt drei Entitäten, alle in den Kategorien *Konfiguration* und
+*Diagnose*, damit dein Haupt-Dashboard übersichtlich bleibt:
+
+| Entität | Rolle |
+| ------- | ----- |
+| `button.<Gerät>_<Aufgabe>` | **Aufgabe erledigt.** Ein Druck speichert das heutige Datum als letzte Ausführung und startet den Countdown neu. |
+| `number.<Gerät>_<Aufgabe>_interval_<Einheit>` | **Intervall.** Wie oft die Aufgabe zu wiederholen ist, je nach Aufgabe in Tagen, Wochen oder Monaten. |
+| `switch.<Gerät>_<Aufgabe>_notify` | **Benachrichtigungen.** Schaltet die Überfälligkeitsmeldung genau dieser Aufgabe stumm, ohne ihre Frist zu ändern. |
+
+Der Button ist die Entität, die den Zustand trägt. Alles Abgeleitete steht in
+Attributen, sodass eine einzige Entität für ein Dashboard oder eine
+Automatisierung genügt:
+
+| Attribut | Bedeutung |
+| -------- | --------- |
+| `last_reset` | ISO-8601-Datum des letzten Drucks, oder `null`, wenn nie ausgeführt |
+| `interval_days` | Aktuelles Intervall, immer in Tagen normalisiert |
+| `days_left` | Verbleibende Tage, negativ nach Ablauf der Frist |
+| `overdue` | `true`, sobald `days_left` negativ ist |
+| `reef_role` | `maint_<Aufgabenschlüssel>`, die stabile Markierung zum Auffinden der Aufgaben |
+
+> [!TIP]
+> `reef_role` macht das Ganze erweiterbar: Karte und Alarm-Blueprint finden die
+> Aufgaben, indem sie nach diesem Attribut suchen. Eine in einer künftigen
+> Version der Integration ergänzte Aufgabe erscheint in beiden ohne jede
+> Aktualisierung auf deren Seite.
+
+## Intervalle
+
+Die Standardintervalle folgen den Empfehlungen von Red Sea und nehmen den Median
+der veröffentlichten Spanne. Jede Aufgabe definiert zusätzlich ein Minimum und
+ein Maximum, die von der `number`-Entität erzwungen werden: du kannst ein
+Intervall an die Belastung deines Beckens anpassen, aber keinen absurden Wert
+setzen.
+
+Intervalle werden in der für die Aufgabe sinnvollen Einheit angezeigt (Wochen
+für ein Venturi, Monate für einen Rotor) und intern in Tagen gespeichert, sodass
+ein Einheitenwechsel nie Genauigkeit verliert.
+
+## Persistenz
+
+Daten und Intervalle speichert Home Assistant in
+`.storage/redsea_maintenance_<entry_id>`, eine Datei je Konfigurationseintrag.
+Sie überstehen Neustarts, Neuladen der Integration und Geräte-Reboots und werden
+**nie an die Red-Sea-Cloud gesendet**. Wird der Konfigurationseintrag entfernt,
+verschwindet auch die Datei.
+
+## Die Wartungsansicht von ha-reef-card
+
+Die Begleitkarte [ha-reef-card](https://github.com/Elwinmage/ha-reef-card)
+sammelt alle Aufgaben der Anlage in einer eigenen Ansicht, als wäre die Wartung
+ein eigenes Gerät: ein Fortschrittsbalken je Aufgabe, nach Restzeit eingefärbt,
+sortierbar nach Gerät oder Fälligkeit, mit einem Button zum Abhaken, einer
+Glocke zum Stummschalten und einem eingebetteten Schieberegler zum Ändern des
+Intervalls.
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/maintenance_task.png" alt="Wartungsaufgaben in ha-reef-card">
+</p>
+
+## Benachrichtigungen: das Alarm-Blueprint
+
+Die Integration benachrichtigt bewusst nicht selbst: wen, wann und wie
+informiert wird, entscheidest du. Diese Rolle übernimmt das mitgelieferte
+Blueprint **ReefBeat watch**, das auch ungewöhnliche Modi, überfällige
+Kalibrierungen, schwache Batterien und nicht erreichbare Geräte abdeckt.
+
+### Installation
+
+Klicke auf die Schaltfläche unten und bestätige den Import in Home Assistant:
+
+[![Öffne deine Home-Assistant-Instanz und zeige den Blueprint-Importdialog.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FElwinmage%2Fha-reefbeat-component%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fredsea_alerts.en.yaml)
+
+Es gibt auch eine französische Fassung,
+[`redsea_alerts.fr.yaml`](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/blueprints/automation/redsea_alerts.fr.yaml).
+Alternativ kopierst du die Datei nach
+`config/blueprints/automation/redsea_alerts/` und lädst die Automatisierungen
+neu.
+
+Erstelle anschließend eine Automatisierung aus dem Blueprint:
+*Einstellungen → Automatisierungen & Szenen → Automatisierung erstellen →
+Blueprint verwenden → ReefBeat watch (redsea)*.
+
+### Konfiguration
+
+Nur das erste Feld ist Pflicht:
+
+| Abschnitt | Rolle |
+| --------- | ----- |
+| **Benachrichtigungsziele** | Die zu benachrichtigenden Mobilgeräte, ausgewählt im Geräteauswahlfeld. Der Dienst `notify.mobile_app_*` wird automatisch ermittelt. Ein Android-Benachrichtigungskanal lässt sich angeben (Standard `ReefBeat`). |
+| **Wartung überfällig** | Meldet, wenn eine Aufgabe ihre Frist überschreitet. Die Option *Benachrichtigungsschalter je Aufgabe beachten* (standardmäßig aktiv) lässt die Automatisierung den `switch.*_notify`-Entitäten folgen: eine in der Karte stummgeschaltete Aufgabe schweigt damit auch in der Automatisierung. |
+| **Ungewöhnlicher Modus** | Meldet, wenn ein Gerät seinen erwarteten Modus verlässt. `off_grace_minutes` (Standard 5) verhindert Fehlalarme während eines Fütterungszyklus oder eines kurzen manuellen Eingriffs. |
+| **Kalibrierung überfällig** | ReefDose-Köpfe und Kalibrierungen der ReefRun-Abschäumer. |
+| **Verzögerung der Sondenkalibrierung (RSRUN)** | Sonden für vollen Becher und Überschäumen der ReefRun-Abschäumer. |
+| **Alarmmeldung des Geräts** | Leitet die von den Geräten selbst gesendeten Alarmmeldungen weiter. |
+| **Schwache Batterie** / **Gerät nicht erreichbar** | Ohne Überraschungen. |
+
+Jeder Abschnitt lässt sich einzeln abschalten und hat eine eigene
+**Ausschlussliste**: ein Gerät im Test überflutet dich nicht mit Meldungen,
+während die übrigen weiter überwacht werden. Die Automatisierung läuft im
+5-Minuten-Takt und berücksichtigt im nächsten Zyklus Geräte, die der Integration
+hinzugefügt oder aus ihr entfernt wurden — ohne dass du etwas ändern musst.
+
+> [!NOTE]
+> Das Blueprint überwacht **alle** Geräte der Integration und deren Untergeräte.
+> Beim Hinzufügen eines neuen ReefBeat-Geräts ist nichts zu deklarieren.
 
 # Cloud-API
 Die Cloud-API ermöglicht Ihnen:

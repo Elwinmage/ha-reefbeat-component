@@ -156,7 +156,7 @@
         "name": "Eliminar suplemento"
       },
       "detect_pump": {
-        "name": "Detetar bomba"
+        "name": "Detetar e adicionar a bomba"
       },
       "ec_calibration_cup": {
         "name": "Calibração EC Copo cheio"
@@ -325,7 +325,7 @@
         "name": "Limpar a bomba de retorno (meses)"
       },
       "maint_dose_heads_calibration_interval_days": {
-        "name": "Calibrar cabeça de doseamento (semanas)"
+        "name": "Calibrar cabeça de doseamento (dias)"
       },
       "maint_dose_heads_replace_interval_months": {
         "name": "Substituir cabeça e tubos de doseamento (meses)"
@@ -1011,6 +1011,48 @@
       "fullcup_enabled": {
         "name": "Deteção de copo cheio"
       },
+      "maint_ato_ec_sensor_notify": {
+        "name": "Limpar o sensor EC (notificações)"
+      },
+      "maint_ato_return_pump_notify": {
+        "name": "Limpar a bomba de retorno (notificações)"
+      },
+      "maint_dose_heads_calibration_notify": {
+        "name": "Calibrar cabeça de doseamento (notificações)"
+      },
+      "maint_dose_heads_replace_notify": {
+        "name": "Substituir cabeça e tubos de doseamento (notificações)"
+      },
+      "maint_led_fan_notify": {
+        "name": "Limpar o pó do ventilador e das grelhas (notificações)"
+      },
+      "maint_led_lens_notify": {
+        "name": "Limpar a lente (notificações)"
+      },
+      "maint_mat_carbon_replace_notify": {
+        "name": "Substituir o carvão ativado (notificações)"
+      },
+      "maint_run_pump_motor_notify": {
+        "name": "Limpar o motor e o rotor (notificações)"
+      },
+      "maint_run_pump_strainer_notify": {
+        "name": "Limpar o filtro de aspiração (notificações)"
+      },
+      "maint_run_skim_fullcup_calibration_notify": {
+        "name": "Calibrar o sensor de xícara cheia (notificações)"
+      },
+      "maint_run_skim_overskimming_calibration_notify": {
+        "name": "Calibrar o sensor de excesso de espuma (notificações)"
+      },
+      "maint_run_skim_rotor_notify": {
+        "name": "Limpar o rotor da bomba do escumador (notificações)"
+      },
+      "maint_run_skim_venturi_notify": {
+        "name": "Limpar o venturi e o tubo de ar (notificações)"
+      },
+      "maint_wave_rotor_cages_notify": {
+        "name": "Limpar as gaiolas do rotor (notificações)"
+      },
       "maintenance": {
         "name": "Manutenção"
       },
@@ -1063,6 +1105,9 @@
       },
       "new_supplement_short_name": {
         "name": "Nome curto do suplemento"
+      },
+      "pump_name": {
+        "name": "Nome da bomba"
       },
       "socket_name": {
         "name": "Nome tomada {socket}"

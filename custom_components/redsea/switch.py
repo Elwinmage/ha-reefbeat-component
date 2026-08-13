@@ -52,6 +52,8 @@ from .const import (
     MAT_AUTO_ADVANCE_INTERNAL_NAME,
     MAT_SCHEDULE_ADVANCE_INTERNAL_NAME,
     OVERSKIMMING_ENABLED_INTERNAL_NAME,
+    REFRESH_DEVICE_DELAY,
+    SENSOR_CONTROLLED_REFRESH_DELAY,
 )
 from .coordinator import (
     ReefATOCoordinator,
@@ -66,7 +68,12 @@ from .coordinator import (
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
 )
-from .entity import ReefBeatRestoreEntity, RestoreSpec
+from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
+from .maintenance import (
+    MaintenanceStore,
+    MaintenanceTask,
+    tasks_for,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -126,7 +133,12 @@ class _RunPush(Protocol):
     async def push_values(
         self, source: str, method: str = "put", pump: int | None = None
     ) -> None: ...
-    async def async_request_refresh(self, source: str) -> None: ...
+    async def async_request_refresh(
+        self,
+        source: str | None = None,
+        config: bool = False,
+        wait: int = REFRESH_DEVICE_DELAY,
+    ) -> None: ...
 
 
 @runtime_checkable
@@ -195,6 +207,12 @@ class ReefRunSwitchEntityDescription(SwitchEntityDescription):
     pump: int = 0
     method: str = "put"
     notify: bool = False
+    # Source to re-read after a toggle. None means "refresh every data source",
+    # needed when the toggle changes what the pump actually does and therefore
+    # /dashboard, not only /pump/settings.
+    refresh_source: str | None = "/pump/settings"
+    # Seconds to wait before reading the device back
+    refresh_wait: int = REFRESH_DEVICE_DELAY
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -521,6 +539,11 @@ async def async_setup_entry(
                     + ".sensor_controlled",
                     pump=pump,
                     entity_category=EntityCategory.CONFIG,
+                    # Handing control over to the sensor changes the running
+                    # intensity, which lives in /dashboard: refresh everything,
+                    # and leave the pump time to ramp to its new speed.
+                    refresh_source=None,
+                    refresh_wait=SENSOR_CONTROLLED_REFRESH_DELAY,
                 )
             )
 
@@ -672,7 +695,59 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
+    # ---- Maintenance notification switches -----------------------------------
+    # One switch per maintenance task instance, mirroring the button/number
+    # pair created in button.py / number.py.
+    _add_maintenance_notify_switches(device, entities)
+
     async_add_entities(entities, True)
+
+
+def _add_maintenance_notify_switches(
+    device: ReefBeatCoordinator,
+    entities: list[SwitchEntity],
+) -> None:
+    """Create one MaintenanceNotifySwitchEntity per applicable task instance.
+
+    Mirrors `_add_maintenance_numbers` in number.py: same model lookup, same
+    sub-device expansion rules, so the switch always sits next to the button
+    and the interval slider of the very same task.
+    """
+    if isinstance(device, (ReefBeatCloudCoordinator, ReefVirtualLedCoordinator)):
+        return
+
+    hw_model = getattr(device, "_hw", None)
+    if not isinstance(hw_model, str):
+        return
+
+    tasks = tasks_for(hw_model)
+    if not tasks:
+        return
+
+    for task in tasks:
+        if task.applies_to_sub == "head" and isinstance(device, ReefDoseCoordinator):
+            for head in range(1, device.heads_nb + 1):
+                entities.append(
+                    MaintenanceNotifySwitchEntity(device, task, sub_id=head)
+                )
+        elif task.applies_to_sub in ("pump_return", "pump_skimmer") and isinstance(
+            device, ReefRunCoordinator
+        ):
+            wanted = "return" if task.applies_to_sub == "pump_return" else "skimmer"
+            for pump_id in (1, 2):
+                try:
+                    pump = device.get_data(
+                        f"$.sources[?(@.name=='/dashboard')].data.pump_{pump_id}",
+                        True,  # is_None_possible
+                    )
+                except Exception:
+                    pump = None
+                if isinstance(pump, dict) and pump.get("type") == wanted:
+                    entities.append(
+                        MaintenanceNotifySwitchEntity(device, task, sub_id=pump_id)
+                    )
+        else:
+            entities.append(MaintenanceNotifySwitchEntity(device, task, sub_id=0))
 
 
 # -----------------------------------------------------------------------------
@@ -1020,11 +1095,7 @@ class ReefRunSwitchEntity(ReefBeatSwitchEntity):
         if self._typed_desc.notify:
             self._device.hass.bus.fire(self._typed_desc.value_name, {})
 
-        run = cast(_RunPush, self._device)
-        await run.push_values(
-            source="/pump/settings", method=self._typed_desc.method, pump=self._pump
-        )
-        await run.async_request_refresh(source="/pump/settings")
+        await self._push_and_refresh()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         self._attr_is_on = False
@@ -1035,11 +1106,23 @@ class ReefRunSwitchEntity(ReefBeatSwitchEntity):
         self.async_write_ha_state()
         if self._typed_desc.notify:
             self._device.hass.bus.fire(self._typed_desc.value_name, {})
+        await self._push_and_refresh()
+
+    async def _push_and_refresh(self) -> None:
+        """Send the new value then read the device back.
+
+        Which sources are re-read, and after how long, depends on the switch:
+        a schedule toggle only changes /pump/settings, while handing control
+        over to the sensor also changes the intensity reported by /dashboard.
+        """
         run = cast(_RunPush, self._device)
         await run.push_values(
             source="/pump/settings", method=self._typed_desc.method, pump=self._pump
         )
-        await run.async_request_refresh(source="/pump/settings")
+        await run.async_request_refresh(
+            source=self._typed_desc.refresh_source,
+            wait=self._typed_desc.refresh_wait,
+        )
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
@@ -1609,3 +1692,129 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
                 mdi_icon = "redsea:" + self._shortcut["icon"]
                 return mdi_icon
         return self.entity_description.icon
+
+
+# Maintenance notification switches share the ReefRoleMixin so their
+# translation_key is also exposed as `reef_role` (consumed by the custom card).
+class MaintenanceNotifySwitchEntity(ReefRoleMixin, SwitchEntity):  # type: ignore[misc]
+    """Switch enabling/disabling overdue alerts for one maintenance task.
+
+    The value lives in the persistent MaintenanceStore next to `last_reset`
+    and `interval_days`, and is mirrored as the `notify` attribute of the
+    matching MaintenanceButtonEntity. The alert blueprint reads that single
+    attribute, so it never has to correlate two entities.
+
+    `reef_role` is "<task.translation_key>_notify", which lets cards and
+    templates tell it apart both from the action button ("maint_<task>") and
+    from the interval number ("maint_<task>_interval_<unit>").
+    """
+
+    _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        task: MaintenanceTask,
+        sub_id: int = 0,
+    ) -> None:
+        self._device = device
+        self._task = task
+        self._sub_id = sub_id
+
+        suffix = f"_{sub_id}" if sub_id > 0 else ""
+        self._attr_unique_id = f"{device.serial}_{task.key}_notify{suffix}"
+        self._attr_translation_key = f"{task.translation_key}_notify"
+
+        # Bind to the right (sub-)device for UI grouping.
+        if (
+            sub_id > 0
+            and hasattr(device, "head_device_info")
+            and task.applies_to_sub == "head"
+        ):
+            self._attr_device_info = cast(Any, device).head_device_info(sub_id)
+        elif sub_id > 0 and hasattr(device, "pump_device_info"):
+            self._attr_device_info = cast(Any, device).pump_device_info(sub_id)
+        else:
+            self._attr_device_info = device.device_info
+
+        self._attr_available = True
+        self._unsub: Callable[[], None] | None = None
+
+        # State is mirrored into `_attr_is_on` / `_attr_icon` rather than
+        # exposed through overridden properties: the base SwitchEntity
+        # declares both as `cached_property`, so a plain `property` override
+        # fails pyright and would cache a value that must change.
+        # These defaults match MaintenanceState.notify until the store is
+        # read in `async_added_to_hass`.
+        self._attr_is_on = True
+        self._attr_icon = "mdi:bell-ring"
+
+    # ---- store access -----------------------------------------------------
+
+    @property
+    def _store(self) -> MaintenanceStore:
+        """Return the device's MaintenanceStore, lazy-creating a fallback.
+
+        See `MaintenanceButtonEntity._store` for the rationale.
+        """
+        device = cast(Any, self._device)
+        store = getattr(device, "maintenance", None)
+        if store is None:
+            _LOGGER.warning(
+                "MaintenanceStore missing on %s; using ephemeral fallback "
+                "(notification settings will not persist across restarts)",
+                getattr(device, "_title", device.__class__.__name__),
+            )
+            store = MaintenanceStore(
+                device._hass,
+                f"fallback_{id(device)}",
+            )
+            device.maintenance = store
+        return store
+
+    # ---- state ------------------------------------------------------------
+
+    def _refresh_state(self) -> None:
+        """Pull the current value from the store into the entity attributes."""
+        enabled = self._store.get_notify(
+            self._device.serial, self._sub_id, self._task.key
+        )
+        self._attr_is_on = enabled
+        self._attr_icon = "mdi:bell-ring" if enabled else "mdi:bell-off"
+
+    # ---- lifecycle --------------------------------------------------------
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        # Read the persisted value before Home Assistant writes the first
+        # state, otherwise a muted task would briefly show up as enabled.
+        self._refresh_state()
+
+        @callback
+        def _on_store_change() -> None:
+            self._refresh_state()
+            self.async_write_ha_state()
+
+        self._unsub = self._store.async_add_listener(
+            self._device.serial, self._sub_id, self._task.key, _on_store_change
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._unsub is not None:
+            self._unsub()
+            self._unsub = None
+        await super().async_will_remove_from_hass()
+
+    # ---- actions ----------------------------------------------------------
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._store.async_set_notify(
+            self._device.serial, self._sub_id, self._task.key, True
+        )
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._store.async_set_notify(
+            self._device.serial, self._sub_id, self._task.key, False
+        )

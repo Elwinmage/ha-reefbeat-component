@@ -89,6 +89,9 @@ DO_NOT_REFRESH_TIME: Final[int] = 2  # seconds
 REFRESH_DEVICE_DELAY: Final[int] = (
     2  # Time to wait for device to take data refresh into account
 )
+# Switching a pump to (or from) sensor control makes it ramp to a new speed:
+# wait a bit longer before reading /dashboard back
+SENSOR_CONTROLLED_REFRESH_DELAY: Final[int] = 3
 DEFAULT_TIMEOUT: Final[int] = 20
 
 HTTP_MAX_RETRY: Final[int] = 5

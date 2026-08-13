@@ -316,7 +316,8 @@ def tasks_for(hw_model: str) -> tuple[MaintenanceTask, ...]:
 #   "instances": {
 #     "<serial>:<sub_id>:<task_key>": {
 #       "last_reset": "2025-12-15T10:30:00+00:00",  # ISO-8601 UTC
-#       "interval_days": 60                          # optional override
+#       "interval_days": 60,                         # optional override
+#       "notify": false                              # only stored when disabled
 #     },
 #     ...
 #   }
@@ -334,6 +335,10 @@ class MaintenanceState:
 
     last_reset: datetime | None = None
     interval_days: int | None = None  # None means "use task.default_days"
+    # Whether the alert blueprint should notify when this instance becomes
+    # overdue. Defaults to True so existing installs keep their behaviour;
+    # only the "disabled" value is persisted (see _async_save).
+    notify: bool = True
 
 
 class MaintenanceStore:
@@ -365,6 +370,8 @@ class MaintenanceStore:
             self._data[iid] = MaintenanceState(
                 last_reset=_parse_dt(payload.get("last_reset")),
                 interval_days=payload.get("interval_days"),
+                # Absent key means "never disabled" -> notifications on.
+                notify=payload.get("notify", True) is not False,
             )
         self._loaded = True
         _LOGGER.debug("MaintenanceStore loaded %d instances", len(self._data))
@@ -377,6 +384,9 @@ class MaintenanceStore:
                 entry["last_reset"] = state.last_reset.isoformat()
             if state.interval_days is not None:
                 entry["interval_days"] = state.interval_days
+            # Persist only the non-default value to keep the store lean.
+            if not state.notify:
+                entry["notify"] = False
             if entry:
                 out_instances[iid] = entry
         await self._store.async_save({"instances": out_instances})
@@ -403,6 +413,10 @@ class MaintenanceStore:
         val = self.get_state(serial, sub_id, task_key).interval_days
         return val if val is not None else default
 
+    def get_notify(self, serial: str, sub_id: int, task_key: str) -> bool:
+        """Return True when overdue alerts are enabled for this instance."""
+        return self.get_state(serial, sub_id, task_key).notify
+
     # ---- public write API ------------------------------------------------
 
     async def async_reset(self, serial: str, sub_id: int, task_key: str) -> datetime:
@@ -420,6 +434,15 @@ class MaintenanceStore:
         """Override the interval for an instance, persist, and notify."""
         state = self.get_state(serial, sub_id, task_key)
         state.interval_days = int(days)
+        await self._async_save()
+        self._notify(_instance_id(serial, sub_id, task_key))
+
+    async def async_set_notify(
+        self, serial: str, sub_id: int, task_key: str, enabled: bool
+    ) -> None:
+        """Enable/disable overdue alerts for an instance, persist, and notify."""
+        state = self.get_state(serial, sub_id, task_key)
+        state.notify = bool(enabled)
         await self._async_save()
         self._notify(_instance_id(serial, sub_id, task_key))
 

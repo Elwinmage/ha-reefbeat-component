@@ -245,6 +245,15 @@ blueprint:
             device:
               integration: redsea
               multiple: true
+        maintenance_respect_switch:
+          name: Respecter les interrupteurs de notification par tâche
+          description: >
+            Si activé, une tâche de maintenance dont l'interrupteur
+            « (notifications) » est éteint est ignorée, même si elle est en
+            retard. Laissez activé sauf si vous voulez être alerté quels que
+            soient les interrupteurs.
+          default: true
+          selector: {boolean: {}}
 
 trigger:
   - platform: time_pattern
@@ -269,6 +278,7 @@ variables:
   battery_exclude: !input battery_exclude
   unavailable_exclude: !input unavailable_exclude
   maintenance_exclude: !input maintenance_exclude
+  maintenance_respect_switch: !input maintenance_respect_switch
   # (calibration_max_days removed - each device now has its own interval)
   # Préfixes de rôle ReefBeat (standards)
   role_mode: "mode"
@@ -626,8 +636,14 @@ action:
                    and e.startswith('button.')
                    and (state_attr(e, 'reef_role') or '').startswith('maint_')
                    and is_excluded(d, maintenance_exclude) | trim != 'True' -%}
+              {#- Désactivation par tâche : le bouton recopie l'état de son
+                     interrupteur de notification dans l'attribut `notify`.
+                     Un attribut absent (ancienne version de l'intégration)
+                     est considéré comme activé. -#}
+              {%- set notify_flag = state_attr(e, 'notify') -%}
+              {%- set muted = maintenance_respect_switch and notify_flag is false -%}
               {%- set dl = state_attr(e, 'days_left') -%}
-              {%- if dl is number and dl < 0 -%}
+              {%- if dl is number and dl < 0 and not muted -%}
                 {%- set ns.items = ns.items + [{
                   'type': 'maintenance',
                   'device': dname,

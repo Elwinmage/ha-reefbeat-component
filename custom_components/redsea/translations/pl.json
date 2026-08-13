@@ -156,7 +156,7 @@
         "name": "Usuń suplement"
       },
       "detect_pump": {
-        "name": "Wykryj pompę"
+        "name": "Wykryj i dodaj pompę"
       },
       "ec_calibration_cup": {
         "name": "Kalibracja EC Pełny kubek"
@@ -325,7 +325,7 @@
         "name": "Wyczyścić pompę powrotną (miesiące)"
       },
       "maint_dose_heads_calibration_interval_days": {
-        "name": "Kalibracja głowicy dozującej (tygodnie)"
+        "name": "Kalibracja głowicy dozującej (dni)"
       },
       "maint_dose_heads_replace_interval_months": {
         "name": "Wymienić głowicę dozującą i wężyki (miesiące)"
@@ -1011,6 +1011,48 @@
       "fullcup_enabled": {
         "name": "Wykrywanie pełnego pojemnika"
       },
+      "maint_ato_ec_sensor_notify": {
+        "name": "Wyczyścić czujnik EC (powiadomienia)"
+      },
+      "maint_ato_return_pump_notify": {
+        "name": "Wyczyścić pompę powrotną (powiadomienia)"
+      },
+      "maint_dose_heads_calibration_notify": {
+        "name": "Kalibracja głowicy dozującej (powiadomienia)"
+      },
+      "maint_dose_heads_replace_notify": {
+        "name": "Wymienić głowicę dozującą i wężyki (powiadomienia)"
+      },
+      "maint_led_fan_notify": {
+        "name": "Odkurzyć wentylator i kratki (powiadomienia)"
+      },
+      "maint_led_lens_notify": {
+        "name": "Wyczyścić soczewkę (powiadomienia)"
+      },
+      "maint_mat_carbon_replace_notify": {
+        "name": "Wymienić węgiel aktywny (powiadomienia)"
+      },
+      "maint_run_pump_motor_notify": {
+        "name": "Wyczyścić silnik i wirnik (powiadomienia)"
+      },
+      "maint_run_pump_strainer_notify": {
+        "name": "Wyczyścić sitko zasysające (powiadomienia)"
+      },
+      "maint_run_skim_fullcup_calibration_notify": {
+        "name": "Kalibracja czujnika fullcup (powiadomienia)"
+      },
+      "maint_run_skim_overskimming_calibration_notify": {
+        "name": "Kalibracja czujnika overskimming (powiadomienia)"
+      },
+      "maint_run_skim_rotor_notify": {
+        "name": "Wyczyścić wirnik pompy odpieniacza (powiadomienia)"
+      },
+      "maint_run_skim_venturi_notify": {
+        "name": "Wyczyścić venturi i wąż powietrzny (powiadomienia)"
+      },
+      "maint_wave_rotor_cages_notify": {
+        "name": "Wyczyścić klatki wirnika (powiadomienia)"
+      },
       "maintenance": {
         "name": "Konserwacja"
       },
@@ -1063,6 +1105,9 @@
       },
       "new_supplement_short_name": {
         "name": "Skrócona nazwa suplementu"
+      },
+      "pump_name": {
+        "name": "Nazwa pompy"
       },
       "socket_name": {
         "name": "Nazwa gniazda {socket}"
