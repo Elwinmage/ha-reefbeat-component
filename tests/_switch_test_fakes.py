@@ -186,6 +186,39 @@ class FakeControlCoordinator(FakeCoordinator):
     port_count: int = 2
     my_api: _FakeApi = field(default_factory=_FakeApi)
     refreshed_all: int = 0
+    # Recorders for the port-config control surface (mirrors FakePowerCoordinator).
+    mode_calls: list[tuple[int, str]] = field(default_factory=list)
+    name_calls: list[tuple[int, str]] = field(default_factory=list)
+    schedule_calls: list[tuple[int, list[dict[str, int]]]] = field(default_factory=list)
+    setup_finished: int = 0
+    # Which ports report as installed; the mode select and name text gate
+    # their availability on this.
+    installed_ports: set[int] = field(default_factory=lambda: {0, 1})
+    deleted_ports: list[int] = field(default_factory=list)
+
+    def port_is_installed(self, number: int) -> bool:
+        return number in self.installed_ports
+
+    async def install_port(self, number: int, ptype: str = "other") -> None:
+        self.installed_ports.add(number)
+
+    async def delete_port(self, number: int) -> None:
+        self.installed_ports.discard(number)
+        self.deleted_ports.append(number)
+
+    async def set_port_mode(self, number: int, mode: str) -> None:
+        self.mode_calls.append((number, mode))
+
+    async def set_port_name(self, number: int, name: str) -> None:
+        self.name_calls.append((number, name))
+
+    async def set_port_schedule(
+        self, number: int, intervals: list[dict[str, int]]
+    ) -> None:
+        self.schedule_calls.append((number, intervals))
+
+    async def setup_finish(self) -> None:
+        self.setup_finished += 1
 
     async def async_request_refresh(  # type: ignore[override]
         self, source: str | None = None, config: bool = False, wait: int = 2

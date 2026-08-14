@@ -194,6 +194,18 @@
       "maint_ato_return_pump": {
         "name": "Opvoerpomp reinigen"
       },
+      "maint_control_probe_calibration_orp": {
+        "name": "Sonde {probe} controleren"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Sonde {probe} kalibreren"
+      },
+      "maint_control_probe_clean": {
+        "name": "Sonde {probe} reinigen"
+      },
+      "maint_control_probe_replace": {
+        "name": "Sonde {probe} vervangen"
+      },
       "maint_dose_heads_calibration": {
         "name": "Doseerkop kalibreren"
       },
@@ -236,6 +248,15 @@
       "new_roll": {
         "name": "Nieuwe rol"
       },
+      "port_delete": {
+        "name": "Poort {port} verwijderen"
+      },
+      "port_install_ato": {
+        "name": "Poort {port} als ATO installeren"
+      },
+      "port_install_other": {
+        "name": "Poort {port} als apparaat installeren"
+      },
       "preview_save": {
         "name": "Voorvertoning opslaan"
       },
@@ -263,6 +284,15 @@
       "set_supplement_name": {
         "name": "Stel nieuwe supplementnaam in"
       },
+      "setup_finish": {
+        "name": "Installatie voltooien"
+      },
+      "socket_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_unsubscribe": {
+        "name": "Abonnement stopcontact {socket} opzeggen"
+      },
       "start_calibration": {
         "name": "Start kalibratie"
       },
@@ -277,9 +307,6 @@
       },
       "test_calibration": {
         "name": "Test nieuwe kalibratie"
-      },
-      "setup_finish": {
-        "name": "Installatie voltooien"
       }
     },
     "light": {
@@ -326,6 +353,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Opvoerpomp reinigen (maanden)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Sonde {probe} controleren (maanden)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Sonde {probe} kalibreren (weken)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Sonde {probe} reinigen (weken)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Sonde {probe} vervangen (maanden)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Doseerkop kalibreren (dagen)"
@@ -433,6 +472,14 @@
       "model": {
         "name": "Model"
       },
+      "port_mode": {
+        "name": "Poort {port} modus",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "schedule": "Schema"
+        }
+      },
       "position": {
         "name": "Positie",
         "state": {
@@ -459,18 +506,18 @@
           "un": "Uniform"
         }
       },
-      "supplements": {
-        "name": "Supplementen",
-        "state": {
-          "other": "Overig"
-        }
-      },
       "socket_mode": {
         "name": "Modus stopcontact {socket}",
         "state": {
           "off": "Uit",
           "on": "Aan",
           "schedule": "Schema"
+        }
+      },
+      "supplements": {
+        "name": "Supplementen",
+        "state": {
+          "other": "Overig"
         }
       }
     },
@@ -1025,6 +1072,18 @@
       "maint_ato_return_pump_notify": {
         "name": "Opvoerpomp reinigen (meldingen)"
       },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Sonde {probe} controleren (meldingen)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Sonde {probe} kalibreren (meldingen)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Sonde {probe} reinigen (meldingen)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Sonde {probe} vervangen (meldingen)"
+      },
       "maint_dose_heads_calibration_notify": {
         "name": "Doseerkop kalibreren (meldingen)"
       },
@@ -1113,6 +1172,9 @@
       },
       "new_supplement_short_name": {
         "name": "Korte naam supplement"
+      },
+      "port_name": {
+        "name": "Poort {port} naam"
       },
       "pump_name": {
         "name": "Pompnaam"

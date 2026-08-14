@@ -193,6 +193,18 @@
       "maint_ato_return_pump": {
         "name": "Nettoyer la pompe de remontée"
       },
+      "maint_control_probe_calibration_orp": {
+        "name": "Vérifier la sonde {probe}"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Étalonner la sonde {probe}"
+      },
+      "maint_control_probe_clean": {
+        "name": "Nettoyer la sonde {probe}"
+      },
+      "maint_control_probe_replace": {
+        "name": "Remplacer la sonde {probe}"
+      },
       "maint_dose_heads_calibration": {
         "name": "Étalonner les têtes de dosage"
       },
@@ -235,6 +247,15 @@
       "new_roll": {
         "name": "Nouveau Rouleau"
       },
+      "port_delete": {
+        "name": "Désinstaller le port {port}"
+      },
+      "port_install_ato": {
+        "name": "Installer le port {port} comme ATO"
+      },
+      "port_install_other": {
+        "name": "Installer le port {port} comme appareil"
+      },
       "preview_save": {
         "name": "Sauvegarder la prévisualisation"
       },
@@ -262,6 +283,15 @@
       "set_supplement_name": {
         "name": "Modifer le nom du supplément"
       },
+      "setup_finish": {
+        "name": "Terminer la configuration"
+      },
+      "socket_delete": {
+        "name": "Désinstaller la prise {socket}"
+      },
+      "socket_unsubscribe": {
+        "name": "Désabonner la prise {socket}"
+      },
       "start_calibration": {
         "name": "Démarrer la  Calibration"
       },
@@ -276,9 +306,6 @@
       },
       "test_calibration": {
         "name": "Tester la Calibration"
-      },
-      "setup_finish": {
-        "name": "Terminer la configuration"
       }
     },
     "light": {
@@ -325,6 +352,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Nettoyer la pompe de remontée (mois)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Vérifier la sonde {probe} (mois)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Étalonner la sonde {probe} (semaines)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Nettoyer la sonde {probe} (semaines)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Remplacer la sonde {probe} (mois)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Étalonner les têtes de dosage (jours)"
@@ -432,6 +471,14 @@
       "model": {
         "name": "Modèle"
       },
+      "port_mode": {
+        "name": "Port {port} mode",
+        "state": {
+          "off": "Arrêt",
+          "on": "Marche",
+          "schedule": "Programmation"
+        }
+      },
       "position": {
         "name": "Position",
         "state": {
@@ -458,18 +505,18 @@
           "un": "Uniforme"
         }
       },
-      "supplements": {
-        "name": "Suppléments",
-        "state": {
-          "other": "Autre"
-        }
-      },
       "socket_mode": {
         "name": "Mode prise {socket}",
         "state": {
           "off": "Éteint",
           "on": "Allumé",
           "schedule": "Programmation"
+        }
+      },
+      "supplements": {
+        "name": "Suppléments",
+        "state": {
+          "other": "Autre"
         }
       }
     },
@@ -1015,6 +1062,18 @@
       "maint_ato_return_pump_notify": {
         "name": "Nettoyer la pompe de remontée (notifications)"
       },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Vérifier la sonde {probe} (notifications)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Étalonner la sonde {probe} (notifications)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Nettoyer la sonde {probe} (notifications)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Remplacer la sonde {probe} (notifications)"
+      },
       "maint_dose_heads_calibration_notify": {
         "name": "Étalonner les têtes de dosage (notifications)"
       },
@@ -1103,6 +1162,9 @@
       },
       "new_supplement_short_name": {
         "name": "Nom de la tête"
+      },
+      "port_name": {
+        "name": "Port {port} nom"
       },
       "pump_name": {
         "name": "Nom de la pompe"

@@ -194,6 +194,18 @@
       "maint_ato_return_pump": {
         "name": "Rückförderpumpe reinigen"
       },
+      "maint_control_probe_calibration_orp": {
+        "name": "Sonde {probe} prüfen"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Sonde {probe} kalibrieren"
+      },
+      "maint_control_probe_clean": {
+        "name": "Sonde {probe} reinigen"
+      },
+      "maint_control_probe_replace": {
+        "name": "Sonde {probe} ersetzen"
+      },
       "maint_dose_heads_calibration": {
         "name": "Dosierkopf kalibrieren"
       },
@@ -236,6 +248,15 @@
       "new_roll": {
         "name": "Neue Rolle"
       },
+      "port_delete": {
+        "name": "Port {port} deinstallieren"
+      },
+      "port_install_ato": {
+        "name": "Port {port} als ATO installieren"
+      },
+      "port_install_other": {
+        "name": "Port {port} als Gerät installieren"
+      },
       "preview_save": {
         "name": "Vorschau speichern"
       },
@@ -263,6 +284,15 @@
       "set_supplement_name": {
         "name": "Neuen Namen setzen"
       },
+      "setup_finish": {
+        "name": "Einrichtung abschließen"
+      },
+      "socket_delete": {
+        "name": "Steckdose {socket} deinstallieren"
+      },
+      "socket_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
       "start_calibration": {
         "name": "Kalibrierung starten"
       },
@@ -277,9 +307,6 @@
       },
       "test_calibration": {
         "name": "Neue Kalibrierung testen"
-      },
-      "setup_finish": {
-        "name": "Einrichtung abschließen"
       }
     },
     "light": {
@@ -326,6 +353,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Rückförderpumpe reinigen (Monate)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Sonde {probe} prüfen (Monate)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Sonde {probe} kalibrieren (Wochen)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Sonde {probe} reinigen (Wochen)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Sonde {probe} ersetzen (Monate)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Dosierkopf kalibrieren (Tage)"
@@ -433,6 +472,14 @@
       "model": {
         "name": "Modell"
       },
+      "port_mode": {
+        "name": "Port {port} Modus",
+        "state": {
+          "off": "Aus",
+          "on": "Ein",
+          "schedule": "Zeitplan"
+        }
+      },
       "position": {
         "name": "Position",
         "state": {
@@ -459,18 +506,18 @@
           "un": "Gleichmäßig"
         }
       },
-      "supplements": {
-        "name": "Nahrungsergänzungsmittel",
-        "state": {
-          "other": "Sonstige"
-        }
-      },
       "socket_mode": {
         "name": "Modus Steckdose {socket}",
         "state": {
           "off": "Aus",
           "on": "Ein",
           "schedule": "Zeitplan"
+        }
+      },
+      "supplements": {
+        "name": "Nahrungsergänzungsmittel",
+        "state": {
+          "other": "Sonstige"
         }
       }
     },
@@ -1017,6 +1064,18 @@
       "maint_ato_return_pump_notify": {
         "name": "Rückförderpumpe reinigen (Benachrichtigungen)"
       },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Sonde {probe} prüfen (Benachrichtigungen)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Sonde {probe} kalibrieren (Benachrichtigungen)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Sonde {probe} reinigen (Benachrichtigungen)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Sonde {probe} ersetzen (Benachrichtigungen)"
+      },
       "maint_dose_heads_calibration_notify": {
         "name": "Dosierkopf kalibrieren (Benachrichtigungen)"
       },
@@ -1105,6 +1164,9 @@
       },
       "new_supplement_short_name": {
         "name": "Kurzname des Nahrungsergänzungsmittels"
+      },
+      "port_name": {
+        "name": "Port {port} Name"
       },
       "pump_name": {
         "name": "Pumpenname"

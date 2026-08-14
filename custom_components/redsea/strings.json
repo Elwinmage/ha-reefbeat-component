@@ -194,6 +194,18 @@
       "maint_ato_return_pump": {
         "name": "Clean return pump"
       },
+      "maint_control_probe_calibration_orp": {
+        "name": "Validate probe {probe}"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Calibrate probe {probe}"
+      },
+      "maint_control_probe_clean": {
+        "name": "Clean probe {probe}"
+      },
+      "maint_control_probe_replace": {
+        "name": "Replace probe {probe}"
+      },
       "maint_dose_heads_calibration": {
         "name": "Calibrate dosing heads"
       },
@@ -236,6 +248,15 @@
       "new_roll": {
         "name": "New Roll"
       },
+      "port_delete": {
+        "name": "Uninstall port {port}"
+      },
+      "port_install_ato": {
+        "name": "Install port {port} as ATO"
+      },
+      "port_install_other": {
+        "name": "Install port {port} as device"
+      },
       "preview_save": {
         "name": "Save preview"
       },
@@ -263,6 +284,15 @@
       "set_supplement_name": {
         "name": "Set new supplement name"
       },
+      "setup_finish": {
+        "name": "Finish setup"
+      },
+      "socket_delete": {
+        "name": "Uninstall socket {socket}"
+      },
+      "socket_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
       "start_calibration": {
         "name": "Start  Calibration"
       },
@@ -277,9 +307,6 @@
       },
       "test_calibration": {
         "name": "Test new Calibration"
-      },
-      "setup_finish": {
-        "name": "Finish setup"
       }
     },
     "light": {
@@ -326,6 +353,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Clean return pump (months)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Validate probe {probe} (months)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Calibrate probe {probe} (weeks)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Clean probe {probe} (weeks)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Replace probe {probe} (months)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Calibrate dosing heads (days)"
@@ -433,6 +472,14 @@
       "model": {
         "name": "Model"
       },
+      "port_mode": {
+        "name": "Port {port} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule"
+        }
+      },
       "position": {
         "name": "Position",
         "state": {
@@ -459,18 +506,18 @@
           "un": "Uniform"
         }
       },
-      "supplements": {
-        "name": "Supplements",
-        "state": {
-          "other": "Other"
-        }
-      },
       "socket_mode": {
         "name": "Socket {socket} mode",
         "state": {
           "off": "Off",
           "on": "On",
           "schedule": "Schedule"
+        }
+      },
+      "supplements": {
+        "name": "Supplements",
+        "state": {
+          "other": "Other"
         }
       }
     },
@@ -1025,6 +1072,18 @@
       "maint_ato_return_pump_notify": {
         "name": "Clean return pump (notifications)"
       },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Validate probe {probe} (notifications)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Calibrate probe {probe} (notifications)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Clean probe {probe} (notifications)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Replace probe {probe} (notifications)"
+      },
       "maint_dose_heads_calibration_notify": {
         "name": "Calibrate dosing heads (notifications)"
       },
@@ -1113,6 +1172,9 @@
       },
       "new_supplement_short_name": {
         "name": "Supplement Short Name"
+      },
+      "port_name": {
+        "name": "Port {port} name"
       },
       "pump_name": {
         "name": "Pump name"

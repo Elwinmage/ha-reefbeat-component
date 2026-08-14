@@ -4,26 +4,19 @@ Provides helpers for the ReefControl hub (RSCONTROLPRO, RSCONTROLLITE), which
 acts as the central hub for ReefSense digital probes and exposes 1 (Lite) or
 2 (Pro) 12V DC output ports.
 
-Endpoints confirmed on a real RSCONTROLPRO (firmware 1.1.9, framework 4.3.2)
-by packet capture and by direct probing of the device:
+Endpoints observed on real devices (v1.3_25A firmware):
     - GET /dashboard        — mode, cable_connected, connected power center,
                               probes[], ports[], buzzer, leak_detector
-    - GET /configuration    — shortcut_off_delay, leak_buzzer_config and
-                              danger_buzzer_config ({enabled, frequency,
-                              duty_cycle}), leak_detector,
-                              danger_debounce_seconds
-    - GET /leak/config      — {notify, buzzer, leak_detector}
-    - PUT /leak/config      — same + write-only `emergency_shutdown`
-    - GET /ports/config     — array: per-port name/mode/enabled/detector/percent
-    - GET /probe/config     — array: [{name, type, uid}]  (PUT renames a probe)
-    - GET /subscription-info— {external:[…sockets…], internal:[…ports…]}
+    - GET /configuration    — buzzer configs, leak_detector, danger debounce
     - GET /mode             — current device mode
     - GET /time, /wifi, /cloud, /device-info, /firmware, /logging (base)
 
-`leak_detector` appears on both `/configuration` and `/leak/config`; the buzzer
-tone parameters only exist on `/configuration`, while `notify` and
-`emergency_shutdown` only exist on `/leak/config`. See
-doc/api/reef-control-power.md.
+Per-port configuration (mirrors the RSPOWER socket API, different wire shape):
+    - GET  /ports/config      — bare array of port entries
+    - PUT  /ports/config      — bare array, partial update per port
+    - PUT  /port/<n>/schedule — {"intervals":[{"time","duration"}]}
+    - POST /port/<n>/toggle   — flip the port state
+    - POST /setup-finish      — leave setup mode (device switches to auto)
 
 ATO endpoints (globally-scoped, port disambiguation via body):
     - POST /ato/manual-pump   — one manual dose on the ATO port
@@ -52,7 +45,7 @@ from typing import Any, cast
 
 import aiohttp
 
-from .api import ReefBeatAPI, SourceEntry
+from .api import HttpResult, ReefBeatAPI, SourceEntry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,29 +71,171 @@ class ReefControlAPI(ReefBeatAPI):
         """
         super().__init__(ip, live_config_update, session)
 
-        # Register the ReefControl config sources.
+        # Register the config sources polled with config refreshes.
         #
-        # `/configuration` carries the device-wide settings (buzzer tone and
-        # duty cycle for both the leak and danger alarms, leak_detector,
-        # danger_debounce_seconds, shortcut_off_delay). The other four are
-        # confirmed by app traffic and were previously unpolled: `/leak/config`
-        # duplicates `leak_detector` but adds `notify`, `/ports/config` carries
-        # the per-port settings absent from `/dashboard`, `/probe/config` holds
-        # the user-chosen probe names, and `/subscription-info` reports which
-        # probes drive which sockets/ports.
+        # `/ports/config` is required (not merely nice to have) because
+        # `PUT /ports/config` is a *whole-entry* write: the app always resends
+        # `type`, `enabled`, `power_on_percent`, `power_detector_enabled` and
+        # `is_btn_assigned` alongside the changed field, and `/dashboard`
+        # carries none of those.
         sources = cast(list[SourceEntry], self.data.get("sources", []))
-        for name in (
-            "/configuration",
-            "/leak/config",
-            "/ports/config",
-            "/probe/config",
-            "/subscription-info",
-        ):
+        for name in ("/configuration", "/ports/config", "/subscription-info"):
             sources.insert(
                 len(sources),
                 {"name": name, "type": "config", "data": ""},
             )
         self.data["sources"] = sources
+
+    # Wire values of `ControlPort$PortType` in the Red Sea app:
+    #   NONE -> "unknown"  (port not installed yet)
+    #   NON_RED_SEA_DEVICE -> "other"  (any third-party 12V device)
+    #   ATO -> "ato"       (Red Sea ATO kit, installed by the app's wizard)
+    PORT_TYPE_UNINSTALLED = "unknown"
+    PORT_TYPE_OTHER = "other"
+    PORT_TYPE_ATO = "ato"
+
+    def port_config(self, number: int) -> dict[str, Any] | None:
+        """Return the cached `/ports/config` entry for a port, if any."""
+        entry = self.get_data(
+            f"$.sources[?(@.name=='/ports/config')].data[?(@.number=={int(number)})]",
+            is_None_possible=True,
+        )
+        return entry if isinstance(entry, dict) else None
+
+    def port_is_installed(self, number: int) -> bool:
+        """Whether a 12V port has been installed (assigned a device type).
+
+        A factory-fresh port reports ``type == "unknown"`` and ``mode ==
+        "setup"``. In that state the firmware rejects every write with
+        ``503 "Failed configuring ports - port not installed …"`` and answers
+        ``POST /port/<n>/toggle`` with ``"Failed to toggle port"``, so callers
+        must not attempt either.
+        """
+        entry = self.port_config(number)
+        if entry is None:
+            # Fall back to /dashboard, which also carries the port type.
+            entry = self.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.ports"
+                f"[?(@.number=={int(number)})]",
+                is_None_possible=True,
+            )
+        if not isinstance(entry, dict):
+            return False
+        return entry.get("type") not in (None, self.PORT_TYPE_UNINSTALLED)
+
+    async def install_port(
+        self, number: int, ptype: str = PORT_TYPE_OTHER
+    ) -> HttpResult | None:
+        """Install a 12V port via ``POST /port/<n>/install``.
+
+        This is the step the ReefBeat app performs first in its port wizard,
+        and the one without which every later write fails. Body is
+        ``{"type": "other"}`` for a third-party device; the firmware answers
+        ``{"success":true,"message":"Port installed successfully"}``.
+        """
+        return await self.http_send(
+            f"/port/{int(number)}/install", {"type": ptype}, "post"
+        )
+
+    async def set_port_mode(
+        self, number: int, mode: str, name: str | None = None
+    ) -> HttpResult | None:
+        """Set a 12V port's mode via ``PUT /ports/config``.
+
+        Two things differ from :meth:`ReefPowerAPI.set_socket_mode`, and both
+        were confirmed by capturing the app configuring a real port:
+
+        1. The body is a **bare JSON array** of port entries, not a
+           ``{"sockets": [...]}`` wrapper.
+        2. The firmware wants the **whole entry**. The app resends ``type``,
+           ``enabled``, ``power_on_percent``, ``power_detector_enabled`` and
+           ``is_btn_assigned`` on every write, so we rebuild them from the
+           cached ``/ports/config`` rather than sending a partial body and
+           hoping the firmware preserves the omitted keys.
+
+        The port must already be installed — see :meth:`install_port`.
+        """
+        entry = self.port_config(number) or {}
+        port: dict[str, Any] = {"number": int(number), "mode": mode}
+        for key in (
+            "name",
+            "type",
+            "enabled",
+            "power_on_percent",
+            "power_detector_enabled",
+            "is_btn_assigned",
+        ):
+            if key in entry:
+                port[key] = entry[key]
+        if name is not None:
+            port["name"] = name
+        result = await self.http_send("/ports/config", [port], "put")
+
+        # Keep the cached entry in sync. `/ports/config` is a *config* source,
+        # so it is only re-fetched on a config refresh; without this, renaming
+        # a port and then changing its mode would resend the stale name and
+        # silently revert the rename.
+        if entry and (result is None or result.get("ok", True)):
+            entry.update({k: v for k, v in port.items() if k != "number"})
+        return result
+
+    async def delete_port(self, number: int) -> HttpResult | None:
+        """Uninstall a 12V port via ``DELETE /port/<n>``.
+
+        The firmware answers ``{"success":true,"message":"Successfully deleted
+        port"}`` and resets the whole entry: ``type`` back to ``unknown``,
+        ``mode`` to ``setup``, the name to its factory value (``S1`` / ``S2``)
+        and ``power_on_percent`` to 100. Any schedule or sensor subscription
+        on that port is dropped with it.
+        """
+        return await self.http_send(f"/port/{int(number)}", None, "delete")
+
+    async def set_port_button_assigned(self, number: int) -> HttpResult | None:
+        """Point the hub's physical button at a port.
+
+        The assignment is exclusive — one port at a time — and the firmware
+        self-heals a bad state ("Multiple ports had button assigned, clearing
+        port N" / "No port had button assigned, defaulting to port 0"). The
+        ReefBeat app sends this right after deleting a port, to hand the
+        button over to the port that is left.
+
+        Note this is a genuinely **partial** write: the app sends only
+        ``[{"number": n, "is_btn_assigned": true}]`` and the firmware accepts
+        it, applying just the fields present.
+        """
+        return await self.http_send(
+            "/ports/config", [{"number": int(number), "is_btn_assigned": True}], "put"
+        )
+
+    async def unsubscribe_socket(self, number: int) -> HttpResult | None:
+        """Drop a hub probe's binding to a socket of the paired power center.
+
+        Two sides hold the same subscription and both must be cleared: the
+        power center via ``PUT /unsubscribe {"sockets":[n]}`` and the hub via
+        this call. The ReefBeat app issues them back to back when a
+        sensor-driven socket is deleted.
+        """
+        return await self.http_send(f"/socket/{int(number)}/unsubscribe", {}, "put")
+
+    async def set_port_schedule(
+        self, number: int, intervals: list[dict[str, int]]
+    ) -> HttpResult | None:
+        """Set a port's daily schedule via ``PUT /port/<n>/schedule``.
+
+        Must be called before switching the port to ``schedule`` mode, which
+        the firmware otherwise refuses. ``intervals`` uses the same shape as
+        the power center: ``{"time": <minutes from midnight>, "duration":
+        <minutes>}`` — e.g. ``[{"time": 0, "duration": 1439}]`` for all day.
+        """
+        return await self.http_send(
+            f"/port/{int(number)}/schedule",
+            {"intervals": intervals},
+            "put",
+        )
+
+    async def setup_finish(self) -> HttpResult | None:
+        """Leave setup mode via ``POST /setup-finish`` (device switches to auto)."""
+        return await self.http_send("/setup-finish", {}, "post")
 
     # ------------------------------------------------------------------
     # Per-port ATO helpers
@@ -176,134 +311,3 @@ class ReefControlAPI(ReefBeatAPI):
             payload,
             "put",
         )
-
-    # ------------------------------------------------------------------
-    # Leak / buzzer configuration
-    # ------------------------------------------------------------------
-
-    async def set_leak_config(
-        self,
-        *,
-        leak_detector: bool | None = None,
-        buzzer: bool | None = None,
-        notify: bool | None = None,
-        emergency_shutdown: bool | None = None,
-    ) -> None:
-        """Push a partial leak-detection configuration via ``PUT /leak/config``.
-
-        Every field of the firmware's model is nullable, so only the keys we
-        pass are modified. Sending an empty body makes the firmware answer
-        "No valid fields to update", hence the early return.
-
-        `emergency_shutdown` cuts the paired power center when a leak is
-        detected; it is accepted on write but is absent from the GET payload.
-        """
-        payload: dict[str, Any] = {}
-        if leak_detector is not None:
-            payload["leak_detector"] = bool(leak_detector)
-        if buzzer is not None:
-            payload["buzzer"] = bool(buzzer)
-        if notify is not None:
-            payload["notify"] = bool(notify)
-        if emergency_shutdown is not None:
-            payload["emergency_shutdown"] = bool(emergency_shutdown)
-        if not payload:
-            return
-        await self.http_send("/leak/config", payload, "put")
-
-    async def buzzer_dismiss(self) -> None:
-        """Acknowledge the currently active buzzer alarm."""
-        await self.http_send("/buzzer/dismiss", {}, "post")
-
-    async def buzzer_test(self) -> None:
-        """Sound the buzzer briefly to verify it works."""
-        await self.http_send("/buzzer/test", {}, "post")
-
-    # ------------------------------------------------------------------
-    # Probe management
-    # ------------------------------------------------------------------
-
-    async def rename_probe(self, uid: str, ptype: str, name: str) -> None:
-        """Rename one probe via ``PUT /probe/config``.
-
-        The endpoint takes the *whole* probe array, so the cached
-        `/probe/config` source is replayed with only the target entry edited.
-        Falls back to a single-entry array when the cache is not populated yet.
-        """
-        cached = self.get_data(
-            "$.sources[?(@.name=='/probe/config')].data", is_None_possible=True
-        )
-        probes: list[dict[str, Any]]
-        if isinstance(cached, list) and cached:
-            probes = [dict(p) for p in cached]
-            for probe in probes:
-                if probe.get("uid") == uid:
-                    probe["name"] = name
-                    break
-            else:
-                probes.append({"name": name, "uid": uid, "type": ptype})
-        else:
-            probes = [{"name": name, "uid": uid, "type": ptype}]
-        await self.http_send("/probe/config", probes, "put")
-
-    async def probe_ble_advertising(self, uid: str, ptype: str, on: bool) -> None:
-        """Start or stop BLE advertising on a probe (visual identification)."""
-        action = "on" if on else "off"
-        await self.http_send(f"/ble/{action}?type={ptype}&uid={uid}", {}, "post")
-
-    # ------------------------------------------------------------------
-    # Power center pairing
-    # ------------------------------------------------------------------
-
-    async def power_discover(self, pair: bool = False) -> Any:
-        """Discover (and optionally pair with) a ReefControl-Power center.
-
-        With ``pair=False`` the firmware only reports what it can see:
-        ``{"hwid": …, "pairing_status": "unpaired"}``. With ``pair=True`` it
-        performs the pairing and answers ``{"hwid": …, "paired": true}``.
-        """
-        return await self.http_send("/power/discover", {"pair": bool(pair)}, "post")
-
-    async def power_unpair(self) -> None:
-        """Forget the currently paired ReefControl-Power center."""
-        await self.http_send("/power/unpair", {}, "post")
-
-    # ------------------------------------------------------------------
-    # Sensor -> socket subscriptions (on the paired power center)
-    # ------------------------------------------------------------------
-
-    async def subscribe_socket(
-        self,
-        socket: int,
-        uid: str,
-        ptype: str,
-        *,
-        sensor: str = "primary",
-        is_above: bool = True,
-        trigger_op: bool = True,
-        hysteresis: float = 0,
-        value: float | None = None,
-    ) -> None:
-        """Bind one hub probe to a socket of the paired power center.
-
-        `is_above` selects the comparison direction and `trigger_op` the
-        resulting socket operation; `value` is the threshold and is omitted
-        for binary probes such as the leak detector. The socket must already
-        be in `sensor` mode and have a `default_state` declared on the power
-        center, otherwise the firmware refuses the mode change.
-        """
-        payload: dict[str, Any] = {
-            "uid": uid,
-            "type": ptype,
-            "sensor": sensor,
-            "is_above": bool(is_above),
-            "trigger_op": bool(trigger_op),
-            "hysteresis": hysteresis,
-        }
-        if value is not None:
-            payload["value"] = value
-        await self.http_send(f"/socket/{int(socket)}/subscribe", payload, "put")
-
-    async def unsubscribe_socket(self, socket: int) -> None:
-        """Remove the sensor binding from a socket of the power center."""
-        await self.http_send(f"/socket/{int(socket)}/unsubscribe", {}, "put")

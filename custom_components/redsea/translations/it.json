@@ -194,6 +194,18 @@
       "maint_ato_return_pump": {
         "name": "Pulire la pompa di risalita"
       },
+      "maint_control_probe_calibration_orp": {
+        "name": "Verificare la sonda {probe}"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Calibrare la sonda {probe}"
+      },
+      "maint_control_probe_clean": {
+        "name": "Pulire la sonda {probe}"
+      },
+      "maint_control_probe_replace": {
+        "name": "Sostituire la sonda {probe}"
+      },
       "maint_dose_heads_calibration": {
         "name": "Calibrare testina di dosaggio"
       },
@@ -236,6 +248,15 @@
       "new_roll": {
         "name": "Nuovo rotolo"
       },
+      "port_delete": {
+        "name": "Disinstalla porta {port}"
+      },
+      "port_install_ato": {
+        "name": "Installa porta {port} come ATO"
+      },
+      "port_install_other": {
+        "name": "Installa porta {port} come dispositivo"
+      },
       "preview_save": {
         "name": "Salva anteprima"
       },
@@ -263,6 +284,15 @@
       "set_supplement_name": {
         "name": "Imposta nuovo nome"
       },
+      "setup_finish": {
+        "name": "Completare la configurazione"
+      },
+      "socket_delete": {
+        "name": "Disinstalla presa {socket}"
+      },
+      "socket_unsubscribe": {
+        "name": "Annulla iscrizione presa {socket}"
+      },
       "start_calibration": {
         "name": "Avvia calibrazione"
       },
@@ -277,9 +307,6 @@
       },
       "test_calibration": {
         "name": "Testa nuova calibrazione"
-      },
-      "setup_finish": {
-        "name": "Completare la configurazione"
       }
     },
     "light": {
@@ -326,6 +353,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Pulire la pompa di risalita (mesi)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Verificare la sonda {probe} (mesi)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Calibrare la sonda {probe} (settimane)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Pulire la sonda {probe} (settimane)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Sostituire la sonda {probe} (mesi)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Calibrare testina di dosaggio (giorni)"
@@ -433,6 +472,14 @@
       "model": {
         "name": "Modello"
       },
+      "port_mode": {
+        "name": "Modalità porta {port}",
+        "state": {
+          "off": "Spento",
+          "on": "Acceso",
+          "schedule": "Programmazione"
+        }
+      },
       "position": {
         "name": "Posizione",
         "state": {
@@ -459,18 +506,18 @@
           "un": "Uniforme"
         }
       },
-      "supplements": {
-        "name": "Integratori",
-        "state": {
-          "other": "Altro"
-        }
-      },
       "socket_mode": {
         "name": "Modalità presa {socket}",
         "state": {
           "off": "Spento",
           "on": "Acceso",
           "schedule": "Programmazione"
+        }
+      },
+      "supplements": {
+        "name": "Integratori",
+        "state": {
+          "other": "Altro"
         }
       }
     },
@@ -1017,6 +1064,18 @@
       "maint_ato_return_pump_notify": {
         "name": "Pulire la pompa di risalita (notifiche)"
       },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Verificare la sonda {probe} (notifiche)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Calibrare la sonda {probe} (notifiche)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Pulire la sonda {probe} (notifiche)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Sostituire la sonda {probe} (notifiche)"
+      },
       "maint_dose_heads_calibration_notify": {
         "name": "Calibrare testina di dosaggio (notifiche)"
       },
@@ -1105,6 +1164,9 @@
       },
       "new_supplement_short_name": {
         "name": "Nome breve dell'integratore"
+      },
+      "port_name": {
+        "name": "Nome porta {port}"
       },
       "pump_name": {
         "name": "Nome della pompa"

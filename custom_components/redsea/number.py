@@ -64,8 +64,10 @@ from .coordinator import (
 )
 from .entity import ReefRoleMixin
 from .maintenance import (
+    PROBE_SCOPES,
     MaintenanceStore,
     MaintenanceTask,
+    iter_maintenance_probes,
     tasks_for,
 )
 
@@ -713,6 +715,16 @@ def _add_maintenance_numbers(
                     entities.append(
                         MaintenanceIntervalNumberEntity(device, task, sub_id=pump_id)
                     )
+        elif task.applies_to_sub in PROBE_SCOPES:
+            for sub_id, probe_name in iter_maintenance_probes(device, task):
+                entities.append(
+                    MaintenanceIntervalNumberEntity(
+                        device,
+                        task,
+                        sub_id=sub_id,
+                        placeholders={"probe": probe_name},
+                    )
+                )
         else:
             entities.append(MaintenanceIntervalNumberEntity(device, task, sub_id=0))
 
@@ -1154,10 +1166,13 @@ class MaintenanceIntervalNumberEntity(ReefRoleMixin, NumberEntity):  # type: ign
         device: ReefBeatCoordinator,
         task: MaintenanceTask,
         sub_id: int = 0,
+        placeholders: dict[str, str] | None = None,
     ) -> None:
         self._device = device
         self._task = task
         self._sub_id = sub_id
+        if placeholders:
+            self._attr_translation_placeholders = dict(placeholders)
 
         suffix = f"_{sub_id}" if sub_id > 0 else ""
         self._attr_unique_id = f"{device.serial}_{task.key}_interval{suffix}"
