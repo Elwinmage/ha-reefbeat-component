@@ -110,6 +110,9 @@
       "power_link_up": {
         "name": "Liaison centrale Power"
       },
+      "probe_leak_detected": {
+        "name": "{probe} fuite"
+      },
       "recalibration_required": {
         "name": "Calibration"
       },
@@ -755,9 +758,6 @@
       },
       "probe_last_installation": {
         "name": "{probe} dernière installation"
-      },
-      "probe_leak_value": {
-        "name": "{probe} fuite"
       },
       "probe_level": {
         "name": "{probe} niveau",

@@ -614,6 +614,52 @@ async def async_setup_entry(
             )
         entities.extend(ReefBeatBinarySensorEntity(device, desc) for desc in ato_descs)
 
+        # Standalone ReefSense leak probes (`type == "leak"` in
+        # /dashboard.probes). Their payload is minimal — confirmed on a real
+        # RSCONTROLPRO:
+        #   {"type":"leak","uid":"0x0032B","name":"Fuite 32B","status":"auto",
+        #    "detected":false,"last_installation_date":1786657191}
+        # There is no numeric `value` and no `level`, so the actionable state
+        # is the boolean `detected`, exposed here as MOISTURE (true = wet).
+        # Probes are matched by uid rather than array index so the entity set
+        # survives adding or removing a probe.
+        raw_probes = device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes",
+            is_None_possible=True,
+        )
+        leak_probes: list[dict[str, Any]] = (
+            [
+                p
+                for p in raw_probes
+                if isinstance(p, dict) and p.get("type") == "leak" and p.get("uid")
+            ]
+            if isinstance(raw_probes, list)
+            else []
+        )
+        leak_descs: list[
+            ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator]
+        ] = []
+        for probe in leak_probes:
+            uid = str(probe["uid"])
+            uid_key = "".join(c for c in uid.lower() if c.isalnum())
+            path = (
+                "$.sources[?(@.name=='/dashboard')].data."
+                f"probes[?(@.uid=='{uid}')].detected"
+            )
+            leak_descs.append(
+                ReefBeatBinarySensorEntityDescription(
+                    key=f"probe_{uid_key}_detected",
+                    translation_key="probe_leak_detected",
+                    translation_placeholders={"probe": probe.get("name") or uid},
+                    device_class=BinarySensorDeviceClass.MOISTURE,
+                    # IMPORTANT: bind path into the lambda default to avoid the
+                    # late-binding closure bug across loop iterations.
+                    value_fn=lambda d, p=path: d.get_data(p, is_None_possible=True),
+                    icon="mdi:water-alert",
+                )
+            )
+        entities.extend(ReefBeatBinarySensorEntity(device, desc) for desc in leak_descs)
+
     # Common sensors (device dependent)
     if isinstance(
         device, (ReefRunCoordinator, ReefLedCoordinator, ReefDoseCoordinator)

@@ -111,6 +111,9 @@
       "power_link_up": {
         "name": "Power center link"
       },
+      "probe_leak_detected": {
+        "name": "{probe} fuga"
+      },
       "recalibration_required": {
         "name": "Calibración"
       },
@@ -747,9 +750,6 @@
       },
       "probe_last_installation": {
         "name": "{probe} last installation"
-      },
-      "probe_leak_value": {
-        "name": "{probe} leak"
       },
       "probe_level": {
         "name": "{probe} level",
