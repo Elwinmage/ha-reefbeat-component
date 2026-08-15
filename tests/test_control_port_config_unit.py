@@ -222,6 +222,7 @@ def _make_coordinator() -> Any:
     coord.my_api = MagicMock(
         install_port=AsyncMock(),
         delete_port=AsyncMock(),
+        unsubscribe_socket=AsyncMock(),
         set_port_button_assigned=AsyncMock(),
         set_port_mode=AsyncMock(),
         set_port_schedule=AsyncMock(),
@@ -550,3 +551,50 @@ def test_text_unavailable_when_port_not_installed() -> None:
     assert entity.available is False
     device.installed_ports.add(0)
     assert entity.available is True
+
+
+# ===========================================================================
+# Coverage top-up: fallback paths and thin delegates
+# ===========================================================================
+
+
+def test_port_is_installed_false_when_port_absent_everywhere() -> None:
+    """Neither `/ports/config` nor `/dashboard` knows this port number.
+
+    Exercised by a RSCONTROLLITE (a single port) if anything ever asks about
+    port 1, and by any device whose config sources have not been fetched yet.
+    """
+    api = _make_api()
+    assert api.port_is_installed(9) is False
+
+
+def test_port_is_installed_falls_back_to_dashboard() -> None:
+    """`/ports/config` is a config source and may lag behind `/dashboard`.
+
+    `/dashboard` also carries the port `type`, so it is used as a fallback
+    rather than reporting a freshly installed port as uninstalled.
+    """
+    api = _make_api()
+    for source in api.data["sources"]:
+        if source["name"] == "/ports/config":
+            source["data"] = []
+        elif source["name"] == "/dashboard":
+            source["data"] = {"ports": [{"number": 0, "type": "other"}]}
+    assert api.port_is_installed(0) is True
+    assert api.port_is_installed(1) is False
+
+
+def test_coordinator_port_is_installed_delegates_to_api() -> None:
+    coord = _make_coordinator()
+    coord.my_api.port_is_installed = MagicMock(return_value=True)
+    assert coord.port_is_installed(1) is True
+    coord.my_api.port_is_installed.assert_called_once_with(1)
+
+
+@pytest.mark.asyncio
+async def test_coordinator_unsubscribe_socket_delegates_and_refreshes() -> None:
+    """The hub half of a probe->socket binding, cleared from the hub's entry."""
+    coord = _make_coordinator()
+    await coord.unsubscribe_socket(3)
+    coord.my_api.unsubscribe_socket.assert_awaited_once_with(3)
+    coord.async_request_refresh.assert_awaited_once_with(config=True)
