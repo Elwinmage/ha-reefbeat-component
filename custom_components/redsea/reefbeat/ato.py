@@ -49,7 +49,7 @@ class ReefATOAPI(ReefBeatAPI):
 
         Notes:
             Ensures the `/configuration` source exists so `push_values()` can PUT
-            ATO configuration.
+            ATO configuration, and seeds the local-only keys.
         """
         super().__init__(ip, live_config_update, session)
 
@@ -60,6 +60,13 @@ class ReefATOAPI(ReefBeatAPI):
             {"name": "/configuration", "type": "config", "data": ""},
         )
         self.data["sources"] = sources
+
+        # Seed integration-owned keys: jsonpath update() cannot create a
+        # missing key, so `$.local.tank_volume` has to exist before the number
+        # entity restores into it. Same reason the doser seeds its per-head
+        # local values.
+        local = cast(dict[str, Any], self.data.setdefault("local", {}))
+        local.setdefault("tank_volume", None)
 
     async def resume(self) -> None:
         """Resume ATO operation.

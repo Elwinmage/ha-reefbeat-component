@@ -191,6 +191,18 @@
       "maint_ato_return_pump": {
         "name": "Clean return pump"
       },
+      "maint_control_probe_calibration_orp": {
+        "name": "Validate probe {probe}"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Calibrate probe {probe}"
+      },
+      "maint_control_probe_clean": {
+        "name": "Clean probe {probe}"
+      },
+      "maint_control_probe_replace": {
+        "name": "Replace probe {probe}"
+      },
       "maint_dose_heads_calibration": {
         "name": "Calibrate dosing heads"
       },
@@ -260,6 +272,9 @@
       "set_supplement_name": {
         "name": "Set new supplement name"
       },
+      "setup_finish": {
+        "name": "Finish setup"
+      },
       "start_calibration": {
         "name": "Start  Calibration"
       },
@@ -274,9 +289,6 @@
       },
       "test_calibration": {
         "name": "Test new Calibration"
-      },
-      "setup_finish": {
-        "name": "Finish setup"
       }
     },
     "light": {
@@ -299,6 +311,9 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Acclimation Start Intensity Factor"
+      },
+      "ato_tank_volume": {
+        "name": "ATO Tank Volume"
       },
       "ato_volume_left": {
         "name": "ATO Volume Left"
@@ -323,6 +338,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Clean return pump (months)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Validate probe {probe} (months)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Calibrate probe {probe} (weeks)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Clean probe {probe} (weeks)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Replace probe {probe} (months)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Calibrate dosing heads (days)"
@@ -456,18 +483,18 @@
           "un": "Uniform"
         }
       },
-      "supplements": {
-        "name": "Supplements",
-        "state": {
-          "other": "Other"
-        }
-      },
       "socket_mode": {
         "name": "Socket {socket} mode",
         "state": {
           "off": "Off",
           "on": "On",
           "schedule": "Schedule"
+        }
+      },
+      "supplements": {
+        "name": "Supplements",
+        "state": {
+          "other": "Other"
         }
       }
     },
@@ -757,7 +784,7 @@
         "name": "{probe} last installation"
       },
       "probe_leak_value": {
-        "name": "{probe} leak"
+        "name": "Probe Leak Value"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -1024,6 +1051,18 @@
       },
       "maint_ato_return_pump_notify": {
         "name": "Clean return pump (notifications)"
+      },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Validate probe {probe} (notifications)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Calibrate probe {probe} (notifications)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Clean probe {probe} (notifications)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Replace probe {probe} (notifications)"
       },
       "maint_dose_heads_calibration_notify": {
         "name": "Calibrate dosing heads (notifications)"

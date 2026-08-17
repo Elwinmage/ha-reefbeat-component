@@ -265,7 +265,67 @@ TASKS: Final[dict[str, tuple[MaintenanceTask, ...]]] = {
             unit="weeks",
         ),
     ),
+    # --- RSCONTROL (per probe) ----------------------------------------------
+    # Probes are discovered at runtime from /dashboard.probes, so these tasks
+    # are instantiated per probe uid rather than per fixed sub-device index.
+    #
+    # Intervals follow Red Sea's own guidance, which differs sharply per probe
+    # type and must not be averaged into a single task:
+    #   pH   - wear item, ~12 months of continuous use (6-month warranty),
+    #          recalibrate monthly with the pH 7 / pH 10 solutions.
+    #   ORP  - wear item, ~12 months (6-month warranty), but validated every
+    #          2 months against a 460 mV reference, not monthly.
+    #   EC   - 4-pole conductivity cell with no consumable electrolyte:
+    #          24-month warranty, and *no* routine recalibration — only after
+    #          a cleaning. It therefore gets the cleaning reminder only.
+    #   temperature / leak - nothing to calibrate, nothing that depletes.
+    "RSCONTROLPRO": (
+        MaintenanceTask(
+            key="control_probe_clean",
+            translation_key="maint_control_probe_clean",
+            default_days=30,  # monthly (widened to 2-8 weeks)
+            min_days=14,
+            max_days=56,
+            applies_to_sub="probe",
+            icon="mdi:spray-bottle",
+            unit="weeks",
+        ),
+        MaintenanceTask(
+            key="control_probe_calibration_ph",
+            translation_key="maint_control_probe_calibration_ph",
+            default_days=30,  # monthly per Red Sea
+            min_days=14,
+            max_days=56,
+            applies_to_sub="probe_ph",
+            icon="mdi:water-check",
+            unit="weeks",
+        ),
+        MaintenanceTask(
+            key="control_probe_calibration_orp",
+            translation_key="maint_control_probe_calibration_orp",
+            default_days=60,  # every 2 months per Red Sea
+            min_days=30,
+            max_days=120,
+            applies_to_sub="probe_orp",
+            icon="mdi:water-check",
+            unit="months",
+        ),
+        MaintenanceTask(
+            key="control_probe_replace",
+            translation_key="maint_control_probe_replace",
+            default_days=365,  # ~12 months of continuous use
+            min_days=270,
+            max_days=545,
+            applies_to_sub="probe_wear",
+            icon="mdi:swap-horizontal",
+            unit="months",
+        ),
+    ),
 }
+
+# RSCONTROLLITE shares the RSCONTROLPRO task list: the probe hardware and its
+# upkeep are identical, only the number of 12V ports differs.
+TASKS["RSCONTROLLITE"] = TASKS["RSCONTROLPRO"]
 
 # RSLED is added programmatically below to share the same tasks across all
 # RSLED hardware ids (G1, G2, virtual).
@@ -304,6 +364,81 @@ def register_led_tasks(led_hw_ids: tuple[str, ...]) -> None:
 def tasks_for(hw_model: str) -> tuple[MaintenanceTask, ...]:
     """Return the maintenance task list for a hardware model, or empty."""
     return TASKS.get(hw_model, ())
+
+
+# Which probe types each probe-scoped task applies to. `None` means "every
+# probe". Keeping this as data rather than branches makes adding a probe type
+# a one-line change, and keeps the type rules next to the task catalogue that
+# justifies them.
+PROBE_SCOPES: Final[dict[str, frozenset[str] | None]] = {
+    # Any probe in the water eventually grows biofilm.
+    "probe": None,
+    # Monthly two-point calibration.
+    "probe_ph": frozenset({"ph"}),
+    # Validated every 2 months against a 460 mV reference.
+    "probe_orp": frozenset({"orp"}),
+    # Consumable electrodes: ~12 months of continuous use. The EC probe is
+    # deliberately absent — its 4-pole cell has no electrolyte to deplete and
+    # Red Sea gives it a 24-month warranty with no replacement schedule.
+    "probe_wear": frozenset({"ph", "orp"}),
+}
+
+
+def probe_sub_id(uid: str) -> int:
+    """Map a probe uid ("0x0032B") to the integer sub_id used in storage.
+
+    Maintenance instances are keyed by ``(serial, sub_id, task_key)`` with an
+    integer sub_id, while the hub identifies probes by a hex uid. Parsing the
+    uid keeps the mapping stable and collision-free without a side table.
+    Replacing a probe yields a new uid, hence a fresh history — which is the
+    desired behaviour for a brand new probe.
+    """
+    return int(uid, 16)
+
+
+def iter_maintenance_probes(
+    device: Any, task: MaintenanceTask
+) -> list[tuple[int, str]]:
+    """Return ``(sub_id, display_name)`` for probes a task applies to.
+
+    Walks ``/dashboard.probes`` rather than a coordinator helper, so this
+    stays usable from every platform without widening the coordinator API.
+    Returns an empty list for tasks that are not probe-scoped, and skips
+    probes with a malformed or missing uid instead of raising — a half-paired
+    probe must not break entity setup for the whole device.
+    """
+    if task.applies_to_sub not in PROBE_SCOPES:
+        return []
+    wanted_types = PROBE_SCOPES[task.applies_to_sub]
+
+    try:
+        probes = device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes",
+            True,  # is_None_possible
+        )
+    except Exception:  # pragma: no cover - defensive
+        probes = None
+    if not isinstance(probes, list):
+        return []
+
+    out: list[tuple[int, str]] = []
+    for probe in probes:
+        if not isinstance(probe, dict):
+            continue
+        uid = probe.get("uid")
+        ptype = probe.get("type")
+        if not isinstance(uid, str) or not uid:
+            continue
+        if wanted_types is not None and ptype not in wanted_types:
+            continue
+        try:
+            sub_id = probe_sub_id(uid)
+        except ValueError:
+            _LOGGER.debug("Skipping probe with unparsable uid: %r", uid)
+            continue
+        name = probe.get("name")
+        out.append((sub_id, name if isinstance(name, str) and name else uid))
+    return out
 
 
 # =============================================================================

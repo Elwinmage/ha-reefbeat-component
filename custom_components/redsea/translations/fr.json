@@ -190,6 +190,18 @@
       "maint_ato_return_pump": {
         "name": "Nettoyer la pompe de remontée"
       },
+      "maint_control_probe_calibration_orp": {
+        "name": "Vérifier la sonde {probe}"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Étalonner la sonde {probe}"
+      },
+      "maint_control_probe_clean": {
+        "name": "Nettoyer la sonde {probe}"
+      },
+      "maint_control_probe_replace": {
+        "name": "Remplacer la sonde {probe}"
+      },
       "maint_dose_heads_calibration": {
         "name": "Étalonner les têtes de dosage"
       },
@@ -259,6 +271,9 @@
       "set_supplement_name": {
         "name": "Modifer le nom du supplément"
       },
+      "setup_finish": {
+        "name": "Terminer la configuration"
+      },
       "start_calibration": {
         "name": "Démarrer la  Calibration"
       },
@@ -273,9 +288,6 @@
       },
       "test_calibration": {
         "name": "Tester la Calibration"
-      },
-      "setup_finish": {
-        "name": "Terminer la configuration"
       }
     },
     "light": {
@@ -298,6 +310,9 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Intensité de départ de l'acclimatation"
+      },
+      "ato_tank_volume": {
+        "name": "Volume du bidon ATO"
       },
       "ato_volume_left": {
         "name": "Volume ATO restant"
@@ -322,6 +337,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Nettoyer la pompe de remontée (mois)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Vérifier la sonde {probe} (mois)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Étalonner la sonde {probe} (semaines)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Nettoyer la sonde {probe} (semaines)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Remplacer la sonde {probe} (mois)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Étalonner les têtes de dosage (jours)"
@@ -455,18 +482,18 @@
           "un": "Uniforme"
         }
       },
-      "supplements": {
-        "name": "Suppléments",
-        "state": {
-          "other": "Autre"
-        }
-      },
       "socket_mode": {
         "name": "Mode prise {socket}",
         "state": {
           "off": "Éteint",
           "on": "Allumé",
           "schedule": "Programmation"
+        }
+      },
+      "supplements": {
+        "name": "Suppléments",
+        "state": {
+          "other": "Autre"
         }
       }
     },
@@ -757,7 +784,7 @@
         "name": "{probe} dernière installation"
       },
       "probe_leak_value": {
-        "name": "{probe} fuite"
+        "name": "Valeur de fuite de la sonde"
       },
       "probe_level": {
         "name": "{probe} niveau",
@@ -1014,6 +1041,18 @@
       },
       "maint_ato_return_pump_notify": {
         "name": "Nettoyer la pompe de remontée (notifications)"
+      },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Vérifier la sonde {probe} (notifications)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Étalonner la sonde {probe} (notifications)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Nettoyer la sonde {probe} (notifications)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Remplacer la sonde {probe} (notifications)"
       },
       "maint_dose_heads_calibration_notify": {
         "name": "Étalonner les têtes de dosage (notifications)"
