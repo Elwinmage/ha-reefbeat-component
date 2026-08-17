@@ -191,6 +191,18 @@
       "maint_ato_return_pump": {
         "name": "Limpar a bomba de retorno"
       },
+      "maint_control_probe_calibration_orp": {
+        "name": "Verificar a sonda {probe}"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Calibrar a sonda {probe}"
+      },
+      "maint_control_probe_clean": {
+        "name": "Limpar a sonda {probe}"
+      },
+      "maint_control_probe_replace": {
+        "name": "Substituir a sonda {probe}"
+      },
       "maint_dose_heads_calibration": {
         "name": "Calibrar cabeça de doseamento"
       },
@@ -260,6 +272,9 @@
       "set_supplement_name": {
         "name": "Definir novo nome"
       },
+      "setup_finish": {
+        "name": "Concluir configuração"
+      },
       "start_calibration": {
         "name": "Iniciar calibração"
       },
@@ -274,9 +289,6 @@
       },
       "test_calibration": {
         "name": "Testar nova calibração"
-      },
-      "setup_finish": {
-        "name": "Concluir configuração"
       }
     },
     "light": {
@@ -299,6 +311,9 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Fator de intensidade inicial da aclimatação"
+      },
+      "ato_tank_volume": {
+        "name": "Volume do reservatório ATO"
       },
       "ato_volume_left": {
         "name": "Volume ATO restante"
@@ -323,6 +338,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Limpar a bomba de retorno (meses)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Verificar a sonda {probe} (meses)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Calibrar a sonda {probe} (semanas)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Limpar a sonda {probe} (semanas)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Substituir a sonda {probe} (meses)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Calibrar cabeça de doseamento (dias)"
@@ -456,18 +483,18 @@
           "un": "Uniforme"
         }
       },
-      "supplements": {
-        "name": "Suplementos",
-        "state": {
-          "other": "Outro"
-        }
-      },
       "socket_mode": {
         "name": "Modo tomada {socket}",
         "state": {
           "off": "Desligado",
           "on": "Ligado",
           "schedule": "Programação"
+        }
+      },
+      "supplements": {
+        "name": "Suplementos",
+        "state": {
+          "other": "Outro"
         }
       }
     },
@@ -749,7 +776,7 @@
         "name": "{probe} last installation"
       },
       "probe_leak_value": {
-        "name": "{probe} leak"
+        "name": "Valor de fuga da sonda"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -1016,6 +1043,18 @@
       },
       "maint_ato_return_pump_notify": {
         "name": "Limpar a bomba de retorno (notificações)"
+      },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Verificar a sonda {probe} (notificações)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Calibrar a sonda {probe} (notificações)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Limpar a sonda {probe} (notificações)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Substituir a sonda {probe} (notificações)"
       },
       "maint_dose_heads_calibration_notify": {
         "name": "Calibrar cabeça de doseamento (notificações)"

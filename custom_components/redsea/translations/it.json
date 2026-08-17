@@ -191,6 +191,18 @@
       "maint_ato_return_pump": {
         "name": "Pulire la pompa di risalita"
       },
+      "maint_control_probe_calibration_orp": {
+        "name": "Verificare la sonda {probe}"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Calibrare la sonda {probe}"
+      },
+      "maint_control_probe_clean": {
+        "name": "Pulire la sonda {probe}"
+      },
+      "maint_control_probe_replace": {
+        "name": "Sostituire la sonda {probe}"
+      },
       "maint_dose_heads_calibration": {
         "name": "Calibrare testina di dosaggio"
       },
@@ -260,6 +272,9 @@
       "set_supplement_name": {
         "name": "Imposta nuovo nome"
       },
+      "setup_finish": {
+        "name": "Completare la configurazione"
+      },
       "start_calibration": {
         "name": "Avvia calibrazione"
       },
@@ -274,9 +289,6 @@
       },
       "test_calibration": {
         "name": "Testa nuova calibrazione"
-      },
-      "setup_finish": {
-        "name": "Completare la configurazione"
       }
     },
     "light": {
@@ -299,6 +311,9 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Fattore intensità iniziale acclimatazione"
+      },
+      "ato_tank_volume": {
+        "name": "Volume serbatoio ATO"
       },
       "ato_volume_left": {
         "name": "Volume ATO rimanente"
@@ -323,6 +338,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Pulire la pompa di risalita (mesi)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Verificare la sonda {probe} (mesi)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Calibrare la sonda {probe} (settimane)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Pulire la sonda {probe} (settimane)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Sostituire la sonda {probe} (mesi)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Calibrare testina di dosaggio (giorni)"
@@ -456,18 +483,18 @@
           "un": "Uniforme"
         }
       },
-      "supplements": {
-        "name": "Integratori",
-        "state": {
-          "other": "Altro"
-        }
-      },
       "socket_mode": {
         "name": "Modalità presa {socket}",
         "state": {
           "off": "Spento",
           "on": "Acceso",
           "schedule": "Programmazione"
+        }
+      },
+      "supplements": {
+        "name": "Integratori",
+        "state": {
+          "other": "Altro"
         }
       }
     },
@@ -749,7 +776,7 @@
         "name": "{probe} last installation"
       },
       "probe_leak_value": {
-        "name": "{probe} leak"
+        "name": "Valore di perdita della sonda"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -1016,6 +1043,18 @@
       },
       "maint_ato_return_pump_notify": {
         "name": "Pulire la pompa di risalita (notifiche)"
+      },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Verificare la sonda {probe} (notifiche)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Calibrare la sonda {probe} (notifiche)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Pulire la sonda {probe} (notifiche)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Sostituire la sonda {probe} (notifiche)"
       },
       "maint_dose_heads_calibration_notify": {
         "name": "Calibrare testina di dosaggio (notifiche)"

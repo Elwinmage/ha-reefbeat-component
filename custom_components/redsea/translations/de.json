@@ -191,6 +191,18 @@
       "maint_ato_return_pump": {
         "name": "Rückförderpumpe reinigen"
       },
+      "maint_control_probe_calibration_orp": {
+        "name": "Sonde {probe} prüfen"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Sonde {probe} kalibrieren"
+      },
+      "maint_control_probe_clean": {
+        "name": "Sonde {probe} reinigen"
+      },
+      "maint_control_probe_replace": {
+        "name": "Sonde {probe} ersetzen"
+      },
       "maint_dose_heads_calibration": {
         "name": "Dosierkopf kalibrieren"
       },
@@ -260,6 +272,9 @@
       "set_supplement_name": {
         "name": "Neuen Namen setzen"
       },
+      "setup_finish": {
+        "name": "Einrichtung abschließen"
+      },
       "start_calibration": {
         "name": "Kalibrierung starten"
       },
@@ -274,9 +289,6 @@
       },
       "test_calibration": {
         "name": "Neue Kalibrierung testen"
-      },
-      "setup_finish": {
-        "name": "Einrichtung abschließen"
       }
     },
     "light": {
@@ -299,6 +311,9 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Startintensitätsfaktor der Akklimatisierung"
+      },
+      "ato_tank_volume": {
+        "name": "ATO-Behältervolumen"
       },
       "ato_volume_left": {
         "name": "Verbleibendes ATO-Volumen"
@@ -323,6 +338,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Rückförderpumpe reinigen (Monate)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Sonde {probe} prüfen (Monate)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Sonde {probe} kalibrieren (Wochen)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Sonde {probe} reinigen (Wochen)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Sonde {probe} ersetzen (Monate)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Dosierkopf kalibrieren (Tage)"
@@ -456,18 +483,18 @@
           "un": "Gleichmäßig"
         }
       },
-      "supplements": {
-        "name": "Nahrungsergänzungsmittel",
-        "state": {
-          "other": "Sonstige"
-        }
-      },
       "socket_mode": {
         "name": "Modus Steckdose {socket}",
         "state": {
           "off": "Aus",
           "on": "Ein",
           "schedule": "Zeitplan"
+        }
+      },
+      "supplements": {
+        "name": "Nahrungsergänzungsmittel",
+        "state": {
+          "other": "Sonstige"
         }
       }
     },
@@ -749,7 +776,7 @@
         "name": "{probe} last installation"
       },
       "probe_leak_value": {
-        "name": "{probe} leak"
+        "name": "Sondenleckwert"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -1016,6 +1043,18 @@
       },
       "maint_ato_return_pump_notify": {
         "name": "Rückförderpumpe reinigen (Benachrichtigungen)"
+      },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Sonde {probe} prüfen (Benachrichtigungen)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Sonde {probe} kalibrieren (Benachrichtigungen)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Sonde {probe} reinigen (Benachrichtigungen)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Sonde {probe} ersetzen (Benachrichtigungen)"
       },
       "maint_dose_heads_calibration_notify": {
         "name": "Dosierkopf kalibrieren (Benachrichtigungen)"

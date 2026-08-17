@@ -191,6 +191,18 @@
       "maint_ato_return_pump": {
         "name": "Wyczyścić pompę powrotną"
       },
+      "maint_control_probe_calibration_orp": {
+        "name": "Sprawdź sondę {probe}"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Skalibruj sondę {probe}"
+      },
+      "maint_control_probe_clean": {
+        "name": "Wyczyść sondę {probe}"
+      },
+      "maint_control_probe_replace": {
+        "name": "Wymień sondę {probe}"
+      },
       "maint_dose_heads_calibration": {
         "name": "Kalibracja głowicy dozującej"
       },
@@ -260,6 +272,9 @@
       "set_supplement_name": {
         "name": "Ustaw nową nazwę"
       },
+      "setup_finish": {
+        "name": "Zakończ konfigurację"
+      },
       "start_calibration": {
         "name": "Rozpocznij kalibrację"
       },
@@ -274,9 +289,6 @@
       },
       "test_calibration": {
         "name": "Testuj nową kalibrację"
-      },
-      "setup_finish": {
-        "name": "Zakończ konfigurację"
       }
     },
     "light": {
@@ -299,6 +311,9 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Początkowy współczynnik intensywności aklimatyzacji"
+      },
+      "ato_tank_volume": {
+        "name": "Objętość zbiornika ATO"
       },
       "ato_volume_left": {
         "name": "Pozostała objętość ATO"
@@ -323,6 +338,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Wyczyścić pompę powrotną (miesiące)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Sprawdź sondę {probe} (miesiące)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Skalibruj sondę {probe} (tygodnie)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Wyczyść sondę {probe} (tygodnie)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Wymień sondę {probe} (miesiące)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Kalibracja głowicy dozującej (dni)"
@@ -456,18 +483,18 @@
           "un": "Jednorodny"
         }
       },
-      "supplements": {
-        "name": "Suplementy",
-        "state": {
-          "other": "Inne"
-        }
-      },
       "socket_mode": {
         "name": "Tryb gniazda {socket}",
         "state": {
           "off": "Wyłączony",
           "on": "Włączony",
           "schedule": "Harmonogram"
+        }
+      },
+      "supplements": {
+        "name": "Suplementy",
+        "state": {
+          "other": "Inne"
         }
       }
     },
@@ -749,7 +776,7 @@
         "name": "{probe} last installation"
       },
       "probe_leak_value": {
-        "name": "{probe} leak"
+        "name": "Wartość wycieku sondy"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -1016,6 +1043,18 @@
       },
       "maint_ato_return_pump_notify": {
         "name": "Wyczyścić pompę powrotną (powiadomienia)"
+      },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Sprawdź sondę {probe} (powiadomienia)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Skalibruj sondę {probe} (powiadomienia)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Wyczyść sondę {probe} (powiadomienia)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Wymień sondę {probe} (powiadomienia)"
       },
       "maint_dose_heads_calibration_notify": {
         "name": "Kalibracja głowicy dozującej (powiadomienia)"
