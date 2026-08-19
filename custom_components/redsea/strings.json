@@ -33,6 +33,9 @@
   },
   "entity": {
     "binary_sensor": {
+      "ato_sensor_connected": {
+        "name": "Temperature probe connected"
+      },
       "auto_from_buttons": {
         "name": "Auto from buttons"
       },
@@ -51,8 +54,14 @@
       "buzzer_enabled": {
         "name": "Buzzer enabled"
       },
+      "buzzer_on": {
+        "name": "Buzzer sounding"
+      },
       "cable_connected": {
         "name": "Cable connected"
+      },
+      "check_sensor": {
+        "name": "Check sensor"
       },
       "cloud_state": {
         "name": "Cloud connection state"
@@ -71,6 +80,9 @@
       },
       "enabled": {
         "name": "Leak sensor enabled"
+      },
+      "is_calibrated": {
+        "name": "Probe calibrated"
       },
       "is_ec_sensor_connected": {
         "name": "Is EC sensor Connected"
@@ -125,6 +137,9 @@
       },
       "status": {
         "name": "Status"
+      },
+      "temperature_log_enabled": {
+        "name": "Temperature logging"
       },
       "unclean_sensor": {
         "name": "Sensor State"
@@ -505,6 +520,15 @@
       "acclimation_start_intensity_factor": {
         "name": "Acclimation Start Intensity Factor"
       },
+      "ato_sensor_code": {
+        "name": "Temperature probe code"
+      },
+      "ato_sensor_last_adjustment_date": {
+        "name": "Probe adjustment date"
+      },
+      "ato_sensor_last_installation_date": {
+        "name": "Probe installation date"
+      },
       "auto_1": {
         "name": "Sunday"
       },
@@ -625,6 +649,9 @@
       "first_name": {
         "name": "First Name"
       },
+      "flow_rate": {
+        "name": "Flow rate"
+      },
       "head_state": {
         "name": "Status"
       },
@@ -640,11 +667,17 @@
       "last_calibration": {
         "name": "Last Calibration"
       },
+      "last_fill_date": {
+        "name": "Last fill date"
+      },
       "last_message": {
         "name": "Last Message"
       },
       "last_name": {
         "name": "Last Name"
+      },
+      "last_pump_on_cause": {
+        "name": "Last pump-on cause"
       },
       "leak_sensor_current_read": {
         "name": "Leak sensor current read"
@@ -728,19 +761,18 @@
       "port_last_pump_on_cause": {
         "name": "Port {port} last pump-on cause",
         "state": {
-          "unknown": "Unknown",
+          "none": "None",
           "manual": "Manual",
-          "auto": "Automatic",
-          "schedule": "Schedule",
-          "user": "User"
+          "ec_sensor_s1": "Level sensor S1",
+          "ec_sensor_s2": "Level sensor S2"
         }
       },
       "port_leak_status": {
         "name": "Port {port} leak status",
         "state": {
-          "aquarium": "Aquarium",
           "dry": "Dry",
-          "rodi": "RO/DI"
+          "aquarium_water_leak": "Aquarium water leak",
+          "rodi_water_leak": "RO/DI water leak"
         }
       },
       "port_mode": {
@@ -770,6 +802,9 @@
       },
       "power_temperature": {
         "name": "Temperature"
+      },
+      "prev_pump_state": {
+        "name": "Previous pump state"
       },
       "probe_ec": {
         "name": "{probe} conductivity"
@@ -841,6 +876,21 @@
           "error": "Sensor error"
         }
       },
+      "pump_blockage_threshold": {
+        "name": "Pump blockage threshold"
+      },
+      "pump_consumption": {
+        "name": "Pump consumption"
+      },
+      "pump_empty_threshold": {
+        "name": "Pump empty threshold"
+      },
+      "pump_soft_blockage_threshold": {
+        "name": "Pump partial blockage threshold"
+      },
+      "pump_speed": {
+        "name": "Pump speed"
+      },
       "pump_state": {
         "name": "Pump State",
         "state": {
@@ -853,6 +903,12 @@
       },
       "remaining_length": {
         "name": "Remaining Length"
+      },
+      "s1_average": {
+        "name": "Level sensor S1 average"
+      },
+      "s2_average": {
+        "name": "Level sensor S2 average"
       },
       "schedule_head": {
         "name": "Head Schedule",

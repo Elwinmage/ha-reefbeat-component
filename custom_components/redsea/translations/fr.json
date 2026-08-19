@@ -32,6 +32,9 @@
   },
   "entity": {
     "binary_sensor": {
+      "ato_sensor_connected": {
+        "name": "Sonde de température connectée"
+      },
       "auto_from_buttons": {
         "name": "Auto depuis les boutons"
       },
@@ -50,8 +53,14 @@
       "buzzer_enabled": {
         "name": "Buzzer"
       },
+      "buzzer_on": {
+        "name": "Alarme sonore active"
+      },
       "cable_connected": {
         "name": "Câble connecté"
+      },
+      "check_sensor": {
+        "name": "Vérifier le capteur"
       },
       "cloud_state": {
         "name": "Connecté au Cloud"
@@ -70,6 +79,9 @@
       },
       "enabled": {
         "name": "Détecteur de fuite"
+      },
+      "is_calibrated": {
+        "name": "Sonde étalonnée"
       },
       "is_ec_sensor_connected": {
         "name": "Capteur connecté?"
@@ -124,6 +136,9 @@
       },
       "status": {
         "name": "Statut"
+      },
+      "temperature_log_enabled": {
+        "name": "Historique de température"
       },
       "unclean_sensor": {
         "name": "Etat du capteur"
@@ -504,6 +519,15 @@
       "acclimation_start_intensity_factor": {
         "name": "Intensité de départ de l'acclimatation"
       },
+      "ato_sensor_code": {
+        "name": "Code de la sonde de température"
+      },
+      "ato_sensor_last_adjustment_date": {
+        "name": "Date d'ajustement de la sonde"
+      },
+      "ato_sensor_last_installation_date": {
+        "name": "Date d'installation de la sonde"
+      },
       "auto_1": {
         "name": "Dimanche"
       },
@@ -625,6 +649,9 @@
       "first_name": {
         "name": "Prénom"
       },
+      "flow_rate": {
+        "name": "Débit"
+      },
       "head_state": {
         "name": "Statut"
       },
@@ -640,11 +667,17 @@
       "last_calibration": {
         "name": "Dernière Calibration"
       },
+      "last_fill_date": {
+        "name": "Dernier remplissage"
+      },
       "last_message": {
         "name": "Dernier Message"
       },
       "last_name": {
         "name": "Nom"
+      },
+      "last_pump_on_cause": {
+        "name": "Cause du dernier démarrage"
       },
       "leak_sensor_current_read": {
         "name": "Lecture actuelle du capteur de fuite"
@@ -728,19 +761,18 @@
       "port_last_pump_on_cause": {
         "name": "Port {port} cause dernier pompage",
         "state": {
-          "unknown": "Inconnue",
+          "none": "Aucune",
           "manual": "Manuel",
-          "auto": "Automatique",
-          "schedule": "Programme",
-          "user": "Utilisateur"
+          "ec_sensor_s1": "Capteur de niveau S1",
+          "ec_sensor_s2": "Capteur de niveau S2"
         }
       },
       "port_leak_status": {
         "name": "Port {port} détection de fuite",
         "state": {
-          "aquarium": "Eau d'aquarium",
           "dry": "Sec",
-          "rodi": "Eau osmosée"
+          "aquarium_water_leak": "Fuite d'eau de l'aquarium",
+          "rodi_water_leak": "Fuite d'eau osmosée"
         }
       },
       "port_mode": {
@@ -770,6 +802,9 @@
       },
       "power_temperature": {
         "name": "Température"
+      },
+      "prev_pump_state": {
+        "name": "État précédent de la pompe"
       },
       "probe_ec": {
         "name": "{probe} conductivité"
@@ -841,6 +876,21 @@
           "error": "Erreur capteur"
         }
       },
+      "pump_blockage_threshold": {
+        "name": "Seuil d'obstruction"
+      },
+      "pump_consumption": {
+        "name": "Consommation de la pompe"
+      },
+      "pump_empty_threshold": {
+        "name": "Seuil pompe à vide"
+      },
+      "pump_soft_blockage_threshold": {
+        "name": "Seuil d'obstruction partielle"
+      },
+      "pump_speed": {
+        "name": "Vitesse de la pompe"
+      },
       "pump_state": {
         "name": "Etat de la pompe"
       },
@@ -849,6 +899,12 @@
       },
       "remaining_length": {
         "name": "Longueur restante"
+      },
+      "s1_average": {
+        "name": "Moyenne capteur de niveau S1"
+      },
+      "s2_average": {
+        "name": "Moyenne capteur de niveau S2"
       },
       "schedule_head": {
         "name": "Programme de la pompe",

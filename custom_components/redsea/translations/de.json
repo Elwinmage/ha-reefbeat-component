@@ -33,6 +33,9 @@
   },
   "entity": {
     "binary_sensor": {
+      "ato_sensor_connected": {
+        "name": "Temperatursonde verbunden"
+      },
       "auto_from_buttons": {
         "name": "Auto from buttons"
       },
@@ -51,8 +54,14 @@
       "buzzer_enabled": {
         "name": "Summer aktiviert"
       },
+      "buzzer_on": {
+        "name": "Summer ertönt"
+      },
       "cable_connected": {
         "name": "Cable connected"
+      },
+      "check_sensor": {
+        "name": "Sensor prüfen"
       },
       "cloud_state": {
         "name": "Cloud-Verbindungsstatus"
@@ -71,6 +80,9 @@
       },
       "enabled": {
         "name": "Lecksensor aktiviert"
+      },
+      "is_calibrated": {
+        "name": "Sonde kalibriert"
       },
       "is_ec_sensor_connected": {
         "name": "Ist EC-Sensor verbunden"
@@ -125,6 +137,9 @@
       },
       "status": {
         "name": "Status"
+      },
+      "temperature_log_enabled": {
+        "name": "Temperaturaufzeichnung"
       },
       "unclean_sensor": {
         "name": "Sensorzustand"
@@ -505,6 +520,15 @@
       "acclimation_start_intensity_factor": {
         "name": "Startintensitätsfaktor der Akklimatisierung"
       },
+      "ato_sensor_code": {
+        "name": "Code der Temperatursonde"
+      },
+      "ato_sensor_last_adjustment_date": {
+        "name": "Justagedatum der Sonde"
+      },
+      "ato_sensor_last_installation_date": {
+        "name": "Installationsdatum der Sonde"
+      },
       "auto_1": {
         "name": "Sonntag"
       },
@@ -617,6 +641,9 @@
       "first_name": {
         "name": "Vorname"
       },
+      "flow_rate": {
+        "name": "Durchflussrate"
+      },
       "head_state": {
         "name": "Status"
       },
@@ -632,11 +659,17 @@
       "last_calibration": {
         "name": "Letzte Kalibrierung"
       },
+      "last_fill_date": {
+        "name": "Letzte Befüllung"
+      },
       "last_message": {
         "name": "Letzte Meldung"
       },
       "last_name": {
         "name": "Nachname"
+      },
+      "last_pump_on_cause": {
+        "name": "Ursache des letzten Starts"
       },
       "leak_sensor_current_read": {
         "name": "Aktuelle Lecksensorablesung"
@@ -720,19 +753,18 @@
       "port_last_pump_on_cause": {
         "name": "Port {port} letzter Pumpengrund",
         "state": {
-          "unknown": "Unbekannt",
+          "none": "Keine",
           "manual": "Manuell",
-          "auto": "Automatisch",
-          "schedule": "Zeitplan",
-          "user": "Benutzer"
+          "ec_sensor_s1": "Füllstandsensor S1",
+          "ec_sensor_s2": "Füllstandsensor S2"
         }
       },
       "port_leak_status": {
         "name": "Port {port} Leck-Status",
         "state": {
-          "aquarium": "Aquarium",
           "dry": "Trocken",
-          "rodi": "RO/DI"
+          "aquarium_water_leak": "Aquarienwasser-Leck",
+          "rodi_water_leak": "RO/DI-Wasser-Leck"
         }
       },
       "port_mode": {
@@ -762,6 +794,9 @@
       },
       "power_temperature": {
         "name": "Temperature"
+      },
+      "prev_pump_state": {
+        "name": "Vorheriger Pumpenstatus"
       },
       "probe_ec": {
         "name": "{probe} conductivity"
@@ -833,6 +868,21 @@
           "error": "Sensor-Fehler"
         }
       },
+      "pump_blockage_threshold": {
+        "name": "Schwelle Blockade"
+      },
+      "pump_consumption": {
+        "name": "Pumpenverbrauch"
+      },
+      "pump_empty_threshold": {
+        "name": "Schwelle Pumpe leer"
+      },
+      "pump_soft_blockage_threshold": {
+        "name": "Schwelle Teilblockade"
+      },
+      "pump_speed": {
+        "name": "Pumpendrehzahl"
+      },
       "pump_state": {
         "name": "Pumpenstatus",
         "state": {
@@ -845,6 +895,12 @@
       },
       "remaining_length": {
         "name": "Verbleibende Länge"
+      },
+      "s1_average": {
+        "name": "Mittelwert Füllstandsensor S1"
+      },
+      "s2_average": {
+        "name": "Mittelwert Füllstandsensor S2"
       },
       "schedule_head": {
         "name": "Kopfzeitplan",

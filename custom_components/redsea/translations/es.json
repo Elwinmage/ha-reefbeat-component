@@ -33,6 +33,9 @@
   },
   "entity": {
     "binary_sensor": {
+      "ato_sensor_connected": {
+        "name": "Sonda de temperatura conectada"
+      },
       "auto_from_buttons": {
         "name": "Auto from buttons"
       },
@@ -51,8 +54,14 @@
       "buzzer_enabled": {
         "name": "Zumbador activado"
       },
+      "buzzer_on": {
+        "name": "Zumbador sonando"
+      },
       "cable_connected": {
         "name": "Cable connected"
+      },
+      "check_sensor": {
+        "name": "Revisar el sensor"
       },
       "cloud_state": {
         "name": "Estado de conexión a la nube"
@@ -71,6 +80,9 @@
       },
       "enabled": {
         "name": "Sensor de fuga activado"
+      },
+      "is_calibrated": {
+        "name": "Sonda calibrada"
       },
       "is_ec_sensor_connected": {
         "name": "¿Sensor EC conectado?"
@@ -125,6 +137,9 @@
       },
       "status": {
         "name": "Estado"
+      },
+      "temperature_log_enabled": {
+        "name": "Registro de temperatura"
       },
       "unclean_sensor": {
         "name": "Estado del sensor"
@@ -505,6 +520,15 @@
       "acclimation_start_intensity_factor": {
         "name": "Factor de intensidad inicial de aclimatación"
       },
+      "ato_sensor_code": {
+        "name": "Código de la sonda de temperatura"
+      },
+      "ato_sensor_last_adjustment_date": {
+        "name": "Fecha de ajuste de la sonda"
+      },
+      "ato_sensor_last_installation_date": {
+        "name": "Fecha de instalación de la sonda"
+      },
       "auto_1": {
         "name": "Domingo"
       },
@@ -617,6 +641,9 @@
       "first_name": {
         "name": "Nombre"
       },
+      "flow_rate": {
+        "name": "Caudal"
+      },
       "head_state": {
         "name": "Estado"
       },
@@ -632,11 +659,17 @@
       "last_calibration": {
         "name": "Última calibración"
       },
+      "last_fill_date": {
+        "name": "Último llenado"
+      },
       "last_message": {
         "name": "Último mensaje"
       },
       "last_name": {
         "name": "Apellido"
+      },
+      "last_pump_on_cause": {
+        "name": "Causa del último arranque"
       },
       "leak_sensor_current_read": {
         "name": "Lectura actual del sensor de fugas"
@@ -720,19 +753,18 @@
       "port_last_pump_on_cause": {
         "name": "Puerto {port} causa última bomba",
         "state": {
-          "unknown": "Desconocido",
+          "none": "Ninguna",
           "manual": "Manual",
-          "auto": "Automático",
-          "schedule": "Programa",
-          "user": "Usuario"
+          "ec_sensor_s1": "Sensor de nivel S1",
+          "ec_sensor_s2": "Sensor de nivel S2"
         }
       },
       "port_leak_status": {
         "name": "Puerto {port} estado de fuga",
         "state": {
-          "aquarium": "Acuario",
           "dry": "Seco",
-          "rodi": "Osmosis"
+          "aquarium_water_leak": "Fuga de agua del acuario",
+          "rodi_water_leak": "Fuga de agua RO/DI"
         }
       },
       "port_mode": {
@@ -762,6 +794,9 @@
       },
       "power_temperature": {
         "name": "Temperature"
+      },
+      "prev_pump_state": {
+        "name": "Estado anterior de la bomba"
       },
       "probe_ec": {
         "name": "{probe} conductivity"
@@ -833,6 +868,21 @@
           "error": "Error de sensor"
         }
       },
+      "pump_blockage_threshold": {
+        "name": "Umbral de obstrucción"
+      },
+      "pump_consumption": {
+        "name": "Consumo de la bomba"
+      },
+      "pump_empty_threshold": {
+        "name": "Umbral de bomba en vacío"
+      },
+      "pump_soft_blockage_threshold": {
+        "name": "Umbral de obstrucción parcial"
+      },
+      "pump_speed": {
+        "name": "Velocidad de la bomba"
+      },
       "pump_state": {
         "name": "Estado de la bomba",
         "state": {
@@ -845,6 +895,12 @@
       },
       "remaining_length": {
         "name": "Longitud restante"
+      },
+      "s1_average": {
+        "name": "Media del sensor de nivel S1"
+      },
+      "s2_average": {
+        "name": "Media del sensor de nivel S2"
       },
       "schedule_head": {
         "name": "Programación del cabezal",

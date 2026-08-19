@@ -33,6 +33,9 @@
   },
   "entity": {
     "binary_sensor": {
+      "ato_sensor_connected": {
+        "name": "Temperatuursensor verbonden"
+      },
       "auto_from_buttons": {
         "name": "Auto from buttons"
       },
@@ -51,8 +54,14 @@
       "buzzer_enabled": {
         "name": "Buzzer ingeschakeld"
       },
+      "buzzer_on": {
+        "name": "Zoemer actief"
+      },
       "cable_connected": {
         "name": "Cable connected"
+      },
+      "check_sensor": {
+        "name": "Sensor controleren"
       },
       "cloud_state": {
         "name": "Cloud verbindingsstatus"
@@ -71,6 +80,9 @@
       },
       "enabled": {
         "name": "Leksensor ingeschakeld"
+      },
+      "is_calibrated": {
+        "name": "Sensor gekalibreerd"
       },
       "is_ec_sensor_connected": {
         "name": "Is EC-sensor verbonden"
@@ -125,6 +137,9 @@
       },
       "status": {
         "name": "Status"
+      },
+      "temperature_log_enabled": {
+        "name": "Temperatuurregistratie"
       },
       "unclean_sensor": {
         "name": "Sensor status"
@@ -505,6 +520,15 @@
       "acclimation_start_intensity_factor": {
         "name": "Acclimatisatie start intensiteit factor"
       },
+      "ato_sensor_code": {
+        "name": "Code temperatuursensor"
+      },
+      "ato_sensor_last_adjustment_date": {
+        "name": "Afstellingsdatum sensor"
+      },
+      "ato_sensor_last_installation_date": {
+        "name": "Installatiedatum sensor"
+      },
       "auto_1": {
         "name": "Zondag"
       },
@@ -625,6 +649,9 @@
       "first_name": {
         "name": "Voornaam"
       },
+      "flow_rate": {
+        "name": "Debiet"
+      },
       "head_state": {
         "name": "Status"
       },
@@ -640,11 +667,17 @@
       "last_calibration": {
         "name": "Laatste kalibratie"
       },
+      "last_fill_date": {
+        "name": "Laatste vulling"
+      },
       "last_message": {
         "name": "Laatste bericht"
       },
       "last_name": {
         "name": "Achternaam"
+      },
+      "last_pump_on_cause": {
+        "name": "Oorzaak laatste start"
       },
       "leak_sensor_current_read": {
         "name": "Huidige uitlezing lekkagesensor"
@@ -728,19 +761,18 @@
       "port_last_pump_on_cause": {
         "name": "Poort {port} oorzaak laatste pomp",
         "state": {
-          "unknown": "Onbekend",
+          "none": "Geen",
           "manual": "Handmatig",
-          "auto": "Automatisch",
-          "schedule": "Schema",
-          "user": "Gebruiker"
+          "ec_sensor_s1": "Niveausensor S1",
+          "ec_sensor_s2": "Niveausensor S2"
         }
       },
       "port_leak_status": {
         "name": "Poort {port} lekstatus",
         "state": {
-          "aquarium": "Aquarium",
           "dry": "Droog",
-          "rodi": "RO/DI"
+          "aquarium_water_leak": "Aquariumwaterlek",
+          "rodi_water_leak": "RO/DI-waterlek"
         }
       },
       "port_mode": {
@@ -770,6 +802,9 @@
       },
       "power_temperature": {
         "name": "Temperature"
+      },
+      "prev_pump_state": {
+        "name": "Vorige pompstatus"
       },
       "probe_ec": {
         "name": "{probe} conductivity"
@@ -841,6 +876,21 @@
           "error": "Sensorfout"
         }
       },
+      "pump_blockage_threshold": {
+        "name": "Drempel blokkade"
+      },
+      "pump_consumption": {
+        "name": "Pompverbruik"
+      },
+      "pump_empty_threshold": {
+        "name": "Drempel pomp droog"
+      },
+      "pump_soft_blockage_threshold": {
+        "name": "Drempel gedeeltelijke blokkade"
+      },
+      "pump_speed": {
+        "name": "Pompsnelheid"
+      },
       "pump_state": {
         "name": "Pomp status",
         "state": {
@@ -853,6 +903,12 @@
       },
       "remaining_length": {
         "name": "Resterende lengte"
+      },
+      "s1_average": {
+        "name": "Gemiddelde niveausensor S1"
+      },
+      "s2_average": {
+        "name": "Gemiddelde niveausensor S2"
       },
       "schedule_head": {
         "name": "Doseerkop schema",

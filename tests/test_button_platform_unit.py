@@ -57,6 +57,9 @@ async def test_async_setup_entry_adds_entities_for_each_device_type(
     class _Dose(_FakeBaseDevice):
         heads_nb: int = 2
 
+    class _Power(_FakeBaseDevice):
+        pass
+
     monkeypatch.setattr(button_mod, "ReefLedCoordinator", _Led)
     monkeypatch.setattr(button_mod, "ReefLedG2Coordinator", _LedG2)
     monkeypatch.setattr(button_mod, "ReefMatCoordinator", _Mat)
@@ -64,6 +67,7 @@ async def test_async_setup_entry_adds_entities_for_each_device_type(
     monkeypatch.setattr(button_mod, "ReefWaveCoordinator", _Wave)
     monkeypatch.setattr(button_mod, "ReefRunCoordinator", _Run)
     monkeypatch.setattr(button_mod, "ReefDoseCoordinator", _Dose)
+    monkeypatch.setattr(button_mod, "ReefPowerCoordinator", _Power)
 
     # Keep the described button sets small per branch to avoid depending on
     # complex device methods in `exists_fn`.
@@ -79,6 +83,7 @@ async def test_async_setup_entry_adds_entities_for_each_device_type(
     monkeypatch.setattr(button_mod, "MAT_BUTTONS", minimal)
     monkeypatch.setattr(button_mod, "ATO_BUTTONS", minimal)
     monkeypatch.setattr(button_mod, "PREVIEW_BUTTONS", cast(Any, minimal))
+    monkeypatch.setattr(button_mod, "POWER_BUTTONS", minimal)
     monkeypatch.setattr(button_mod, "FETCH_CONFIG_BUTTON", minimal)
     monkeypatch.setattr(button_mod, "FIRMWARE_UPDATE_BUTTON", minimal)
 
@@ -106,6 +111,11 @@ async def test_async_setup_entry_adds_entities_for_each_device_type(
     # MAT / ATO
     assert await _run_for(_Mat())
     assert await _run_for(_Ato())
+
+    # POWER: its own elif branch, previously never taken because the
+    # coordinator class was not patched here — the isinstance check fell
+    # through to the wave/run/dose chain.
+    assert await _run_for(_Power())
 
     # WAVE / RUN / DOSE
     assert await _run_for(_Wave())
