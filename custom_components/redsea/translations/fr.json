@@ -683,7 +683,12 @@
         "name": "Lecture actuelle du capteur de fuite"
       },
       "leak_sensor_status": {
-        "name": "Statut du capteur de fuite"
+        "name": "État du détecteur de fuite",
+        "state": {
+          "dry": "Sec",
+          "aquarium_water_leak": "Fuite d'eau de l'aquarium",
+          "rodi_water_leak": "Fuite d'eau osmosée"
+        }
       },
       "led_program": {
         "name": "Programme LED"
@@ -892,7 +897,10 @@
         "name": "Vitesse de la pompe"
       },
       "pump_state": {
-        "name": "Etat de la pompe"
+        "name": "Etat de la pompe",
+        "state": {
+          "off": "Arrêtée"
+        }
       },
       "remaining_days": {
         "name": "Jours restants"
@@ -983,7 +991,7 @@
         "name": "Usage Total"
       },
       "total_volume_usage": {
-        "name": "Volume total utilisé"
+        "name": "Volume utilisé depuis le remplissage"
       },
       "type": {
         "name": "Type",

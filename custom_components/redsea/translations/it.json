@@ -675,7 +675,12 @@
         "name": "Lettura attuale sensore perdite"
       },
       "leak_sensor_status": {
-        "name": "Stato sensore perdite"
+        "name": "Stato del sensore di perdite",
+        "state": {
+          "dry": "Asciutto",
+          "aquarium_water_leak": "Perdita d'acqua dall'acquario",
+          "rodi_water_leak": "Perdita d'acqua RO/DI"
+        }
       },
       "led_program": {
         "name": "Programma LED"
@@ -887,7 +892,8 @@
         "name": "Stato pompa",
         "state": {
           "malfunction": "Malfunzionamento",
-          "pump_on": "Accesa"
+          "pump_on": "Accesa",
+          "off": "Spenta"
         }
       },
       "remaining_days": {
@@ -979,7 +985,7 @@
         "name": "Utilizzo totale"
       },
       "total_volume_usage": {
-        "name": "Volume totale utilizzato"
+        "name": "Volume usato dall'ultimo riempimento"
       },
       "type": {
         "name": "Tipo",

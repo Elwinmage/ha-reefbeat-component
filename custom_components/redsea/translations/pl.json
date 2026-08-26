@@ -675,7 +675,12 @@
         "name": "Aktualne odczyty czujnika wycieku"
       },
       "leak_sensor_status": {
-        "name": "Stan czujnika wycieku"
+        "name": "Stan czujnika wycieku",
+        "state": {
+          "dry": "Sucho",
+          "aquarium_water_leak": "Wyciek wody z akwarium",
+          "rodi_water_leak": "Wyciek wody RO/DI"
+        }
       },
       "led_program": {
         "name": "Program LED"
@@ -887,7 +892,8 @@
         "name": "Stan pompy",
         "state": {
           "malfunction": "Awaria",
-          "pump_on": "Włączona"
+          "pump_on": "Włączona",
+          "off": "Wyłączona"
         }
       },
       "remaining_days": {
@@ -979,7 +985,7 @@
         "name": "Łączne zużycie"
       },
       "total_volume_usage": {
-        "name": "Łączne zużycie objętości"
+        "name": "Zużycie od napełnienia"
       },
       "type": {
         "name": "Typ",

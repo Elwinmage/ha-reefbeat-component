@@ -675,7 +675,12 @@
         "name": "Aktuelle Lecksensorablesung"
       },
       "leak_sensor_status": {
-        "name": "Lecksensorstatus"
+        "name": "Status des Lecksensors",
+        "state": {
+          "dry": "Trocken",
+          "aquarium_water_leak": "Aquarienwasser-Leck",
+          "rodi_water_leak": "RO/DI-Wasser-Leck"
+        }
       },
       "led_program": {
         "name": "LED-Programm"
@@ -887,7 +892,8 @@
         "name": "Pumpenstatus",
         "state": {
           "malfunction": "Fehlfunktion",
-          "pump_on": "An"
+          "pump_on": "An",
+          "off": "Aus"
         }
       },
       "remaining_days": {
@@ -979,7 +985,7 @@
         "name": "Gesamtverbrauch"
       },
       "total_volume_usage": {
-        "name": "Gesamter Volumenverbrauch"
+        "name": "Verbrauch seit dem Nachfüllen"
       },
       "type": {
         "name": "Typ",

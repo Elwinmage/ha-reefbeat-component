@@ -675,7 +675,12 @@
         "name": "Lectura actual del sensor de fugas"
       },
       "leak_sensor_status": {
-        "name": "Estado del sensor de fugas"
+        "name": "Estado del sensor de fugas",
+        "state": {
+          "dry": "Seco",
+          "aquarium_water_leak": "Fuga de agua del acuario",
+          "rodi_water_leak": "Fuga de agua RO/DI"
+        }
       },
       "led_program": {
         "name": "Programa LED"
@@ -887,7 +892,8 @@
         "name": "Estado de la bomba",
         "state": {
           "malfunction": "Avería",
-          "pump_on": "Encendida"
+          "pump_on": "Encendida",
+          "off": "Apagada"
         }
       },
       "remaining_days": {
@@ -979,7 +985,7 @@
         "name": "Uso total"
       },
       "total_volume_usage": {
-        "name": "Volumen total usado"
+        "name": "Volumen usado desde el llenado"
       },
       "type": {
         "name": "Tipo",

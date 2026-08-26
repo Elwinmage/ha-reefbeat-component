@@ -683,7 +683,12 @@
         "name": "Huidige uitlezing lekkagesensor"
       },
       "leak_sensor_status": {
-        "name": "Status lekkagesensor"
+        "name": "Status leksensor",
+        "state": {
+          "dry": "Droog",
+          "aquarium_water_leak": "Aquariumwaterlek",
+          "rodi_water_leak": "RO/DI-waterlek"
+        }
       },
       "led_program": {
         "name": "LED programma"
@@ -895,7 +900,8 @@
         "name": "Pomp status",
         "state": {
           "malfunction": "Storing",
-          "pump_on": "Aan"
+          "pump_on": "Aan",
+          "off": "Uit"
         }
       },
       "remaining_days": {
@@ -987,7 +993,7 @@
         "name": "Totaal verbruik"
       },
       "total_volume_usage": {
-        "name": "Totaal volumeverbruik"
+        "name": "Verbruik sinds bijvullen"
       },
       "type": {
         "name": "Type",

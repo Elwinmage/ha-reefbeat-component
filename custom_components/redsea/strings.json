@@ -683,7 +683,12 @@
         "name": "Leak sensor current read"
       },
       "leak_sensor_status": {
-        "name": "Leak sensor status"
+        "name": "Leak sensor status",
+        "state": {
+          "dry": "Dry",
+          "aquarium_water_leak": "Aquarium water leak",
+          "rodi_water_leak": "RO/DI water leak"
+        }
       },
       "led_program": {
         "name": "LED Program"
@@ -895,7 +900,8 @@
         "name": "Pump State",
         "state": {
           "malfunction": "Malfunction",
-          "pump_on": "On"
+          "pump_on": "On",
+          "off": "Off"
         }
       },
       "remaining_days": {
@@ -987,7 +993,7 @@
         "name": "Total usage"
       },
       "total_volume_usage": {
-        "name": "Total volume usage"
+        "name": "Volume used since refill"
       },
       "type": {
         "name": "Type",

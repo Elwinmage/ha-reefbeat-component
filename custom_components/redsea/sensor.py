@@ -709,6 +709,40 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
     ),
 )
 
+# Possible values for `last_pump_on_cause` on an ATO port.
+#
+# The app only models two (`AtoAdvanceCause`: `manual` / `none`), but the
+# firmware reports more than the cloud dashboard carries: a real RSATO+
+# `/dashboard` returns `ec_sensor_s1`, the level sensor that triggered the
+# fill. `ec_sensor_s2` is the matching second level of the same probe.
+#
+# This list is therefore incomplete by construction — it holds what has been
+# observed or confirmed, not a closed enum. Any value outside it shows up as
+# `unknown` on the entity, which is preferable to a wrong translation.
+_ATO_PUMP_CAUSE_OPTIONS: tuple[str, ...] = (
+    "none",
+    "manual",
+    "ec_sensor_s1",
+    "ec_sensor_s2",
+)
+
+# `leak_status` enum on ATO ports.
+#
+# Values read from the `from(String)` mapper of the app's `AtoLeakStatus` and
+# `ControlLeakStatus` enums, which both accept exactly these three strings.
+# Careful: `$Keys.aquarium` is the name of the *field*, its value is the longer
+# `aquarium_water_leak` — the short forms never appear on the wire.
+#
+# `dry` is the healthy state: the leak sensor is dry. The other two indicate
+# water where it should not be, from the aquarium side or from the RO/DI feed
+# side respectively. The app falls back to `Dry` on an unrecognised value.
+_ATO_LEAK_STATUS_OPTIONS: tuple[str, ...] = (
+    "dry",
+    "aquarium_water_leak",
+    "rodi_water_leak",
+)
+
+
 ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription(
         key="s_water_level",
@@ -738,6 +772,14 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         icon="mdi:waves-arrow-up",
         suggested_display_precision=0,
     ),
+    # Not a lifetime counter despite the firmware name: it holds the volume
+    # dispensed from the current container and resets when that container is
+    # refilled. `total_fills` next to it *is* lifetime and never resets — two
+    # `total_*` fields with opposite semantics.
+    #
+    # It also appears to be what `volume_left` is derived from:
+    # ato_tank_volume * 1000 - total_volume_usage matches on every payload
+    # seen so far.
     ReefBeatSensorEntityDescription(
         key="total_volume_usage",
         translation_key="total_volume_usage",
@@ -749,6 +791,8 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         icon="mdi:waves-arrow-up",
         suggested_display_precision=0,
     ),
+    # Lifetime count, unlike total_volume_usage: a user reported 1111 with
+    # 4 of them from today.
     ReefBeatSensorEntityDescription(
         key="total_fills",
         translation_key="total_fills",
@@ -827,9 +871,22 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         ),
         icon="mdi:thermometer-check",
     ),
+    # `dry` / `aquarium_water_leak` / `rodi_water_leak`, read off the
+    # `AtoLeakStatus.from()` mapper in the Red Sea app. `dry` is the healthy
+    # state; the other two say which side the water came from, a distinction
+    # the companion `status` moisture binary_sensor cannot carry.
+    #
+    # `device_class=ENUM` is required for the `state` translations to apply at
+    # all: without it Home Assistant shows the raw firmware value and the
+    # strings.json block is ignored. The trade-off is the usual one — a value
+    # outside `options` is reported as `unknown` rather than displayed — and
+    # it is accepted here because this set really is closed: `AtoLeakStatus`
+    # maps exactly these three and falls back to `dry` for anything else.
     ReefBeatSensorEntityDescription(
         key="leak_sensor_status",
         translation_key="leak_sensor_status",
+        device_class=SensorDeviceClass.ENUM,
+        options=list(_ATO_LEAK_STATUS_OPTIONS),
         value_fn=lambda device: device.get_data(
             "$.sources[?(@.name=='/dashboard')].data.leak_sensor.status"
         ),
@@ -845,6 +902,13 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         icon="mdi:pipe-leak",
         suggested_display_precision=0,
     ),
+    # Observed values: `pump_on`, `off`, `malfunction`, the last one covering
+    # every fault (dry running, fill timeout...).
+    #
+    # Careful with the `on` form: a field report described the states as
+    # "on/off/malfunction", but that is the *rendered* label — a real
+    # `/dashboard` payload carries `prev_pump_state: "pump_on"`. Declaring
+    # `on` as an option would drop every running pump to `unknown`.
     ReefBeatSensorEntityDescription(
         key="pump_state",
         translation_key="pump_state",
@@ -1249,39 +1313,6 @@ _ATO_WATER_LEVEL_OPTIONS: tuple[str, ...] = (
     "desired_level_1",
     "desired_level_2",
     "error",
-)
-
-# Possible values for `last_pump_on_cause` on an ATO port.
-#
-# The app only models two (`AtoAdvanceCause`: `manual` / `none`), but the
-# firmware reports more than the cloud dashboard carries: a real RSATO+
-# `/dashboard` returns `ec_sensor_s1`, the level sensor that triggered the
-# fill. `ec_sensor_s2` is the matching second level of the same probe.
-#
-# This list is therefore incomplete by construction — it holds what has been
-# observed or confirmed, not a closed enum. Any value outside it shows up as
-# `unknown` on the entity, which is preferable to a wrong translation.
-_ATO_PUMP_CAUSE_OPTIONS: tuple[str, ...] = (
-    "none",
-    "manual",
-    "ec_sensor_s1",
-    "ec_sensor_s2",
-)
-
-# `leak_status` enum on ATO ports.
-#
-# Values read from the `from(String)` mapper of the app's `AtoLeakStatus` and
-# `ControlLeakStatus` enums, which both accept exactly these three strings.
-# Careful: `$Keys.aquarium` is the name of the *field*, its value is the longer
-# `aquarium_water_leak` — the short forms never appear on the wire.
-#
-# `dry` is the healthy state: the leak sensor is dry. The other two indicate
-# water where it should not be, from the aquarium side or from the RO/DI feed
-# side respectively. The app falls back to `Dry` on an unrecognised value.
-_ATO_LEAK_STATUS_OPTIONS: tuple[str, ...] = (
-    "dry",
-    "aquarium_water_leak",
-    "rodi_water_leak",
 )
 
 

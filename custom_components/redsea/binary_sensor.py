@@ -190,10 +190,15 @@ ATO_SENSORS: tuple[ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], .
         ),
         icon="mdi:volume-high",
     ),
+    # MOISTURE rather than PROBLEM: Home Assistant then states it as Wet/Dry,
+    # which is what a leak probe reports and what the firmware value says.
+    # The three wire values (`dry`, `aquarium_water_leak`, `rodi_water_leak`)
+    # collapse to wet/dry here; `leak_sensor_status` keeps the distinction
+    # between a tank-side and an RO/DI-side leak.
     ReefBeatBinarySensorEntityDescription(
         key="status",
         translation_key="status",
-        device_class=BinarySensorDeviceClass.PROBLEM,
+        device_class=BinarySensorDeviceClass.MOISTURE,
         value_fn=lambda device: (
             device.get_data(
                 "$.sources[?(@.name=='/dashboard')].data.leak_sensor.status"
