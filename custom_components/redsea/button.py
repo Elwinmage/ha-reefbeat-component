@@ -177,6 +177,26 @@ FETCH_CONFIG_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
     ),
 )
 
+# Companion to FETCH_CONFIG_BUTTON, for the other half of the sources.
+#
+# `fetch_config()` only refreshes sources typed "config"; the polled "data"
+# ones -- /dashboard and friends -- are otherwise only read on the scan
+# interval. This button forces that read now, without waiting for the cycle.
+#
+# `wait=0`: the delay in `async_request_refresh` exists to let a device apply
+# a PUT before being read back. Nothing was written here, so there is nothing
+# to wait for.
+FETCH_DATA_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
+    ReefBeatButtonEntityDescription(
+        key="fetch_data",
+        translation_key="fetch_data",
+        exists_fn=lambda _: True,
+        press_fn=lambda device: device.async_request_refresh(wait=0),
+        icon="mdi:refresh",
+        entity_category=EntityCategory.CONFIG,
+    ),
+)
+
 FIRMWARE_UPDATE_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
         key="firmware_update",
@@ -683,6 +703,10 @@ async def async_setup_entry(
         _add_described_entities(
             entities, device, ReefBeatButtonEntity, FETCH_CONFIG_BUTTON
         )
+
+    # Unconditional, unlike fetch_config: data sources are polled whatever
+    # live_config_update says, so forcing a read early is always meaningful.
+    _add_described_entities(entities, device, ReefBeatButtonEntity, FETCH_DATA_BUTTON)
 
     if not isinstance(device, ReefBeatCloudCoordinator) and not isinstance(
         device, ReefVirtualLedCoordinator

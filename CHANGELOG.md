@@ -19,6 +19,21 @@
    **Breaking**: the binary_sensor is gone, the switch keeps its
    `enabled` translation key and label.
 
+### ALL DEVICES
+ - New `fetch_data` button on every device, next to `fetch_config`. It forces
+   an immediate read of the polled "data" sources instead of waiting for the
+   scan interval, where `fetch_config` only covers sources typed "config".
+   Offered whatever `live_config_update` is set to, since data sources are
+   polled either way.
+
+### RSATO polling
+ - `/configuration` is now a polled "data" source instead of an on-demand
+   "config" one. It carries `auto_fill`, which the device does not report on
+   `/dashboard`, so the switch used to stay stale until someone pressed
+   `fetch_config`. Costs one extra GET per cycle on the LAN; `fetch_config`
+   no longer covers this source, since that button only refreshes sources
+   typed "config".
+
 ### SWITCH
  - New `push_source` field on `ReefBeatSwitchEntityDescription`, for a setting
    read at one endpoint and written at another. Defaults to the source named

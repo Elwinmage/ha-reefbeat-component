@@ -295,6 +295,9 @@ Choisissez le réseau cible, saisissez son mot de passe et validez. L'intégrati
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/fetch_config_button.png" alt="Image">
 </p>
 
+> [!NOTE]
+> Chaque appareil expose également un bouton « Rafraîchir les données ». Il force une lecture immédiate des sources interrogées régulièrement, sans attendre le prochain cycle de scan, et fonctionne quel que soit le réglage Live_update_config — contrairement à « Récupérer la configuration », qui ne rafraîchit que les sources de configuration.
+
 ## Mise à jour du Microgiciel
 Vous pouvez être notifié et mettre à jour votre appareil lorsqu'une nouvelle version du firmware. Vous devez disposer d'un composant actif ["cloud api"](README.fr.md#ajout-de-lapi-cloud) avec vos identifiants et l'interrupteur « Utiliser l'API cloud » doit être activé.
 > [!TIP]

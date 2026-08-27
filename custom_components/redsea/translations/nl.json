@@ -185,6 +185,9 @@
       "fetch_config": {
         "name": "Configuratie ophalen"
       },
+      "fetch_data": {
+        "name": "Gegevens ophalen"
+      },
       "fill": {
         "name": "Vullen"
       },

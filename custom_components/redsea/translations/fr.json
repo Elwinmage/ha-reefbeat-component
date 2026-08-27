@@ -184,6 +184,9 @@
       "fetch_config": {
         "name": "MAJ données de configuration"
       },
+      "fetch_data": {
+        "name": "Rafraîchir les données"
+      },
       "fill": {
         "name": "Remplissage"
       },

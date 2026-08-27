@@ -311,6 +311,11 @@ DOSE_SCAN_INTERVAL: Final[int] = 120  # seconds
 
 ATO_SCAN_INTERVAL: Final[int] = 20  # seconds
 
+# `auto_fill` lives only on `/configuration` -- it is absent from `/dashboard`,
+# confirmed against the Red Sea app, whose dashboard parser never reads it.
+# That is why the RSATO declares `/configuration` as a polled "data" source
+# (see reefbeat/ato.py): otherwise this switch would go stale as soon as
+# anyone touched auto-fill from the Red Sea app.
 ATO_AUTO_FILL_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/configuration')].data.auto_fill"
 )

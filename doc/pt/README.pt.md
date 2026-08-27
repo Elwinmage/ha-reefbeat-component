@@ -296,6 +296,9 @@ Escolha a rede de destino, introduza a respetiva palavra-passe e confirme. A int
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/fetch_config_button.png" alt="Image">
 </p>
 
+> [!NOTE]
+> Cada aparelho expõe também um botão «Atualizar dados». Força uma leitura imediata das fontes consultadas periodicamente, sem esperar pelo próximo intervalo de sondagem, e funciona seja qual for a definição Live_update_config — ao contrário de «Obter configuração», que só atualiza as fontes de configuração.
+
 ## Atualização de Firmware
 Pode ser notificado e atualizar o seu dispositivo quando estiver disponível uma nova versão de firmware. You must have an active ["Cloud API"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) device with your credentials and the "Use Cloud API" switch must be enabled.
 > [!TIP]

@@ -300,6 +300,9 @@ Pick the target network, enter its password, and submit. The integration sends t
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/fetch_config_button.png" alt="Image">
 </p>
 
+> [!NOTE]
+> Every device also exposes a "Fetch data" button. It forces an immediate read of the polled sources instead of waiting for the next scan interval, and works whatever the Live update config setting is — unlike "Fetch config", which only refreshes the configuration sources.
+
 ## Firmware Update
 You can be notified and update your device when a new firmware version is available. You must have an active ["Cloud API"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) device with your credentials and the "Use Cloud API" switch must be enabled.
 > [!TIP]

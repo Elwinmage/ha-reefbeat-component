@@ -300,6 +300,9 @@ Scegli la rete di destinazione, inserisci la password e conferma. L'integrazione
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/fetch_config_button.png" alt="Image">
 </p>
 
+> [!NOTE]
+> Ogni dispositivo espone anche un pulsante «Aggiorna dati». Forza una lettura immediata delle sorgenti interrogate periodicamente, senza attendere il successivo intervallo di scansione, e funziona qualunque sia l'impostazione Live_update_config — a differenza di «Recupera configurazione», che aggiorna solo le sorgenti di configurazione.
+
 ## Aggiornamento del firmware
 Puoi essere avvisato e aggiornare il tuo apparecchio quando è disponibile una nuova versione del firmware. Devi avere un dispositivo ["API Cloud"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) attivo con le tue credenziali e l'interruttore "Usa API Cloud" deve essere abilitato.
 > [!TIP]

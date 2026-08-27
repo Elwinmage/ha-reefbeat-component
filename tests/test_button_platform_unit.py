@@ -642,3 +642,49 @@ async def test_reefdose_button_entity_remaining_branches_and_device_info() -> No
     )
     ent0 = button_mod.ReefDoseButtonEntity(cast(Any, device), desc_head0)
     assert ent0.device_info == device.device_info
+
+
+@pytest.mark.asyncio
+async def test_fetch_data_button_forces_an_immediate_refresh() -> None:
+    """Pressing it reads the data sources now, without the write-settle delay.
+
+    `wait` exists so a device has time to apply a PUT before being read back.
+    Nothing is written here, so waiting would only delay the answer.
+    """
+
+    @dataclass
+    class _Device(_FakeBaseDevice):
+        calls: list[dict[str, Any]] = field(default_factory=list)
+
+        async def async_request_refresh(
+            self, source: str | None = None, config: bool = False, wait: int = 2
+        ) -> None:
+            self.calls.append({"source": source, "config": config, "wait": wait})
+
+    device = _Device()
+    desc = next(d for d in button_mod.FETCH_DATA_BUTTON if d.key == "fetch_data")
+
+    entity = button_mod.ReefBeatButtonEntity(cast(Any, device), desc)
+    entity.async_write_ha_state = lambda *a, **k: None  # type: ignore[method-assign]
+
+    await entity.async_press()
+
+    assert device.calls == [{"source": None, "config": False, "wait": 0}]
+
+
+def test_fetch_data_button_is_offered_on_every_device() -> None:
+    """Unlike fetch_config, it does not depend on live_config_update.
+
+    Data sources are polled whichever way that flag is set, so forcing an
+    early read is always meaningful.
+    """
+    for live in (True, False):
+        device = _FakeBaseDevice(my_api=_FakeAPI(live_config_update=live))
+        entities: list[Any] = []
+        button_mod._add_described_entities(
+            entities,
+            cast(Any, device),
+            button_mod.ReefBeatButtonEntity,
+            button_mod.FETCH_DATA_BUTTON,
+        )
+        assert [e.entity_description.key for e in entities] == ["fetch_data"]

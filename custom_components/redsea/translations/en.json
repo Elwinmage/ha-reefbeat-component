@@ -185,6 +185,9 @@
       "fetch_config": {
         "name": "Fetch Config"
       },
+      "fetch_data": {
+        "name": "Fetch data"
+      },
       "fill": {
         "name": "Fill"
       },

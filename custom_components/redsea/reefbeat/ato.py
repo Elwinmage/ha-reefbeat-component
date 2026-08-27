@@ -57,11 +57,24 @@ class ReefATOAPI(ReefBeatAPI):
         """
         super().__init__(ip, live_config_update, session)
 
-        # Ensure /configuration exists as a config source.
+        # /configuration is declared as a "data" source, not "config", so it is
+        # polled on every cycle like /dashboard.
+        #
+        # It holds `auto_fill`, and unlike the leak and buzzer settings that
+        # field appears nowhere on /dashboard -- confirmed against the Red Sea
+        # app, whose dashboard parser never reads it. As a "config" source it
+        # would be fetched once at startup and then only on demand, so an
+        # auto_fill change made from the Red Sea app would sit stale in Home
+        # Assistant for as long as nobody pressed `fetch_config`.
+        #
+        # The trade-off is one extra GET per cycle to a device on the LAN, and
+        # that `fetch_config` no longer covers this source: that button only
+        # refreshes sources typed "config". Nothing is lost, since the regular
+        # polling now does the job it was needed for.
         sources = cast(list[SourceEntry], self.data.get("sources", []))
         sources.insert(
             len(sources),
-            {"name": "/configuration", "type": "config", "data": ""},
+            {"name": "/configuration", "type": "data", "data": ""},
         )
         self.data["sources"] = sources
 

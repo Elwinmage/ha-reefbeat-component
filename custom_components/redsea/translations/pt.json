@@ -185,6 +185,9 @@
       "fetch_config": {
         "name": "Obter configuração"
       },
+      "fetch_data": {
+        "name": "Atualizar dados"
+      },
       "fill": {
         "name": "Encher"
       },

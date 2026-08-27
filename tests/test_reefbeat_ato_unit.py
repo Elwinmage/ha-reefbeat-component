@@ -161,3 +161,25 @@ async def test_ato_push_values_omits_unknown_leak_settings(
     await api.push_values("/configuration", "put")
 
     assert sent == [("http://192.0.2.60/configuration", {"auto_fill": False}, "put")]
+
+
+def test_ato_configuration_is_a_polled_data_source() -> None:
+    """`/configuration` must be polled, not fetched on demand.
+
+    It holds `auto_fill`, which appears nowhere on `/dashboard`: as a "config"
+    source it would only be read at startup and on `fetch_config`, so a change
+    made from the Red Sea app would sit stale in Home Assistant.
+    """
+    api = ReefATOAPI(
+        ip="192.0.2.60",
+        live_config_update=False,
+        session=cast(Any, _FakeSession()),
+    )
+
+    sources = {s["name"]: s["type"] for s in api.data["sources"]}
+    assert sources["/configuration"] == "data"
+    assert sources["/dashboard"] == "data"
+
+    # The fetch_config button still has sources to refresh, so it keeps its
+    # meaning for the rest of the device.
+    assert "config" in sources.values()
