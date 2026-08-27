@@ -5,7 +5,7 @@ Provides ATO-specific helpers on top of the generic ReefBeat API.
 Endpoints:
     - /resume: clear empty latch / resume operation
     - /update-volume: set remaining reservoir volume
-    - /configuration: push `auto_fill` and leak buzzer settings
+    - /configuration: push `auto_fill`, leak probe and buzzer settings
 """
 
 from __future__ import annotations
@@ -15,7 +15,11 @@ from typing import Any, cast
 
 import aiohttp
 
-from ..const import ATO_AUTO_FILL_INTERNAL_NAME, ATO_BUZZER_ENABLED_INTERNAL_NAME
+from ..const import (
+    ATO_AUTO_FILL_INTERNAL_NAME,
+    ATO_BUZZER_ENABLED_INTERNAL_NAME,
+    ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME,
+)
 from .api import ReefBeatAPI, SourceEntry
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,7 +36,7 @@ class ReefATOAPI(ReefBeatAPI):
     Implements ATO-specific endpoints:
     - /resume: clear empty latch / resume operation
     - /update-volume: set remaining reservoir volume
-    - /configuration: push auto_fill and leak buzzer settings
+    - /configuration: push auto_fill, leak probe and buzzer settings
     """
 
     def __init__(
@@ -85,12 +89,19 @@ class ReefATOAPI(ReefBeatAPI):
             method: HTTP method (defaults to `put`).
 
         Notes:
-            Pushes `auto_fill` and, when the device reported it, the leak alarm
-            buzzer. The firmware accepts a partial configuration (the Red Sea
-            app only ever sends the keys the user changed), so the buzzer is
-            left out entirely rather than sent as null when `/configuration`
-            has not been read back yet -- sending `{"enabled": null}` would
-            clear the device setting.
+            Pushes `auto_fill` and, when the device reported them, the leak
+            probe's arming flag and the leak alarm buzzer. Both of the latter
+            are read from `/dashboard` (see the two INTERNAL_NAME constants)
+            and written here, which is where the firmware accepts them.
+
+            The firmware accepts a partial configuration -- the Red Sea app
+            only ever sends the keys the user changed -- so a value the device
+            has not reported is left out entirely rather than sent as null,
+            which would clear the setting.
+
+            `leak` carries only `sensor_enabled`: the sibling
+            `emergency_shutdown` is not on `/dashboard`, so there is no value
+            to echo back and a partial `leak` object leaves it untouched.
         """
         auto_fill = self.get_data(ATO_AUTO_FILL_INTERNAL_NAME, is_None_possible=True)
         payload: dict[str, Any] = {"auto_fill": auto_fill}
@@ -98,6 +109,12 @@ class ReefATOAPI(ReefBeatAPI):
         buzzer = self.get_data(ATO_BUZZER_ENABLED_INTERNAL_NAME, is_None_possible=True)
         if buzzer is not None:
             payload["buzzer"] = {"enabled": bool(buzzer)}
+
+        leak = self.get_data(
+            ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME, is_None_possible=True
+        )
+        if leak is not None:
+            payload["leak"] = {"sensor_enabled": bool(leak)}
 
         await self._http_send(self._base_url + source, payload, method)
 

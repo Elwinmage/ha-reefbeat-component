@@ -51,9 +51,6 @@
       "buzzer_dismissed": {
         "name": "Buzzer dismissed"
       },
-      "buzzer_enabled": {
-        "name": "Buzzer abilitato"
-      },
       "buzzer_on": {
         "name": "Cicalino attivo"
       },
@@ -77,9 +74,6 @@
       },
       "ec_sensor_connected": {
         "name": "Sensore EC collegato"
-      },
-      "enabled": {
-        "name": "Sensore perdite abilitato"
       },
       "is_calibrated": {
         "name": "Sonda calibrata"
@@ -1099,6 +1093,9 @@
       },
       "dose_compensation": {
         "name": "Compensazione dose"
+      },
+      "enabled": {
+        "name": "Sensore perdite abilitato"
       },
       "fullcup_enabled": {
         "name": "Rilevamento coppa piena"

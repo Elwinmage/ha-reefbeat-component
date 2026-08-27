@@ -51,9 +51,6 @@
       "buzzer_dismissed": {
         "name": "Buzzer dismissed"
       },
-      "buzzer_enabled": {
-        "name": "Buzzer ativado"
-      },
       "buzzer_on": {
         "name": "Alarme sonoro ativo"
       },
@@ -77,9 +74,6 @@
       },
       "ec_sensor_connected": {
         "name": "Sensor EC ligado"
-      },
-      "enabled": {
-        "name": "Sensor de fuga ativado"
       },
       "is_calibrated": {
         "name": "Sonda calibrada"
@@ -1099,6 +1093,9 @@
       },
       "dose_compensation": {
         "name": "Compensação de dose"
+      },
+      "enabled": {
+        "name": "Sensor de fuga ativado"
       },
       "fullcup_enabled": {
         "name": "Deteção de copo cheio"

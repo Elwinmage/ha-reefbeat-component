@@ -51,9 +51,6 @@
       "buzzer_dismissed": {
         "name": "Buzzer dismissed"
       },
-      "buzzer_enabled": {
-        "name": "Buzzer enabled"
-      },
       "buzzer_on": {
         "name": "Buzzer sounding"
       },
@@ -77,9 +74,6 @@
       },
       "ec_sensor_connected": {
         "name": "EC sensor Connected"
-      },
-      "enabled": {
-        "name": "Leak sensor enabled"
       },
       "is_calibrated": {
         "name": "Probe calibrated"
@@ -1107,6 +1101,9 @@
       },
       "dose_compensation": {
         "name": "Dose compensation"
+      },
+      "enabled": {
+        "name": "Leak sensor enabled"
       },
       "fullcup_enabled": {
         "name": "Full Cup Detection"

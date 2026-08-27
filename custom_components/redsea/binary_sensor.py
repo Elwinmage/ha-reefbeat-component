@@ -174,22 +174,6 @@ ATO_SENSORS: tuple[ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], .
         ),
         icon="mdi:connection",
     ),
-    ReefBeatBinarySensorEntityDescription(
-        key="enabled",
-        translation_key="enabled",
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.leak_sensor.enabled"
-        ),
-        icon="mdi:leak",
-    ),
-    ReefBeatBinarySensorEntityDescription(
-        key="buzzer_enabled",
-        translation_key="buzzer_enabled",
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.leak_sensor.buzzer_enabled"
-        ),
-        icon="mdi:volume-high",
-    ),
     # MOISTURE rather than PROBLEM: Home Assistant then states it as Wet/Dry,
     # which is what a leak probe reports and what the firmware value says.
     # The three wire values (`dry`, `aquarium_water_leak`, `rodi_water_leak`)
@@ -272,8 +256,8 @@ ATO_SENSORS: tuple[ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], .
         icon="mdi:chart-line",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
-    # Whether the buzzer is sounding right now, as opposed to
-    # `buzzer_enabled` which is the user setting.
+    # Whether the buzzer is sounding right now, as opposed to the
+    # `buzzer_enabled` switch, which is the user setting.
     ReefBeatBinarySensorEntityDescription(
         key="buzzer_on",
         translation_key="buzzer_on",

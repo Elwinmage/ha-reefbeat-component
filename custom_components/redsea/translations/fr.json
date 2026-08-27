@@ -50,9 +50,6 @@
       "buzzer_dismissed": {
         "name": "Buzzer acquitté"
       },
-      "buzzer_enabled": {
-        "name": "Buzzer"
-      },
       "buzzer_on": {
         "name": "Alarme sonore active"
       },
@@ -76,9 +73,6 @@
       },
       "ec_sensor_connected": {
         "name": "Détecteur"
-      },
-      "enabled": {
-        "name": "Détecteur de fuite"
       },
       "is_calibrated": {
         "name": "Sonde étalonnée"
@@ -1099,6 +1093,9 @@
       },
       "dose_compensation": {
         "name": "Compensation de dose"
+      },
+      "enabled": {
+        "name": "Détecteur de fuite"
       },
       "fullcup_enabled": {
         "name": "Détection du Bol Plein"

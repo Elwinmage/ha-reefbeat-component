@@ -9,12 +9,27 @@
    `{"buzzer": {"enabled": <bool>}}` on a PUT to `/configuration`. The key is
    omitted from the payload when the device has not reported it, since the
    firmware merges partial configurations.
+ - The switch replaces the read-only `binary_sensor.buzzer_enabled`, which
+   reported the same firmware setting from `/dashboard`. **Breaking**: that
+   entity is gone; use the switch, which now reads from `/dashboard` too and
+   so keeps following changes made in the Red Sea app.
+ - Same treatment for the leak probe's arming flag: the read-only
+   `binary_sensor.enabled` becomes a switch (`leak.sensor_enabled` on
+   `/configuration`, read back from `/dashboard.leak_sensor.enabled`).
+   **Breaking**: the binary_sensor is gone, the switch keeps its
+   `enabled` translation key and label.
+
+### SWITCH
+ - New `push_source` field on `ReefBeatSwitchEntityDescription`, for a setting
+   read at one endpoint and written at another. Defaults to the source named
+   in `value_name`, so every existing switch is unchanged.
 
 ### CONST
  - New `ATO_BUZZER_ENABLED_INTERNAL_NAME`.
 
 ### TRANSLATIONS
- - New `entity.switch.buzzer_enabled` key in the 8 locales and `strings.json`.
+ - New `entity.switch.buzzer_enabled` key in the 8 locales and `strings.json`;
+   `entity.binary_sensor.buzzer_enabled` removed with its entity.
 
 ## FIXES
 

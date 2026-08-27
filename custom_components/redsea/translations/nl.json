@@ -51,9 +51,6 @@
       "buzzer_dismissed": {
         "name": "Buzzer dismissed"
       },
-      "buzzer_enabled": {
-        "name": "Buzzer ingeschakeld"
-      },
       "buzzer_on": {
         "name": "Zoemer actief"
       },
@@ -77,9 +74,6 @@
       },
       "ec_sensor_connected": {
         "name": "EC-sensor verbonden"
-      },
-      "enabled": {
-        "name": "Leksensor ingeschakeld"
       },
       "is_calibrated": {
         "name": "Sensor gekalibreerd"
@@ -1107,6 +1101,9 @@
       },
       "dose_compensation": {
         "name": "Doseringcompensatie"
+      },
+      "enabled": {
+        "name": "Leksensor ingeschakeld"
       },
       "fullcup_enabled": {
         "name": "Beker vol detectie"

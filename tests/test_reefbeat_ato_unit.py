@@ -97,9 +97,12 @@ async def test_ato_push_values_puts_buzzer(monkeypatch: pytest.MonkeyPatch) -> N
         session=cast(Any, _FakeSession()),
     )
 
+    # The buzzer is read from /dashboard even though it is written to
+    # /configuration, so the value has to be seeded there.
+    api.set_data("$.sources[?(@.name=='/configuration')].data", {"auto_fill": True})
     api.set_data(
-        "$.sources[?(@.name=='/configuration')].data",
-        {"auto_fill": True, "buzzer": {"enabled": False}},
+        "$.sources[?(@.name=='/dashboard')].data",
+        {"leak_sensor": {"buzzer_enabled": False, "enabled": True}},
     )
 
     sent: list[tuple[str, Any, str]] = []
@@ -117,17 +120,21 @@ async def test_ato_push_values_puts_buzzer(monkeypatch: pytest.MonkeyPatch) -> N
     assert sent == [
         (
             "http://192.0.2.60/configuration",
-            {"auto_fill": True, "buzzer": {"enabled": False}},
+            {
+                "auto_fill": True,
+                "buzzer": {"enabled": False},
+                "leak": {"sensor_enabled": True},
+            },
             "put",
         )
     ]
 
 
 @pytest.mark.asyncio
-async def test_ato_push_values_omits_unknown_buzzer(
+async def test_ato_push_values_omits_unknown_leak_settings(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """A device that never reported `buzzer` must not be sent a null one.
+    """A device that never reported the leak settings must not be sent nulls.
 
     The firmware merges partial configurations, so leaving the key out keeps
     the current device setting; sending `{"enabled": null}` would clear it.
@@ -138,6 +145,7 @@ async def test_ato_push_values_omits_unknown_buzzer(
         session=cast(Any, _FakeSession()),
     )
 
+    # /dashboard never reported a leak_sensor: nothing to send.
     api.set_data("$.sources[?(@.name=='/configuration')].data", {"auto_fill": False})
 
     sent: list[tuple[str, Any, str]] = []

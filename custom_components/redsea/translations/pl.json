@@ -51,9 +51,6 @@
       "buzzer_dismissed": {
         "name": "Buzzer dismissed"
       },
-      "buzzer_enabled": {
-        "name": "Buzzer włączony"
-      },
       "buzzer_on": {
         "name": "Brzęczyk włączony"
       },
@@ -77,9 +74,6 @@
       },
       "ec_sensor_connected": {
         "name": "Czujnik EC podłączony"
-      },
-      "enabled": {
-        "name": "Czujnik wycieku włączony"
       },
       "is_calibrated": {
         "name": "Sonda skalibrowana"
@@ -1099,6 +1093,9 @@
       },
       "dose_compensation": {
         "name": "Kompensacja dawki"
+      },
+      "enabled": {
+        "name": "Czujnik wycieku włączony"
       },
       "fullcup_enabled": {
         "name": "Wykrywanie pełnego pojemnika"

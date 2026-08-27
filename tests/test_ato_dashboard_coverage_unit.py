@@ -124,12 +124,20 @@ def test_every_dashboard_field_is_exposed(dashboard: dict[str, Any]) -> None:
     # `value_fn` is a lambda, so its source is not introspectable; compare
     # against the module source instead, which is what actually holds the
     # JSONPath strings.
+    #
+    # `const` and `switch` are scanned too: a writable setting is a switch
+    # reading a named constant, not a sensor with an inline path, and
+    # `leak_sensor.buzzer_enabled` is exposed exactly that way.
     import custom_components.redsea.binary_sensor as binary_sensor_platform
+    import custom_components.redsea.const as const_module
     import custom_components.redsea.sensor as sensor_platform
+    import custom_components.redsea.switch as switch_platform
 
     source = (
         Path(sensor_platform.__file__).read_text(encoding="utf-8")
         + Path(binary_sensor_platform.__file__).read_text(encoding="utf-8")
+        + Path(switch_platform.__file__).read_text(encoding="utf-8")
+        + Path(const_module.__file__).read_text(encoding="utf-8")
         + read
     )
 

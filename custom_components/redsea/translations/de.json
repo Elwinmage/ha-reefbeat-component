@@ -51,9 +51,6 @@
       "buzzer_dismissed": {
         "name": "Buzzer dismissed"
       },
-      "buzzer_enabled": {
-        "name": "Summer aktiviert"
-      },
       "buzzer_on": {
         "name": "Summer ertönt"
       },
@@ -77,9 +74,6 @@
       },
       "ec_sensor_connected": {
         "name": "EC-Sensor verbunden"
-      },
-      "enabled": {
-        "name": "Lecksensor aktiviert"
       },
       "is_calibrated": {
         "name": "Sonde kalibriert"
@@ -1099,6 +1093,9 @@
       },
       "dose_compensation": {
         "name": "Dosiskompensation"
+      },
+      "enabled": {
+        "name": "Lecksensor aktiviert"
       },
       "fullcup_enabled": {
         "name": "Voller-Behälter-Erkennung"

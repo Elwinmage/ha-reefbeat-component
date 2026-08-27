@@ -318,15 +318,31 @@ ATO_VOLUME_LEFT_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/dashboard')].data.volume_left"
 )
 
-# `buzzer.enabled` on `/configuration`: the leak alarm buzzer of the RSATO+.
-# Recovered from the Red Sea Android app, where
-# `ATODevice$Keys$Configuration$Buzzer.enabled` is read back by
-# `setConfiguration()` and written by `ServerPutAtoConfiguration` as
-# `{"buzzer": {"enabled": <bool>}}` on a PUT to `/configuration`.
-# Config-only: unlike the ReefControl hub, the RSATO+ reports no buzzer state
-# (active/cause/dismissed) on `/dashboard`, so there is nothing to acknowledge.
+# The leak alarm buzzer of the RSATO+, which the firmware exposes twice: as
+# `buzzer.enabled` on `/configuration` and as `leak_sensor.buzzer_enabled` on
+# `/dashboard`. The setting is written to the former -- the Red Sea app PUTs
+# `{"buzzer": {"enabled": <bool>}}` there, per
+# `ATODevice$Keys$Configuration$Buzzer` in the Android app -- but read from the
+# latter, because `/dashboard` is polled on every cycle while `/configuration`
+# is a config source: without `live_config_update` it is fetched once at
+# startup and then only on demand, so a change made in the Red Sea app would
+# not show up here for hours.
+#
+# Reading and writing therefore use different endpoints on purpose. The switch
+# entity updates this cache itself on toggle, and the next `/dashboard` poll
+# confirms it from the device.
 ATO_BUZZER_ENABLED_INTERNAL_NAME: Final[JsonPath] = (
-    "$.sources[?(@.name=='/configuration')].data.buzzer.enabled"
+    "$.sources[?(@.name=='/dashboard')].data.leak_sensor.buzzer_enabled"
+)
+
+# The leak probe's own arming flag, exposed the same way as the buzzer above:
+# written as `leak.sensor_enabled` on `/configuration`
+# (`ATODevice$Keys$Configuration$Leak` in the Android app), reported as
+# `leak_sensor.enabled` on the polled `/dashboard`. The app's cloud heartbeat
+# maps `AtoLeakConfiguration.isEnabled` onto the same model field, which is
+# what confirms the two names are one setting.
+ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/dashboard')].data.leak_sensor.enabled"
 )
 
 # Reservoir size of the ATO container. Like the doser's initial container
