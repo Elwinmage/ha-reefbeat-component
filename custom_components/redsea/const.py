@@ -318,6 +318,17 @@ ATO_VOLUME_LEFT_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/dashboard')].data.volume_left"
 )
 
+# `buzzer.enabled` on `/configuration`: the leak alarm buzzer of the RSATO+.
+# Recovered from the Red Sea Android app, where
+# `ATODevice$Keys$Configuration$Buzzer.enabled` is read back by
+# `setConfiguration()` and written by `ServerPutAtoConfiguration` as
+# `{"buzzer": {"enabled": <bool>}}` on a PUT to `/configuration`.
+# Config-only: unlike the ReefControl hub, the RSATO+ reports no buzzer state
+# (active/cause/dismissed) on `/dashboard`, so there is nothing to acknowledge.
+ATO_BUZZER_ENABLED_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/configuration')].data.buzzer.enabled"
+)
+
 # Reservoir size of the ATO container. Like the doser's initial container
 # volume, this is a property of the installation rather than of the hardware:
 # the RSATO+ never reports it. It therefore lives under `$.local`, the branch

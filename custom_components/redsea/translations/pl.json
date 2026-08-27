@@ -1088,6 +1088,9 @@
       "auto_fill": {
         "name": "Automatyczne napełnianie"
       },
+      "buzzer_enabled": {
+        "name": "Buzzer włączony"
+      },
       "cloud_connect": {
         "name": "Połącz z chmurą"
       },

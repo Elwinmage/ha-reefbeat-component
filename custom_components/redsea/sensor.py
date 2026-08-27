@@ -2363,7 +2363,7 @@ class ReefBeatSensorEntity(ReefRoleMixin, ReefBeatRestoreEntity, SensorEntity): 
                 self._attr_native_value = "excellent"
             return
 
-        self._attr_native_value = self._get_value()
+        self._attr_native_value = self._clamp_enum(self._get_value())
 
         with_attr_name = getattr(self._description, "with_attr_name", None)
         with_attr_value = getattr(self._description, "with_attr_value", None)
@@ -2371,6 +2371,32 @@ class ReefBeatSensorEntity(ReefRoleMixin, ReefBeatRestoreEntity, SensorEntity): 
             self._attr_extra_state_attributes = {
                 with_attr_name: self._device.get_data(with_attr_value)
             }
+
+    def _clamp_enum(self, value: SensorNativeValue) -> SensorNativeValue:
+        """Drop an ENUM value the description does not declare.
+
+        Home Assistant raises `ValueError` when an ENUM sensor writes a state
+        outside its `options`, which kills the entity and every listener of
+        the coordinator with it. The firmware enums are open-ended -- an
+        RSCONTROL ATO port reports `last_pump_on_cause: "unknown"`, and
+        "unknown" can never be an option since it is a reserved HA state --
+        so an unlisted value is reported as unknown rather than crashing.
+        """
+        options = getattr(self._description, "options", None)
+        if (
+            value is not None
+            and getattr(self._description, "device_class", None)
+            is SensorDeviceClass.ENUM
+            and options is not None
+            and value not in options
+        ):
+            _LOGGER.debug(
+                "Sensor %s: unlisted value %r reported as unknown",
+                self._description.key,
+                value,
+            )
+            return None
+        return value
 
     def _get_value(self) -> SensorNativeValue:
         """Compute the sensor native value for the current description."""

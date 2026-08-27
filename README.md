@@ -314,6 +314,7 @@ You can be notified and update your device when a new firmware version is availa
 # ReefATO:
 - Auto-fill enable/disable
 - Manual fill
+- Leak alarm buzzer enable/disable
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Image">

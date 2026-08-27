@@ -313,6 +313,7 @@ Puoi essere avvisato e aggiornare il tuo apparecchio quando è disponibile una n
 # ReefATO:
 - Abilitare/disabilitare il riempimento automatico
 - Riempimento manuale
+- Abilitare/disabilitare il buzzer di allarme perdita
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Image">

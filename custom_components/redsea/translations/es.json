@@ -1088,6 +1088,9 @@
       "auto_fill": {
         "name": "Llenado automático"
       },
+      "buzzer_enabled": {
+        "name": "Zumbador activado"
+      },
       "cloud_connect": {
         "name": "Conectar a la nube"
       },

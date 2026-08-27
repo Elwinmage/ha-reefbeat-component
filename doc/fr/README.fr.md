@@ -308,6 +308,7 @@ Vous pouvez être notifié et mettre à jour votre appareil lorsqu'une nouvelle 
 # ReefATO :
 - Activation/désactivation du remplissage automatique
 - Remplissage manuel
+- Activation/désactivation du buzzer d'alarme de fuite
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Image">

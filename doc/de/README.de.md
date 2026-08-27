@@ -309,6 +309,7 @@ Sie können benachrichtigt werden und Ihr Gerät aktualisieren, wenn eine neue F
 # ReefATO:
 - Automatisches Befüllen aktivieren/deaktivieren
 - Manuelles Befüllen
+- Leckalarm-Summer aktivieren/deaktivieren
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Image">

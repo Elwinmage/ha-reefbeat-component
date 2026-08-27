@@ -12,6 +12,8 @@ Covered here:
                     its skip branches
 - number.py     -> the `PROBE_SCOPES` branch of `_add_maintenance_numbers` and
                     the `placeholders` argument it passes
+- button.py     -> the same branch of `_add_maintenance_buttons`
+- switch.py     -> the same branch of `_add_maintenance_notify_switches`
 - switch.py     -> the empty-catalogue early return, the RSRUN `get_data`
                     failure guard, and the notify switch's turn_on/turn_off
 """
@@ -250,8 +252,72 @@ def test_add_maintenance_numbers_creates_nothing_without_probes() -> None:
 
 
 # ---------------------------------------------------------------------------
+# button.py — the PROBE_SCOPES branch
+# ---------------------------------------------------------------------------
+
+
+def test_add_maintenance_buttons_creates_one_entity_per_matching_probe() -> None:
+    """The action button fans out per probe and carries the `{probe}` label.
+
+    Without the placeholder Home Assistant logs a name/placeholder mismatch
+    and renders the raw `{probe}` in the UI.
+    """
+    from custom_components.redsea.button import _add_maintenance_buttons
+
+    device = _ProbeDevice(
+        [_probe("0x1", "ph", name="Sump pH"), _probe("0x2", "orp", name="Sump ORP")]
+    )
+
+    entities: list[Any] = []
+    _add_maintenance_buttons(cast(Any, device), entities)
+
+    by_uid = {e._attr_unique_id: e for e in entities}
+
+    clean = _task("probe")
+    assert f"CTL-PROBE_{clean.key}_1" in by_uid
+    assert f"CTL-PROBE_{clean.key}_2" in by_uid
+
+    ph_cal = _task("probe_ph")
+    assert f"CTL-PROBE_{ph_cal.key}_1" in by_uid
+    assert f"CTL-PROBE_{ph_cal.key}_2" not in by_uid
+
+    entity = by_uid[f"CTL-PROBE_{ph_cal.key}_1"]
+    assert entity._attr_translation_placeholders == {"probe": "Sump pH"}
+
+
+def test_add_maintenance_buttons_creates_nothing_without_probes() -> None:
+    """A hub reporting no probe yields no probe-scoped button."""
+    from custom_components.redsea.button import _add_maintenance_buttons
+
+    entities: list[Any] = []
+    _add_maintenance_buttons(cast(Any, _ProbeDevice([])), entities)
+    assert entities == []
+
+
+# ---------------------------------------------------------------------------
 # switch.py — early return, RSRUN guard, and the notify toggle
 # ---------------------------------------------------------------------------
+
+
+def test_add_maintenance_notify_switches_one_entity_per_matching_probe() -> None:
+    """The notify switch follows the button and the interval slider."""
+    from custom_components.redsea.switch import _add_maintenance_notify_switches
+
+    device = _ProbeDevice(
+        [_probe("0x1", "ph", name="Sump pH"), _probe("0x2", "orp", name="Sump ORP")]
+    )
+
+    entities: list[Any] = []
+    _add_maintenance_notify_switches(cast(Any, device), entities)
+
+    by_uid = {e._attr_unique_id: e for e in entities}
+
+    ph_cal = _task("probe_ph")
+    assert f"CTL-PROBE_{ph_cal.key}_notify_1" in by_uid
+    assert f"CTL-PROBE_{ph_cal.key}_notify_2" not in by_uid
+
+    entity = by_uid[f"CTL-PROBE_{ph_cal.key}_notify_1"]
+    assert entity._attr_translation_placeholders == {"probe": "Sump pH"}
 
 
 def test_add_maintenance_notify_switches_returns_when_hw_unknown() -> None:

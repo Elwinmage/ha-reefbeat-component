@@ -309,6 +309,7 @@ Puede ser notificado y actualizar su dispositivo cuando haya disponible una nuev
 # ReefATO:
 - Activar/desactivar el relleno automático
 - Relleno manual
+- Activar/desactivar el zumbador de alarma de fuga
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Image">

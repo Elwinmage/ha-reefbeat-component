@@ -309,6 +309,7 @@ Możesz otrzymywać powiadomienia i aktualizować urządzenie, gdy dostępna jes
 # ReefATO:
 - Włącz/wyłącz automatyczne napełnianie
 - Ręczne napełnianie
+- Włącz/wyłącz buzzer alarmu wycieku
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Image">

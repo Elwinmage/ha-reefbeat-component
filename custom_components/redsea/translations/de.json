@@ -1088,6 +1088,9 @@
       "auto_fill": {
         "name": "Automatische Befüllung"
       },
+      "buzzer_enabled": {
+        "name": "Summer aktiviert"
+      },
       "cloud_connect": {
         "name": "Mit Cloud verbinden"
       },

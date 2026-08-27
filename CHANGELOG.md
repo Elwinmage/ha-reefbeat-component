@@ -1,3 +1,37 @@
+# UNRELEASED
+
+## MODIFICATIONS
+
+### RSATO
+ - New `buzzer_enabled` switch on the RSATO+: enables/disables the leak alarm
+   buzzer. Reverse-engineered from the Red Sea Android app
+   (`ATODevice$Keys$Configuration$Buzzer`), pushed as
+   `{"buzzer": {"enabled": <bool>}}` on a PUT to `/configuration`. The key is
+   omitted from the payload when the device has not reported it, since the
+   firmware merges partial configurations.
+
+### CONST
+ - New `ATO_BUZZER_ENABLED_INTERNAL_NAME`.
+
+### TRANSLATIONS
+ - New `entity.switch.buzzer_enabled` key in the 8 locales and `strings.json`.
+
+## FIXES
+
+### RSCONTROL probes
+ - The probe-scoped maintenance tasks were built by `button.py` and
+   `switch.py` as a single device-level entity, without the `{probe}`
+   translation placeholder their names require, which HA reported as a
+   name/placeholder mismatch. They now fan out per ReefSense probe through
+   `iter_maintenance_probes()`, as `number.py` already did.
+
+### ENUM sensors
+ - An ENUM sensor whose device reported a value outside its `options` raised
+   `ValueError` on every state write, killing the entity and every other
+   listener of the same coordinator. Seen on `port_N_last_pump_on_cause`,
+   which an RSCONTROLPRO ATO port reports as `unknown` -- a reserved HA state
+   that can never be an option. Unlisted values are now reported as unknown.
+
 # v2.3.0
 
 ## NEW DEVICES

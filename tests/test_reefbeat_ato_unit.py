@@ -86,3 +86,70 @@ async def test_ato_set_volume_left_posts_volume(
     await api.set_volume_left(1234)
 
     assert sent == [("http://192.0.2.60/update-volume", {"volume": 1234}, "post")]
+
+
+@pytest.mark.asyncio
+async def test_ato_push_values_puts_buzzer(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The leak buzzer rides along with `auto_fill` on the same PUT."""
+    api = ReefATOAPI(
+        ip="192.0.2.60",
+        live_config_update=False,
+        session=cast(Any, _FakeSession()),
+    )
+
+    api.set_data(
+        "$.sources[?(@.name=='/configuration')].data",
+        {"auto_fill": True, "buzzer": {"enabled": False}},
+    )
+
+    sent: list[tuple[str, Any, str]] = []
+
+    async def _fake_http_send(
+        url: str, payload: Any = None, method: str = "put"
+    ) -> Any:
+        sent.append((url, payload, method))
+        return None
+
+    monkeypatch.setattr(api, "_http_send", _fake_http_send)
+
+    await api.push_values("/configuration", "put")
+
+    assert sent == [
+        (
+            "http://192.0.2.60/configuration",
+            {"auto_fill": True, "buzzer": {"enabled": False}},
+            "put",
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_ato_push_values_omits_unknown_buzzer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A device that never reported `buzzer` must not be sent a null one.
+
+    The firmware merges partial configurations, so leaving the key out keeps
+    the current device setting; sending `{"enabled": null}` would clear it.
+    """
+    api = ReefATOAPI(
+        ip="192.0.2.60",
+        live_config_update=False,
+        session=cast(Any, _FakeSession()),
+    )
+
+    api.set_data("$.sources[?(@.name=='/configuration')].data", {"auto_fill": False})
+
+    sent: list[tuple[str, Any, str]] = []
+
+    async def _fake_http_send(
+        url: str, payload: Any = None, method: str = "put"
+    ) -> Any:
+        sent.append((url, payload, method))
+        return None
+
+    monkeypatch.setattr(api, "_http_send", _fake_http_send)
+
+    await api.push_values("/configuration", "put")
+
+    assert sent == [("http://192.0.2.60/configuration", {"auto_fill": False}, "put")]

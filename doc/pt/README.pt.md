@@ -309,6 +309,7 @@ Pode ser notificado e atualizar o seu dispositivo quando estiver disponível uma
 # ReefATO:
 - Ativar/desativar enchimento automático
 - Enchimento manual
+- Ativar/desativar o buzzer de alarme de fuga
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Image">

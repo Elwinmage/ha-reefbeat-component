@@ -1096,6 +1096,9 @@
       "auto_fill": {
         "name": "Automatisch vullen"
       },
+      "buzzer_enabled": {
+        "name": "Buzzer ingeschakeld"
+      },
       "cloud_connect": {
         "name": "Verbinden met cloud"
       },

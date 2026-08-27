@@ -52,9 +52,11 @@ from .coordinator import (
 )
 from .entity import ReefRoleMixin
 from .maintenance import (
+    PROBE_SCOPES,
     MaintenanceStore,
     MaintenanceTask,
     compute_days_left,
+    iter_maintenance_probes,
     tasks_for,
 )
 from .supplements_list import SUPPLEMENTS
@@ -709,6 +711,7 @@ def _add_maintenance_buttons(
       - 'head'         -> one button per RSDOSE head
       - 'pump_return'  -> one button per RSRUN pump whose type == 'return'
       - 'pump_skimmer' -> one button per RSRUN pump whose type == 'skimmer'
+      - 'probe*'       -> one button per matching ReefSense probe
       - None           -> a single button on the main device
     """
     if isinstance(device, (ReefBeatCloudCoordinator, ReefVirtualLedCoordinator)):
@@ -735,6 +738,20 @@ def _add_maintenance_buttons(
             wanted = "return" if task.applies_to_sub == "pump_return" else "skimmer"
             for pump_id in _iter_run_pumps(device, wanted):
                 entities.append(MaintenanceButtonEntity(device, task, sub_id=pump_id))
+
+        elif task.applies_to_sub in PROBE_SCOPES:
+            # Probe-scoped names carry a `{probe}` placeholder, so the probe
+            # label has to be supplied or Home Assistant logs a mismatch and
+            # renders the raw placeholder.
+            for sub_id, probe_name in iter_maintenance_probes(device, task):
+                entities.append(
+                    MaintenanceButtonEntity(
+                        device,
+                        task,
+                        sub_id=sub_id,
+                        placeholders={"probe": probe_name},
+                    )
+                )
 
         else:
             entities.append(MaintenanceButtonEntity(device, task, sub_id=0))
@@ -1123,10 +1140,13 @@ class MaintenanceButtonEntity(ReefRoleMixin, ButtonEntity):  # type: ignore[misc
         device: ReefBeatCoordinator,
         task: "MaintenanceTask",
         sub_id: int = 0,
+        placeholders: dict[str, str] | None = None,
     ) -> None:
         self._device = device
         self._task = task
         self._sub_id = sub_id
+        if placeholders:
+            self._attr_translation_placeholders = dict(placeholders)
 
         # Per-task icon from the catalogue (defaults to mdi:wrench-check).
         self._attr_icon = task.icon
