@@ -23,18 +23,23 @@ To help us with translation, follow this [guide](https://github.com/Elwinmage/ha
 # Overview
 ***HomeAssistant RedSea Reefbeat devices Local Management (no cloud): ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun and ReefWave***
 
+<!-- ecosystem:start -->
+
 ## Related projects
 
-This integration is one of three complementary projects for a Red Sea reef tank:
+The ReefTech projects fit together: the integrations bring your equipment into Home Assistant, the card displays and drives it, and the backup keeps it running through an outage. Each one also works on its own.
 
-| Project | What it does |
-| --- | --- |
-| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | This integration. Local control of ReefBeat devices from Home Assistant, no cloud required: ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun and ReefWave. |
-| [**ReefBeat watch**](https://github.com/Elwinmage/ha-reefbeat-component/tree/main/blueprints/automation) | Alert blueprint shipped with this integration. Notifies you about overdue maintenance and calibrations, abnormal modes, low battery and unreachable devices, on the mobile devices you pick. [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/blueprints/automation/redsea_alerts.en.yaml) |
-| [**ha-reef-card**](https://github.com/Elwinmage/ha-reef-card) | Companion Lovelace card. Required to edit advanced schedules for ReefDose, ReefLed, ReefRun and ReefWave, and gives each device an interactive graphical view. |
-| [**reefbeatEnergyBackup**](https://github.com/Elwinmage/reefbeatEnergyBackup) | Battery backup for power outages. 24V LiFePO₄ pack driven by a Raspberry Pi, with pump speed degraded progressively according to the state of charge. Works standalone or alongside this integration. |
+| | Project | What it does | Works with |
+| --- | --- | --- | --- |
+| <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/icon.png" width="100" alt="ha-reefbeat-component" /> | **ha-reefbeat-component**<br />*(this repository)* | Red Sea ReefBeat devices, controlled locally with no cloud: ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun and ReefWave.<br />Ships **ReefBeat watch**, an alert blueprint for overdue maintenance, abnormal modes, low battery and unreachable devices. [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/blueprints/automation/redsea_alerts.en.yaml) | ha-reef-card |
+| <img src="https://raw.githubusercontent.com/Elwinmage/ha-aquamedic-component/main/icon.png" width="100" alt="ha-aquamedic-component" /> | [**ha-aquamedic-component**](https://github.com/Elwinmage/ha-aquamedic-component) | Aqua Medic pumps through the Gizwits cloud API: EcoDrift and SmartDrift wavemakers, DC Runner return and skimmer pumps. | ha-reef-card |
+| <img src="https://raw.githubusercontent.com/Elwinmage/ha-reef-maintenance-component/main/icon.png" width="100" alt="ha-reef-maintenance-component" /> | [**ha-reef-maintenance-component**](https://github.com/Elwinmage/ha-reef-maintenance-component) | Cleaning and wear tracking for the equipment Home Assistant cannot talk to: flow pumps, return pumps, skimmers, media reactors, anything you service by hand. | ha-reef-card |
+| <img src="https://raw.githubusercontent.com/Elwinmage/ha-reef-card/main/icon.png" width="100" alt="ha-reef-card" /> | [**ha-reef-card**](https://github.com/Elwinmage/ha-reef-card) | Interactive graphical view of each device on your dashboard, and the only way to edit advanced schedules. Reads the three integrations above through the shared `reef_role` contract, with no card-side configuration. | all three integrations |
+| <img src="https://raw.githubusercontent.com/Elwinmage/reefbeatEnergyBackup/main/icon.png" width="100" alt="reefbeatEnergyBackup" /> | [**reefbeatEnergyBackup**](https://github.com/Elwinmage/reefbeatEnergyBackup) | Battery backup for power outages. A 24V LiFePO₄ pack driven by a Raspberry Pi, with pump speed degraded progressively according to the state of charge. | standalone, or alongside ha-reefbeat-component |
 
-All three, and more reef projects, are documented together on the [project page](https://elwinmage.github.io/reeftank/).
+All of them are documented together on the [ReefTech project page](https://elwinmage.github.io/reeftank/).
+
+<!-- ecosystem:end -->
 
 > [!TIP]
 > The list of future implementations can be found [here](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
@@ -50,7 +55,9 @@ All three, and more reef projects, are documented together on the [project page]
 
 # Compatibility
 
-✅ Tested ☑️ Must Work (If you have one, can you confirm it's working [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8))
+> ✅ Supported &nbsp;|&nbsp; 🚧 In progress &nbsp;|&nbsp; 🧪 Untested (may work) &nbsp;|&nbsp; ❌ Not yet supported
+>
+> Own a device marked 🧪? Please confirm it works [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8).
 <table>
 <th>
 <td colspan="2"><b>Model</b></td>
@@ -79,7 +86,7 @@ All three, and more reef projects, are documented together on the [project page]
 </td>
 </tr>
 <tr>
-<td colspan="2">RSCONTROLLITE</td><td>☑️</td>
+<td colspan="2">RSCONTROLLITE</td><td>🧪</td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROLLITE.png"/></td>
 </tr>
 <tr>
@@ -93,7 +100,7 @@ All three, and more reef projects, are documented together on the [project page]
 </td>
 </tr>
 <tr>
-<td colspan="2">RSPOWER8</td><td>☑️</td>
+<td colspan="2">RSPOWER8</td><td>🧪</td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSPOWER8.png"/></td>
 </tr>
 <tr>
@@ -140,7 +147,7 @@ All three, and more reef projects, are documented together on the [project page]
 <td>RSLED115</td><td>✅ </td>
 </tr>
 <tr>
-<td>RSLED170</td><td>☑️</td>
+<td>RSLED170</td><td>🧪</td>
 </tr>
 <tr>
 <td rowspan="3"><a href="#reefmat">ReefMat</a></td>
