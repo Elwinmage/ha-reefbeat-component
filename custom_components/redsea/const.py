@@ -350,6 +350,14 @@ ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/dashboard')].data.leak_sensor.enabled"
 )
 
+# Whether the ATO pump is pushing water right now. Named because two places
+# need the same path: the binary sensor that reports it, and the fill/stop
+# buttons that set it optimistically so the card reacts on the press instead
+# of on the read-back.
+ATO_IS_PUMP_ON_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/dashboard')].data.is_pump_on"
+)
+
 # Reservoir size of the ATO container. Like the doser's initial container
 # volume, this is a property of the installation rather than of the hardware:
 # the RSATO+ never reports it. It therefore lives under `$.local`, the branch

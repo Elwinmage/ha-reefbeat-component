@@ -19,6 +19,16 @@
    **Breaking**: the binary_sensor is gone, the switch keeps its
    `enabled` translation key and label.
 
+### BUTTONS
+ - Every generic button now reads the device back after its action, as the
+   dose, run and wave button entities already did. **Fixes** the ATO fill and
+   stop-fill buttons leaving `is_pump_on` stale until the next scan interval.
+ - New `optimistic` field on `ReefBeatButtonEntityDescription`: values written
+   into the cache as soon as the command is accepted, so entities move on the
+   press instead of on the read-back a couple of seconds later. Used by the
+   ATO fill and stop-fill buttons for `is_pump_on`; the refresh that follows
+   replaces the guess with what the device reports.
+
 ### ALL DEVICES
  - New `fetch_data` button on every device, next to `fetch_config`. It forces
    an immediate read of the polled "data" sources instead of waiting for the

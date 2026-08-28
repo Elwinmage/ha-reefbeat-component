@@ -32,6 +32,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
 from .const import (
+    ATO_IS_PUMP_ON_INTERNAL_NAME,
     DOMAIN,
     WAVE_SCHEDULE_PATH,
     WAVES_DATA_NAMES,
@@ -118,12 +119,23 @@ class ReefBeatButtonEntityDescription(ButtonEntityDescription):
     """Entity description for generic ReefBeat buttons.
 
     Used for devices where a simple `press_fn(device)` callback is sufficient.
+
+    `optimistic` writes values straight into the cached payload once the
+    command has been sent, so the entities move without waiting for the
+    read-back. It maps a JSONPath to the value the device is expected to
+    report; the refresh that follows overwrites it with the truth, which is
+    what makes guessing safe here.
+
+    Only declare a value the action makes certain. A wrong guess is visible
+    for the length of the refresh, and on a device that refuses the command
+    it would flip back a couple of seconds later.
     """
 
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     press_fn: (
         Callable[[ReefBeatCoordinator], StateType | Awaitable[StateType]] | None
     ) = None
+    optimistic: dict[str, Any] | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -183,15 +195,14 @@ FETCH_CONFIG_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
 # ones -- /dashboard and friends -- are otherwise only read on the scan
 # interval. This button forces that read now, without waiting for the cycle.
 #
-# `wait=0`: the delay in `async_request_refresh` exists to let a device apply
-# a PUT before being read back. Nothing was written here, so there is nothing
-# to wait for.
+# No press_fn on purpose: every press already reads the device back, so the
+# refresh done by async_press IS this button's action. Giving it a press_fn
+# that refreshes too would poll the device twice per press.
 FETCH_DATA_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
     ReefBeatButtonEntityDescription(
         key="fetch_data",
         translation_key="fetch_data",
         exists_fn=lambda _: True,
-        press_fn=lambda device: device.async_request_refresh(wait=0),
         icon="mdi:refresh",
         entity_category=EntityCategory.CONFIG,
     ),
@@ -294,6 +305,7 @@ ATO_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         translation_key="fill",
         exists_fn=lambda _: True,
         press_fn=lambda device: device.press("manual-pump"),
+        optimistic={ATO_IS_PUMP_ON_INTERNAL_NAME: True},
         icon="mdi:water-pump",
         entity_category=EntityCategory.CONFIG,
     ),
@@ -302,6 +314,7 @@ ATO_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         translation_key="stop_fill",
         exists_fn=lambda _: True,
         press_fn=lambda device: device.press("stop"),
+        optimistic={ATO_IS_PUMP_ON_INTERNAL_NAME: False},
         icon="mdi:water-pump-off",
         entity_category=EntityCategory.CONFIG,
     ),
@@ -834,12 +847,31 @@ class ReefBeatButtonEntity(ButtonEntity):
         return cast(ReefBeatButtonEntityDescription, self.entity_description)
 
     async def async_press(self) -> None:
-        if self.desc.press_fn is None:
-            _LOGGER.debug("No press_fn for %s", self.desc.key)
-            return
-        result = self.desc.press_fn(self._device)
-        if inspect.isawaitable(result):
-            await result
+        if self.desc.press_fn is not None:
+            result = self.desc.press_fn(self._device)
+            if inspect.isawaitable(result):
+                await result
+
+        # Show the expected outcome now, after the command was accepted but
+        # before the read-back. Same trick the wave preview buttons use on
+        # `mode`, and what keeps the card from lagging a couple of seconds
+        # behind a fill or a stop.
+        if self.desc.optimistic:
+            for path, value in self.desc.optimistic.items():
+                self._device.set_data(path, value)
+            self._device.async_update_listeners()
+
+        # Read the device back, as the dose, run and wave button entities all
+        # do after their own actions. Without it the entities keep the state
+        # of the last poll: "stop fill" sends the command immediately, but
+        # `is_pump_on` stays on until the next scan interval.
+        #
+        # The default wait of async_request_refresh lets the device apply the
+        # command first; reading immediately returns the previous state.
+        #
+        # A description with no press_fn is not a no-op: this refresh is its
+        # whole action, which is how the fetch_data button works.
+        await self._device.async_request_refresh()
 
 
 # REEFDOSE

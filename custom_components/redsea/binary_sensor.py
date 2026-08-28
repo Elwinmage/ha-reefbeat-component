@@ -26,7 +26,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
+from .const import ATO_IS_PUMP_ON_INTERNAL_NAME, DOMAIN
 from .coordinator import (
     ReefATOCoordinator,
     ReefBeatCloudCoordinator,
@@ -212,9 +212,7 @@ ATO_SENSORS: tuple[ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], .
         key="is_pump_on",
         translation_key="is_pump_on",
         device_class=BinarySensorDeviceClass.RUNNING,
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.is_pump_on"
-        ),
+        value_fn=lambda device: device.get_data(ATO_IS_PUMP_ON_INTERNAL_NAME),
         icon="mdi:pump",
     ),
     # Firmware asks the user to inspect the level sensor (fouling, position).

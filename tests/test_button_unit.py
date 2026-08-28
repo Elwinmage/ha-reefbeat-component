@@ -18,6 +18,11 @@ class _FakeDevice:
     device_info: DeviceInfo = field(
         default_factory=lambda: DeviceInfo(identifiers={("redsea", "SERIAL")})
     )
+    refreshed: int = 0
+
+    async def async_request_refresh(self) -> None:
+        """Every press reads the device back; count the calls."""
+        self.refreshed += 1
 
 
 @pytest.mark.asyncio
@@ -38,6 +43,9 @@ async def test_reefbeat_button_entity_async_press_sync_fn_called() -> None:
     await entity.async_press()
 
     assert called == ["ok"]
+    # Every press reads the device back, so the entities do not keep the
+    # state of the last poll.
+    assert device.refreshed == 1
 
 
 @pytest.mark.asyncio
@@ -58,3 +66,6 @@ async def test_reefbeat_button_entity_async_press_awaitable_fn_awaited() -> None
     await entity.async_press()
 
     assert called == ["ok"]
+    # Every press reads the device back, so the entities do not keep the
+    # state of the last poll.
+    assert device.refreshed == 1
