@@ -12,7 +12,10 @@ from homeassistant.helpers.entity import Entity
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 import custom_components.redsea.button as button_mod
-from custom_components.redsea.const import DOMAIN
+from custom_components.redsea.const import (
+    ATO_IS_PUMP_ON_INTERNAL_NAME,
+    DOMAIN,
+)
 
 
 @dataclass
@@ -57,6 +60,9 @@ async def test_async_setup_entry_adds_entities_for_each_device_type(
     class _Dose(_FakeBaseDevice):
         heads_nb: int = 2
 
+    class _Power(_FakeBaseDevice):
+        pass
+
     monkeypatch.setattr(button_mod, "ReefLedCoordinator", _Led)
     monkeypatch.setattr(button_mod, "ReefLedG2Coordinator", _LedG2)
     monkeypatch.setattr(button_mod, "ReefMatCoordinator", _Mat)
@@ -64,6 +70,7 @@ async def test_async_setup_entry_adds_entities_for_each_device_type(
     monkeypatch.setattr(button_mod, "ReefWaveCoordinator", _Wave)
     monkeypatch.setattr(button_mod, "ReefRunCoordinator", _Run)
     monkeypatch.setattr(button_mod, "ReefDoseCoordinator", _Dose)
+    monkeypatch.setattr(button_mod, "ReefPowerCoordinator", _Power)
 
     # Keep the described button sets small per branch to avoid depending on
     # complex device methods in `exists_fn`.
@@ -79,6 +86,7 @@ async def test_async_setup_entry_adds_entities_for_each_device_type(
     monkeypatch.setattr(button_mod, "MAT_BUTTONS", minimal)
     monkeypatch.setattr(button_mod, "ATO_BUTTONS", minimal)
     monkeypatch.setattr(button_mod, "PREVIEW_BUTTONS", cast(Any, minimal))
+    monkeypatch.setattr(button_mod, "POWER_BUTTONS", minimal)
     monkeypatch.setattr(button_mod, "FETCH_CONFIG_BUTTON", minimal)
     monkeypatch.setattr(button_mod, "FIRMWARE_UPDATE_BUTTON", minimal)
 
@@ -106,6 +114,11 @@ async def test_async_setup_entry_adds_entities_for_each_device_type(
     # MAT / ATO
     assert await _run_for(_Mat())
     assert await _run_for(_Ato())
+
+    # POWER: its own elif branch, previously never taken because the
+    # coordinator class was not patched here — the isinstance check fell
+    # through to the wave/run/dose chain.
+    assert await _run_for(_Power())
 
     # WAVE / RUN / DOSE
     assert await _run_for(_Wave())
@@ -146,28 +159,29 @@ def test_get_supplement_helpers_success_and_errors() -> None:
 
 
 @pytest.mark.asyncio
-async def test_reefbeat_button_entity_press_fn_none_is_noop(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    device = _FakeBaseDevice()
+async def test_reefbeat_button_entity_press_fn_none_still_refreshes() -> None:
+    """No press_fn means the refresh is the action, as for fetch_data."""
 
+    @dataclass
+    class _Device(_FakeBaseDevice):
+        calls: list[dict[str, Any]] = field(default_factory=list)
+
+        async def async_request_refresh(
+            self, source: str | None = None, config: bool = False, wait: int = 2
+        ) -> None:
+            self.calls.append({"source": source, "config": config, "wait": wait})
+
+    device = _Device()
     desc = button_mod.ReefBeatButtonEntityDescription(
         key="k",
         translation_key="k",
         press_fn=None,
     )
 
-    seen: list[str] = []
-    monkeypatch.setattr(
-        button_mod._LOGGER,
-        "debug",
-        lambda msg, *args, **kwargs: seen.append(msg % args if args else msg),
-    )
-
     entity = button_mod.ReefBeatButtonEntity(cast(Any, device), desc)
     await entity.async_press()
 
-    assert any("No press_fn" in s for s in seen)
+    assert device.calls == [{"source": None, "config": False, "wait": 2}]
 
 
 @pytest.mark.asyncio
@@ -632,3 +646,125 @@ async def test_reefdose_button_entity_remaining_branches_and_device_info() -> No
     )
     ent0 = button_mod.ReefDoseButtonEntity(cast(Any, device), desc_head0)
     assert ent0.device_info == device.device_info
+
+
+@pytest.mark.asyncio
+async def test_fetch_data_button_forces_an_immediate_refresh() -> None:
+    """Pressing it reads the data sources now, without waiting for the cycle."""
+
+    @dataclass
+    class _Device(_FakeBaseDevice):
+        calls: list[dict[str, Any]] = field(default_factory=list)
+
+        async def async_request_refresh(
+            self, source: str | None = None, config: bool = False, wait: int = 2
+        ) -> None:
+            self.calls.append({"source": source, "config": config, "wait": wait})
+
+    device = _Device()
+    desc = next(d for d in button_mod.FETCH_DATA_BUTTON if d.key == "fetch_data")
+
+    entity = button_mod.ReefBeatButtonEntity(cast(Any, device), desc)
+    entity.async_write_ha_state = lambda *a, **k: None  # type: ignore[method-assign]
+
+    await entity.async_press()
+
+    # Exactly one read per press: the button carries no press_fn, so the
+    # refresh async_press already does is its whole action.
+    assert device.calls == [{"source": None, "config": False, "wait": 2}]
+
+
+def test_fetch_data_button_is_offered_on_every_device() -> None:
+    """Unlike fetch_config, it does not depend on live_config_update.
+
+    Data sources are polled whichever way that flag is set, so forcing an
+    early read is always meaningful.
+    """
+    for live in (True, False):
+        device = _FakeBaseDevice(my_api=_FakeAPI(live_config_update=live))
+        entities: list[Any] = []
+        button_mod._add_described_entities(
+            entities,
+            cast(Any, device),
+            button_mod.ReefBeatButtonEntity,
+            button_mod.FETCH_DATA_BUTTON,
+        )
+        assert [e.entity_description.key for e in entities] == ["fetch_data"]
+
+
+@pytest.mark.asyncio
+async def test_optimistic_values_are_written_before_the_read_back() -> None:
+    """The card must move on the press, not two seconds later.
+
+    The refresh that follows overwrites the guess with what the device
+    actually reports, which is what makes guessing safe.
+    """
+
+    @dataclass
+    class _Device(_FakeBaseDevice):
+        written: list[tuple[str, Any]] = field(default_factory=list)
+        order: list[str] = field(default_factory=list)
+
+        def set_data(self, path: str, value: Any) -> None:
+            self.written.append((path, value))
+            self.order.append("set")
+
+        def async_update_listeners(self) -> None:
+            self.order.append("notify")
+
+        async def async_request_refresh(
+            self, source: str | None = None, config: bool = False, wait: int = 2
+        ) -> None:
+            self.order.append("refresh")
+
+    device = _Device()
+    desc = button_mod.ReefBeatButtonEntityDescription(
+        key="stop_fill",
+        translation_key="stop_fill",
+        press_fn=lambda d: None,
+        optimistic={"$.some.path": False},
+    )
+
+    entity = button_mod.ReefBeatButtonEntity(cast(Any, device), desc)
+    entity.async_write_ha_state = lambda *a, **k: None  # type: ignore[method-assign]
+    await entity.async_press()
+
+    assert device.written == [("$.some.path", False)]
+    # Listeners must be told before the refresh, or the guess never reaches
+    # the entities.
+    assert device.order == ["set", "notify", "refresh"]
+
+
+@pytest.mark.asyncio
+async def test_no_optimistic_block_when_the_description_declares_none() -> None:
+    @dataclass
+    class _Device(_FakeBaseDevice):
+        written: list[tuple[str, Any]] = field(default_factory=list)
+
+        def set_data(self, path: str, value: Any) -> None:
+            self.written.append((path, value))
+
+        async def async_request_refresh(
+            self, source: str | None = None, config: bool = False, wait: int = 2
+        ) -> None:
+            return None
+
+    device = _Device()
+    desc = button_mod.ReefBeatButtonEntityDescription(
+        key="k", translation_key="k", press_fn=lambda d: None
+    )
+    entity = button_mod.ReefBeatButtonEntity(cast(Any, device), desc)
+    entity.async_write_ha_state = lambda *a, **k: None  # type: ignore[method-assign]
+    await entity.async_press()
+
+    assert device.written == []
+
+
+def test_ato_fill_and_stop_guess_opposite_pump_states() -> None:
+    """The two buttons must not guess the same thing."""
+    by_key = {d.key: d for d in button_mod.ATO_BUTTONS}
+    assert by_key["fill"].optimistic == {ATO_IS_PUMP_ON_INTERNAL_NAME: True}
+    assert by_key["stop_fill"].optimistic == {ATO_IS_PUMP_ON_INTERNAL_NAME: False}
+    # `resume` clears a latched mode; which mode it lands on depends on the
+    # device, so there is nothing safe to guess.
+    assert by_key["resume"].optimistic is None

@@ -33,6 +33,9 @@
   },
   "entity": {
     "binary_sensor": {
+      "ato_sensor_connected": {
+        "name": "Temperatursonde verbunden"
+      },
       "auto_from_buttons": {
         "name": "Auto from buttons"
       },
@@ -48,11 +51,14 @@
       "buzzer_dismissed": {
         "name": "Buzzer dismissed"
       },
-      "buzzer_enabled": {
-        "name": "Summer aktiviert"
+      "buzzer_on": {
+        "name": "Summer ertönt"
       },
       "cable_connected": {
         "name": "Cable connected"
+      },
+      "check_sensor": {
+        "name": "Sensor prüfen"
       },
       "cloud_state": {
         "name": "Cloud-Verbindungsstatus"
@@ -69,8 +75,8 @@
       "ec_sensor_connected": {
         "name": "EC-Sensor verbunden"
       },
-      "enabled": {
-        "name": "Lecksensor aktiviert"
+      "is_calibrated": {
+        "name": "Sonde kalibriert"
       },
       "is_ec_sensor_connected": {
         "name": "Ist EC-Sensor verbunden"
@@ -126,6 +132,9 @@
       "status": {
         "name": "Status"
       },
+      "temperature_log_enabled": {
+        "name": "Temperaturaufzeichnung"
+      },
       "unclean_sensor": {
         "name": "Sensorzustand"
       },
@@ -176,6 +185,9 @@
       "fetch_config": {
         "name": "Konfiguration abrufen"
       },
+      "fetch_data": {
+        "name": "Daten abrufen"
+      },
       "fill": {
         "name": "Befüllen"
       },
@@ -190,6 +202,18 @@
       },
       "maint_ato_return_pump": {
         "name": "Rückförderpumpe reinigen"
+      },
+      "maint_control_probe_calibration_orp": {
+        "name": "Sonde {probe} prüfen"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Sonde {probe} kalibrieren"
+      },
+      "maint_control_probe_clean": {
+        "name": "Sonde {probe} reinigen"
+      },
+      "maint_control_probe_replace": {
+        "name": "Sonde {probe} ersetzen"
       },
       "maint_dose_heads_calibration": {
         "name": "Dosierkopf kalibrieren"
@@ -260,6 +284,9 @@
       "set_supplement_name": {
         "name": "Neuen Namen setzen"
       },
+      "setup_finish": {
+        "name": "Einrichtung abschließen"
+      },
       "start_calibration": {
         "name": "Kalibrierung starten"
       },
@@ -274,9 +301,6 @@
       },
       "test_calibration": {
         "name": "Neue Kalibrierung testen"
-      },
-      "setup_finish": {
-        "name": "Einrichtung abschließen"
       }
     },
     "light": {
@@ -299,6 +323,9 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Startintensitätsfaktor der Akklimatisierung"
+      },
+      "ato_tank_volume": {
+        "name": "ATO-Behältervolumen"
       },
       "ato_volume_left": {
         "name": "Verbleibendes ATO-Volumen"
@@ -323,6 +350,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Rückförderpumpe reinigen (Monate)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Sonde {probe} prüfen (Monate)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Sonde {probe} kalibrieren (Wochen)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Sonde {probe} reinigen (Wochen)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Sonde {probe} ersetzen (Monate)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Dosierkopf kalibrieren (Tage)"
@@ -456,18 +495,18 @@
           "un": "Gleichmäßig"
         }
       },
-      "supplements": {
-        "name": "Nahrungsergänzungsmittel",
-        "state": {
-          "other": "Sonstige"
-        }
-      },
       "socket_mode": {
         "name": "Modus Steckdose {socket}",
         "state": {
           "off": "Aus",
           "on": "Ein",
           "schedule": "Zeitplan"
+        }
+      },
+      "supplements": {
+        "name": "Nahrungsergänzungsmittel",
+        "state": {
+          "other": "Sonstige"
         }
       }
     },
@@ -477,6 +516,15 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Startintensitätsfaktor der Akklimatisierung"
+      },
+      "ato_sensor_code": {
+        "name": "Code der Temperatursonde"
+      },
+      "ato_sensor_last_adjustment_date": {
+        "name": "Justagedatum der Sonde"
+      },
+      "ato_sensor_last_installation_date": {
+        "name": "Installationsdatum der Sonde"
       },
       "auto_1": {
         "name": "Sonntag"
@@ -590,6 +638,9 @@
       "first_name": {
         "name": "Vorname"
       },
+      "flow_rate": {
+        "name": "Durchflussrate"
+      },
       "head_state": {
         "name": "Status"
       },
@@ -605,17 +656,28 @@
       "last_calibration": {
         "name": "Letzte Kalibrierung"
       },
+      "last_fill_date": {
+        "name": "Letzte Befüllung"
+      },
       "last_message": {
         "name": "Letzte Meldung"
       },
       "last_name": {
         "name": "Nachname"
       },
+      "last_pump_on_cause": {
+        "name": "Ursache des letzten Starts"
+      },
       "leak_sensor_current_read": {
         "name": "Aktuelle Lecksensorablesung"
       },
       "leak_sensor_status": {
-        "name": "Lecksensorstatus"
+        "name": "Status des Lecksensors",
+        "state": {
+          "dry": "Trocken",
+          "aquarium_water_leak": "Aquarienwasser-Leck",
+          "rodi_water_leak": "RO/DI-Wasser-Leck"
+        }
       },
       "led_program": {
         "name": "LED-Programm"
@@ -693,19 +755,18 @@
       "port_last_pump_on_cause": {
         "name": "Port {port} letzter Pumpengrund",
         "state": {
-          "unknown": "Unbekannt",
+          "none": "Keine",
           "manual": "Manuell",
-          "auto": "Automatisch",
-          "schedule": "Zeitplan",
-          "user": "Benutzer"
+          "ec_sensor_s1": "Füllstandsensor S1",
+          "ec_sensor_s2": "Füllstandsensor S2"
         }
       },
       "port_leak_status": {
         "name": "Port {port} Leck-Status",
         "state": {
-          "aquarium": "Aquarium",
           "dry": "Trocken",
-          "rodi": "RO/DI"
+          "aquarium_water_leak": "Aquarienwasser-Leck",
+          "rodi_water_leak": "RO/DI-Wasser-Leck"
         }
       },
       "port_mode": {
@@ -736,6 +797,9 @@
       "power_temperature": {
         "name": "Temperature"
       },
+      "prev_pump_state": {
+        "name": "Vorheriger Pumpenstatus"
+      },
       "probe_ec": {
         "name": "{probe} conductivity"
       },
@@ -749,7 +813,7 @@
         "name": "{probe} last installation"
       },
       "probe_leak_value": {
-        "name": "{probe} leak"
+        "name": "Sondenleckwert"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -806,11 +870,27 @@
           "error": "Sensor-Fehler"
         }
       },
+      "pump_blockage_threshold": {
+        "name": "Schwelle Blockade"
+      },
+      "pump_consumption": {
+        "name": "Pumpenverbrauch"
+      },
+      "pump_empty_threshold": {
+        "name": "Schwelle Pumpe leer"
+      },
+      "pump_soft_blockage_threshold": {
+        "name": "Schwelle Teilblockade"
+      },
+      "pump_speed": {
+        "name": "Pumpendrehzahl"
+      },
       "pump_state": {
         "name": "Pumpenstatus",
         "state": {
           "malfunction": "Fehlfunktion",
-          "pump_on": "An"
+          "pump_on": "An",
+          "off": "Aus"
         }
       },
       "remaining_days": {
@@ -818,6 +898,12 @@
       },
       "remaining_length": {
         "name": "Verbleibende Länge"
+      },
+      "s1_average": {
+        "name": "Mittelwert Füllstandsensor S1"
+      },
+      "s2_average": {
+        "name": "Mittelwert Füllstandsensor S2"
       },
       "schedule_head": {
         "name": "Kopfzeitplan",
@@ -896,7 +982,7 @@
         "name": "Gesamtverbrauch"
       },
       "total_volume_usage": {
-        "name": "Gesamter Volumenverbrauch"
+        "name": "Verbrauch seit dem Nachfüllen"
       },
       "type": {
         "name": "Typ",
@@ -999,6 +1085,9 @@
       "auto_fill": {
         "name": "Automatische Befüllung"
       },
+      "buzzer_enabled": {
+        "name": "Summer aktiviert"
+      },
       "cloud_connect": {
         "name": "Mit Cloud verbinden"
       },
@@ -1008,6 +1097,9 @@
       "dose_compensation": {
         "name": "Dosiskompensation"
       },
+      "enabled": {
+        "name": "Lecksensor aktiviert"
+      },
       "fullcup_enabled": {
         "name": "Voller-Behälter-Erkennung"
       },
@@ -1016,6 +1108,18 @@
       },
       "maint_ato_return_pump_notify": {
         "name": "Rückförderpumpe reinigen (Benachrichtigungen)"
+      },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Sonde {probe} prüfen (Benachrichtigungen)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Sonde {probe} kalibrieren (Benachrichtigungen)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Sonde {probe} reinigen (Benachrichtigungen)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Sonde {probe} ersetzen (Benachrichtigungen)"
       },
       "maint_dose_heads_calibration_notify": {
         "name": "Dosierkopf kalibrieren (Benachrichtigungen)"

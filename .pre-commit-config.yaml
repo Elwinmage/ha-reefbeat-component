@@ -1,15 +1,30 @@
 repos:
+  - repo: local
+    hooks:
+      - id: check-packages-versions
+        #  ne pas oublier le -v : pre-commit run check-packages-versions --all-files -v
+        name: Afficher les versions des dépendances
+        entry: >-
+          python -c "import importlib.metadata; pkgs=['colorama','pyright','pytest-homeassistant-custom-component','jsonpath-ng','requests','pytest','pytest-asyncio','pytest-cov']; [print(f'{pkg:<40} = {importlib.metadata.version(pkg)}') for pkg in pkgs]"
+        language: python
+        pass_filenames: false
+        always_run: true
+        verbose: true
+        additional_dependencies:
+          - colorama>=0.4.6
+          - pyright>=1.1.390
+          - pytest-homeassistant-custom-component>=0.13.301
+          - jsonpath-ng>=1.7.0
+          - requests>=2.31.0
+          - pytest>=8
+          - pytest-asyncio>=1.3.0
+          - pytest-cov>=7.0.0
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
       - id: check-json
       - id: trailing-whitespace
 
-  # - repo: https://github.com/pre-commit/mirrors-prettier
-  #   rev: v4.0.0-alpha.8
-  #   hooks:
-  #     - id: prettier
-  #       types: [json]
   - repo: local
     hooks:
       - id: prettier
@@ -18,20 +33,7 @@ repos:
         language: system
         types: [json]
 
-  # - repo: local
-  #   hooks:
-  #     - id: hassfest
-  #       name: hassfest
-  #       # On appelle directement le fichier python par son chemin dans le conteneur
-  #       # entry: env PYTHONPATH=/usr/src/homeassistant python3 /usr/src/homeassistant/script/hassfest
-  #       entry: env PYTHONPATH=/usr/src/homeassistant/homeassistant python3 -m script.hassfest
-  #       language: system
-  #       args: ["--integration-path", "custom_components/redsea"]
-  #       pass_filenames: false
-  #       always_run: true
 
-  - repo: local
-    hooks:
       - id: hassfest
         name: hassfest
         # On appelle directement le fichier python par son chemin dans le conteneur
@@ -69,12 +71,12 @@ repos:
         name: pyright
         entry: pyright
         language: python
-        #args: [--project, pyrightconfig.precommit.json]
         args: [--project, pyrightconfig.json]
         additional_dependencies:
           - pyright>=1.1.390
           # Provide Home Assistant modules/types in the hook env.
-          - pytest-homeassistant-custom-component>=0.13.301
+          # - pytest-homeassistant-custom-component>=0.13.301
+          - pytest-homeassistant-custom-component==0.13.357
           # Runtime dependency declared in manifest.json
           - jsonpath-ng>=1.7.0
           # Used by auto_detect.py
@@ -94,6 +96,7 @@ repos:
           - pytest>=8
           - pytest-asyncio>=1.3.0
           - pytest-cov>=7.0.0
-          - pytest-homeassistant-custom-component>=0.13.301
+          - pytest-homeassistant-custom-component==0.13.357
           # Runtime dependency declared in manifest.json
           - jsonpath-ng>=1.7.0
+

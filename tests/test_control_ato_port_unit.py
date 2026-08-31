@@ -717,3 +717,64 @@ async def test_control_api_ato_write_methods_build_expected_payloads() -> None:
         {"port_index": 0, "auto_fill": True},
         "put",
     )
+
+
+# ---------------------------------------------------------------------------
+# Coverage top-up: ReefControlAPI action endpoints
+# (ato_manual_pump / ato_stop / ato_resume)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_control_api_ato_action_methods_build_expected_payloads() -> None:
+    """The three ATO action helpers POST `port_index` to their own endpoint.
+
+    Unlike the two write helpers above, these pass `payload` and `method` as
+    keyword arguments, so the spy has to accept them that way — a positional
+    spy would pass here while the real call signature drifted.
+    """
+    from custom_components.redsea.reefbeat.control import ReefControlAPI
+
+    api = object.__new__(ReefControlAPI)
+    api._base_url = "http://192.0.2.42"  # type: ignore[attr-defined]
+
+    sent: list[tuple[str, Any, str]] = []
+
+    async def _spy(url: str, payload: Any = None, method: str = "get") -> None:
+        sent.append((url, payload, method))
+
+    api._http_send = _spy  # type: ignore[assignment]
+
+    await api.ato_manual_pump(0)
+    await api.ato_stop(1)
+    await api.ato_resume(1)
+
+    assert sent == [
+        ("http://192.0.2.42/ato/manual-pump", {"port_index": 0}, "post"),
+        ("http://192.0.2.42/ato/stop", {"port_index": 1}, "post"),
+        ("http://192.0.2.42/ato/resume", {"port_index": 1}, "post"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_control_api_ato_actions_coerce_the_port_to_int() -> None:
+    """A port arriving as a string from a service call must not reach the wire.
+
+    The firmware rejects a non-integer `port_index`, and the entities build it
+    from an entity key suffix, so the `int()` coercion is load-bearing.
+    """
+    from custom_components.redsea.reefbeat.control import ReefControlAPI
+
+    api = object.__new__(ReefControlAPI)
+    api._base_url = "http://192.0.2.42"  # type: ignore[attr-defined]
+
+    sent: list[Any] = []
+
+    async def _spy(url: str, payload: Any = None, method: str = "get") -> None:
+        sent.append(payload)
+
+    api._http_send = _spy  # type: ignore[assignment]
+
+    await api.ato_manual_pump(cast(Any, "1"))
+    assert sent == [{"port_index": 1}]
+    assert isinstance(sent[0]["port_index"], int)

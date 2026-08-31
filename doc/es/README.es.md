@@ -19,30 +19,60 @@ Para ayudarnos a traducir, siga esta [guía](https://github.com/Elwinmage/ha-ree
 # Descripción general
 ***Gestión local de dispositivos HomeAssistant RedSea Reefbeat (sin nube): ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun y ReefWave***
 
+<!-- ecosystem:start -->
+
 ## Proyectos relacionados
 
-Esta integración es uno de los tres proyectos complementarios para un acuario de arrecife Red Sea:
+Los proyectos ReefTech encajan entre sí: las integraciones traen tu equipo a Home Assistant, la tarjeta lo muestra y lo controla, y el respaldo lo mantiene en marcha durante un corte. Cada uno funciona también por su cuenta.
 
-| Proyecto | Función |
-| --- | --- |
-| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | Esta integración. Control local de los dispositivos ReefBeat desde Home Assistant, sin nube: ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun y ReefWave. |
-| [**ReefBeat watch**](https://github.com/Elwinmage/ha-reefbeat-component/tree/main/blueprints/automation) | Blueprint de alertas incluido en esta integración. Te avisa de mantenimientos y calibraciones vencidos, modos anómalos, baterías bajas y dispositivos inaccesibles, en los móviles que elijas. [![Abre tu instancia de Home Assistant y muestra el diálogo de importación del blueprint.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/blueprints/automation/redsea_alerts.en.yaml) |
-| [**ha-reef-card**](https://github.com/Elwinmage/ha-reef-card) | Tarjeta Lovelace complementaria. Necesaria para editar la programación avanzada de ReefDose, ReefLed, ReefRun y ReefWave, y da a cada dispositivo una vista gráfica interactiva. |
-| [**reefbeatEnergyBackup**](https://github.com/Elwinmage/reefbeatEnergyBackup) | Respaldo por batería ante cortes de luz. Pack de 24V LiFePO₄ gobernado por una Raspberry Pi, con degradación progresiva de la velocidad de las bombas según el estado de carga. Funciona solo o junto a esta integración. |
+<table>
+  <tr>
+    <th width="100px"></th>
+    <th>Proyecto</th>
+    <th>Función</th>
+    <th>Funciona con</th>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/icon.png" width="64" alt="ha-reefbeat-component" /></td>
+    <td><b>ha-reefbeat-component</b><br /><i>(este repositorio)</i></td>
+    <td>Dispositivos Red Sea ReefBeat, controlados localmente sin cloud: ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun y ReefWave.<br />blueprint de alertas para modos anómalos, calibraciones y batería baja. <a href="https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/blueprints/automation/redsea_alerts.en.yaml"><img src="https://my.home-assistant.io/badges/blueprint_import.svg" alt="Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled." /></a></td>
+    <td>ha-reef-card</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-aquamedic-component/main/icon.png" width="64" alt="ha-aquamedic-component" /></td>
+    <td><a href="https://github.com/Elwinmage/ha-aquamedic-component"><b>ha-aquamedic-component</b></a></td>
+    <td>Bombas Aqua Medic a través de la API cloud Gizwits: bombas de movimiento EcoDrift y SmartDrift, bombas DC Runner de retorno y de skimmer.</td>
+    <td>ha-reef-card</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-reef-maintenance-component/main/icon.png" width="64" alt="ha-reef-maintenance-component" /></td>
+    <td><a href="https://github.com/Elwinmage/ha-reef-maintenance-component"><b>ha-reef-maintenance-component</b></a></td>
+    <td>Seguimiento de limpieza y desgaste del equipo que Home Assistant no puede consultar: bombas de movimiento, bombas de retorno, skimmers, reactores, todo lo que mantienes a mano.</td>
+    <td>ha-reef-card</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-reef-card/main/icon.png" width="64" alt="ha-reef-card" /></td>
+    <td><a href="https://github.com/Elwinmage/ha-reef-card"><b>ha-reef-card</b></a></td>
+    <td>Vista gráfica interactiva de cada dispositivo en tu panel, y la única forma de editar programaciones avanzadas. Lee las tres integraciones mediante el contrato <code>reef_role</code> común, sin configuración del lado de la tarjeta.</td>
+    <td>las tres integraciones</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-reef-blueprints/main/icon.png" width="64" alt="ha-reef-blueprints" /></td>
+    <td><a href="https://github.com/Elwinmage/ha-reef-blueprints"><b>ha-reef-blueprints</b></a></td>
+    <td>Blueprints de notificación comunes a todo el ecosistema: mantenimientos vencidos encontrados por el contrato <code>reef_role</code>, y dispositivos que dejaron de responder. Ocho idiomas.</td>
+    <td>las tres integraciones</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/reefbeatEnergyBackup/main/icon.png" width="64" alt="reefbeatEnergyBackup" /></td>
+    <td><a href="https://github.com/Elwinmage/reefbeatEnergyBackup"><b>reefbeatEnergyBackup</b></a></td>
+    <td>Respaldo por batería ante cortes de luz. Un pack 24V LiFePO₄ gobernado por una Raspberry Pi, con degradación progresiva de la velocidad de las bombas según el estado de carga.</td>
+    <td>por su cuenta, o junto a ha-reefbeat-component</td>
+  </tr>
+</table>
 
-Los tres, y otros proyectos de arrecife, están documentados juntos en la [página del proyecto](https://elwinmage.github.io/reeftank/).
+Todos están documentados juntos en la [página del proyecto ReefTech](https://elwinmage.github.io/reeftank/).
 
-> [!TIP]
-> La lista de implementaciones futuras está disponible [aquí](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
-> La lista de errores está disponible [aquí](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug)<br />
-
-***Si necesita otros sensores o actuadores, no dude en contactarme [aquí](https://github.com/Elwinmage/ha-reefbeat-component/discussions).***
-
-> [!IMPORTANT]
-> Si sus dispositivos no están en la misma subred que su Home Assistant, por favor [lea esto](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected).
-
-> [!CAUTION]
-> ⚠️ Este no es un repositorio oficial de RedSea. Úselo bajo su propia responsabilidad.⚠️
+<!-- ecosystem:end -->
 
 # Compatibilidad
 
@@ -296,6 +326,9 @@ Elija la red de destino, introduzca su contraseña y confirme. La integración e
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/fetch_config_button.png" alt="Image">
 </p>
 
+> [!NOTE]
+> Cada dispositivo expone también un botón «Actualizar datos». Fuerza una lectura inmediata de las fuentes consultadas periódicamente, sin esperar al siguiente intervalo de sondeo, y funciona sea cual sea el ajuste Live_update_config — a diferencia de «Recuperar configuración», que solo actualiza las fuentes de configuración.
+
 ## Actualización de Firmware
 Puede ser notificado y actualizar su dispositivo cuando haya disponible una nueva versión de firmware. You must have an active ["Cloud API"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) device with your credentials and the "Use Cloud API" switch must be enabled.
 > [!TIP]
@@ -309,6 +342,7 @@ Puede ser notificado y actualizar su dispositivo cuando haya disponible una nuev
 # ReefATO:
 - Activar/desactivar el relleno automático
 - Relleno manual
+- Activar/desactivar el zumbador de alarma de fuga
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Image">

@@ -9,6 +9,9 @@ __pycache__/
 # emacs temprorary gile
 *~
 
+
+badges/stats.json
+
 # Distribution / packaging
 .Python
 build/

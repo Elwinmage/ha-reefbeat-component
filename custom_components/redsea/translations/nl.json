@@ -33,6 +33,9 @@
   },
   "entity": {
     "binary_sensor": {
+      "ato_sensor_connected": {
+        "name": "Temperatuursensor verbonden"
+      },
       "auto_from_buttons": {
         "name": "Auto from buttons"
       },
@@ -48,11 +51,14 @@
       "buzzer_dismissed": {
         "name": "Buzzer dismissed"
       },
-      "buzzer_enabled": {
-        "name": "Buzzer ingeschakeld"
+      "buzzer_on": {
+        "name": "Zoemer actief"
       },
       "cable_connected": {
         "name": "Cable connected"
+      },
+      "check_sensor": {
+        "name": "Sensor controleren"
       },
       "cloud_state": {
         "name": "Cloud verbindingsstatus"
@@ -69,8 +75,8 @@
       "ec_sensor_connected": {
         "name": "EC-sensor verbonden"
       },
-      "enabled": {
-        "name": "Leksensor ingeschakeld"
+      "is_calibrated": {
+        "name": "Sensor gekalibreerd"
       },
       "is_ec_sensor_connected": {
         "name": "Is EC-sensor verbonden"
@@ -126,6 +132,9 @@
       "status": {
         "name": "Status"
       },
+      "temperature_log_enabled": {
+        "name": "Temperatuurregistratie"
+      },
       "unclean_sensor": {
         "name": "Sensor status"
       },
@@ -176,6 +185,9 @@
       "fetch_config": {
         "name": "Configuratie ophalen"
       },
+      "fetch_data": {
+        "name": "Gegevens ophalen"
+      },
       "fill": {
         "name": "Vullen"
       },
@@ -190,6 +202,18 @@
       },
       "maint_ato_return_pump": {
         "name": "Opvoerpomp reinigen"
+      },
+      "maint_control_probe_calibration_orp": {
+        "name": "Sonde {probe} controleren"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Sonde {probe} kalibreren"
+      },
+      "maint_control_probe_clean": {
+        "name": "Sonde {probe} reinigen"
+      },
+      "maint_control_probe_replace": {
+        "name": "Sonde {probe} vervangen"
       },
       "maint_dose_heads_calibration": {
         "name": "Doseerkop kalibreren"
@@ -260,6 +284,9 @@
       "set_supplement_name": {
         "name": "Stel nieuwe supplementnaam in"
       },
+      "setup_finish": {
+        "name": "Installatie voltooien"
+      },
       "start_calibration": {
         "name": "Start kalibratie"
       },
@@ -274,9 +301,6 @@
       },
       "test_calibration": {
         "name": "Test nieuwe kalibratie"
-      },
-      "setup_finish": {
-        "name": "Installatie voltooien"
       }
     },
     "light": {
@@ -299,6 +323,9 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Acclimatisatie start intensiteit factor"
+      },
+      "ato_tank_volume": {
+        "name": "ATO-reservoirvolume"
       },
       "ato_volume_left": {
         "name": "ATO volume over"
@@ -323,6 +350,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Opvoerpomp reinigen (maanden)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Sonde {probe} controleren (maanden)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Sonde {probe} kalibreren (weken)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Sonde {probe} reinigen (weken)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Sonde {probe} vervangen (maanden)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Doseerkop kalibreren (dagen)"
@@ -456,18 +495,18 @@
           "un": "Uniform"
         }
       },
-      "supplements": {
-        "name": "Supplementen",
-        "state": {
-          "other": "Overig"
-        }
-      },
       "socket_mode": {
         "name": "Modus stopcontact {socket}",
         "state": {
           "off": "Uit",
           "on": "Aan",
           "schedule": "Schema"
+        }
+      },
+      "supplements": {
+        "name": "Supplementen",
+        "state": {
+          "other": "Overig"
         }
       }
     },
@@ -477,6 +516,15 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Acclimatisatie start intensiteit factor"
+      },
+      "ato_sensor_code": {
+        "name": "Code temperatuursensor"
+      },
+      "ato_sensor_last_adjustment_date": {
+        "name": "Afstellingsdatum sensor"
+      },
+      "ato_sensor_last_installation_date": {
+        "name": "Installatiedatum sensor"
       },
       "auto_1": {
         "name": "Zondag"
@@ -598,6 +646,9 @@
       "first_name": {
         "name": "Voornaam"
       },
+      "flow_rate": {
+        "name": "Debiet"
+      },
       "head_state": {
         "name": "Status"
       },
@@ -613,17 +664,28 @@
       "last_calibration": {
         "name": "Laatste kalibratie"
       },
+      "last_fill_date": {
+        "name": "Laatste vulling"
+      },
       "last_message": {
         "name": "Laatste bericht"
       },
       "last_name": {
         "name": "Achternaam"
       },
+      "last_pump_on_cause": {
+        "name": "Oorzaak laatste start"
+      },
       "leak_sensor_current_read": {
         "name": "Huidige uitlezing lekkagesensor"
       },
       "leak_sensor_status": {
-        "name": "Status lekkagesensor"
+        "name": "Status leksensor",
+        "state": {
+          "dry": "Droog",
+          "aquarium_water_leak": "Aquariumwaterlek",
+          "rodi_water_leak": "RO/DI-waterlek"
+        }
       },
       "led_program": {
         "name": "LED programma"
@@ -701,19 +763,18 @@
       "port_last_pump_on_cause": {
         "name": "Poort {port} oorzaak laatste pomp",
         "state": {
-          "unknown": "Onbekend",
+          "none": "Geen",
           "manual": "Handmatig",
-          "auto": "Automatisch",
-          "schedule": "Schema",
-          "user": "Gebruiker"
+          "ec_sensor_s1": "Niveausensor S1",
+          "ec_sensor_s2": "Niveausensor S2"
         }
       },
       "port_leak_status": {
         "name": "Poort {port} lekstatus",
         "state": {
-          "aquarium": "Aquarium",
           "dry": "Droog",
-          "rodi": "RO/DI"
+          "aquarium_water_leak": "Aquariumwaterlek",
+          "rodi_water_leak": "RO/DI-waterlek"
         }
       },
       "port_mode": {
@@ -744,6 +805,9 @@
       "power_temperature": {
         "name": "Temperature"
       },
+      "prev_pump_state": {
+        "name": "Vorige pompstatus"
+      },
       "probe_ec": {
         "name": "{probe} conductivity"
       },
@@ -757,7 +821,7 @@
         "name": "{probe} last installation"
       },
       "probe_leak_value": {
-        "name": "{probe} leak"
+        "name": "Sondelekwaarde"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -814,11 +878,27 @@
           "error": "Sensorfout"
         }
       },
+      "pump_blockage_threshold": {
+        "name": "Drempel blokkade"
+      },
+      "pump_consumption": {
+        "name": "Pompverbruik"
+      },
+      "pump_empty_threshold": {
+        "name": "Drempel pomp droog"
+      },
+      "pump_soft_blockage_threshold": {
+        "name": "Drempel gedeeltelijke blokkade"
+      },
+      "pump_speed": {
+        "name": "Pompsnelheid"
+      },
       "pump_state": {
         "name": "Pomp status",
         "state": {
           "malfunction": "Storing",
-          "pump_on": "Aan"
+          "pump_on": "Aan",
+          "off": "Uit"
         }
       },
       "remaining_days": {
@@ -826,6 +906,12 @@
       },
       "remaining_length": {
         "name": "Resterende lengte"
+      },
+      "s1_average": {
+        "name": "Gemiddelde niveausensor S1"
+      },
+      "s2_average": {
+        "name": "Gemiddelde niveausensor S2"
       },
       "schedule_head": {
         "name": "Doseerkop schema",
@@ -904,7 +990,7 @@
         "name": "Totaal verbruik"
       },
       "total_volume_usage": {
-        "name": "Totaal volumeverbruik"
+        "name": "Verbruik sinds bijvullen"
       },
       "type": {
         "name": "Type",
@@ -1007,6 +1093,9 @@
       "auto_fill": {
         "name": "Automatisch vullen"
       },
+      "buzzer_enabled": {
+        "name": "Buzzer ingeschakeld"
+      },
       "cloud_connect": {
         "name": "Verbinden met cloud"
       },
@@ -1016,6 +1105,9 @@
       "dose_compensation": {
         "name": "Doseringcompensatie"
       },
+      "enabled": {
+        "name": "Leksensor ingeschakeld"
+      },
       "fullcup_enabled": {
         "name": "Beker vol detectie"
       },
@@ -1024,6 +1116,18 @@
       },
       "maint_ato_return_pump_notify": {
         "name": "Opvoerpomp reinigen (meldingen)"
+      },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Sonde {probe} controleren (meldingen)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Sonde {probe} kalibreren (meldingen)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Sonde {probe} reinigen (meldingen)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Sonde {probe} vervangen (meldingen)"
       },
       "maint_dose_heads_calibration_notify": {
         "name": "Doseerkop kalibreren (meldingen)"

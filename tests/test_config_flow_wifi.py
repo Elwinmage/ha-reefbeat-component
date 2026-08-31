@@ -845,6 +845,82 @@ async def test_wifi_apply_returns_show_progress_when_task_pending() -> None:
             await pending_task
 
 
+@pytest.mark.asyncio
+async def test_wifi_apply_treats_a_cancelled_task_as_failed_unknown() -> None:
+    """A cancelled background task must terminate the flow, not hang it.
+
+    `_do_wifi_apply` never raises by design, so this guard only fires if the
+    task is cancelled (HA reloading the entry mid-apply) or the helper itself
+    crashes. Either way the step has to fall through to an abort rather than
+    leaving `_wifi_outcome` at None and re-showing progress forever.
+    """
+    from unittest.mock import MagicMock
+
+    handler = cf.OptionsFlowHandler.__new__(cf.OptionsFlowHandler)
+    handler._config_entry = MagicMock()
+    handler._wifi_task = None
+    handler._wifi_outcome = None
+    handler.hass = MagicMock()
+
+    async def _never() -> str:
+        await asyncio.sleep(1000)
+        return "unreached"
+
+    cancelled = asyncio.create_task(_never())
+    cancelled.cancel()
+    with contextlib.suppress(asyncio.CancelledError):
+        await cancelled
+
+    def _fake_create_task(coro: Any) -> asyncio.Task[Any]:
+        coro.close()
+        return cancelled
+
+    handler.hass.async_create_task = MagicMock(side_effect=_fake_create_task)
+    done = MagicMock(side_effect=lambda next_step_id: cast(Any, next_step_id))
+    handler.async_show_progress_done = done
+
+    await handler.async_step_wifi_apply()
+
+    # Not the "manual" outcome, so it heads for the abort-mapping finish step.
+    assert done.call_args.kwargs["next_step_id"] != "wifi_manual_subnet"
+    assert handler._wifi_outcome == "failed_unknown"
+    # The handle is cleared so a retry can start a fresh task.
+    assert handler._wifi_task is None
+
+
+@pytest.mark.asyncio
+async def test_wifi_apply_treats_a_crashed_task_as_failed_unknown() -> None:
+    """Same guard, reached through an exception instead of a cancellation."""
+    from unittest.mock import MagicMock
+
+    handler = cf.OptionsFlowHandler.__new__(cf.OptionsFlowHandler)
+    handler._config_entry = MagicMock()
+    handler._wifi_task = None
+    handler._wifi_outcome = None
+    handler.hass = MagicMock()
+
+    async def _boom() -> str:
+        raise RuntimeError("bug in _do_wifi_apply")
+
+    crashed = asyncio.create_task(_boom())
+    with contextlib.suppress(RuntimeError):
+        await crashed
+
+    def _fake_create_task(coro: Any) -> asyncio.Task[Any]:
+        coro.close()
+        return crashed
+
+    handler.hass.async_create_task = MagicMock(side_effect=_fake_create_task)
+    done = MagicMock(side_effect=lambda next_step_id: cast(Any, next_step_id))
+    handler.async_show_progress_done = done
+
+    await handler.async_step_wifi_apply()
+
+    assert done.call_args.kwargs["next_step_id"] != "wifi_manual_subnet"
+    assert handler._wifi_outcome == "failed_unknown"
+    assert handler._wifi_task is None
+
+
 # =============================================================================
 # Manual subnet fallback step
 # =============================================================================

@@ -1,5 +1,5 @@
 """Unit tests for the two internal helpers in sensor.py that were not
-reached by the platform-level setup tests: ``_epoch_to_iso`` (a small
+reached by the platform-level setup tests: ``_epoch_to_datetime`` (a small
 timestamp helper) and ``_build_probe_descriptions`` (which fans out sensor
 descriptions per probe type).
 
@@ -7,7 +7,7 @@ Each probe type has its own branch in ``_build_probe_descriptions``. The
 platform-level test only exercises ``ph`` and ``temperature``; here we
 call the helper directly with the four other types (``orp``, ``ec``,
 ``ato``, ``leak``) plus an unknown fallback, and pipe through the value_fn
-lambdas that internally call ``_epoch_to_iso`` so both helpers reach
+lambdas that internally call ``_epoch_to_datetime`` so both helpers reach
 100% coverage.
 """
 
@@ -18,42 +18,49 @@ from typing import Any
 
 from custom_components.redsea.sensor import (
     _build_probe_descriptions,
-    _epoch_to_iso,
+    _epoch_to_datetime,
 )
 
 # ---------------------------------------------------------------------------
-# _epoch_to_iso
+# _epoch_to_datetime
 # ---------------------------------------------------------------------------
 
 
-def test_epoch_to_iso_none() -> None:
+def test_epoch_to_datetime_none() -> None:
     """`None` short-circuits before any parsing."""
-    assert _epoch_to_iso(None) is None
+    assert _epoch_to_datetime(None) is None
 
 
-def test_epoch_to_iso_non_numeric_string() -> None:
+def test_epoch_to_datetime_non_numeric_string() -> None:
     """A string that isn't parseable as float returns None (not raise)."""
-    assert _epoch_to_iso("not-a-number") is None
+    assert _epoch_to_datetime("not-a-number") is None
 
 
-def test_epoch_to_iso_zero_or_negative() -> None:
+def test_epoch_to_datetime_zero_or_negative() -> None:
     """Zero and negatives are treated as "unset" by the firmware."""
-    assert _epoch_to_iso(0) is None
-    assert _epoch_to_iso(-1) is None
+    assert _epoch_to_datetime(0) is None
+    assert _epoch_to_datetime(-1) is None
 
 
-def test_epoch_to_iso_valid_epoch_returns_utc_isoformat() -> None:
-    """Positive epoch → tz-aware UTC ISO 8601 string."""
+def test_epoch_to_datetime_valid_epoch_returns_aware_utc() -> None:
+    """Positive epoch → tz-aware UTC datetime, not its ISO rendering.
+
+    `SensorDeviceClass.TIMESTAMP` reads `value.tzinfo`, so returning the string
+    form raises `Invalid datetime` on the entity's first state write.
+    """
     # 2024-01-01T00:00:00Z = 1704067200
-    got = _epoch_to_iso(1704067200)
-    assert got == _datetime.datetime(2024, 1, 1, tzinfo=_datetime.UTC).isoformat()
+    got = _epoch_to_datetime(1704067200)
+    assert got == _datetime.datetime(2024, 1, 1, tzinfo=_datetime.UTC)
+    assert isinstance(got, _datetime.datetime)
+    assert got.tzinfo is not None
 
 
-def test_epoch_to_iso_accepts_string_epoch() -> None:
+def test_epoch_to_datetime_accepts_string_epoch() -> None:
     """Some payloads report the epoch as a string — must still work."""
-    got = _epoch_to_iso("1704067200")
+    got = _epoch_to_datetime("1704067200")
     assert got is not None
-    assert got.startswith("2024-01-01T")
+    assert got.year == 2024
+    assert got.tzinfo is not None
 
 
 # ---------------------------------------------------------------------------
@@ -186,19 +193,22 @@ class _StaticDevice:
 
 
 def test_last_installation_value_fn_converts_epoch() -> None:
-    """The ``last_installation`` sensor pipes get_data through _epoch_to_iso.
+    """The ``last_installation`` sensor pipes get_data through the epoch helper.
 
-    We simulate a probe that reports its install date as an epoch, then
-    invoke the sensor's value_fn to make sure the datetime helper actually
-    fires (this covers _epoch_to_iso end-to-end from the description path).
+    We simulate a probe that reports its install date as an epoch, then invoke
+    the sensor's value_fn to make sure the datetime helper actually fires (this
+    covers _epoch_to_datetime end-to-end from the description path). The value
+    must be a tz-aware datetime: these descriptions carry
+    ``device_class=TIMESTAMP``, which rejects the ISO string form.
     """
     descs = _build_probe_descriptions({"uid": "0xTIME1", "type": "ph", "name": "T"})
     install_desc = next(d for d in descs if d.key == "probe_0xtime1_last_installation")
     device = _StaticDevice(1704067200)  # 2024-01-01T00:00:00Z
     assert install_desc.value_fn is not None
     got = install_desc.value_fn(device)  # type: ignore[misc]
-    assert isinstance(got, str)
-    assert got.startswith("2024-01-01T")
+    assert isinstance(got, _datetime.datetime)
+    assert got.tzinfo is not None
+    assert got == _datetime.datetime(2024, 1, 1, tzinfo=_datetime.UTC)
 
 
 def test_last_adjustment_value_fn_handles_missing_field() -> None:

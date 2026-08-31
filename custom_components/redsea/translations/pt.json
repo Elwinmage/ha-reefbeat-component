@@ -33,6 +33,9 @@
   },
   "entity": {
     "binary_sensor": {
+      "ato_sensor_connected": {
+        "name": "Sonda de temperatura ligada"
+      },
       "auto_from_buttons": {
         "name": "Auto from buttons"
       },
@@ -48,11 +51,14 @@
       "buzzer_dismissed": {
         "name": "Buzzer dismissed"
       },
-      "buzzer_enabled": {
-        "name": "Buzzer ativado"
+      "buzzer_on": {
+        "name": "Alarme sonoro ativo"
       },
       "cable_connected": {
         "name": "Cable connected"
+      },
+      "check_sensor": {
+        "name": "Verificar o sensor"
       },
       "cloud_state": {
         "name": "Estado da ligação à nuvem"
@@ -69,8 +75,8 @@
       "ec_sensor_connected": {
         "name": "Sensor EC ligado"
       },
-      "enabled": {
-        "name": "Sensor de fuga ativado"
+      "is_calibrated": {
+        "name": "Sonda calibrada"
       },
       "is_ec_sensor_connected": {
         "name": "Sensor EC ligado?"
@@ -126,6 +132,9 @@
       "status": {
         "name": "Estado"
       },
+      "temperature_log_enabled": {
+        "name": "Registo de temperatura"
+      },
       "unclean_sensor": {
         "name": "Estado do sensor"
       },
@@ -176,6 +185,9 @@
       "fetch_config": {
         "name": "Obter configuração"
       },
+      "fetch_data": {
+        "name": "Atualizar dados"
+      },
       "fill": {
         "name": "Encher"
       },
@@ -190,6 +202,18 @@
       },
       "maint_ato_return_pump": {
         "name": "Limpar a bomba de retorno"
+      },
+      "maint_control_probe_calibration_orp": {
+        "name": "Verificar a sonda {probe}"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Calibrar a sonda {probe}"
+      },
+      "maint_control_probe_clean": {
+        "name": "Limpar a sonda {probe}"
+      },
+      "maint_control_probe_replace": {
+        "name": "Substituir a sonda {probe}"
       },
       "maint_dose_heads_calibration": {
         "name": "Calibrar cabeça de doseamento"
@@ -260,6 +284,9 @@
       "set_supplement_name": {
         "name": "Definir novo nome"
       },
+      "setup_finish": {
+        "name": "Concluir configuração"
+      },
       "start_calibration": {
         "name": "Iniciar calibração"
       },
@@ -274,9 +301,6 @@
       },
       "test_calibration": {
         "name": "Testar nova calibração"
-      },
-      "setup_finish": {
-        "name": "Concluir configuração"
       }
     },
     "light": {
@@ -299,6 +323,9 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Fator de intensidade inicial da aclimatação"
+      },
+      "ato_tank_volume": {
+        "name": "Volume do reservatório ATO"
       },
       "ato_volume_left": {
         "name": "Volume ATO restante"
@@ -323,6 +350,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Limpar a bomba de retorno (meses)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Verificar a sonda {probe} (meses)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Calibrar a sonda {probe} (semanas)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Limpar a sonda {probe} (semanas)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Substituir a sonda {probe} (meses)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Calibrar cabeça de doseamento (dias)"
@@ -456,18 +495,18 @@
           "un": "Uniforme"
         }
       },
-      "supplements": {
-        "name": "Suplementos",
-        "state": {
-          "other": "Outro"
-        }
-      },
       "socket_mode": {
         "name": "Modo tomada {socket}",
         "state": {
           "off": "Desligado",
           "on": "Ligado",
           "schedule": "Programação"
+        }
+      },
+      "supplements": {
+        "name": "Suplementos",
+        "state": {
+          "other": "Outro"
         }
       }
     },
@@ -477,6 +516,15 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Fator de intensidade inicial da aclimatação"
+      },
+      "ato_sensor_code": {
+        "name": "Código da sonda de temperatura"
+      },
+      "ato_sensor_last_adjustment_date": {
+        "name": "Data de ajuste da sonda"
+      },
+      "ato_sensor_last_installation_date": {
+        "name": "Data de instalação da sonda"
       },
       "auto_1": {
         "name": "Domingo"
@@ -590,6 +638,9 @@
       "first_name": {
         "name": "Nome próprio"
       },
+      "flow_rate": {
+        "name": "Caudal"
+      },
       "head_state": {
         "name": "Estado"
       },
@@ -605,17 +656,28 @@
       "last_calibration": {
         "name": "Última calibração"
       },
+      "last_fill_date": {
+        "name": "Último enchimento"
+      },
       "last_message": {
         "name": "Última mensagem"
       },
       "last_name": {
         "name": "Apelido"
       },
+      "last_pump_on_cause": {
+        "name": "Causa do último arranque"
+      },
       "leak_sensor_current_read": {
         "name": "Leitura atual do sensor de fuga"
       },
       "leak_sensor_status": {
-        "name": "Estado do sensor de fuga"
+        "name": "Estado do sensor de fugas",
+        "state": {
+          "dry": "Seco",
+          "aquarium_water_leak": "Fuga de água do aquário",
+          "rodi_water_leak": "Fuga de água RO/DI"
+        }
       },
       "led_program": {
         "name": "Programa LED"
@@ -693,19 +755,18 @@
       "port_last_pump_on_cause": {
         "name": "Porta {port} causa último acionamento",
         "state": {
-          "unknown": "Desconhecido",
+          "none": "Nenhuma",
           "manual": "Manual",
-          "auto": "Automático",
-          "schedule": "Programa",
-          "user": "Utilizador"
+          "ec_sensor_s1": "Sensor de nível S1",
+          "ec_sensor_s2": "Sensor de nível S2"
         }
       },
       "port_leak_status": {
         "name": "Porta {port} estado de fuga",
         "state": {
-          "aquarium": "Aquário",
           "dry": "Seco",
-          "rodi": "Osmose"
+          "aquarium_water_leak": "Fuga de água do aquário",
+          "rodi_water_leak": "Fuga de água RO/DI"
         }
       },
       "port_mode": {
@@ -736,6 +797,9 @@
       "power_temperature": {
         "name": "Temperature"
       },
+      "prev_pump_state": {
+        "name": "Estado anterior da bomba"
+      },
       "probe_ec": {
         "name": "{probe} conductivity"
       },
@@ -749,7 +813,7 @@
         "name": "{probe} last installation"
       },
       "probe_leak_value": {
-        "name": "{probe} leak"
+        "name": "Valor de fuga da sonda"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -806,11 +870,27 @@
           "error": "Erro de sensor"
         }
       },
+      "pump_blockage_threshold": {
+        "name": "Limiar de obstrução"
+      },
+      "pump_consumption": {
+        "name": "Consumo da bomba"
+      },
+      "pump_empty_threshold": {
+        "name": "Limiar de bomba em vazio"
+      },
+      "pump_soft_blockage_threshold": {
+        "name": "Limiar de obstrução parcial"
+      },
+      "pump_speed": {
+        "name": "Velocidade da bomba"
+      },
       "pump_state": {
         "name": "Estado da bomba",
         "state": {
           "malfunction": "Avaria",
-          "pump_on": "Ligada"
+          "pump_on": "Ligada",
+          "off": "Desligada"
         }
       },
       "remaining_days": {
@@ -818,6 +898,12 @@
       },
       "remaining_length": {
         "name": "Comprimento restante"
+      },
+      "s1_average": {
+        "name": "Média do sensor de nível S1"
+      },
+      "s2_average": {
+        "name": "Média do sensor de nível S2"
       },
       "schedule_head": {
         "name": "Agendamento da cabeça",
@@ -896,7 +982,7 @@
         "name": "Utilização total"
       },
       "total_volume_usage": {
-        "name": "Volume total utilizado"
+        "name": "Volume usado desde o enchimento"
       },
       "type": {
         "name": "Tipo",
@@ -999,6 +1085,9 @@
       "auto_fill": {
         "name": "Enchimento automático"
       },
+      "buzzer_enabled": {
+        "name": "Buzzer ativado"
+      },
       "cloud_connect": {
         "name": "Ligar à nuvem"
       },
@@ -1008,6 +1097,9 @@
       "dose_compensation": {
         "name": "Compensação de dose"
       },
+      "enabled": {
+        "name": "Sensor de fuga ativado"
+      },
       "fullcup_enabled": {
         "name": "Deteção de copo cheio"
       },
@@ -1016,6 +1108,18 @@
       },
       "maint_ato_return_pump_notify": {
         "name": "Limpar a bomba de retorno (notificações)"
+      },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Verificar a sonda {probe} (notificações)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Calibrar a sonda {probe} (notificações)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Limpar a sonda {probe} (notificações)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Substituir a sonda {probe} (notificações)"
       },
       "maint_dose_heads_calibration_notify": {
         "name": "Calibrar cabeça de doseamento (notificações)"

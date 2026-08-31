@@ -311,12 +311,63 @@ DOSE_SCAN_INTERVAL: Final[int] = 120  # seconds
 
 ATO_SCAN_INTERVAL: Final[int] = 20  # seconds
 
+# `auto_fill` lives only on `/configuration` -- it is absent from `/dashboard`,
+# confirmed against the Red Sea app, whose dashboard parser never reads it.
+# That is why the RSATO declares `/configuration` as a polled "data" source
+# (see reefbeat/ato.py): otherwise this switch would go stale as soon as
+# anyone touched auto-fill from the Red Sea app.
 ATO_AUTO_FILL_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/configuration')].data.auto_fill"
 )
 ATO_VOLUME_LEFT_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/dashboard')].data.volume_left"
 )
+
+# The leak alarm buzzer of the RSATO+, which the firmware exposes twice: as
+# `buzzer.enabled` on `/configuration` and as `leak_sensor.buzzer_enabled` on
+# `/dashboard`. The setting is written to the former -- the Red Sea app PUTs
+# `{"buzzer": {"enabled": <bool>}}` there, per
+# `ATODevice$Keys$Configuration$Buzzer` in the Android app -- but read from the
+# latter, because `/dashboard` is polled on every cycle while `/configuration`
+# is a config source: without `live_config_update` it is fetched once at
+# startup and then only on demand, so a change made in the Red Sea app would
+# not show up here for hours.
+#
+# Reading and writing therefore use different endpoints on purpose. The switch
+# entity updates this cache itself on toggle, and the next `/dashboard` poll
+# confirms it from the device.
+ATO_BUZZER_ENABLED_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/dashboard')].data.leak_sensor.buzzer_enabled"
+)
+
+# The leak probe's own arming flag, exposed the same way as the buzzer above:
+# written as `leak.sensor_enabled` on `/configuration`
+# (`ATODevice$Keys$Configuration$Leak` in the Android app), reported as
+# `leak_sensor.enabled` on the polled `/dashboard`. The app's cloud heartbeat
+# maps `AtoLeakConfiguration.isEnabled` onto the same model field, which is
+# what confirms the two names are one setting.
+ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/dashboard')].data.leak_sensor.enabled"
+)
+
+# Whether the ATO pump is pushing water right now. Named because two places
+# need the same path: the binary sensor that reports it, and the fill/stop
+# buttons that set it optimistically so the card reacts on the press instead
+# of on the read-back.
+ATO_IS_PUMP_ON_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/dashboard')].data.is_pump_on"
+)
+
+# Reservoir size of the ATO container. Like the doser's initial container
+# volume, this is a property of the installation rather than of the hardware:
+# the RSATO+ never reports it. It therefore lives under `$.local`, the branch
+# reserved for values Home Assistant owns, and is restored from the entity's
+# own state on restart.
+ATO_TANK_VOLUME_INTERNAL_NAME: Final[JsonPath] = "$.local.tank_volume"
+ATO_TANK_VOLUME_MIN: Final[float] = 5.0
+ATO_TANK_VOLUME_MAX: Final[float] = 300.0
+ATO_TANK_VOLUME_STEP: Final[float] = 1.0
+ATO_TANK_VOLUME_DEFAULT: Final[float] = 20.0
 
 ATO_MODES: Final[tuple[str, ...]] = ("auto", "empty", "error")
 
@@ -414,6 +465,50 @@ CONTROL_MODES: Final[tuple[str, ...]] = (
 
 CONTROL_LEAK_DETECTOR_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/configuration')].data.leak_detector"
+)
+
+# `/configuration` on the ReefControl hub, confirmed on RSCONTROLPRO fw 1.1.9:
+#   {"shortcut_off_delay": 0,
+#    "leak_buzzer_config":   {"enabled": true, "frequency": 12, "duty_cycle": 50},
+#    "danger_buzzer_config": {"enabled": true, "frequency": 6,  "duty_cycle": 20},
+#    "leak_detector": true,
+#    "danger_debounce_seconds": 30}
+# `leak_detector` is duplicated on `/leak/config`, which additionally carries
+# `notify` and accepts the write-only `emergency_shutdown` flag.
+CONTROL_CONFIGURATION_SOURCE: Final[str] = "/configuration"
+
+CONTROL_BUZZER_KINDS: Final[tuple[str, ...]] = ("leak", "danger")
+
+# Wire values of `ControlPortMode` (hub 12V ports). Recovered from the Red Sea
+# Android app enums; `/dashboard.ports[].mode` and `/ports/config[].mode` use
+# these strings.
+CONTROL_PORT_MODES: Final[tuple[str, ...]] = (
+    "on",
+    "off",
+    "setup",
+    "schedule",
+    "sensor",
+    "feeding",
+    "maintenance",
+    "emergency",
+    "shortcut_off_delay",
+    "port_overload",
+    "port_malfunction",
+    "missing_pump",
+    "stalled",
+    "timeout",
+    "empty",
+    "leak",
+    "qa_on",
+)
+
+# Wire values of `ControlPortState` / `PowerSocketState`.
+PORT_SOCKET_STATES: Final[tuple[str, ...]] = (
+    "on",
+    "standby",
+    "fallback_on",
+    "fallback_off",
+    "unknown",
 )
 
 # -----------------------------------------------------------------------------

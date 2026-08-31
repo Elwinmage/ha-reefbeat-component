@@ -19,30 +19,60 @@ Aby pomóc w tłumaczeniu, postępuj zgodnie z tym [przewodnikiem](https://githu
 # Przegląd
 ***Lokalne zarządzanie urządzeniami HomeAssistant RedSea Reefbeat (bez chmury): ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun i ReefWave***
 
+<!-- ecosystem:start -->
+
 ## Powiązane projekty
 
-Ta integracja jest jednym z trzech uzupełniających się projektów dla akwarium rafowego Red Sea:
+Projekty ReefTech uzupełniają się: integracje wprowadzają sprzęt do Home Assistant, karta go wyświetla i steruje nim, a zasilanie awaryjne utrzymuje go w ruchu podczas przerwy w zasilaniu. Każdy działa również samodzielnie.
 
-| Projekt | Rola |
-| --- | --- |
-| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | Ta integracja. Lokalne sterowanie urządzeniami ReefBeat z Home Assistant, bez chmury: ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun i ReefWave. |
-| [**ReefBeat watch**](https://github.com/Elwinmage/ha-reefbeat-component/tree/main/blueprints/automation) | Blueprint alertów dostarczany z tą integracją. Powiadamia o zaległych konserwacjach i kalibracjach, nietypowych trybach, niskim poziomie baterii i niedostępnych urządzeniach, na wybranych przez Ciebie urządzeniach mobilnych. [![Otwórz swoją instancję Home Assistant i wyświetl okno importu blueprintu.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/blueprints/automation/redsea_alerts.en.yaml) |
-| [**ha-reef-card**](https://github.com/Elwinmage/ha-reef-card) | Towarzysząca karta Lovelace. Niezbędna do edycji zaawansowanych harmonogramów ReefDose, ReefLed, ReefRun i ReefWave; daje każdemu urządzeniu interaktywny widok graficzny. |
-| [**reefbeatEnergyBackup**](https://github.com/Elwinmage/reefbeatEnergyBackup) | Zasilanie awaryjne z akumulatora. Pakiet 24V LiFePO₄ sterowany przez Raspberry Pi, ze stopniowym ograniczaniem prędkości pomp zależnie od stanu naładowania. Działa samodzielnie lub razem z tą integracją. |
+<table>
+  <tr>
+    <th width="100px"></th>
+    <th>Projekt</th>
+    <th>Rola</th>
+    <th>Współpracuje z</th>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/icon.png" width="64" alt="ha-reefbeat-component" /></td>
+    <td><b>ha-reefbeat-component</b><br /><i>(to repozytorium)</i></td>
+    <td>Urządzenia Red Sea ReefBeat, sterowane lokalnie bez chmury: ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun i ReefWave.<br />blueprint alertów dla nietypowych trybów, kalibracji i niskiego poziomu baterii. <a href="https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/blueprints/automation/redsea_alerts.en.yaml"><img src="https://my.home-assistant.io/badges/blueprint_import.svg" alt="Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled." /></a></td>
+    <td>ha-reef-card</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-aquamedic-component/main/icon.png" width="64" alt="ha-aquamedic-component" /></td>
+    <td><a href="https://github.com/Elwinmage/ha-aquamedic-component"><b>ha-aquamedic-component</b></a></td>
+    <td>Pompy Aqua Medic przez chmurowe API Gizwits: pompy cyrkulacyjne EcoDrift i SmartDrift, pompy DC Runner obiegowe i do odpieniacza.</td>
+    <td>ha-reef-card</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-reef-maintenance-component/main/icon.png" width="64" alt="ha-reef-maintenance-component" /></td>
+    <td><a href="https://github.com/Elwinmage/ha-reef-maintenance-component"><b>ha-reef-maintenance-component</b></a></td>
+    <td>Śledzenie czyszczenia i zużycia sprzętu, do którego Home Assistant nie ma dostępu: pompy cyrkulacyjne, pompy obiegowe, odpieniacze, reaktory, wszystko co obsługujesz ręcznie.</td>
+    <td>ha-reef-card</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-reef-card/main/icon.png" width="64" alt="ha-reef-card" /></td>
+    <td><a href="https://github.com/Elwinmage/ha-reef-card"><b>ha-reef-card</b></a></td>
+    <td>Interaktywny widok graficzny każdego urządzenia na pulpicie i jedyny sposób edycji zaawansowanych harmonogramów. Odczytuje trzy integracje przez wspólny kontrakt <code>reef_role</code>, bez konfiguracji po stronie karty.</td>
+    <td>wszystkie trzy integracje</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-reef-blueprints/main/icon.png" width="64" alt="ha-reef-blueprints" /></td>
+    <td><a href="https://github.com/Elwinmage/ha-reef-blueprints"><b>ha-reef-blueprints</b></a></td>
+    <td>Blueprinty powiadomień wspólne dla całego ekosystemu: zaległe konserwacje znajdowane przez kontrakt <code>reef_role</code> oraz urządzenia, które przestały odpowiadać. Osiem języków.</td>
+    <td>wszystkie trzy integracje</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/reefbeatEnergyBackup/main/icon.png" width="64" alt="reefbeatEnergyBackup" /></td>
+    <td><a href="https://github.com/Elwinmage/reefbeatEnergyBackup"><b>reefbeatEnergyBackup</b></a></td>
+    <td>Zasilanie awaryjne na wypadek przerw w zasilaniu. Pakiet 24V LiFePO₄ sterowany przez Raspberry Pi, ze stopniowym obniżaniem prędkości pomp zależnie od stanu naładowania.</td>
+    <td>samodzielnie lub razem z ha-reefbeat-component</td>
+  </tr>
+</table>
 
-Wszystkie trzy, a także inne projekty rafowe, są opisane razem na [stronie projektu](https://elwinmage.github.io/reeftank/).
+Wszystkie są udokumentowane razem na [stronie projektu ReefTech](https://elwinmage.github.io/reeftank/).
 
-> [!TIP]
-> Lista przyszłych implementacji jest dostępna [tutaj](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
-> Lista błędów jest dostępna [tutaj](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug)<br />
-
-***Jeśli potrzebujesz innych czujników lub urządzeń wykonawczych, skontaktuj się ze mną [tutaj](https://github.com/Elwinmage/ha-reefbeat-component/discussions).***
-
-> [!IMPORTANT]
-> Jeśli Twoje urządzenia nie są w tej samej podsieci co Home Assistant, [przeczytaj to](https://github.com/Elwinmage/ha-reefbeat-component/#my-device-is-not-detected).
-
-> [!CAUTION]
-> ⚠️ To nie jest oficjalne repozytorium RedSea. Używasz na własne ryzyko.⚠️
+<!-- ecosystem:end -->
 
 # Zgodność
 
@@ -296,6 +326,9 @@ Wybierz sieć docelową, wpisz jej hasło i zatwierdź. Integracja wysyła nowe 
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/fetch_config_button.png" alt="Image">
 </p>
 
+> [!NOTE]
+> Każde urządzenie udostępnia również przycisk „Pobierz dane". Wymusza natychmiastowy odczyt regularnie odpytywanych źródeł, bez czekania na kolejny cykl skanowania, i działa niezależnie od ustawienia Live_update_config — w przeciwieństwie do „Pobierz konfigurację", które odświeża tylko źródła konfiguracji.
+
 ## Aktualizacja Firmware
 Możesz otrzymywać powiadomienia i aktualizować urządzenie, gdy dostępna jest nowa wersja oprogramowania. You must have an active ["Cloud API"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) device with your credentials and the "Use Cloud API" switch must be enabled.
 > [!TIP]
@@ -309,6 +342,7 @@ Możesz otrzymywać powiadomienia i aktualizować urządzenie, gdy dostępna jes
 # ReefATO:
 - Włącz/wyłącz automatyczne napełnianie
 - Ręczne napełnianie
+- Włącz/wyłącz buzzer alarmu wycieku
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Image">

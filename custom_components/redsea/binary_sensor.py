@@ -26,7 +26,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
+from .const import ATO_IS_PUMP_ON_INTERNAL_NAME, DOMAIN
 from .coordinator import (
     ReefATOCoordinator,
     ReefBeatCloudCoordinator,
@@ -174,26 +174,15 @@ ATO_SENSORS: tuple[ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], .
         ),
         icon="mdi:connection",
     ),
-    ReefBeatBinarySensorEntityDescription(
-        key="enabled",
-        translation_key="enabled",
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.leak_sensor.enabled"
-        ),
-        icon="mdi:leak",
-    ),
-    ReefBeatBinarySensorEntityDescription(
-        key="buzzer_enabled",
-        translation_key="buzzer_enabled",
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.leak_sensor.buzzer_enabled"
-        ),
-        icon="mdi:volume-high",
-    ),
+    # MOISTURE rather than PROBLEM: Home Assistant then states it as Wet/Dry,
+    # which is what a leak probe reports and what the firmware value says.
+    # The three wire values (`dry`, `aquarium_water_leak`, `rodi_water_leak`)
+    # collapse to wet/dry here; `leak_sensor_status` keeps the distinction
+    # between a tank-side and an RO/DI-side leak.
     ReefBeatBinarySensorEntityDescription(
         key="status",
         translation_key="status",
-        device_class=BinarySensorDeviceClass.PROBLEM,
+        device_class=BinarySensorDeviceClass.MOISTURE,
         value_fn=lambda device: (
             device.get_data(
                 "$.sources[?(@.name=='/dashboard')].data.leak_sensor.status"
@@ -223,10 +212,58 @@ ATO_SENSORS: tuple[ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], .
         key="is_pump_on",
         translation_key="is_pump_on",
         device_class=BinarySensorDeviceClass.RUNNING,
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.is_pump_on"
-        ),
+        value_fn=lambda device: device.get_data(ATO_IS_PUMP_ON_INTERNAL_NAME),
         icon="mdi:pump",
+    ),
+    # Firmware asks the user to inspect the level sensor (fouling, position).
+    # Distinct from `is_sensor_error`, which is a hard read failure.
+    ReefBeatBinarySensorEntityDescription(
+        key="check_sensor",
+        translation_key="check_sensor",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.check_sensor"
+        ),
+        icon="mdi:magnify-scan",
+    ),
+    # Temperature probe presence, mirroring `leak_sensor.connected` above.
+    ReefBeatBinarySensorEntityDescription(
+        key="ato_sensor_connected",
+        translation_key="ato_sensor_connected",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.ato_sensor.connected"
+        ),
+        icon="mdi:connection",
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key="is_calibrated",
+        translation_key="is_calibrated",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.ato_sensor.is_calibrated"
+        ),
+        icon="mdi:tune-vertical",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key="temperature_log_enabled",
+        translation_key="temperature_log_enabled",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.ato_sensor.temperature_log_enabled"
+        ),
+        icon="mdi:chart-line",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    # Whether the buzzer is sounding right now, as opposed to the
+    # `buzzer_enabled` switch, which is the user setting.
+    ReefBeatBinarySensorEntityDescription(
+        key="buzzer_on",
+        translation_key="buzzer_on",
+        device_class=BinarySensorDeviceClass.SOUND,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.leak_sensor.buzzer_on"
+        ),
+        icon="mdi:bell-ring",
     ),
 )
 

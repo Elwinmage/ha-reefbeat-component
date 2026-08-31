@@ -33,6 +33,9 @@
   },
   "entity": {
     "binary_sensor": {
+      "ato_sensor_connected": {
+        "name": "Temperature probe connected"
+      },
       "auto_from_buttons": {
         "name": "Auto from buttons"
       },
@@ -48,11 +51,14 @@
       "buzzer_dismissed": {
         "name": "Buzzer dismissed"
       },
-      "buzzer_enabled": {
-        "name": "Buzzer enabled"
+      "buzzer_on": {
+        "name": "Buzzer sounding"
       },
       "cable_connected": {
         "name": "Cable connected"
+      },
+      "check_sensor": {
+        "name": "Check sensor"
       },
       "cloud_state": {
         "name": "Cloud connection state"
@@ -69,8 +75,8 @@
       "ec_sensor_connected": {
         "name": "EC sensor Connected"
       },
-      "enabled": {
-        "name": "Leak sensor enabled"
+      "is_calibrated": {
+        "name": "Probe calibrated"
       },
       "is_ec_sensor_connected": {
         "name": "Is EC sensor Connected"
@@ -126,6 +132,9 @@
       "status": {
         "name": "Status"
       },
+      "temperature_log_enabled": {
+        "name": "Temperature logging"
+      },
       "unclean_sensor": {
         "name": "Sensor State"
       },
@@ -176,6 +185,9 @@
       "fetch_config": {
         "name": "Fetch Config"
       },
+      "fetch_data": {
+        "name": "Fetch data"
+      },
       "fill": {
         "name": "Fill"
       },
@@ -190,6 +202,18 @@
       },
       "maint_ato_return_pump": {
         "name": "Clean return pump"
+      },
+      "maint_control_probe_calibration_orp": {
+        "name": "Validate probe {probe}"
+      },
+      "maint_control_probe_calibration_ph": {
+        "name": "Calibrate probe {probe}"
+      },
+      "maint_control_probe_clean": {
+        "name": "Clean probe {probe}"
+      },
+      "maint_control_probe_replace": {
+        "name": "Replace probe {probe}"
       },
       "maint_dose_heads_calibration": {
         "name": "Calibrate dosing heads"
@@ -260,6 +284,9 @@
       "set_supplement_name": {
         "name": "Set new supplement name"
       },
+      "setup_finish": {
+        "name": "Finish setup"
+      },
       "start_calibration": {
         "name": "Start  Calibration"
       },
@@ -274,9 +301,6 @@
       },
       "test_calibration": {
         "name": "Test new Calibration"
-      },
-      "setup_finish": {
-        "name": "Finish setup"
       }
     },
     "light": {
@@ -299,6 +323,9 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Acclimation Start Intensity Factor"
+      },
+      "ato_tank_volume": {
+        "name": "ATO Tank Volume"
       },
       "ato_volume_left": {
         "name": "ATO Volume Left"
@@ -323,6 +350,18 @@
       },
       "maint_ato_return_pump_interval_months": {
         "name": "Clean return pump (months)"
+      },
+      "maint_control_probe_calibration_orp_interval_months": {
+        "name": "Validate probe {probe} (months)"
+      },
+      "maint_control_probe_calibration_ph_interval_weeks": {
+        "name": "Calibrate probe {probe} (weeks)"
+      },
+      "maint_control_probe_clean_interval_weeks": {
+        "name": "Clean probe {probe} (weeks)"
+      },
+      "maint_control_probe_replace_interval_months": {
+        "name": "Replace probe {probe} (months)"
       },
       "maint_dose_heads_calibration_interval_days": {
         "name": "Calibrate dosing heads (days)"
@@ -456,18 +495,18 @@
           "un": "Uniform"
         }
       },
-      "supplements": {
-        "name": "Supplements",
-        "state": {
-          "other": "Other"
-        }
-      },
       "socket_mode": {
         "name": "Socket {socket} mode",
         "state": {
           "off": "Off",
           "on": "On",
           "schedule": "Schedule"
+        }
+      },
+      "supplements": {
+        "name": "Supplements",
+        "state": {
+          "other": "Other"
         }
       }
     },
@@ -477,6 +516,15 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Acclimation Start Intensity Factor"
+      },
+      "ato_sensor_code": {
+        "name": "Temperature probe code"
+      },
+      "ato_sensor_last_adjustment_date": {
+        "name": "Probe adjustment date"
+      },
+      "ato_sensor_last_installation_date": {
+        "name": "Probe installation date"
       },
       "auto_1": {
         "name": "Sunday"
@@ -598,6 +646,9 @@
       "first_name": {
         "name": "First Name"
       },
+      "flow_rate": {
+        "name": "Flow rate"
+      },
       "head_state": {
         "name": "Status"
       },
@@ -613,17 +664,28 @@
       "last_calibration": {
         "name": "Last Calibration"
       },
+      "last_fill_date": {
+        "name": "Last fill date"
+      },
       "last_message": {
         "name": "Last Message"
       },
       "last_name": {
         "name": "Last Name"
       },
+      "last_pump_on_cause": {
+        "name": "Last pump-on cause"
+      },
       "leak_sensor_current_read": {
         "name": "Leak sensor current read"
       },
       "leak_sensor_status": {
-        "name": "Leak sensor status"
+        "name": "Leak sensor status",
+        "state": {
+          "dry": "Dry",
+          "aquarium_water_leak": "Aquarium water leak",
+          "rodi_water_leak": "RO/DI water leak"
+        }
       },
       "led_program": {
         "name": "LED Program"
@@ -701,19 +763,18 @@
       "port_last_pump_on_cause": {
         "name": "Port {port} last pump-on cause",
         "state": {
-          "unknown": "Unknown",
+          "none": "None",
           "manual": "Manual",
-          "auto": "Automatic",
-          "schedule": "Schedule",
-          "user": "User"
+          "ec_sensor_s1": "Level sensor S1",
+          "ec_sensor_s2": "Level sensor S2"
         }
       },
       "port_leak_status": {
         "name": "Port {port} leak status",
         "state": {
-          "aquarium": "Aquarium",
           "dry": "Dry",
-          "rodi": "RO/DI"
+          "aquarium_water_leak": "Aquarium water leak",
+          "rodi_water_leak": "RO/DI water leak"
         }
       },
       "port_mode": {
@@ -744,6 +805,9 @@
       "power_temperature": {
         "name": "Temperature"
       },
+      "prev_pump_state": {
+        "name": "Previous pump state"
+      },
       "probe_ec": {
         "name": "{probe} conductivity"
       },
@@ -757,7 +821,7 @@
         "name": "{probe} last installation"
       },
       "probe_leak_value": {
-        "name": "{probe} leak"
+        "name": "Probe Leak Value"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -814,11 +878,27 @@
           "error": "Sensor error"
         }
       },
+      "pump_blockage_threshold": {
+        "name": "Pump blockage threshold"
+      },
+      "pump_consumption": {
+        "name": "Pump consumption"
+      },
+      "pump_empty_threshold": {
+        "name": "Pump empty threshold"
+      },
+      "pump_soft_blockage_threshold": {
+        "name": "Pump partial blockage threshold"
+      },
+      "pump_speed": {
+        "name": "Pump speed"
+      },
       "pump_state": {
         "name": "Pump State",
         "state": {
           "malfunction": "Malfunction",
-          "pump_on": "On"
+          "pump_on": "On",
+          "off": "Off"
         }
       },
       "remaining_days": {
@@ -826,6 +906,12 @@
       },
       "remaining_length": {
         "name": "Remaining Length"
+      },
+      "s1_average": {
+        "name": "Level sensor S1 average"
+      },
+      "s2_average": {
+        "name": "Level sensor S2 average"
       },
       "schedule_head": {
         "name": "Head Schedule",
@@ -904,7 +990,7 @@
         "name": "Total usage"
       },
       "total_volume_usage": {
-        "name": "Total volume usage"
+        "name": "Volume used since refill"
       },
       "type": {
         "name": "Type",
@@ -1007,6 +1093,9 @@
       "auto_fill": {
         "name": "Auto fill"
       },
+      "buzzer_enabled": {
+        "name": "Buzzer enabled"
+      },
       "cloud_connect": {
         "name": "Connect to cloud"
       },
@@ -1016,6 +1105,9 @@
       "dose_compensation": {
         "name": "Dose compensation"
       },
+      "enabled": {
+        "name": "Leak sensor enabled"
+      },
       "fullcup_enabled": {
         "name": "Full Cup Detection"
       },
@@ -1024,6 +1116,18 @@
       },
       "maint_ato_return_pump_notify": {
         "name": "Clean return pump (notifications)"
+      },
+      "maint_control_probe_calibration_orp_notify": {
+        "name": "Validate probe {probe} (notifications)"
+      },
+      "maint_control_probe_calibration_ph_notify": {
+        "name": "Calibrate probe {probe} (notifications)"
+      },
+      "maint_control_probe_clean_notify": {
+        "name": "Clean probe {probe} (notifications)"
+      },
+      "maint_control_probe_replace_notify": {
+        "name": "Replace probe {probe} (notifications)"
       },
       "maint_dose_heads_calibration_notify": {
         "name": "Calibrate dosing heads (notifications)"

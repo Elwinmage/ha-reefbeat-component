@@ -32,6 +32,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
 from .const import (
+    ATO_IS_PUMP_ON_INTERNAL_NAME,
     DOMAIN,
     WAVE_SCHEDULE_PATH,
     WAVES_DATA_NAMES,
@@ -52,9 +53,11 @@ from .coordinator import (
 )
 from .entity import ReefRoleMixin
 from .maintenance import (
+    PROBE_SCOPES,
     MaintenanceStore,
     MaintenanceTask,
     compute_days_left,
+    iter_maintenance_probes,
     tasks_for,
 )
 from .supplements_list import SUPPLEMENTS
@@ -116,12 +119,23 @@ class ReefBeatButtonEntityDescription(ButtonEntityDescription):
     """Entity description for generic ReefBeat buttons.
 
     Used for devices where a simple `press_fn(device)` callback is sufficient.
+
+    `optimistic` writes values straight into the cached payload once the
+    command has been sent, so the entities move without waiting for the
+    read-back. It maps a JSONPath to the value the device is expected to
+    report; the refresh that follows overwrites it with the truth, which is
+    what makes guessing safe here.
+
+    Only declare a value the action makes certain. A wrong guess is visible
+    for the length of the refresh, and on a device that refuses the command
+    it would flip back a couple of seconds later.
     """
 
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     press_fn: (
         Callable[[ReefBeatCoordinator], StateType | Awaitable[StateType]] | None
     ) = None
+    optimistic: dict[str, Any] | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -171,6 +185,25 @@ FETCH_CONFIG_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
         exists_fn=lambda _: True,
         press_fn=lambda device: device.fetch_config(),
         icon="mdi:update",
+        entity_category=EntityCategory.CONFIG,
+    ),
+)
+
+# Companion to FETCH_CONFIG_BUTTON, for the other half of the sources.
+#
+# `fetch_config()` only refreshes sources typed "config"; the polled "data"
+# ones -- /dashboard and friends -- are otherwise only read on the scan
+# interval. This button forces that read now, without waiting for the cycle.
+#
+# No press_fn on purpose: every press already reads the device back, so the
+# refresh done by async_press IS this button's action. Giving it a press_fn
+# that refreshes too would poll the device twice per press.
+FETCH_DATA_BUTTON: tuple[ReefBeatButtonEntityDescription, ...] = (
+    ReefBeatButtonEntityDescription(
+        key="fetch_data",
+        translation_key="fetch_data",
+        exists_fn=lambda _: True,
+        icon="mdi:refresh",
         entity_category=EntityCategory.CONFIG,
     ),
 )
@@ -272,6 +305,7 @@ ATO_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         translation_key="fill",
         exists_fn=lambda _: True,
         press_fn=lambda device: device.press("manual-pump"),
+        optimistic={ATO_IS_PUMP_ON_INTERNAL_NAME: True},
         icon="mdi:water-pump",
         entity_category=EntityCategory.CONFIG,
     ),
@@ -280,6 +314,7 @@ ATO_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         translation_key="stop_fill",
         exists_fn=lambda _: True,
         press_fn=lambda device: device.press("stop"),
+        optimistic={ATO_IS_PUMP_ON_INTERNAL_NAME: False},
         icon="mdi:water-pump-off",
         entity_category=EntityCategory.CONFIG,
     ),
@@ -682,6 +717,10 @@ async def async_setup_entry(
             entities, device, ReefBeatButtonEntity, FETCH_CONFIG_BUTTON
         )
 
+    # Unconditional, unlike fetch_config: data sources are polled whatever
+    # live_config_update says, so forcing a read early is always meaningful.
+    _add_described_entities(entities, device, ReefBeatButtonEntity, FETCH_DATA_BUTTON)
+
     if not isinstance(device, ReefBeatCloudCoordinator) and not isinstance(
         device, ReefVirtualLedCoordinator
     ):
@@ -709,6 +748,7 @@ def _add_maintenance_buttons(
       - 'head'         -> one button per RSDOSE head
       - 'pump_return'  -> one button per RSRUN pump whose type == 'return'
       - 'pump_skimmer' -> one button per RSRUN pump whose type == 'skimmer'
+      - 'probe*'       -> one button per matching ReefSense probe
       - None           -> a single button on the main device
     """
     if isinstance(device, (ReefBeatCloudCoordinator, ReefVirtualLedCoordinator)):
@@ -735,6 +775,20 @@ def _add_maintenance_buttons(
             wanted = "return" if task.applies_to_sub == "pump_return" else "skimmer"
             for pump_id in _iter_run_pumps(device, wanted):
                 entities.append(MaintenanceButtonEntity(device, task, sub_id=pump_id))
+
+        elif task.applies_to_sub in PROBE_SCOPES:
+            # Probe-scoped names carry a `{probe}` placeholder, so the probe
+            # label has to be supplied or Home Assistant logs a mismatch and
+            # renders the raw placeholder.
+            for sub_id, probe_name in iter_maintenance_probes(device, task):
+                entities.append(
+                    MaintenanceButtonEntity(
+                        device,
+                        task,
+                        sub_id=sub_id,
+                        placeholders={"probe": probe_name},
+                    )
+                )
 
         else:
             entities.append(MaintenanceButtonEntity(device, task, sub_id=0))
@@ -793,12 +847,31 @@ class ReefBeatButtonEntity(ButtonEntity):
         return cast(ReefBeatButtonEntityDescription, self.entity_description)
 
     async def async_press(self) -> None:
-        if self.desc.press_fn is None:
-            _LOGGER.debug("No press_fn for %s", self.desc.key)
-            return
-        result = self.desc.press_fn(self._device)
-        if inspect.isawaitable(result):
-            await result
+        if self.desc.press_fn is not None:
+            result = self.desc.press_fn(self._device)
+            if inspect.isawaitable(result):
+                await result
+
+        # Show the expected outcome now, after the command was accepted but
+        # before the read-back. Same trick the wave preview buttons use on
+        # `mode`, and what keeps the card from lagging a couple of seconds
+        # behind a fill or a stop.
+        if self.desc.optimistic:
+            for path, value in self.desc.optimistic.items():
+                self._device.set_data(path, value)
+            self._device.async_update_listeners()
+
+        # Read the device back, as the dose, run and wave button entities all
+        # do after their own actions. Without it the entities keep the state
+        # of the last poll: "stop fill" sends the command immediately, but
+        # `is_pump_on` stays on until the next scan interval.
+        #
+        # The default wait of async_request_refresh lets the device apply the
+        # command first; reading immediately returns the previous state.
+        #
+        # A description with no press_fn is not a no-op: this refresh is its
+        # whole action, which is how the fetch_data button works.
+        await self._device.async_request_refresh()
 
 
 # REEFDOSE
@@ -1123,10 +1196,13 @@ class MaintenanceButtonEntity(ReefRoleMixin, ButtonEntity):  # type: ignore[misc
         device: ReefBeatCoordinator,
         task: "MaintenanceTask",
         sub_id: int = 0,
+        placeholders: dict[str, str] | None = None,
     ) -> None:
         self._device = device
         self._task = task
         self._sub_id = sub_id
+        if placeholders:
+            self._attr_translation_placeholders = dict(placeholders)
 
         # Per-task icon from the catalogue (defaults to mdi:wrench-check).
         self._attr_icon = task.icon

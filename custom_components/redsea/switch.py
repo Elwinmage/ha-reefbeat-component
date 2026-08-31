@@ -42,6 +42,8 @@ from homeassistant.helpers.typing import StateType
 
 from .const import (
     ATO_AUTO_FILL_INTERNAL_NAME,
+    ATO_BUZZER_ENABLED_INTERNAL_NAME,
+    ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME,
     COMMON_CLOUD_CONNECTION,
     COMMON_MAINTENANCE_SWITCH,
     COMMON_ON_OFF_SWITCH,
@@ -70,8 +72,10 @@ from .coordinator import (
 )
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
 from .maintenance import (
+    PROBE_SCOPES,
     MaintenanceStore,
     MaintenanceTask,
+    iter_maintenance_probes,
     tasks_for,
 )
 
@@ -165,6 +169,13 @@ class ReefBeatSwitchEntityDescription(SwitchEntityDescription):
     - `method` indicates the HTTP verb used by `push_values` when applicable.
     - `icon_off` is used when state is off (HA does not auto-handle this).
     - `notify` optionally fires an HA bus event when toggled (used by dose/run).
+    - `push_source` overrides the endpoint a toggle is written to. It defaults
+      to the source named in `value_name`, which is right whenever a setting
+      is read and written at the same place. The ATO leak buzzer is the
+      exception: the firmware only accepts it on `/configuration` but reports
+      it on the far more frequently polled `/dashboard`, so it is read from
+      one and written to the other. The refresh after a push always targets
+      the read source, so the device confirms the new value.
     """
 
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
@@ -172,6 +183,7 @@ class ReefBeatSwitchEntityDescription(SwitchEntityDescription):
     icon_off: str = ""
     method: str = "put"
     notify: bool = False
+    push_source: str = ""
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -377,6 +389,28 @@ ATO_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
         translation_key="auto_fill",
         value_name=ATO_AUTO_FILL_INTERNAL_NAME,
         icon="mdi:waves-arrow-up",
+        entity_category=EntityCategory.CONFIG,
+    ),
+    ReefBeatSwitchEntityDescription(
+        key="enabled",
+        translation_key="enabled",
+        value_name=ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME,
+        # Read from `/dashboard`, written to `/configuration`, like the
+        # buzzer below. See ATO_LEAK_SENSOR_ENABLED_INTERNAL_NAME.
+        push_source="/configuration",
+        icon="mdi:leak",
+        icon_off="mdi:leak-off",
+        entity_category=EntityCategory.CONFIG,
+    ),
+    ReefBeatSwitchEntityDescription(
+        key="buzzer_enabled",
+        translation_key="buzzer_enabled",
+        value_name=ATO_BUZZER_ENABLED_INTERNAL_NAME,
+        # Read from `/dashboard`, written to `/configuration`: the firmware
+        # only accepts the setting there. See ATO_BUZZER_ENABLED_INTERNAL_NAME.
+        push_source="/configuration",
+        icon="mdi:bell-ring",
+        icon_off="mdi:bell-off",
         entity_category=EntityCategory.CONFIG,
     ),
 )
@@ -746,6 +780,19 @@ def _add_maintenance_notify_switches(
                     entities.append(
                         MaintenanceNotifySwitchEntity(device, task, sub_id=pump_id)
                     )
+        elif task.applies_to_sub in PROBE_SCOPES:
+            # Probe-scoped names carry a `{probe}` placeholder, so the probe
+            # label has to be supplied or Home Assistant logs a mismatch and
+            # renders the raw placeholder.
+            for sub_id, probe_name in iter_maintenance_probes(device, task):
+                entities.append(
+                    MaintenanceNotifySwitchEntity(
+                        device,
+                        task,
+                        sub_id=sub_id,
+                        placeholders={"probe": probe_name},
+                    )
+                )
         else:
             entities.append(MaintenanceNotifySwitchEntity(device, task, sub_id=0))
 
@@ -855,6 +902,15 @@ class ReefBeatSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore
         except IndexError:
             self._source = ""
 
+        # Where a toggle is written, which is the read source unless the
+        # description says otherwise (see `push_source`).
+        #
+        # Read through getattr: the per-device description dataclasses
+        # (ReefLed…, ReefCloud…, ReefRun…) are siblings cast to this type
+        # rather than subclasses, so they do not carry the field. Same pattern
+        # as `with_attr_name` on the sensor side.
+        self._push_source: str = getattr(self._desc, "push_source", "") or self._source
+
     async def async_added_to_hass(self) -> None:
         """Register listeners and restore the last state on Home Assistant restart."""
         await super().async_added_to_hass()
@@ -922,7 +978,7 @@ class ReefBeatSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore
         self.async_write_ha_state()
         if self._source:
             pusher = cast(_HasPushValuesBySource, self._device)
-            await pusher.push_values(self._source, self._desc.method)
+            await pusher.push_values(self._push_source, self._desc.method)
             await pusher.async_request_refresh(source=self._source)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
@@ -956,7 +1012,7 @@ class ReefBeatSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore
 
         if self._source:
             pusher = cast(_HasPushValuesBySource, self._device)
-            await pusher.push_values(self._source, self._desc.method)
+            await pusher.push_values(self._push_source, self._desc.method)
             await pusher.async_request_refresh(source=self._source)
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
@@ -1717,10 +1773,13 @@ class MaintenanceNotifySwitchEntity(ReefRoleMixin, SwitchEntity):  # type: ignor
         device: ReefBeatCoordinator,
         task: MaintenanceTask,
         sub_id: int = 0,
+        placeholders: dict[str, str] | None = None,
     ) -> None:
         self._device = device
         self._task = task
         self._sub_id = sub_id
+        if placeholders:
+            self._attr_translation_placeholders = dict(placeholders)
 
         suffix = f"_{sub_id}" if sub_id > 0 else ""
         self._attr_unique_id = f"{device.serial}_{task.key}_notify{suffix}"
