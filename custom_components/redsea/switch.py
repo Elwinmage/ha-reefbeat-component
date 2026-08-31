@@ -781,9 +781,6 @@ def _add_maintenance_notify_switches(
                         MaintenanceNotifySwitchEntity(device, task, sub_id=pump_id)
                     )
         elif task.applies_to_sub in PROBE_SCOPES:
-            # Probe-scoped names carry a `{probe}` placeholder, so the probe
-            # label has to be supplied or Home Assistant logs a mismatch and
-            # renders the raw placeholder.
             for sub_id, probe_name in iter_maintenance_probes(device, task):
                 entities.append(
                     MaintenanceNotifySwitchEntity(

@@ -29,6 +29,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import DOMAIN
 from .coordinator import (
     ReefBeatCoordinator,
+    ReefControlCoordinator,
     ReefDoseCoordinator,
     ReefPowerCoordinator,
     ReefRunCoordinator,
@@ -69,6 +70,13 @@ class ReefPowerSocketNameTextEntityDescription(ReefBeatTextEntityDescription):
     """Describes a RSPOWER per-socket name text entity."""
 
     socket: int = 0
+
+
+@dataclass(kw_only=True, frozen=True)
+class ReefControlPortNameTextEntityDescription(ReefBeatTextEntityDescription):
+    """Describes a RSCONTROL per-port name text entity."""
+
+    port: int = 0
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -198,6 +206,32 @@ async def async_setup_entry(
         entities.extend(
             ReefPowerSocketNameTextEntity(device, description)
             for description in power_descs
+            if description.exists_fn(device)
+        )
+
+    elif isinstance(device, ReefControlCoordinator):
+        # One editable name field per 12V DC port, mirroring the RSPOWER
+        # sockets. Backed by the port name in /dashboard; writes go through
+        # PUT /ports/config (mode + name).
+        control_descs: list[ReefControlPortNameTextEntityDescription] = []
+        for port_idx in range(device.port_count):
+            control_descs.append(
+                ReefControlPortNameTextEntityDescription(
+                    key=f"port_{port_idx}_name",
+                    translation_key="port_name",
+                    translation_placeholders={"port": str(port_idx + 1)},
+                    value_name=(
+                        "$.sources[?(@.name=='/dashboard')].data.ports"
+                        f"[?(@.number=={port_idx})].name"
+                    ),
+                    icon="mdi:rename-box",
+                    entity_category=EntityCategory.CONFIG,
+                    port=port_idx,
+                )
+            )
+        entities.extend(
+            ReefControlPortNameTextEntity(device, description)
+            for description in control_descs
             if description.exists_fn(device)
         )
 
@@ -369,6 +403,45 @@ class ReefPowerSocketNameTextEntity(ReefBeatTextEntity):
         self.async_write_ha_state()
         await cast(ReefPowerCoordinator, self._device).set_socket_name(
             self._socket, value
+        )
+
+
+# REEFCONTROL
+class ReefControlPortNameTextEntity(ReefBeatTextEntity):
+    """Editable name for a single RSCONTROL 12V port.
+
+    Reads the current name from ``/dashboard`` and, on edit, writes it back
+    through ``PUT /ports/config``. The coordinator rebuilds the whole port
+    entry from the cached ``/ports/config`` because the firmware wants
+    ``type`` / ``enabled`` / ``power_on_percent`` / ``is_btn_assigned`` on
+    every write, not just the changed field.
+    """
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefControlPortNameTextEntityDescription,
+    ) -> None:
+        super().__init__(device, entity_description)
+        self._port: int = entity_description.port
+
+    @property
+    def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
+        """Mirror the mode select: nothing to rename on an uninstalled port.
+
+        A plain `property`, not `cached_property`, so installing a port at
+        runtime brings the entity back without a restart.
+        """
+        return cast(ReefControlCoordinator, self._device).port_is_installed(self._port)
+
+    async def async_set_value(self, value: str) -> None:
+        """Push the new port name to the device."""
+        self._attr_native_value = value
+        self.async_write_ha_state()
+        await cast(ReefControlCoordinator, self._device).set_port_name(
+            self._port, value
         )
 
 

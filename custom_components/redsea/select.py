@@ -36,6 +36,7 @@ from .const import (
 )
 from .coordinator import (
     ReefBeatCoordinator,
+    ReefControlCoordinator,
     ReefDoseCoordinator,
     ReefLedCoordinator,
     ReefLedG2Coordinator,
@@ -124,12 +125,32 @@ class ReefPowerSocketModeSelectEntityDescription(SelectEntityDescription):
     socket: int = 0  # 0-based socket index used in the URL/payload
 
 
+@dataclass(kw_only=True, frozen=True)
+class ReefControlPortModeSelectEntityDescription(SelectEntityDescription):
+    """Describes a RSCONTROL per-port mode select (off/on/schedule).
+
+    The RSCONTROL 12V ports are configured exactly like the RSPOWER AC
+    sockets, only the transport differs: the write is a partial
+    ``PUT /ports/config`` with a **bare array** body ``[{"number", "mode"}]``
+    instead of the power center's ``{"sockets": [...]}`` wrapper. The current
+    value comes from the port's ``user_config_mode`` in ``/dashboard`` — the
+    user's chosen mode, which unlike ``mode`` isn't transiently overridden by
+    a schedule window.
+    """
+
+    exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
+    value_name: str = ""
+    options: list[str] | None = None
+    port: int = 0  # 0-based port index used in the URL/payload
+
+
 DescriptionT = (
     ReefBeatSelectEntityDescription
     | ReefRunSelectEntityDescription
     | ReefWaveSelectEntityDescription
     | ReefDoseSelectEntityDescription
     | ReefPowerSocketModeSelectEntityDescription
+    | ReefControlPortModeSelectEntityDescription
 )
 
 
@@ -312,6 +333,34 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
+    elif isinstance(device, ReefControlCoordinator):
+        # One mode select per 12V DC port, same contract as the RSPOWER
+        # sockets above. Port indices are 0-based (RSCONTROLLITE -> 0,
+        # RSCONTROLPRO -> 0..1); the user-facing label uses n+1 to match the
+        # sensor/switch convention.
+        control_descs: list[ReefControlPortModeSelectEntityDescription] = []
+        for port_idx in range(device.port_count):
+            control_descs.append(
+                ReefControlPortModeSelectEntityDescription(
+                    key=f"port_{port_idx}_mode",
+                    translation_key="port_mode",
+                    translation_placeholders={"port": str(port_idx + 1)},
+                    icon="mdi:power-settings",
+                    value_name=(
+                        "$.sources[?(@.name=='/dashboard')].data.ports"
+                        f"[?(@.number=={port_idx})].user_config_mode"
+                    ),
+                    options=["off", "on", "schedule"],
+                    entity_category=EntityCategory.CONFIG,
+                    port=port_idx,
+                )
+            )
+        entities.extend(
+            ReefControlPortModeSelectEntity(device, description)
+            for description in control_descs
+            if description.exists_fn(device)
+        )
+
     async_add_entities(entities, True)
 
 
@@ -479,6 +528,71 @@ class ReefPowerSocketModeSelectEntity(ReefBeatSelectEntity):
         self.async_write_ha_state()
         await cast(ReefPowerCoordinator, self._device).set_socket_mode(
             self._socket, option
+        )
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return self._device.device_info
+
+
+# REEFCONTROL
+class ReefControlPortModeSelectEntity(ReefBeatSelectEntity):
+    """Select entity for a RSCONTROL 12V port's mode (off/on/schedule).
+
+    Same behaviour as :class:`ReefPowerSocketModeSelectEntity`: the write is a
+    partial config PUT scoped to a single port, so we override
+    ``async_select_option`` to call the coordinator's ``set_port_mode``
+    rather than ``push_values``.
+    """
+
+    _attr_has_entity_name = True
+    _VALID_MODES = ("off", "on", "schedule")
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefControlPortModeSelectEntityDescription,
+    ) -> None:
+        """Initialize the per-port mode select."""
+        self._port: int = entity_description.port
+        super().__init__(device, entity_description)
+        # Map a transient "setup" (or anything unexpected) to None so HA does
+        # not warn about a current option outside the selectable set.
+        self._update_val()
+
+    def _update_val(self) -> None:
+        # A port that has not been installed (`type == "unknown"`, `mode ==
+        # "setup"`) rejects every PUT /ports/config with a 503, so it has no
+        # selectable mode. Availability itself is handled by the `available`
+        # property below — setting `_attr_available` here would be ignored,
+        # since the base class exposes `available` as a property.
+        installed = cast(ReefControlCoordinator, self._device).port_is_installed(
+            self._port
+        )
+        val = self._device.get_data(self._value_name, is_None_possible=True)
+        self._attr_current_option = (
+            val if installed and val in self._VALID_MODES else None
+        )
+
+    @property
+    def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
+        """Uninstalled ports reject every write — expose them as unavailable.
+
+        Deliberately a plain `property` and not a `cached_property`: a port
+        can be installed at runtime, and a cached value would keep the entity
+        greyed out until Home Assistant restarts.
+        """
+        return self._device.last_update_success and cast(
+            ReefControlCoordinator, self._device
+        ).port_is_installed(self._port)
+
+    async def async_select_option(self, option: str) -> None:
+        """Push the new mode for this port via PUT /ports/config."""
+        self._attr_current_option = option
+        self.async_write_ha_state()
+        await cast(ReefControlCoordinator, self._device).set_port_mode(
+            self._port, option
         )
 
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]

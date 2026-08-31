@@ -28,19 +28,17 @@ Strict typing strategy
 StateType constraints
 ---------------------
 Home Assistant `StateType` is typically `str | int | float | None` (and a few other
-simple types depending on HA version). It does **not** include `datetime.date`.
+simple types depending on HA version). It does **not** include `datetime.date`
+or `datetime.datetime`, but `SensorEntity` accepts both — and *requires* them
+for the corresponding device classes:
 
-The two date-ish device classes do **not** want the same thing:
+- `device_class=DATE`      → the native value must be a `datetime.date`
+- `device_class=TIMESTAMP` → the native value must be a tz-aware
+  `datetime.datetime`
 
-- `device_class=DATE` takes an ISO-8601 string (YYYY-MM-DD).
-- `device_class=TIMESTAMP` takes a **tz-aware `datetime`**. Handing it an
-  ISO-8601 string raises `Invalid datetime: ... 'str' object has no attribute
-  'tzinfo'` on the first state write, which aborts `_async_add_entity` and
-  then repeats on every coordinator refresh.
-
-`SensorNativeValue` below is therefore the return type of `value_fn`, not
-`StateType`: timestamp sensors return `datetime` objects via
-`_epoch_to_datetime()`.
+Returning an ISO-8601 string for either one raises `ValueError` when the entity
+is added, because HA calls `.tzinfo` / `.isoformat()` on the value. Use the
+local alias `SensorNativeValue` for anything that may carry a date or datetime.
 
 DeviceInfo handling
 -------------------
@@ -158,10 +156,11 @@ class _WaveValueCoordinator(Protocol):
 class ReefBeatSensorEntityDescription(SensorEntityDescription):
     """Description for device-backed sensors (most sensors).
 
-    `value_fn` receives the coordinator instance and must return a
-    `SensorNativeValue` (str/int/float/None, plus `date`/`datetime` for the
-    DATE and TIMESTAMP device classes). This is the most strongly typed and
-    avoids `value_name` JSONPath strings where possible.
+    `value_fn` receives the coordinator instance and must return a value Home
+    Assistant accepts as a native sensor value: a `StateType` (str/int/float/
+    None) for plain sensors, a `datetime.datetime` for `device_class=TIMESTAMP`
+    and a `datetime.date` for `device_class=DATE`. Returning an ISO string for
+    the latter two raises at entity-add time.
     """
 
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
@@ -1217,11 +1216,11 @@ CONTROL_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
 def _epoch_to_datetime(ts: Any) -> datetime.datetime | None:
     """Convert a Unix epoch (int/float) into a tz-aware UTC datetime.
 
-    Home Assistant's ``SensorDeviceClass.TIMESTAMP`` requires a tz-aware
-    ``datetime`` object, not its ISO-8601 rendering: a string reaches
-    ``SensorEntity.state``, which reads ``value.tzinfo`` and raises. Returns
-    ``None`` for unusable inputs so the entity gracefully reports
-    "unavailable".
+    Home Assistant's ``SensorDeviceClass.TIMESTAMP`` requires a real tz-aware
+    ``datetime`` object: `SensorEntity.state` calls `value.tzinfo` on it, so an
+    ISO-8601 *string* raises ``AttributeError: 'str' object has no attribute
+    'tzinfo'`` and the entity fails to be added. Returns ``None`` for unusable
+    inputs so the entity gracefully reports "unavailable".
     """
     if ts is None:
         return None
@@ -1364,9 +1363,11 @@ def _build_probe_descriptions(
         value_unit = None
         value_precision = 0
     elif ptype == "leak":
-        # Leak probe: exact payload shape unknown until a real probe reports.
-        # The `level` field carries the actionable info; the numeric `value`
-        # (if any) is exposed as-is for diagnostics.
+        # Leak probe (RS_LEAK) — confirmed payload on a real RSCONTROLPRO:
+        #   {"type","uid","name","status","detected","last_installation_date"}
+        # There is no `value` and no `level`; `detected` is a boolean and is
+        # exposed as a MOISTURE binary sensor instead. These placeholders stay
+        # inert because no main sensor is built for this type.
         value_unit = None
         value_precision = 0
     else:
@@ -1380,15 +1381,18 @@ def _build_probe_descriptions(
         "orp": "probe_orp_value",
         "ec": "probe_ec_value",
         "temperature": "probe_temperature",
-        "leak": "probe_leak_value",
     }.get(ptype, "probe_value")
 
-    # Main measurement. ATO probes are special: the firmware exposes a
-    # discrete `water_level` enum instead of a numeric `value`, so we build an
-    # ENUM sensor for them and a numeric MEASUREMENT sensor for every other
-    # probe type. The ATO branch uses a static translation_key literal so that
-    # the check_translation AST walker doesn't cross-attribute the
-    # water_level enum options to the numeric probes.
+    # Main measurement. Two probe types have no numeric `value` at all and get
+    # a dedicated treatment:
+    #   - ATO reports a discrete `water_level` enum -> ENUM sensor.
+    #   - Leak reports only the boolean `detected` -> handled in binary_sensor.py
+    #     as a MOISTURE binary sensor, so no main sensor is built here.
+    # Every other type gets a numeric MEASUREMENT sensor. The ATO branch uses a
+    # static translation_key literal so that the check_translation AST walker
+    # doesn't cross-attribute the water_level enum options to the numeric
+    # probes.
+    main_descriptor: ReefBeatSensorEntityDescription | None
     if ptype == "ato":
         main_descriptor = ReefBeatSensorEntityDescription(
             key=f"probe_{uid_key}_water_level",
@@ -1401,6 +1405,8 @@ def _build_probe_descriptions(
                 p, is_None_possible=True
             ),
         )
+    elif ptype == "leak":
+        main_descriptor = None
     else:
         main_descriptor = ReefBeatSensorEntityDescription(
             key=f"probe_{uid_key}_value",
@@ -1416,15 +1422,16 @@ def _build_probe_descriptions(
             ),
         )
 
-    descs: list[ReefBeatSensorEntityDescription] = [
-        main_descriptor,
-    ]
+    descs: list[ReefBeatSensorEntityDescription] = (
+        [main_descriptor] if main_descriptor is not None else []
+    )
 
     # Quality level (enum) — only for probes that actually report a `level`
     # field in the payload. ATO probes have `water_level` (already the main
-    # sensor) and `temp_level` (added below), but no top-level `level`, so a
-    # generic quality-level entity would be permanently unavailable — skip it.
-    if ptype != "ato":
+    # sensor) and `temp_level` (added below); leak probes report nothing but
+    # the boolean `detected`. Neither has a top-level `level`, so a generic
+    # quality-level entity would be permanently unavailable — skip it.
+    if ptype not in ("ato", "leak"):
         descs.append(
             ReefBeatSensorEntityDescription(
                 key=f"probe_{uid_key}_level",
@@ -1463,7 +1470,8 @@ def _build_probe_descriptions(
                     p, is_None_possible=True
                 ),
             ),
-            # Installation date (unix timestamp → HA converts to datetime)
+            # Installation date: the payload carries a unix epoch, which we
+            # convert to a tz-aware datetime — HA does NOT parse it for us.
             ReefBeatSensorEntityDescription(
                 key=f"probe_{uid_key}_last_installation",
                 translation_key="probe_last_installation",

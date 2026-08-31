@@ -42,11 +42,11 @@ def test_epoch_to_datetime_zero_or_negative() -> None:
     assert _epoch_to_datetime(-1) is None
 
 
-def test_epoch_to_datetime_valid_epoch_returns_aware_utc() -> None:
-    """Positive epoch → tz-aware UTC datetime, not its ISO rendering.
+def test_epoch_to_datetime_valid_epoch_returns_utc_datetime() -> None:
+    """Positive epoch → tz-aware UTC ``datetime`` object.
 
-    `SensorDeviceClass.TIMESTAMP` reads `value.tzinfo`, so returning the string
-    form raises `Invalid datetime` on the entity's first state write.
+    HA's TIMESTAMP device class reads ``value.tzinfo``, so returning a string
+    here would break entity creation at runtime.
     """
     # 2024-01-01T00:00:00Z = 1704067200
     got = _epoch_to_datetime(1704067200)
@@ -59,8 +59,8 @@ def test_epoch_to_datetime_accepts_string_epoch() -> None:
     """Some payloads report the epoch as a string — must still work."""
     got = _epoch_to_datetime("1704067200")
     assert got is not None
-    assert got.year == 2024
     assert got.tzinfo is not None
+    assert got.date() == _datetime.date(2024, 1, 1)
 
 
 # ---------------------------------------------------------------------------
@@ -156,14 +156,28 @@ def test_build_probe_descriptions_ato() -> None:
 
 
 def test_build_probe_descriptions_leak() -> None:
-    """Leak probes: unit-less, 0-decimal precision, dedicated translation."""
+    """Leak probes build no `value` and no `level` sensor.
+
+    The firmware payload for an RS_LEAK probe is only::
+
+        {"type","uid","name","status","detected","last_installation_date"}
+
+    so a numeric `value` sensor and an enum `level` sensor would both be
+    permanently "unknown". The actionable `detected` boolean is exposed as a
+    MOISTURE binary sensor by binary_sensor.py instead.
+    """
     descs = _build_probe_descriptions(
         {"uid": "0x0LEAK", "type": "leak", "name": "Leak Sensor"}
     )
-    main = next(d for d in descs if d.key == "probe_0x0leak_value")
-    assert main.native_unit_of_measurement is None
-    assert main.suggested_display_precision == 0
-    assert main.translation_key == "probe_leak_value"
+    keys = {d.key for d in descs}
+    assert "probe_0x0leak_value" not in keys
+    assert "probe_0x0leak_level" not in keys
+    # The purely descriptive entities are still built.
+    assert keys == {
+        "probe_0x0leak_status",
+        "probe_0x0leak_name",
+        "probe_0x0leak_last_installation",
+    }
 
 
 def test_build_probe_descriptions_unknown_type_falls_back() -> None:
@@ -178,7 +192,7 @@ def test_build_probe_descriptions_unknown_type_falls_back() -> None:
 
 
 # ---------------------------------------------------------------------------
-# value_fn plumbing — proves the _epoch_to_iso callback fires end-to-end
+# value_fn plumbing — proves the _epoch_to_datetime callback fires end-to-end
 # ---------------------------------------------------------------------------
 
 
@@ -193,13 +207,11 @@ class _StaticDevice:
 
 
 def test_last_installation_value_fn_converts_epoch() -> None:
-    """The ``last_installation`` sensor pipes get_data through the epoch helper.
+    """The ``last_installation`` sensor pipes get_data through _epoch_to_datetime.
 
-    We simulate a probe that reports its install date as an epoch, then invoke
-    the sensor's value_fn to make sure the datetime helper actually fires (this
-    covers _epoch_to_datetime end-to-end from the description path). The value
-    must be a tz-aware datetime: these descriptions carry
-    ``device_class=TIMESTAMP``, which rejects the ISO string form.
+    We simulate a probe that reports its install date as an epoch, then
+    invoke the sensor's value_fn to make sure the datetime helper actually
+    fires (this covers _epoch_to_datetime end-to-end from the description path).
     """
     descs = _build_probe_descriptions({"uid": "0xTIME1", "type": "ph", "name": "T"})
     install_desc = next(d for d in descs if d.key == "probe_0xtime1_last_installation")
@@ -208,7 +220,7 @@ def test_last_installation_value_fn_converts_epoch() -> None:
     got = install_desc.value_fn(device)  # type: ignore[misc]
     assert isinstance(got, _datetime.datetime)
     assert got.tzinfo is not None
-    assert got == _datetime.datetime(2024, 1, 1, tzinfo=_datetime.UTC)
+    assert got.date() == _datetime.date(2024, 1, 1)
 
 
 def test_last_adjustment_value_fn_handles_missing_field() -> None:

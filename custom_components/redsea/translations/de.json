@@ -117,6 +117,9 @@
       "power_link_up": {
         "name": "Power center link"
       },
+      "probe_leak_detected": {
+        "name": "{probe} Leck"
+      },
       "recalibration_required": {
         "name": "Kalibrierung"
       },
@@ -257,6 +260,15 @@
       "new_roll": {
         "name": "Neue Rolle"
       },
+      "port_delete": {
+        "name": "Port {port} deinstallieren"
+      },
+      "port_install_ato": {
+        "name": "Port {port} als ATO installieren"
+      },
+      "port_install_other": {
+        "name": "Port {port} als Gerät installieren"
+      },
       "preview_save": {
         "name": "Vorschau speichern"
       },
@@ -286,6 +298,12 @@
       },
       "setup_finish": {
         "name": "Einrichtung abschließen"
+      },
+      "socket_delete": {
+        "name": "Steckdose {socket} deinstallieren"
+      },
+      "socket_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
       },
       "start_calibration": {
         "name": "Kalibrierung starten"
@@ -468,6 +486,14 @@
       },
       "model": {
         "name": "Modell"
+      },
+      "port_mode": {
+        "name": "Port {port} Modus",
+        "state": {
+          "off": "Aus",
+          "on": "Ein",
+          "schedule": "Zeitplan"
+        }
       },
       "position": {
         "name": "Position",
@@ -811,9 +837,6 @@
       },
       "probe_last_installation": {
         "name": "{probe} last installation"
-      },
-      "probe_leak_value": {
-        "name": "Sondenleckwert"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -1209,6 +1232,9 @@
       },
       "new_supplement_short_name": {
         "name": "Kurzname des Nahrungsergänzungsmittels"
+      },
+      "port_name": {
+        "name": "Port {port} Name"
       },
       "pump_name": {
         "name": "Pumpenname"

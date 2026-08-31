@@ -96,6 +96,30 @@ class ReefPowerAPI(ReefBeatAPI):
             "put",
         )
 
+    async def delete_socket(self, number: int) -> HttpResult | None:
+        """Uninstall an AC socket via ``DELETE /socket/<n>/config``.
+
+        The firmware answers ``{"success":true,"message":"Successfully deleted
+        sockets"}`` and resets the entry: ``mode`` back to ``setup`` and the
+        name to its factory value (``S1`` … ``S6``). Unlike the hub's 12V
+        ports there is no "install" counterpart — a socket leaves ``setup``
+        as soon as ``PUT /sockets/config`` gives it a real mode.
+        """
+        return await self.http_send(f"/socket/{int(number)}/config", None, "delete")
+
+    async def unsubscribe_sockets(self, numbers: list[int]) -> HttpResult | None:
+        """Drop the sensor binding of one or more sockets via ``PUT /unsubscribe``.
+
+        Body is ``{"sockets": [<numbers>]}``. The ReefBeat app sends this
+        right after deleting a socket that was in ``sensor`` mode, otherwise
+        the binding outlives the socket it belonged to. The paired hub keeps
+        its own copy of the subscription, which must be cleared separately
+        with ``PUT /socket/<n>/unsubscribe`` on the hub.
+        """
+        return await self.http_send(
+            "/unsubscribe", {"sockets": [int(n) for n in numbers]}, "put"
+        )
+
     async def setup_finish(self) -> HttpResult | None:
         """Leave setup mode via ``POST /setup-finish`` (device switches to auto)."""
         return await self.http_send("/setup-finish", {}, "post")

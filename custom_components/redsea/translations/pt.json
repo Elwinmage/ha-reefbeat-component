@@ -117,6 +117,9 @@
       "power_link_up": {
         "name": "Power center link"
       },
+      "probe_leak_detected": {
+        "name": "{probe} fuga"
+      },
       "recalibration_required": {
         "name": "Calibração"
       },
@@ -257,6 +260,15 @@
       "new_roll": {
         "name": "Novo rolo"
       },
+      "port_delete": {
+        "name": "Desinstalar porta {port}"
+      },
+      "port_install_ato": {
+        "name": "Instalar porta {port} como ATO"
+      },
+      "port_install_other": {
+        "name": "Instalar porta {port} como dispositivo"
+      },
       "preview_save": {
         "name": "Guardar pré-visualização"
       },
@@ -286,6 +298,12 @@
       },
       "setup_finish": {
         "name": "Concluir configuração"
+      },
+      "socket_delete": {
+        "name": "Desinstalar tomada {socket}"
+      },
+      "socket_unsubscribe": {
+        "name": "Cancelar subscrição da tomada {socket}"
       },
       "start_calibration": {
         "name": "Iniciar calibração"
@@ -468,6 +486,14 @@
       },
       "model": {
         "name": "Modelo"
+      },
+      "port_mode": {
+        "name": "Modo da porta {port}",
+        "state": {
+          "off": "Desligado",
+          "on": "Ligado",
+          "schedule": "Programação"
+        }
       },
       "position": {
         "name": "Posição",
@@ -811,9 +837,6 @@
       },
       "probe_last_installation": {
         "name": "{probe} last installation"
-      },
-      "probe_leak_value": {
-        "name": "Valor de fuga da sonda"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -1209,6 +1232,9 @@
       },
       "new_supplement_short_name": {
         "name": "Nome curto do suplemento"
+      },
+      "port_name": {
+        "name": "Nome da porta {port}"
       },
       "pump_name": {
         "name": "Nome da bomba"

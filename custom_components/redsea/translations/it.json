@@ -117,6 +117,9 @@
       "power_link_up": {
         "name": "Power center link"
       },
+      "probe_leak_detected": {
+        "name": "{probe} perdita"
+      },
       "recalibration_required": {
         "name": "Calibrazione"
       },
@@ -257,6 +260,15 @@
       "new_roll": {
         "name": "Nuovo rotolo"
       },
+      "port_delete": {
+        "name": "Disinstalla porta {port}"
+      },
+      "port_install_ato": {
+        "name": "Installa porta {port} come ATO"
+      },
+      "port_install_other": {
+        "name": "Installa porta {port} come dispositivo"
+      },
       "preview_save": {
         "name": "Salva anteprima"
       },
@@ -286,6 +298,12 @@
       },
       "setup_finish": {
         "name": "Completare la configurazione"
+      },
+      "socket_delete": {
+        "name": "Disinstalla presa {socket}"
+      },
+      "socket_unsubscribe": {
+        "name": "Annulla iscrizione presa {socket}"
       },
       "start_calibration": {
         "name": "Avvia calibrazione"
@@ -468,6 +486,14 @@
       },
       "model": {
         "name": "Modello"
+      },
+      "port_mode": {
+        "name": "Modalità porta {port}",
+        "state": {
+          "off": "Spento",
+          "on": "Acceso",
+          "schedule": "Programmazione"
+        }
       },
       "position": {
         "name": "Posizione",
@@ -811,9 +837,6 @@
       },
       "probe_last_installation": {
         "name": "{probe} last installation"
-      },
-      "probe_leak_value": {
-        "name": "Valore di perdita della sonda"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -1209,6 +1232,9 @@
       },
       "new_supplement_short_name": {
         "name": "Nome breve dell'integratore"
+      },
+      "port_name": {
+        "name": "Nome porta {port}"
       },
       "pump_name": {
         "name": "Nome della pompa"

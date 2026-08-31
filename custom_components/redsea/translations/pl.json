@@ -117,6 +117,9 @@
       "power_link_up": {
         "name": "Power center link"
       },
+      "probe_leak_detected": {
+        "name": "{probe} wyciek"
+      },
       "recalibration_required": {
         "name": "Kalibracja"
       },
@@ -257,6 +260,15 @@
       "new_roll": {
         "name": "Nowa rolka"
       },
+      "port_delete": {
+        "name": "Odinstaluj port {port}"
+      },
+      "port_install_ato": {
+        "name": "Zainstaluj port {port} jako ATO"
+      },
+      "port_install_other": {
+        "name": "Zainstaluj port {port} jako urządzenie"
+      },
       "preview_save": {
         "name": "Zapisz podgląd"
       },
@@ -286,6 +298,12 @@
       },
       "setup_finish": {
         "name": "Zakończ konfigurację"
+      },
+      "socket_delete": {
+        "name": "Odinstaluj gniazdo {socket}"
+      },
+      "socket_unsubscribe": {
+        "name": "Anuluj subskrypcję gniazda {socket}"
       },
       "start_calibration": {
         "name": "Rozpocznij kalibrację"
@@ -468,6 +486,14 @@
       },
       "model": {
         "name": "Model"
+      },
+      "port_mode": {
+        "name": "Tryb portu {port}",
+        "state": {
+          "off": "Wyłączony",
+          "on": "Włączony",
+          "schedule": "Harmonogram"
+        }
       },
       "position": {
         "name": "Pozycja",
@@ -811,9 +837,6 @@
       },
       "probe_last_installation": {
         "name": "{probe} last installation"
-      },
-      "probe_leak_value": {
-        "name": "Wartość wycieku sondy"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -1209,6 +1232,9 @@
       },
       "new_supplement_short_name": {
         "name": "Skrócona nazwa suplementu"
+      },
+      "port_name": {
+        "name": "Nazwa portu {port}"
       },
       "pump_name": {
         "name": "Nazwa pompy"

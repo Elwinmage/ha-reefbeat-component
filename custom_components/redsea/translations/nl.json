@@ -117,6 +117,9 @@
       "power_link_up": {
         "name": "Power center link"
       },
+      "probe_leak_detected": {
+        "name": "{probe} lekkage"
+      },
       "recalibration_required": {
         "name": "Kalibratie"
       },
@@ -257,6 +260,15 @@
       "new_roll": {
         "name": "Nieuwe rol"
       },
+      "port_delete": {
+        "name": "Poort {port} verwijderen"
+      },
+      "port_install_ato": {
+        "name": "Poort {port} als ATO installeren"
+      },
+      "port_install_other": {
+        "name": "Poort {port} als apparaat installeren"
+      },
       "preview_save": {
         "name": "Voorvertoning opslaan"
       },
@@ -286,6 +298,12 @@
       },
       "setup_finish": {
         "name": "Installatie voltooien"
+      },
+      "socket_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_unsubscribe": {
+        "name": "Abonnement stopcontact {socket} opzeggen"
       },
       "start_calibration": {
         "name": "Start kalibratie"
@@ -468,6 +486,14 @@
       },
       "model": {
         "name": "Model"
+      },
+      "port_mode": {
+        "name": "Poort {port} modus",
+        "state": {
+          "off": "Uit",
+          "on": "Aan",
+          "schedule": "Schema"
+        }
       },
       "position": {
         "name": "Positie",
@@ -819,9 +845,6 @@
       },
       "probe_last_installation": {
         "name": "{probe} last installation"
-      },
-      "probe_leak_value": {
-        "name": "Sondelekwaarde"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -1217,6 +1240,9 @@
       },
       "new_supplement_short_name": {
         "name": "Korte naam supplement"
+      },
+      "port_name": {
+        "name": "Poort {port} naam"
       },
       "pump_name": {
         "name": "Pompnaam"

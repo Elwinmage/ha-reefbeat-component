@@ -1438,6 +1438,20 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
         await cast(ReefPowerAPI, self.my_api).set_socket_mode(number, mode)
         await self.async_request_refresh()
 
+    async def delete_socket(self, number: int) -> None:
+        """Uninstall a socket, clearing any sensor binding it had.
+
+        Mirrors the ReefBeat app: ``DELETE /socket/<n>/config`` then
+        ``PUT /unsubscribe`` so a binding does not outlive the socket. The
+        paired hub keeps its own copy of that subscription and clears it with
+        ``PUT /socket/<n>/unsubscribe`` — that call belongs to the hub's
+        config entry, so it is not issued from here.
+        """
+        api = cast(ReefPowerAPI, self.my_api)
+        await api.delete_socket(number)
+        await api.unsubscribe_sockets([number])
+        await self.async_request_refresh(config=True)
+
     async def set_socket_name(self, number: int, name: str) -> None:
         """Rename a socket and refresh.
 
@@ -1476,9 +1490,10 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
 
     Owns a :class:`ReefControlAPI` instance and exposes:
     - `port_count`: number of 12V DC output ports (Lite=1, Pro=2)
+    - per-port mode / name / schedule writes, mirroring
+      :class:`ReefPowerCoordinator` so both device families behave the same
 
-    Currently read-only; write endpoints for probe calibration and per-port
-    control are not yet reverse-engineered.
+    Probe calibration write endpoints are not wired up yet.
     """
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -1489,6 +1504,77 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         hw_model = str(entry.data.get(CONFIG_FLOW_HW_MODEL, ""))
         # Lite exposes 1 port, Pro exposes 2. Anything else falls back to Pro.
         self.port_count: int = 1 if "LITE" in hw_model.upper() else 2
+
+    def port_is_installed(self, number: int) -> bool:
+        """Whether a 12V port has been assigned a device type.
+
+        Entities gate their availability on this: an uninstalled port rejects
+        every config write with a 503 and answers a toggle with a malformed
+        ``HTTP/1.1 ?`` status line, so there is nothing useful to expose.
+        """
+        return cast(ReefControlAPI, self.my_api).port_is_installed(number)
+
+    async def install_port(self, number: int, ptype: str = "other") -> None:
+        """Install a 12V port (default: third-party device) and refresh."""
+        await cast(ReefControlAPI, self.my_api).install_port(number, ptype)
+        await self.async_request_refresh(config=True)
+
+    async def delete_port(self, number: int) -> None:
+        """Uninstall a 12V port and hand the physical button over.
+
+        Mirrors the ReefBeat app: after ``DELETE /port/<n>`` it reassigns
+        ``is_btn_assigned`` to a port that is still installed, so the hub's
+        button keeps doing something. With no other installed port (or on a
+        RSCONTROLLITE) the firmware defaults on its own and we skip it.
+        """
+        api = cast(ReefControlAPI, self.my_api)
+        await api.delete_port(number)
+
+        for other in range(self.port_count):
+            if other != number and api.port_is_installed(other):
+                await api.set_port_button_assigned(other)
+                break
+
+        await self.async_request_refresh(config=True)
+
+    async def set_port_mode(self, number: int, mode: str) -> None:
+        """Set a 12V port's mode (off/on/schedule) and refresh."""
+        await cast(ReefControlAPI, self.my_api).set_port_mode(number, mode)
+        await self.async_request_refresh()
+
+    async def set_port_name(self, number: int, name: str) -> None:
+        """Rename a port and refresh.
+
+        The mode is not passed here: ``ReefControlAPI.set_port_mode`` rebuilds
+        the whole entry from the cached ``/ports/config``, so the port keeps
+        its current mode. Falling back to the ``/dashboard`` mode (as the
+        power center does) would be wrong here, because ``/dashboard`` does
+        not carry ``type`` / ``power_on_percent`` / ``is_btn_assigned`` and
+        the firmware wants those on every write.
+        """
+        entry = cast(ReefControlAPI, self.my_api).port_config(number) or {}
+        mode = entry.get("mode") or entry.get("user_config_mode") or "off"
+        await cast(ReefControlAPI, self.my_api).set_port_mode(
+            number, str(mode), name=name
+        )
+        await self.async_request_refresh()
+
+    async def unsubscribe_socket(self, number: int) -> None:
+        """Clear the hub's binding of a probe to a power-center socket."""
+        await cast(ReefControlAPI, self.my_api).unsubscribe_socket(number)
+        await self.async_request_refresh(config=True)
+
+    async def set_port_schedule(
+        self, number: int, intervals: list[dict[str, int]]
+    ) -> None:
+        """Set a port's daily schedule and refresh."""
+        await cast(ReefControlAPI, self.my_api).set_port_schedule(number, intervals)
+        await self.async_request_refresh()
+
+    async def setup_finish(self) -> None:
+        """Leave setup mode (device switches to auto) and refresh."""
+        await cast(ReefControlAPI, self.my_api).setup_finish()
+        await self.async_request_refresh()
 
 
 # CLOUD

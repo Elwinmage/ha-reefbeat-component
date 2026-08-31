@@ -116,6 +116,9 @@
       "power_link_up": {
         "name": "Liaison centrale Power"
       },
+      "probe_leak_detected": {
+        "name": "{probe} fuite"
+      },
       "recalibration_required": {
         "name": "Calibration"
       },
@@ -256,6 +259,15 @@
       "new_roll": {
         "name": "Nouveau Rouleau"
       },
+      "port_delete": {
+        "name": "Désinstaller le port {port}"
+      },
+      "port_install_ato": {
+        "name": "Installer le port {port} comme ATO"
+      },
+      "port_install_other": {
+        "name": "Installer le port {port} comme appareil"
+      },
       "preview_save": {
         "name": "Sauvegarder la prévisualisation"
       },
@@ -285,6 +297,12 @@
       },
       "setup_finish": {
         "name": "Terminer la configuration"
+      },
+      "socket_delete": {
+        "name": "Désinstaller la prise {socket}"
+      },
+      "socket_unsubscribe": {
+        "name": "Désabonner la prise {socket}"
       },
       "start_calibration": {
         "name": "Démarrer la  Calibration"
@@ -467,6 +485,14 @@
       },
       "model": {
         "name": "Modèle"
+      },
+      "port_mode": {
+        "name": "Port {port} mode",
+        "state": {
+          "off": "Arrêt",
+          "on": "Marche",
+          "schedule": "Programmation"
+        }
       },
       "position": {
         "name": "Position",
@@ -819,9 +845,6 @@
       },
       "probe_last_installation": {
         "name": "{probe} dernière installation"
-      },
-      "probe_leak_value": {
-        "name": "Valeur de fuite de la sonde"
       },
       "probe_level": {
         "name": "{probe} niveau",
@@ -1209,6 +1232,9 @@
       },
       "new_supplement_short_name": {
         "name": "Nom de la tête"
+      },
+      "port_name": {
+        "name": "Port {port} nom"
       },
       "pump_name": {
         "name": "Nom de la pompe"

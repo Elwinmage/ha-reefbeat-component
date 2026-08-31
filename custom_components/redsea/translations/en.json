@@ -117,6 +117,9 @@
       "power_link_up": {
         "name": "Power center link"
       },
+      "probe_leak_detected": {
+        "name": "{probe} leak"
+      },
       "recalibration_required": {
         "name": "Calibration"
       },
@@ -257,6 +260,15 @@
       "new_roll": {
         "name": "New Roll"
       },
+      "port_delete": {
+        "name": "Uninstall port {port}"
+      },
+      "port_install_ato": {
+        "name": "Install port {port} as ATO"
+      },
+      "port_install_other": {
+        "name": "Install port {port} as device"
+      },
       "preview_save": {
         "name": "Save preview"
       },
@@ -286,6 +298,12 @@
       },
       "setup_finish": {
         "name": "Finish setup"
+      },
+      "socket_delete": {
+        "name": "Uninstall socket {socket}"
+      },
+      "socket_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
       },
       "start_calibration": {
         "name": "Start  Calibration"
@@ -468,6 +486,14 @@
       },
       "model": {
         "name": "Model"
+      },
+      "port_mode": {
+        "name": "Port {port} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule"
+        }
       },
       "position": {
         "name": "Position",
@@ -819,9 +845,6 @@
       },
       "probe_last_installation": {
         "name": "{probe} last installation"
-      },
-      "probe_leak_value": {
-        "name": "Probe Leak Value"
       },
       "probe_level": {
         "name": "{probe} level",
@@ -1217,6 +1240,9 @@
       },
       "new_supplement_short_name": {
         "name": "Supplement Short Name"
+      },
+      "port_name": {
+        "name": "Port {port} name"
       },
       "pump_name": {
         "name": "Pump name"
