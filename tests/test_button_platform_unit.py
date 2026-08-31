@@ -32,6 +32,11 @@ class _FakeBaseDevice:
         default_factory=lambda: DeviceInfo(identifiers={(DOMAIN, "SERIAL")})
     )
 
+    # Default stub so coordinator branches that call get_data() don't crash
+    # on minimal fakes (e.g. _Power).  Specialised tests override this.
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
+        return None
+
 
 @pytest.mark.asyncio
 async def test_async_setup_entry_adds_entities_for_each_device_type(

@@ -778,3 +778,199 @@ async def test_control_api_ato_actions_coerce_the_port_to_int() -> None:
     await api.ato_manual_pump(cast(Any, "1"))
     assert sent == [{"port_index": 1}]
     assert isinstance(sent[0]["port_index"], int)
+
+
+# ---------------------------------------------------------------------------
+# button.py — uninstalled-port install buttons (ReefControl)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_button_platform_builds_install_buttons_for_unknown_ports(
+    hass: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Ports with type=unknown get install_other + install_ato buttons."""
+    import custom_components.redsea.button as button_platform
+
+    class _Ctl(_FakeControlDevice):
+        pass
+
+    monkeypatch.setattr(button_platform, "ReefControlCoordinator", _Ctl, raising=True)
+    _neutralise_other_coordinators(button_platform, monkeypatch)
+
+    device = _Ctl(port_count=2)
+    device.my_api = type(
+        "_FakeApi",
+        (),
+        {
+            "ato_manual_pump": AsyncMock(return_value=None),
+            "ato_stop": AsyncMock(return_value=None),
+            "ato_resume": AsyncMock(return_value=None),
+            "live_config_update": True,
+        },
+    )()
+    # Port 0 is ATO (installed), port 1 is unknown (uninstalled).
+    device.get_data_map["$.sources[?(@.name=='/dashboard')].data.ports"] = [
+        {"number": 0, "type": "ato", "mode": "auto"},
+        {"number": 1, "type": "unknown"},
+    ]
+
+    entry = MockConfigEntry(domain=DOMAIN, title="ctl", data={}, unique_id="ctl-inst")
+    entry.add_to_hass(hass)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = device
+
+    added: list[Any] = []
+    await button_platform.async_setup_entry(
+        hass,
+        cast(Any, entry),
+        cast(Any, lambda new_entities, _u=False: added.extend(list(new_entities))),
+    )
+
+    keys = {e.entity_description.key for e in added}
+    assert "port_1_install_other" in keys
+    assert "port_1_install_ato" in keys
+    # Installed port must NOT get install buttons.
+    assert "port_0_install_other" not in keys
+
+
+# ---------------------------------------------------------------------------
+# button.py — subscription-info unsubscribe buttons (ReefControl)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_button_platform_builds_unsubscribe_buttons(
+    hass: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """External socket subscriptions get an unsubscribe button each."""
+    import custom_components.redsea.button as button_platform
+
+    class _Ctl(_FakeControlDevice):
+        pass
+
+    monkeypatch.setattr(button_platform, "ReefControlCoordinator", _Ctl, raising=True)
+    _neutralise_other_coordinators(button_platform, monkeypatch)
+
+    device = _Ctl(port_count=1)
+    device.my_api = type(
+        "_FakeApi",
+        (),
+        {
+            "ato_manual_pump": AsyncMock(return_value=None),
+            "ato_stop": AsyncMock(return_value=None),
+            "ato_resume": AsyncMock(return_value=None),
+            "live_config_update": True,
+        },
+    )()
+    device.get_data_map["$.sources[?(@.name=='/dashboard')].data.ports"] = []
+    device.get_data_map["$.sources[?(@.name=='/subscription-info')].data.external"] = [
+        {"number": 0},
+        {"number": 2},
+    ]
+
+    entry = MockConfigEntry(domain=DOMAIN, title="ctl", data={}, unique_id="ctl-unsub")
+    entry.add_to_hass(hass)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = device
+
+    added: list[Any] = []
+    await button_platform.async_setup_entry(
+        hass,
+        cast(Any, entry),
+        cast(Any, lambda new_entities, _u=False: added.extend(list(new_entities))),
+    )
+
+    keys = {e.entity_description.key for e in added}
+    assert "socket_0_unsubscribe" in keys
+    assert "socket_2_unsubscribe" in keys
+
+
+# ---------------------------------------------------------------------------
+# button.py — socket delete buttons (ReefPower)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_button_platform_builds_socket_delete_for_power(
+    hass: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Configured sockets on ReefPower get a delete button each."""
+    import custom_components.redsea.button as button_platform
+
+    @dataclass
+    class _PowerDevice(_FakeControlDevice):
+        pass
+
+    _neutralise_other_coordinators(button_platform, monkeypatch)
+    # Override *after* neutralise so the elif chain hits the Power branch.
+    monkeypatch.setattr(
+        button_platform, "ReefPowerCoordinator", _PowerDevice, raising=True
+    )
+
+    device = _PowerDevice()
+    device.my_api = type("_FakeApi", (), {"live_config_update": True})()
+    device.get_data_map["$.sources[?(@.name=='/dashboard')].data.sockets"] = [
+        {"number": 0, "mode": "manual"},
+        {"number": 1, "mode": "setup"},  # still in setup → no delete
+        {"number": 2, "mode": "schedule"},
+    ]
+
+    entry = MockConfigEntry(domain=DOMAIN, title="pwr", data={}, unique_id="pwr-del")
+    entry.add_to_hass(hass)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = device
+
+    added: list[Any] = []
+    await button_platform.async_setup_entry(
+        hass,
+        cast(Any, entry),
+        cast(Any, lambda new_entities, _u=False: added.extend(list(new_entities))),
+    )
+
+    keys = {e.entity_description.key for e in added}
+    assert "socket_0_delete" in keys
+    assert "socket_2_delete" in keys
+    # Socket still in setup must NOT get a delete button.
+    assert "socket_1_delete" not in keys
+
+
+# ---------------------------------------------------------------------------
+# binary_sensor.py — leak probe entities (ReefControl)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_binary_sensor_platform_builds_leak_probe_entities(
+    hass: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Leak probes in the dashboard payload produce moisture binary sensors."""
+    import custom_components.redsea.binary_sensor as bs_platform
+
+    class _Ctl(_FakeControlDevice):
+        pass
+
+    monkeypatch.setattr(bs_platform, "ReefControlCoordinator", _Ctl, raising=True)
+    _neutralise_other_coordinators(bs_platform, monkeypatch)
+
+    device = _Ctl(port_count=1)
+    device.get_data_map["$.sources[?(@.name=='/dashboard')].data.ports"] = []
+    device.get_data_map["$.sources[?(@.name=='/dashboard')].data.probes"] = [
+        {"uid": "AB-12", "name": "Sump leak", "type": "leak", "detected": False},
+        {"uid": "CD-34", "name": "Cabinet", "type": "leak", "detected": True},
+        {"uid": "XX-99", "name": "Temp", "type": "temperature"},  # not leak
+    ]
+
+    entry = MockConfigEntry(domain=DOMAIN, title="ctl", data={}, unique_id="ctl-leak")
+    entry.add_to_hass(hass)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = device
+
+    added: list[Any] = []
+    await bs_platform.async_setup_entry(
+        hass,
+        cast(Any, entry),
+        cast(Any, lambda new_entities, _u=False: added.extend(list(new_entities))),
+    )
+
+    keys = {e.entity_description.key for e in added}
+    assert "probe_ab12_detected" in keys
+    assert "probe_cd34_detected" in keys
+    # Temperature probe must NOT produce a leak entity.
+    assert "probe_xx99_detected" not in keys
