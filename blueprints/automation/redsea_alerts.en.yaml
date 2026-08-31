@@ -32,9 +32,9 @@
 #   0.1.0 - Initial release.
 
 blueprint:
-  name: ReefBeat watch (redsea) — v0.2.6
+  name: ReefBeat watch (redsea) — v0.3.0
   description: >
-    **Version 0.2.6** — Notifications for ReefBeat devices of the `redsea`
+    **Version 0.3.0** — Notifications for ReefBeat devices of the `redsea`
     integration.
 
 
@@ -57,7 +57,12 @@ blueprint:
 
     - Low battery (RSLED, RSDOSE, RSRUN)
 
-    - Device unreachable (all device entities `unavailable`)
+
+    **Moved out in 0.3.0:** overdue maintenance and unreachable devices are
+    now handled by
+    [Reef maintenance watch](https://github.com/Elwinmage/ha-reef-blueprints), which covers every
+    integration of the ecosystem instead of Red Sea alone. Import it
+    alongside this one; the two do not overlap.
 
 
     **Variables in your notification actions:** `{{ title }}`,
@@ -215,49 +220,6 @@ blueprint:
               integration: redsea
               multiple: true
 
-    unavailable_section:
-      name: Device unreachable
-      icon: mdi:lan-disconnect
-      input:
-        notify_unavailable:
-          name: Enable
-          default: true
-          selector: {boolean: {}}
-        unavailable_exclude:
-          name: Exclude these devices
-          default: []
-          selector:
-            device:
-              integration: redsea
-              multiple: true
-
-    maintenance_section:
-      name: Maintenance overdue
-      icon: mdi:wrench-clock
-      input:
-        notify_maintenance:
-          name: Enable
-          description: >
-            Monitors button.* entities with reef_role starting with
-            "maint_" and triggers when days_left < 0 (overdue).
-          default: true
-          selector: {boolean: {}}
-        maintenance_exclude:
-          name: Exclude these devices
-          default: []
-          selector:
-            device:
-              integration: redsea
-              multiple: true
-        maintenance_respect_switch:
-          name: Respect the per-task notification switches
-          description: >
-            When enabled, a maintenance task whose "(notifications)" switch is
-            turned off is skipped, even if it is overdue. Leave enabled unless
-            you want the alert to fire regardless of the switches.
-          default: true
-          selector: {boolean: {}}
-
 trigger:
   - platform: time_pattern
     minutes: "/5"
@@ -269,8 +231,6 @@ variables:
   notify_rsdose_calibration: !input notify_rsdose_calibration
   notify_alert_message: !input notify_alert_message
   notify_battery: !input notify_battery
-  notify_unavailable: !input notify_unavailable
-  notify_maintenance: !input notify_maintenance
   notify_devices: !input notify_devices
   notify_channel: !input notify_channel
   mode_exclude: !input mode_exclude
@@ -279,16 +239,12 @@ variables:
   rsdose_calib_exclude: !input rsdose_calib_exclude
   alert_message_exclude: !input alert_message_exclude
   battery_exclude: !input battery_exclude
-  unavailable_exclude: !input unavailable_exclude
-  maintenance_exclude: !input maintenance_exclude
-  maintenance_respect_switch: !input maintenance_respect_switch
   # ReefBeat role prefixes (standard)
   role_mode: "mode"
   role_alert_message: "alert_message"
   role_battery: "battery"
   role_calibration: "last_calibration"
   roles_calibration: "last_calibration,skim_last_calibration,cup_last_calibration"
-  role_maintenance_prefix: "maint_"
   # Entity suffix fallbacks (EN/FR) for role-less intances
   mode_suffixes: "_mode"
   alert_message_suffixes: "_alerte_message,_alert_message"
@@ -397,23 +353,6 @@ action:
           {%- endif -%}
         {%- endfor -%}
 
-        {#- 1) Unreachable devices: every entity unavailable. -#}
-        {%- if notify_unavailable -%}
-          {%- for d, dents in ns.dev_ents.items() -%}
-            {%- if is_excluded(d, unavailable_exclude) | trim != 'True' -%}
-              {%- set total = dents | count -%}
-              {%- set unav = dents | select('is_state', 'unavailable') | list | count -%}
-              {%- if total > 0 and unav == total -%}
-                {%- set ns.items = ns.items + [{
-                  'type': 'unreachable',
-                  'device': device_attr(d, 'name_by_user') or device_attr(d, 'name') or d,
-                  'model': device_attr(d, 'model') or '',
-                  'message': 'Device unreachable',
-                }] -%}
-              {%- endif -%}
-            {%- endif -%}
-          {%- endfor -%}
-        {%- endif -%}
 
         {#- 2) Per-entity checks. -#}
         {%- for e in ents -%}
@@ -630,29 +569,6 @@ action:
                     {%- endif -%}
                   {%- endif -%}
                 {%- endif -%}
-              {%- endif -%}
-            {%- endif -%}
-
-            {#- Maintenance overdue: button.* with reef_role starting with "maint_"
-                and a negative `days_left` attribute. The button is the single
-                source of truth (see MaintenanceButtonEntity). -#}
-            {%- if notify_maintenance
-                   and e.startswith('button.')
-                   and (state_attr(e, 'reef_role') or '').startswith('maint_')
-                   and is_excluded(d, maintenance_exclude) | trim != 'True' -%}
-              {#- Per-task opt-out: the button mirrors its companion notify switch
-                     in the `notify` attribute. A missing attribute (older
-                     integration version) is treated as enabled. -#}
-              {%- set notify_flag = state_attr(e, 'notify') -%}
-              {%- set muted = maintenance_respect_switch and notify_flag is false -%}
-              {%- set dl = state_attr(e, 'days_left') -%}
-              {%- if dl is number and dl < 0 and not muted -%}
-                {%- set ns.items = ns.items + [{
-                  'type': 'maintenance',
-                  'device': dname,
-                  'model': model,
-                  'message': "Maintenance overdue by " ~ (-dl) ~ " days: " ~ (state_attr(e, 'friendly_name') or e),
-                }] -%}
               {%- endif -%}
             {%- endif -%}
 

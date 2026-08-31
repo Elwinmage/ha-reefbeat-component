@@ -1,4 +1,8 @@
 # Coverage.py configuration for the redsea integration.
+#
+# This is the single source of truth. `setup.cfg` used to carry a competing
+# `[coverage:run]` / `[coverage:report]` pair, which meant the numbers depended
+# on whether pytest was invoked with `--cov-config=.coveragerc` or not.
 
 [run]
 source = custom_components/redsea
@@ -8,13 +12,24 @@ branch = False
 # `exclude_also` ADDS to the built-in defaults (which already include
 # "pragma: no cover", "raise NotImplementedError", etc.). The older
 # `exclude_lines` would have REPLACED them entirely.
+#
+# CAREFUL: a pattern here excludes the *block the matched line opens*, not the
+# line alone. Two patterns used to live here to swallow the closing parenthesis
+# of a multi-line signature:
+#
+#     ^\s*\)\s*(->\s*.+)?:\s*$
+#     ^\s*\)\s*$
+#
+# That line belongs to the `def` statement, so matching it excluded every
+# function with a multi-line signature — 158 of them, about a third of the
+# package — and inflated the reported coverage from 99.28% to 99.97%. A
+# closing parenthesis is not a statement in the first place, so coverage never
+# counted it and the patterns were never needed. Do not reintroduce them.
 exclude_also =
-    ^\s*#\s*-+
-    ^\s*\)\s*(->\s*.+)?:\s*$
-    ^\s*\)\s*$
     if __name__ == .__main__.:
     def __repr__
     raise AssertionError
+    raise NotImplementedError
 
 show_missing = True
 skip_covered = False

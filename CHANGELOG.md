@@ -1,3 +1,77 @@
+# UNRELEASED
+
+## MODIFICATIONS
+
+### RSATO
+ - New `buzzer_enabled` switch on the RSATO+: enables/disables the leak alarm
+   buzzer. Reverse-engineered from the Red Sea Android app
+   (`ATODevice$Keys$Configuration$Buzzer`), pushed as
+   `{"buzzer": {"enabled": <bool>}}` on a PUT to `/configuration`. The key is
+   omitted from the payload when the device has not reported it, since the
+   firmware merges partial configurations.
+ - The switch replaces the read-only `binary_sensor.buzzer_enabled`, which
+   reported the same firmware setting from `/dashboard`. **Breaking**: that
+   entity is gone; use the switch, which now reads from `/dashboard` too and
+   so keeps following changes made in the Red Sea app.
+ - Same treatment for the leak probe's arming flag: the read-only
+   `binary_sensor.enabled` becomes a switch (`leak.sensor_enabled` on
+   `/configuration`, read back from `/dashboard.leak_sensor.enabled`).
+   **Breaking**: the binary_sensor is gone, the switch keeps its
+   `enabled` translation key and label.
+
+### BUTTONS
+ - Every generic button now reads the device back after its action, as the
+   dose, run and wave button entities already did. **Fixes** the ATO fill and
+   stop-fill buttons leaving `is_pump_on` stale until the next scan interval.
+ - New `optimistic` field on `ReefBeatButtonEntityDescription`: values written
+   into the cache as soon as the command is accepted, so entities move on the
+   press instead of on the read-back a couple of seconds later. Used by the
+   ATO fill and stop-fill buttons for `is_pump_on`; the refresh that follows
+   replaces the guess with what the device reports.
+
+### ALL DEVICES
+ - New `fetch_data` button on every device, next to `fetch_config`. It forces
+   an immediate read of the polled "data" sources instead of waiting for the
+   scan interval, where `fetch_config` only covers sources typed "config".
+   Offered whatever `live_config_update` is set to, since data sources are
+   polled either way.
+
+### RSATO polling
+ - `/configuration` is now a polled "data" source instead of an on-demand
+   "config" one. It carries `auto_fill`, which the device does not report on
+   `/dashboard`, so the switch used to stay stale until someone pressed
+   `fetch_config`. Costs one extra GET per cycle on the LAN; `fetch_config`
+   no longer covers this source, since that button only refreshes sources
+   typed "config".
+
+### SWITCH
+ - New `push_source` field on `ReefBeatSwitchEntityDescription`, for a setting
+   read at one endpoint and written at another. Defaults to the source named
+   in `value_name`, so every existing switch is unchanged.
+
+### CONST
+ - New `ATO_BUZZER_ENABLED_INTERNAL_NAME`.
+
+### TRANSLATIONS
+ - New `entity.switch.buzzer_enabled` key in the 8 locales and `strings.json`;
+   `entity.binary_sensor.buzzer_enabled` removed with its entity.
+
+## FIXES
+
+### RSCONTROL probes
+ - The probe-scoped maintenance tasks were built by `button.py` and
+   `switch.py` as a single device-level entity, without the `{probe}`
+   translation placeholder their names require, which HA reported as a
+   name/placeholder mismatch. They now fan out per ReefSense probe through
+   `iter_maintenance_probes()`, as `number.py` already did.
+
+### ENUM sensors
+ - An ENUM sensor whose device reported a value outside its `options` raised
+   `ValueError` on every state write, killing the entity and every other
+   listener of the same coordinator. Seen on `port_N_last_pump_on_cause`,
+   which an RSCONTROLPRO ATO port reports as `unknown` -- a reserved HA state
+   that can never be an option. Unlisted values are now reported as unknown.
+
 # v2.3.0
 
 ## NEW DEVICES

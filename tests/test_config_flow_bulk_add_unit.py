@@ -233,3 +233,27 @@ async def test_async_step_import_delegates_to_user_step(
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "mocked_by_test"
     assert captured == [{CONFIG_FLOW_IP_ADDRESS: "192.0.2.99"}]
+
+
+@pytest.mark.asyncio
+async def test_select_devices_with_no_input_returns_to_the_picker(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An empty submission re-renders the picker instead of aborting.
+
+    Home Assistant's flow driver shows the form itself when `user_input` is
+    None, so this branch is unreachable through `async_configure`; the step is
+    called directly. It still matters: `async_step_import` and any external
+    re-entry can land here with no input, and falling through would raise on
+    `user_input.get()`.
+    """
+    monkeypatch.setattr(cf, "get_reefbeats", lambda *, subnetwork=None: _fake_devices())
+
+    handler = cf.ReefBeatConfigFlow()
+    handler.hass = hass
+
+    result = cast(dict[str, Any], await handler.async_step_select_devices(None))
+
+    # Bounced back to the multi-select form, not aborted.
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "select_devices"

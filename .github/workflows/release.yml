@@ -42,18 +42,18 @@ jobs:
               sha: '${{steps.update_manifest.outputs.tag_sha}}'
             })
 
-      # 📦 1. Étape pour compresser le dossier de l'intégration
+      # 📦 1. Étape pour compresser avec la bonne structure
       - name: Pack integration ZIP
         run: |
-          cd ${{ github.workspace }}/custom_components
-          zip -r redsea.zip redsea
+          # On se place à la racine pour inclure le dossier custom_components
+          zip -r integration.zip custom_components/redsea
 
-      # 🚀 2. Publication avec le fichier zip attaché en Asset
+      # 🚀 2. Publication avec le bon Asset
       - name: Create Release with Zip Asset
         uses: ncipollo/release-action@v1
         with:
           prerelease: true
           tag: ${{ github.event.inputs.tag }}
-          artifacts: "custom_components/redsea.zip" # 👈 On attache l'archive
+          artifacts: "integration.zip" # 👈 Nom officiel attendu
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}

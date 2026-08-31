@@ -33,6 +33,9 @@
   },
   "entity": {
     "binary_sensor": {
+      "ato_sensor_connected": {
+        "name": "Sonda temperatury podłączona"
+      },
       "auto_from_buttons": {
         "name": "Auto from buttons"
       },
@@ -48,11 +51,14 @@
       "buzzer_dismissed": {
         "name": "Buzzer dismissed"
       },
-      "buzzer_enabled": {
-        "name": "Buzzer włączony"
+      "buzzer_on": {
+        "name": "Brzęczyk włączony"
       },
       "cable_connected": {
         "name": "Cable connected"
+      },
+      "check_sensor": {
+        "name": "Sprawdź czujnik"
       },
       "cloud_state": {
         "name": "Stan połączenia z chmurą"
@@ -69,8 +75,8 @@
       "ec_sensor_connected": {
         "name": "Czujnik EC podłączony"
       },
-      "enabled": {
-        "name": "Czujnik wycieku włączony"
+      "is_calibrated": {
+        "name": "Sonda skalibrowana"
       },
       "is_ec_sensor_connected": {
         "name": "Czujnik EC podłączony?"
@@ -129,6 +135,9 @@
       "status": {
         "name": "Status"
       },
+      "temperature_log_enabled": {
+        "name": "Rejestrowanie temperatury"
+      },
       "unclean_sensor": {
         "name": "Stan czujnika"
       },
@@ -178,6 +187,9 @@
       },
       "fetch_config": {
         "name": "Pobierz konfigurację"
+      },
+      "fetch_data": {
+        "name": "Pobierz dane"
       },
       "fill": {
         "name": "Napełnij"
@@ -329,6 +341,9 @@
       },
       "acclimation_start_intensity_factor": {
         "name": "Początkowy współczynnik intensywności aklimatyzacji"
+      },
+      "ato_tank_volume": {
+        "name": "Objętość zbiornika ATO"
       },
       "ato_volume_left": {
         "name": "Pozostała objętość ATO"
@@ -528,6 +543,15 @@
       "acclimation_start_intensity_factor": {
         "name": "Początkowy współczynnik intensywności aklimatyzacji"
       },
+      "ato_sensor_code": {
+        "name": "Kod sondy temperatury"
+      },
+      "ato_sensor_last_adjustment_date": {
+        "name": "Data regulacji sondy"
+      },
+      "ato_sensor_last_installation_date": {
+        "name": "Data instalacji sondy"
+      },
       "auto_1": {
         "name": "Niedziela"
       },
@@ -640,6 +664,9 @@
       "first_name": {
         "name": "Imię"
       },
+      "flow_rate": {
+        "name": "Przepływ"
+      },
       "head_state": {
         "name": "Status"
       },
@@ -655,17 +682,28 @@
       "last_calibration": {
         "name": "Ostatnia kalibracja"
       },
+      "last_fill_date": {
+        "name": "Ostatnie napełnienie"
+      },
       "last_message": {
         "name": "Ostatni komunikat"
       },
       "last_name": {
         "name": "Nazwisko"
       },
+      "last_pump_on_cause": {
+        "name": "Przyczyna ostatniego startu"
+      },
       "leak_sensor_current_read": {
         "name": "Aktualne odczyty czujnika wycieku"
       },
       "leak_sensor_status": {
-        "name": "Stan czujnika wycieku"
+        "name": "Stan czujnika wycieku",
+        "state": {
+          "dry": "Sucho",
+          "aquarium_water_leak": "Wyciek wody z akwarium",
+          "rodi_water_leak": "Wyciek wody RO/DI"
+        }
       },
       "led_program": {
         "name": "Program LED"
@@ -743,19 +781,18 @@
       "port_last_pump_on_cause": {
         "name": "Port {port} przyczyna ostatniego uruchomienia pompy",
         "state": {
-          "unknown": "Nieznany",
-          "manual": "Ręczny",
-          "auto": "Automatyczny",
-          "schedule": "Harmonogram",
-          "user": "Użytkownik"
+          "none": "Brak",
+          "manual": "Ręcznie",
+          "ec_sensor_s1": "Czujnik poziomu S1",
+          "ec_sensor_s2": "Czujnik poziomu S2"
         }
       },
       "port_leak_status": {
         "name": "Port {port} status wycieku",
         "state": {
-          "aquarium": "Akwarium",
           "dry": "Sucho",
-          "rodi": "RO/DI"
+          "aquarium_water_leak": "Wyciek wody z akwarium",
+          "rodi_water_leak": "Wyciek wody RO/DI"
         }
       },
       "port_mode": {
@@ -785,6 +822,9 @@
       },
       "power_temperature": {
         "name": "Temperature"
+      },
+      "prev_pump_state": {
+        "name": "Poprzedni stan pompy"
       },
       "probe_ec": {
         "name": "{probe} conductivity"
@@ -853,11 +893,27 @@
           "error": "Błąd czujnika"
         }
       },
+      "pump_blockage_threshold": {
+        "name": "Próg blokady"
+      },
+      "pump_consumption": {
+        "name": "Pobór mocy pompy"
+      },
+      "pump_empty_threshold": {
+        "name": "Próg pracy na sucho"
+      },
+      "pump_soft_blockage_threshold": {
+        "name": "Próg częściowej blokady"
+      },
+      "pump_speed": {
+        "name": "Prędkość pompy"
+      },
       "pump_state": {
         "name": "Stan pompy",
         "state": {
           "malfunction": "Awaria",
-          "pump_on": "Włączona"
+          "pump_on": "Włączona",
+          "off": "Wyłączona"
         }
       },
       "remaining_days": {
@@ -865,6 +921,12 @@
       },
       "remaining_length": {
         "name": "Pozostała długość"
+      },
+      "s1_average": {
+        "name": "Średnia czujnika poziomu S1"
+      },
+      "s2_average": {
+        "name": "Średnia czujnika poziomu S2"
       },
       "schedule_head": {
         "name": "Harmonogram głowicy",
@@ -943,7 +1005,7 @@
         "name": "Łączne zużycie"
       },
       "total_volume_usage": {
-        "name": "Łączne zużycie objętości"
+        "name": "Zużycie od napełnienia"
       },
       "type": {
         "name": "Typ",
@@ -1046,6 +1108,9 @@
       "auto_fill": {
         "name": "Automatyczne napełnianie"
       },
+      "buzzer_enabled": {
+        "name": "Buzzer włączony"
+      },
       "cloud_connect": {
         "name": "Połącz z chmurą"
       },
@@ -1054,6 +1119,9 @@
       },
       "dose_compensation": {
         "name": "Kompensacja dawki"
+      },
+      "enabled": {
+        "name": "Czujnik wycieku włączony"
       },
       "fullcup_enabled": {
         "name": "Wykrywanie pełnego pojemnika"

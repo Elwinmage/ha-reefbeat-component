@@ -53,6 +53,7 @@ import datetime
 import logging
 import re
 from collections.abc import Callable
+from contextlib import suppress
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Any, Protocol, TypeAlias, cast, runtime_checkable
@@ -707,6 +708,40 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
     ),
 )
 
+# Possible values for `last_pump_on_cause` on an ATO port.
+#
+# The app only models two (`AtoAdvanceCause`: `manual` / `none`), but the
+# firmware reports more than the cloud dashboard carries: a real RSATO+
+# `/dashboard` returns `ec_sensor_s1`, the level sensor that triggered the
+# fill. `ec_sensor_s2` is the matching second level of the same probe.
+#
+# This list is therefore incomplete by construction — it holds what has been
+# observed or confirmed, not a closed enum. Any value outside it shows up as
+# `unknown` on the entity, which is preferable to a wrong translation.
+_ATO_PUMP_CAUSE_OPTIONS: tuple[str, ...] = (
+    "none",
+    "manual",
+    "ec_sensor_s1",
+    "ec_sensor_s2",
+)
+
+# `leak_status` enum on ATO ports.
+#
+# Values read from the `from(String)` mapper of the app's `AtoLeakStatus` and
+# `ControlLeakStatus` enums, which both accept exactly these three strings.
+# Careful: `$Keys.aquarium` is the name of the *field*, its value is the longer
+# `aquarium_water_leak` — the short forms never appear on the wire.
+#
+# `dry` is the healthy state: the leak sensor is dry. The other two indicate
+# water where it should not be, from the aquarium side or from the RO/DI feed
+# side respectively. The app falls back to `Dry` on an unrecognised value.
+_ATO_LEAK_STATUS_OPTIONS: tuple[str, ...] = (
+    "dry",
+    "aquarium_water_leak",
+    "rodi_water_leak",
+)
+
+
 ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription(
         key="s_water_level",
@@ -736,6 +771,14 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         icon="mdi:waves-arrow-up",
         suggested_display_precision=0,
     ),
+    # Not a lifetime counter despite the firmware name: it holds the volume
+    # dispensed from the current container and resets when that container is
+    # refilled. `total_fills` next to it *is* lifetime and never resets — two
+    # `total_*` fields with opposite semantics.
+    #
+    # It also appears to be what `volume_left` is derived from:
+    # ato_tank_volume * 1000 - total_volume_usage matches on every payload
+    # seen so far.
     ReefBeatSensorEntityDescription(
         key="total_volume_usage",
         translation_key="total_volume_usage",
@@ -747,6 +790,8 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         icon="mdi:waves-arrow-up",
         suggested_display_precision=0,
     ),
+    # Lifetime count, unlike total_volume_usage: a user reported 1111 with
+    # 4 of them from today.
     ReefBeatSensorEntityDescription(
         key="total_fills",
         translation_key="total_fills",
@@ -825,9 +870,22 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         ),
         icon="mdi:thermometer-check",
     ),
+    # `dry` / `aquarium_water_leak` / `rodi_water_leak`, read off the
+    # `AtoLeakStatus.from()` mapper in the Red Sea app. `dry` is the healthy
+    # state; the other two say which side the water came from, a distinction
+    # the companion `status` moisture binary_sensor cannot carry.
+    #
+    # `device_class=ENUM` is required for the `state` translations to apply at
+    # all: without it Home Assistant shows the raw firmware value and the
+    # strings.json block is ignored. The trade-off is the usual one — a value
+    # outside `options` is reported as `unknown` rather than displayed — and
+    # it is accepted here because this set really is closed: `AtoLeakStatus`
+    # maps exactly these three and falls back to `dry` for anything else.
     ReefBeatSensorEntityDescription(
         key="leak_sensor_status",
         translation_key="leak_sensor_status",
+        device_class=SensorDeviceClass.ENUM,
+        options=list(_ATO_LEAK_STATUS_OPTIONS),
         value_fn=lambda device: device.get_data(
             "$.sources[?(@.name=='/dashboard')].data.leak_sensor.status"
         ),
@@ -843,6 +901,13 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         icon="mdi:pipe-leak",
         suggested_display_precision=0,
     ),
+    # Observed values: `pump_on`, `off`, `malfunction`, the last one covering
+    # every fault (dry running, fill timeout...).
+    #
+    # Careful with the `on` form: a field report described the states as
+    # "on/off/malfunction", but that is the *rendered* label — a real
+    # `/dashboard` payload carries `prev_pump_state: "pump_on"`. Declaring
+    # `on` as an option would drop every running pump to `unknown`.
     ReefBeatSensorEntityDescription(
         key="pump_state",
         translation_key="pump_state",
@@ -850,6 +915,181 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
             "$.sources[?(@.name=='/dashboard')].data.pump_state"
         ),
         icon="mdi:pump",
+    ),
+    # Previous value of `pump_state`, kept by the firmware across transitions.
+    # Neither field reaches the Red Sea app (the cloud dashboard is a subset of
+    # the local REST payload), so their value set is unknown and no `options`
+    # can be declared. Exposed as a diagnostic to let the two be compared:
+    # a payload reporting `is_pump_on: true` together with `pump_state: "off"`
+    # has been observed, so at least one of the three is not what its name
+    # suggests.
+    ReefBeatSensorEntityDescription(
+        key="prev_pump_state",
+        translation_key="prev_pump_state",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.prev_pump_state"
+        ),
+        icon="mdi:pump",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="pump_speed",
+        translation_key="pump_speed",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.pump_speed"
+        ),
+        icon="mdi:speedometer",
+        suggested_display_precision=0,
+    ),
+    # Raw pump current draw. The firmware compares it to the three thresholds
+    # below to decide whether the pump is running dry, partially blocked or
+    # fully blocked, so the four are only meaningful together.
+    ReefBeatSensorEntityDescription(
+        key="pump_consumption",
+        translation_key="pump_consumption",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.pump_consumption"
+        ),
+        icon="mdi:flash",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="pump_empty_threshold",
+        translation_key="pump_empty_threshold",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.pump_empty_threshold"
+        ),
+        icon="mdi:flash-alert",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="pump_soft_blockage_threshold",
+        translation_key="pump_soft_blockage_threshold",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.pump_soft_blockage_threshold"
+        ),
+        icon="mdi:flash-alert",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="pump_blockage_threshold",
+        translation_key="pump_blockage_threshold",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.pump_blockage_threshold"
+        ),
+        icon="mdi:flash-alert",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="flow_rate",
+        translation_key="flow_rate",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.flow_rate"
+        ),
+        icon="mdi:pipe",
+        suggested_display_precision=0,
+    ),
+    # What triggered the last fill. See _ATO_PUMP_CAUSE_OPTIONS: the firmware
+    # reports more causes than the app models, so the list is open-ended and
+    # this sensor is deliberately left without `device_class=ENUM` — an
+    # unlisted cause would otherwise be dropped to `unknown`.
+    ReefBeatSensorEntityDescription(
+        key="last_pump_on_cause",
+        translation_key="last_pump_on_cause",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.last_pump_on_cause"
+        ),
+        icon="mdi:history",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="last_fill_date",
+        translation_key="last_fill_date",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=lambda device: _epoch_to_datetime(
+            device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.last_fill_date",
+                is_None_possible=True,
+            )
+        ),
+        icon="mdi:calendar-check",
+    ),
+    # Running averages of the two level-sensor electrodes. `last_pump_on_cause`
+    # names one of them (`ec_sensor_s1` / `ec_sensor_s2`) when a fill starts.
+    ReefBeatSensorEntityDescription(
+        key="s1_average",
+        translation_key="s1_average",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.s1_average"
+        ),
+        icon="mdi:sine-wave",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        suggested_display_precision=0,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="s2_average",
+        translation_key="s2_average",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.s2_average"
+        ),
+        icon="mdi:sine-wave",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        suggested_display_precision=0,
+    ),
+    # Temperature probe identity and history. `code` is the probe model
+    # reference printed on the sensor itself, not a status.
+    ReefBeatSensorEntityDescription(
+        key="ato_sensor_code",
+        translation_key="ato_sensor_code",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.ato_sensor.code"
+        ),
+        icon="mdi:barcode",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="ato_sensor_last_installation_date",
+        translation_key="ato_sensor_last_installation_date",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=lambda device: _epoch_to_datetime(
+            device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.ato_sensor"
+                ".last_installation_date",
+                is_None_possible=True,
+            )
+        ),
+        icon="mdi:calendar-plus",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="ato_sensor_last_adjustment_date",
+        translation_key="ato_sensor_last_adjustment_date",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=lambda device: _epoch_to_datetime(
+            device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.ato_sensor"
+                ".last_adjustment_date",
+                is_None_possible=True,
+            )
+        ),
+        icon="mdi:calendar-edit",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
 )
 
@@ -1072,26 +1312,6 @@ _ATO_WATER_LEVEL_OPTIONS: tuple[str, ...] = (
     "desired_level_1",
     "desired_level_2",
     "error",
-)
-
-# Possible values for `last_pump_on_cause` on an ATO port. Confirmed against
-# the Red Sea app string pool: unknown / manual / auto / schedule / user.
-_ATO_PUMP_CAUSE_OPTIONS: tuple[str, ...] = (
-    "unknown",
-    "manual",
-    "auto",
-    "schedule",
-    "user",
-)
-
-# `leak_status` enum on ATO ports. Confirmed from decompiled `AtoLeakStatus`
-# ($Keys.aquarium / .dry / .rodi). `dry` is the healthy state — the leak
-# sensor is dry. `aquarium` and `rodi` indicate water where it should not
-# be, from the aquarium side or from the RO/DI feed side respectively.
-_ATO_LEAK_STATUS_OPTIONS: tuple[str, ...] = (
-    "aquarium",
-    "dry",
-    "rodi",
 )
 
 
@@ -1894,10 +2114,11 @@ async def async_setup_entry(
                             _epoch_to_datetime(d.get_data(p, is_None_possible=True))
                         ),
                     ),
-                    # Water source detected by the leak probe. `dry` = healthy,
-                    # `aquarium` / `rodi` = leak from the tank vs the RO/DI
-                    # feed. Field `leak_status` in the payload; only present
-                    # when the ATO module has a leak sensor.
+                    # Water source detected by the leak probe. `dry` =
+                    # healthy, `aquarium_water_leak` / `rodi_water_leak` = leak
+                    # from the tank vs the RO/DI feed. Field `leak_status` in
+                    # the payload; only present when the ATO module has a leak
+                    # sensor.
                     ReefBeatSensorEntityDescription(
                         key=f"port_{port_idx}_leak_status",
                         translation_key="port_leak_status",
@@ -2059,13 +2280,22 @@ class ReefBeatSensorEntity(ReefRoleMixin, ReefBeatRestoreEntity, SensorEntity): 
     _attr_has_entity_name = True
 
     @staticmethod
-    def _restore_native_value(state: str) -> StateType:
+    def _restore_native_value(state: str) -> SensorNativeValue:
         """Best-effort parse of restored state into a native value."""
+        text = state.strip()
         try:
-            if re.fullmatch(r"-?\d+(?:\.\d+)?", state.strip()):
+            if re.fullmatch(r"-?\d+(?:\.\d+)?", text):
                 return float(state)
         except Exception:
             pass
+        # A TIMESTAMP sensor is stored in the state machine as an ISO-8601
+        # string, but the entity must hold a tz-aware datetime: restoring the
+        # string as-is raises on the first state write, exactly as an epoch
+        # would. Requiring an offset keeps plain text sensors untouched.
+        with suppress(ValueError):
+            restored = datetime.datetime.fromisoformat(text)
+            if restored.tzinfo is not None:
+                return restored
         return state
 
     def __init__(
@@ -2141,7 +2371,7 @@ class ReefBeatSensorEntity(ReefRoleMixin, ReefBeatRestoreEntity, SensorEntity): 
                 self._attr_native_value = "excellent"
             return
 
-        self._attr_native_value = self._get_value()
+        self._attr_native_value = self._clamp_enum(self._get_value())
 
         with_attr_name = getattr(self._description, "with_attr_name", None)
         with_attr_value = getattr(self._description, "with_attr_value", None)
@@ -2149,6 +2379,32 @@ class ReefBeatSensorEntity(ReefRoleMixin, ReefBeatRestoreEntity, SensorEntity): 
             self._attr_extra_state_attributes = {
                 with_attr_name: self._device.get_data(with_attr_value)
             }
+
+    def _clamp_enum(self, value: SensorNativeValue) -> SensorNativeValue:
+        """Drop an ENUM value the description does not declare.
+
+        Home Assistant raises `ValueError` when an ENUM sensor writes a state
+        outside its `options`, which kills the entity and every listener of
+        the coordinator with it. The firmware enums are open-ended -- an
+        RSCONTROL ATO port reports `last_pump_on_cause: "unknown"`, and
+        "unknown" can never be an option since it is a reserved HA state --
+        so an unlisted value is reported as unknown rather than crashing.
+        """
+        options = getattr(self._description, "options", None)
+        if (
+            value is not None
+            and getattr(self._description, "device_class", None)
+            is SensorDeviceClass.ENUM
+            and options is not None
+            and value not in options
+        ):
+            _LOGGER.debug(
+                "Sensor %s: unlisted value %r reported as unknown",
+                self._description.key,
+                value,
+            )
+            return None
+        return value
 
     def _get_value(self) -> SensorNativeValue:
         """Compute the sensor native value for the current description."""

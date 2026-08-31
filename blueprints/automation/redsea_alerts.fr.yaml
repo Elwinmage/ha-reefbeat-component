@@ -26,9 +26,9 @@
 #   0.1.0 - Version initiale.
 
 blueprint:
-  name: Surveillance ReefBeat (redsea) — v0.2.6
+  name: Surveillance ReefBeat (redsea) — v0.3.0
   description: >
-    **Version 0.2.6** — Notifications pour les appareils ReefBeat de l'intégration
+    **Version 0.3.0** — Notifications pour les appareils ReefBeat de l'intégration
     `redsea`.
 
 
@@ -52,7 +52,12 @@ blueprint:
 
     - Batterie faible (RSLED, RSDOSE, RSRUN)
 
-    - Appareil inaccessible (toutes les entités "unavailable")
+
+    **Sorti en 0.3.0 :** les entretiens en retard et les appareils
+    injoignables sont désormais traités par
+    [Reef maintenance watch](https://github.com/Elwinmage/ha-reef-blueprints), qui couvre toutes les intégrations de
+    l'écosystème et non le seul Red Sea. Importez-le à côté de celui-ci ;
+    les deux ne se recouvrent pas.
 
 
     **Variables dans vos actions de notification :** `{{ title }}`,
@@ -211,50 +216,6 @@ blueprint:
               integration: redsea
               multiple: true
 
-    unavailable_section:
-      name: Appareil inaccessible
-      icon: mdi:lan-disconnect
-      input:
-        notify_unavailable:
-          name: Activer
-          default: true
-          selector: {boolean: {}}
-        unavailable_exclude:
-          name: Exclure ces appareils
-          default: []
-          selector:
-            device:
-              integration: redsea
-              multiple: true
-
-    maintenance_section:
-      name: Maintenance expirée
-      icon: mdi:wrench-clock
-      input:
-        notify_maintenance:
-          name: Activer
-          description: >
-            Surveille les entités button.* avec reef_role commençant par
-            "maint_" et se déclenche quand days_left < 0 (expiré).
-          default: true
-          selector: {boolean: {}}
-        maintenance_exclude:
-          name: Exclure ces appareils
-          default: []
-          selector:
-            device:
-              integration: redsea
-              multiple: true
-        maintenance_respect_switch:
-          name: Respecter les interrupteurs de notification par tâche
-          description: >
-            Si activé, une tâche de maintenance dont l'interrupteur
-            « (notifications) » est éteint est ignorée, même si elle est en
-            retard. Laissez activé sauf si vous voulez être alerté quels que
-            soient les interrupteurs.
-          default: true
-          selector: {boolean: {}}
-
 trigger:
   - platform: time_pattern
     minutes: "/5"
@@ -266,8 +227,6 @@ variables:
   notify_rsdose_calibration: !input notify_rsdose_calibration
   notify_alert_message: !input notify_alert_message
   notify_battery: !input notify_battery
-  notify_unavailable: !input notify_unavailable
-  notify_maintenance: !input notify_maintenance
   notify_devices: !input notify_devices
   notify_channel: !input notify_channel
   mode_exclude: !input mode_exclude
@@ -276,9 +235,6 @@ variables:
   rsdose_calib_exclude: !input rsdose_calib_exclude
   alert_message_exclude: !input alert_message_exclude
   battery_exclude: !input battery_exclude
-  unavailable_exclude: !input unavailable_exclude
-  maintenance_exclude: !input maintenance_exclude
-  maintenance_respect_switch: !input maintenance_respect_switch
   # (calibration_max_days removed - each device now has its own interval)
   # Préfixes de rôle ReefBeat (standards)
   role_mode: "mode"
@@ -286,7 +242,6 @@ variables:
   role_battery: "battery"
   role_calibration: "last_calibration"
   roles_calibration: "last_calibration,skim_last_calibration,cup_last_calibration"
-  role_maintenance_prefix: "maint_"
   # Fallbacks de suffixes d'entité (EN/FR) pour instances sans rôle
   mode_suffixes: "_mode"
   alert_message_suffixes: "_alerte_message,_alert_message"
@@ -395,23 +350,6 @@ action:
           {%- endif -%}
         {%- endfor -%}
 
-        {#- 1) Appareils inaccessibles : toutes les entités unavailable. -#}
-        {%- if notify_unavailable -%}
-          {%- for d, dents in ns.dev_ents.items() -%}
-            {%- if is_excluded(d, unavailable_exclude) | trim != 'True' -%}
-              {%- set total = dents | count -%}
-              {%- set unav = dents | select('is_state', 'unavailable') | list | count -%}
-              {%- if total > 0 and unav == total -%}
-                {%- set ns.items = ns.items + [{
-                  'type': 'unreachable',
-                  'device': device_attr(d, 'name_by_user') or device_attr(d, 'name') or d,
-                  'model': device_attr(d, 'model') or '',
-                  'message': 'Appareil inaccessible',
-                }] -%}
-              {%- endif -%}
-            {%- endif -%}
-          {%- endfor -%}
-        {%- endif -%}
 
         {#- 2) Vérifications par entité. -#}
         {%- for e in ents -%}
@@ -626,30 +564,6 @@ action:
                     {%- endif -%}
                   {%- endif -%}
                 {%- endif -%}
-              {%- endif -%}
-            {%- endif -%}
-
-            {#- Maintenance expirée : button.* avec reef_role commençant par
-                "maint_" et un attribut `days_left` négatif. Le bouton est la
-                source unique de vérité (voir MaintenanceButtonEntity). -#}
-            {%- if notify_maintenance
-                   and e.startswith('button.')
-                   and (state_attr(e, 'reef_role') or '').startswith('maint_')
-                   and is_excluded(d, maintenance_exclude) | trim != 'True' -%}
-              {#- Désactivation par tâche : le bouton recopie l'état de son
-                     interrupteur de notification dans l'attribut `notify`.
-                     Un attribut absent (ancienne version de l'intégration)
-                     est considéré comme activé. -#}
-              {%- set notify_flag = state_attr(e, 'notify') -%}
-              {%- set muted = maintenance_respect_switch and notify_flag is false -%}
-              {%- set dl = state_attr(e, 'days_left') -%}
-              {%- if dl is number and dl < 0 and not muted -%}
-                {%- set ns.items = ns.items + [{
-                  'type': 'maintenance',
-                  'device': dname,
-                  'model': model,
-                  'message': 'Maintenance expirée de ' ~ (-dl) ~ ' jours : ' ~ (state_attr(e, 'friendly_name') or e),
-                }] -%}
               {%- endif -%}
             {%- endif -%}
 

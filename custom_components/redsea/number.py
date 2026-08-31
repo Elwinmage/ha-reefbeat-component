@@ -36,6 +36,11 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
+    ATO_TANK_VOLUME_DEFAULT,
+    ATO_TANK_VOLUME_INTERNAL_NAME,
+    ATO_TANK_VOLUME_MAX,
+    ATO_TANK_VOLUME_MIN,
+    ATO_TANK_VOLUME_STEP,
     ATO_VOLUME_LEFT_INTERNAL_NAME,
     DOMAIN,
     LED_ACCLIMATION_DURATION_INTERNAL_NAME,
@@ -616,6 +621,24 @@ async def async_setup_entry(
                 ),
             )
         )
+        entities.append(
+            ReefATOTankVolumeNumberEntity(
+                device,
+                ReefBeatNumberEntityDescription(
+                    key="ato_tank_volume",
+                    translation_key="ato_tank_volume",
+                    mode=NumberMode.BOX,
+                    native_unit_of_measurement=UnitOfVolume.LITERS,
+                    device_class=NumberDeviceClass.VOLUME,
+                    native_min_value=ATO_TANK_VOLUME_MIN,
+                    native_max_value=ATO_TANK_VOLUME_MAX,
+                    native_step=ATO_TANK_VOLUME_STEP,
+                    value_name=ATO_TANK_VOLUME_INTERNAL_NAME,
+                    icon="mdi:barrel",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
 
     elif isinstance(device, ReefControlCoordinator):
         # Per-ATO-port volume-left number. Endpoint:
@@ -1096,6 +1119,33 @@ class ReefATOVolumeLeftNumberEntity(ReefBeatNumberEntity):
             await self._device.push_values(self._source)
 
         await self._device.async_request_refresh()
+
+
+class ReefATOTankVolumeNumberEntity(ReefBeatNumberEntity):
+    """ATO number: capacity of the reservoir, in litres.
+
+    Same shape as the doser's `save_initial_container_volume`: the value is
+    declared by the user, stored under `$.local`, and never sent to the device
+    because the RSATO+ has no endpoint for its container size.
+
+    Everything else comes from the base class for free — `async_added_to_hass`
+    restores the last value and primes the coordinator cache, and
+    `_handle_coordinator_update` reads it back through the same JSONPath, so a
+    refresh cannot blank it. Only the push is suppressed here.
+    """
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the declared capacity, falling back to a sane default."""
+        await super().async_added_to_hass()
+        if self._attr_native_value is None:
+            self._attr_native_value = ATO_TANK_VOLUME_DEFAULT
+            self._device.set_data(self._description.value_name, ATO_TANK_VOLUME_DEFAULT)
+
+    async def async_set_native_value(self, value: float) -> None:
+        """Store the capacity locally. Nothing is sent to the device."""
+        self._attr_native_value = value
+        self._device.set_data(self._description.value_name, value)
+        self.async_write_ha_state()
 
 
 class ReefControlATOVolumeLeftNumberEntity(ReefBeatNumberEntity):

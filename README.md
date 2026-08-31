@@ -23,18 +23,60 @@ To help us with translation, follow this [guide](https://github.com/Elwinmage/ha
 # Overview
 ***HomeAssistant RedSea Reefbeat devices Local Management (no cloud): ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun and ReefWave***
 
+<!-- ecosystem:start -->
+
 ## Related projects
 
-This integration is one of three complementary projects for a Red Sea reef tank:
+The ReefTech projects fit together: the integrations bring your equipment into Home Assistant, the card displays and drives it, and the backup keeps it running through an outage. Each one also works on its own.
 
-| Project | What it does |
-| --- | --- |
-| [**ha-reefbeat-component**](https://github.com/Elwinmage/ha-reefbeat-component) | This integration. Local control of ReefBeat devices from Home Assistant, no cloud required: ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun and ReefWave. |
-| [**ReefBeat watch**](https://github.com/Elwinmage/ha-reefbeat-component/tree/main/blueprints/automation) | Alert blueprint shipped with this integration. Notifies you about overdue maintenance and calibrations, abnormal modes, low battery and unreachable devices, on the mobile devices you pick. [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/blueprints/automation/redsea_alerts.en.yaml) |
-| [**ha-reef-card**](https://github.com/Elwinmage/ha-reef-card) | Companion Lovelace card. Required to edit advanced schedules for ReefDose, ReefLed, ReefRun and ReefWave, and gives each device an interactive graphical view. |
-| [**reefbeatEnergyBackup**](https://github.com/Elwinmage/reefbeatEnergyBackup) | Battery backup for power outages. 24V LiFePO₄ pack driven by a Raspberry Pi, with pump speed degraded progressively according to the state of charge. Works standalone or alongside this integration. |
+<table>
+  <tr>
+    <th width="100px"></th>
+    <th>Project</th>
+    <th>What it does</th>
+    <th>Works with</th>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/icon.png" width="64" alt="ha-reefbeat-component" /></td>
+    <td><b>ha-reefbeat-component</b><br /><i>(this repository)</i></td>
+    <td>Red Sea ReefBeat devices, controlled locally with no cloud: ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun and ReefWave.<br />alert blueprint for abnormal modes, calibrations and low battery. <a href="https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/blueprints/automation/redsea_alerts.en.yaml"><img src="https://my.home-assistant.io/badges/blueprint_import.svg" alt="Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled." /></a></td>
+    <td>ha-reef-card</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-aquamedic-component/main/icon.png" width="64" alt="ha-aquamedic-component" /></td>
+    <td><a href="https://github.com/Elwinmage/ha-aquamedic-component"><b>ha-aquamedic-component</b></a></td>
+    <td>Aqua Medic pumps through the Gizwits cloud API: EcoDrift and SmartDrift wavemakers, DC Runner return and skimmer pumps.</td>
+    <td>ha-reef-card</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-reef-maintenance-component/main/icon.png" width="64" alt="ha-reef-maintenance-component" /></td>
+    <td><a href="https://github.com/Elwinmage/ha-reef-maintenance-component"><b>ha-reef-maintenance-component</b></a></td>
+    <td>Cleaning and wear tracking for the equipment Home Assistant cannot talk to: flow pumps, return pumps, skimmers, media reactors, anything you service by hand.</td>
+    <td>ha-reef-card</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-reef-card/main/icon.png" width="64" alt="ha-reef-card" /></td>
+    <td><a href="https://github.com/Elwinmage/ha-reef-card"><b>ha-reef-card</b></a></td>
+    <td>Interactive graphical view of each device on your dashboard, and the only way to edit advanced schedules. Reads the three integrations above through the shared <code>reef_role</code> contract, with no card-side configuration.</td>
+    <td>all three integrations</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-reef-blueprints/main/icon.png" width="64" alt="ha-reef-blueprints" /></td>
+    <td><a href="https://github.com/Elwinmage/ha-reef-blueprints"><b>ha-reef-blueprints</b></a></td>
+    <td>Notification blueprints shared by the whole ecosystem: overdue maintenance found through the <code>reef_role</code> contract, and devices that went unreachable. Eight languages.</td>
+    <td>all three integrations</td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/Elwinmage/reefbeatEnergyBackup/main/icon.png" width="64" alt="reefbeatEnergyBackup" /></td>
+    <td><a href="https://github.com/Elwinmage/reefbeatEnergyBackup"><b>reefbeatEnergyBackup</b></a></td>
+    <td>Battery backup for power outages. A 24V LiFePO₄ pack driven by a Raspberry Pi, with pump speed degraded progressively according to the state of charge.</td>
+    <td>standalone, or alongside ha-reefbeat-component</td>
+  </tr>
+</table>
 
-All three, and more reef projects, are documented together on the [project page](https://elwinmage.github.io/reeftank/).
+All of them are documented together on the [ReefTech project page](https://elwinmage.github.io/reeftank/).
+
+<!-- ecosystem:end -->
 
 > [!TIP]
 > The list of future implementations can be found [here](https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is%3Aissue%20state%3Aopen%20label%3Aenhancement)<br />
@@ -50,7 +92,9 @@ All three, and more reef projects, are documented together on the [project page]
 
 # Compatibility
 
-✅ Tested ☑️ Must Work (If you have one, can you confirm it's working [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8))
+> ✅ Supported &nbsp;|&nbsp; 🚧 In progress &nbsp;|&nbsp; 🧪 Untested (may work) &nbsp;|&nbsp; ❌ Not yet supported
+>
+> Own a device marked 🧪? Please confirm it works [here](https://github.com/Elwinmage/ha-reefbeat-component/discussions/8).
 <table>
 <th>
 <td colspan="2"><b>Model</b></td>
@@ -79,7 +123,7 @@ All three, and more reef projects, are documented together on the [project page]
 </td>
 </tr>
 <tr>
-<td colspan="2">RSCONTROLLITE</td><td>☑️</td>
+<td colspan="2">RSCONTROLLITE</td><td>🧪</td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROLLITE.png"/></td>
 </tr>
 <tr>
@@ -93,7 +137,7 @@ All three, and more reef projects, are documented together on the [project page]
 </td>
 </tr>
 <tr>
-<td colspan="2">RSPOWER8</td><td>☑️</td>
+<td colspan="2">RSPOWER8</td><td>🧪</td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSPOWER8.png"/></td>
 </tr>
 <tr>
@@ -140,7 +184,7 @@ All three, and more reef projects, are documented together on the [project page]
 <td>RSLED115</td><td>✅ </td>
 </tr>
 <tr>
-<td>RSLED170</td><td>☑️</td>
+<td>RSLED170</td><td>🧪</td>
 </tr>
 <tr>
 <td rowspan="3"><a href="#reefmat">ReefMat</a></td>
@@ -300,6 +344,9 @@ Pick the target network, enter its password, and submit. The integration sends t
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/fetch_config_button.png" alt="Image">
 </p>
 
+> [!NOTE]
+> Every device also exposes a "Fetch data" button. It forces an immediate read of the polled sources instead of waiting for the next scan interval, and works whatever the Live update config setting is — unlike "Fetch config", which only refreshes the configuration sources.
+
 ## Firmware Update
 You can be notified and update your device when a new firmware version is available. You must have an active ["Cloud API"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) device with your credentials and the "Use Cloud API" switch must be enabled.
 > [!TIP]
@@ -314,6 +361,7 @@ You can be notified and update your device when a new firmware version is availa
 # ReefATO:
 - Auto-fill enable/disable
 - Manual fill
+- Leak alarm buzzer enable/disable
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Image">

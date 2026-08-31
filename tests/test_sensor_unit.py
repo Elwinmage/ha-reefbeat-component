@@ -434,3 +434,71 @@ def test_reload_sensor_module_covers_import_time_lines() -> None:
     # Reloading here ensures those import-time statements are counted.
     importlib.reload(sensor_platform)
     assert hasattr(sensor_platform, "ReefBeatCloudSensorEntity")
+
+
+# -----------------------------------------------------------------------------
+# ENUM guard
+# -----------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("reported", "expected"),
+    [
+        # Real RSCONTROLPRO payload: an ATO port that never ran reports the
+        # reserved HA state as its cause, which can never be an option.
+        ("unknown", None),
+        # A cause added by a later firmware, absent from our list.
+        ("ec_sensor_s3", None),
+        # A declared value passes through untouched.
+        ("manual", "manual"),
+        (None, None),
+    ],
+)
+def test_enum_sensor_drops_values_outside_its_options(
+    reported: Any, expected: Any
+) -> None:
+    """An unlisted ENUM value becomes unknown instead of raising.
+
+    Home Assistant raises `ValueError` when an ENUM sensor writes a state
+    outside `options`, which killed the entity and every other listener of the
+    coordinator with it.
+    """
+    from homeassistant.components.sensor import SensorDeviceClass
+
+    options: list[str] = ["none", "manual", "ec_sensor_s1", "ec_sensor_s2"]
+
+    # `test_reload_sensor_module_covers_import_time_lines` swaps the module's
+    # classes, so resolve them through the module rather than the names bound
+    # at import time: `_get_value` isinstance-checks the current ones.
+    device = _FakeCoordinator()
+    desc = sensor_platform.ReefBeatSensorEntityDescription(
+        key="port_0_last_pump_on_cause",
+        translation_key="port_last_pump_on_cause",
+        device_class=SensorDeviceClass.ENUM,
+        options=options,
+        value_fn=lambda _: reported,
+    )
+    entity = sensor_platform.ReefBeatSensorEntity(cast(Any, device), desc)
+    entity._update_val()
+
+    assert entity.native_value == expected
+    # What used to raise: HA rejects any ENUM state outside `options`.
+    assert entity.native_value is None or entity.native_value in options
+
+
+def test_non_enum_sensor_keeps_unlisted_values() -> None:
+    """Without `device_class=ENUM` the raw firmware string is preserved.
+
+    The device-level `last_pump_on_cause` is deliberately not an ENUM, so it
+    must keep reporting causes we have not catalogued.
+    """
+    device = _FakeCoordinator()
+    desc = sensor_platform.ReefBeatSensorEntityDescription(
+        key="last_pump_on_cause",
+        translation_key="last_pump_on_cause",
+        value_fn=lambda _: "ec_sensor_s3",
+    )
+    entity = sensor_platform.ReefBeatSensorEntity(cast(Any, device), desc)
+    entity._update_val()
+
+    assert entity.native_value == "ec_sensor_s3"
