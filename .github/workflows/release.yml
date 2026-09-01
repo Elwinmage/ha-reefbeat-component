@@ -46,7 +46,7 @@ jobs:
       - name: Pack integration ZIP
         run: |
           # On se place à la racine pour inclure le dossier custom_components
-          zip -r integration.zip custom_components/redsea
+          zip -r redsea.zip custom_components/redsea
 
       # 🚀 2. Publication avec le bon Asset
       - name: Create Release with Zip Asset
@@ -54,6 +54,6 @@ jobs:
         with:
           prerelease: true
           tag: ${{ github.event.inputs.tag }}
-          artifacts: "redsea.zip" # 👈 Nom officiel attendu
+          artifacts: redsea.zip" # 👈 Nom officiel attendu
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
