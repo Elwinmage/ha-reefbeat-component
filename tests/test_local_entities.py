@@ -18,7 +18,7 @@ async def _assert_device_has_entities(hass: HomeAssistant, identifier: str) -> N
     ent_reg = er.async_get(hass)
 
     dev = next(
-        (d for d in dev_reg.devices.values() if (DOMAIN, identifier) in d.identifiers),
+        (d for d in dev_reg.devices if (DOMAIN, identifier) in d.identifiers),
         None,
     )
     assert dev is not None

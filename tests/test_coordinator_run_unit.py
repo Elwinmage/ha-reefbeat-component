@@ -118,7 +118,6 @@ def test_run_pump_device_info_pump_id_zero_returns_base_info(
         "identifiers": {(DOMAIN, "IDENT")},
         "manufacturer": "Red Sea",
         "model": "RSRUN",
-        "via_device": (DOMAIN, "PARENT"),
         "name": "RUN",
     }
 

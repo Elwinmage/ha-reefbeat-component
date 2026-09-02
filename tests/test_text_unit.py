@@ -31,7 +31,6 @@ class _FakeCoordinator:
                 "model_id": "mid",
                 "hw_version": "1",
                 "sw_version": "2",
-                "via_device": ("redsea", "IDENT"),
             }
 
     def __post_init__(self) -> None:
@@ -294,7 +293,6 @@ def test_reefdose_text_device_info_builds_head_device_and_copies_fields_and_via_
         "model_id": "mid",
         "hw_version": "1",
         "sw_version": "2",
-        "via_device": ("redsea", "IDENT"),
     }
     device = _FakeCoordinator(serial="SERIAL", title="Dose", device_info=base_di)
 
@@ -313,7 +311,6 @@ def test_reefdose_text_device_info_builds_head_device_and_copies_fields_and_via_
     assert di["manufacturer"] == "Red Sea"
     assert di["model"] is None
     assert di["model_id"] == "mid"
-    assert di["via_device"] == ("redsea", "IDENT")
 
 
 def test_reefdose_text_device_info_falls_back_to_default_identifiers_when_missing() -> (

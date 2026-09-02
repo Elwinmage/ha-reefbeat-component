@@ -867,10 +867,6 @@ class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
             if isinstance(val, str) or val is None:
                 di_dict[key] = val
 
-        via_device = base_di.get("via_device")
-        if via_device is not None:
-            di_dict["via_device"] = via_device
-
         return cast(DeviceInfo, di_dict)
 
 
@@ -1112,10 +1108,6 @@ class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
             val = base_di.get(key)
             if isinstance(val, str) or val is None:
                 di_dict[key] = val
-
-        via_device = base_di.get("via_device")
-        if via_device is not None:
-            di_dict["via_device"] = via_device
 
         return cast(DeviceInfo, di_dict)
 
@@ -1730,9 +1722,5 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
             val = base_di.get(key)
             if isinstance(val, str) or val is None:
                 di_dict[key] = val
-
-        via_device = base_di.get("via_device")
-        if via_device is not None:
-            di_dict["via_device"] = via_device
 
         return cast(DeviceInfo, di_dict)

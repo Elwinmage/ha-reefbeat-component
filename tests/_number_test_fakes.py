@@ -19,7 +19,6 @@ class FakeCoordinator:
             name="Device",
             manufacturer="Red Sea",
             model="X",
-            via_device=("redsea", "hub"),
         )
     )
     last_update_success: bool = True

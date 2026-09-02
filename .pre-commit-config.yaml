@@ -75,8 +75,7 @@ repos:
         additional_dependencies:
           - pyright>=1.1.390
           # Provide Home Assistant modules/types in the hook env.
-          # - pytest-homeassistant-custom-component>=0.13.301
-          - pytest-homeassistant-custom-component==0.13.357
+          - pytest-homeassistant-custom-component>=0.13.357
           # Runtime dependency declared in manifest.json
           - jsonpath-ng>=1.7.0
           # Used by auto_detect.py
@@ -96,7 +95,7 @@ repos:
           - pytest>=8
           - pytest-asyncio>=1.3.0
           - pytest-cov>=7.0.0
-          - pytest-homeassistant-custom-component==0.13.357
+          - pytest-homeassistant-custom-component>=0.13.357
           # Runtime dependency declared in manifest.json
           - jsonpath-ng>=1.7.0
 

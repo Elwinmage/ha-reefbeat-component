@@ -810,16 +810,6 @@
       "port_type": {
         "name": "Port {port} type"
       },
-      "power_mode": {
-        "name": "Mode",
-        "state": {
-          "auto": "Auto",
-          "off": "Apagado",
-          "setup": "Configuración",
-          "feeding": "Alimentación",
-          "maintenance": "Mantenimiento"
-        }
-      },
       "power_temperature": {
         "name": "Temperature"
       },

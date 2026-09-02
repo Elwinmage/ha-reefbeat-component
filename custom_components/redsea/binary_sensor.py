@@ -284,16 +284,6 @@ POWER_SENSORS: tuple[
     ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], ...
 ] = (
     ReefBeatBinarySensorEntityDescription(
-        key="is_internet_connected",
-        translation_key="is_internet_connected",
-        device_class=BinarySensorDeviceClass.CONNECTIVITY,
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.is_internet_connected"
-        ),
-        icon="mdi:web",
-        entity_category=EntityCategory.DIAGNOSTIC,
-    ),
-    ReefBeatBinarySensorEntityDescription(
         key="auto_from_buttons",
         translation_key="auto_from_buttons",
         value_fn=lambda device: device.get_data(

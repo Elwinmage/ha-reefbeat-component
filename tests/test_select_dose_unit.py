@@ -92,7 +92,6 @@ def test_reefdose_select_device_info_builds_head_device_and_copies_fields(
         "manufacturer": "Red Sea",
         "model": 123,  # should be excluded (non-str)
         "hw_version": None,  # allowed
-        "via_device": ("redsea", "PARENT"),
     }
     device = FakeDoseCoordinator(
         hass=hass,
@@ -116,7 +115,6 @@ def test_reefdose_select_device_info_builds_head_device_and_copies_fields(
 
     assert di.get("manufacturer") == "Red Sea"
     assert di.get("hw_version") is None
-    assert di.get("via_device") == ("redsea", "PARENT")
 
 
 @pytest.mark.asyncio

@@ -43,7 +43,7 @@ async def test_dose_creates_parent_and_head_devices(
     ent_reg = er.async_get(hass)
 
     parent = None
-    for dev in dev_reg.devices.values():
+    for dev in dev_reg.devices:
         if (DOMAIN, dose_hwid) in dev.identifiers:
             parent = dev
             break
@@ -51,7 +51,7 @@ async def test_dose_creates_parent_and_head_devices(
 
     head3 = None
     head4 = None
-    for dev in dev_reg.devices.values():
+    for dev in dev_reg.devices:
         if (DOMAIN, dose_hwid + "_head_3") in dev.identifiers:
             head3 = dev
         if (DOMAIN, dose_hwid + "_head_4") in dev.identifiers:

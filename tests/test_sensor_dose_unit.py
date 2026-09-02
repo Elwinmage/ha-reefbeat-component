@@ -61,7 +61,6 @@ class _FakeCoordinator:
             name="Device",
             manufacturer="Red Sea",
             model="X",
-            via_device=("redsea", "hub"),
         )
     )
     hass: Any | None = None
@@ -212,7 +211,6 @@ def test_dose_device_info_head_extends_identifiers_and_name() -> None:
         hw_version="1",
         # field not expected to be copied
         configuration_url=cast(Any, 123),
-        via_device=("redsea", "hub"),
     )
 
     desc = ReefDoseSensorEntityDescription(
@@ -227,7 +225,6 @@ def test_dose_device_info_head_extends_identifiers_and_name() -> None:
     identifiers = cast(set[tuple[str, str]], di.get("identifiers") or set())
     assert ("redsea", "SERIAL_head_2") in identifiers
     assert di.get("name") == "Device head 2"
-    assert di.get("via_device") == ("redsea", "hub")
 
 
 @pytest.mark.asyncio

@@ -40,7 +40,6 @@ class _FakeNumberCoordinator:
             name="Device",
             manufacturer="Red Sea",
             model="X",
-            via_device=("redsea", "hub"),
         )
     )
     get_data_map: dict[str, Any] = field(default_factory=dict)

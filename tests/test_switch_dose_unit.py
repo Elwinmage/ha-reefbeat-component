@@ -61,7 +61,6 @@ async def test_dose_switch_device_info_copies_fields_and_via_device() -> None:
         manufacturer="Red Sea",
         model="X",
         hw_version=None,
-        via_device=("redsea", "PARENT"),
     )
     device = FakeDoseCoordinator(title="Dose", device_info=base)
 
@@ -82,7 +81,6 @@ async def test_dose_switch_device_info_copies_fields_and_via_device() -> None:
     assert info.get("manufacturer") == "Red Sea"
     #    assert "model" not in info
     assert info.get("hw_version") is None
-    assert info.get("via_device") == ("redsea", "PARENT")
 
 
 @pytest.mark.asyncio
