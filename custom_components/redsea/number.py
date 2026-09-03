@@ -939,10 +939,6 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
                 if isinstance(val, str) or val is None:
                     di_dict[key] = val
 
-            via_device = base_di.get("via_device")
-            if via_device is not None:
-                di_dict["via_device"] = via_device
-
             self._attr_device_info = cast(DeviceInfo, di_dict)
 
     async def async_set_native_value(self, value: float) -> None:

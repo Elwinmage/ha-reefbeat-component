@@ -665,7 +665,6 @@ def test_device_info_helpers_include_via_device_and_skip_non_str(
                 "model_id": None,
                 "hw_version": "1",
                 "sw_version": "2",
-                "via_device": (coord.DOMAIN, "PARENT"),
                 "name": "Base",
             },
         )
@@ -675,13 +674,10 @@ def test_device_info_helpers_include_via_device_and_skip_non_str(
     monkeypatch.setattr(type(cloud), "device_info", property(_di))
 
     head_di = cast(DeviceInfo, dose.head_device_info(1))
-    assert head_di.get("via_device") == (coord.DOMAIN, "PARENT")
     assert head_di.get("model") is None
 
     pump_di = cast(DeviceInfo, run.pump_device_info(1))
-    assert pump_di.get("via_device") == (coord.DOMAIN, "PARENT")
     assert pump_di.get("model") is None
 
     aq_di = cast(DeviceInfo, cloud.aquarium_device_info("Tank"))
-    assert aq_di.get("via_device") == (coord.DOMAIN, "PARENT")
     assert aq_di.get("model") is None

@@ -1101,16 +1101,6 @@ ATO_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
 # async_setup_entry so we can iterate up to `device.socket_count`.
 POWER_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription(
-        key="power_mode",
-        translation_key="power_mode",
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/mode')].data.mode"
-        ),
-        icon="mdi:power-settings",
-        device_class=SensorDeviceClass.ENUM,
-        options=["auto", "off", "setup", "feeding", "maintenance"],
-    ),
-    ReefBeatSensorEntityDescription(
         key="battery_level",
         translation_key="battery_level",
         value_fn=lambda device: device.get_data(

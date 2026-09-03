@@ -544,7 +544,6 @@ async def test_reefdose_button_entity_remaining_branches_and_device_info() -> No
             manufacturer="m",
             model="model",
             sw_version=None,
-            via_device=(DOMAIN, "PARENT"),
         )
 
         get_data_map: dict[str, Any] = {

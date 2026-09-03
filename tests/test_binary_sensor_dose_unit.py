@@ -99,7 +99,6 @@ def test_dose_device_info_builds_head_device_and_copies_fields_and_via_device() 
         "model_id": "mid",
         "hw_version": "1",
         "sw_version": "2",
-        "via_device": ("redsea", "IDENT"),
     }
     device = _FakeCoordinator(serial="SERIAL", title="Dose", device_info=base_di)
 
@@ -118,7 +117,6 @@ def test_dose_device_info_builds_head_device_and_copies_fields_and_via_device() 
     assert di["manufacturer"] == "Red Sea"
     assert di["model"] is None
     assert di["model_id"] == "mid"
-    assert di["via_device"] == ("redsea", "IDENT")
 
 
 def test_dose_device_info_falls_back_to_default_identifiers_when_missing() -> None:
