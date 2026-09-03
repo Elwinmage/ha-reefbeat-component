@@ -5,7 +5,7 @@ repos:
         #  ne pas oublier le -v : pre-commit run check-packages-versions --all-files -v
         name: Afficher les versions des dépendances
         entry: >-
-          python -c "import importlib.metadata; pkgs=['colorama','pyright','pytest-homeassistant-custom-component','jsonpath-ng','requests','pytest','pytest-asyncio','pytest-cov']; [print(f'{pkg:<40} = {importlib.metadata.version(pkg)}') for pkg in pkgs]"
+           python -c "import sys, importlib.metadata; print(f'Python {sys.version.split()[0]:<33} = {sys.version.split()[0]}'); pkgs=['colorama','pyright','pytest-homeassistant-custom-component','jsonpath-ng','requests','pytest','pytest-asyncio','pytest-cov']; [print(f'{pkg:<40} = {importlib.metadata.version(pkg)}') for pkg in pkgs]"
         language: python
         pass_filenames: false
         always_run: true
