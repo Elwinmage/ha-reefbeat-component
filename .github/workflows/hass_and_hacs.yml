@@ -57,9 +57,9 @@ jobs:
 
           # Pour la beta, on installe la version pre-release du framework de test
           if [[ "${{ matrix.ha-version }}" == "beta" ]]; then
-            pip install --pre pytest-homeassistant-custom-component
+            pip install --pre pytest-homeassistant-custom-component>=0.13.362
           else
-            pip install pytest-homeassistant-custom-component
+            pip install pytest-homeassistant-custom-component>=0.13.362
           fi
 
           # Installation des dépendances du manifest
