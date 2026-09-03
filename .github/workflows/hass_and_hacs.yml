@@ -54,7 +54,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest-homeassistant-custom-component
+          pip install pytest-homeassistant-custom-component>=0.13.357
 
           # Installation des dépendances du manifest
           python -c "import json; print('\n'.join(json.load(open('custom_components/redsea/manifest.json'))['requirements']))" > requirements_manifest.txt
