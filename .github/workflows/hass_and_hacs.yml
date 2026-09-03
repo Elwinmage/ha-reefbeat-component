@@ -37,7 +37,7 @@ jobs:
       fail-fast: false
       matrix:
         # On teste contre la version stable actuelle et la version de développement (beta)
-        python-version: ["3.13"]
+        python-version: ["3.14"]
         ha-version: ["stable", "beta"]
 
     steps:
