@@ -1620,7 +1620,12 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
         else:
             self._attr_is_on = False
 
-        self._attr_unique_id = f"{device.serial}_{entity_description.key}"
+        # Include the aquarium uid in the unique_id so accounts with
+        # multiple aquariums do not produce collisions on the same key.
+        aquarium_uid = self._aquarium.get("uid", "")
+        self._attr_unique_id = (
+            f"{device.serial}_{aquarium_uid}_{entity_description.key}"
+        )
 
         self._typed_desc: ReefCloudSwitchEntityDescription = entity_description
         self.entity_description = cast(SwitchEntityDescription, entity_description)
