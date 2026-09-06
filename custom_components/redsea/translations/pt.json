@@ -492,7 +492,8 @@
         "state": {
           "off": "Desligado",
           "on": "Ligado",
-          "schedule": "Programação"
+          "schedule": "Programação",
+          "sensor": "Sensor"
         }
       },
       "position": {
@@ -526,7 +527,8 @@
         "state": {
           "off": "Desligado",
           "on": "Ligado",
-          "schedule": "Programação"
+          "schedule": "Programação",
+          "sensor": "Sensor"
         }
       },
       "supplements": {

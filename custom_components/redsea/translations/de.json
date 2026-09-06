@@ -492,7 +492,8 @@
         "state": {
           "off": "Aus",
           "on": "Ein",
-          "schedule": "Zeitplan"
+          "schedule": "Zeitplan",
+          "sensor": "Sensor"
         }
       },
       "position": {
@@ -526,7 +527,8 @@
         "state": {
           "off": "Aus",
           "on": "Ein",
-          "schedule": "Zeitplan"
+          "schedule": "Zeitplan",
+          "sensor": "Sensor"
         }
       },
       "supplements": {

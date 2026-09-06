@@ -492,7 +492,8 @@
         "state": {
           "off": "Off",
           "on": "On",
-          "schedule": "Schedule"
+          "schedule": "Schedule",
+          "sensor": "Sensor"
         }
       },
       "position": {
@@ -526,7 +527,8 @@
         "state": {
           "off": "Off",
           "on": "On",
-          "schedule": "Schedule"
+          "schedule": "Schedule",
+          "sensor": "Sensor"
         }
       },
       "supplements": {

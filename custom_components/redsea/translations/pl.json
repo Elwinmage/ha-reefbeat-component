@@ -492,7 +492,8 @@
         "state": {
           "off": "Wyłączony",
           "on": "Włączony",
-          "schedule": "Harmonogram"
+          "schedule": "Harmonogram",
+          "sensor": "Czujnik"
         }
       },
       "position": {
@@ -526,7 +527,8 @@
         "state": {
           "off": "Wyłączony",
           "on": "Włączony",
-          "schedule": "Harmonogram"
+          "schedule": "Harmonogram",
+          "sensor": "Czujnik"
         }
       },
       "supplements": {

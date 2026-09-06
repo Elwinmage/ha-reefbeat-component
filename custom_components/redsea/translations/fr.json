@@ -491,7 +491,8 @@
         "state": {
           "off": "Arrêt",
           "on": "Marche",
-          "schedule": "Programmation"
+          "schedule": "Programmation",
+          "sensor": "Sonde"
         }
       },
       "position": {
@@ -525,7 +526,8 @@
         "state": {
           "off": "Éteint",
           "on": "Allumé",
-          "schedule": "Programmation"
+          "schedule": "Programmation",
+          "sensor": "Sonde"
         }
       },
       "supplements": {

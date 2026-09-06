@@ -492,7 +492,8 @@
         "state": {
           "off": "Uit",
           "on": "Aan",
-          "schedule": "Schema"
+          "schedule": "Schema",
+          "sensor": "Sensor"
         }
       },
       "position": {
@@ -526,7 +527,8 @@
         "state": {
           "off": "Uit",
           "on": "Aan",
-          "schedule": "Schema"
+          "schedule": "Schema",
+          "sensor": "Sensor"
         }
       },
       "supplements": {

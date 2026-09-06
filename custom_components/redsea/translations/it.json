@@ -492,7 +492,8 @@
         "state": {
           "off": "Spento",
           "on": "Acceso",
-          "schedule": "Programmazione"
+          "schedule": "Programmazione",
+          "sensor": "Sensore"
         }
       },
       "position": {
@@ -526,7 +527,8 @@
         "state": {
           "off": "Spento",
           "on": "Acceso",
-          "schedule": "Programmazione"
+          "schedule": "Programmazione",
+          "sensor": "Sensore"
         }
       },
       "supplements": {

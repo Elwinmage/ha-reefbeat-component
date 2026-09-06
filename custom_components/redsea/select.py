@@ -111,7 +111,7 @@ class ReefDoseSelectEntityDescription(SelectEntityDescription):
 
 @dataclass(kw_only=True, frozen=True)
 class ReefPowerSocketModeSelectEntityDescription(SelectEntityDescription):
-    """Describes a RSPOWER per-socket mode select (off/on/schedule).
+    """Describes a RSPOWER per-socket mode select (off/on/schedule/sensor).
 
     Backed by ``PUT /sockets/config`` with a partial ``{"sockets":[{"mode",
     "number"}]}`` body. The current value is read from the socket's
@@ -127,7 +127,7 @@ class ReefPowerSocketModeSelectEntityDescription(SelectEntityDescription):
 
 @dataclass(kw_only=True, frozen=True)
 class ReefControlPortModeSelectEntityDescription(SelectEntityDescription):
-    """Describes a RSCONTROL per-port mode select (off/on/schedule).
+    """Describes a RSCONTROL per-port mode select (off/on/schedule/sensor).
 
     The RSCONTROL 12V ports are configured exactly like the RSPOWER AC
     sockets, only the transport differs: the write is a partial
@@ -307,7 +307,7 @@ async def async_setup_entry(
         )
 
     elif isinstance(device, ReefPowerCoordinator):
-        # One mode select per AC socket (off/on/schedule). Socket indices are
+        # One mode select per AC socket (off/on/schedule/sensor). Socket indices are
         # 0-based (RSPOWER6 -> 0..5, RSPOWER8 -> 0..7); the user-facing label
         # uses n+1 to match the sensor/switch convention.
         power_descs: list[ReefPowerSocketModeSelectEntityDescription] = []
@@ -322,7 +322,7 @@ async def async_setup_entry(
                         "$.sources[?(@.name=='/dashboard')].data.sockets"
                         f"[?(@.number=={socket_idx})].user_config_mode"
                     ),
-                    options=["off", "on", "schedule"],
+                    options=["off", "on", "schedule", "sensor"],
                     entity_category=EntityCategory.CONFIG,
                     socket=socket_idx,
                 )
@@ -350,7 +350,7 @@ async def async_setup_entry(
                         "$.sources[?(@.name=='/dashboard')].data.ports"
                         f"[?(@.number=={port_idx})].user_config_mode"
                     ),
-                    options=["off", "on", "schedule"],
+                    options=["off", "on", "schedule", "sensor"],
                     entity_category=EntityCategory.CONFIG,
                     port=port_idx,
                 )
@@ -496,7 +496,7 @@ class ReefRunSelectEntity(ReefBeatSelectEntity):
 
 # REEFPOWER
 class ReefPowerSocketModeSelectEntity(ReefBeatSelectEntity):
-    """Select entity for a RSPOWER socket's mode (off/on/schedule).
+    """Select entity for a RSPOWER socket's mode (off/on/schedule/sensor).
 
     Unlike the generic select, the write is a partial ``PUT /sockets/config``
     scoped to a single socket, so we override ``async_select_option`` to call
@@ -504,7 +504,7 @@ class ReefPowerSocketModeSelectEntity(ReefBeatSelectEntity):
     """
 
     _attr_has_entity_name = True
-    _VALID_MODES = ("off", "on", "schedule")
+    _VALID_MODES = ("off", "on", "schedule", "sensor")
 
     def __init__(
         self,
@@ -538,7 +538,7 @@ class ReefPowerSocketModeSelectEntity(ReefBeatSelectEntity):
 
 # REEFCONTROL
 class ReefControlPortModeSelectEntity(ReefBeatSelectEntity):
-    """Select entity for a RSCONTROL 12V port's mode (off/on/schedule).
+    """Select entity for a RSCONTROL 12V port's mode (off/on/schedule/sensor).
 
     Same behaviour as :class:`ReefPowerSocketModeSelectEntity`: the write is a
     partial config PUT scoped to a single port, so we override
@@ -547,7 +547,7 @@ class ReefControlPortModeSelectEntity(ReefBeatSelectEntity):
     """
 
     _attr_has_entity_name = True
-    _VALID_MODES = ("off", "on", "schedule")
+    _VALID_MODES = ("off", "on", "schedule", "sensor")
 
     def __init__(
         self,
