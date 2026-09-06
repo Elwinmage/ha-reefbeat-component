@@ -72,6 +72,7 @@ from homeassistant.const import (
     STATE_UNKNOWN,
     EntityCategory,
     UnitOfLength,
+    UnitOfPower,
     UnitOfTemperature,
     UnitOfTime,
     UnitOfVolume,
@@ -1954,6 +1955,8 @@ async def async_setup_entry(
                         translation_key="socket_consumption",
                         translation_placeholders={"socket": str(socket_idx + 1)},
                         icon="mdi:flash",
+                        native_unit_of_measurement=UnitOfPower.WATT,
+                        device_class=SensorDeviceClass.POWER,
                         value_fn=lambda d, p=f"{base}.consumption": d.get_data(
                             p, is_None_possible=True
                         ),
@@ -2028,6 +2031,8 @@ async def async_setup_entry(
                         translation_key="port_consumption",
                         translation_placeholders={"port": str(port_idx + 1)},
                         icon="mdi:flash",
+                        native_unit_of_measurement=UnitOfPower.WATT,
+                        device_class=SensorDeviceClass.POWER,
                         value_fn=lambda d, p=f"{base}.consumption": d.get_data(
                             p, is_None_possible=True
                         ),
