@@ -202,9 +202,9 @@ TASKS: Final[dict[str, tuple[MaintenanceTask, ...]]] = {
         MaintenanceTask(
             key="run_skim_rotor",
             translation_key="maint_run_skim_rotor",
-            default_days=135,
-            min_days=60,
-            max_days=210,
+            default_days=30,
+            min_days=14,
+            max_days=180,
             applies_to_sub="pump_skimmer",
             icon="mdi:fan",
             unit="months",

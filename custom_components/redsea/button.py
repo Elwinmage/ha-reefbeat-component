@@ -10,7 +10,7 @@ coordinator methods (press, delete, push_values, calibration, etc.).
 import inspect
 import logging
 import uuid
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Any, cast
@@ -136,6 +136,9 @@ class ReefBeatButtonEntityDescription(ButtonEntityDescription):
         Callable[[ReefBeatCoordinator], StateType | Awaitable[StateType]] | None
     ) = None
     optimistic: dict[str, Any] | None = None
+    dependency: str | None = None
+    dependency_values: Sequence[Any] | None = None
+    dependency_reverse: bool = False
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -553,28 +556,13 @@ async def async_setup_entry(
     elif isinstance(device, ReefPowerCoordinator):
         _add_described_entities(entities, device, ReefBeatButtonEntity, POWER_BUTTONS)
 
-        # One "uninstall" button per socket that is actually configured. A
-        # socket still in `setup` has nothing to delete, and the firmware has
-        # no "install" counterpart: giving it a mode via PUT /sockets/config
-        # is what takes it out of setup.
-        raw_sockets = device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.sockets",
-            is_None_possible=True,
-        )
-        configured_sockets: list[int] = (
-            [
-                s["number"]
-                for s in raw_sockets
-                if isinstance(s, dict)
-                and s.get("mode") != "setup"
-                and isinstance(s.get("number"), int)
-            ]
-            if isinstance(raw_sockets, list)
-            else []
-        )
+        # One "uninstall" button per socket (all sockets for the model).
+        # The button is disabled (unavailable) while the socket is still in
+        # ``setup`` mode — there is nothing to delete — and re-enabled once
+        # the socket has been configured via PUT /sockets/config. This way
+        # the entities are stable (no appearing/disappearing on refresh).
         socket_delete_buttons: list[ReefBeatButtonEntityDescription] = []
-        for socket_idx in configured_sockets:
-            # Bind `socket_idx` in the default to avoid the late-binding trap.
+        for socket_idx in range(device.socket_count):
             socket_delete_buttons.append(
                 ReefBeatButtonEntityDescription(
                     key=f"socket_{socket_idx}_delete",
@@ -586,6 +574,12 @@ async def async_setup_entry(
                             ReefPowerCoordinator, d
                         ).delete_socket(n)
                     ),
+                    dependency=(
+                        "$.sources[?(@.name=='/dashboard')]"
+                        f".data.sockets[{socket_idx}].mode"
+                    ),
+                    dependency_values=["setup"],
+                    dependency_reverse=True,
                     icon="mdi:power-socket-off",
                     entity_category=EntityCategory.CONFIG,
                 )
@@ -993,6 +987,13 @@ class ReefBeatButtonEntity(ButtonEntity):
     """Generic button entity for ReefBeat coordinators.
 
     The action is provided by `ReefBeatButtonEntityDescription.press_fn`.
+
+    When the description carries a ``dependency`` JSONPath, availability is
+    re-evaluated on every coordinator refresh using the same pattern as
+    :class:`ReefBeatNumberEntity`: the entity is available when the value at
+    that path is truthy (or belongs to ``dependency_values`` when set). Set
+    ``dependency_reverse`` to invert the logic (available when the value is
+    *not* in the list).
     """
 
     _attr_has_entity_name = True
@@ -1008,6 +1009,58 @@ class ReefBeatButtonEntity(ButtonEntity):
         self._attr_available = True
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._attr_device_info = device.device_info
+        self._unsub_coordinator: Callable[[], None] | None = None
+
+    # ---- dependency-based availability ------------------------------------
+
+    def _compute_available(self) -> bool:
+        """Return True when this button should be shown as available.
+
+        Same contract as ``ReefBeatNumberEntity._compute_available``:
+        * No ``dependency`` → always available.
+        * ``dependency`` without ``dependency_values`` → truthy check.
+        * ``dependency`` with ``dependency_values`` → membership check.
+        * ``dependency_reverse`` inverts the membership check.
+        """
+        dep = self.desc.dependency
+        if dep is None:
+            return True
+
+        dep_value = self._device.get_data(dep, True)
+
+        if self.desc.dependency_values is None:
+            return bool(dep_value)
+
+        match = dep_value in self.desc.dependency_values
+        return not match if self.desc.dependency_reverse else match
+
+    @property
+    def available(self) -> bool:  # type: ignore[override]
+        return self._compute_available()
+
+    # ---- lifecycle --------------------------------------------------------
+
+    async def async_added_to_hass(self) -> None:
+        """Subscribe to coordinator updates when a dependency is set."""
+        await super().async_added_to_hass()
+        if self.desc.dependency is not None:
+            self._unsub_coordinator = self._device.async_add_listener(
+                self._handle_coordinator_update
+            )
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Unsubscribe from coordinator updates."""
+        if self._unsub_coordinator is not None:
+            self._unsub_coordinator()
+            self._unsub_coordinator = None
+        await super().async_will_remove_from_hass()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Re-evaluate availability after a coordinator refresh."""
+        self.async_write_ha_state()
+
+    # ---- action / desc ----------------------------------------------------
 
     @property
     def desc(self) -> ReefBeatButtonEntityDescription:

@@ -129,9 +129,6 @@
       "sensor_controlled": {
         "name": "Sterowany przez czujnik"
       },
-      "socket_enabled": {
-        "name": "Socket {socket} enabled"
-      },
       "status": {
         "name": "Status"
       },

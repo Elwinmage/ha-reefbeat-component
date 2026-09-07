@@ -117,8 +117,9 @@ def _make_coordinator() -> Any:
 @pytest.mark.asyncio
 async def test_coordinator_set_socket_mode_delegates_and_refreshes() -> None:
     coord = _make_coordinator()
+    coord.get_data = MagicMock(return_value="Led refuge")  # type: ignore[method-assign]
     await coord.set_socket_mode(3, "on")
-    coord.my_api.set_socket_mode.assert_awaited_once_with(3, "on")
+    coord.my_api.set_socket_mode.assert_awaited_once_with(3, "on", name="Led refuge")
     coord.async_request_refresh.assert_awaited_once()
 
 

@@ -898,7 +898,7 @@ async def test_button_platform_builds_socket_delete_for_power(
 
     @dataclass
     class _PowerDevice(_FakeControlDevice):
-        pass
+        socket_count: int = 6
 
     _neutralise_other_coordinators(button_platform, monkeypatch)
     # Override *after* neutralise so the elif chain hits the Power branch.
@@ -928,8 +928,9 @@ async def test_button_platform_builds_socket_delete_for_power(
     keys = {e.entity_description.key for e in added}
     assert "socket_0_delete" in keys
     assert "socket_2_delete" in keys
-    # Socket still in setup must NOT get a delete button.
-    assert "socket_1_delete" not in keys
+    # Socket in setup mode still gets a button entity (stable entities)
+    # but it will be unavailable at runtime via dependency_reverse.
+    assert "socket_1_delete" in keys
 
 
 # ---------------------------------------------------------------------------

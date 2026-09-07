@@ -82,7 +82,7 @@ def _neutralise_other_coordinators(monkeypatch: pytest.MonkeyPatch) -> None:
 async def test_rspower_setup_creates_per_socket_binary_sensors(
     hass: Any, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """RSPOWER path builds one `socket_{n}_enabled` diagnostic per AC socket."""
+    """RSPOWER path builds global binary sensors (per-socket not yet implemented)."""
 
     class _Power(_FakePowerDevice):
         pass
@@ -105,8 +105,9 @@ async def test_rspower_setup_creates_per_socket_binary_sensors(
     await binary_platform.async_setup_entry(hass, cast(Any, entry), cast(Any, _add))
 
     keys = {e.entity_description.key for e in added}
-    for i in range(6):
-        assert f"socket_{i}_enabled" in keys
+    # Global binary sensors for RSPOWER
+    assert "cloud_state" in keys
+    assert "auto_from_buttons" in keys
 
 
 @pytest.mark.asyncio

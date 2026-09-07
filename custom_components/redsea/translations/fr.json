@@ -128,9 +128,6 @@
       "sensor_controlled": {
         "name": "Contrôlé par capteur"
       },
-      "socket_enabled": {
-        "name": "Prise {socket} activée"
-      },
       "status": {
         "name": "Statut"
       },

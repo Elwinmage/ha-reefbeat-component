@@ -1426,8 +1426,20 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
             self.socket_count = 6
 
     async def set_socket_mode(self, number: int, mode: str) -> None:
-        """Set a socket's mode (off/on/schedule) and refresh."""
-        await cast(ReefPowerAPI, self.my_api).set_socket_mode(number, mode)
+        """Set a socket's mode (off/on/schedule) and refresh.
+
+        The firmware requires the socket name alongside the mode, so we
+        always re-send the current name from the dashboard.
+        """
+        name = (
+            self.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.sockets"
+                f"[?(@.number=={number})].name",
+                is_None_possible=True,
+            )
+            or f"S{number + 1}"
+        )
+        await cast(ReefPowerAPI, self.my_api).set_socket_mode(number, mode, name=name)
         await self.async_request_refresh()
 
     async def delete_socket(self, number: int) -> None:

@@ -4,8 +4,10 @@ from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any, cast
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
@@ -66,7 +68,7 @@ async def test_async_setup_entry_adds_entities_for_each_device_type(
         heads_nb: int = 2
 
     class _Power(_FakeBaseDevice):
-        pass
+        socket_count: int = 6
 
     monkeypatch.setattr(button_mod, "ReefLedCoordinator", _Led)
     monkeypatch.setattr(button_mod, "ReefLedG2Coordinator", _LedG2)
@@ -772,3 +774,125 @@ def test_ato_fill_and_stop_guess_opposite_pump_states() -> None:
     # `resume` clears a latched mode; which mode it lands on depends on the
     # device, so there is nothing safe to guess.
     assert by_key["resume"].optimistic is None
+
+
+# ── ReefBeatButtonEntity dependency-based availability ───────────────────────
+
+
+def _make_button_entity(
+    dependency: str | None = None,
+    dependency_values: list[str] | None = None,
+    dependency_reverse: bool = False,
+    get_data_return: Any = None,
+) -> Any:
+    """Build a ReefBeatButtonEntity with a fake device for availability tests."""
+    device = type(
+        "_Dev",
+        (),
+        {
+            "serial": "SN",
+            "device_info": None,
+            "get_data": MagicMock(return_value=get_data_return),
+            "async_add_listener": MagicMock(return_value=lambda: None),
+        },
+    )()
+    desc = button_mod.ReefBeatButtonEntityDescription(
+        key="test_btn",
+        translation_key="test_btn",
+        exists_fn=lambda _: True,
+        press_fn=None,
+        dependency=dependency,
+        dependency_values=dependency_values,
+        dependency_reverse=dependency_reverse,
+    )
+    entity = button_mod.ReefBeatButtonEntity(cast(Any, device), desc)
+    return entity, device
+
+
+def test_compute_available_no_dependency() -> None:
+    entity, _ = _make_button_entity()
+    assert entity._compute_available() is True
+
+
+def test_compute_available_truthy_dep_value() -> None:
+    entity, _ = _make_button_entity(dependency="$.some.path", get_data_return="on")
+    assert entity._compute_available() is True
+
+
+def test_compute_available_falsy_dep_value() -> None:
+    entity, _ = _make_button_entity(dependency="$.some.path", get_data_return=None)
+    assert entity._compute_available() is False
+
+
+def test_compute_available_with_values_match() -> None:
+    entity, _ = _make_button_entity(
+        dependency="$.path", dependency_values=["on", "schedule"], get_data_return="on"
+    )
+    assert entity._compute_available() is True
+
+
+def test_compute_available_with_values_no_match() -> None:
+    entity, _ = _make_button_entity(
+        dependency="$.path", dependency_values=["on", "schedule"], get_data_return="off"
+    )
+    assert entity._compute_available() is False
+
+
+def test_compute_available_reverse() -> None:
+    entity, _ = _make_button_entity(
+        dependency="$.path",
+        dependency_values=["setup"],
+        dependency_reverse=True,
+        get_data_return="setup",
+    )
+    # Reverse: available when value is NOT in the list → False
+    assert entity._compute_available() is False
+
+
+def test_compute_available_reverse_not_in_list() -> None:
+    entity, _ = _make_button_entity(
+        dependency="$.path",
+        dependency_values=["setup"],
+        dependency_reverse=True,
+        get_data_return="schedule",
+    )
+    # Reverse: value is not in [setup] → True
+    assert entity._compute_available() is True
+
+
+def test_available_property_delegates_to_compute() -> None:
+    entity, _ = _make_button_entity(dependency="$.path", get_data_return="on")
+    assert entity.available is True
+
+
+@pytest.mark.asyncio
+async def test_async_added_to_hass_subscribes_coordinator() -> None:
+    entity, device = _make_button_entity(dependency="$.path", get_data_return="x")
+    entity.hass = MagicMock()
+    entity.platform = MagicMock()
+    entity.entity_id = "button.test"
+    # Patch super().async_added_to_hass
+    with patch.object(ButtonEntity, "async_added_to_hass", new_callable=AsyncMock):
+        await entity.async_added_to_hass()
+    device.async_add_listener.assert_called_once()
+    assert entity._unsub_coordinator is not None
+
+
+@pytest.mark.asyncio
+async def test_async_will_remove_from_hass_unsubscribes() -> None:
+    entity, _device = _make_button_entity(dependency="$.path", get_data_return="x")
+    unsub = MagicMock()
+    entity._unsub_coordinator = unsub
+    with patch.object(
+        ButtonEntity, "async_will_remove_from_hass", new_callable=AsyncMock
+    ):
+        await entity.async_will_remove_from_hass()
+    unsub.assert_called_once()
+    assert entity._unsub_coordinator is None
+
+
+def test_handle_coordinator_update_writes_state() -> None:
+    entity, _ = _make_button_entity(dependency="$.path", get_data_return="x")
+    entity.async_write_ha_state = MagicMock()
+    entity._handle_coordinator_update()
+    entity.async_write_ha_state.assert_called_once()

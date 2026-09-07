@@ -72,8 +72,8 @@ class ReefPowerAPI(ReefBeatAPI):
         """Set a socket's mode via ``PUT /sockets/config``.
 
         The device accepts a partial update: only the changed socket is sent.
-        ``mode`` is one of ``off`` / ``on`` / ``schedule`` / ``sensor``. ``name`` is only
-        included when renaming (the app omits it for plain mode changes).
+        ``mode`` is one of ``off`` / ``on`` / ``schedule`` / ``sensor``.
+        ``name`` must always be included because the firmware requires it.
         """
         socket: dict[str, Any] = {"mode": mode, "number": number}
         if name is not None:

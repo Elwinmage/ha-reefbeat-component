@@ -530,20 +530,21 @@ async def async_setup_entry(
         power_descs: list[
             ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator]
         ] = []
-        for socket_idx in range(device.socket_count):
-            base = f"$.sources[?(@.name=='/dashboard')].data.sockets[{socket_idx}]"
-            power_descs.append(
-                ReefBeatBinarySensorEntityDescription(
-                    key=f"socket_{socket_idx}_enabled",
-                    translation_key="socket_enabled",
-                    translation_placeholders={"socket": str(socket_idx + 1)},
-                    value_fn=lambda d, p=f"{base}.enabled": d.get_data(
-                        p, is_None_possible=True
-                    ),
-                    icon="mdi:power-plug",
-                    entity_category=EntityCategory.DIAGNOSTIC,
-                )
-            )
+        ## NOT used yet
+        # for socket_idx in range(device.socket_count):
+        #     base = f"$.sources[?(@.name=='/dashboard')].data.sockets[{socket_idx}]"
+        #     power_descs.append(
+        #         ReefBeatBinarySensorEntityDescription(
+        #             key=f"socket_{socket_idx}_enabled",
+        #             translation_key="socket_enabled",
+        #             translation_placeholders={"socket": str(socket_idx + 1)},
+        #             value_fn=lambda d, p=f"{base}.enabled": d.get_data(
+        #                 p, is_None_possible=True
+        #             ),
+        #             icon="mdi:power-plug",
+        #             entity_category=EntityCategory.DIAGNOSTIC,
+        #         )
+        #     )
         entities.extend(
             ReefBeatBinarySensorEntity(device, desc) for desc in power_descs
         )

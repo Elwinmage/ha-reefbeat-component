@@ -129,9 +129,6 @@
       "sensor_controlled": {
         "name": "Aangestuurd door sensor"
       },
-      "socket_enabled": {
-        "name": "Socket {socket} enabled"
-      },
       "status": {
         "name": "Status"
       },
