@@ -599,7 +599,7 @@ async def async_setup_entry(
             socket_descs.append(
                 ReefPowerSocketSwitchEntityDescription(
                     key=f"socket_{socket_idx}_on_off",
-                    translation_key="socket_on_off",
+                    translation_key=f"socket_{socket_idx}_on_off",
                     translation_placeholders={"socket": str(socket_idx + 1)},
                     icon="mdi:power-plug",
                     icon_off="mdi:power-plug-off",

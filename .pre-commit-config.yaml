@@ -19,6 +19,12 @@ repos:
           - pytest>=8
           - pytest-asyncio>=1.3.0
           - pytest-cov>=7.0.0
+
+  - repo: https://github.com/Elwinmage/create_ha_project
+    rev: v1.0.1
+    hooks:
+      - id: check-mdi
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:

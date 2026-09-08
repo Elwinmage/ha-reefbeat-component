@@ -296,12 +296,6 @@
       "setup_finish": {
         "name": "Zakończ konfigurację"
       },
-      "socket_delete": {
-        "name": "Odinstaluj gniazdo {socket}"
-      },
-      "socket_unsubscribe": {
-        "name": "Anuluj subskrypcję gniazda {socket}"
-      },
       "start_calibration": {
         "name": "Rozpocznij kalibrację"
       },
@@ -316,6 +310,54 @@
       },
       "test_calibration": {
         "name": "Testuj nową kalibrację"
+      },
+      "socket_0_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_1_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_2_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_3_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_4_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_5_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_6_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_7_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_0_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_1_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_2_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_3_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_4_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_5_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_6_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_7_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
       }
     },
     "light": {
@@ -519,19 +561,82 @@
           "un": "Jednorodny"
         }
       },
-      "socket_mode": {
-        "name": "Tryb gniazda {socket}",
-        "state": {
-          "off": "Wyłączony",
-          "on": "Włączony",
-          "schedule": "Harmonogram",
-          "sensor": "Czujnik"
-        }
-      },
       "supplements": {
         "name": "Suplementy",
         "state": {
           "other": "Inne"
+        }
+      },
+      "socket_0_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
         }
       }
     },
@@ -929,18 +1034,6 @@
       "skim_last_calibration": {
         "name": "Ostatnia kalibracja przeodtłuszczania"
       },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
       "state": {
         "name": "Stan",
         "state": {
@@ -1082,6 +1175,182 @@
       },
       "zip_code": {
         "name": "Kod pocztowy"
+      },
+      "socket_0_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_1_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_2_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_3_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_4_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_5_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_6_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_7_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_0_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_1_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_2_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_3_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_4_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_5_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_6_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_7_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_0_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_0_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_1_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_2_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_3_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_4_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_5_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_6_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_7_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_0_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_1_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_2_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_3_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_4_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_5_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_6_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_7_consumption": {
+        "name": "Gniazdko {socket} zużycie"
       }
     },
     "switch": {
@@ -1202,11 +1471,32 @@
       "slm": {
         "name": "Sterownik objętości"
       },
-      "socket_on_off": {
-        "name": "Gniazdo {socket}"
-      },
       "use_cloud_api": {
         "name": "Użyj API chmury"
+      },
+      "socket_0_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_1_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_2_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_3_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_4_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_5_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_6_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_7_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
       }
     },
     "text": {
@@ -1228,8 +1518,29 @@
       "pump_name": {
         "name": "Nazwa pompy"
       },
-      "socket_name": {
-        "name": "Nazwa gniazda {socket}"
+      "socket_0_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_1_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_2_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_3_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_4_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_5_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_6_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_7_name": {
+        "name": "Gniazdko {socket} nazwa"
       }
     },
     "time": {

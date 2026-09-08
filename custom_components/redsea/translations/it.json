@@ -296,12 +296,6 @@
       "setup_finish": {
         "name": "Completare la configurazione"
       },
-      "socket_delete": {
-        "name": "Disinstalla presa {socket}"
-      },
-      "socket_unsubscribe": {
-        "name": "Annulla iscrizione presa {socket}"
-      },
       "start_calibration": {
         "name": "Avvia calibrazione"
       },
@@ -316,6 +310,54 @@
       },
       "test_calibration": {
         "name": "Testa nuova calibrazione"
+      },
+      "socket_0_delete": {
+        "name": "Elimina presa {socket}"
+      },
+      "socket_1_delete": {
+        "name": "Elimina presa {socket}"
+      },
+      "socket_2_delete": {
+        "name": "Elimina presa {socket}"
+      },
+      "socket_3_delete": {
+        "name": "Elimina presa {socket}"
+      },
+      "socket_4_delete": {
+        "name": "Elimina presa {socket}"
+      },
+      "socket_5_delete": {
+        "name": "Elimina presa {socket}"
+      },
+      "socket_6_delete": {
+        "name": "Elimina presa {socket}"
+      },
+      "socket_7_delete": {
+        "name": "Elimina presa {socket}"
+      },
+      "socket_0_unsubscribe": {
+        "name": "Annulla iscrizione presa {socket}"
+      },
+      "socket_1_unsubscribe": {
+        "name": "Annulla iscrizione presa {socket}"
+      },
+      "socket_2_unsubscribe": {
+        "name": "Annulla iscrizione presa {socket}"
+      },
+      "socket_3_unsubscribe": {
+        "name": "Annulla iscrizione presa {socket}"
+      },
+      "socket_4_unsubscribe": {
+        "name": "Annulla iscrizione presa {socket}"
+      },
+      "socket_5_unsubscribe": {
+        "name": "Annulla iscrizione presa {socket}"
+      },
+      "socket_6_unsubscribe": {
+        "name": "Annulla iscrizione presa {socket}"
+      },
+      "socket_7_unsubscribe": {
+        "name": "Annulla iscrizione presa {socket}"
       }
     },
     "light": {
@@ -519,19 +561,82 @@
           "un": "Uniforme"
         }
       },
-      "socket_mode": {
-        "name": "Modalità presa {socket}",
-        "state": {
-          "off": "Spento",
-          "on": "Acceso",
-          "schedule": "Programmazione",
-          "sensor": "Sensore"
-        }
-      },
       "supplements": {
         "name": "Integratori",
         "state": {
           "other": "Altro"
+        }
+      },
+      "socket_0_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
         }
       }
     },
@@ -929,18 +1034,6 @@
       "skim_last_calibration": {
         "name": "Ultima calibrazione schiumatura"
       },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
       "state": {
         "name": "Stato",
         "state": {
@@ -1082,6 +1175,182 @@
       },
       "zip_code": {
         "name": "Codice postale"
+      },
+      "socket_0_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_1_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_2_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_3_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_4_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_5_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_6_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_7_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_0_state": {
+        "name": "Stato presa {socket}"
+      },
+      "socket_1_state": {
+        "name": "Stato presa {socket}"
+      },
+      "socket_2_state": {
+        "name": "Stato presa {socket}"
+      },
+      "socket_3_state": {
+        "name": "Stato presa {socket}"
+      },
+      "socket_4_state": {
+        "name": "Stato presa {socket}"
+      },
+      "socket_5_state": {
+        "name": "Stato presa {socket}"
+      },
+      "socket_6_state": {
+        "name": "Stato presa {socket}"
+      },
+      "socket_7_state": {
+        "name": "Stato presa {socket}"
+      },
+      "socket_0_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Modalità presa {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_0_prev_mode": {
+        "name": "Modalità precedente presa {socket}"
+      },
+      "socket_1_prev_mode": {
+        "name": "Modalità precedente presa {socket}"
+      },
+      "socket_2_prev_mode": {
+        "name": "Modalità precedente presa {socket}"
+      },
+      "socket_3_prev_mode": {
+        "name": "Modalità precedente presa {socket}"
+      },
+      "socket_4_prev_mode": {
+        "name": "Modalità precedente presa {socket}"
+      },
+      "socket_5_prev_mode": {
+        "name": "Modalità precedente presa {socket}"
+      },
+      "socket_6_prev_mode": {
+        "name": "Modalità precedente presa {socket}"
+      },
+      "socket_7_prev_mode": {
+        "name": "Modalità precedente presa {socket}"
+      },
+      "socket_0_consumption": {
+        "name": "Consumo presa {socket}"
+      },
+      "socket_1_consumption": {
+        "name": "Consumo presa {socket}"
+      },
+      "socket_2_consumption": {
+        "name": "Consumo presa {socket}"
+      },
+      "socket_3_consumption": {
+        "name": "Consumo presa {socket}"
+      },
+      "socket_4_consumption": {
+        "name": "Consumo presa {socket}"
+      },
+      "socket_5_consumption": {
+        "name": "Consumo presa {socket}"
+      },
+      "socket_6_consumption": {
+        "name": "Consumo presa {socket}"
+      },
+      "socket_7_consumption": {
+        "name": "Consumo presa {socket}"
       }
     },
     "switch": {
@@ -1202,11 +1471,32 @@
       "slm": {
         "name": "Controller volume"
       },
-      "socket_on_off": {
-        "name": "Presa {socket}"
-      },
       "use_cloud_api": {
         "name": "Usa API cloud"
+      },
+      "socket_0_on_off": {
+        "name": "Interruttore presa {socket}"
+      },
+      "socket_1_on_off": {
+        "name": "Interruttore presa {socket}"
+      },
+      "socket_2_on_off": {
+        "name": "Interruttore presa {socket}"
+      },
+      "socket_3_on_off": {
+        "name": "Interruttore presa {socket}"
+      },
+      "socket_4_on_off": {
+        "name": "Interruttore presa {socket}"
+      },
+      "socket_5_on_off": {
+        "name": "Interruttore presa {socket}"
+      },
+      "socket_6_on_off": {
+        "name": "Interruttore presa {socket}"
+      },
+      "socket_7_on_off": {
+        "name": "Interruttore presa {socket}"
       }
     },
     "text": {
@@ -1228,7 +1518,28 @@
       "pump_name": {
         "name": "Nome della pompa"
       },
-      "socket_name": {
+      "socket_0_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_1_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_2_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_3_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_4_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_5_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_6_name": {
+        "name": "Nome presa {socket}"
+      },
+      "socket_7_name": {
         "name": "Nome presa {socket}"
       }
     },

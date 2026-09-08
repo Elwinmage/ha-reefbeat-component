@@ -1912,7 +1912,7 @@ async def async_setup_entry(
                 [
                     ReefBeatSensorEntityDescription(
                         key=f"socket_{socket_idx}_name",
-                        translation_key="socket_name",
+                        translation_key=f"socket_{socket_idx}_name",
                         translation_placeholders={"socket": str(socket_idx + 1)},
                         icon="mdi:power-socket-eu",
                         value_fn=lambda d, p=f"{base}.name": d.get_data(
@@ -1921,7 +1921,7 @@ async def async_setup_entry(
                     ),
                     ReefBeatSensorEntityDescription(
                         key=f"socket_{socket_idx}_state",
-                        translation_key="socket_state",
+                        translation_key=f"socket_{socket_idx}_state",
                         translation_placeholders={"socket": str(socket_idx + 1)},
                         icon="mdi:electric-switch",
                         entity_registry_enabled_default=False,
@@ -1943,7 +1943,7 @@ async def async_setup_entry(
                     ),
                     ReefBeatSensorEntityDescription(
                         key=f"socket_{socket_idx}_mode",
-                        translation_key="socket_mode",
+                        translation_key=f"socket_{socket_idx}_mode",
                         translation_placeholders={"socket": str(socket_idx + 1)},
                         icon="mdi:cog-outline",
                         value_fn=lambda d, p=f"{base}.mode": d.get_data(
@@ -1951,8 +1951,18 @@ async def async_setup_entry(
                         ),
                     ),
                     ReefBeatSensorEntityDescription(
+                        key=f"socket_{socket_idx}_prev_mode",
+                        translation_key=f"socket_{socket_idx}_prev_mode",
+                        translation_placeholders={"socket": str(socket_idx + 1)},
+                        icon="mdi:cog-transfer-outline",
+                        entity_registry_enabled_default=False,
+                        value_fn=lambda d, p=f"{base}.prev_mode": d.get_data(
+                            p, is_None_possible=True
+                        ),
+                    ),
+                    ReefBeatSensorEntityDescription(
                         key=f"socket_{socket_idx}_consumption",
-                        translation_key="socket_consumption",
+                        translation_key=f"socket_{socket_idx}_consumption",
                         translation_placeholders={"socket": str(socket_idx + 1)},
                         icon="mdi:flash",
                         native_unit_of_measurement=UnitOfPower.WATT,
@@ -2237,7 +2247,7 @@ async def async_setup_entry(
                     ReefBeatCloudSensorEntityDescription(
                         key="supplement_" + str(uid),
                         translation_key="supplement_program",
-                        icon="mdi:sine-supplement",
+                        icon="mdi:sine-wave",
                         value_name="$.sources[?(@.name=='"
                         + SUPPLEMENTS_LIBRARY
                         + "')].data[?(@.uid=='"

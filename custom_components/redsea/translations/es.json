@@ -296,12 +296,6 @@
       "setup_finish": {
         "name": "Finalizar configuración"
       },
-      "socket_delete": {
-        "name": "Desinstalar toma {socket}"
-      },
-      "socket_unsubscribe": {
-        "name": "Cancelar suscripción de la toma {socket}"
-      },
       "start_calibration": {
         "name": "Iniciar calibración"
       },
@@ -316,6 +310,54 @@
       },
       "test_calibration": {
         "name": "Probar nueva calibración"
+      },
+      "socket_0_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_1_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_2_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_3_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_4_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_5_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_6_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_7_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_0_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_1_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_2_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_3_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_4_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_5_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_6_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_7_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
       }
     },
     "light": {
@@ -519,19 +561,82 @@
           "un": "Uniforme"
         }
       },
-      "socket_mode": {
-        "name": "Modo toma {socket}",
-        "state": {
-          "off": "Apagado",
-          "on": "Encendido",
-          "schedule": "Programación",
-          "sensor": "Sensor"
-        }
-      },
       "supplements": {
         "name": "Suplementos",
         "state": {
           "other": "Otro"
+        }
+      },
+      "socket_0_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
         }
       }
     },
@@ -929,18 +1034,6 @@
       "skim_last_calibration": {
         "name": "Última calibración de sobreespumado"
       },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
       "state": {
         "name": "Estado",
         "state": {
@@ -1082,6 +1175,182 @@
       },
       "zip_code": {
         "name": "Código postal"
+      },
+      "socket_0_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_1_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_2_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_3_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_4_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_5_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_6_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_7_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_0_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_1_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_2_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_3_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_4_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_5_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_6_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_7_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_0_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_0_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_1_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_2_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_3_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_4_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_5_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_6_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_7_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_0_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_1_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_2_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_3_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_4_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_5_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_6_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_7_consumption": {
+        "name": "Consumo enchufe {socket}"
       }
     },
     "switch": {
@@ -1202,11 +1471,32 @@
       "slm": {
         "name": "Controlador de volumen"
       },
-      "socket_on_off": {
-        "name": "Toma {socket}"
-      },
       "use_cloud_api": {
         "name": "Usar API en la nube"
+      },
+      "socket_0_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_1_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_2_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_3_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_4_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_5_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_6_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_7_on_off": {
+        "name": "Interruptor enchufe {socket}"
       }
     },
     "text": {
@@ -1228,8 +1518,29 @@
       "pump_name": {
         "name": "Nombre de la bomba"
       },
-      "socket_name": {
-        "name": "Nombre toma {socket}"
+      "socket_0_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_1_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_2_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_3_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_4_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_5_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_6_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_7_name": {
+        "name": "Nombre enchufe {socket}"
       }
     },
     "time": {

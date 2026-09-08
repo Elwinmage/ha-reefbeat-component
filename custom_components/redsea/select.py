@@ -315,7 +315,7 @@ async def async_setup_entry(
             power_descs.append(
                 ReefPowerSocketModeSelectEntityDescription(
                     key=f"socket_{socket_idx}_mode",
-                    translation_key="socket_mode",
+                    translation_key=f"socket_{socket_idx}_mode",
                     translation_placeholders={"socket": str(socket_idx + 1)},
                     icon="mdi:power-settings",
                     value_name=(

@@ -192,7 +192,7 @@ async def async_setup_entry(
             power_descs.append(
                 ReefPowerSocketNameTextEntityDescription(
                     key=f"socket_{socket_idx}_name",
-                    translation_key="socket_name",
+                    translation_key=f"socket_{socket_idx}_name",
                     translation_placeholders={"socket": str(socket_idx + 1)},
                     value_name=(
                         "$.sources[?(@.name=='/dashboard')].data.sockets"

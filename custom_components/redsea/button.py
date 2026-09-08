@@ -537,7 +537,7 @@ async def async_setup_entry(
             control_unsub_buttons.append(
                 ReefBeatButtonEntityDescription(
                     key=f"socket_{socket_idx}_unsubscribe",
-                    translation_key="socket_unsubscribe",
+                    translation_key=f"socket_{socket_idx}_unsubscribe",
                     translation_placeholders={"socket": str(socket_idx + 1)},
                     exists_fn=lambda _: True,
                     press_fn=(
@@ -566,7 +566,7 @@ async def async_setup_entry(
             socket_delete_buttons.append(
                 ReefBeatButtonEntityDescription(
                     key=f"socket_{socket_idx}_delete",
-                    translation_key="socket_delete",
+                    translation_key=f"socket_{socket_idx}_delete",
                     translation_placeholders={"socket": str(socket_idx + 1)},
                     exists_fn=lambda _: True,
                     press_fn=(
@@ -580,7 +580,7 @@ async def async_setup_entry(
                     ),
                     dependency_values=["setup"],
                     dependency_reverse=True,
-                    icon="mdi:power-socket-off",
+                    icon="mdi:delete",
                     entity_category=EntityCategory.CONFIG,
                 )
             )

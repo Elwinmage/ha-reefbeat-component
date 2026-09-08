@@ -296,12 +296,6 @@
       "setup_finish": {
         "name": "Finish setup"
       },
-      "socket_delete": {
-        "name": "Uninstall socket {socket}"
-      },
-      "socket_unsubscribe": {
-        "name": "Unsubscribe socket {socket}"
-      },
       "start_calibration": {
         "name": "Start  Calibration"
       },
@@ -316,6 +310,54 @@
       },
       "test_calibration": {
         "name": "Test new Calibration"
+      },
+      "socket_0_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_1_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_2_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_3_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_4_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_5_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_6_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_7_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_0_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_1_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_2_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_3_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_4_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_5_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_6_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_7_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
       }
     },
     "light": {
@@ -519,7 +561,13 @@
           "un": "Uniform"
         }
       },
-      "socket_mode": {
+      "supplements": {
+        "name": "Supplements",
+        "state": {
+          "other": "Other"
+        }
+      },
+      "socket_0_mode": {
         "name": "Socket {socket} mode",
         "state": {
           "off": "Off",
@@ -528,10 +576,67 @@
           "sensor": "Sensor"
         }
       },
-      "supplements": {
-        "name": "Supplements",
+      "socket_1_mode": {
+        "name": "Socket {socket} mode",
         "state": {
-          "other": "Other"
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
         }
       }
     },
@@ -937,18 +1042,6 @@
       "skim_last_calibration": {
         "name": "Last Overskimming Calibration"
       },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
       "state": {
         "name": "State",
         "state": {
@@ -1090,6 +1183,182 @@
       },
       "zip_code": {
         "name": "ZIP Code"
+      },
+      "socket_0_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_1_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_2_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_3_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_4_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_5_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_6_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_7_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_0_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_1_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_2_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_3_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_4_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_5_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_6_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_7_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_0_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_0_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_1_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_2_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_3_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_4_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_5_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_6_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_7_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_0_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_1_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_2_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_3_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_4_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_5_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_6_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_7_consumption": {
+        "name": "Socket {socket} consumption"
       }
     },
     "switch": {
@@ -1210,11 +1479,32 @@
       "slm": {
         "name": "Volume Controller"
       },
-      "socket_on_off": {
-        "name": "Socket {socket}"
-      },
       "use_cloud_api": {
         "name": "Use cloud API"
+      },
+      "socket_0_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_1_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_2_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_3_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_4_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_5_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_6_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_7_on_off": {
+        "name": "Socket {socket} switch"
       }
     },
     "text": {
@@ -1236,7 +1526,28 @@
       "pump_name": {
         "name": "Pump name"
       },
-      "socket_name": {
+      "socket_0_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_1_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_2_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_3_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_4_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_5_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_6_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_7_name": {
         "name": "Socket {socket} name"
       }
     },

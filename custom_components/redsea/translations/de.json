@@ -296,12 +296,6 @@
       "setup_finish": {
         "name": "Einrichtung abschließen"
       },
-      "socket_delete": {
-        "name": "Steckdose {socket} deinstallieren"
-      },
-      "socket_unsubscribe": {
-        "name": "Steckdose {socket} abmelden"
-      },
       "start_calibration": {
         "name": "Kalibrierung starten"
       },
@@ -316,6 +310,54 @@
       },
       "test_calibration": {
         "name": "Neue Kalibrierung testen"
+      },
+      "socket_0_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_1_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_2_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_3_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_4_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_5_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_6_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_7_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_0_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_1_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_2_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_3_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_4_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_5_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_6_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_7_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
       }
     },
     "light": {
@@ -519,19 +561,82 @@
           "un": "Gleichmäßig"
         }
       },
-      "socket_mode": {
-        "name": "Modus Steckdose {socket}",
-        "state": {
-          "off": "Aus",
-          "on": "Ein",
-          "schedule": "Zeitplan",
-          "sensor": "Sensor"
-        }
-      },
       "supplements": {
         "name": "Nahrungsergänzungsmittel",
         "state": {
           "other": "Sonstige"
+        }
+      },
+      "socket_0_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
         }
       }
     },
@@ -929,18 +1034,6 @@
       "skim_last_calibration": {
         "name": "Letzte Abschäum-Kalibrierung"
       },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
       "state": {
         "name": "Zustand",
         "state": {
@@ -1082,6 +1175,182 @@
       },
       "zip_code": {
         "name": "Postleitzahl"
+      },
+      "socket_0_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_1_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_2_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_3_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_4_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_5_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_6_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_7_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_0_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_1_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_2_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_3_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_4_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_5_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_6_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_7_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_0_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_0_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_1_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_2_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_3_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_4_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_5_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_6_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_7_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_0_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_1_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_2_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_3_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_4_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_5_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_6_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_7_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
       }
     },
     "switch": {
@@ -1202,11 +1471,32 @@
       "slm": {
         "name": "Volumenregler"
       },
-      "socket_on_off": {
-        "name": "Steckdose {socket}"
-      },
       "use_cloud_api": {
         "name": "Cloud-API verwenden"
+      },
+      "socket_0_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_1_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_2_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_3_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_4_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_5_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_6_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_7_on_off": {
+        "name": "Steckdose {socket} Schalter"
       }
     },
     "text": {
@@ -1228,8 +1518,29 @@
       "pump_name": {
         "name": "Pumpenname"
       },
-      "socket_name": {
-        "name": "Name Steckdose {socket}"
+      "socket_0_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_1_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_2_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_3_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_4_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_5_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_6_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_7_name": {
+        "name": "Steckdose {socket} Name"
       }
     },
     "time": {

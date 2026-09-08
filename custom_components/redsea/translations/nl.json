@@ -296,12 +296,6 @@
       "setup_finish": {
         "name": "Installatie voltooien"
       },
-      "socket_delete": {
-        "name": "Stopcontact {socket} verwijderen"
-      },
-      "socket_unsubscribe": {
-        "name": "Abonnement stopcontact {socket} opzeggen"
-      },
       "start_calibration": {
         "name": "Start kalibratie"
       },
@@ -316,6 +310,54 @@
       },
       "test_calibration": {
         "name": "Test nieuwe kalibratie"
+      },
+      "socket_0_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_1_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_2_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_3_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_4_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_5_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_6_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_7_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_0_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_1_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_2_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_3_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_4_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_5_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_6_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_7_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
       }
     },
     "light": {
@@ -519,19 +561,82 @@
           "un": "Uniform"
         }
       },
-      "socket_mode": {
-        "name": "Modus stopcontact {socket}",
-        "state": {
-          "off": "Uit",
-          "on": "Aan",
-          "schedule": "Schema",
-          "sensor": "Sensor"
-        }
-      },
       "supplements": {
         "name": "Supplementen",
         "state": {
           "other": "Overig"
+        }
+      },
+      "socket_0_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor"
         }
       }
     },
@@ -937,18 +1042,6 @@
       "skim_last_calibration": {
         "name": "Laatste afschuim-kalibratie"
       },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
       "state": {
         "name": "Staat",
         "state": {
@@ -1090,6 +1183,182 @@
       },
       "zip_code": {
         "name": "Postcode"
+      },
+      "socket_0_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_1_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_2_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_3_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_4_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_5_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_6_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_7_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_0_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_1_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_2_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_3_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_4_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_5_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_6_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_7_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_0_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_0_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_1_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_2_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_3_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_4_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_5_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_6_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_7_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_0_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_1_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_2_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_3_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_4_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_5_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_6_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_7_consumption": {
+        "name": "Stopcontact {socket} verbruik"
       }
     },
     "switch": {
@@ -1210,11 +1479,32 @@
       "slm": {
         "name": "Volumecontroller"
       },
-      "socket_on_off": {
-        "name": "Stopcontact {socket}"
-      },
       "use_cloud_api": {
         "name": "Gebruik cloud-API"
+      },
+      "socket_0_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_1_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_2_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_3_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_4_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_5_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_6_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_7_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
       }
     },
     "text": {
@@ -1236,8 +1526,29 @@
       "pump_name": {
         "name": "Pompnaam"
       },
-      "socket_name": {
-        "name": "Naam stopcontact {socket}"
+      "socket_0_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_1_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_2_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_3_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_4_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_5_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_6_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_7_name": {
+        "name": "Stopcontact {socket} naam"
       }
     },
     "time": {

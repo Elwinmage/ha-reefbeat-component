@@ -27,7 +27,7 @@ async def test_dose_switch_device_info_adds_head_suffix() -> None:
         key="dose",
         translation_key="dose",
         value_name="$.local.x",
-        icon="mdi:on",
+        icon="mdi:power",
         head=2,
     )
 
@@ -46,7 +46,7 @@ async def test_dose_switch_device_info_head_zero_returns_base() -> None:
         key="dose",
         translation_key="dose",
         value_name="$.local.x",
-        icon="mdi:on",
+        icon="mdi:power",
         head=0,
     )
     entity = ReefDoseSwitchEntity(cast(Any, device), desc)
@@ -71,7 +71,7 @@ async def test_dose_switch_device_info_copies_fields_and_via_device() -> None:
         key="dose",
         translation_key="dose",
         value_name="$.local.x",
-        icon="mdi:on",
+        icon="mdi:power",
         head=1,
     )
 
@@ -99,7 +99,7 @@ async def test_dose_switch_notify_and_pushes_head(hass: Any) -> None:
         key="dose",
         translation_key="dose",
         value_name="event.name",
-        icon="mdi:on",
+        icon="mdi:power",
         head=2,
         notify=True,
     )
@@ -132,7 +132,7 @@ async def test_dose_switch_turn_off_notify_and_pushes_head(hass: Any) -> None:
         key="dose",
         translation_key="dose",
         value_name="event.name",
-        icon="mdi:on",
+        icon="mdi:power",
         head=1,
         notify=True,
     )
