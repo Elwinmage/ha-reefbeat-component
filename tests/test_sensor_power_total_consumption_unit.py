@@ -162,3 +162,90 @@ def test_total_consumption_description_is_a_power_measurement() -> None:
     assert description.native_unit_of_measurement == "W"
     assert description.device_class == "power"
     assert description.state_class == "measurement"
+
+
+# ---------------------------------------------------------------------------
+# connected_device fan-out (RSPOWER paired with a ReefControl hub)
+# ---------------------------------------------------------------------------
+
+
+class _FakeConnectedDevice:
+    """A device answering /dashboard connected_device lookups from a dict.
+
+    `payload` is what the hub sub-object holds, or None when nothing was ever
+    paired — the state a strip reports before it meets a ReefControl.
+    """
+
+    def __init__(self, payload: dict[str, Any] | None) -> None:
+        self.payload = payload
+        self.calls: list[tuple[str, bool]] = []
+
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
+        self.calls.append((name, is_None_possible))
+        if "connected_device." not in name:
+            return None
+        field = name.rsplit("connected_device.", 1)[1]
+        if self.payload is None:
+            return None
+        return self.payload.get(field)
+
+
+_PAIRED = {
+    "type": "control",
+    "hwid": "d4e9f4e89208",
+    "status": "connected",
+    "internet_connected": True,
+}
+
+
+def _sensor(key: str) -> Any:
+    return next(d for d in sensor_platform.POWER_SENSORS if d.key == key)
+
+
+@pytest.mark.parametrize(
+    ("key", "expected"),
+    [
+        ("connected_control", "d4e9f4e89208"),
+        ("connected_control_type", "control"),
+        ("connected_control_status", "connected"),
+    ],
+)
+def test_connected_device_fields_are_exposed(key: str, expected: str) -> None:
+    """Every field of the paired hub reaches its own sensor."""
+    device = _FakeConnectedDevice(_PAIRED)
+
+    assert _sensor(key).value_fn(cast(Any, device)) == expected
+
+
+@pytest.mark.parametrize(
+    "key",
+    ["connected_control", "connected_control_type", "connected_control_status"],
+)
+def test_connected_device_absent_is_quiet(key: str) -> None:
+    """An unpaired strip reports nothing rather than erroring."""
+    device = _FakeConnectedDevice(None)
+
+    assert _sensor(key).value_fn(cast(Any, device)) is None
+
+
+@pytest.mark.parametrize(
+    "key",
+    ["connected_control", "connected_control_type", "connected_control_status"],
+)
+def test_connected_device_lookups_allow_none(key: str) -> None:
+    """A null connected_device is a normal state, so the flag must be set."""
+    device = _FakeConnectedDevice(None)
+
+    _sensor(key).value_fn(cast(Any, device))
+
+    assert all(flag is True for _, flag in device.calls)
+
+
+def test_paired_hub_that_went_offline_keeps_its_identity() -> None:
+    """A hub stays identified while unreachable — that is the blinking case."""
+    device = _FakeConnectedDevice({**_PAIRED, "status": "disconnected"})
+
+    assert _sensor("connected_control").value_fn(cast(Any, device)) == ("d4e9f4e89208")
+    assert _sensor("connected_control_status").value_fn(cast(Any, device)) == (
+        "disconnected"
+    )

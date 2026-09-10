@@ -1151,6 +1151,26 @@ POWER_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     ReefBeatSensorEntityDescription(
+        key="connected_control_type",
+        translation_key="connected_control_type",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.type",
+            is_None_possible=True,
+        ),
+        icon="mdi:devices",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="connected_control_status",
+        translation_key="connected_control_status",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.status",
+            is_None_possible=True,
+        ),
+        icon="mdi:lan-connect",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription(
         key="total_consumption",
         translation_key="total_consumption",
         icon="mdi:flash",

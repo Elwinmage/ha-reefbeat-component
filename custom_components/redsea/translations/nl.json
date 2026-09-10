@@ -140,6 +140,12 @@
       },
       "water_level": {
         "name": "Waterniveau"
+      },
+      "control_paired": {
+        "name": "Control gekoppeld"
+      },
+      "control_internet_connected": {
+        "name": "Control internet"
       }
     },
     "button": {
@@ -1362,6 +1368,12 @@
       },
       "total_consumption": {
         "name": "Totaal verbruik"
+      },
+      "connected_control_type": {
+        "name": "Type verbonden control"
+      },
+      "connected_control_status": {
+        "name": "Status verbonden control"
       }
     },
     "switch": {

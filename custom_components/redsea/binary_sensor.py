@@ -306,6 +306,38 @@ POWER_SENSORS: tuple[
         icon="mdi:link-variant",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
+    ReefBeatBinarySensorEntityDescription(
+        key="control_paired",
+        translation_key="control_paired",
+        # Pairing and reachability are two different states: a ReefControl
+        # stays paired while it is offline, and `connected_device` is null
+        # only when no hub was ever paired. Both are needed to tell "no hub"
+        # apart from "hub down", which the card shows differently.
+        value_fn=lambda device: (
+            device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid",
+                is_None_possible=True,
+            )
+            is not None
+        ),
+        icon="mdi:link-variant",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key="control_internet_connected",
+        translation_key="control_internet_connected",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        value_fn=lambda device: (
+            device.get_data(
+                "$.sources[?(@.name=='/dashboard')]"
+                ".data.connected_device.internet_connected",
+                is_None_possible=True,
+            )
+            is True
+        ),
+        icon="mdi:web",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
 )
 
 # ReefControl binary sensors (read-only)

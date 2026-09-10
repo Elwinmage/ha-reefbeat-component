@@ -139,6 +139,12 @@
       },
       "water_level": {
         "name": "Niveau d'eau"
+      },
+      "control_paired": {
+        "name": "Control appairé"
+      },
+      "control_internet_connected": {
+        "name": "Internet du control"
       }
     },
     "button": {
@@ -1354,6 +1360,12 @@
       },
       "total_consumption": {
         "name": "Consommation totale"
+      },
+      "connected_control_type": {
+        "name": "Type de control connecté"
+      },
+      "connected_control_status": {
+        "name": "État du control connecté"
       }
     },
     "switch": {
