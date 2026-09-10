@@ -1359,6 +1359,9 @@
       },
       "socket_7_consumption": {
         "name": "Socket {socket} consumption"
+      },
+      "total_consumption": {
+        "name": "Total consumption"
       }
     },
     "switch": {

@@ -1150,7 +1150,41 @@ POWER_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         icon="mdi:link-variant",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
+    ReefBeatSensorEntityDescription(
+        key="total_consumption",
+        translation_key="total_consumption",
+        icon="mdi:flash",
+        native_unit_of_measurement=UnitOfPower.WATT,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+        value_fn=lambda device: _total_power_consumption(device),
+    ),
 )
+
+
+def _total_power_consumption(device: ReefBeatCoordinator) -> float | None:
+    """Sum the consumption of every socket on a ReefPower device.
+
+    Returns None when no socket reports a valid wattage (the entity shows
+    as unavailable rather than 0 W in that case).
+    """
+    count = getattr(device, "socket_count", 0)
+    total: float = 0.0
+    any_valid = False
+    for idx in range(count):
+        raw = device.get_data(
+            f"$.sources[?(@.name=='/dashboard')].data.sockets[{idx}].consumption",
+            is_None_possible=True,
+        )
+        if raw is not None:
+            try:
+                total += float(raw)
+                any_valid = True
+            except (TypeError, ValueError):
+                pass
+    return round(total, 1) if any_valid else None
+
 
 # -----------------------------------------------------------------------------
 # ReefControl hub (RSCONTROLPRO, RSCONTROLLITE) — read-only sensors

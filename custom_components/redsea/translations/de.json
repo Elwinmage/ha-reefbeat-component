@@ -1351,6 +1351,9 @@
       },
       "socket_7_consumption": {
         "name": "Steckdose {socket} Verbrauch"
+      },
+      "total_consumption": {
+        "name": "Gesamtverbrauch"
       }
     },
     "switch": {

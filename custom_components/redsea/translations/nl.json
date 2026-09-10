@@ -1359,6 +1359,9 @@
       },
       "socket_7_consumption": {
         "name": "Stopcontact {socket} verbruik"
+      },
+      "total_consumption": {
+        "name": "Totaal verbruik"
       }
     },
     "switch": {

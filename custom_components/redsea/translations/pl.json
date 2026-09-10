@@ -1351,6 +1351,9 @@
       },
       "socket_7_consumption": {
         "name": "Gniazdko {socket} zużycie"
+      },
+      "total_consumption": {
+        "name": "Całkowite zużycie"
       }
     },
     "switch": {

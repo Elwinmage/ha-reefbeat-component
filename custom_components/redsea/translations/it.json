@@ -1351,6 +1351,9 @@
       },
       "socket_7_consumption": {
         "name": "Consumo presa {socket}"
+      },
+      "total_consumption": {
+        "name": "Consumo totale"
       }
     },
     "switch": {
