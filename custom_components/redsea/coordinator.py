@@ -62,6 +62,7 @@ from .const import (
     LINKED_LED,
     REFRESH_DEVICE_DELAY,
     SCAN_INTERVAL,
+    SCHEDULE_REFRESH_DELAY,
     VIRTUAL_LED,
     WAVES_LIBRARY,
 )
@@ -1415,15 +1416,23 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the ReefPower coordinator and its API."""
         super().__init__(hass, entry)
-        self.my_api = ReefPowerAPI(self._ip, self._live_config_update, self._session)
 
         # Derive socket count from the trailing digits of the hw_model
         # (RSPOWER6 -> 6, RSPOWER8 -> 8). Default to 6 for unknown variants.
+        # Resolved before the API is built: it decides how many per-socket
+        # schedule endpoints get registered as sources.
         hw_model = str(entry.data.get(CONFIG_FLOW_HW_MODEL, ""))
         try:
             self.socket_count: int = int(hw_model.replace("RSPOWER", "").strip() or "6")
         except (ValueError, TypeError):
             self.socket_count = 6
+
+        self.my_api = ReefPowerAPI(
+            self._ip,
+            self._live_config_update,
+            self._session,
+            socket_count=self.socket_count,
+        )
 
     async def set_socket_mode(self, number: int, mode: str) -> None:
         """Set a socket's mode (off/on/schedule) and refresh.
@@ -1478,9 +1487,14 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
     async def set_socket_schedule(
         self, number: int, intervals: list[dict[str, int]]
     ) -> None:
-        """Set a socket's daily schedule and refresh."""
+        """Set a socket's daily schedule and refresh.
+
+        The schedule lives on a config endpoint, so a plain refresh would not
+        read it back; and the strip needs a moment before it serves the new
+        programme rather than the previous one.
+        """
         await cast(ReefPowerAPI, self.my_api).set_socket_schedule(number, intervals)
-        await self.async_request_refresh()
+        await self.async_request_refresh(config=True, wait=SCHEDULE_REFRESH_DELAY)
 
     async def setup_finish(self) -> None:
         """Leave setup mode (device switches to auto) and refresh."""

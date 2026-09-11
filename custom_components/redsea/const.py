@@ -89,6 +89,11 @@ DO_NOT_REFRESH_TIME: Final[int] = 2  # seconds
 REFRESH_DEVICE_DELAY: Final[int] = (
     2  # Time to wait for device to take data refresh into account
 )
+
+# A socket schedule is stored, not applied: the strip acknowledges the PUT
+# before the new programme shows up on its config endpoint, so reading back
+# too early returns the previous one.
+SCHEDULE_REFRESH_DELAY: Final[int] = 3  # seconds
 # Switching a pump to (or from) sensor control makes it ramp to a new speed:
 # wait a bit longer before reading /dashboard back
 SENSOR_CONTROLLED_REFRESH_DELAY: Final[int] = 3

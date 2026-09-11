@@ -48,18 +48,27 @@ class ReefPowerAPI(ReefBeatAPI):
         ip: str,
         live_config_update: bool,
         session: aiohttp.ClientSession,
+        socket_count: int = 6,
     ) -> None:
         """Initialize the ReefPower API wrapper.
 
         Registers `/configuration` and `/sockets/config` as config sources so
         that socket limits, LED colors, current thresholds and per-socket
         mode/name are polled with config refreshes.
+
+        Each socket's on/off programme is registered too, so it is already in
+        hand when something asks for it. `socket_count` decides how many:
+        polling a socket the model does not have would add a failing request
+        to every config refresh.
         """
         super().__init__(ip, live_config_update, session)
 
         # Register extra config sources (polled on config refreshes).
+        names = ["/configuration", "/sockets/config"]
+        names.extend(f"/socket/{idx}/config/schedule" for idx in range(socket_count))
+
         sources = cast(list[SourceEntry], self.data.get("sources", []))
-        for name in ("/configuration", "/sockets/config"):
+        for name in names:
             sources.insert(
                 len(sources),
                 {"name": name, "type": "config", "data": ""},

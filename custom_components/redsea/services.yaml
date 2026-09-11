@@ -55,6 +55,31 @@ request:
       default: "{}"
       selector:
         text:
+    refresh:
+      required: false
+      description: >-
+        Re-read the device after a write, so the coordinator does not hold
+        stale data until its next poll. Ignored for "get". Use "config" for
+        endpoints served as configuration, such as a socket schedule.
+      example: "config"
+      selector:
+        select:
+          options:
+            - "data"
+            - "config"
+    wait:
+      required: false
+      description: >-
+        Seconds to wait before re-reading. Several endpoints acknowledge a
+        write before they serve the new value back, so reading immediately
+        returns the previous one.
+      default: 2
+      example: 3
+      selector:
+        number:
+          min: 0
+          max: 30
+          unit_of_measurement: seconds
 
 # Reset a maintenance task: stamps "now" as the new last_reset for the
 # (device, task) instance and recomputes derived values (days_left, overdue).

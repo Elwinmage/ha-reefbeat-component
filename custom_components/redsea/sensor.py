@@ -166,6 +166,11 @@ class ReefBeatSensorEntityDescription(SensorEntityDescription):
 
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_fn: Callable[[ReefBeatCoordinator], SensorNativeValue]
+    # Optional extra attribute, read by JSONPath. Used to carry a schedule
+    # alongside its mode sensor so a card reads it from the state machine
+    # instead of issuing its own request.
+    with_attr_name: str | None = None
+    with_attr_value: str | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -2002,6 +2007,15 @@ async def async_setup_entry(
                         icon="mdi:cog-outline",
                         value_fn=lambda d, p=f"{base}.mode": d.get_data(
                             p, is_None_possible=True
+                        ),
+                        # The socket's on/off programme travels with its mode,
+                        # the same way a dosing head carries its schedule. A
+                        # card opening the editor then reads what it already
+                        # has instead of waiting on a request of its own.
+                        with_attr_name="schedule",
+                        with_attr_value=(
+                            f"$.sources[?(@.name=='/socket/{socket_idx}"
+                            "/config/schedule')].data"
                         ),
                     ),
                     ReefBeatSensorEntityDescription(
