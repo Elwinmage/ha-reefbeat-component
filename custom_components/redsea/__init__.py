@@ -312,26 +312,24 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             "headers": dict(r.get("headers", {})),
         }
 
-        # A write leaves the coordinator holding stale data until the next
-        # poll. Refreshing is opt-in so existing callers keep their timing:
-        # the wait exists because several endpoints acknowledge a write
-        # before they serve the new value back.
-        refresh = call.data.get("refresh")
-        if refresh and method != "get":
-            wait = call.data.get("wait", REFRESH_DEVICE_DELAY)
-            try:
-                wait = max(0, int(wait))
-            except (TypeError, ValueError):
-                wait = REFRESH_DEVICE_DELAY
-            await device.async_request_refresh(
-                config=str(refresh).lower() == "config", wait=wait
-            )
-
         if "json" in r:
             resp["json"] = r.get("json")
         else:
             resp["text"] = r.get("text", "")
-        await device.async_request_refresh(config=True)
+        # The coordinator is always re-read before returning, so a caller
+        # never sees the data it just replaced. `refresh` chooses which
+        # sources and `wait` how long to let the device settle first: several
+        # endpoints acknowledge a write before they serve the new value back.
+        # Both default to the long-standing behaviour.
+        kind = call.data.get("refresh")
+        wait = call.data.get("wait", REFRESH_DEVICE_DELAY)
+        try:
+            wait = max(0, int(wait))
+        except (TypeError, ValueError):
+            wait = REFRESH_DEVICE_DELAY
+        await device.async_request_refresh(
+            config=kind is None or str(kind).lower() == "config", wait=wait
+        )
         return resp
 
     _LOGGER.debug("Registering service redsea.request")

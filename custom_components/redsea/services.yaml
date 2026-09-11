@@ -58,9 +58,11 @@ request:
     refresh:
       required: false
       description: >-
-        Re-read the device after a write, so the coordinator does not hold
-        stale data until its next poll. Ignored for "get". Use "config" for
-        endpoints served as configuration, such as a socket schedule.
+        Which sources to re-read once the request has been sent. The device
+        is always re-read; this only chooses what. Defaults to "config",
+        which covers endpoints served as configuration such as a socket
+        schedule.
+      default: "config"
       example: "config"
       selector:
         select:
@@ -70,9 +72,9 @@ request:
     wait:
       required: false
       description: >-
-        Seconds to wait before re-reading. Several endpoints acknowledge a
-        write before they serve the new value back, so reading immediately
-        returns the previous one.
+        Seconds to let the device settle before re-reading. Several endpoints
+        acknowledge a write before they serve the new value back, so reading
+        immediately returns the previous one.
       default: 2
       example: 3
       selector:

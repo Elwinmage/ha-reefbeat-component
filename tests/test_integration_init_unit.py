@@ -21,6 +21,7 @@ from custom_components.redsea.const import (
     HW_POWER_IDS,
     HW_RUN_IDS,
     HW_WAVE_IDS,
+    REFRESH_DEVICE_DELAY,
     VIRTUAL_LED,
 )
 from custom_components.redsea.coordinator import (
@@ -153,11 +154,15 @@ class _FakeDevice:
     title: str = "DeviceTitle"
 
     refreshed: list[str | None] = field(default_factory=list)
+    # How each refresh was asked for, so the service's opt-in re-read can be
+    # checked rather than just its occurrence.
+    refresh_calls: list[tuple[bool, int]] = field(default_factory=list)
 
     async def async_request_refresh(
         self, source: str | None = None, config: bool = False, wait: int = 2
     ) -> None:
         self.refreshed.append(source)
+        self.refresh_calls.append((config, wait))
 
 
 @pytest.mark.asyncio
@@ -244,3 +249,92 @@ async def test_request_service_get_and_send(hass: HomeAssistant) -> None:
     assert resp2["ok"] is True
     assert resp2["status"] == 201
     assert "text" in resp2
+
+
+# ---------------------------------------------------------------------------
+# request service: choosing how the coordinator is re-read
+# ---------------------------------------------------------------------------
+#
+# The handler has always re-read the device before returning, so a caller
+# never sees the data it just replaced. `refresh` and `wait` only steer that
+# existing read: which sources it covers, and how long to let the device
+# settle first — several endpoints acknowledge a write before they serve the
+# new value back, a socket schedule among them.
+
+
+async def _call_request(hass: HomeAssistant, **data: Any) -> _FakeDevice:
+    """Register a fake device, call the service against it, return the fake."""
+    assert await redsea_init.async_setup(hass, {})
+    fake = _FakeDevice(my_api=_FakeAPI(get_called=[], send_called=[]))
+    hass.data.setdefault(DOMAIN, {})["dev1"] = fake
+
+    payload: dict[str, Any] = {"device_id": "dev1", "access_path": "/x"}
+    payload.update(data)
+    await hass.services.async_call(
+        DOMAIN, "request", payload, blocking=True, return_response=True
+    )
+    return fake
+
+
+@pytest.mark.asyncio
+async def test_request_refreshes_config_by_default(hass: HomeAssistant) -> None:
+    """Asking for nothing keeps the behaviour callers have always had."""
+    fake = await _call_request(hass, method="put")
+
+    assert fake.refresh_calls == [(True, REFRESH_DEVICE_DELAY)]
+
+
+@pytest.mark.asyncio
+async def test_request_refresh_honours_an_explicit_wait(
+    hass: HomeAssistant,
+) -> None:
+    """A caller that knows its endpoint is slow can lengthen the wait."""
+    fake = await _call_request(hass, method="put", refresh="config", wait=3)
+
+    assert fake.refresh_calls == [(True, 3)]
+
+
+@pytest.mark.asyncio
+async def test_request_refresh_data_skips_config_sources(
+    hass: HomeAssistant,
+) -> None:
+    """Asking for a data read leaves the config sources alone."""
+    fake = await _call_request(hass, method="put", refresh="data")
+
+    assert fake.refresh_calls == [(False, REFRESH_DEVICE_DELAY)]
+
+
+@pytest.mark.asyncio
+async def test_request_refresh_unknown_kind_reads_data(hass: HomeAssistant) -> None:
+    """Only "config" selects the config sources; anything else is a data read."""
+    fake = await _call_request(hass, method="put", refresh="whatever")
+
+    assert fake.refresh_calls == [(False, REFRESH_DEVICE_DELAY)]
+
+
+@pytest.mark.asyncio
+async def test_request_refresh_unusable_wait_falls_back(
+    hass: HomeAssistant,
+) -> None:
+    """A wait that is not a number must not take the whole call down."""
+    fake = await _call_request(hass, method="put", refresh="config", wait="soon")
+
+    assert fake.refresh_calls == [(True, REFRESH_DEVICE_DELAY)]
+
+
+@pytest.mark.asyncio
+async def test_request_refresh_negative_wait_is_clamped(
+    hass: HomeAssistant,
+) -> None:
+    """A negative wait means no wait, not a delay running backwards."""
+    fake = await _call_request(hass, method="put", refresh="config", wait=-5)
+
+    assert fake.refresh_calls == [(True, 0)]
+
+
+@pytest.mark.asyncio
+async def test_request_get_also_refreshes(hass: HomeAssistant) -> None:
+    """Reads re-read too, as they always have."""
+    fake = await _call_request(hass, method="get", refresh="config")
+
+    assert fake.refresh_calls == [(True, REFRESH_DEVICE_DELAY)]
