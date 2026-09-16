@@ -26,7 +26,7 @@ we use `device.async_add_listener(...)` and update state from device cache.
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Any, Protocol, cast, runtime_checkable
@@ -70,7 +70,12 @@ from .coordinator import (
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
 )
-from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
+from .entity import (
+    MaintenanceLabelMixin,
+    ReefBeatRestoreEntity,
+    ReefRoleMixin,
+    RestoreSpec,
+)
 from .maintenance import (
     PROBE_SCOPES,
     MaintenanceStore,
@@ -634,6 +639,96 @@ async def async_setup_entry(
             for description in port_descs
             if description.exists_fn(device)
         )
+
+        # Per-probe maintenance switch: while ON, that probe is temporarily
+        # excluded from temperature fusion/coherence/anomaly so cleaning or
+        # recalibrating it does not raise a false alarm. One switch per
+        # temperature-capable probe (dedicated temperature probe + ec/ph/ato).
+        for probe in _temperature_capable_probes(device):
+            uid = str(probe["uid"])
+            ptype = str(probe.get("type", "")).lower()
+            uid_key = f"{ptype}_" + "".join(c for c in uid.lower() if c.isalnum())
+            entities.append(
+                ReefControlProbeMaintenanceSwitchEntity(
+                    device,
+                    ReefBeatSwitchEntityDescription(
+                        key=f"probe_{uid_key}_maintenance",
+                        translation_key="probe_maintenance",
+                        translation_placeholders={"probe": probe.get("name") or uid},
+                        icon="mdi:account-wrench",
+                        icon_off="mdi:account-wrench-outline",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    uid=uid,
+                )
+            )
+
+        # Per-probe buzzer + notify (readable in /probe/config or /leak/config,
+        # so stateful) and enable (not reported, so optimistic local). All probe
+        # types; the read/write path is chosen per type by the coordinator/API.
+        control = cast(ReefControlCoordinator, device)
+        for probe in _all_probes(device):
+            uid = str(probe["uid"])
+            ptype = str(probe.get("type", "")).lower()
+            uid_key = f"{ptype}_" + "".join(c for c in uid.lower() if c.isalnum())
+            pname = probe.get("name") or uid
+
+            def _mk(pt: str, u: str):
+                return (
+                    lambda on: control.set_probe_buzzer(pt, u, on),
+                    lambda: control.probe_buzzer(pt, u),
+                    lambda on: control.set_probe_notify(pt, u, on),
+                    lambda: control.probe_notify(pt, u),
+                    lambda on: control.set_probe_enabled(pt, u, on),
+                )
+
+            buzz_w, buzz_r, notif_w, notif_r, en_w = _mk(ptype, uid)
+
+            entities.append(
+                ReefControlProbeConfigSwitchEntity(
+                    device,
+                    ReefBeatSwitchEntityDescription(
+                        key=f"probe_{uid_key}_buzzer",
+                        translation_key="probe_buzzer",
+                        translation_placeholders={"probe": pname},
+                        icon="mdi:bell-ring",
+                        icon_off="mdi:bell-off",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    write_fn=buzz_w,
+                    read_fn=buzz_r,
+                )
+            )
+            entities.append(
+                ReefControlProbeConfigSwitchEntity(
+                    device,
+                    ReefBeatSwitchEntityDescription(
+                        key=f"probe_{uid_key}_notify",
+                        translation_key="probe_notify",
+                        translation_placeholders={"probe": pname},
+                        icon="mdi:message-badge",
+                        icon_off="mdi:message-badge-outline",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    write_fn=notif_w,
+                    read_fn=notif_r,
+                )
+            )
+            entities.append(
+                ReefControlProbeConfigSwitchEntity(
+                    device,
+                    ReefBeatSwitchEntityDescription(
+                        key=f"probe_{uid_key}_enabled",
+                        translation_key="probe_enabled",
+                        translation_placeholders={"probe": pname},
+                        icon="mdi:check-circle",
+                        icon_off="mdi:cancel",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    write_fn=en_w,
+                    default_on=True,
+                )
+            )
 
         # ATO auto-fill switch per ATO port. Discovered by walking the
         # /dashboard payload (`type == "ato"` on a `ports[]` entry), same
@@ -1445,6 +1540,162 @@ class ReefControlPortSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type:
         return self._device.device_info
 
 
+# Temperature-capable probe types that participate in fusion / maintenance.
+_TEMP_CAPABLE_TYPES = ("temperature", "ec", "ph", "ato")
+
+
+def _all_probes(device: ReefBeatCoordinator) -> list[dict[str, Any]]:
+    """Every installed probe (any type) with a uid, matched dynamically."""
+    raw = device.get_data(
+        "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+    )
+    if not isinstance(raw, list):
+        return []
+    return [p for p in raw if isinstance(p, dict) and p.get("uid") and p.get("type")]
+
+
+def _temperature_capable_probes(device: ReefBeatCoordinator) -> list[dict[str, Any]]:
+    """Probes carrying a temperature reading, matched by uid (dynamic-safe)."""
+    raw = device.get_data(
+        "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+    )
+    if not isinstance(raw, list):
+        return []
+    return [
+        p
+        for p in raw
+        if isinstance(p, dict)
+        and p.get("uid")
+        and str(p.get("type", "")).lower() in _TEMP_CAPABLE_TYPES
+    ]
+
+
+# REEFCONTROL — per-probe temperature-maintenance toggle
+class ReefControlProbeMaintenanceSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """Exclude one probe from temperature fusion while it is serviced.
+
+    Purely local: the ON state lives on the coordinator (a set of uids), not on
+    the device. Restored across restarts from the last HA state.
+    """
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefBeatSwitchEntityDescription,
+        uid: str,
+    ) -> None:
+        super().__init__(
+            device,
+            restore=RestoreSpec("_attr_is_on", lambda s: s == "on"),
+        )
+        self.entity_description = cast(SwitchEntityDescription, entity_description)
+        self._device = device
+        self._uid = uid
+        self._control = cast(ReefControlCoordinator, device)
+        self._attr_unique_id = f"{device.serial}_{entity_description.key}"
+        self._attr_is_on = self._control.probe_in_maintenance(uid)
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the last state (via base) and sync it into the coordinator."""
+        await super().async_added_to_hass()
+        if self._attr_is_on:
+            self._control.set_probe_maintenance(self._uid, True)
+        self.async_write_ha_state()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._attr_is_on = self._control.probe_in_maintenance(self._uid)
+        super()._handle_coordinator_update()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        self._attr_is_on = True
+        self._control.set_probe_maintenance(self._uid, True)
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self._attr_is_on = False
+        self._control.set_probe_maintenance(self._uid, False)
+        self.async_write_ha_state()
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
+    def device_info(self) -> DeviceInfo:
+        return self._device.device_info
+
+
+# REEFCONTROL — per-probe buzzer / notify / enable toggle
+class ReefControlProbeConfigSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
+    """A probe's buzzer, notify or enabled flag.
+
+    Two modes:
+
+    - **stateful** (``read_fn`` given): buzzer / notify are readable in
+      ``/probe/config`` (or ``/leak/config``), so the shown state tracks the
+      device and the entity is unavailable when the config is absent.
+    - **optimistic** (no ``read_fn``): the hub does not report the enabled
+      state, so it is kept locally and restored across restarts.
+
+    Toggling always writes to the device via ``write_fn``.
+    """
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: ReefBeatSwitchEntityDescription,
+        write_fn: Callable[[bool], Awaitable[None]],
+        read_fn: Callable[[], bool | None] | None = None,
+        default_on: bool = True,
+    ) -> None:
+        super().__init__(
+            device,
+            restore=(
+                None
+                if read_fn is not None
+                else RestoreSpec("_attr_is_on", lambda s: s == "on")
+            ),
+        )
+        self.entity_description = cast(SwitchEntityDescription, entity_description)
+        self._device = device
+        self._write_fn = write_fn
+        self._read_fn = read_fn
+        self._attr_unique_id = f"{device.serial}_{entity_description.key}"
+        if read_fn is not None:
+            current = read_fn()
+            self._attr_is_on = bool(current) if current is not None else None
+        else:
+            self._attr_is_on = default_on
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        if self._read_fn is not None:
+            current = self._read_fn()
+            self._attr_is_on = bool(current) if current is not None else None
+        super()._handle_coordinator_update()
+
+    @property
+    def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
+        if self._read_fn is not None and self._read_fn() is None:
+            return False
+        return super().available
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        self._attr_is_on = True
+        self.async_write_ha_state()
+        await self._write_fn(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self._attr_is_on = False
+        self.async_write_ha_state()
+        await self._write_fn(False)
+
+    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
+    def device_info(self) -> DeviceInfo:
+        return self._device.device_info
+
+
 # REEFCONTROL — per-port ATO auto-fill toggle
 class ReefControlATOSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Toggle the ``auto_fill`` flag on an ATO 12V port.
@@ -1749,7 +2000,7 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
 
 # Maintenance notification switches share the ReefRoleMixin so their
 # translation_key is also exposed as `reef_role` (consumed by the custom card).
-class MaintenanceNotifySwitchEntity(ReefRoleMixin, SwitchEntity):  # type: ignore[misc]
+class MaintenanceNotifySwitchEntity(MaintenanceLabelMixin, ReefRoleMixin, SwitchEntity):  # type: ignore[misc]
     """Switch enabling/disabling overdue alerts for one maintenance task.
 
     The value lives in the persistent MaintenanceStore next to `last_reset`

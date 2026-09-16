@@ -71,6 +71,18 @@ class _FakeControlDevice:
     async def async_request_refresh(self) -> None:
         return None
 
+    # Temperature-fusion surface used by the RSCONTROL branch of the platform
+    # dispatchers. Defaults keep fusion inert (fewer than two sources) so these
+    # setup-only tests see just the base ATO/port entities.
+    def temperature_source_count(self) -> int:
+        return 0
+
+    def temperature_incoherent(self) -> bool | None:
+        return None
+
+    def fusion_attributes(self) -> dict[str, Any]:
+        return {}
+
 
 def _one_ato_port() -> list[dict[str, Any]]:
     return [

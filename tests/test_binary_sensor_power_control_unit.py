@@ -55,6 +55,18 @@ class _FakePowerDevice(_FakeCoordinator):
 class _FakeControlDevice(_FakeCoordinator):
     port_count: int = 2
 
+    # Temperature-fusion surface used by the RSCONTROL branch of the platform
+    # dispatchers. Defaults keep fusion inert (fewer than two sources) so these
+    # setup-only tests see just the base control entities.
+    def temperature_source_count(self) -> int:
+        return 0
+
+    def temperature_incoherent(self) -> bool | None:
+        return None
+
+    def fusion_attributes(self) -> dict[str, Any]:
+        return {}
+
 
 def _neutralise_other_coordinators(monkeypatch: pytest.MonkeyPatch) -> None:
     """Substitute unrelated coordinator symbols in the binary_sensor module.

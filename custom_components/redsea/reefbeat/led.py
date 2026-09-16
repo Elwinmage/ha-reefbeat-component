@@ -460,17 +460,20 @@ class ReefLedAPI(ReefBeatAPI):
         self.data["local"]["manual_trick"]["kelvin"] = new_data.get("kelvin")
         self.data["local"]["manual_trick"]["intensity"] = new_data.get("intensity")
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
+    def get_data(
+        self, name: str, is_None_possible: bool = False, cached: bool = True
+    ) -> Any:
         """Get data, with G1-only overrides for kelvin/intensity.
 
         On G1 devices, kelvin/intensity are not exposed by the device, so they are served
-        from the locally-derived `manual_trick` cache.
+        from the locally-derived `manual_trick` cache. ``cached`` is forwarded to the
+        base reader for the non-overridden paths.
         """
         if self._g1 and name == LED_KELVIN_INTERNAL_NAME:
             return self.data["local"]["manual_trick"]["kelvin"]
         if self._g1 and name == LED_INTENSITY_INTERNAL_NAME:
             return self.data["local"]["manual_trick"]["intensity"]
-        return super().get_data(name, is_None_possible)
+        return super().get_data(name, is_None_possible, cached)
 
     def update_light_ki(self) -> None:
         """For G2 (and virtual), derive white/blue from kelvin/intensity into /manual payload."""

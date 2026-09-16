@@ -146,6 +146,9 @@
       },
       "control_internet_connected": {
         "name": "Internet del control"
+      },
+      "temperature_coherent": {
+        "name": "Coerenza temperatura"
       }
     },
     "button": {
@@ -364,6 +367,12 @@
       },
       "socket_7_unsubscribe": {
         "name": "Annulla iscrizione presa {socket}"
+      },
+      "install_temperature": {
+        "name": "Aggiungi sonda temperatura"
+      },
+      "remove_temperature": {
+        "name": "Rimuovi sonda temperatura"
       }
     },
     "light": {
@@ -515,6 +524,15 @@
       },
       "wave_preview_wave_duration": {
         "name": "Ant. durata onda"
+      },
+      "temperature_coherence_threshold": {
+        "name": "Soglia di coerenza temperatura"
+      },
+      "probe_offset": {
+        "name": "Offset {probe}"
+      },
+      "temperature_offset": {
+        "name": "Offset temperatura"
       }
     },
     "select": {
@@ -643,6 +661,15 @@
           "on": "On",
           "schedule": "Schedule",
           "sensor": "Sensor"
+        }
+      },
+      "temperature_fusion_method": {
+        "name": "Metodo di fusione temperatura",
+        "state": {
+          "median": "Mediana",
+          "mean": "Media",
+          "min": "Minimo",
+          "max": "Massimo"
         }
       }
     },
@@ -1366,6 +1393,20 @@
       },
       "connected_control_status": {
         "name": "Stato del control connesso"
+      },
+      "temperature_fusion": {
+        "name": "Temperatura combinata"
+      },
+      "temperature_spread": {
+        "name": "Scarto di temperatura"
+      },
+      "temperature_anomaly_source": {
+        "name": "Origine anomalia temperatura",
+        "state": {
+          "ok": "OK",
+          "unknown": "Sconosciuta",
+          "maintenance": "Manutenzione"
+        }
       }
     },
     "switch": {
@@ -1512,6 +1553,18 @@
       },
       "socket_7_on_off": {
         "name": "Interruttore presa {socket}"
+      },
+      "probe_maintenance": {
+        "name": "Manutenzione {probe}"
+      },
+      "probe_buzzer": {
+        "name": "Cicalino {probe}"
+      },
+      "probe_enabled": {
+        "name": "{probe} attiva"
+      },
+      "probe_notify": {
+        "name": "Notifiche {probe}"
       }
     },
     "text": {
@@ -1575,7 +1628,8 @@
       "wifi_change_failed_connect": "Impossibile inviare le nuove credenziali Wi-Fi al dispositivo.",
       "wifi_change_failed_reset": "Impossibile riavviare il dispositivo dopo l'invio delle nuove credenziali Wi-Fi.",
       "wifi_change_failed_rediscover": "Il dispositivo si è riavviato ma non è stato trovato sulla rete. Verificare che abbia raggiunto {ssid} e riconfigurare l'IP manualmente se necessario.",
-      "wifi_change_failed_unknown": "Errore imprevisto durante il cambio di rete Wi-Fi."
+      "wifi_change_failed_unknown": "Errore imprevisto durante il cambio di rete Wi-Fi.",
+      "no_probes": "Questo hub non ha sonde da rimuovere."
     },
     "error": {
       "auth_failed": "Autenticazione fallita, verifica le credenziali",
@@ -1583,7 +1637,8 @@
       "wifi_no_networks": "Il dispositivo non segnala reti Wi-Fi disponibili.",
       "wifi_no_ssid": "Seleziona una rete prima di inviare.",
       "wifi_bad_cidr": "CIDR IPv4 non valido (atteso ad esempio 10.0.0.0/24).",
-      "wifi_manual_not_found": "Dispositivo non trovato su questa sottorete. Prova un altro CIDR oppure lascia il campo vuoto per rinunciare."
+      "wifi_manual_not_found": "Dispositivo non trovato su questa sottorete. Prova un altro CIDR oppure lascia il campo vuoto per rinunciare.",
+      "no_probe_detected": "Nessuna nuova sonda del tipo selezionato rilevata. Mettila in abbinamento e riprova."
     },
     "progress": {
       "applying": "Applicazione delle nuove credenziali Wi-Fi e ricerca del dispositivo sulla rete..."
@@ -1598,7 +1653,10 @@
         },
         "menu_options": {
           "settings": "Impostazioni dispositivo",
-          "wifi_scan": "Cambia rete Wi-Fi"
+          "wifi_scan": "Cambia rete Wi-Fi",
+          "add_probe": "Aggiungi sonda",
+          "del_probe": "Rimuovi sonda",
+          "change_probe": "Sostituisci una sonda"
         },
         "title": "Configurazione"
       },
@@ -1631,6 +1689,31 @@
         },
         "description": "Il dispositivo si è unito a {ssid} ma non è stato trovato su nessuna delle sottoreti direttamente accessibili a Home Assistant (provate: {tried_subnets}). Se sai in quale rete è finito il dispositivo e Home Assistant può raggiungerlo tramite un router, indica qui il CIDR (ad esempio 10.0.0.0/24). Lascia il campo vuoto e invia per rinunciare.",
         "title": "Localizzare il dispositivo su un'altra sottorete"
+      },
+      "add_probe": {
+        "title": "Aggiungi sonda",
+        "description": "Metti la sonda in abbinamento, scegli il tipo, poi conferma per avviare la scansione.",
+        "data": {
+          "probe_type": "Tipo di sonda"
+        }
+      },
+      "del_probe": {
+        "title": "Rimuovi sonda",
+        "description": "Seleziona la/e sonda/e da rimuovere.",
+        "data": {
+          "probes": "Sonde"
+        }
+      },
+      "change_probe": {
+        "title": "Sostituisci una sonda",
+        "description": "Scegli la sonda da sostituire, metti una nuova sonda dello stesso tipo in abbinamento e conferma. La nuova sonda eredita lo storico della vecchia.",
+        "data": {
+          "old_probe": "Sonda da sostituire"
+        }
+      },
+      "del_probe_confirm": {
+        "title": "Conferma rimozione",
+        "description": "Questo rimuove definitivamente la/e sonda/e selezionata/e e tutte le loro entità e lo storico: {probes}.\n\nConferma per continuare, o chiudi la finestra per annullare."
       }
     }
   },

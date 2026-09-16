@@ -367,14 +367,34 @@ Vedi la sezione [Manutenzione](https://github.com/Elwinmage/ha-reefbeat-componen
 </p>
 
 - Leggere tutte le sonde ReefSense collegate (pH, ORP, salinità, temperatura, ATO, perdite) con valore e livello di qualità
+- Attivazione/disattivazione del cicalino e delle notifiche per sonda, e attivazione/disattivazione del monitoraggio
 - Stato del cicalino e del rilevatore di perdite
 - Accensione/spegnimento della porta 12V DC (RSCONTROL)
+- Aggiunta, sostituzione o rimozione di sonde BLE dal menu opzioni dell'integrazione
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
 </p>
+
+## Fusione della temperatura multi-sonda
+Non appena sono presenti due o più fonti di temperatura (la sonda di temperatura dedicata più la temperatura incorporata nelle sonde EC/pH/ATO), ReefControl calcola una **temperatura combinata** robusta a partire dalle letture individuali:
+
+- **Temperatura combinata** (`sensor`): un unico valore aggregato con il metodo scelto — Mediana (predefinito), Media, Minimo o Massimo. Configurabile tramite l'entità select **Metodo di fusione temperatura**.
+- **Coerenza temperatura** (`binary_sensor`) e **Scarto di temperatura** (`sensor`, diagnostica): indicano se le fonti concordano entro la **Soglia di coerenza temperatura** (configurabile, 0,5 °C predefinita), e l'entità di un eventuale disaccordo.
+- **Origine anomalia temperatura** (`sensor`, diagnostica): `OK` quando tutte le fonti concordano, il nome della/e sonda/e sospettata/e di deriva o lettura errata, oppure `Sconosciuta` quando il disaccordo non può essere attribuito a una sonda precisa. Gli attributi del sensore elencano ogni fonte con valore, variazione in 1 ora e stato.
+- Un **interruttore di manutenzione per ogni sonda compatibile con la temperatura**: attivandolo, quella sonda viene temporaneamente esclusa dal calcolo di fusione/coerenza/anomalia, così pulizia o taratura non generano mai un falso allarme.
+- Un **offset di taratura** (`number`) per ogni sonda compatibile con la temperatura.
+
+Queste entità compaiono solo quando vengono rilevate almeno due fonti di temperatura.
+
+## Gestione delle sonde (aggiungi / sostituisci / rimuovi)
+Le sonde BLE (pH, ORP, EC, ATO, perdite, temperatura) si gestiscono dal menu **Opzioni** dell'integrazione, come nell'app Red Sea:
+
+- **Aggiungi sonda**: metti la sonda in abbinamento, scegli il tipo, poi conferma per avviare la scansione.
+- **Sostituisci una sonda**: scegli la sonda da sostituire, metti una nuova sonda dello stesso tipo in abbinamento e conferma. La nuova sonda eredita lo storico/le statistiche della vecchia.
+- **Rimuovi sonda**: seleziona una o più sonde e conferma — questo elimina definitivamente le entità della sonda e il relativo storico.
 
 ## ReefControl-Power
 

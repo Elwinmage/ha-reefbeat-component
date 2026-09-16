@@ -64,6 +64,7 @@ class ReefBeatBinarySensorEntityDescription(
     value_name: str | None = None
     with_attr_name: str | None = None
     with_attr_value: str | None = None
+    attributes_fn: Callable[[TCoord], dict[str, Any]] | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -720,6 +721,31 @@ async def async_setup_entry(
             )
         entities.extend(ReefBeatBinarySensorEntity(device, desc) for desc in leak_descs)
 
+        # Temperature coherence — a PROBLEM binary sensor that turns on when the
+        # hub's temperature readings disagree beyond the configured threshold.
+        # Only exists with at least two sources to compare.
+        entities.append(
+            ReefBeatBinarySensorEntity(
+                device,
+                ReefBeatBinarySensorEntityDescription(
+                    key="temperature_coherent",
+                    translation_key="temperature_coherent",
+                    device_class=BinarySensorDeviceClass.PROBLEM,
+                    icon="mdi:thermometer-alert",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                    exists_fn=lambda d: (
+                        cast(ReefControlCoordinator, d).temperature_source_count() >= 2
+                    ),
+                    value_fn=lambda d: cast(
+                        ReefControlCoordinator, d
+                    ).temperature_incoherent(),
+                    attributes_fn=lambda d: cast(
+                        ReefControlCoordinator, d
+                    ).fusion_attributes(),
+                ),
+            )
+        )
+
     # Common sensors (device dependent)
     if isinstance(
         device, (ReefRunCoordinator, ReefLedCoordinator, ReefDoseCoordinator)
@@ -803,6 +829,9 @@ class ReefBeatBinarySensorEntity(  # pyright: ignore[reportIncompatibleVariableO
             self._attr_extra_state_attributes = {
                 with_attr_name: self._device.get_data(with_attr_value)
             }
+        attributes_fn = getattr(self.entity_description, "attributes_fn", None)
+        if attributes_fn is not None:
+            self._attr_extra_state_attributes = attributes_fn(self._device)
         self.async_write_ha_state()
 
     def _get_value(self) -> StateType:

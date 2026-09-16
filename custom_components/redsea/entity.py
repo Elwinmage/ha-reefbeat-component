@@ -49,6 +49,41 @@ class RestoreSpec(Generic[_T]):
 
 
 # REEF ROLE MIXIN
+MAINTENANCE_LABEL = "redsea_maintenance"
+
+
+class MaintenanceLabelMixin:
+    """Tag maintenance entities with the ``redsea_maintenance`` registry label.
+
+    Lets users filter, group and target every maintenance entity across all
+    redsea devices at once (dashboards, automations). The label is (re)applied
+    when missing, so it stays enforced; it is merged with any labels the user
+    added, never replacing them.
+    """
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()  # type: ignore[misc]
+        try:
+            from homeassistant.helpers import entity_registry as er
+            from homeassistant.helpers import label_registry as lr
+
+            ent_reg = er.async_get(self.hass)  # type: ignore[attr-defined]
+            entry = ent_reg.async_get(self.entity_id)  # type: ignore[attr-defined]
+            if entry is None:
+                return
+            lab_reg = lr.async_get(self.hass)  # type: ignore[attr-defined]
+            label = lab_reg.async_get_label_by_name(MAINTENANCE_LABEL)
+            if label is None:
+                label = lab_reg.async_create(MAINTENANCE_LABEL)
+            if label.label_id not in entry.labels:
+                ent_reg.async_update_entity(
+                    self.entity_id,  # type: ignore[attr-defined]
+                    labels=entry.labels | {label.label_id},
+                )
+        except Exception:
+            pass
+
+
 class ReefRoleMixin:
     """Expose `translation_key` as a stable `reef_role` state attribute.
 

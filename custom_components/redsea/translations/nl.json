@@ -146,6 +146,9 @@
       },
       "control_internet_connected": {
         "name": "Control internet"
+      },
+      "temperature_coherent": {
+        "name": "Temperatuurcoherentie"
       }
     },
     "button": {
@@ -364,6 +367,12 @@
       },
       "socket_7_unsubscribe": {
         "name": "Stopcontact {socket} afmelden"
+      },
+      "install_temperature": {
+        "name": "Temperatuursonde toevoegen"
+      },
+      "remove_temperature": {
+        "name": "Temperatuursonde verwijderen"
       }
     },
     "light": {
@@ -515,6 +524,15 @@
       },
       "wave_preview_wave_duration": {
         "name": "Voorvertoning golfduur"
+      },
+      "temperature_coherence_threshold": {
+        "name": "Drempel temperatuurcoherentie"
+      },
+      "probe_offset": {
+        "name": "Offset {probe}"
+      },
+      "temperature_offset": {
+        "name": "Temperatuuroffset"
       }
     },
     "select": {
@@ -643,6 +661,15 @@
           "on": "On",
           "schedule": "Schedule",
           "sensor": "Sensor"
+        }
+      },
+      "temperature_fusion_method": {
+        "name": "Temperatuurfusiemethode",
+        "state": {
+          "median": "Mediaan",
+          "mean": "Gemiddelde",
+          "min": "Minimum",
+          "max": "Maximum"
         }
       }
     },
@@ -1374,6 +1401,20 @@
       },
       "connected_control_status": {
         "name": "Status verbonden control"
+      },
+      "temperature_fusion": {
+        "name": "Samengevoegde temperatuur"
+      },
+      "temperature_spread": {
+        "name": "Temperatuurspreiding"
+      },
+      "temperature_anomaly_source": {
+        "name": "Bron temperatuuranomalie",
+        "state": {
+          "ok": "OK",
+          "unknown": "Onbekend",
+          "maintenance": "Onderhoud"
+        }
       }
     },
     "switch": {
@@ -1520,6 +1561,18 @@
       },
       "socket_7_on_off": {
         "name": "Stopcontact {socket} schakelaar"
+      },
+      "probe_maintenance": {
+        "name": "Onderhoud {probe}"
+      },
+      "probe_buzzer": {
+        "name": "{probe} zoemer"
+      },
+      "probe_enabled": {
+        "name": "{probe} ingeschakeld"
+      },
+      "probe_notify": {
+        "name": "{probe} meldingen"
       }
     },
     "text": {
@@ -1583,7 +1636,8 @@
       "wifi_change_failed_connect": "Kan de nieuwe Wi-Fi-inloggegevens niet naar het apparaat sturen.",
       "wifi_change_failed_reset": "Kan het apparaat niet herstarten na het versturen van de nieuwe Wi-Fi-inloggegevens.",
       "wifi_change_failed_rediscover": "Het apparaat is opnieuw opgestart maar niet gevonden op het netwerk. Controleer of het {ssid} heeft bereikt en configureer indien nodig het IP-adres opnieuw.",
-      "wifi_change_failed_unknown": "Onverwachte fout bij het wijzigen van het Wi-Fi-netwerk."
+      "wifi_change_failed_unknown": "Onverwachte fout bij het wijzigen van het Wi-Fi-netwerk.",
+      "no_probes": "Deze hub heeft geen sondes om te verwijderen."
     },
     "error": {
       "auth_failed": "Verificatie mislukt, controleer je gegevens",
@@ -1591,7 +1645,8 @@
       "wifi_no_networks": "Het apparaat meldt geen beschikbare Wi-Fi-netwerken.",
       "wifi_no_ssid": "Kies een netwerk voordat je verzendt.",
       "wifi_bad_cidr": "Geen geldige IPv4-CIDR (verwacht bv. 10.0.0.0/24).",
-      "wifi_manual_not_found": "Apparaat niet gevonden op dat subnet. Probeer een andere CIDR of laat het veld leeg om op te geven."
+      "wifi_manual_not_found": "Apparaat niet gevonden op dat subnet. Probeer een andere CIDR of laat het veld leeg om op te geven.",
+      "no_probe_detected": "Geen nieuwe sonde van het gekozen type gedetecteerd. Zet hem in koppelmodus en probeer opnieuw."
     },
     "progress": {
       "applying": "Nieuwe Wi-Fi-inloggegevens toepassen en het apparaat op het netwerk lokaliseren..."
@@ -1606,7 +1661,10 @@
         },
         "menu_options": {
           "settings": "Apparaatinstellingen",
-          "wifi_scan": "Wi-Fi-netwerk wijzigen"
+          "wifi_scan": "Wi-Fi-netwerk wijzigen",
+          "add_probe": "Sonde toevoegen",
+          "del_probe": "Sonde verwijderen",
+          "change_probe": "Sonde vervangen"
         },
         "title": "Configuratie"
       },
@@ -1639,6 +1697,31 @@
         },
         "description": "Het apparaat heeft zich bij {ssid} aangemeld maar is niet gevonden op een van de subnetten waar Home Assistant direct op is aangesloten (geprobeerd: {tried_subnets}). Als je weet op welk netwerk het apparaat is beland en Home Assistant het via een router kan bereiken, voer hier de CIDR in (bv. 10.0.0.0/24). Laat het veld leeg en verzend om op te geven.",
         "title": "Apparaat op een ander subnet zoeken"
+      },
+      "add_probe": {
+        "title": "Sonde toevoegen",
+        "description": "Zet de sonde in koppelmodus, kies het type en bevestig om te scannen.",
+        "data": {
+          "probe_type": "Sondetype"
+        }
+      },
+      "del_probe": {
+        "title": "Sonde verwijderen",
+        "description": "Selecteer de te verwijderen sonde(s).",
+        "data": {
+          "probes": "Sondes"
+        }
+      },
+      "change_probe": {
+        "title": "Sonde vervangen",
+        "description": "Kies de te vervangen sonde, zet een nieuwe sonde van hetzelfde type in koppelmodus en bevestig. De nieuwe sonde erft de geschiedenis van de oude.",
+        "data": {
+          "old_probe": "Te vervangen sonde"
+        }
+      },
+      "del_probe_confirm": {
+        "title": "Verwijderen bevestigen",
+        "description": "Dit verwijdert de gekozen sonde(s) en al hun entiteiten en geschiedenis permanent: {probes}.\n\nBevestig om door te gaan, of sluit dit venster om te annuleren."
       }
     }
   },

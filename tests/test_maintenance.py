@@ -956,7 +956,9 @@ def test_iter_run_pumps_in_number_skips_on_exception(hass: HomeAssistant) -> Non
         def __init__(self) -> None:
             self._hw = "RSRUN"
 
-        def get_data(self, name: str, is_None_possible: bool = False) -> Any:
+        def get_data(
+            self, name: str, is_None_possible: bool = False, cached: bool = True
+        ) -> Any:
             raise RuntimeError("boom")
 
     entities: list[Any] = []

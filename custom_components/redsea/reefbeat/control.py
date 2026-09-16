@@ -79,12 +79,210 @@ class ReefControlAPI(ReefBeatAPI):
         # `is_btn_assigned` alongside the changed field, and `/dashboard`
         # carries none of those.
         sources = cast(list[SourceEntry], self.data.get("sources", []))
-        for name in ("/configuration", "/ports/config", "/subscription-info"):
+        for name in (
+            "/configuration",
+            "/ports/config",
+            "/subscription-info",
+            "/probe/config",
+        ):
             sources.insert(
                 len(sources),
                 {"name": name, "type": "config", "data": ""},
             )
         self.data["sources"] = sources
+
+    # -- Dynamic per-probe temperature-offset sources ----------------------
+    # The temperature calibration offset is read via
+    # ``GET /probe/offset?type=temperature&uid=<uid>`` — one endpoint per
+    # temperature probe. Probes come and go at runtime, so these sources are
+    # reconciled after every dashboard fetch rather than registered up front.
+    _OFFSET_PREFIX = "/probe/offset?type=temperature&uid="
+
+    @classmethod
+    def _offset_source_name(cls, uid: str) -> str:
+        return f"{cls._OFFSET_PREFIX}{uid}"
+
+    def _reconcile_probe_offset_sources(self) -> None:
+        """Keep dynamic probe-dependent sources in sync with the probes.
+
+        Two kinds: one ``/probe/offset`` source per temperature probe, and
+        ``/leak/config`` when a leak probe exists (its buzzer/notify live there,
+        not in ``/probe/config``). These are read non-positionally, so no cache
+        invalidation is needed and the fixed sources keep their front slots.
+        """
+        probes = (
+            self.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+            )
+            or []
+        )
+        wanted = {
+            self._offset_source_name(p["uid"])
+            for p in probes
+            if isinstance(p, dict)
+            and str(p.get("type", "")).lower() == "temperature"
+            and p.get("uid")
+        }
+        has_leak = any(
+            isinstance(p, dict) and str(p.get("type", "")).lower() == "leak"
+            for p in probes
+        )
+        if has_leak:
+            wanted.add("/leak/config")
+        sources = cast(list[SourceEntry], self.data.get("sources", []))
+        existing = {
+            s.get("name")
+            for s in sources
+            if str(s.get("name", "")).startswith(self._OFFSET_PREFIX)
+            or s.get("name") == "/leak/config"
+        }
+        if wanted == existing:
+            return
+        for name in wanted - existing:
+            self.add_source(name, "config", "")
+        for name in existing - wanted:
+            self.remove_source(name)
+
+    async def fetch_data(self) -> dict[str, Any]:
+        """Fetch, keeping per-probe offset sources in sync with the probes.
+
+        The dashboard is refreshed first (cheap, single source) so probe
+        presence is current, then the offset sources are reconciled *before* the
+        full fetch. This drops the endpoint of a just-removed probe before it
+        would be polled — otherwise it 404s and burns the retry budget.
+        """
+        if self.quick_refresh is None and self._live_config_update:
+            self.quick_refresh = "/dashboard"
+            await super().fetch_data()
+            self._reconcile_probe_offset_sources()
+        data = await super().fetch_data()
+        self._reconcile_probe_offset_sources()
+        return data
+
+    def probe_offset(self, uid: str) -> float | None:
+        """Cached calibration offset for a temperature probe, if known."""
+        return self.get_data(
+            f"$.sources[?(@.name=='{self._offset_source_name(uid)}')].data.offset",
+            is_None_possible=True,
+        )
+
+    async def set_probe_offset(self, uid: str, offset: float) -> HttpResult | None:
+        """Set a temperature probe's calibration offset (``POST /probe/offset``)."""
+        return await self.http_send(
+            self._offset_source_name(uid), {"offset": offset}, "post"
+        )
+
+    async def reset_probe_offset(self, uid: str) -> HttpResult | None:
+        """Clear a temperature probe's calibration offset (``DELETE``)."""
+        return await self.http_send(self._offset_source_name(uid), None, "delete")
+
+    # -- Probe install / delete --------------------------------------------
+    async def install_probe(self, ptype: str) -> HttpResult | None:
+        """Ask the hub to scan for and install a new probe of ``ptype``.
+
+        The device performs a BLE scan during the request and returns
+        ``{"uid": ..., "success": true}`` on success or ``success: false`` /
+        no uid when nothing is found. On success the BLE advertising of the new
+        probe is stopped.
+        """
+        result = await self.http_send(f"/probe/install?type={ptype}", {}, "post")
+        payload = result.get("json") if isinstance(result, dict) else None
+        uid = payload.get("uid") if isinstance(payload, dict) else None
+        if uid:
+            await self.http_send(f"/ble/off?type={ptype}&uid={uid}", {}, "post")
+        return result
+
+    async def delete_probe(self, ptype: str, uid: str) -> HttpResult | None:
+        """Remove a probe from the hub (``DELETE /probe?type&uid``)."""
+        return await self.http_send(f"/probe?type={ptype}&uid={uid}", None, "delete")
+
+    # -- Per-probe buzzer / notify (config, readable via /probe/config) ----
+    # Where each probe type's primary buzzer / notify lives:
+    #   "top"  -> top-level field in the /probe/config entry
+    #   "temp" -> under the entry's temp:{} block (ATO has no primary buzzer)
+    #   "leak" -> /leak/config (leak has no /probe/config entry)
+    _BUZZER_LOC = {
+        "temperature": "top",
+        "ec": "top",
+        "ph": "top",
+        "orp": "top",
+        "ato": "temp",
+        "leak": "leak",
+    }
+    _NOTIFY_LOC = {
+        "temperature": "top",
+        "ec": "top",
+        "ph": "top",
+        "orp": "top",
+        "ato": "top",
+        "leak": "leak",
+    }
+
+    @staticmethod
+    def probe_config_path(ptype: str, uid: str, field: str, loc: str) -> str:
+        """JSONPath to a probe's buzzer/notify, per its config location."""
+        if loc == "leak":
+            return f"$.sources[?(@.name=='/leak/config')].data.{field}"
+        entry = (
+            "$.sources[?(@.name=='/probe/config')]"
+            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]"
+        )
+        return f"{entry}.temp.{field}" if loc == "temp" else f"{entry}.{field}"
+
+    def buzzer_path(self, ptype: str, uid: str) -> str:
+        return self.probe_config_path(
+            ptype, uid, "buzzer", self._BUZZER_LOC.get(ptype, "top")
+        )
+
+    def notify_path(self, ptype: str, uid: str) -> str:
+        return self.probe_config_path(
+            ptype, uid, "notify", self._NOTIFY_LOC.get(ptype, "top")
+        )
+
+    async def _set_probe_flag(
+        self, ptype: str, uid: str, field: str, on: bool, loc: str
+    ) -> HttpResult | None:
+        # Leak buzzer/notify live in /leak/config, not /probe/config (a
+        # /probe/config write for a leak probe is rejected with HTTP 503). The
+        # firmware merges a partial body, confirmed on device:
+        #   PUT /leak/config {"buzzer": true} -> "Leak config updated".
+        if loc == "leak":
+            return await self.http_send("/leak/config", {field: on}, "put")
+        # Partial PUT (merged by the firmware); temp flags nest under temp:{}.
+        if loc == "temp":
+            probe_body: dict[str, Any] = {
+                "type": ptype,
+                "uid": uid,
+                "temp": {field: on},
+            }
+        else:
+            probe_body = {"type": ptype, "uid": uid, field: on}
+        return await self.http_send("/probe/config", [probe_body], "put")
+
+    async def set_probe_buzzer(
+        self, ptype: str, uid: str, on: bool
+    ) -> HttpResult | None:
+        """Toggle a probe's out-of-range buzzer (partial ``PUT /probe/config``)."""
+        return await self._set_probe_flag(
+            ptype, uid, "buzzer", on, self._BUZZER_LOC.get(ptype, "top")
+        )
+
+    async def set_probe_notify(
+        self, ptype: str, uid: str, on: bool
+    ) -> HttpResult | None:
+        """Toggle a probe's out-of-range push notification."""
+        return await self._set_probe_flag(
+            ptype, uid, "notify", on, self._NOTIFY_LOC.get(ptype, "top")
+        )
+
+    async def set_probe_enabled(
+        self, ptype: str, uid: str, on: bool
+    ) -> HttpResult | None:
+        """Enable (``DELETE``) or disable (``POST``) a probe's monitoring."""
+        method = "delete" if on else "post"
+        return await self.http_send(
+            f"/probe/disable?type={ptype}&uid={uid}", None, method
+        )
 
     # Wire values of `ControlPort$PortType` in the Red Sea app:
     #   NONE -> "unknown"  (port not installed yet)

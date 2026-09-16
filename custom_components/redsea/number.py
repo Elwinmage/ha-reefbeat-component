@@ -27,6 +27,7 @@ from homeassistant.const import (
     PERCENTAGE,
     EntityCategory,
     UnitOfLength,
+    UnitOfTemperature,
     UnitOfTime,
     UnitOfVolume,
 )
@@ -63,11 +64,12 @@ from .coordinator import (
     ReefLedCoordinator,
     ReefLedG2Coordinator,
     ReefMatCoordinator,
+    ReefPowerCoordinator,
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
-from .entity import ReefRoleMixin
+from .entity import MaintenanceLabelMixin, ReefRoleMixin
 from .maintenance import (
     PROBE_SCOPES,
     MaintenanceStore,
@@ -140,6 +142,7 @@ class ReefBeatNumberEntityDescription(NumberEntityDescription):
     value_name: str = ""
     dependency: str | None = None
     dependency_values: Sequence[Any] | None = None
+    dependency_reverse: bool = False
     source: str = "/configuration"
 
 
@@ -640,6 +643,31 @@ async def async_setup_entry(
             )
         )
 
+    elif isinstance(device, ReefPowerCoordinator):
+        # Local temperature probe calibration offset (°C). Always created; it
+        # becomes available once a probe is installed and unavailable when it is
+        # removed (see ReefPowerTemperatureOffsetNumberEntity.available).
+        entities.append(
+            ReefPowerTemperatureOffsetNumberEntity(
+                device,
+                ReefBeatNumberEntityDescription(
+                    key="temperature_offset",
+                    translation_key="temperature_offset",
+                    mode=NumberMode.BOX,
+                    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                    device_class=NumberDeviceClass.TEMPERATURE,
+                    native_min_value=-5,
+                    native_step=0.1,
+                    native_max_value=5,
+                    value_name=(
+                        "$.sources[?(@.name=='/temperature/config')].data.offset"
+                    ),
+                    icon="mdi:tune-vertical",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+
     elif isinstance(device, ReefControlCoordinator):
         # Per-ATO-port volume-left number. Endpoint:
         # POST /port/{n}/ato/update-volume {"volume": <mL>}.
@@ -687,7 +715,70 @@ async def async_setup_entry(
                 )
             )
 
-    # ---- Maintenance interval numbers ---------------------------------------
+        # Per-temperature-probe calibration offset (°C). One number per probe of
+        # type "temperature"; the offset is read from the per-probe
+        # /probe/offset source and written via POST /probe/offset.
+        raw_probes = device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+        )
+        temp_probes = (
+            [
+                p
+                for p in raw_probes
+                if isinstance(p, dict)
+                and str(p.get("type", "")).lower() == "temperature"
+                and p.get("uid")
+            ]
+            if isinstance(raw_probes, list)
+            else []
+        )
+        for probe in temp_probes:
+            uid = str(probe["uid"])
+            uid_key = "temperature_" + "".join(c for c in uid.lower() if c.isalnum())
+            entities.append(
+                ReefControlProbeOffsetNumberEntity(
+                    device,
+                    ReefBeatNumberEntityDescription(
+                        key=f"probe_{uid_key}_offset",
+                        translation_key="probe_offset",
+                        translation_placeholders={"probe": probe.get("name") or uid},
+                        mode=NumberMode.BOX,
+                        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                        device_class=NumberDeviceClass.TEMPERATURE,
+                        native_min_value=-5,
+                        native_step=0.1,
+                        native_max_value=5,
+                        value_name=(
+                            "$.sources[?(@.name=="
+                            f"'/probe/offset?type=temperature&uid={uid}')].data.offset"
+                        ),
+                        icon="mdi:tune-vertical",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    uid=uid,
+                )
+            )
+        # temperature sources may disagree before the coherence sensor flags a
+        # problem. Only useful with at least two temperature sources.
+        if cast(ReefControlCoordinator, device).temperature_source_count() >= 2:
+            entities.append(
+                ReefBeatNumberEntity(
+                    device,
+                    ReefBeatNumberEntityDescription(
+                        key="temperature_coherence_threshold",
+                        translation_key="temperature_coherence_threshold",
+                        mode=NumberMode.BOX,
+                        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                        device_class=NumberDeviceClass.TEMPERATURE,
+                        native_min_value=0.1,
+                        native_step=0.1,
+                        native_max_value=1,
+                        value_name="$.local.fusion.threshold",
+                        icon="mdi:arrow-expand-vertical",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                )
+            )
     # One number entity per task instance, paired with the matching button.
     # Mirrors the button's sub-device fan-out (heads / pumps).
     _add_maintenance_numbers(device, entities)
@@ -777,6 +868,9 @@ class ReefBeatNumberEntity(CoordinatorEntity[ReefBeatCoordinator], RestoreNumber
 
         if description.translation_key is not None:
             self._attr_translation_key = description.translation_key
+        placeholders = getattr(description, "translation_placeholders", None)
+        if placeholders:
+            self._attr_translation_placeholders = dict(placeholders)
         if description.icon is not None:
             self._attr_icon = description.icon
         if description.entity_category is not None:
@@ -850,9 +944,10 @@ class ReefBeatNumberEntity(CoordinatorEntity[ReefBeatCoordinator], RestoreNumber
 
         dep_value = self._device.get_data(dep, True)
         if self._description.dependency_values is None:
-            return bool(dep_value)
-
-        return dep_value in self._description.dependency_values
+            match = bool(dep_value)
+        else:
+            match = dep_value in self._description.dependency_values
+        return not match if self._description.dependency_reverse else match
 
     async def async_set_native_value(self, value: float) -> None:
         """Set a new value and push to the device."""
@@ -866,7 +961,10 @@ class ReefBeatNumberEntity(CoordinatorEntity[ReefBeatCoordinator], RestoreNumber
         self._attr_native_value = cast(float | None, f_value)
 
         self._device.set_data(self._description.value_name, f_value)
-        await self._device.push_values(self._source)
+        # Local-only values (``$.local.*``) back config entities that have no
+        # device endpoint — persist and refresh, but never push to the device.
+        if not str(self._description.value_name).startswith("$.local"):
+            await self._device.push_values(self._source)
         await self._device.async_request_refresh()
 
     @cached_property
@@ -1172,12 +1270,60 @@ class ReefControlATOVolumeLeftNumberEntity(ReefBeatNumberEntity):
         await self._device.async_request_refresh()
 
 
+class ReefControlProbeOffsetNumberEntity(ReefBeatNumberEntity):
+    """Calibration offset (°C) for one RSCONTROL temperature probe.
+
+    Displays the device-reported offset (from the per-probe
+    ``/probe/offset?type=temperature&uid=<uid>`` source) and writes it back via
+    ``POST /probe/offset``. This is the single-point offset, not the multi-point
+    calibration wizard.
+    """
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        description: ReefBeatNumberEntityDescription,
+        uid: str,
+    ) -> None:
+        super().__init__(device, description)
+        self._uid = uid
+
+    async def async_set_native_value(self, value: float) -> None:
+        self._attr_native_value = value
+        self.async_write_ha_state()
+        await cast(ReefControlCoordinator, self._device).set_probe_offset(
+            self._uid, value
+        )
+
+
+class ReefPowerTemperatureOffsetNumberEntity(ReefBeatNumberEntity):
+    """Calibration offset (°C) for the RSPower local temperature probe.
+
+    Always created; available only while a probe is installed, so it greys out
+    when the probe is removed and comes back when one is added.
+    """
+
+    @property
+    def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
+        return bool(
+            super().available
+            and cast(ReefPowerCoordinator, self._device).has_local_temperature()
+        )
+
+    async def async_set_native_value(self, value: float) -> None:
+        self._attr_native_value = value
+        self.async_write_ha_state()
+        await cast(ReefPowerCoordinator, self._device).set_temperature_offset(value)
+
+
 # =============================================================================
 # MAINTENANCE INTERVAL NUMBER
 # =============================================================================
 
 
-class MaintenanceIntervalNumberEntity(ReefRoleMixin, NumberEntity):  # type: ignore[misc]
+class MaintenanceIntervalNumberEntity(  # pyright: ignore[reportIncompatibleVariableOverride]
+    MaintenanceLabelMixin, ReefRoleMixin, NumberEntity
+):  # type: ignore[misc]
     """Number entity exposing the per-instance maintenance interval (days).
 
     The entity is a thin facade over the persistent MaintenanceStore: its

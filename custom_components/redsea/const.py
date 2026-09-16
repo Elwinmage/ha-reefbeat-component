@@ -109,6 +109,21 @@ HTTP_DELAY_BETWEEN_RETRY: Final[int] = 2
 # Options-flow menu entries
 OPTIONS_MENU_SETTINGS: Final[str] = "settings"
 OPTIONS_MENU_WIFI: Final[str] = "wifi_scan"
+OPTIONS_MENU_ADD_PROBE: Final[str] = "add_probe"
+OPTIONS_MENU_DEL_PROBE: Final[str] = "del_probe"
+OPTIONS_MENU_CHANGE_PROBE: Final[str] = "change_probe"
+# Probe types the RSCONTROL hub can install (matches the ReefBeat app).
+CONFIG_FLOW_PROBE_TYPE: Final[str] = "probe_type"
+CONFIG_FLOW_PROBES: Final[str] = "probes"
+CONFIG_FLOW_OLD_PROBE: Final[str] = "old_probe"
+CONTROL_PROBE_TYPES: Final[tuple[str, ...]] = (
+    "temperature",
+    "ph",
+    "ec",
+    "orp",
+    "ato",
+    "leak",
+)
 
 # Form field keys used by the Wi-Fi steps of the options flow
 CONFIG_FLOW_WIFI_SSID: Final[str] = "wifi_ssid"

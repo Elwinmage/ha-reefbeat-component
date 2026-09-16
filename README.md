@@ -382,8 +382,10 @@ See the [Maintenance](https://github.com/Elwinmage/ha-reefbeat-component/#mainte
 </p>
 
 - Read all connected ReefSense probes (pH, ORP, salinity, temperature, ATO, leak) with value and quality level
+- Buzzer and notifications enable/disable per probe, and monitoring enable/disable
 - Buzzer and leak-detector state
 - 12V DC port on/off toggle (RSCONTROL)
+- Add, replace or remove BLE probes from the integration's options menu
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
@@ -391,7 +393,26 @@ See the [Maintenance](https://github.com/Elwinmage/ha-reefbeat-component/#mainte
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
 </p>
 
+## Multi-probe temperature fusion
+When two or more temperature sources are present (the dedicated temperature probe plus the temperature embedded in the EC/pH/ATO probes), ReefControl computes a robust **fused temperature** on top of the individual readings:
+
+- **Fused temperature** (`sensor`): a single value aggregated with the selected method — Median (default), Mean, Minimum or Maximum. Configurable via the **Temperature fusion method** select entity.
+- **Temperature coherence** (`binary_sensor`) and **Temperature spread** (`sensor`, diagnostic): whether the sources agree within the **Temperature coherence threshold** (configurable, default 0.5 °C), and by how much they disagree.
+- **Temperature anomaly source** (`sensor`, diagnostic): `ok` when every source agrees, the name of the probe(s) suspected of drifting or reading incorrectly, or `unknown` when the disagreement cannot be attributed to a single probe. The sensor's attributes list every source with its value, 1‑hour change and status.
+- A **maintenance switch per temperature-capable probe**: turning it on temporarily excludes that probe from the fusion/coherence/anomaly calculation, so cleaning or recalibrating a probe never triggers a false alarm.
+- A **calibration offset** (`number`) per temperature-capable probe.
+
+These entities only appear once at least two temperature sources are detected.
+
+## Probe management (add / replace / remove)
+BLE probes (pH, ORP, EC, ATO, leak, temperature) are managed from the integration's **Options** menu, mirroring the Red Sea app:
+
+- **Add a probe**: put the probe in pairing mode, pick its type, then confirm to scan.
+- **Replace a probe**: pick the probe to replace, put a new probe of the same type in pairing mode, then confirm. The new probe inherits the old one's entity history/statistics.
+- **Remove a probe**: select one or more probes, then confirm — this permanently deletes the probe's entities and their history.
+
 ## ReefControl-Power
+
 
 The RSPOWER (Power Center) is a standalone device with its own IP address, exposed separately in Home Assistant.
 

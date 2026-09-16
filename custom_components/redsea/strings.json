@@ -146,6 +146,9 @@
       },
       "control_internet_connected": {
         "name": "Control internet"
+      },
+      "temperature_coherent": {
+        "name": "Temperature coherence"
       }
     },
     "button": {
@@ -364,6 +367,12 @@
       },
       "socket_7_unsubscribe": {
         "name": "Unsubscribe socket {socket}"
+      },
+      "install_temperature": {
+        "name": "Add temperature probe"
+      },
+      "remove_temperature": {
+        "name": "Remove temperature probe"
       }
     },
     "light": {
@@ -515,6 +524,15 @@
       },
       "wave_preview_wave_duration": {
         "name": "Prev. wave duration"
+      },
+      "temperature_coherence_threshold": {
+        "name": "Temperature coherence threshold"
+      },
+      "probe_offset": {
+        "name": "{probe} offset"
+      },
+      "temperature_offset": {
+        "name": "Temperature offset"
       }
     },
     "select": {
@@ -643,6 +661,15 @@
           "on": "On",
           "schedule": "Schedule",
           "sensor": "Sensor"
+        }
+      },
+      "temperature_fusion_method": {
+        "name": "Temperature fusion method",
+        "state": {
+          "median": "Median",
+          "mean": "Mean",
+          "min": "Minimum",
+          "max": "Maximum"
         }
       }
     },
@@ -1374,6 +1401,20 @@
       },
       "connected_control_status": {
         "name": "Connected control status"
+      },
+      "temperature_fusion": {
+        "name": "Fused temperature"
+      },
+      "temperature_spread": {
+        "name": "Temperature spread"
+      },
+      "temperature_anomaly_source": {
+        "name": "Temperature anomaly source",
+        "state": {
+          "ok": "OK",
+          "unknown": "Unknown",
+          "maintenance": "Maintenance"
+        }
       }
     },
     "switch": {
@@ -1520,6 +1561,18 @@
       },
       "socket_7_on_off": {
         "name": "Socket {socket} switch"
+      },
+      "probe_maintenance": {
+        "name": "{probe} maintenance"
+      },
+      "probe_buzzer": {
+        "name": "{probe} buzzer"
+      },
+      "probe_enabled": {
+        "name": "{probe} enabled"
+      },
+      "probe_notify": {
+        "name": "{probe} notifications"
       }
     },
     "text": {
@@ -1583,7 +1636,8 @@
       "wifi_change_failed_connect": "Could not send the new Wi-Fi credentials to the device.",
       "wifi_change_failed_reset": "Could not reboot the device after sending the new Wi-Fi credentials.",
       "wifi_change_failed_rediscover": "The device rebooted but could not be found on the network. Check that it joined {ssid} and reconfigure its IP manually if needed.",
-      "wifi_change_failed_unknown": "Unexpected error while changing Wi-Fi network."
+      "wifi_change_failed_unknown": "Unexpected error while changing Wi-Fi network.",
+      "no_probes": "This hub has no probes to remove."
     },
     "error": {
       "auth_failed": "Authentification failed, check your crendentials",
@@ -1591,7 +1645,8 @@
       "wifi_no_networks": "The device reported no available Wi-Fi networks.",
       "wifi_no_ssid": "Please pick a network before submitting.",
       "wifi_bad_cidr": "That is not a valid IPv4 CIDR (expected e.g. 10.0.0.0/24).",
-      "wifi_manual_not_found": "The device could not be found on that subnet. Try another CIDR, or leave the field empty to give up."
+      "wifi_manual_not_found": "The device could not be found on that subnet. Try another CIDR, or leave the field empty to give up.",
+      "no_probe_detected": "No new probe of the selected type was detected. Put it in pairing mode and try again."
     },
     "progress": {
       "applying": "Applying the new Wi-Fi credentials and locating the device on the network..."
@@ -1606,7 +1661,10 @@
         },
         "menu_options": {
           "settings": "Device settings",
-          "wifi_scan": "Change Wi-Fi network"
+          "wifi_scan": "Change Wi-Fi network",
+          "add_probe": "Add a probe",
+          "del_probe": "Remove a probe",
+          "change_probe": "Replace a probe"
         },
         "title": "Configuration"
       },
@@ -1639,6 +1697,31 @@
         },
         "description": "The device joined {ssid} but was not found on any subnet Home Assistant is directly attached to (tried: {tried_subnets}). If you know which network the device landed on and Home Assistant can reach it through a router, enter the CIDR here (e.g. 10.0.0.0/24). Leave the field empty and submit to give up.",
         "title": "Locate the device on another subnet"
+      },
+      "add_probe": {
+        "title": "Add a probe",
+        "description": "Put the probe in pairing mode, choose its type, then confirm to scan.",
+        "data": {
+          "probe_type": "Probe type"
+        }
+      },
+      "del_probe": {
+        "title": "Remove a probe",
+        "description": "Select the probe(s) to remove.",
+        "data": {
+          "probes": "Probes"
+        }
+      },
+      "change_probe": {
+        "title": "Replace a probe",
+        "description": "Pick the probe to replace, then put a new probe of the same type in pairing mode and confirm. The new probe inherits the old one's history.",
+        "data": {
+          "old_probe": "Probe to replace"
+        }
+      },
+      "del_probe_confirm": {
+        "title": "Confirm removal",
+        "description": "This permanently removes the selected probe(s) and all their entities and history: {probes}.\n\nSubmit to continue, or close this dialog to cancel."
       }
     }
   },

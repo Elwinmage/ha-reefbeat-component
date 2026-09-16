@@ -227,3 +227,15 @@ class FakeControlCoordinator(FakeCoordinator):
             self.refreshed_all += 1
         else:
             self.refreshed.append(source)
+
+    # Temperature-fusion surface used by the RSCONTROL branch of the platform
+    # dispatchers. Defaults keep fusion inert (fewer than two sources) so a plain
+    # control coordinator does not sprout fusion entities unless a test opts in.
+    def temperature_source_count(self) -> int:
+        return 0
+
+    def temperature_incoherent(self) -> bool | None:
+        return None
+
+    def fusion_attributes(self) -> dict[str, Any]:
+        return {}

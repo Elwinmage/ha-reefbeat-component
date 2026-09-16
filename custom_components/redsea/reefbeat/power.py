@@ -75,6 +75,79 @@ class ReefPowerAPI(ReefBeatAPI):
             )
         self.data["sources"] = sources
 
+    # -- Local temperature probe (offset) ----------------------------------
+    # ``/temperature/config`` carries the local probe's calibration offset and
+    # ranges. It only answers when a probe is installed, so it is registered on
+    # demand (when ``/dashboard.temperature`` is present) rather than up front.
+    _TEMP_CONFIG_SOURCE = "/temperature/config"
+
+    def _reconcile_temperature_config_source(self) -> None:
+        present = (
+            self.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.temperature",
+                is_None_possible=True,
+            )
+            is not None
+        )
+        sources = cast(list[SourceEntry], self.data.get("sources", []))
+        exists = any(s.get("name") == self._TEMP_CONFIG_SOURCE for s in sources)
+        if present and not exists:
+            self.add_source(self._TEMP_CONFIG_SOURCE, "config", "")
+        elif not present and exists:
+            self.remove_source(self._TEMP_CONFIG_SOURCE)
+        # No cache invalidation needed: /temperature/config is read
+        # non-positionally (volatile path) and fixed sources keep their slots.
+
+    async def fetch_data(self) -> dict[str, Any]:
+        """Fetch, registering the local-temp config source on demand.
+
+        Refresh the dashboard first so the presence of a local temperature probe
+        is current, then reconcile the ``/temperature/config`` source before the
+        full fetch — so a just-removed probe's endpoint is dropped before it
+        would be polled (and 404 + retry).
+        """
+        if self.quick_refresh is None and self._live_config_update:
+            self.quick_refresh = "/dashboard"
+            await super().fetch_data()
+            self._reconcile_temperature_config_source()
+        data = await super().fetch_data()
+        self._reconcile_temperature_config_source()
+        return data
+
+    def temperature_offset(self) -> float | None:
+        """Cached local-temperature calibration offset, if known."""
+        return self.get_data(
+            "$.sources[?(@.name=='/temperature/config')].data.offset",
+            is_None_possible=True,
+        )
+
+    async def set_temperature_offset(self, offset: float) -> HttpResult | None:
+        """Set the local temperature offset (``POST /probe/offset``)."""
+        return await self.http_send("/probe/offset", {"offset": offset}, "post")
+
+    async def reset_temperature_offset(self) -> HttpResult | None:
+        """Clear the local temperature offset (``DELETE /probe/offset``)."""
+        return await self.http_send("/probe/offset", None, "delete")
+
+    async def install_temperature(self) -> HttpResult | None:
+        """Scan for and install the local temperature probe.
+
+        The type is fixed (a strip takes only a temperature probe), so no type
+        selection is needed. BLE advertising of the new probe is stopped after.
+        """
+        result = await self.http_send(
+            "/sensor/install", {"type": "temperature"}, "post"
+        )
+        payload = result.get("json") if isinstance(result, dict) else None
+        uid = payload.get("uid") if isinstance(payload, dict) else None
+        if uid:
+            await self.http_send("/ble/off", {"type": "temperature"}, "post")
+        return result
+
+    async def remove_temperature(self) -> HttpResult | None:
+        """Remove the local temperature probe (``DELETE /sensor``)."""
+        return await self.http_send("/sensor", None, "delete")
+
     async def set_socket_mode(
         self, number: int, mode: str, name: str | None = None
     ) -> HttpResult | None:

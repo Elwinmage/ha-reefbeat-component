@@ -50,11 +50,15 @@ from .const import (
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_INTENSITY_COMPENSATION,
     CONFIG_FLOW_IP_ADDRESS,
+    CONFIG_FLOW_OLD_PROBE,
+    CONFIG_FLOW_PROBE_TYPE,
+    CONFIG_FLOW_PROBES,
     CONFIG_FLOW_SCAN_INTERVAL,
     CONFIG_FLOW_WIFI_MANUAL_SUBNET,
     CONFIG_FLOW_WIFI_PASSWORD,
     CONFIG_FLOW_WIFI_RESCAN,
     CONFIG_FLOW_WIFI_SSID,
+    CONTROL_PROBE_TYPES,
     CONTROL_SCAN_INTERVAL,
     DOMAIN,
     DOSE_SCAN_INTERVAL,
@@ -72,6 +76,9 @@ from .const import (
     LEDS_INTENSITY_COMPENSATION,
     LINKED_LED,
     MAT_SCAN_INTERVAL,
+    OPTIONS_MENU_ADD_PROBE,
+    OPTIONS_MENU_CHANGE_PROBE,
+    OPTIONS_MENU_DEL_PROBE,
     OPTIONS_MENU_SETTINGS,
     OPTIONS_MENU_WIFI,
     POWER_SCAN_INTERVAL,
@@ -596,9 +603,17 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         # settings form so mis-configured entries stay recoverable.
         hw_model = self._config_entry.data.get(CONFIG_FLOW_HW_MODEL)
         if hw_model in HW_DEVICES_IDS:
+            menu = [OPTIONS_MENU_SETTINGS, OPTIONS_MENU_WIFI]
+            # The RSCONTROL hub can add/remove BLE probes, mirroring the app.
+            if hw_model in HW_CONTROL_IDS:
+                menu += [
+                    OPTIONS_MENU_ADD_PROBE,
+                    OPTIONS_MENU_CHANGE_PROBE,
+                    OPTIONS_MENU_DEL_PROBE,
+                ]
             return self.async_show_menu(
                 step_id="init",
-                menu_options=[OPTIONS_MENU_SETTINGS, OPTIONS_MENU_WIFI],
+                menu_options=menu,
             )
 
         return await self.async_step_settings(user_input)
@@ -779,6 +794,169 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id=step_id,
             data_schema=self.add_suggested_values_to_schema(
                 options_schema, self._config_entry.options
+            ),
+            errors=errors,
+        )
+
+    # ------------------------------------------------------------------
+    # Probe add / remove steps (RSCONTROL hub only)
+    # ------------------------------------------------------------------
+
+    def _control_coordinator(self) -> Any:
+        """The coordinator backing this options entry (an RSCONTROL hub)."""
+        return self.hass.data.get(DOMAIN, {}).get(self._config_entry.entry_id)
+
+    async def async_step_add_probe(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Install a new probe by type, mirroring the app's add-sensor flow.
+
+        Pick a type → the hub BLE-scans → on success the entry is reloaded so the
+        new probe's entities appear; if nothing is found, the form re-shows an
+        error naming the type.
+        """
+        errors: dict[str, str] = {}
+        coordinator = self._control_coordinator()
+        if user_input is not None and coordinator is not None:
+            ptype = user_input[CONFIG_FLOW_PROBE_TYPE]
+            try:
+                uid = await coordinator.async_install_probe(ptype)
+            except Exception:
+                _LOGGER.exception("Probe install failed")
+                uid = None
+            if uid:
+                res = self.async_create_entry(
+                    title="", data=dict(self._config_entry.options)
+                )
+                self.hass.config_entries.async_schedule_reload(res["handler"])
+                return res
+            errors["base"] = "no_probe_detected"
+            self._last_probe_type = ptype
+
+        return self.async_show_form(
+            step_id="add_probe",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONFIG_FLOW_PROBE_TYPE): vol.In(
+                        list(CONTROL_PROBE_TYPES)
+                    )
+                }
+            ),
+            errors=errors,
+            description_placeholders={
+                "probe_type": getattr(self, "_last_probe_type", "")
+            },
+        )
+
+    async def async_step_del_probe(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Select probes to remove, then confirm (removal drops entities+stats)."""
+        coordinator = self._control_coordinator()
+        probes = coordinator.list_probes() if coordinator is not None else []
+        if not probes:
+            return self.async_abort(reason="no_probes")
+
+        # value "type:uid" → label "name (type)"
+        options = {
+            f"{p['type']}:{p['uid']}": f"{p['name']} ({p['type']})" for p in probes
+        }
+
+        if user_input is not None:
+            self._del_tokens = list(user_input.get(CONFIG_FLOW_PROBES, []))
+            if not self._del_tokens:
+                return self.async_abort(reason="no_probes")
+            return await self.async_step_del_probe_confirm()
+
+        return self.async_show_form(
+            step_id="del_probe",
+            data_schema=vol.Schema(
+                {vol.Required(CONFIG_FLOW_PROBES): cv.multi_select(options)}
+            ),
+        )
+
+    async def async_step_del_probe_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Warn that removal deletes the probe's entities and their history.
+
+        Submitting confirms; closing/going back cancels without any change.
+        """
+        coordinator = self._control_coordinator()
+        tokens = getattr(self, "_del_tokens", [])
+        if user_input is not None and coordinator is not None:
+            for token in tokens:
+                ptype, _, uid = token.partition(":")
+                try:
+                    await coordinator.async_delete_probe(ptype, uid)
+                except Exception:
+                    _LOGGER.exception("Probe delete failed for %s", token)
+            res = self.async_create_entry(
+                title="", data=dict(self._config_entry.options)
+            )
+            self.hass.config_entries.async_schedule_reload(res["handler"])
+            return res
+
+        return self.async_show_form(
+            step_id="del_probe_confirm",
+            data_schema=vol.Schema({}),
+            description_placeholders={"probes": ", ".join(tokens)},
+        )
+
+    async def async_step_change_probe(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Replace a probe with a new one of the same type, keeping its history.
+
+        Pick the probe to replace → the hub scans for a new probe of the same
+        type → on success the old probe's entities are moved onto the new uid
+        (so their history/statistics carry over), the old probe is removed and
+        the entry reloaded. If nothing is found, an error is shown.
+        """
+        errors: dict[str, str] = {}
+        coordinator = self._control_coordinator()
+        probes = coordinator.list_probes() if coordinator is not None else []
+        if not probes:
+            return self.async_abort(reason="no_probes")
+
+        options = {
+            f"{p['type']}:{p['uid']}": f"{p['name']} ({p['type']})" for p in probes
+        }
+
+        if user_input is not None and coordinator is not None:
+            token = user_input[CONFIG_FLOW_OLD_PROBE]
+            old_type, _, old_uid = token.partition(":")
+            try:
+                new_uid = await coordinator.async_install_probe(old_type)
+            except Exception:
+                _LOGGER.exception("Probe install (replace) failed")
+                new_uid = None
+            if new_uid:
+                from . import _rename_probe_entities
+
+                _rename_probe_entities(
+                    self.hass,
+                    self._config_entry,
+                    coordinator,
+                    old_type,
+                    old_uid,
+                    new_uid,
+                )
+                try:
+                    await coordinator.async_delete_probe(old_type, old_uid)
+                except Exception:
+                    _LOGGER.exception("Old probe delete failed for %s", token)
+                res = self.async_create_entry(
+                    title="", data=dict(self._config_entry.options)
+                )
+                self.hass.config_entries.async_schedule_reload(res["handler"])
+                return res
+            errors["base"] = "no_probe_detected"
+
+        return self.async_show_form(
+            step_id="change_probe",
+            data_schema=vol.Schema(
+                {vol.Required(CONFIG_FLOW_OLD_PROBE): vol.In(options)}
             ),
             errors=errors,
         )

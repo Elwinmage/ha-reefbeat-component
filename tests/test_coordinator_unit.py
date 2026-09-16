@@ -54,7 +54,9 @@ class _FakeAPI:
     async def delete(self, source: str) -> None:
         return None
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
+    def get_data(
+        self, name: str, is_None_possible: bool = False, cached: bool = True
+    ) -> Any:
         return self.get_data_map.get(name)
 
     def set_data(self, name: str, value: Any) -> None:

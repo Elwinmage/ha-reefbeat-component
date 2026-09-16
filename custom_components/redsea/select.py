@@ -48,6 +48,7 @@ from .coordinator import (
 )
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
 from .i18n import translate, translate_list
+from .reefbeat import fusion
 from .supplements_list import SUPPLEMENTS as SUPPLEMENTS_LIST
 
 # Keep the imported constant intact; use a local name for the sorted view.
@@ -361,6 +362,23 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
+        # Temperature fusion aggregation method (local config). Only meaningful
+        # with at least two temperature sources.
+        if cast(ReefControlCoordinator, device).temperature_source_count() >= 2:
+            entities.append(
+                ReefBeatSelectEntity(
+                    device,
+                    ReefBeatSelectEntityDescription(
+                        key="temperature_fusion_method",
+                        translation_key="temperature_fusion_method",
+                        icon="mdi:function-variant",
+                        value_name="$.local.fusion.method",
+                        options=list(fusion.FUSION_METHODS),
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                )
+            )
+
     async_add_entities(entities, True)
 
 
@@ -448,6 +466,11 @@ class ReefBeatSelectEntity(ReefRoleMixin, ReefBeatRestoreEntity, SelectEntity): 
         self.async_write_ha_state()
 
         if self._source is None:
+            # Local-only value (e.g. $.local.*): nothing to push, but still
+            # refresh so dependent entities (fusion) recompute immediately.
+            refresh = getattr(self._device, "async_request_refresh", None)
+            if callable(refresh):
+                await cast(Callable[[], Awaitable[None]], refresh)()
             return
 
         await self._device.push_values(self._source, self._method)

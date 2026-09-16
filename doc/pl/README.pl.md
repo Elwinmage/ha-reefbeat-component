@@ -363,14 +363,34 @@ Zobacz sekcję [Konserwacja](README.pl.md#konserwacja).
 </p>
 
 - Odczyt wszystkich podłączonych sond ReefSense (pH, ORP, zasolenie, temperatura, ATO, wyciek) z wartością i poziomem jakości
+- Włączanie/wyłączanie brzęczyka i powiadomień dla każdej sondy oraz włączanie/wyłączanie monitorowania
 - Stan brzęczyka i czujnika wycieku
 - Włączanie/wyłączanie portów 12V DC (RSCONTROL)
+- Dodawanie, wymiana lub usuwanie sond BLE z menu opcji integracji
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
 </p>
+
+## Scalanie temperatury z wielu sond
+Gdy dostępne są co najmniej dwa źródła temperatury (dedykowana sonda temperatury oraz temperatura wbudowana w sondy EC/pH/ATO), ReefControl oblicza solidną **scaloną temperaturę** na podstawie pojedynczych odczytów:
+
+- **Temperatura scalona** (`sensor`): pojedyncza wartość zagregowana wybraną metodą — Mediana (domyślnie), Średnia, Minimum lub Maksimum. Konfigurowalna przez encję select **Metoda scalania temperatury**.
+- **Spójność temperatury** (`binary_sensor`) oraz **Rozrzut temperatury** (`sensor`, diagnostyczny): pokazują, czy źródła są zgodne w granicach **Progu spójności temperatury** (konfigurowalny, domyślnie 0,5 °C), oraz jak bardzo się różnią.
+- **Źródło anomalii temperatury** (`sensor`, diagnostyczny): `OK`, gdy wszystkie źródła są zgodne, nazwa sondy (sond) podejrzewanej o dryf lub błędny odczyt, albo `Nieznane`, gdy niezgodności nie można przypisać jednej sondzie. Atrybuty czujnika wymieniają każde źródło wraz z wartością, zmianą w ciągu 1 godziny i statusem.
+- **Przełącznik konserwacji dla każdej sondy obsługującej temperaturę**: jego włączenie tymczasowo wyklucza daną sondę z obliczeń scalania/spójności/anomalii, dzięki czemu czyszczenie lub kalibracja nigdy nie wywołują fałszywego alarmu.
+- **Offset kalibracji** (`number`) dla każdej sondy obsługującej temperaturę.
+
+Te encje pojawiają się dopiero, gdy wykryte zostaną co najmniej dwa źródła temperatury.
+
+## Zarządzanie sondami (dodawanie / wymiana / usuwanie)
+Sondy BLE (pH, ORP, EC, ATO, wyciek, temperatura) zarządzane są z menu **Opcje** integracji, podobnie jak w aplikacji Red Sea:
+
+- **Dodaj sondę**: przełącz sondę w tryb parowania, wybierz jej typ, a następnie potwierdź, aby wyszukać.
+- **Wymień sondę**: wybierz sondę do wymiany, przełącz nową sondę tego samego typu w tryb parowania i potwierdź. Nowa sonda przejmuje historię/statystyki encji starej.
+- **Usuń sondę**: wybierz jedną lub więcej sond i potwierdź — trwale usuwa to encje sondy oraz ich historię.
 
 ## ReefControl-Power
 

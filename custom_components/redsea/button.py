@@ -51,7 +51,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
-from .entity import ReefRoleMixin
+from .entity import MaintenanceLabelMixin, ReefRoleMixin
 from .maintenance import (
     PROBE_SCOPES,
     MaintenanceStore,
@@ -250,6 +250,32 @@ POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         press_fn=lambda device: cast(ReefPowerCoordinator, device).setup_finish(),
         icon="mdi:check-circle-outline",
         entity_category=EntityCategory.CONFIG,
+    ),
+    # Local temperature probe add/remove. The type is fixed (temperature), so a
+    # single button each does the job. Availability follows probe presence:
+    # "add" shows only when absent, "remove" only when present.
+    ReefBeatButtonEntityDescription(
+        key="install_temperature",
+        translation_key="install_temperature",
+        exists_fn=lambda _: True,
+        press_fn=lambda device: cast(
+            ReefPowerCoordinator, device
+        ).async_install_temperature(),
+        icon="mdi:thermometer-plus",
+        entity_category=EntityCategory.CONFIG,
+        dependency="$.sources[?(@.name=='/dashboard')].data.temperature",
+        dependency_reverse=True,
+    ),
+    ReefBeatButtonEntityDescription(
+        key="remove_temperature",
+        translation_key="remove_temperature",
+        exists_fn=lambda _: True,
+        press_fn=lambda device: cast(
+            ReefPowerCoordinator, device
+        ).async_remove_temperature(),
+        icon="mdi:thermometer-minus",
+        entity_category=EntityCategory.CONFIG,
+        dependency="$.sources[?(@.name=='/dashboard')].data.temperature",
     ),
 )
 
@@ -1020,7 +1046,7 @@ class ReefBeatButtonEntity(ButtonEntity):
         * No ``dependency`` → always available.
         * ``dependency`` without ``dependency_values`` → truthy check.
         * ``dependency`` with ``dependency_values`` → membership check.
-        * ``dependency_reverse`` inverts the membership check.
+        * ``dependency_reverse`` inverts the result of either check.
         """
         dep = self.desc.dependency
         if dep is None:
@@ -1029,9 +1055,9 @@ class ReefBeatButtonEntity(ButtonEntity):
         dep_value = self._device.get_data(dep, True)
 
         if self.desc.dependency_values is None:
-            return bool(dep_value)
-
-        match = dep_value in self.desc.dependency_values
+            match = bool(dep_value)
+        else:
+            match = dep_value in self.desc.dependency_values
         return not match if self.desc.dependency_reverse else match
 
     @property
@@ -1393,7 +1419,7 @@ class ReefWaveButtonEntity(ButtonEntity):
 
 # Maintenance buttons share the ReefRoleMixin so their translation_key is
 # also exposed as `reef_role` (consumed by the blueprint + custom card).
-class MaintenanceButtonEntity(ReefRoleMixin, ButtonEntity):  # type: ignore[misc]
+class MaintenanceButtonEntity(MaintenanceLabelMixin, ReefRoleMixin, ButtonEntity):  # type: ignore[misc]
     """Button that records a user-confirmed maintenance event.
 
     Pressing the button stamps "now" as the last_reset for the (device,

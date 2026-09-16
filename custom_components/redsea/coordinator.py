@@ -77,6 +77,7 @@ from .reefbeat import (
     ReefPowerAPI,
     ReefRunAPI,
     ReefWaveAPI,
+    fusion,
     parse,
 )
 
@@ -235,9 +236,16 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Push changed values to the device."""
         await self.my_api.push_values(source, method)
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
-        """Read a value from the cached API payload (JSONPath supported by the API layer)."""
-        return self.my_api.get_data(name, is_None_possible)
+    def get_data(
+        self, name: str, is_None_possible: bool = False, cached: bool = True
+    ) -> Any:
+        """Read a value from the cached API payload (JSONPath supported by the API layer).
+
+        Pass ``cached=False`` for reads into a volatile array (a probe matched by
+        ``type``/``uid``) so the value is re-matched every call and follows the
+        item across reorders/deletions instead of a stale positional index.
+        """
+        return self.my_api.get_data(name, is_None_possible, cached)
 
     def set_data(self, name: str, value: Any) -> None:
         """Write a value into the cached API payload."""
@@ -567,13 +575,20 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
                 )
         return data
 
-    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
+    def get_data(
+        self, name: str, is_None_possible: bool = False, cached: bool = True
+    ) -> Any:
         """Get aggregated value from linked LEDs.
 
         Behavior:
         - Kelvin/intensity paths may be provided as "g1_path g2_path"
         - For scalar types, values are averaged or AND'ed where appropriate
+
+        ``cached`` is accepted only to match the base signature. It targets
+        volatile probe arrays (re-matched on every read), which LEDs do not
+        have, so it is inert for the aggregation performed here.
         """
+        del cached  # unused: no volatile arrays in LED aggregation
         if not self._linked:
             return None
 
@@ -1501,6 +1516,40 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
         await cast(ReefPowerAPI, self.my_api).setup_finish()
         await self.async_request_refresh()
 
+    def has_local_temperature(self) -> bool:
+        """Whether a local temperature probe is currently installed."""
+        return (
+            self.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.temperature",
+                is_None_possible=True,
+            )
+            is not None
+        )
+
+    def temperature_offset(self) -> float | None:
+        """Cached local-temperature calibration offset."""
+        return cast(ReefPowerAPI, self.my_api).temperature_offset()
+
+    async def set_temperature_offset(self, offset: float) -> None:
+        """Set the local temperature offset and refresh so it reflects back."""
+        await cast(ReefPowerAPI, self.my_api).set_temperature_offset(offset)
+        await self.async_request_refresh(config=True)
+
+    async def reset_temperature_offset(self) -> None:
+        """Clear the local temperature offset and refresh."""
+        await cast(ReefPowerAPI, self.my_api).reset_temperature_offset()
+        await self.async_request_refresh(config=True)
+
+    async def async_install_temperature(self) -> None:
+        """Install the local temperature probe and refresh."""
+        await cast(ReefPowerAPI, self.my_api).install_temperature()
+        await self.async_request_refresh()
+
+    async def async_remove_temperature(self) -> None:
+        """Remove the local temperature probe and refresh."""
+        await cast(ReefPowerAPI, self.my_api).remove_temperature()
+        await self.async_request_refresh()
+
 
 # REEFCONTROL
 class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
@@ -1522,6 +1571,272 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         hw_model = str(entry.data.get(CONFIG_FLOW_HW_MODEL, ""))
         # Lite exposes 1 port, Pro exposes 2. Anything else falls back to Pro.
         self.port_count: int = 1 if "LITE" in hw_model.upper() else 2
+
+        # Local state backing the temperature-fusion config entities. Kept in
+        # the API's ``local`` bag so get_data/set_data JSONPaths resolve and the
+        # number/select persist across polls without a device round-trip.
+        local = self.my_api.data.setdefault("local", {})
+        local.setdefault(
+            "fusion",
+            {"method": fusion.DEFAULT_METHOD, "threshold": fusion.DEFAULT_THRESHOLD},
+        )
+        # Rolling per-source temperature history (uid -> list[(ts, value)]),
+        # used to attribute an incoherence to the probe that drifted most over
+        # the last hour. Populated lazily on reads (entities poll every cycle).
+        self._temp_history: dict[str, list[tuple[float, float]]] = {}
+        self._temp_history_last: float = 0.0
+        # uids of probes the user put in maintenance: temporarily excluded from
+        # fusion/coherence/anomaly so cleaning one does not raise a false alarm.
+        self._probe_maintenance: set[str] = set()
+
+    # -- Temperature fusion -------------------------------------------------
+    def _probes(self) -> list[dict[str, Any]]:
+        raw = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+        )
+        return raw if isinstance(raw, list) else []
+
+    def fusion_method(self) -> str:
+        """Selected aggregation method (median/mean/min/max)."""
+        val = self.get_data("$.local.fusion.method", is_None_possible=True)
+        return val if val in fusion.FUSION_METHODS else fusion.DEFAULT_METHOD
+
+    def fusion_threshold(self) -> float:
+        """Coherence threshold in °C."""
+        val = self.get_data("$.local.fusion.threshold", is_None_possible=True)
+        try:
+            return float(val)
+        except (TypeError, ValueError):
+            return fusion.DEFAULT_THRESHOLD
+
+    # -- Per-probe maintenance ---------------------------------------------
+    def probe_in_maintenance(self, uid: str) -> bool:
+        return uid in self._probe_maintenance
+
+    def set_probe_maintenance(self, uid: str, on: bool) -> None:
+        """Put a probe in/out of maintenance and recompute dependents at once."""
+        if on:
+            self._probe_maintenance.add(uid)
+        else:
+            self._probe_maintenance.discard(uid)
+        self.async_update_listeners()
+
+    def temperature_maintenance_uids(self) -> list[str]:
+        return sorted(self._probe_maintenance)
+
+    def temperature_candidates(self) -> list[dict[str, Any]]:
+        """All temperature-capable probes, each tagged with a maintenance flag.
+
+        Used for display and for building the per-probe maintenance switches;
+        the calc uses :meth:`_active_candidates`.
+        """
+        cands = fusion.temperature_candidates(self._probes())
+        for c in cands:
+            c["maintenance"] = c.get("uid") in self._probe_maintenance
+        return cands
+
+    def _active_candidates(self) -> list[dict[str, Any]]:
+        """Candidates that participate in the calc (maintenance excluded)."""
+        return [c for c in self.temperature_candidates() if not c.get("maintenance")]
+
+    def temperature_sources(self) -> list[dict[str, Any]]:
+        """The temperature readings currently usable (available, not in maint.)."""
+        return [c for c in self._active_candidates() if c.get("available")]
+
+    def temperature_source_count(self) -> int:
+        """Number of temperature-capable probes (maintenance included).
+
+        Entities gate on this so they exist as soon as two probes are present,
+        even if one is being serviced.
+        """
+        return len(self.temperature_candidates())
+
+    def _record_history(self, now: float | None = None) -> float:
+        """Append the current readings to the rolling history (idempotent/cycle).
+
+        Called from the read path; entities poll every coordinator cycle, so a
+        short debounce keeps one sample per ~20s instead of one per entity.
+        Prunes samples older than the window and uids no longer present.
+        """
+        import time as _time
+
+        now = _time.time() if now is None else now
+        if now - self._temp_history_last < 20:
+            self._prune_history(now)
+            return now
+        self._temp_history_last = now
+        for src in self.temperature_sources():
+            uid = src.get("uid")
+            if uid is None:
+                continue
+            hist = self._temp_history.setdefault(uid, [])
+            hist.append((now, float(src["value"])))
+        self._prune_history(now)
+        return now
+
+    def _prune_history(self, now: float) -> None:
+        cutoff = now - fusion.HISTORY_WINDOW_S
+        for uid in list(self._temp_history):
+            self._temp_history[uid] = [
+                (t, v) for (t, v) in self._temp_history[uid] if t >= cutoff
+            ]
+            if not self._temp_history[uid]:
+                del self._temp_history[uid]
+
+    def _anomalies(self, now: float | None = None) -> dict[str, Any]:
+        now = self._record_history(now)
+        return fusion.detect_anomalies(
+            self._active_candidates(),
+            self._temp_history,
+            self.fusion_threshold(),
+            now,
+        )
+
+    def fusion_temperature(self) -> float | None:
+        """Aggregated temperature over the *healthy* sources only."""
+        clean = self._anomalies()["clean"]
+        values = [c["value"] for c in clean]
+        return fusion.fuse(values, self.fusion_method())
+
+    def temperature_spread(self) -> float | None:
+        values = [s["value"] for s in self.temperature_sources()]
+        return fusion.spread(values)
+
+    def temperature_incoherent(self) -> bool | None:
+        """True when readings disagree beyond threshold (a *problem*).
+
+        None when fewer than two usable (non-maintenance) sources exist.
+        """
+        if len(self.temperature_sources()) < 2:
+            return None
+        return self._anomalies()["incoherent"]
+
+    def temperature_anomaly_state(self) -> str:
+        """Short provenance string for the anomaly sensor.
+
+        ``ok`` when healthy; ``unknown`` when incoherent but unattributable;
+        otherwise the culprit probe name(s).
+        """
+        result = self._anomalies()
+        culprits = result["culprits"]
+        if not culprits and not result["incoherent"]:
+            return "ok"
+        if not culprits:
+            return "unknown" if result["incoherent"] else "ok"
+        return ", ".join(str(c["name"]) for c in culprits)
+
+    def fusion_attributes(self) -> dict[str, Any]:
+        """Rich attributes for the fusion / coherence / anomaly entities."""
+        now = self._record_history()
+        result = self._anomalies(now)
+        sources = self.temperature_candidates()
+        for s in sources:
+            s_change = fusion.change_over_window(
+                self._temp_history.get(s["uid"], []), now
+            )
+            s["change_1h"] = round(s_change, 3) if s_change is not None else None
+        values = [c["value"] for c in result["clean"]]
+        return {
+            "sources": sources,
+            "source_names": [s["name"] for s in sources],
+            "count": len(sources),
+            "available": sum(
+                1 for s in sources if s["available"] and not s["maintenance"]
+            ),
+            "maintenance_probes": self.temperature_maintenance_uids(),
+            "fused": fusion.fuse(values, self.fusion_method()),
+            "spread": self.temperature_spread(),
+            "incoherent": result["incoherent"],
+            "culprits": result["culprits"],
+            "unknown_source": result["unknown"],
+            "method": self.fusion_method(),
+            "threshold": self.fusion_threshold(),
+        }
+
+    # -- Temperature probe calibration offset ------------------------------
+    def probe_offset(self, uid: str) -> float | None:
+        """Cached calibration offset for a temperature probe."""
+        return cast(ReefControlAPI, self.my_api).probe_offset(uid)
+
+    async def set_probe_offset(self, uid: str, offset: float) -> None:
+        """Set a temperature probe's offset and refresh so it reflects back."""
+        await cast(ReefControlAPI, self.my_api).set_probe_offset(uid, offset)
+        await self.async_request_refresh(config=True)
+
+    async def reset_probe_offset(self, uid: str) -> None:
+        """Clear a temperature probe's offset and refresh."""
+        await cast(ReefControlAPI, self.my_api).reset_probe_offset(uid)
+        await self.async_request_refresh(config=True)
+
+    # -- Probe add / remove (driven by the options flow) -------------------
+    def list_probes(self) -> list[dict[str, str]]:
+        """Current probes as ``{type, uid, name}`` (for the delete picker)."""
+        probes = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+        )
+        out: list[dict[str, str]] = []
+        if isinstance(probes, list):
+            for p in probes:
+                if isinstance(p, dict) and p.get("uid") and p.get("type"):
+                    out.append(
+                        {
+                            "type": str(p["type"]),
+                            "uid": str(p["uid"]),
+                            "name": str(p.get("name") or p["uid"]),
+                        }
+                    )
+        return out
+
+    async def async_install_probe(self, ptype: str) -> str | None:
+        """Scan for and install a probe of ``ptype``; return its uid or None.
+
+        Returns the new probe's uid on success, or None when the hub found
+        nothing to pair (so the flow can report it). Refreshes afterwards so the
+        new probe (and its entities, after reload) reflect the device state.
+        """
+        result = await cast(ReefControlAPI, self.my_api).install_probe(ptype)
+        payload = result.get("json") if isinstance(result, dict) else None
+        uid = payload.get("uid") if isinstance(payload, dict) else None
+        success = (
+            bool(payload.get("success", bool(uid)))
+            if isinstance(payload, dict)
+            else False
+        )
+        await self.async_request_refresh()
+        return uid if (success and uid) else None
+
+    async def async_delete_probe(self, ptype: str, uid: str) -> None:
+        """Remove a probe from the hub and refresh."""
+        await cast(ReefControlAPI, self.my_api).delete_probe(ptype, uid)
+        await self.async_request_refresh()
+
+    async def set_probe_buzzer(self, ptype: str, uid: str, on: bool) -> None:
+        """Toggle a probe's out-of-range buzzer and refresh its config."""
+        await cast(ReefControlAPI, self.my_api).set_probe_buzzer(ptype, uid, on)
+        await self.async_request_refresh(config=True)
+
+    async def set_probe_notify(self, ptype: str, uid: str, on: bool) -> None:
+        """Toggle a probe's out-of-range notification and refresh its config."""
+        await cast(ReefControlAPI, self.my_api).set_probe_notify(ptype, uid, on)
+        await self.async_request_refresh(config=True)
+
+    def probe_buzzer(self, ptype: str, uid: str) -> bool | None:
+        """Current buzzer state for a probe (from /probe/config or /leak/config)."""
+        return cast(ReefControlAPI, self.my_api).get_data(
+            cast(ReefControlAPI, self.my_api).buzzer_path(ptype, uid),
+            is_None_possible=True,
+        )
+
+    def probe_notify(self, ptype: str, uid: str) -> bool | None:
+        """Current notification state for a probe."""
+        return cast(ReefControlAPI, self.my_api).get_data(
+            cast(ReefControlAPI, self.my_api).notify_path(ptype, uid),
+            is_None_possible=True,
+        )
+
+    async def set_probe_enabled(self, ptype: str, uid: str, on: bool) -> None:
+        """Enable/disable a probe's monitoring (write-only; state kept locally)."""
+        await cast(ReefControlAPI, self.my_api).set_probe_enabled(ptype, uid, on)
 
     def port_is_installed(self, number: int) -> bool:
         """Whether a 12V port has been assigned a device type.
