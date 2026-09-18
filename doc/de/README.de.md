@@ -363,8 +363,10 @@ Siehe den Abschnitt [Wartung](README.de.md#wartung).
 </p>
 
 - Auslesen aller angeschlossenen ReefSense-Sonden (pH, ORP, Salinität, Temperatur, ATO, Leck) mit Wert und Qualitätsstufe
+- Summer und Benachrichtigungen pro Sonde aktivieren/deaktivieren sowie Überwachung aktivieren/deaktivieren
 - Zustand des Summers und des Lecksensors
 - Ein/Aus-Umschaltung der 12V-DC-Anschlüsse (RSCONTROL)
+- BLE-Sonden über das Optionsmenü der Integration hinzufügen, ersetzen oder entfernen
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
@@ -372,12 +374,31 @@ Siehe den Abschnitt [Wartung](README.de.md#wartung).
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
 </p>
 
+## Temperatur-Fusion mehrerer Sonden
+Sobald zwei oder mehr Temperaturquellen vorhanden sind (die dedizierte Temperatursonde plus die in den EC-/pH-/ATO-Sonden eingebettete Temperatur), berechnet ReefControl eine robuste **fusionierte Temperatur** aus den Einzelwerten:
+
+- **Fusionierte Temperatur** (`sensor`): ein einzelner Wert, aggregiert mit der gewählten Methode — Median (Standard), Mittelwert, Minimum oder Maximum. Konfigurierbar über die Select-Entität **Temperatur-Fusionsmethode**.
+- **Temperaturkohärenz** (`binary_sensor`) und **Temperaturspanne** (`sensor`, Diagnose): zeigen, ob die Quellen innerhalb der **Schwelle Temperaturkohärenz** (konfigurierbar, Standard 0,5 °C) übereinstimmen und wie stark sie ggf. abweichen.
+- **Temperatur-Anomaliequelle** (`sensor`, Diagnose): `OK`, wenn alle Quellen übereinstimmen, der Name der Sonde(n), die im Verdacht stehen zu driften oder falsch zu messen, oder `Unbekannt`, wenn die Abweichung keiner einzelnen Sonde zugeordnet werden kann. Die Attribute des Sensors listen jede Quelle mit Wert, 1‑Stunden-Änderung und Status auf.
+- Ein **Wartungsschalter pro temperaturfähiger Sonde**: bei Aktivierung wird diese Sonde vorübergehend aus der Fusions-/Kohärenz-/Anomalieberechnung ausgeschlossen, sodass Reinigung oder Kalibrierung nie einen Fehlalarm auslöst.
+- Ein **Kalibrierungs-Offset** (`number`) pro temperaturfähiger Sonde.
+
+Diese Entitäten erscheinen erst, wenn mindestens zwei Temperaturquellen erkannt wurden.
+
+## Sondenverwaltung (hinzufügen / ersetzen / entfernen)
+BLE-Sonden (pH, ORP, EC, ATO, Leck, Temperatur) werden über das **Optionen**-Menü der Integration verwaltet, analog zur Red-Sea-App:
+
+- **Sonde hinzufügen**: Sonde in den Kopplungsmodus versetzen, Typ wählen, dann zum Scannen bestätigen.
+- **Sonde ersetzen**: zu ersetzende Sonde wählen, eine neue Sonde desselben Typs in den Kopplungsmodus versetzen und bestätigen. Die neue Sonde übernimmt den Entitätsverlauf/die Statistiken der alten.
+- **Sonde entfernen**: eine oder mehrere Sonden auswählen und bestätigen — dies löscht die Entitäten der Sonde und deren Verlauf dauerhaft.
+
 ## ReefControl-Power
 
 Das RSPOWER (Power Center) ist ein eigenständiges Gerät mit eigener IP-Adresse und wird in Home Assistant separat angezeigt.
 
 - Zustand, Modus, Verbrauch und Ein/Aus-Umschaltung pro Steckdose
 - 6 oder 8 steuerbare Steckdosen je nach Modell (RSPOWER6 / RSPOWER8)
+- Optionale lokale Temperatursonde: Hinzufügen/Entfernen-Taste, Kalibrierungs-Offset, gewünschter und akzeptabler Temperaturbereich, Name sowie Benachrichtigungs-/Protokollierungsschalter — alles verfügbar, sobald eine Sonde installiert ist
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
 </p>
@@ -386,6 +407,13 @@ Das RSPOWER (Power Center) ist ein eigenständiges Gerät mit eigener IP-Adresse
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
 </p>
+
+### Steckdosenmodus und sensorgesteuerte Steckdosen
+Der Modus einer Steckdose (off / on / schedule / sensor) und ihre Zeitplan-/Sensor-Schwellenwerteinstellungen (z. B. „diese Steckdose einschalten, wenn die lokale Temperatur unter 24 °C fällt") werden hier nicht als einzelne Entitäten bereitgestellt — bei bis zu 8 Steckdosen und mehreren geplanten Sondentypen mit jeweils eigenem Bereich/eigener Einheit wären das Dutzende selten genutzter Entitäten. Konfigurieren Sie sie stattdessen über [ha-reef-card](https://github.com/Elwinmage/ha-reef-card), das dieselben Aufrufe wie die ReefBeat-App in einer einzigen Aktion über den Dienst `redsea.request` ausführt (siehe die Dienste der Integration in den Entwicklerwerkzeugen von Home Assistant).
+
+Jede Steckdose stellt weiterhin eine Entität `sensor.socket_N_mode` für Automatisierungen bereit: ihr Zustand ist der aktuelle Modus der Steckdose, und ihre Attribute tragen den aktuellen `schedule` sowie, im Sensor-Modus, die `sensor_config` — so kann eine Automatisierung oder eine Karte die aktive Konfiguration ohne zusätzliche Anfrage auslesen.
+
+Das Gerät verlässt seinen anfänglichen „setup“-Zustand automatisch, sobald die erste Steckdose konfiguriert wurde — genau wie die ReefBeat-App, ganz ohne manuellen Eingriff.
 
 # ReefDose:
 - Tagesdosis bearbeiten

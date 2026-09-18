@@ -129,9 +129,6 @@
       "sensor_controlled": {
         "name": "Controlado por sensor"
       },
-      "socket_enabled": {
-        "name": "Socket {socket} enabled"
-      },
       "status": {
         "name": "Estado"
       },
@@ -143,6 +140,15 @@
       },
       "water_level": {
         "name": "Nível de água"
+      },
+      "control_paired": {
+        "name": "Control emparelhado"
+      },
+      "control_internet_connected": {
+        "name": "Internet do control"
+      },
+      "temperature_coherent": {
+        "name": "Coerência de temperatura"
       }
     },
     "button": {
@@ -263,12 +269,6 @@
       "port_delete": {
         "name": "Desinstalar porta {port}"
       },
-      "port_install_ato": {
-        "name": "Instalar porta {port} como ATO"
-      },
-      "port_install_other": {
-        "name": "Instalar porta {port} como dispositivo"
-      },
       "preview_save": {
         "name": "Guardar pré-visualização"
       },
@@ -296,15 +296,6 @@
       "set_supplement_name": {
         "name": "Definir novo nome"
       },
-      "setup_finish": {
-        "name": "Concluir configuração"
-      },
-      "socket_delete": {
-        "name": "Desinstalar tomada {socket}"
-      },
-      "socket_unsubscribe": {
-        "name": "Cancelar subscrição da tomada {socket}"
-      },
       "start_calibration": {
         "name": "Iniciar calibração"
       },
@@ -319,6 +310,69 @@
       },
       "test_calibration": {
         "name": "Testar nova calibração"
+      },
+      "socket_0_delete": {
+        "name": "Eliminar tomada {socket}"
+      },
+      "socket_1_delete": {
+        "name": "Eliminar tomada {socket}"
+      },
+      "socket_2_delete": {
+        "name": "Eliminar tomada {socket}"
+      },
+      "socket_3_delete": {
+        "name": "Eliminar tomada {socket}"
+      },
+      "socket_4_delete": {
+        "name": "Eliminar tomada {socket}"
+      },
+      "socket_5_delete": {
+        "name": "Eliminar tomada {socket}"
+      },
+      "socket_6_delete": {
+        "name": "Eliminar tomada {socket}"
+      },
+      "socket_7_delete": {
+        "name": "Eliminar tomada {socket}"
+      },
+      "socket_0_unsubscribe": {
+        "name": "Cancelar subscrição tomada {socket}"
+      },
+      "socket_1_unsubscribe": {
+        "name": "Cancelar subscrição tomada {socket}"
+      },
+      "socket_2_unsubscribe": {
+        "name": "Cancelar subscrição tomada {socket}"
+      },
+      "socket_3_unsubscribe": {
+        "name": "Cancelar subscrição tomada {socket}"
+      },
+      "socket_4_unsubscribe": {
+        "name": "Cancelar subscrição tomada {socket}"
+      },
+      "socket_5_unsubscribe": {
+        "name": "Cancelar subscrição tomada {socket}"
+      },
+      "socket_6_unsubscribe": {
+        "name": "Cancelar subscrição tomada {socket}"
+      },
+      "socket_7_unsubscribe": {
+        "name": "Cancelar subscrição tomada {socket}"
+      },
+      "install_temperature": {
+        "name": "Adicionar sonda de temperatura"
+      },
+      "remove_temperature": {
+        "name": "Remover sonda de temperatura"
+      },
+      "pair_power": {
+        "name": "Emparelhar Power Center"
+      },
+      "unpair_power": {
+        "name": "Desemparelhar Power Center"
+      },
+      "unpair_control": {
+        "name": "Desemparelhar hub de controlo"
       }
     },
     "light": {
@@ -470,6 +524,27 @@
       },
       "wave_preview_wave_duration": {
         "name": "Pré-vis. duração da onda"
+      },
+      "temperature_coherence_threshold": {
+        "name": "Limiar de coerência de temperatura"
+      },
+      "probe_offset": {
+        "name": "Offset {probe}"
+      },
+      "temperature_offset": {
+        "name": "Offset de temperatura"
+      },
+      "temperature_desired_range_low": {
+        "name": "Intervalo de temperatura desejado (baixo)"
+      },
+      "temperature_desired_range_high": {
+        "name": "Intervalo de temperatura desejado (alto)"
+      },
+      "temperature_acceptable_range_low": {
+        "name": "Intervalo de temperatura aceitável (baixo)"
+      },
+      "temperature_acceptable_range_high": {
+        "name": "Intervalo de temperatura aceitável (alto)"
       }
     },
     "select": {
@@ -486,14 +561,6 @@
       },
       "model": {
         "name": "Modelo"
-      },
-      "port_mode": {
-        "name": "Modo da porta {port}",
-        "state": {
-          "off": "Desligado",
-          "on": "Ligado",
-          "schedule": "Programação"
-        }
       },
       "position": {
         "name": "Posição",
@@ -521,18 +588,19 @@
           "un": "Uniforme"
         }
       },
-      "socket_mode": {
-        "name": "Modo tomada {socket}",
-        "state": {
-          "off": "Desligado",
-          "on": "Ligado",
-          "schedule": "Programação"
-        }
-      },
       "supplements": {
         "name": "Suplementos",
         "state": {
           "other": "Outro"
+        }
+      },
+      "temperature_fusion_method": {
+        "name": "Método de fusão de temperatura",
+        "state": {
+          "median": "Mediana",
+          "mean": "Média",
+          "min": "Mínimo",
+          "max": "Máximo"
         }
       }
     },
@@ -930,18 +998,6 @@
       "skim_last_calibration": {
         "name": "Última calibração de sobreespumação"
       },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
       "state": {
         "name": "Estado",
         "state": {
@@ -1083,6 +1139,208 @@
       },
       "zip_code": {
         "name": "Código postal"
+      },
+      "socket_0_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_1_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_2_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_3_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_4_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_5_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_6_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_7_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_0_state": {
+        "name": "Estado tomada {socket}"
+      },
+      "socket_1_state": {
+        "name": "Estado tomada {socket}"
+      },
+      "socket_2_state": {
+        "name": "Estado tomada {socket}"
+      },
+      "socket_3_state": {
+        "name": "Estado tomada {socket}"
+      },
+      "socket_4_state": {
+        "name": "Estado tomada {socket}"
+      },
+      "socket_5_state": {
+        "name": "Estado tomada {socket}"
+      },
+      "socket_6_state": {
+        "name": "Estado tomada {socket}"
+      },
+      "socket_7_state": {
+        "name": "Estado tomada {socket}"
+      },
+      "socket_0_mode": {
+        "name": "Modo tomada {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Modo tomada {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Modo tomada {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Modo tomada {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Modo tomada {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Modo tomada {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Modo tomada {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Modo tomada {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_0_prev_mode": {
+        "name": "Modo anterior tomada {socket}"
+      },
+      "socket_1_prev_mode": {
+        "name": "Modo anterior tomada {socket}"
+      },
+      "socket_2_prev_mode": {
+        "name": "Modo anterior tomada {socket}"
+      },
+      "socket_3_prev_mode": {
+        "name": "Modo anterior tomada {socket}"
+      },
+      "socket_4_prev_mode": {
+        "name": "Modo anterior tomada {socket}"
+      },
+      "socket_5_prev_mode": {
+        "name": "Modo anterior tomada {socket}"
+      },
+      "socket_6_prev_mode": {
+        "name": "Modo anterior tomada {socket}"
+      },
+      "socket_7_prev_mode": {
+        "name": "Modo anterior tomada {socket}"
+      },
+      "socket_0_consumption": {
+        "name": "Consumo tomada {socket}"
+      },
+      "socket_1_consumption": {
+        "name": "Consumo tomada {socket}"
+      },
+      "socket_2_consumption": {
+        "name": "Consumo tomada {socket}"
+      },
+      "socket_3_consumption": {
+        "name": "Consumo tomada {socket}"
+      },
+      "socket_4_consumption": {
+        "name": "Consumo tomada {socket}"
+      },
+      "socket_5_consumption": {
+        "name": "Consumo tomada {socket}"
+      },
+      "socket_6_consumption": {
+        "name": "Consumo tomada {socket}"
+      },
+      "socket_7_consumption": {
+        "name": "Consumo tomada {socket}"
+      },
+      "total_consumption": {
+        "name": "Consumo total"
+      },
+      "connected_control_type": {
+        "name": "Tipo de control conectado"
+      },
+      "connected_control_status": {
+        "name": "Estado do control conectado"
+      },
+      "temperature_fusion": {
+        "name": "Temperatura fundida"
+      },
+      "temperature_spread": {
+        "name": "Amplitude de temperatura"
+      },
+      "temperature_anomaly_source": {
+        "name": "Origem de anomalia de temperatura",
+        "state": {
+          "ok": "OK",
+          "unknown": "Desconhecida",
+          "maintenance": "Manutenção"
+        }
+      },
+      "probe_uid": {
+        "name": "UID de {probe}"
       }
     },
     "switch": {
@@ -1203,11 +1461,50 @@
       "slm": {
         "name": "Controlador de volume"
       },
-      "socket_on_off": {
-        "name": "Tomada {socket}"
-      },
       "use_cloud_api": {
         "name": "Usar API na nuvem"
+      },
+      "socket_0_on_off": {
+        "name": "Interruptor tomada {socket}"
+      },
+      "socket_1_on_off": {
+        "name": "Interruptor tomada {socket}"
+      },
+      "socket_2_on_off": {
+        "name": "Interruptor tomada {socket}"
+      },
+      "socket_3_on_off": {
+        "name": "Interruptor tomada {socket}"
+      },
+      "socket_4_on_off": {
+        "name": "Interruptor tomada {socket}"
+      },
+      "socket_5_on_off": {
+        "name": "Interruptor tomada {socket}"
+      },
+      "socket_6_on_off": {
+        "name": "Interruptor tomada {socket}"
+      },
+      "socket_7_on_off": {
+        "name": "Interruptor tomada {socket}"
+      },
+      "probe_maintenance": {
+        "name": "Manutenção {probe}"
+      },
+      "probe_buzzer": {
+        "name": "Besouro {probe}"
+      },
+      "probe_enabled": {
+        "name": "{probe} ativada"
+      },
+      "probe_notify": {
+        "name": "Notificações {probe}"
+      },
+      "temperature_notifications_enabled": {
+        "name": "Notificações de temperatura ativadas"
+      },
+      "temperature_log_enabled": {
+        "name": "Registo de temperatura ativado"
       }
     },
     "text": {
@@ -1229,8 +1526,32 @@
       "pump_name": {
         "name": "Nome da bomba"
       },
-      "socket_name": {
+      "socket_0_name": {
         "name": "Nome tomada {socket}"
+      },
+      "socket_1_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_2_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_3_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_4_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_5_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_6_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "socket_7_name": {
+        "name": "Nome tomada {socket}"
+      },
+      "temperature_probe_name": {
+        "name": "Nome da sonda de temperatura"
       }
     },
     "time": {
@@ -1250,7 +1571,8 @@
       "wifi_change_failed_connect": "Não foi possível enviar as novas credenciais Wi-Fi para o equipamento.",
       "wifi_change_failed_reset": "Não foi possível reiniciar o equipamento após enviar as novas credenciais Wi-Fi.",
       "wifi_change_failed_rediscover": "O equipamento reiniciou mas não foi encontrado na rede. Verifica se aderiu a {ssid} e reconfigura o IP manualmente se necessário.",
-      "wifi_change_failed_unknown": "Erro inesperado ao alterar a rede Wi-Fi."
+      "wifi_change_failed_unknown": "Erro inesperado ao alterar a rede Wi-Fi.",
+      "no_probes": "Este hub não tem sondas para remover."
     },
     "error": {
       "auth_failed": "Falha de autenticação, verifica as credenciais",
@@ -1258,7 +1580,8 @@
       "wifi_no_networks": "O equipamento não indica redes Wi-Fi disponíveis.",
       "wifi_no_ssid": "Seleciona uma rede antes de submeter.",
       "wifi_bad_cidr": "CIDR IPv4 inválido (esperado, por exemplo, 10.0.0.0/24).",
-      "wifi_manual_not_found": "Equipamento não encontrado nessa sub-rede. Tenta outro CIDR ou deixa o campo vazio para desistir."
+      "wifi_manual_not_found": "Equipamento não encontrado nessa sub-rede. Tenta outro CIDR ou deixa o campo vazio para desistir.",
+      "no_probe_detected": "Nenhuma sonda nova do tipo selecionado foi detetada. Coloque-a em emparelhamento e tente novamente."
     },
     "progress": {
       "applying": "A aplicar as novas credenciais Wi-Fi e a localizar o equipamento na rede..."
@@ -1273,7 +1596,10 @@
         },
         "menu_options": {
           "settings": "Definições do equipamento",
-          "wifi_scan": "Alterar rede Wi-Fi"
+          "wifi_scan": "Alterar rede Wi-Fi",
+          "add_probe": "Adicionar sonda",
+          "del_probe": "Remover sonda",
+          "change_probe": "Substituir uma sonda"
         },
         "title": "Configuração"
       },
@@ -1306,6 +1632,31 @@
         },
         "description": "O equipamento aderiu a {ssid} mas não foi encontrado em nenhuma das sub-redes diretamente ligadas ao Home Assistant (tentadas: {tried_subnets}). Se sabes em que rede o equipamento chegou e o Home Assistant o consegue alcançar através de um router, indica aqui o CIDR (ex. 10.0.0.0/24). Deixa o campo vazio e submete para desistir.",
         "title": "Localizar o equipamento noutra sub-rede"
+      },
+      "add_probe": {
+        "title": "Adicionar sonda",
+        "description": "Coloque a sonda em emparelhamento, escolha o tipo e confirme para pesquisar.",
+        "data": {
+          "probe_type": "Tipo de sonda"
+        }
+      },
+      "del_probe": {
+        "title": "Remover sonda",
+        "description": "Selecione a(s) sonda(s) a remover.",
+        "data": {
+          "probes": "Sondas"
+        }
+      },
+      "change_probe": {
+        "title": "Substituir uma sonda",
+        "description": "Escolha a sonda a substituir, coloque uma nova sonda do mesmo tipo em emparelhamento e confirme. A nova sonda herda o histórico da anterior.",
+        "data": {
+          "old_probe": "Sonda a substituir"
+        }
+      },
+      "del_probe_confirm": {
+        "title": "Confirmar remoção",
+        "description": "Isto remove permanentemente a(s) sonda(s) selecionada(s) e todas as suas entidades e histórico: {probes}.\n\nConfirme para continuar, ou feche esta janela para cancelar."
       }
     }
   },

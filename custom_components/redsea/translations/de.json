@@ -129,9 +129,6 @@
       "sensor_controlled": {
         "name": "Sensorgesteuert"
       },
-      "socket_enabled": {
-        "name": "Socket {socket} enabled"
-      },
       "status": {
         "name": "Status"
       },
@@ -143,6 +140,15 @@
       },
       "water_level": {
         "name": "Wasserstand"
+      },
+      "control_paired": {
+        "name": "Control gekoppelt"
+      },
+      "control_internet_connected": {
+        "name": "Control-Internet"
+      },
+      "temperature_coherent": {
+        "name": "Temperaturkohärenz"
       }
     },
     "button": {
@@ -263,12 +269,6 @@
       "port_delete": {
         "name": "Port {port} deinstallieren"
       },
-      "port_install_ato": {
-        "name": "Port {port} als ATO installieren"
-      },
-      "port_install_other": {
-        "name": "Port {port} als Gerät installieren"
-      },
       "preview_save": {
         "name": "Vorschau speichern"
       },
@@ -296,15 +296,6 @@
       "set_supplement_name": {
         "name": "Neuen Namen setzen"
       },
-      "setup_finish": {
-        "name": "Einrichtung abschließen"
-      },
-      "socket_delete": {
-        "name": "Steckdose {socket} deinstallieren"
-      },
-      "socket_unsubscribe": {
-        "name": "Steckdose {socket} abmelden"
-      },
       "start_calibration": {
         "name": "Kalibrierung starten"
       },
@@ -319,6 +310,69 @@
       },
       "test_calibration": {
         "name": "Neue Kalibrierung testen"
+      },
+      "socket_0_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_1_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_2_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_3_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_4_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_5_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_6_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_7_delete": {
+        "name": "Steckdose {socket} löschen"
+      },
+      "socket_0_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_1_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_2_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_3_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_4_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_5_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_6_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "socket_7_unsubscribe": {
+        "name": "Steckdose {socket} abmelden"
+      },
+      "install_temperature": {
+        "name": "Temperatursonde hinzufügen"
+      },
+      "remove_temperature": {
+        "name": "Temperatursonde entfernen"
+      },
+      "pair_power": {
+        "name": "Power Center koppeln"
+      },
+      "unpair_power": {
+        "name": "Power Center entkoppeln"
+      },
+      "unpair_control": {
+        "name": "Steuerungs-Hub entkoppeln"
       }
     },
     "light": {
@@ -470,6 +524,27 @@
       },
       "wave_preview_wave_duration": {
         "name": "Vorsch. Wellendauer"
+      },
+      "temperature_coherence_threshold": {
+        "name": "Schwelle Temperaturkohärenz"
+      },
+      "probe_offset": {
+        "name": "Offset {probe}"
+      },
+      "temperature_offset": {
+        "name": "Temperatur-Offset"
+      },
+      "temperature_desired_range_low": {
+        "name": "Gewünschter Temperaturbereich (niedrig)"
+      },
+      "temperature_desired_range_high": {
+        "name": "Gewünschter Temperaturbereich (hoch)"
+      },
+      "temperature_acceptable_range_low": {
+        "name": "Akzeptabler Temperaturbereich (niedrig)"
+      },
+      "temperature_acceptable_range_high": {
+        "name": "Akzeptabler Temperaturbereich (hoch)"
       }
     },
     "select": {
@@ -486,14 +561,6 @@
       },
       "model": {
         "name": "Modell"
-      },
-      "port_mode": {
-        "name": "Port {port} Modus",
-        "state": {
-          "off": "Aus",
-          "on": "Ein",
-          "schedule": "Zeitplan"
-        }
       },
       "position": {
         "name": "Position",
@@ -521,18 +588,19 @@
           "un": "Gleichmäßig"
         }
       },
-      "socket_mode": {
-        "name": "Modus Steckdose {socket}",
-        "state": {
-          "off": "Aus",
-          "on": "Ein",
-          "schedule": "Zeitplan"
-        }
-      },
       "supplements": {
         "name": "Nahrungsergänzungsmittel",
         "state": {
           "other": "Sonstige"
+        }
+      },
+      "temperature_fusion_method": {
+        "name": "Temperatur-Fusionsmethode",
+        "state": {
+          "median": "Median",
+          "mean": "Mittelwert",
+          "min": "Minimum",
+          "max": "Maximum"
         }
       }
     },
@@ -930,18 +998,6 @@
       "skim_last_calibration": {
         "name": "Letzte Abschäum-Kalibrierung"
       },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
       "state": {
         "name": "Zustand",
         "state": {
@@ -1083,6 +1139,208 @@
       },
       "zip_code": {
         "name": "Postleitzahl"
+      },
+      "socket_0_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_1_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_2_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_3_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_4_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_5_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_6_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_7_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_0_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_1_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_2_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_3_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_4_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_5_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_6_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_7_state": {
+        "name": "Steckdose {socket} Zustand"
+      },
+      "socket_0_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Steckdose {socket} Modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_0_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_1_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_2_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_3_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_4_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_5_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_6_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_7_prev_mode": {
+        "name": "Steckdose {socket} vorheriger Modus"
+      },
+      "socket_0_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_1_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_2_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_3_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_4_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_5_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_6_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "socket_7_consumption": {
+        "name": "Steckdose {socket} Verbrauch"
+      },
+      "total_consumption": {
+        "name": "Gesamtverbrauch"
+      },
+      "connected_control_type": {
+        "name": "Typ des verbundenen Control"
+      },
+      "connected_control_status": {
+        "name": "Status des verbundenen Control"
+      },
+      "temperature_fusion": {
+        "name": "Fusionierte Temperatur"
+      },
+      "temperature_spread": {
+        "name": "Temperaturspanne"
+      },
+      "temperature_anomaly_source": {
+        "name": "Temperatur-Anomaliequelle",
+        "state": {
+          "ok": "OK",
+          "unknown": "Unbekannt",
+          "maintenance": "Wartung"
+        }
+      },
+      "probe_uid": {
+        "name": "UID von {probe}"
       }
     },
     "switch": {
@@ -1203,11 +1461,50 @@
       "slm": {
         "name": "Volumenregler"
       },
-      "socket_on_off": {
-        "name": "Steckdose {socket}"
-      },
       "use_cloud_api": {
         "name": "Cloud-API verwenden"
+      },
+      "socket_0_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_1_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_2_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_3_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_4_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_5_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_6_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "socket_7_on_off": {
+        "name": "Steckdose {socket} Schalter"
+      },
+      "probe_maintenance": {
+        "name": "Wartung {probe}"
+      },
+      "probe_buzzer": {
+        "name": "{probe} Summer"
+      },
+      "probe_enabled": {
+        "name": "{probe} aktiviert"
+      },
+      "probe_notify": {
+        "name": "{probe} Benachrichtigungen"
+      },
+      "temperature_notifications_enabled": {
+        "name": "Temperaturbenachrichtigungen aktiviert"
+      },
+      "temperature_log_enabled": {
+        "name": "Temperaturprotokollierung aktiviert"
       }
     },
     "text": {
@@ -1229,8 +1526,32 @@
       "pump_name": {
         "name": "Pumpenname"
       },
-      "socket_name": {
-        "name": "Name Steckdose {socket}"
+      "socket_0_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_1_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_2_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_3_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_4_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_5_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_6_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "socket_7_name": {
+        "name": "Steckdose {socket} Name"
+      },
+      "temperature_probe_name": {
+        "name": "Name der Temperatursonde"
       }
     },
     "time": {
@@ -1250,7 +1571,8 @@
       "wifi_change_failed_connect": "Die neuen WLAN-Zugangsdaten konnten nicht an das Gerät gesendet werden.",
       "wifi_change_failed_reset": "Das Gerät konnte nach dem Senden der neuen WLAN-Zugangsdaten nicht neu gestartet werden.",
       "wifi_change_failed_rediscover": "Das Gerät wurde neu gestartet, konnte aber im Netzwerk nicht gefunden werden. Prüfen Sie, ob es {ssid} beigetreten ist, und konfigurieren Sie die IP bei Bedarf manuell neu.",
-      "wifi_change_failed_unknown": "Unerwarteter Fehler beim Ändern des WLAN-Netzwerks."
+      "wifi_change_failed_unknown": "Unerwarteter Fehler beim Ändern des WLAN-Netzwerks.",
+      "no_probes": "Dieser Hub hat keine Sonden zum Entfernen."
     },
     "error": {
       "auth_failed": "Authentifizierung fehlgeschlagen, Anmeldedaten prüfen",
@@ -1258,7 +1580,8 @@
       "wifi_no_networks": "Das Gerät meldet keine verfügbaren WLAN-Netzwerke.",
       "wifi_no_ssid": "Bitte wählen Sie ein Netzwerk aus, bevor Sie absenden.",
       "wifi_bad_cidr": "Kein gültiger IPv4-CIDR (erwartet z. B. 10.0.0.0/24).",
-      "wifi_manual_not_found": "Gerät auf diesem Subnetz nicht gefunden. Versuchen Sie einen anderen CIDR oder lassen Sie das Feld leer, um aufzugeben."
+      "wifi_manual_not_found": "Gerät auf diesem Subnetz nicht gefunden. Versuchen Sie einen anderen CIDR oder lassen Sie das Feld leer, um aufzugeben.",
+      "no_probe_detected": "Keine neue Sonde des gewählten Typs erkannt. In den Kopplungsmodus versetzen und erneut versuchen."
     },
     "progress": {
       "applying": "Die neuen WLAN-Zugangsdaten werden gesendet und das Gerät im Netzwerk gesucht..."
@@ -1273,7 +1596,10 @@
         },
         "menu_options": {
           "settings": "Geräteeinstellungen",
-          "wifi_scan": "WLAN-Netzwerk ändern"
+          "wifi_scan": "WLAN-Netzwerk ändern",
+          "add_probe": "Sonde hinzufügen",
+          "del_probe": "Sonde entfernen",
+          "change_probe": "Sonde ersetzen"
         },
         "title": "Konfiguration"
       },
@@ -1306,6 +1632,31 @@
         },
         "description": "Das Gerät ist {ssid} beigetreten, wurde jedoch in keinem der direkt an Home Assistant angebundenen Subnetze gefunden (versucht: {tried_subnets}). Wenn Sie wissen, in welchem Netzwerk das Gerät gelandet ist und Home Assistant es über einen Router erreichen kann, geben Sie hier den CIDR ein (z. B. 10.0.0.0/24). Lassen Sie das Feld leer und senden Sie ab, um aufzugeben.",
         "title": "Gerät in einem anderen Subnetz suchen"
+      },
+      "add_probe": {
+        "title": "Sonde hinzufügen",
+        "description": "Versetzen Sie die Sonde in den Kopplungsmodus, wählen Sie den Typ und bestätigen Sie den Scan.",
+        "data": {
+          "probe_type": "Sondentyp"
+        }
+      },
+      "del_probe": {
+        "title": "Sonde entfernen",
+        "description": "Wählen Sie die zu entfernende(n) Sonde(n).",
+        "data": {
+          "probes": "Sonden"
+        }
+      },
+      "change_probe": {
+        "title": "Sonde ersetzen",
+        "description": "Wähle die zu ersetzende Sonde, versetze eine neue Sonde desselben Typs in den Kopplungsmodus und bestätige. Die neue Sonde übernimmt den Verlauf der alten.",
+        "data": {
+          "old_probe": "Zu ersetzende Sonde"
+        }
+      },
+      "del_probe_confirm": {
+        "title": "Entfernen bestätigen",
+        "description": "Dies entfernt die gewählte(n) Sonde(n) samt allen Entitäten und deren Verlauf dauerhaft: {probes}.\n\nBestätigen zum Fortfahren, oder Dialog schließen zum Abbrechen."
       }
     }
   },

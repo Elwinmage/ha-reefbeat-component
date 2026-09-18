@@ -79,12 +79,276 @@ class ReefControlAPI(ReefBeatAPI):
         # `is_btn_assigned` alongside the changed field, and `/dashboard`
         # carries none of those.
         sources = cast(list[SourceEntry], self.data.get("sources", []))
-        for name in ("/configuration", "/ports/config", "/subscription-info"):
+        for name in (
+            "/configuration",
+            "/ports/config",
+            "/subscription-info",
+            "/probe/config",
+        ):
             sources.insert(
                 len(sources),
                 {"name": name, "type": "config", "data": ""},
             )
         self.data["sources"] = sources
+
+    # -- Dynamic per-probe temperature-offset sources ----------------------
+    # The temperature calibration offset is read via
+    # ``GET /probe/offset?type=temperature&uid=<uid>`` — one endpoint per
+    # temperature probe. Probes come and go at runtime, so these sources are
+    # reconciled after every dashboard fetch rather than registered up front.
+    _OFFSET_PREFIX = "/probe/offset?type=temperature&uid="
+
+    @classmethod
+    def _offset_source_name(cls, uid: str) -> str:
+        return f"{cls._OFFSET_PREFIX}{uid}"
+
+    def _reconcile_probe_offset_sources(self) -> None:
+        """Keep dynamic probe-dependent sources in sync with the probes.
+
+        Two kinds: one ``/probe/offset`` source per temperature probe, and
+        ``/leak/config`` when a leak probe exists (its buzzer/notify live there,
+        not in ``/probe/config``). These are read non-positionally, so no cache
+        invalidation is needed and the fixed sources keep their front slots.
+        """
+        probes = (
+            self.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+            )
+            or []
+        )
+        wanted = {
+            self._offset_source_name(p["uid"])
+            for p in probes
+            if isinstance(p, dict)
+            and str(p.get("type", "")).lower() == "temperature"
+            and p.get("uid")
+        }
+        has_leak = any(
+            isinstance(p, dict) and str(p.get("type", "")).lower() == "leak"
+            for p in probes
+        )
+        if has_leak:
+            wanted.add("/leak/config")
+        sources = cast(list[SourceEntry], self.data.get("sources", []))
+        existing = {
+            s.get("name")
+            for s in sources
+            if str(s.get("name", "")).startswith(self._OFFSET_PREFIX)
+            or s.get("name") == "/leak/config"
+        }
+        if wanted == existing:
+            return
+        for name in wanted - existing:
+            self.add_source(name, "config", "")
+        for name in existing - wanted:
+            self.remove_source(name)
+
+    async def fetch_data(self) -> dict[str, Any]:
+        """Fetch, keeping per-probe offset sources in sync with the probes.
+
+        The dashboard is refreshed first (cheap, single source) so probe
+        presence is current, then the offset sources are reconciled *before* the
+        full fetch. This drops the endpoint of a just-removed probe before it
+        would be polled — otherwise it 404s and burns the retry budget.
+        """
+        if self.quick_refresh is None and self._live_config_update:
+            self.quick_refresh = "/dashboard"
+            await super().fetch_data()
+            self._reconcile_probe_offset_sources()
+        data = await super().fetch_data()
+        self._reconcile_probe_offset_sources()
+        return data
+
+    def probe_offset(self, uid: str) -> float | None:
+        """Cached calibration offset for a temperature probe, if known."""
+        return self.get_data(
+            f"$.sources[?(@.name=='{self._offset_source_name(uid)}')].data.offset",
+            is_None_possible=True,
+        )
+
+    async def set_probe_offset(self, uid: str, offset: float) -> HttpResult | None:
+        """Set a temperature probe's calibration offset (``POST /probe/offset``)."""
+        return await self.http_send(
+            self._offset_source_name(uid), {"offset": offset}, "post"
+        )
+
+    async def reset_probe_offset(self, uid: str) -> HttpResult | None:
+        """Clear a temperature probe's calibration offset (``DELETE``)."""
+        return await self.http_send(self._offset_source_name(uid), None, "delete")
+
+    # -- Probe install / delete --------------------------------------------
+    # Seeded on ``PUT /probe/config`` right after install — otherwise the
+    # probe answers but stays unconfigured (no ranges/buzzer/notify set),
+    # mirroring RSPower's local temperature probe needing its own config
+    # seeded on install. ``leak`` needs none: its ``/probe/config`` entry is
+    # just ``{name, type, uid}`` — writing to it 503s (buzzer/notify live in
+    # ``/leak/config`` instead, see ``_BUZZER_LOC``/``_NOTIFY_LOC``). Values
+    # mirror what a real hub reports for a probe fresh off `/probe/install`.
+    _PROBE_INSTALL_DEFAULTS: dict[str, dict[str, Any]] = {
+        "ec": {
+            "name": "EC",
+            "buzzer": True,
+            "notify": True,
+            "unit": "ec",
+            "ranges": [46.2, 49, 54.4, 59.7],
+            "temp": {"ranges": [21, 23, 26, 28], "notify": True},
+        },
+        "ph": {
+            "name": "pH",
+            "buzzer": False,
+            "notify": True,
+            "ranges": [7.6, 7.9, 8.4, 8.6],
+            "temp": {"ranges": [21, 23, 26, 28], "notify": True},
+        },
+        "orp": {
+            "name": "ORP",
+            "buzzer": False,
+            "notify": True,
+            "ranges": [100, 200, 400, 480],
+        },
+        "temperature": {
+            "name": "Temperature",
+            "buzzer": True,
+            "notify": True,
+            "ranges": [21, 23, 26, 28],
+        },
+        "ato": {
+            "name": "ATO",
+            "buzzer": False,
+            "notify": True,
+            "temp": {"ranges": [21, 23, 26, 28], "notify": True},
+        },
+    }
+
+    async def install_probe(self, ptype: str) -> HttpResult | None:
+        """Ask the hub to scan for and install a new probe of ``ptype``.
+
+        The device performs a BLE scan during the request and returns
+        ``{"uid": ..., "success": true}`` on success or ``success: false`` /
+        no uid when nothing is found. On success the BLE advertising of the
+        new probe is stopped, then its config is seeded with defaults (see
+        ``_PROBE_INSTALL_DEFAULTS``) and read back immediately — ``/probe/
+        config`` is always registered (unlike RSPower's per-probe offset
+        sources), so no on-demand registration is needed to refresh it.
+        """
+        result = await self.http_send(f"/probe/install?type={ptype}", {}, "post")
+        payload = result.get("json") if isinstance(result, dict) else None
+        uid = payload.get("uid") if isinstance(payload, dict) else None
+        if uid:
+            await self.http_send(f"/ble/off?type={ptype}&uid={uid}", {}, "post")
+            defaults = self._PROBE_INSTALL_DEFAULTS.get(ptype.lower())
+            if defaults is not None:
+                body = dict(defaults)
+                body["type"] = ptype
+                body["uid"] = uid
+                await self.http_send("/probe/config", [body], "put")
+                await self.fetch_config("/probe/config")
+        return result
+
+    async def delete_probe(self, ptype: str, uid: str) -> HttpResult | None:
+        """Remove a probe from the hub (``DELETE /probe?type&uid``).
+
+        For a temperature probe, its calibration-offset source is dropped
+        immediately rather than waiting for the next refresh's reconciliation
+        (gated on the dashboard's probes list, which can lag behind the
+        removal by a cycle or two) — otherwise it keeps getting polled (and
+        erroring) for a while after the probe is already gone.
+        """
+        result = await self.http_send(f"/probe?type={ptype}&uid={uid}", None, "delete")
+        if ptype.lower() == "temperature":
+            name = self._offset_source_name(uid)
+            sources = cast(list[SourceEntry], self.data.get("sources", []))
+            if any(s.get("name") == name for s in sources):
+                self.remove_source(name)
+        return result
+
+    # -- Per-probe buzzer / notify (config, readable via /probe/config) ----
+    # Where each probe type's primary buzzer / notify lives:
+    #   "top"  -> top-level field in the /probe/config entry
+    #   "temp" -> under the entry's temp:{} block (ATO has no primary buzzer)
+    #   "leak" -> /leak/config (leak has no /probe/config entry)
+    _BUZZER_LOC = {
+        "temperature": "top",
+        "ec": "top",
+        "ph": "top",
+        "orp": "top",
+        "ato": "temp",
+        "leak": "leak",
+    }
+    _NOTIFY_LOC = {
+        "temperature": "top",
+        "ec": "top",
+        "ph": "top",
+        "orp": "top",
+        "ato": "top",
+        "leak": "leak",
+    }
+
+    @staticmethod
+    def probe_config_path(ptype: str, uid: str, field: str, loc: str) -> str:
+        """JSONPath to a probe's buzzer/notify, per its config location."""
+        if loc == "leak":
+            return f"$.sources[?(@.name=='/leak/config')].data.{field}"
+        entry = (
+            "$.sources[?(@.name=='/probe/config')]"
+            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]"
+        )
+        return f"{entry}.temp.{field}" if loc == "temp" else f"{entry}.{field}"
+
+    def buzzer_path(self, ptype: str, uid: str) -> str:
+        return self.probe_config_path(
+            ptype, uid, "buzzer", self._BUZZER_LOC.get(ptype, "top")
+        )
+
+    def notify_path(self, ptype: str, uid: str) -> str:
+        return self.probe_config_path(
+            ptype, uid, "notify", self._NOTIFY_LOC.get(ptype, "top")
+        )
+
+    async def _set_probe_flag(
+        self, ptype: str, uid: str, field: str, on: bool, loc: str
+    ) -> HttpResult | None:
+        # Leak buzzer/notify live in /leak/config, not /probe/config (a
+        # /probe/config write for a leak probe is rejected with HTTP 503). The
+        # firmware merges a partial body, confirmed on device:
+        #   PUT /leak/config {"buzzer": true} -> "Leak config updated".
+        if loc == "leak":
+            return await self.http_send("/leak/config", {field: on}, "put")
+        # Partial PUT (merged by the firmware); temp flags nest under temp:{}.
+        if loc == "temp":
+            probe_body: dict[str, Any] = {
+                "type": ptype,
+                "uid": uid,
+                "temp": {field: on},
+            }
+        else:
+            probe_body = {"type": ptype, "uid": uid, field: on}
+        return await self.http_send("/probe/config", [probe_body], "put")
+
+    async def set_probe_buzzer(
+        self, ptype: str, uid: str, on: bool
+    ) -> HttpResult | None:
+        """Toggle a probe's out-of-range buzzer (partial ``PUT /probe/config``)."""
+        return await self._set_probe_flag(
+            ptype, uid, "buzzer", on, self._BUZZER_LOC.get(ptype, "top")
+        )
+
+    async def set_probe_notify(
+        self, ptype: str, uid: str, on: bool
+    ) -> HttpResult | None:
+        """Toggle a probe's out-of-range push notification."""
+        return await self._set_probe_flag(
+            ptype, uid, "notify", on, self._NOTIFY_LOC.get(ptype, "top")
+        )
+
+    async def set_probe_enabled(
+        self, ptype: str, uid: str, on: bool
+    ) -> HttpResult | None:
+        """Enable (``DELETE``) or disable (``POST``) a probe's monitoring."""
+        method = "delete" if on else "post"
+        return await self.http_send(
+            f"/probe/disable?type={ptype}&uid={uid}", None, method
+        )
 
     # Wire values of `ControlPort$PortType` in the Red Sea app:
     #   NONE -> "unknown"  (port not installed yet)
@@ -236,6 +500,30 @@ class ReefControlAPI(ReefBeatAPI):
     async def setup_finish(self) -> HttpResult | None:
         """Leave setup mode via ``POST /setup-finish`` (device switches to auto)."""
         return await self.http_send("/setup-finish", {}, "post")
+
+    # ------------------------------------------------------------------
+    # RSPower center pairing
+    # ------------------------------------------------------------------
+    #
+    # The paired power center shows up in this hub's own /dashboard as
+    # `connected_device` (hwid/type/state) — and, once paired, the link is
+    # visible from the power center's side too, as ITS /dashboard
+    # `connected_device` (hwid/type/status). There is no separate "pair"
+    # call on the power center's side: pairing is only ever initiated here.
+
+    async def power_discover(self, pair: bool = False) -> HttpResult | None:
+        """Scan for (``pair=False``) or pair with (``pair=True``) a nearby
+        RSPower center (``POST /power/discover``).
+
+        The app always does a scan first to show the device before
+        confirming, but a scan on its own commits nothing — only
+        ``pair=True`` actually links the two devices.
+        """
+        return await self.http_send("/power/discover", {"pair": pair}, "post")
+
+    async def power_unpair(self) -> HttpResult | None:
+        """Unlink the paired RSPower center (``POST /power/unpair``)."""
+        return await self.http_send("/power/unpair", {}, "post")
 
     # ------------------------------------------------------------------
     # Per-port ATO helpers

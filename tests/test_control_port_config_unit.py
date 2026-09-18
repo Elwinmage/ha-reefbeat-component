@@ -17,8 +17,11 @@ Covers:
 - ``ReefControlAPI.set_port_schedule`` → ``PUT /port/<n>/schedule``
 - ``ReefControlAPI.setup_finish``      → ``POST /setup-finish``
 - ``ReefControlCoordinator`` delegating methods (call API + refresh)
-- the per-port mode select entity (write + setup→None mapping)
 - the per-port name text entity
+
+Port mode selection itself (off/on/schedule/sensor) is configured from
+ha-reef-card via the generic ``redsea.request`` service, not from an HA
+entity — there is no select entity here to test (mirrors RSPower's sockets).
 """
 
 from __future__ import annotations
@@ -30,7 +33,6 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-import custom_components.redsea.select as select_platform
 import custom_components.redsea.text as text_platform
 from custom_components.redsea.const import DOMAIN
 from tests._switch_test_fakes import FakeControlCoordinator
@@ -204,6 +206,26 @@ async def test_setup_finish_posts() -> None:
     api.http_send.assert_awaited_once_with("/setup-finish", {}, "post")
 
 
+@pytest.mark.asyncio
+async def test_power_discover_scan_and_pair() -> None:
+    """The app always scans (pair=False) before confirming (pair=True); only
+    the latter actually commits the link.
+    """
+    api = _make_api()
+    await api.power_discover()  # default: scan only
+    api.http_send.assert_awaited_once_with("/power/discover", {"pair": False}, "post")
+
+    await api.power_discover(pair=True)
+    api.http_send.assert_awaited_with("/power/discover", {"pair": True}, "post")
+
+
+@pytest.mark.asyncio
+async def test_power_unpair_posts() -> None:
+    api = _make_api()
+    await api.power_unpair()
+    api.http_send.assert_awaited_once_with("/power/unpair", {}, "post")
+
+
 # ===========================================================================
 # ReefControlCoordinator delegating methods
 # ===========================================================================
@@ -227,17 +249,11 @@ def _make_coordinator() -> Any:
         set_port_mode=AsyncMock(),
         set_port_schedule=AsyncMock(),
         setup_finish=AsyncMock(),
+        power_discover=AsyncMock(),
+        power_unpair=AsyncMock(),
     )
     coord.async_request_refresh = AsyncMock()  # type: ignore[method-assign]
     return coord
-
-
-@pytest.mark.asyncio
-async def test_coordinator_set_port_mode_delegates_and_refreshes() -> None:
-    coord = _make_coordinator()
-    await coord.set_port_mode(1, "on")
-    coord.my_api.set_port_mode.assert_awaited_once_with(1, "on")
-    coord.async_request_refresh.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -258,10 +274,18 @@ async def test_coordinator_setup_finish_delegates_and_refreshes() -> None:
 
 
 @pytest.mark.asyncio
-async def test_coordinator_install_port_delegates_and_refreshes() -> None:
+async def test_coordinator_pair_power_delegates_and_refreshes() -> None:
     coord = _make_coordinator()
-    await coord.install_port(1, "ato")
-    coord.my_api.install_port.assert_awaited_once_with(1, "ato")
+    await coord.pair_power()
+    coord.my_api.power_discover.assert_awaited_once_with(pair=True)
+    coord.async_request_refresh.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_coordinator_unpair_power_delegates_and_refreshes() -> None:
+    coord = _make_coordinator()
+    await coord.unpair_power()
+    coord.my_api.power_unpair.assert_awaited_once()
     coord.async_request_refresh.assert_awaited_once()
 
 
@@ -304,134 +328,6 @@ async def test_coordinator_set_port_name_falls_back_to_off_without_cache() -> No
     coord.my_api.port_config = MagicMock(return_value=None)
     await coord.set_port_name(0, "S1")
     coord.my_api.set_port_mode.assert_awaited_once_with(0, "off", name="S1")
-
-
-# ===========================================================================
-# Per-port mode select entity
-# ===========================================================================
-
-
-def _mode_path(idx: int) -> str:
-    return (
-        "$.sources[?(@.name=='/dashboard')].data.ports"
-        f"[?(@.number=={idx})].user_config_mode"
-    )
-
-
-def _make_select(device: FakeControlCoordinator, port_idx: int) -> Any:
-    desc = select_platform.ReefControlPortModeSelectEntityDescription(
-        key=f"port_{port_idx}_mode",
-        translation_key="port_mode",
-        translation_placeholders={"port": str(port_idx + 1)},
-        value_name=_mode_path(port_idx),
-        options=["off", "on", "schedule"],
-        port=port_idx,
-    )
-    entity = select_platform.ReefControlPortModeSelectEntity(cast(Any, device), desc)
-    entity.async_write_ha_state = lambda: None  # type: ignore[assignment]
-    return entity
-
-
-def test_select_reads_current_mode() -> None:
-    device = FakeControlCoordinator()
-    device.get_data_map[_mode_path(1)] = "schedule"
-    entity = _make_select(device, 1)
-    entity._update_val()
-    assert entity.current_option == "schedule"
-    # device_info is proxied straight from the coordinator.
-    assert entity.device_info == device.device_info
-
-
-def test_select_maps_setup_to_none() -> None:
-    """A port fresh out of the box sits in 'setup', which isn't selectable."""
-    device = FakeControlCoordinator()
-    device.get_data_map[_mode_path(0)] = "setup"
-    entity = _make_select(device, 0)
-    entity._update_val()
-    assert entity.current_option is None
-
-
-def test_select_unavailable_when_port_not_installed() -> None:
-    """An uninstalled port rejects every write, so don't offer the control."""
-    device = FakeControlCoordinator(installed_ports=set())
-    device.get_data_map[_mode_path(0)] = "setup"
-    entity = _make_select(device, 0)
-    entity._update_val()
-    assert entity.available is False
-    assert entity.current_option is None
-
-
-def test_select_availability_is_not_cached() -> None:
-    """Installing a port at runtime must bring the select back.
-
-    The base class exposes `available` as a `cached_property`; overriding it
-    with another cached one would freeze the entity as unavailable until a
-    Home Assistant restart.
-    """
-    device = FakeControlCoordinator(installed_ports=set())
-    entity = _make_select(device, 0)
-    assert entity.available is False
-    device.installed_ports.add(0)
-    assert entity.available is True
-
-
-def test_select_unavailable_when_coordinator_failed() -> None:
-    """Port state alone isn't enough — a dead coordinator wins."""
-    device = FakeControlCoordinator()
-    device.last_update_success = False
-    entity = _make_select(device, 0)
-    assert entity.available is False
-
-
-def test_select_maps_unknown_to_none() -> None:
-    device = FakeControlCoordinator()
-    device.get_data_map[_mode_path(0)] = None
-    entity = _make_select(device, 0)
-    entity._update_val()
-    assert entity.current_option is None
-
-
-@pytest.mark.asyncio
-async def test_select_option_calls_set_port_mode() -> None:
-    device = FakeControlCoordinator()
-    entity = _make_select(device, 1)
-    await entity.async_select_option("on")
-    assert device.mode_calls == [(1, "on")]
-    assert entity.current_option == "on"
-
-
-@pytest.mark.asyncio
-async def test_setup_entry_creates_one_mode_select_per_port(
-    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """RSCONTROLPRO exposes 2 ports, RSCONTROLLITE 1 — one select each."""
-
-    class _ControlDevice(FakeControlCoordinator):
-        pass
-
-    monkeypatch.setattr(
-        select_platform, "ReefControlCoordinator", _ControlDevice, raising=True
-    )
-
-    device = _ControlDevice(port_count=2)
-    device.hass = hass
-    entry = MockConfigEntry(domain=DOMAIN, title="ctrl", unique_id="ctrl")
-    entry.add_to_hass(hass)
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = device
-
-    added: list[Any] = []
-
-    def _add(new: Any, _update: bool = False) -> None:
-        added.extend(list(new))
-
-    await select_platform.async_setup_entry(hass, cast(Any, entry), cast(Any, _add))
-
-    mode_keys = {
-        e.entity_description.key
-        for e in added
-        if e.entity_description.key.endswith("_mode")
-    }
-    assert mode_keys == {f"port_{i}_mode" for i in range(2)}
 
 
 # ===========================================================================

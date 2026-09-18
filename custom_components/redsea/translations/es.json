@@ -129,9 +129,6 @@
       "sensor_controlled": {
         "name": "Controlado por sensor"
       },
-      "socket_enabled": {
-        "name": "Socket {socket} enabled"
-      },
       "status": {
         "name": "Estado"
       },
@@ -143,6 +140,15 @@
       },
       "water_level": {
         "name": "Nivel de agua"
+      },
+      "control_paired": {
+        "name": "Control emparejado"
+      },
+      "control_internet_connected": {
+        "name": "Internet del control"
+      },
+      "temperature_coherent": {
+        "name": "Coherencia de temperatura"
       }
     },
     "button": {
@@ -263,12 +269,6 @@
       "port_delete": {
         "name": "Desinstalar puerto {port}"
       },
-      "port_install_ato": {
-        "name": "Instalar puerto {port} como ATO"
-      },
-      "port_install_other": {
-        "name": "Instalar puerto {port} como dispositivo"
-      },
       "preview_save": {
         "name": "Guardar vista previa"
       },
@@ -296,15 +296,6 @@
       "set_supplement_name": {
         "name": "Establecer nuevo nombre"
       },
-      "setup_finish": {
-        "name": "Finalizar configuración"
-      },
-      "socket_delete": {
-        "name": "Desinstalar toma {socket}"
-      },
-      "socket_unsubscribe": {
-        "name": "Cancelar suscripción de la toma {socket}"
-      },
       "start_calibration": {
         "name": "Iniciar calibración"
       },
@@ -319,6 +310,69 @@
       },
       "test_calibration": {
         "name": "Probar nueva calibración"
+      },
+      "socket_0_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_1_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_2_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_3_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_4_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_5_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_6_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_7_delete": {
+        "name": "Eliminar enchufe {socket}"
+      },
+      "socket_0_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_1_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_2_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_3_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_4_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_5_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_6_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "socket_7_unsubscribe": {
+        "name": "Desuscribir enchufe {socket}"
+      },
+      "install_temperature": {
+        "name": "Añadir sonda de temperatura"
+      },
+      "remove_temperature": {
+        "name": "Eliminar sonda de temperatura"
+      },
+      "pair_power": {
+        "name": "Emparejar Power Center"
+      },
+      "unpair_power": {
+        "name": "Desemparejar Power Center"
+      },
+      "unpair_control": {
+        "name": "Desemparejar hub de control"
       }
     },
     "light": {
@@ -470,6 +524,27 @@
       },
       "wave_preview_wave_duration": {
         "name": "Vista prev. duración de ola"
+      },
+      "temperature_coherence_threshold": {
+        "name": "Umbral de coherencia de temperatura"
+      },
+      "probe_offset": {
+        "name": "Offset {probe}"
+      },
+      "temperature_offset": {
+        "name": "Offset de temperatura"
+      },
+      "temperature_desired_range_low": {
+        "name": "Rango de temperatura deseado (bajo)"
+      },
+      "temperature_desired_range_high": {
+        "name": "Rango de temperatura deseado (alto)"
+      },
+      "temperature_acceptable_range_low": {
+        "name": "Rango de temperatura aceptable (bajo)"
+      },
+      "temperature_acceptable_range_high": {
+        "name": "Rango de temperatura aceptable (alto)"
       }
     },
     "select": {
@@ -486,14 +561,6 @@
       },
       "model": {
         "name": "Modelo"
-      },
-      "port_mode": {
-        "name": "Modo del puerto {port}",
-        "state": {
-          "off": "Apagado",
-          "on": "Encendido",
-          "schedule": "Programación"
-        }
       },
       "position": {
         "name": "Posición",
@@ -521,18 +588,19 @@
           "un": "Uniforme"
         }
       },
-      "socket_mode": {
-        "name": "Modo toma {socket}",
-        "state": {
-          "off": "Apagado",
-          "on": "Encendido",
-          "schedule": "Programación"
-        }
-      },
       "supplements": {
         "name": "Suplementos",
         "state": {
           "other": "Otro"
+        }
+      },
+      "temperature_fusion_method": {
+        "name": "Método de fusión de temperatura",
+        "state": {
+          "median": "Mediana",
+          "mean": "Media",
+          "min": "Mínimo",
+          "max": "Máximo"
         }
       }
     },
@@ -930,18 +998,6 @@
       "skim_last_calibration": {
         "name": "Última calibración de sobreespumado"
       },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
       "state": {
         "name": "Estado",
         "state": {
@@ -1083,6 +1139,208 @@
       },
       "zip_code": {
         "name": "Código postal"
+      },
+      "socket_0_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_1_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_2_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_3_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_4_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_5_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_6_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_7_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_0_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_1_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_2_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_3_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_4_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_5_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_6_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_7_state": {
+        "name": "Estado enchufe {socket}"
+      },
+      "socket_0_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Modo enchufe {socket}",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_0_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_1_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_2_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_3_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_4_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_5_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_6_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_7_prev_mode": {
+        "name": "Modo anterior enchufe {socket}"
+      },
+      "socket_0_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_1_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_2_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_3_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_4_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_5_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_6_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "socket_7_consumption": {
+        "name": "Consumo enchufe {socket}"
+      },
+      "total_consumption": {
+        "name": "Consumo total"
+      },
+      "connected_control_type": {
+        "name": "Tipo de control conectado"
+      },
+      "connected_control_status": {
+        "name": "Estado del control conectado"
+      },
+      "temperature_fusion": {
+        "name": "Temperatura fusionada"
+      },
+      "temperature_spread": {
+        "name": "Dispersión de temperatura"
+      },
+      "temperature_anomaly_source": {
+        "name": "Origen de anomalía de temperatura",
+        "state": {
+          "ok": "OK",
+          "unknown": "Desconocido",
+          "maintenance": "Mantenimiento"
+        }
+      },
+      "probe_uid": {
+        "name": "UID de {probe}"
       }
     },
     "switch": {
@@ -1203,11 +1461,50 @@
       "slm": {
         "name": "Controlador de volumen"
       },
-      "socket_on_off": {
-        "name": "Toma {socket}"
-      },
       "use_cloud_api": {
         "name": "Usar API en la nube"
+      },
+      "socket_0_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_1_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_2_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_3_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_4_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_5_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_6_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "socket_7_on_off": {
+        "name": "Interruptor enchufe {socket}"
+      },
+      "probe_maintenance": {
+        "name": "Mantenimiento {probe}"
+      },
+      "probe_buzzer": {
+        "name": "Zumbador {probe}"
+      },
+      "probe_enabled": {
+        "name": "{probe} activada"
+      },
+      "probe_notify": {
+        "name": "Notificaciones {probe}"
+      },
+      "temperature_notifications_enabled": {
+        "name": "Notificaciones de temperatura activadas"
+      },
+      "temperature_log_enabled": {
+        "name": "Registro de temperatura activado"
       }
     },
     "text": {
@@ -1229,8 +1526,32 @@
       "pump_name": {
         "name": "Nombre de la bomba"
       },
-      "socket_name": {
-        "name": "Nombre toma {socket}"
+      "socket_0_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_1_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_2_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_3_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_4_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_5_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_6_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "socket_7_name": {
+        "name": "Nombre enchufe {socket}"
+      },
+      "temperature_probe_name": {
+        "name": "Nombre de la sonda de temperatura"
       }
     },
     "time": {
@@ -1250,7 +1571,8 @@
       "wifi_change_failed_connect": "No se pudieron enviar las nuevas credenciales Wi-Fi al dispositivo.",
       "wifi_change_failed_reset": "No se pudo reiniciar el dispositivo tras enviar las nuevas credenciales Wi-Fi.",
       "wifi_change_failed_rediscover": "El dispositivo se reinició pero no se encontró en la red. Comprueba que se conectó a {ssid} y reconfigura su IP manualmente si es necesario.",
-      "wifi_change_failed_unknown": "Error inesperado al cambiar la red Wi-Fi."
+      "wifi_change_failed_unknown": "Error inesperado al cambiar la red Wi-Fi.",
+      "no_probes": "Este hub no tiene sondas para eliminar."
     },
     "error": {
       "auth_failed": "Fallo de autenticación, comprueba tus credenciales",
@@ -1258,7 +1580,8 @@
       "wifi_no_networks": "El dispositivo no informa de redes Wi-Fi disponibles.",
       "wifi_no_ssid": "Selecciona una red antes de enviar.",
       "wifi_bad_cidr": "CIDR IPv4 no válido (se esperaba, por ejemplo, 10.0.0.0/24).",
-      "wifi_manual_not_found": "No se encontró el dispositivo en esa subred. Prueba otro CIDR o deja el campo vacío para desistir."
+      "wifi_manual_not_found": "No se encontró el dispositivo en esa subred. Prueba otro CIDR o deja el campo vacío para desistir.",
+      "no_probe_detected": "No se detectó ninguna sonda nueva del tipo seleccionado. Póngala en emparejamiento e inténtelo de nuevo."
     },
     "progress": {
       "applying": "Aplicando las nuevas credenciales Wi-Fi y localizando el dispositivo en la red..."
@@ -1273,7 +1596,10 @@
         },
         "menu_options": {
           "settings": "Ajustes del dispositivo",
-          "wifi_scan": "Cambiar red Wi-Fi"
+          "wifi_scan": "Cambiar red Wi-Fi",
+          "add_probe": "Añadir sonda",
+          "del_probe": "Eliminar sonda",
+          "change_probe": "Reemplazar una sonda"
         },
         "title": "Configuración"
       },
@@ -1306,6 +1632,31 @@
         },
         "description": "El dispositivo se unió a {ssid} pero no se encontró en ninguna de las subredes a las que Home Assistant está conectado directamente (probadas: {tried_subnets}). Si sabes en qué red aterrizó el dispositivo y Home Assistant puede alcanzarlo a través de un router, introduce aquí el CIDR (p. ej. 10.0.0.0/24). Deja el campo vacío y envía para desistir.",
         "title": "Localizar el dispositivo en otra subred"
+      },
+      "add_probe": {
+        "title": "Añadir sonda",
+        "description": "Ponga la sonda en modo emparejamiento, elija su tipo y confirme para escanear.",
+        "data": {
+          "probe_type": "Tipo de sonda"
+        }
+      },
+      "del_probe": {
+        "title": "Eliminar sonda",
+        "description": "Seleccione la(s) sonda(s) a eliminar.",
+        "data": {
+          "probes": "Sondas"
+        }
+      },
+      "change_probe": {
+        "title": "Reemplazar una sonda",
+        "description": "Elige la sonda a reemplazar, pon una nueva del mismo tipo en emparejamiento y confirma. La nueva sonda hereda el historial de la anterior.",
+        "data": {
+          "old_probe": "Sonda a reemplazar"
+        }
+      },
+      "del_probe_confirm": {
+        "title": "Confirmar eliminación",
+        "description": "Esto elimina permanentemente la(s) sonda(s) seleccionada(s) y todas sus entidades e historial: {probes}.\n\nConfirma para continuar, o cierra este diálogo para cancelar."
       }
     }
   },

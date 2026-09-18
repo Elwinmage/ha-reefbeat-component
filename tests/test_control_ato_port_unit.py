@@ -71,6 +71,18 @@ class _FakeControlDevice:
     async def async_request_refresh(self) -> None:
         return None
 
+    # Temperature-fusion surface used by the RSCONTROL branch of the platform
+    # dispatchers. Defaults keep fusion inert (fewer than two sources) so these
+    # setup-only tests see just the base ATO/port entities.
+    def temperature_source_count(self) -> int:
+        return 0
+
+    def temperature_incoherent(self) -> bool | None:
+        return None
+
+    def fusion_attributes(self) -> dict[str, Any]:
+        return {}
+
 
 def _one_ato_port() -> list[dict[str, Any]]:
     return [
@@ -786,10 +798,17 @@ async def test_control_api_ato_actions_coerce_the_port_to_int() -> None:
 
 
 @pytest.mark.asyncio
-async def test_button_platform_builds_install_buttons_for_unknown_ports(
+async def test_button_platform_builds_delete_buttons_for_every_port(
     hass: Any, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Ports with type=unknown get install_other + install_ato buttons."""
+    """Delete buttons are always created (one per port_count) — mirrors
+    ReefPower's socket_N_delete — and disabled while a port is unconfigured
+    or has already been erased (type unknown/absent). Installing a port's
+    type is not exposed here at all: it is as involved as configuring an
+    RSPower socket's sensor mode, so it is configured from ha-reef-card via
+    the generic ``redsea.request`` service instead (mirrors the removal of
+    RSPower's socket_N_mode select and RSCONTROL's port_N_mode select).
+    """
     import custom_components.redsea.button as button_platform
 
     class _Ctl(_FakeControlDevice):
@@ -809,13 +828,20 @@ async def test_button_platform_builds_install_buttons_for_unknown_ports(
             "live_config_update": True,
         },
     )()
-    # Port 0 is ATO (installed), port 1 is unknown (uninstalled).
+    # Port 0 is installed (ato); port 1 is unknown (never configured, or
+    # just erased — same "nothing to delete" state either way).
     device.get_data_map["$.sources[?(@.name=='/dashboard')].data.ports"] = [
         {"number": 0, "type": "ato", "mode": "auto"},
         {"number": 1, "type": "unknown"},
     ]
+    device.get_data_map[
+        "$.sources[?(@.name=='/dashboard')].data.ports[?(@.number==0)].type"
+    ] = "ato"
+    device.get_data_map[
+        "$.sources[?(@.name=='/dashboard')].data.ports[?(@.number==1)].type"
+    ] = "unknown"
 
-    entry = MockConfigEntry(domain=DOMAIN, title="ctl", data={}, unique_id="ctl-inst")
+    entry = MockConfigEntry(domain=DOMAIN, title="ctl", data={}, unique_id="ctl-del")
     entry.add_to_hass(hass)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = device
 
@@ -826,11 +852,19 @@ async def test_button_platform_builds_install_buttons_for_unknown_ports(
         cast(Any, lambda new_entities, _u=False: added.extend(list(new_entities))),
     )
 
-    keys = {e.entity_description.key for e in added}
-    assert "port_1_install_other" in keys
-    assert "port_1_install_ato" in keys
-    # Installed port must NOT get install buttons.
-    assert "port_0_install_other" not in keys
+    by_key = {e.entity_description.key: e for e in added}
+    # Both ports get the button, regardless of install state.
+    assert "port_0_delete" in by_key
+    assert "port_1_delete" in by_key
+    assert by_key["port_0_delete"].available is True
+    assert by_key["port_1_delete"].available is False
+
+    # A port with no `type` field at all (missing, not just "unknown") is
+    # the same "nothing installed" state and must also read as unavailable.
+    device.get_data_map.pop(
+        "$.sources[?(@.name=='/dashboard')].data.ports[?(@.number==1)].type"
+    )
+    assert by_key["port_1_delete"].available is False
 
 
 # ---------------------------------------------------------------------------
@@ -898,7 +932,7 @@ async def test_button_platform_builds_socket_delete_for_power(
 
     @dataclass
     class _PowerDevice(_FakeControlDevice):
-        pass
+        socket_count: int = 6
 
     _neutralise_other_coordinators(button_platform, monkeypatch)
     # Override *after* neutralise so the elif chain hits the Power branch.
@@ -928,8 +962,9 @@ async def test_button_platform_builds_socket_delete_for_power(
     keys = {e.entity_description.key for e in added}
     assert "socket_0_delete" in keys
     assert "socket_2_delete" in keys
-    # Socket still in setup must NOT get a delete button.
-    assert "socket_1_delete" not in keys
+    # Socket in setup mode still gets a button entity (stable entities)
+    # but it will be unavailable at runtime via dependency_reverse.
+    assert "socket_1_delete" in keys
 
 
 # ---------------------------------------------------------------------------
@@ -974,3 +1009,53 @@ async def test_binary_sensor_platform_builds_leak_probe_entities(
     assert "probe_cd34_detected" in keys
     # Temperature probe must NOT produce a leak entity.
     assert "probe_xx99_detected" not in keys
+
+
+@pytest.mark.asyncio
+async def test_button_platform_pair_unpair_availability_follows_link_state(
+    hass: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """ "Pair" is only available while no power center is linked; "unpair"
+    only once one is — mirrors the port delete buttons' always-created,
+    dependency-gated pattern.
+    """
+    import custom_components.redsea.button as button_platform
+
+    class _Ctl(_FakeControlDevice):
+        pass
+
+    monkeypatch.setattr(button_platform, "ReefControlCoordinator", _Ctl, raising=True)
+    _neutralise_other_coordinators(button_platform, monkeypatch)
+
+    device = _Ctl(port_count=0)
+    device.my_api = type(
+        "_FakeApi",
+        (),
+        {"live_config_update": True},
+    )()
+    device.get_data_map["$.sources[?(@.name=='/dashboard')].data.ports"] = []
+
+    entry = MockConfigEntry(domain=DOMAIN, title="ctl", data={}, unique_id="ctl-pair")
+    entry.add_to_hass(hass)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = device
+
+    added: list[Any] = []
+    await button_platform.async_setup_entry(
+        hass,
+        cast(Any, entry),
+        cast(Any, lambda new_entities, _u=False: added.extend(list(new_entities))),
+    )
+    by_key = {e.entity_description.key: e for e in added}
+    assert "pair_power" in by_key
+    assert "unpair_power" in by_key
+
+    # No power center linked yet -> can pair, can't unpair.
+    assert by_key["pair_power"].available is True
+    assert by_key["unpair_power"].available is False
+
+    # A power center is now linked -> can unpair, can't pair again.
+    device.get_data_map[
+        "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid"
+    ] = "004b12eaacc0"
+    assert by_key["pair_power"].available is False
+    assert by_key["unpair_power"].available is True

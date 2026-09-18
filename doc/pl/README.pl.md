@@ -363,8 +363,10 @@ Zobacz sekcję [Konserwacja](README.pl.md#konserwacja).
 </p>
 
 - Odczyt wszystkich podłączonych sond ReefSense (pH, ORP, zasolenie, temperatura, ATO, wyciek) z wartością i poziomem jakości
+- Włączanie/wyłączanie brzęczyka i powiadomień dla każdej sondy oraz włączanie/wyłączanie monitorowania
 - Stan brzęczyka i czujnika wycieku
 - Włączanie/wyłączanie portów 12V DC (RSCONTROL)
+- Dodawanie, wymiana lub usuwanie sond BLE z menu opcji integracji
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
@@ -372,12 +374,31 @@ Zobacz sekcję [Konserwacja](README.pl.md#konserwacja).
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
 </p>
 
+## Scalanie temperatury z wielu sond
+Gdy dostępne są co najmniej dwa źródła temperatury (dedykowana sonda temperatury oraz temperatura wbudowana w sondy EC/pH/ATO), ReefControl oblicza solidną **scaloną temperaturę** na podstawie pojedynczych odczytów:
+
+- **Temperatura scalona** (`sensor`): pojedyncza wartość zagregowana wybraną metodą — Mediana (domyślnie), Średnia, Minimum lub Maksimum. Konfigurowalna przez encję select **Metoda scalania temperatury**.
+- **Spójność temperatury** (`binary_sensor`) oraz **Rozrzut temperatury** (`sensor`, diagnostyczny): pokazują, czy źródła są zgodne w granicach **Progu spójności temperatury** (konfigurowalny, domyślnie 0,5 °C), oraz jak bardzo się różnią.
+- **Źródło anomalii temperatury** (`sensor`, diagnostyczny): `OK`, gdy wszystkie źródła są zgodne, nazwa sondy (sond) podejrzewanej o dryf lub błędny odczyt, albo `Nieznane`, gdy niezgodności nie można przypisać jednej sondzie. Atrybuty czujnika wymieniają każde źródło wraz z wartością, zmianą w ciągu 1 godziny i statusem.
+- **Przełącznik konserwacji dla każdej sondy obsługującej temperaturę**: jego włączenie tymczasowo wyklucza daną sondę z obliczeń scalania/spójności/anomalii, dzięki czemu czyszczenie lub kalibracja nigdy nie wywołują fałszywego alarmu.
+- **Offset kalibracji** (`number`) dla każdej sondy obsługującej temperaturę.
+
+Te encje pojawiają się dopiero, gdy wykryte zostaną co najmniej dwa źródła temperatury.
+
+## Zarządzanie sondami (dodawanie / wymiana / usuwanie)
+Sondy BLE (pH, ORP, EC, ATO, wyciek, temperatura) zarządzane są z menu **Opcje** integracji, podobnie jak w aplikacji Red Sea:
+
+- **Dodaj sondę**: przełącz sondę w tryb parowania, wybierz jej typ, a następnie potwierdź, aby wyszukać.
+- **Wymień sondę**: wybierz sondę do wymiany, przełącz nową sondę tego samego typu w tryb parowania i potwierdź. Nowa sonda przejmuje historię/statystyki encji starej.
+- **Usuń sondę**: wybierz jedną lub więcej sond i potwierdź — trwale usuwa to encje sondy oraz ich historię.
+
 ## ReefControl-Power
 
 RSPOWER (Power Center) to samodzielne urządzenie z własnym adresem IP, widoczne osobno w Home Assistant.
 
 - Stan, tryb, zużycie oraz włączanie/wyłączanie każdego gniazda
 - 6 lub 8 sterowalnych gniazd w zależności od modelu (RSPOWER6 / RSPOWER8)
+- Opcjonalna lokalna sonda temperatury: przycisk dodawania/usuwania, offset kalibracji, docelowy i akceptowalny zakres temperatury, nazwa oraz przełączniki powiadomień/rejestrowania — wszystko dostępne po zainstalowaniu sondy
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
 </p>
@@ -386,6 +407,13 @@ RSPOWER (Power Center) to samodzielne urządzenie z własnym adresem IP, widoczn
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
 </p>
+
+### Tryb gniazda i gniazda sterowane czujnikiem
+Tryb gniazda (off / on / schedule / sensor) oraz jego ustawienia harmonogramu/progu czujnika (np. „włącz to gniazdo, gdy lokalna temperatura spadnie poniżej 24 °C") nie są tu udostępniane jako osobne encje — przy maksymalnie 8 gniazdach i kilku planowanych typach sond, każdej z własnym zakresem/jednostką, byłyby to dziesiątki rzadko używanych encji. Skonfiguruj je zamiast tego z poziomu [ha-reef-card](https://github.com/Elwinmage/ha-reef-card), która wykonuje te same wywołania co aplikacja ReefBeat w jednej akcji za pomocą usługi `redsea.request` (zobacz Usługi integracji w Narzędziach deweloperskich Home Assistant).
+
+Każde gniazdo nadal udostępnia encję `sensor.socket_N_mode` dla automatyzacji: jej stan to bieżący tryb gniazda, a atrybuty zawierają bieżący `schedule` oraz, w trybie sensor, `sensor_config` — dzięki temu automatyzacja lub karta może odczytać aktywną konfigurację bez dodatkowego zapytania.
+
+Urządzenie automatycznie opuszcza początkowy stan „setup”, gdy tylko pierwsze gniazdo zostanie skonfigurowane, tak jak robi to aplikacja ReefBeat — bez żadnej ręcznej czynności.
 
 # ReefDose:
 - Edytuj dzienną dawkę

@@ -183,8 +183,8 @@ async def test_rscontrol_setup_builds_probe_sensors_from_dashboard(
 
     keys = {e.entity_description.key for e in added}
     # At least one entity per surviving probe (uid is sanitised, hex only).
-    assert any(k.startswith("probe_0x0071c") for k in keys)
-    assert any(k.startswith("probe_0x00842") for k in keys)
+    assert any(k.startswith("probe_ph_0x0071c") for k in keys)
+    assert any(k.startswith("probe_temperature_0x00842") for k in keys)
 
 
 # =============================================================================

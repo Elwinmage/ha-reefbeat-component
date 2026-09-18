@@ -363,8 +363,10 @@ Ver a secção [Manutenção](README.pt.md#manutenção).
 </p>
 
 - Leitura de todas as sondas ReefSense ligadas (pH, ORP, salinidade, temperatura, ATO, fuga) com valor e nível de qualidade
+- Ativação/desativação do sinal sonoro e das notificações por sonda, e ativação/desativação da monitorização
 - Estado do sinal sonoro e do detetor de fugas
 - Ligar/desligar portas 12V DC (RSCONTROL)
+- Adicionar, substituir ou remover sondas BLE a partir do menu de opções da integração
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
@@ -372,12 +374,31 @@ Ver a secção [Manutenção](README.pt.md#manutenção).
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
 </p>
 
+## Fusão de temperatura multi-sonda
+Assim que existem duas ou mais fontes de temperatura (a sonda de temperatura dedicada mais a temperatura embutida nas sondas EC/pH/ATO), o ReefControl calcula uma **temperatura fundida** robusta a partir das leituras individuais:
+
+- **Temperatura fundida** (`sensor`): um único valor agregado com o método escolhido — Mediana (predefinição), Média, Mínimo ou Máximo. Configurável através da entidade select **Método de fusão de temperatura**.
+- **Coerência de temperatura** (`binary_sensor`) e **Amplitude de temperatura** (`sensor`, diagnóstico): indicam se as fontes concordam dentro do **Limiar de coerência de temperatura** (configurável, 0,5 °C por predefinição), e em que medida diferem.
+- **Origem de anomalia de temperatura** (`sensor`, diagnóstico): `OK` quando todas as fontes concordam, o nome da(s) sonda(s) suspeita(s) de deriva ou leitura incorreta, ou `Desconhecida` quando a discrepância não pode ser atribuída a uma sonda concreta. Os atributos do sensor detalham cada fonte com o seu valor, variação numa hora e estado.
+- Um **interruptor de manutenção por sonda com capacidade de temperatura**: ativá-lo exclui temporariamente essa sonda do cálculo de fusão/coerência/anomalia, para que a sua limpeza ou calibração nunca desencadeie um falso alarme.
+- Um **offset de calibração** (`number`) por sonda com capacidade de temperatura.
+
+Estas entidades só aparecem quando são detetadas pelo menos duas fontes de temperatura.
+
+## Gestão de sondas (adicionar / substituir / remover)
+As sondas BLE (pH, ORP, EC, ATO, fuga, temperatura) são geridas a partir do menu **Opções** da integração, tal como na app da Red Sea:
+
+- **Adicionar sonda**: coloque a sonda em modo de emparelhamento, escolha o tipo e confirme para pesquisar.
+- **Substituir uma sonda**: escolha a sonda a substituir, coloque uma nova sonda do mesmo tipo em emparelhamento e confirme. A nova sonda herda o histórico/estatísticas da anterior.
+- **Remover sonda**: selecione uma ou mais sondas e confirme — isto remove permanentemente as entidades da sonda e o respetivo histórico.
+
 ## ReefControl-Power
 
 O RSPOWER (Power Center) é um dispositivo autónomo com o seu próprio endereço IP, exposto separadamente no Home Assistant.
 
 - Estado, modo, consumo e ligar/desligar por tomada
 - 6 ou 8 tomadas controláveis consoante o modelo (RSPOWER6 / RSPOWER8)
+- Sonda de temperatura local opcional: botão de adicionar/remover, offset de calibração, intervalos de temperatura desejado e aceitável, nome, e interruptores de notificações/registo — tudo disponível assim que a sonda é instalada
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
 </p>
@@ -386,6 +407,13 @@ O RSPOWER (Power Center) é um dispositivo autónomo com o seu próprio endereç
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
 </p>
+
+### Modo das tomadas e tomadas controladas por sensor
+O modo de uma tomada (off / on / schedule / sensor) e as suas definições de horário/limiar de sensor (por exemplo, "ligar esta tomada quando a temperatura local descer abaixo de 24 °C") não são expostos aqui como entidades individuais — com até 8 tomadas e vários tipos de sonda previstos, cada um com o seu próprio intervalo/unidade, seriam dezenas de entidades raramente usadas. Configure-os antes a partir do [ha-reef-card](https://github.com/Elwinmage/ha-reef-card), que encadeia as mesmas chamadas que a app ReefBeat numa única ação através do serviço `redsea.request` (veja os Serviços da integração nas Ferramentas de programador do Home Assistant).
+
+Cada tomada continua a expor uma entidade `sensor.socket_N_mode` para automatizações: o seu estado é o modo atual da tomada, e os seus atributos incluem o `schedule` atual e, em modo sensor, o `sensor_config` — assim uma automatização ou um cartão pode ler a configuração ativa sem um pedido adicional.
+
+O dispositivo sai automaticamente do seu estado inicial "setup" assim que a primeira tomada é configurada, tal como a app ReefBeat — sem qualquer ação manual.
 
 # ReefDose:
 - Editar a dose diária

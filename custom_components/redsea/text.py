@@ -192,7 +192,7 @@ async def async_setup_entry(
             power_descs.append(
                 ReefPowerSocketNameTextEntityDescription(
                     key=f"socket_{socket_idx}_name",
-                    translation_key="socket_name",
+                    translation_key=f"socket_{socket_idx}_name",
                     translation_placeholders={"socket": str(socket_idx + 1)},
                     value_name=(
                         "$.sources[?(@.name=='/dashboard')].data.sockets"
@@ -207,6 +207,26 @@ async def async_setup_entry(
             ReefPowerSocketNameTextEntity(device, description)
             for description in power_descs
             if description.exists_fn(device)
+        )
+
+        # Editable name for the local temperature probe, part of the same
+        # PUT /temperature/config payload as its range bounds and
+        # notifications/logging toggles (seeded with "Temp" at install
+        # time). Always created; available only while a probe is installed
+        # (see ReefPowerTemperatureNameTextEntity.available).
+        entities.append(
+            ReefPowerTemperatureNameTextEntity(
+                device,
+                ReefBeatTextEntityDescription(
+                    key="temperature_probe_name",
+                    translation_key="temperature_probe_name",
+                    value_name=(
+                        "$.sources[?(@.name=='/temperature/config')].data.name"
+                    ),
+                    icon="mdi:rename-box",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
         )
 
     elif isinstance(device, ReefControlCoordinator):
@@ -277,9 +297,11 @@ class ReefBeatTextEntity(ReefBeatRestoreEntity, TextEntity):  # type: ignore[rep
         self._attr_unique_id = f"{device.serial}_{entity_description.key}"
         self._attr_available = True
 
-        # Initial state from cache
+        # Initial state from cache. A source can be legitimately absent (e.g.
+        # a conditionally-registered one like /temperature/config while no
+        # probe is installed) — read quietly rather than error-logging.
         self._attr_native_value = cast(
-            str | None, self._device.get_data(self._desc.value_name)
+            str | None, self._device.get_data(self._desc.value_name, True)
         )
 
     async def async_added_to_hass(self) -> None:
@@ -295,8 +317,9 @@ class ReefBeatTextEntity(ReefBeatRestoreEntity, TextEntity):  # type: ignore[rep
 
     def _update_val(self) -> None:
         #        self._attr_available = True
+        # Same is_None_possible rationale as __init__ above.
         self._attr_native_value = cast(
-            str | None, self._device.get_data(self._desc.value_name)
+            str | None, self._device.get_data(self._desc.value_name, True)
         )
 
     @callback
@@ -404,6 +427,34 @@ class ReefPowerSocketNameTextEntity(ReefBeatTextEntity):
         await cast(ReefPowerCoordinator, self._device).set_socket_name(
             self._socket, value
         )
+
+
+class ReefPowerTemperatureNameTextEntity(ReefBeatTextEntity):
+    """Editable name for the RSPower local temperature probe.
+
+    Backs the ``name`` field of the ``PUT /temperature/config`` payload,
+    alongside the probe's range bounds and notification/logging toggles.
+    Always created; available only while a probe is installed.
+    """
+
+    @property
+    def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
+        """Plain `property`, not `cached_property`, so a probe swap at runtime
+        brings the entity back without a restart (see
+        `ReefControlPortNameTextEntity.available` for the same rationale).
+        """
+        return cast(ReefPowerCoordinator, self._device).has_local_temperature()
+
+    async def async_set_value(self, value: str) -> None:
+        """Write the new name into the cached config and push the whole
+        ``/temperature/config`` object — the firmware expects every field
+        together, not a single-key patch.
+        """
+        self._attr_native_value = value
+        self._device.set_data(self._desc.value_name, value)
+        self.async_write_ha_state()
+        await self._device.push_values("/temperature/config")
+        await self._device.async_request_refresh()
 
 
 # REEFCONTROL

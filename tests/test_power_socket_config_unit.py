@@ -7,8 +7,14 @@ Covers the endpoints reverse-engineered from the ReefBeat app traffic:
 - ``ReefPowerAPI.setup_finish``      → ``POST /setup-finish``
 - the ``/sockets/config`` source registration
 - ``ReefPowerCoordinator`` delegating methods (call API + refresh)
-- the per-socket mode select entity (write + setup→None mapping)
-- the "Finish setup" button wiring
+- the automatic "leave setup mode" trigger, which replaced the manual
+  "Finish setup" button (see ``ReefPowerCoordinator._maybe_finish_setup``)
+- the ``socket_N_mode`` sensor's ``schedule``/``sensor_config`` attributes
+
+Mode selection itself (off/on/schedule/sensor) and the sensor-mode threshold
+config (``/subscribe`` + ``/temperature/subscribe``) are configured from
+ha-reef-card via the generic ``redsea.request`` service, not from an HA
+entity — there is no select entity here to test.
 """
 
 from __future__ import annotations
@@ -20,8 +26,6 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-import custom_components.redsea.button as button_platform
-import custom_components.redsea.select as select_platform
 from custom_components.redsea.const import (
     DOMAIN,
 )
@@ -90,6 +94,13 @@ async def test_setup_finish_posts_empty_body() -> None:
     api.http_send.assert_awaited_once_with("/setup-finish", {}, "post")
 
 
+@pytest.mark.asyncio
+async def test_unpair_control_deletes() -> None:
+    api = _make_api()
+    await api.unpair_control()
+    api.http_send.assert_awaited_once_with("/paired-device", None, "delete")
+
+
 # ===========================================================================
 # ReefPowerCoordinator delegating methods
 # ===========================================================================
@@ -109,17 +120,10 @@ def _make_coordinator() -> Any:
         set_socket_mode=AsyncMock(),
         set_socket_schedule=AsyncMock(),
         setup_finish=AsyncMock(),
+        unpair_control=AsyncMock(),
     )
     coord.async_request_refresh = AsyncMock()  # type: ignore[method-assign]
     return coord
-
-
-@pytest.mark.asyncio
-async def test_coordinator_set_socket_mode_delegates_and_refreshes() -> None:
-    coord = _make_coordinator()
-    await coord.set_socket_mode(3, "on")
-    coord.my_api.set_socket_mode.assert_awaited_once_with(3, "on")
-    coord.async_request_refresh.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -136,6 +140,14 @@ async def test_coordinator_setup_finish_delegates_and_refreshes() -> None:
     coord = _make_coordinator()
     await coord.setup_finish()
     coord.my_api.setup_finish.assert_awaited_once()
+    coord.async_request_refresh.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_coordinator_unpair_control_delegates_and_refreshes() -> None:
+    coord = _make_coordinator()
+    await coord.unpair_control()
+    coord.my_api.unpair_control.assert_awaited_once()
     coord.async_request_refresh.assert_awaited_once()
 
 
@@ -158,118 +170,127 @@ async def test_coordinator_set_socket_name_falls_back_to_off_when_in_setup() -> 
     coord.my_api.set_socket_mode.assert_awaited_once_with(0, "off", name="t1")
 
 
+@pytest.mark.asyncio
+async def test_coordinator_set_socket_name_keeps_sensor_mode() -> None:
+    """Renaming a "sensor"-mode socket must not silently kick it back to
+    "off" — that would drop its threshold binding for no reason.
+    """
+    coord = _make_coordinator()
+    coord.get_data = MagicMock(return_value="sensor")  # type: ignore[method-assign]
+    await coord.set_socket_name(1, "chauffage")
+    coord.my_api.set_socket_mode.assert_awaited_once_with(1, "sensor", name="chauffage")
+
+
 # ===========================================================================
-# Per-socket mode select entity
+# Automatic setup-finish (replaces the old manual button)
 # ===========================================================================
-
-
-def _make_select(device: FakePowerCoordinator, socket_idx: int) -> Any:
-    desc = select_platform.ReefPowerSocketModeSelectEntityDescription(
-        key=f"socket_{socket_idx}_mode",
-        translation_key="socket_mode",
-        translation_placeholders={"socket": str(socket_idx + 1)},
-        value_name=(
-            "$.sources[?(@.name=='/dashboard')].data.sockets"
-            f"[?(@.number=={socket_idx})].user_config_mode"
-        ),
-        options=["off", "on", "schedule"],
-        socket=socket_idx,
-    )
-    entity = select_platform.ReefPowerSocketModeSelectEntity(cast(Any, device), desc)
-    entity.async_write_ha_state = lambda: None  # type: ignore[assignment]
-    return entity
-
-
-def _mode_path(idx: int) -> str:
-    return (
-        "$.sources[?(@.name=='/dashboard')].data.sockets"
-        f"[?(@.number=={idx})].user_config_mode"
-    )
-
-
-def test_select_reads_current_mode() -> None:
-    device = FakePowerCoordinator()
-    device.get_data_map[_mode_path(2)] = "schedule"
-    entity = _make_select(device, 2)
-    entity._update_val()
-    assert entity.current_option == "schedule"
-    # device_info is proxied straight from the coordinator.
-    assert entity.device_info == device.device_info
-
-
-def test_select_maps_setup_to_none() -> None:
-    """A transient 'setup' mode is not a selectable option, so it maps to None."""
-    device = FakePowerCoordinator()
-    device.get_data_map[_mode_path(0)] = "setup"
-    entity = _make_select(device, 0)
-    entity._update_val()
-    assert entity.current_option is None
-
-
-def test_select_maps_unknown_to_none() -> None:
-    device = FakePowerCoordinator()
-    device.get_data_map[_mode_path(0)] = None
-    entity = _make_select(device, 0)
-    entity._update_val()
-    assert entity.current_option is None
 
 
 @pytest.mark.asyncio
-async def test_select_option_calls_set_socket_mode() -> None:
-    device = FakePowerCoordinator()
-    entity = _make_select(device, 4)
-    await entity.async_select_option("on")
-    assert device.mode_calls == [(4, "on")]
-    assert entity.current_option == "on"
+async def test_maybe_finish_setup_triggers_when_a_socket_leaves_setup() -> None:
+    """Main mode is still "setup" but one socket has been configured away
+    from "setup" -> /finish-setup is called.
+    """
+    from custom_components.redsea.coordinator import ReefPowerCoordinator
+    from custom_components.redsea.reefbeat.power import ReefPowerAPI
+
+    coord = ReefPowerCoordinator.__new__(ReefPowerCoordinator)
+    coord.my_api = MagicMock(spec=ReefPowerAPI, setup_finish=AsyncMock())
+    coord.get_data = MagicMock(  # type: ignore[method-assign]
+        side_effect=lambda path, is_None_possible=False: {
+            "$.sources[?(@.name=='/dashboard')].data.mode": "setup",
+            "$.sources[?(@.name=='/dashboard')].data.sockets": [
+                {"number": 0, "mode": "setup"},
+                {"number": 1, "mode": "on"},  # just configured
+            ],
+        }[path]
+    )
+
+    await coord._maybe_finish_setup()
+    coord.my_api.setup_finish.assert_awaited_once()
 
 
 @pytest.mark.asyncio
-async def test_setup_entry_creates_one_mode_select_per_socket(
-    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+async def test_maybe_finish_setup_noop_while_all_sockets_still_setup() -> None:
+    """Nothing configured yet -> no call, regardless of main mode."""
+    from custom_components.redsea.coordinator import ReefPowerCoordinator
+    from custom_components.redsea.reefbeat.power import ReefPowerAPI
+
+    coord = ReefPowerCoordinator.__new__(ReefPowerCoordinator)
+    coord.my_api = MagicMock(spec=ReefPowerAPI, setup_finish=AsyncMock())
+    coord.get_data = MagicMock(  # type: ignore[method-assign]
+        side_effect=lambda path, is_None_possible=False: {
+            "$.sources[?(@.name=='/dashboard')].data.mode": "setup",
+            "$.sources[?(@.name=='/dashboard')].data.sockets": [
+                {"number": 0, "mode": "setup"},
+                {"number": 1, "mode": "setup"},
+            ],
+        }[path]
+    )
+
+    await coord._maybe_finish_setup()
+    coord.my_api.setup_finish.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_maybe_finish_setup_noop_once_already_auto() -> None:
+    """Main mode already left "setup" -> nothing to do."""
+    from custom_components.redsea.coordinator import ReefPowerCoordinator
+    from custom_components.redsea.reefbeat.power import ReefPowerAPI
+
+    coord = ReefPowerCoordinator.__new__(ReefPowerCoordinator)
+    coord.my_api = MagicMock(spec=ReefPowerAPI, setup_finish=AsyncMock())
+    coord.get_data = MagicMock(return_value="auto")  # type: ignore[method-assign]
+
+    await coord._maybe_finish_setup()
+    coord.my_api.setup_finish.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_maybe_finish_setup_tolerates_missing_sockets_list() -> None:
+    """A malformed/missing sockets list must not raise."""
+    from custom_components.redsea.coordinator import ReefPowerCoordinator
+    from custom_components.redsea.reefbeat.power import ReefPowerAPI
+
+    coord = ReefPowerCoordinator.__new__(ReefPowerCoordinator)
+    coord.my_api = MagicMock(spec=ReefPowerAPI, setup_finish=AsyncMock())
+    coord.get_data = MagicMock(  # type: ignore[method-assign]
+        side_effect=lambda path, is_None_possible=False: {
+            "$.sources[?(@.name=='/dashboard')].data.mode": "setup",
+            "$.sources[?(@.name=='/dashboard')].data.sockets": None,
+        }[path]
+    )
+
+    await coord._maybe_finish_setup()
+    coord.my_api.setup_finish.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_async_update_data_runs_auto_finish_and_swallows_its_errors(
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    class _PowerDevice(FakePowerCoordinator):
-        pass
+    """_async_update_data() calls the check after every refresh, and a
+    failure in that check must never break the refresh itself.
+    """
+    from custom_components.redsea import coordinator as coordinator_module
+    from custom_components.redsea.coordinator import ReefPowerCoordinator
+
+    coord = ReefPowerCoordinator.__new__(ReefPowerCoordinator)
+    coord._title = "pwr"
+
+    async def _base_update() -> dict[str, Any]:
+        return {"ok": True}
 
     monkeypatch.setattr(
-        select_platform, "ReefPowerCoordinator", _PowerDevice, raising=True
+        coordinator_module.ReefBeatCloudLinkedCoordinator,
+        "_async_update_data",
+        AsyncMock(side_effect=_base_update),
     )
+    coord._maybe_finish_setup = AsyncMock(side_effect=RuntimeError("boom"))  # type: ignore[method-assign]
 
-    device = _PowerDevice(socket_count=6)
-    device.hass = hass
-    entry = MockConfigEntry(domain=DOMAIN, title="pwr", unique_id="pwr")
-    entry.add_to_hass(hass)
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = device
-
-    added: list[Any] = []
-
-    def _add(new: Any, _update: bool = False) -> None:
-        added.extend(list(new))
-
-    await select_platform.async_setup_entry(hass, cast(Any, entry), cast(Any, _add))
-
-    mode_keys = {
-        e.entity_description.key
-        for e in added
-        if e.entity_description.key.endswith("_mode")
-    }
-    assert mode_keys == {f"socket_{i}_mode" for i in range(6)}
-
-
-# ===========================================================================
-# Finish-setup button
-# ===========================================================================
-
-
-@pytest.mark.asyncio
-async def test_setup_finish_button_calls_coordinator() -> None:
-    """The setup_finish button's press_fn triggers coordinator.setup_finish()."""
-    device = FakePowerCoordinator()
-    description = next(
-        d for d in button_platform.POWER_BUTTONS if d.key == "setup_finish"
-    )
-    assert description.press_fn is not None
-    await cast(Any, description.press_fn(cast(Any, device)))
-    assert device.setup_finished == 1
+    result = await coord._async_update_data()
+    assert result == {"ok": True}
+    coord._maybe_finish_setup.assert_awaited_once()
 
 
 # ===========================================================================
@@ -374,4 +395,105 @@ async def test_text_setup_entry_creates_one_name_per_socket(
     await text_platform.async_setup_entry(hass, cast(Any, entry), cast(Any, _add))
 
     keys = {e.entity_description.key for e in added}
-    assert keys == {f"socket_{i}_name" for i in range(6)}
+    # One name per socket, plus the (always-created) local temperature probe
+    # name field.
+    assert keys == {f"socket_{i}_name" for i in range(6)} | {"temperature_probe_name"}
+
+
+# ===========================================================================
+# socket_N_mode sensor: schedule + sensor_config attributes
+# ===========================================================================
+
+
+def test_socket_mode_sensor_carries_schedule_and_sensor_config_attributes() -> None:
+    """The socket_N_mode sensor's mode travels with two attributes: its
+    on/off programme (``schedule``, unconditionally present) and, once the
+    socket is bound to the local temperature probe's sensor mode, the
+    threshold rule (``sensor_config``) — mirroring the existing schedule
+    pattern so a card reads both without a request of its own.
+    """
+    import custom_components.redsea.sensor as sensor_platform
+
+    socket_idx = 1
+    base = f"$.sources[?(@.name=='/dashboard')].data.sockets[{socket_idx}]"
+    schedule_path = f"$.sources[?(@.name=='/socket/{socket_idx}/config/schedule')].data"
+    subscription_path = (
+        "$.sources[?(@.name=='/temperature/subscriptions')]"
+        f".data.sockets[?(@.number=={socket_idx})]"
+    )
+
+    desc = sensor_platform.ReefBeatSensorEntityDescription(
+        key=f"socket_{socket_idx}_mode",
+        translation_key=f"socket_{socket_idx}_mode",
+        value_fn=lambda d, p=f"{base}.mode": d.get_data(p, is_None_possible=True),
+        attributes_fn=lambda d, i=socket_idx, sched=schedule_path: {
+            "schedule": d.get_data(sched),
+            "sensor_config": d.get_data(
+                "$.sources[?(@.name=='/temperature/subscriptions')]"
+                f".data.sockets[?(@.number=={i})]",
+                is_None_possible=True,
+            ),
+        },
+    )
+
+    device = FakePowerCoordinator()
+    device.get_data_map[f"{base}.mode"] = "sensor"
+    device.get_data_map[schedule_path] = {"intervals": [{"time": 0, "duration": 1439}]}
+    device.get_data_map[subscription_path] = {
+        "sensor": {"default_state": False, "app_cache": "temperature"},
+        "value": 24.2,
+        "is_above": True,
+        "turn_on": False,
+    }
+
+    entity = sensor_platform.ReefBeatSensorEntity(cast(Any, device), desc)
+    entity._update_val()
+
+    assert entity.native_value == "sensor"
+    attrs = entity.extra_state_attributes
+    assert attrs is not None
+    assert attrs["schedule"] == {"intervals": [{"time": 0, "duration": 1439}]}
+    assert attrs["sensor_config"] == {
+        "sensor": {"default_state": False, "app_cache": "temperature"},
+        "value": 24.2,
+        "is_above": True,
+        "turn_on": False,
+    }
+
+
+def test_socket_mode_sensor_sensor_config_absent_without_probe() -> None:
+    """No local temperature probe (source not reconciled in) -> sensor_config
+    reads None quietly, not an error-logged crash.
+    """
+    import custom_components.redsea.sensor as sensor_platform
+
+    socket_idx = 0
+    base = f"$.sources[?(@.name=='/dashboard')].data.sockets[{socket_idx}]"
+    schedule_path = f"$.sources[?(@.name=='/socket/{socket_idx}/config/schedule')].data"
+
+    desc = sensor_platform.ReefBeatSensorEntityDescription(
+        key=f"socket_{socket_idx}_mode",
+        translation_key=f"socket_{socket_idx}_mode",
+        value_fn=lambda d, p=f"{base}.mode": d.get_data(p, is_None_possible=True),
+        attributes_fn=lambda d, i=socket_idx, sched=schedule_path: {
+            "schedule": d.get_data(sched),
+            "sensor_config": d.get_data(
+                "$.sources[?(@.name=='/temperature/subscriptions')]"
+                f".data.sockets[?(@.number=={i})]",
+                is_None_possible=True,
+            ),
+        },
+    )
+
+    device = FakePowerCoordinator()
+    device.get_data_map[f"{base}.mode"] = "schedule"
+    device.get_data_map[schedule_path] = {"intervals": []}
+    # /temperature/subscriptions simply absent from get_data_map.
+
+    entity = sensor_platform.ReefBeatSensorEntity(cast(Any, device), desc)
+    entity._update_val()
+
+    attrs = entity.extra_state_attributes
+    assert attrs is not None
+    assert attrs["schedule"] == {"intervals": []}
+    assert attrs["sensor_config"] is None

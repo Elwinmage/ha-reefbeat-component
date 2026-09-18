@@ -89,9 +89,18 @@ DO_NOT_REFRESH_TIME: Final[int] = 2  # seconds
 REFRESH_DEVICE_DELAY: Final[int] = (
     2  # Time to wait for device to take data refresh into account
 )
+
+# A socket schedule is stored, not applied: the strip acknowledges the PUT
+# before the new programme shows up on its config endpoint, so reading back
+# too early returns the previous one.
+SCHEDULE_REFRESH_DELAY: Final[int] = 3  # seconds
 # Switching a pump to (or from) sensor control makes it ramp to a new speed:
 # wait a bit longer before reading /dashboard back
 SENSOR_CONTROLLED_REFRESH_DELAY: Final[int] = 3
+# Pairing/unpairing a BLE probe (RSPower's local temperature probe) takes a
+# moment to settle before /dashboard reports it — same rationale as the
+# schedule/sensor-control delays above.
+PROBE_REFRESH_DELAY: Final[int] = 3
 DEFAULT_TIMEOUT: Final[int] = 20
 
 HTTP_MAX_RETRY: Final[int] = 5
@@ -104,6 +113,21 @@ HTTP_DELAY_BETWEEN_RETRY: Final[int] = 2
 # Options-flow menu entries
 OPTIONS_MENU_SETTINGS: Final[str] = "settings"
 OPTIONS_MENU_WIFI: Final[str] = "wifi_scan"
+OPTIONS_MENU_ADD_PROBE: Final[str] = "add_probe"
+OPTIONS_MENU_DEL_PROBE: Final[str] = "del_probe"
+OPTIONS_MENU_CHANGE_PROBE: Final[str] = "change_probe"
+# Probe types the RSCONTROL hub can install (matches the ReefBeat app).
+CONFIG_FLOW_PROBE_TYPE: Final[str] = "probe_type"
+CONFIG_FLOW_PROBES: Final[str] = "probes"
+CONFIG_FLOW_OLD_PROBE: Final[str] = "old_probe"
+CONTROL_PROBE_TYPES: Final[tuple[str, ...]] = (
+    "temperature",
+    "ph",
+    "ec",
+    "orp",
+    "ato",
+    "leak",
+)
 
 # Form field keys used by the Wi-Fi steps of the options flow
 CONFIG_FLOW_WIFI_SSID: Final[str] = "wifi_ssid"

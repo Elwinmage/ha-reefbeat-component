@@ -53,6 +53,7 @@ from .const import (
     HW_RUN_IDS,
     HW_WAVE_IDS,
     PLATFORMS,
+    REFRESH_DEVICE_DELAY,
     VIRTUAL_LED,
 )
 from .coordinator import (
@@ -191,6 +192,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    # After a probe is removed (via the options flow, which reloads the entry),
+    # its entities are no longer rebuilt but linger in the registry — drop them.
+    if isinstance(coordinator, ReefControlCoordinator):
+        with suppress(Exception):
+            _purge_orphan_probe_entities(hass, entry, coordinator)
+
     # Best-effort cosmetic migration; doesn't affect identifiers or entities.
     with suppress(Exception):
         await _migrate_head_device_names(hass, entry)
@@ -202,6 +209,101 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Handle options update by reloading the entry."""
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+def _rename_probe_entities(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    coordinator: ReefControlCoordinator,
+    old_type: str,
+    old_uid: str,
+    new_uid: str,
+) -> int:
+    """Move an old probe's registry entities onto a new probe's uid.
+
+    Used when *replacing* a probe: the entity_id (hence history/statistics)
+    carries over because Home Assistant reuses a registry entry whose
+    ``unique_id`` matches the newly-built entity. Returns how many were renamed.
+    Collisions (target unique_id already present) are skipped.
+    """
+    from homeassistant.helpers import entity_registry as er
+
+    from . import probe_entities as pe
+    from .const import CONFIG_FLOW_HW_MODEL
+    from .maintenance import PROBE_SCOPES, tasks_for
+
+    hw_model = str(entry.data.get(CONFIG_FLOW_HW_MODEL, ""))
+    probe_task_keys = {
+        task.key for task in tasks_for(hw_model) if task.applies_to_sub in PROBE_SCOPES
+    }
+    serial = coordinator.serial
+    registry = er.async_get(hass)
+    renamed = 0
+    for ent in list(er.async_entries_for_config_entry(registry, entry.entry_id)):
+        new_unique_id = pe.rename_unique_id(
+            ent.unique_id, serial, old_type, old_uid, new_uid, probe_task_keys
+        )
+        if not new_unique_id or new_unique_id == ent.unique_id:
+            continue
+        if registry.async_get_entity_id(ent.domain, ent.platform, new_unique_id):
+            continue  # target already exists — do not collide
+        registry.async_update_entity(ent.entity_id, new_unique_id=new_unique_id)
+        renamed += 1
+    return renamed
+
+
+def _purge_orphan_probe_entities(
+    hass: HomeAssistant, entry: ConfigEntry, coordinator: ReefControlCoordinator
+) -> None:
+    """Remove registry entities of probes that no longer exist on the hub.
+
+    Covers both a probe's direct entities (``probe_{type}_{uid}_…``) and its
+    per-probe maintenance instances (``{task_key}…_{sub_id}``). After a delete
+    the fresh dashboard no longer lists that probe, so neither is rebuilt; this
+    drops the leftovers. Guarded so a failed dashboard fetch (no probe data at
+    all) never wipes every probe entity.
+    """
+    from homeassistant.helpers import entity_registry as er
+
+    from . import probe_entities as pe
+    from .const import CONFIG_FLOW_HW_MODEL
+    from .maintenance import PROBE_SCOPES, tasks_for
+
+    dashboard = coordinator.get_data(
+        "$.sources[?(@.name=='/dashboard')].data", is_None_possible=True
+    )
+    if not isinstance(dashboard, dict) or "probes" not in dashboard:
+        return  # no reliable probe snapshot → do not purge
+
+    probes = coordinator.list_probes()
+    valid_prefixes = {pe.probe_key_prefix(p["type"], p["uid"]) for p in probes}
+    current_sub_ids: set[int] = set()
+    for p in probes:
+        try:
+            current_sub_ids.add(pe.probe_sub_id(p["uid"]))
+        except (ValueError, TypeError):
+            pass
+
+    hw_model = str(entry.data.get(CONFIG_FLOW_HW_MODEL, ""))
+    probe_task_keys = {
+        task.key for task in tasks_for(hw_model) if task.applies_to_sub in PROBE_SCOPES
+    }
+
+    serial_prefix = f"{coordinator.serial}_"
+    registry = er.async_get(hass)
+    for ent in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if not ent.unique_id.startswith(serial_prefix):
+            continue
+        key = ent.unique_id[len(serial_prefix) :]
+        orphan = False
+        if key.startswith("probe_"):
+            orphan = pe.is_orphan_probe_entity(key, valid_prefixes)
+        else:
+            sub = pe.maintenance_probe_sub_id(key, probe_task_keys)
+            orphan = sub is not None and sub not in current_sub_ids
+        if orphan:
+            _LOGGER.info("Removing orphaned probe entity %s", ent.entity_id)
+            registry.async_remove(ent.entity_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -315,7 +417,20 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             resp["json"] = r.get("json")
         else:
             resp["text"] = r.get("text", "")
-        await device.async_request_refresh(config=True)
+        # The coordinator is always re-read before returning, so a caller
+        # never sees the data it just replaced. `refresh` chooses which
+        # sources and `wait` how long to let the device settle first: several
+        # endpoints acknowledge a write before they serve the new value back.
+        # Both default to the long-standing behaviour.
+        kind = call.data.get("refresh")
+        wait = call.data.get("wait", REFRESH_DEVICE_DELAY)
+        try:
+            wait = max(0, int(wait))
+        except (TypeError, ValueError):
+            wait = REFRESH_DEVICE_DELAY
+        await device.async_request_refresh(
+            config=kind is None or str(kind).lower() == "config", wait=wait
+        )
         return resp
 
     _LOGGER.debug("Registering service redsea.request")

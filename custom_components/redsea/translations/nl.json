@@ -129,9 +129,6 @@
       "sensor_controlled": {
         "name": "Aangestuurd door sensor"
       },
-      "socket_enabled": {
-        "name": "Socket {socket} enabled"
-      },
       "status": {
         "name": "Status"
       },
@@ -143,6 +140,15 @@
       },
       "water_level": {
         "name": "Waterniveau"
+      },
+      "control_paired": {
+        "name": "Control gekoppeld"
+      },
+      "control_internet_connected": {
+        "name": "Control internet"
+      },
+      "temperature_coherent": {
+        "name": "Temperatuurcoherentie"
       }
     },
     "button": {
@@ -263,12 +269,6 @@
       "port_delete": {
         "name": "Poort {port} verwijderen"
       },
-      "port_install_ato": {
-        "name": "Poort {port} als ATO installeren"
-      },
-      "port_install_other": {
-        "name": "Poort {port} als apparaat installeren"
-      },
       "preview_save": {
         "name": "Voorvertoning opslaan"
       },
@@ -296,15 +296,6 @@
       "set_supplement_name": {
         "name": "Stel nieuwe supplementnaam in"
       },
-      "setup_finish": {
-        "name": "Installatie voltooien"
-      },
-      "socket_delete": {
-        "name": "Stopcontact {socket} verwijderen"
-      },
-      "socket_unsubscribe": {
-        "name": "Abonnement stopcontact {socket} opzeggen"
-      },
       "start_calibration": {
         "name": "Start kalibratie"
       },
@@ -319,6 +310,69 @@
       },
       "test_calibration": {
         "name": "Test nieuwe kalibratie"
+      },
+      "socket_0_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_1_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_2_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_3_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_4_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_5_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_6_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_7_delete": {
+        "name": "Stopcontact {socket} verwijderen"
+      },
+      "socket_0_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_1_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_2_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_3_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_4_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_5_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_6_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "socket_7_unsubscribe": {
+        "name": "Stopcontact {socket} afmelden"
+      },
+      "install_temperature": {
+        "name": "Temperatuursonde toevoegen"
+      },
+      "remove_temperature": {
+        "name": "Temperatuursonde verwijderen"
+      },
+      "pair_power": {
+        "name": "Power Center koppelen"
+      },
+      "unpair_power": {
+        "name": "Power Center ontkoppelen"
+      },
+      "unpair_control": {
+        "name": "Besturingshub ontkoppelen"
       }
     },
     "light": {
@@ -470,6 +524,27 @@
       },
       "wave_preview_wave_duration": {
         "name": "Voorvertoning golfduur"
+      },
+      "temperature_coherence_threshold": {
+        "name": "Drempel temperatuurcoherentie"
+      },
+      "probe_offset": {
+        "name": "Offset {probe}"
+      },
+      "temperature_offset": {
+        "name": "Temperatuuroffset"
+      },
+      "temperature_desired_range_low": {
+        "name": "Gewenst temperatuurbereik (laag)"
+      },
+      "temperature_desired_range_high": {
+        "name": "Gewenst temperatuurbereik (hoog)"
+      },
+      "temperature_acceptable_range_low": {
+        "name": "Acceptabel temperatuurbereik (laag)"
+      },
+      "temperature_acceptable_range_high": {
+        "name": "Acceptabel temperatuurbereik (hoog)"
       }
     },
     "select": {
@@ -486,14 +561,6 @@
       },
       "model": {
         "name": "Model"
-      },
-      "port_mode": {
-        "name": "Poort {port} modus",
-        "state": {
-          "off": "Uit",
-          "on": "Aan",
-          "schedule": "Schema"
-        }
       },
       "position": {
         "name": "Positie",
@@ -521,18 +588,19 @@
           "un": "Uniform"
         }
       },
-      "socket_mode": {
-        "name": "Modus stopcontact {socket}",
-        "state": {
-          "off": "Uit",
-          "on": "Aan",
-          "schedule": "Schema"
-        }
-      },
       "supplements": {
         "name": "Supplementen",
         "state": {
           "other": "Overig"
+        }
+      },
+      "temperature_fusion_method": {
+        "name": "Temperatuurfusiemethode",
+        "state": {
+          "median": "Mediaan",
+          "mean": "Gemiddelde",
+          "min": "Minimum",
+          "max": "Maximum"
         }
       }
     },
@@ -938,18 +1006,6 @@
       "skim_last_calibration": {
         "name": "Laatste afschuim-kalibratie"
       },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
       "state": {
         "name": "Staat",
         "state": {
@@ -1091,6 +1147,208 @@
       },
       "zip_code": {
         "name": "Postcode"
+      },
+      "socket_0_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_1_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_2_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_3_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_4_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_5_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_6_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_7_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_0_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_1_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_2_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_3_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_4_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_5_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_6_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_7_state": {
+        "name": "Stopcontact {socket} status"
+      },
+      "socket_0_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Stopcontact {socket} modus",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_0_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_1_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_2_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_3_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_4_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_5_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_6_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_7_prev_mode": {
+        "name": "Stopcontact {socket} vorige modus"
+      },
+      "socket_0_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_1_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_2_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_3_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_4_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_5_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_6_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "socket_7_consumption": {
+        "name": "Stopcontact {socket} verbruik"
+      },
+      "total_consumption": {
+        "name": "Totaal verbruik"
+      },
+      "connected_control_type": {
+        "name": "Type verbonden control"
+      },
+      "connected_control_status": {
+        "name": "Status verbonden control"
+      },
+      "temperature_fusion": {
+        "name": "Samengevoegde temperatuur"
+      },
+      "temperature_spread": {
+        "name": "Temperatuurspreiding"
+      },
+      "temperature_anomaly_source": {
+        "name": "Bron temperatuuranomalie",
+        "state": {
+          "ok": "OK",
+          "unknown": "Onbekend",
+          "maintenance": "Onderhoud"
+        }
+      },
+      "probe_uid": {
+        "name": "UID van {probe}"
       }
     },
     "switch": {
@@ -1211,11 +1469,50 @@
       "slm": {
         "name": "Volumecontroller"
       },
-      "socket_on_off": {
-        "name": "Stopcontact {socket}"
-      },
       "use_cloud_api": {
         "name": "Gebruik cloud-API"
+      },
+      "socket_0_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_1_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_2_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_3_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_4_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_5_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_6_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "socket_7_on_off": {
+        "name": "Stopcontact {socket} schakelaar"
+      },
+      "probe_maintenance": {
+        "name": "Onderhoud {probe}"
+      },
+      "probe_buzzer": {
+        "name": "{probe} zoemer"
+      },
+      "probe_enabled": {
+        "name": "{probe} ingeschakeld"
+      },
+      "probe_notify": {
+        "name": "{probe} meldingen"
+      },
+      "temperature_notifications_enabled": {
+        "name": "Temperatuurmeldingen ingeschakeld"
+      },
+      "temperature_log_enabled": {
+        "name": "Temperatuurlogboek ingeschakeld"
       }
     },
     "text": {
@@ -1237,8 +1534,32 @@
       "pump_name": {
         "name": "Pompnaam"
       },
-      "socket_name": {
-        "name": "Naam stopcontact {socket}"
+      "socket_0_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_1_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_2_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_3_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_4_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_5_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_6_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "socket_7_name": {
+        "name": "Stopcontact {socket} naam"
+      },
+      "temperature_probe_name": {
+        "name": "Naam van de temperatuursonde"
       }
     },
     "time": {
@@ -1258,7 +1579,8 @@
       "wifi_change_failed_connect": "Kan de nieuwe Wi-Fi-inloggegevens niet naar het apparaat sturen.",
       "wifi_change_failed_reset": "Kan het apparaat niet herstarten na het versturen van de nieuwe Wi-Fi-inloggegevens.",
       "wifi_change_failed_rediscover": "Het apparaat is opnieuw opgestart maar niet gevonden op het netwerk. Controleer of het {ssid} heeft bereikt en configureer indien nodig het IP-adres opnieuw.",
-      "wifi_change_failed_unknown": "Onverwachte fout bij het wijzigen van het Wi-Fi-netwerk."
+      "wifi_change_failed_unknown": "Onverwachte fout bij het wijzigen van het Wi-Fi-netwerk.",
+      "no_probes": "Deze hub heeft geen sondes om te verwijderen."
     },
     "error": {
       "auth_failed": "Verificatie mislukt, controleer je gegevens",
@@ -1266,7 +1588,8 @@
       "wifi_no_networks": "Het apparaat meldt geen beschikbare Wi-Fi-netwerken.",
       "wifi_no_ssid": "Kies een netwerk voordat je verzendt.",
       "wifi_bad_cidr": "Geen geldige IPv4-CIDR (verwacht bv. 10.0.0.0/24).",
-      "wifi_manual_not_found": "Apparaat niet gevonden op dat subnet. Probeer een andere CIDR of laat het veld leeg om op te geven."
+      "wifi_manual_not_found": "Apparaat niet gevonden op dat subnet. Probeer een andere CIDR of laat het veld leeg om op te geven.",
+      "no_probe_detected": "Geen nieuwe sonde van het gekozen type gedetecteerd. Zet hem in koppelmodus en probeer opnieuw."
     },
     "progress": {
       "applying": "Nieuwe Wi-Fi-inloggegevens toepassen en het apparaat op het netwerk lokaliseren..."
@@ -1281,7 +1604,10 @@
         },
         "menu_options": {
           "settings": "Apparaatinstellingen",
-          "wifi_scan": "Wi-Fi-netwerk wijzigen"
+          "wifi_scan": "Wi-Fi-netwerk wijzigen",
+          "add_probe": "Sonde toevoegen",
+          "del_probe": "Sonde verwijderen",
+          "change_probe": "Sonde vervangen"
         },
         "title": "Configuratie"
       },
@@ -1314,6 +1640,31 @@
         },
         "description": "Het apparaat heeft zich bij {ssid} aangemeld maar is niet gevonden op een van de subnetten waar Home Assistant direct op is aangesloten (geprobeerd: {tried_subnets}). Als je weet op welk netwerk het apparaat is beland en Home Assistant het via een router kan bereiken, voer hier de CIDR in (bv. 10.0.0.0/24). Laat het veld leeg en verzend om op te geven.",
         "title": "Apparaat op een ander subnet zoeken"
+      },
+      "add_probe": {
+        "title": "Sonde toevoegen",
+        "description": "Zet de sonde in koppelmodus, kies het type en bevestig om te scannen.",
+        "data": {
+          "probe_type": "Sondetype"
+        }
+      },
+      "del_probe": {
+        "title": "Sonde verwijderen",
+        "description": "Selecteer de te verwijderen sonde(s).",
+        "data": {
+          "probes": "Sondes"
+        }
+      },
+      "change_probe": {
+        "title": "Sonde vervangen",
+        "description": "Kies de te vervangen sonde, zet een nieuwe sonde van hetzelfde type in koppelmodus en bevestig. De nieuwe sonde erft de geschiedenis van de oude.",
+        "data": {
+          "old_probe": "Te vervangen sonde"
+        }
+      },
+      "del_probe_confirm": {
+        "title": "Verwijderen bevestigen",
+        "description": "Dit verwijdert de gekozen sonde(s) en al hun entiteiten en geschiedenis permanent: {probes}.\n\nBevestig om door te gaan, of sluit dit venster om te annuleren."
       }
     }
   },

@@ -27,8 +27,8 @@ async def test_led_switch_turn_on_pushes_source(hass: Any) -> None:
         key="sw",
         translation_key="sw",
         value_name="$.sources[?(@.name=='/manual')].data.enabled",
-        icon="mdi:on",
-        icon_off="mdi:off",
+        icon="mdi:power",
+        icon_off="mdi:power-off",
         method="post",
     )
 
@@ -49,8 +49,8 @@ async def test_led_switch_turn_off_pushes_source(hass: Any) -> None:
         key="sw",
         translation_key="sw",
         value_name="$.sources[?(@.name=='/manual')].data.enabled",
-        icon="mdi:on",
-        icon_off="mdi:off",
+        icon="mdi:power",
+        icon_off="mdi:power-off",
         method="post",
     )
 

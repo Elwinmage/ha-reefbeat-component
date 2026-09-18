@@ -72,6 +72,7 @@ from homeassistant.const import (
     STATE_UNKNOWN,
     EntityCategory,
     UnitOfLength,
+    UnitOfPower,
     UnitOfTemperature,
     UnitOfTime,
     UnitOfVolume,
@@ -165,6 +166,15 @@ class ReefBeatSensorEntityDescription(SensorEntityDescription):
 
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_fn: Callable[[ReefBeatCoordinator], SensorNativeValue]
+    # Optional extra attribute, read by JSONPath. Used to carry a schedule
+    # alongside its mode sensor so a card reads it from the state machine
+    # instead of issuing its own request.
+    with_attr_name: str | None = None
+    with_attr_value: str | None = None
+    # Optional computed attributes: a callable returning a dict merged into the
+    # entity's extra_state_attributes on every update. Used by the temperature
+    # fusion sensor to expose its per-source breakdown.
+    attributes_fn: Callable[[ReefBeatCoordinator], dict[str, Any]] | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -1115,9 +1125,9 @@ POWER_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.temperature"
-        ),
+        # On a standalone RSPower with a local temperature probe, `temperature`
+        # is an object {value,status,level,...}; without a probe it is null.
+        value_fn=lambda device: _power_local_temperature(device),
         icon="mdi:thermometer",
         suggested_display_precision=1,
     ),
@@ -1149,7 +1159,61 @@ POWER_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         icon="mdi:link-variant",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
+    ReefBeatSensorEntityDescription(
+        key="connected_control_type",
+        translation_key="connected_control_type",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.type",
+            is_None_possible=True,
+        ),
+        icon="mdi:devices",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="connected_control_status",
+        translation_key="connected_control_status",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.status",
+            is_None_possible=True,
+        ),
+        icon="mdi:lan-connect",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatSensorEntityDescription(
+        key="total_consumption",
+        translation_key="total_consumption",
+        icon="mdi:flash",
+        native_unit_of_measurement=UnitOfPower.WATT,
+        device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+        value_fn=lambda device: _total_power_consumption(device),
+    ),
 )
+
+
+def _total_power_consumption(device: ReefBeatCoordinator) -> float | None:
+    """Sum the consumption of every socket on a ReefPower device.
+
+    Returns None when no socket reports a valid wattage (the entity shows
+    as unavailable rather than 0 W in that case).
+    """
+    count = getattr(device, "socket_count", 0)
+    total: float = 0.0
+    any_valid = False
+    for idx in range(count):
+        raw = device.get_data(
+            f"$.sources[?(@.name=='/dashboard')].data.sockets[{idx}].consumption",
+            is_None_possible=True,
+        )
+        if raw is not None:
+            try:
+                total += float(raw)
+                any_valid = True
+            except (TypeError, ValueError):
+                pass
+    return round(total, 1) if any_valid else None
+
 
 # -----------------------------------------------------------------------------
 # ReefControl hub (RSCONTROLPRO, RSCONTROLLITE) — read-only sensors
@@ -1267,6 +1331,24 @@ def _probe_path(uid: str, field: str) -> str:
     return f"$.sources[?(@.name=='/dashboard')].data.probes[?(@.uid=='{uid}')].{field}"
 
 
+def _power_local_temperature(device: ReefBeatCoordinator) -> StateType:
+    """Read the RSPower local temperature, tolerating both payload shapes.
+
+    A local probe reports ``temperature`` as an object ``{value, status,
+    level, ...}``; with no probe the field is ``null``. Older firmware exposed
+    a bare float, which is still accepted.
+    """
+    temp = device.get_data(
+        "$.sources[?(@.name=='/dashboard')].data.temperature", is_None_possible=True
+    )
+    if isinstance(temp, dict):
+        value = temp.get("value")
+        return value if isinstance(value, (int, float)) else None
+    if isinstance(temp, (int, float)):
+        return temp
+    return None
+
+
 # Icons per probe type — falls back to a generic sensor icon if unknown.
 # Six types exist in the Red Sea protocol: temperature, ph, ec (salinity),
 # orp, leak, ato (LevelAndATO). See ControlProbeType enum in the app.
@@ -1320,8 +1402,10 @@ def _build_probe_descriptions(
     if not uid or not ptype:
         return []
 
-    # Sanitise uid for use in an entity key: keep only alnum, lowercase.
-    uid_key = "".join(c for c in uid.lower() if c.isalnum())
+    # Sanitise uid for use in an entity key: keep only alnum, lowercase, and
+    # prefix with the probe type so the key encodes the full (type, uid) pair
+    # that defines a probe (uids are only unique within a type).
+    uid_key = f"{ptype}_" + "".join(c for c in uid.lower() if c.isalnum())
     tp = {"probe": probe.get("name") or uid}
     icon = _PROBE_ICONS.get(ptype, "mdi:test-tube")
 
@@ -1457,6 +1541,18 @@ def _build_probe_descriptions(
                 icon="mdi:tag-outline",
                 entity_category=EntityCategory.DIAGNOSTIC,
                 value_fn=lambda d, p=_probe_path(uid, "name"): d.get_data(
+                    p, is_None_possible=True
+                ),
+            ),
+            # uid: useful to cross-reference the probe with the config flow's
+            # add/replace/remove probe steps, which list probes by uid.
+            ReefBeatSensorEntityDescription(
+                key=f"probe_{uid_key}_uid",
+                translation_key="probe_uid",
+                translation_placeholders=tp,
+                icon="mdi:identifier",
+                entity_category=EntityCategory.DIAGNOSTIC,
+                value_fn=lambda d, p=_probe_path(uid, "uid"): d.get_data(
                     p, is_None_possible=True
                 ),
             ),
@@ -1911,7 +2007,7 @@ async def async_setup_entry(
                 [
                     ReefBeatSensorEntityDescription(
                         key=f"socket_{socket_idx}_name",
-                        translation_key="socket_name",
+                        translation_key=f"socket_{socket_idx}_name",
                         translation_placeholders={"socket": str(socket_idx + 1)},
                         icon="mdi:power-socket-eu",
                         value_fn=lambda d, p=f"{base}.name": d.get_data(
@@ -1920,7 +2016,7 @@ async def async_setup_entry(
                     ),
                     ReefBeatSensorEntityDescription(
                         key=f"socket_{socket_idx}_state",
-                        translation_key="socket_state",
+                        translation_key=f"socket_{socket_idx}_state",
                         translation_placeholders={"socket": str(socket_idx + 1)},
                         icon="mdi:electric-switch",
                         entity_registry_enabled_default=False,
@@ -1942,18 +2038,46 @@ async def async_setup_entry(
                     ),
                     ReefBeatSensorEntityDescription(
                         key=f"socket_{socket_idx}_mode",
-                        translation_key="socket_mode",
+                        translation_key=f"socket_{socket_idx}_mode",
                         translation_placeholders={"socket": str(socket_idx + 1)},
                         icon="mdi:cog-outline",
                         value_fn=lambda d, p=f"{base}.mode": d.get_data(
                             p, is_None_possible=True
                         ),
+                        # The socket's on/off programme travels with its mode,
+                        # the same way a dosing head carries its schedule —
+                        # and, when the socket is in "sensor" mode, so does
+                        # its threshold rule (value/is_above/turn_on), keyed
+                        # by probe type since a different probe would carry a
+                        # different range/unit (see reefbeat/power.py). A
+                        # card opening the editor then reads what it already
+                        # has instead of waiting on a request of its own.
+                        attributes_fn=lambda d, i=socket_idx, sched=(f"$.sources[?(@.name=='/socket/{socket_idx}/config/schedule')].data"): {
+                            "schedule": d.get_data(sched),
+                            "sensor_config": d.get_data(
+                                "$.sources[?(@.name=='/temperature/subscriptions')]"
+                                f".data.sockets[?(@.number=={i})]",
+                                is_None_possible=True,
+                            ),
+                        },
+                    ),
+                    ReefBeatSensorEntityDescription(
+                        key=f"socket_{socket_idx}_prev_mode",
+                        translation_key=f"socket_{socket_idx}_prev_mode",
+                        translation_placeholders={"socket": str(socket_idx + 1)},
+                        icon="mdi:cog-transfer-outline",
+                        entity_registry_enabled_default=False,
+                        value_fn=lambda d, p=f"{base}.prev_mode": d.get_data(
+                            p, is_None_possible=True
+                        ),
                     ),
                     ReefBeatSensorEntityDescription(
                         key=f"socket_{socket_idx}_consumption",
-                        translation_key="socket_consumption",
+                        translation_key=f"socket_{socket_idx}_consumption",
                         translation_placeholders={"socket": str(socket_idx + 1)},
                         icon="mdi:flash",
+                        native_unit_of_measurement=UnitOfPower.WATT,
+                        device_class=SensorDeviceClass.POWER,
                         value_fn=lambda d, p=f"{base}.consumption": d.get_data(
                             p, is_None_possible=True
                         ),
@@ -2028,6 +2152,8 @@ async def async_setup_entry(
                         translation_key="port_consumption",
                         translation_placeholders={"port": str(port_idx + 1)},
                         icon="mdi:flash",
+                        native_unit_of_measurement=UnitOfPower.WATT,
+                        device_class=SensorDeviceClass.POWER,
                         value_fn=lambda d, p=f"{base}.consumption": d.get_data(
                             p, is_None_possible=True
                         ),
@@ -2152,6 +2278,80 @@ async def async_setup_entry(
                 for description in _build_probe_descriptions(probe)
             )
 
+        # Temperature fusion — a single robust temperature aggregated from all
+        # the hub's temperature sources (dedicated probe + ec/ph/ato embedded
+        # temps). Only meaningful with at least two sources; otherwise it would
+        # just duplicate the one probe.
+        entities.append(
+            ReefBeatSensorEntity(
+                device,
+                ReefBeatSensorEntityDescription(
+                    key="temperature_fusion",
+                    translation_key="temperature_fusion",
+                    icon="mdi:thermometer-check",
+                    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                    device_class=SensorDeviceClass.TEMPERATURE,
+                    state_class=SensorStateClass.MEASUREMENT,
+                    suggested_display_precision=2,
+                    exists_fn=lambda d: (
+                        cast(ReefControlCoordinator, d).temperature_source_count() >= 2
+                    ),
+                    value_fn=lambda d: cast(
+                        ReefControlCoordinator, d
+                    ).fusion_temperature(),
+                    attributes_fn=lambda d: cast(
+                        ReefControlCoordinator, d
+                    ).fusion_attributes(),
+                ),
+            )
+        )
+        # Spread (max−min) between sources — a diagnostic magnitude that pairs
+        # with the coherence binary sensor.
+        entities.append(
+            ReefBeatSensorEntity(
+                device,
+                ReefBeatSensorEntityDescription(
+                    key="temperature_spread",
+                    translation_key="temperature_spread",
+                    icon="mdi:arrow-expand-vertical",
+                    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                    device_class=SensorDeviceClass.TEMPERATURE,
+                    state_class=SensorStateClass.MEASUREMENT,
+                    suggested_display_precision=2,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                    exists_fn=lambda d: (
+                        cast(ReefControlCoordinator, d).temperature_source_count() >= 2
+                    ),
+                    value_fn=lambda d: cast(
+                        ReefControlCoordinator, d
+                    ).temperature_spread(),
+                ),
+            )
+        )
+        # Anomaly provenance — which probe(s) look wrong, or ok / unknown /
+        # maintenance. Rich breakdown (per-source value, 1h change, reasons)
+        # lives in the attributes.
+        entities.append(
+            ReefBeatSensorEntity(
+                device,
+                ReefBeatSensorEntityDescription(
+                    key="temperature_anomaly_source",
+                    translation_key="temperature_anomaly_source",
+                    icon="mdi:thermometer-off",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                    exists_fn=lambda d: (
+                        cast(ReefControlCoordinator, d).temperature_source_count() >= 2
+                    ),
+                    value_fn=lambda d: cast(
+                        ReefControlCoordinator, d
+                    ).temperature_anomaly_state(),
+                    attributes_fn=lambda d: cast(
+                        ReefControlCoordinator, d
+                    ).fusion_attributes(),
+                ),
+            )
+        )
+
     # Schedule sensors (LED coordinators)
     if isinstance(device, (ReefLedCoordinator, ReefVirtualLedCoordinator)):
         led_device = cast(ReefLedCoordinator, device)
@@ -2232,7 +2432,7 @@ async def async_setup_entry(
                     ReefBeatCloudSensorEntityDescription(
                         key="supplement_" + str(uid),
                         translation_key="supplement_program",
-                        icon="mdi:sine-supplement",
+                        icon="mdi:sine-wave",
                         value_name="$.sources[?(@.name=='"
                         + SUPPLEMENTS_LIBRARY
                         + "')].data[?(@.uid=='"
@@ -2369,6 +2569,10 @@ class ReefBeatSensorEntity(ReefRoleMixin, ReefBeatRestoreEntity, SensorEntity): 
             self._attr_extra_state_attributes = {
                 with_attr_name: self._device.get_data(with_attr_value)
             }
+
+        attributes_fn = getattr(self._description, "attributes_fn", None)
+        if attributes_fn is not None:
+            self._attr_extra_state_attributes = attributes_fn(self._device)
 
     def _clamp_enum(self, value: SensorNativeValue) -> SensorNativeValue:
         """Drop an ENUM value the description does not declare.

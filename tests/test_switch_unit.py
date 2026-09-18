@@ -20,8 +20,8 @@ async def test_reefbeat_switch_compute_is_on_branches() -> None:
         key="device_state",
         translation_key="device_state",
         value_name="$.local.mode",
-        icon="mdi:on",
-        icon_off="mdi:off",
+        icon="mdi:power",
+        icon_off="mdi:power-off",
     )
     ent_device = ReefBeatSwitchEntity(cast(Any, device), desc_device)
     device.get_data_map["$.local.mode"] = "off"
@@ -33,8 +33,8 @@ async def test_reefbeat_switch_compute_is_on_branches() -> None:
         key="maintenance",
         translation_key="maintenance",
         value_name="$.local.mode",
-        icon="mdi:on",
-        icon_off="mdi:off",
+        icon="mdi:power",
+        icon_off="mdi:power-off",
     )
     ent_maint = ReefBeatSwitchEntity(cast(Any, device), desc_maint)
     device.get_data_map["$.local.mode"] = "maintenance"
@@ -46,8 +46,8 @@ async def test_reefbeat_switch_compute_is_on_branches() -> None:
         key="x",
         translation_key="x",
         value_name="$.local.some_bool",
-        icon="mdi:on",
-        icon_off="mdi:off",
+        icon="mdi:power",
+        icon_off="mdi:power-off",
     )
     ent_generic = ReefBeatSwitchEntity(cast(Any, device), desc_generic)
     device.get_data_map["$.local.some_bool"] = 0
@@ -89,8 +89,8 @@ async def test_reefbeat_switch_async_added_to_hass_restores_last_state_then_prim
         key="generic",
         translation_key="generic",
         value_name="$.local.some_bool",
-        icon="mdi:on",
-        icon_off="mdi:off",
+        icon="mdi:power",
+        icon_off="mdi:power-off",
     )
 
     entity = ReefBeatSwitchEntity(cast(Any, device), desc)
@@ -123,8 +123,8 @@ def test_reefbeat_switch_device_info_returns_coordinator_device_info() -> None:
         key="x",
         translation_key="x",
         value_name="$.local.x",
-        icon="mdi:on",
-        icon_off="mdi:off",
+        icon="mdi:power",
+        icon_off="mdi:power-off",
     )
     entity = ReefBeatSwitchEntity(cast(Any, device), desc)
     assert entity.device_info == device.device_info
@@ -138,8 +138,8 @@ async def test_reefbeat_switch_device_state_on_calls_delete(hass: Any) -> None:
         key="device_state",
         translation_key="device_state",
         value_name="$.local.mode",
-        icon="mdi:on",
-        icon_off="mdi:off",
+        icon="mdi:power",
+        icon_off="mdi:power-off",
     )
 
     entity = ReefBeatSwitchEntity(cast(Any, device), desc)
@@ -160,8 +160,8 @@ async def test_reefbeat_switch_device_state_off_calls_press(hass: Any) -> None:
         key="device_state",
         translation_key="device_state",
         value_name="$.local.mode",
-        icon="mdi:on",
-        icon_off="mdi:off",
+        icon="mdi:power",
+        icon_off="mdi:power-off",
     )
 
     entity = ReefBeatSwitchEntity(cast(Any, device), desc)
@@ -184,8 +184,8 @@ async def test_reefbeat_switch_maintenance_off_calls_delete_and_fetch(
         key="maintenance",
         translation_key="maintenance",
         value_name="$.local.mode",
-        icon="mdi:on",
-        icon_off="mdi:off",
+        icon="mdi:power",
+        icon_off="mdi:power-off",
     )
 
     entity = ReefBeatSwitchEntity(cast(Any, device), desc)
@@ -232,8 +232,8 @@ async def test_reefbeat_switch_maintenance_on_calls_press(hass: Any) -> None:
         key="maintenance",
         translation_key="maintenance",
         value_name="$.local.mode",
-        icon="mdi:on",
-        icon_off="mdi:off",
+        icon="mdi:power",
+        icon_off="mdi:power-off",
     )
 
     entity = ReefBeatSwitchEntity(cast(Any, device), desc)
@@ -254,8 +254,8 @@ async def test_reefbeat_switch_generic_source_pushes_and_refreshes(hass: Any) ->
         key="generic",
         translation_key="generic",
         value_name="$.sources[?(@.name=='/manual')].data.enabled",
-        icon="mdi:on",
-        icon_off="mdi:off",
+        icon="mdi:power",
+        icon_off="mdi:power-off",
         method="post",
     )
 
@@ -278,8 +278,8 @@ def test_reefbeat_switch_extracts_source_from_value_name_in_init() -> None:
         key="generic",
         translation_key="generic",
         value_name="$.sources[?(@.name=='/manual')].data.enabled",
-        icon="mdi:on",
-        icon_off="mdi:off",
+        icon="mdi:power",
+        icon_off="mdi:power-off",
         method="post",
     )
     entity = ReefBeatSwitchEntity(cast(Any, device), desc)

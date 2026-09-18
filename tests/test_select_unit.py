@@ -59,7 +59,9 @@ async def test_select_async_select_option_without_source_does_not_push(
 
     assert device.get_data("$.x") == "new"
     assert device.pushed == []
-    assert device.refreshed == 0
+    # Local-only value ($.x has no source): nothing is pushed to the device, but
+    # a refresh is still requested so dependent entities (e.g. fusion) recompute.
+    assert device.refreshed == 1
     assert wrote == ["new"]
 
 

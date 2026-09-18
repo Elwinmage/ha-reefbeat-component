@@ -129,9 +129,6 @@
       "sensor_controlled": {
         "name": "Controlled by Sensor"
       },
-      "socket_enabled": {
-        "name": "Socket {socket} enabled"
-      },
       "status": {
         "name": "Status"
       },
@@ -143,6 +140,15 @@
       },
       "water_level": {
         "name": "Water level"
+      },
+      "control_paired": {
+        "name": "Control paired"
+      },
+      "control_internet_connected": {
+        "name": "Control internet"
+      },
+      "temperature_coherent": {
+        "name": "Temperature coherence"
       }
     },
     "button": {
@@ -263,12 +269,6 @@
       "port_delete": {
         "name": "Uninstall port {port}"
       },
-      "port_install_ato": {
-        "name": "Install port {port} as ATO"
-      },
-      "port_install_other": {
-        "name": "Install port {port} as device"
-      },
       "preview_save": {
         "name": "Save preview"
       },
@@ -296,15 +296,6 @@
       "set_supplement_name": {
         "name": "Set new supplement name"
       },
-      "setup_finish": {
-        "name": "Finish setup"
-      },
-      "socket_delete": {
-        "name": "Uninstall socket {socket}"
-      },
-      "socket_unsubscribe": {
-        "name": "Unsubscribe socket {socket}"
-      },
       "start_calibration": {
         "name": "Start  Calibration"
       },
@@ -319,6 +310,69 @@
       },
       "test_calibration": {
         "name": "Test new Calibration"
+      },
+      "socket_0_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_1_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_2_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_3_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_4_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_5_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_6_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_7_delete": {
+        "name": "Delete socket {socket}"
+      },
+      "socket_0_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_1_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_2_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_3_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_4_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_5_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_6_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "socket_7_unsubscribe": {
+        "name": "Unsubscribe socket {socket}"
+      },
+      "install_temperature": {
+        "name": "Add temperature probe"
+      },
+      "remove_temperature": {
+        "name": "Remove temperature probe"
+      },
+      "pair_power": {
+        "name": "Pair power center"
+      },
+      "unpair_power": {
+        "name": "Unpair power center"
+      },
+      "unpair_control": {
+        "name": "Unpair control hub"
       }
     },
     "light": {
@@ -470,6 +524,27 @@
       },
       "wave_preview_wave_duration": {
         "name": "Prev. wave duration"
+      },
+      "temperature_coherence_threshold": {
+        "name": "Temperature coherence threshold"
+      },
+      "probe_offset": {
+        "name": "{probe} offset"
+      },
+      "temperature_offset": {
+        "name": "Temperature offset"
+      },
+      "temperature_desired_range_low": {
+        "name": "Desired temperature range (low)"
+      },
+      "temperature_desired_range_high": {
+        "name": "Desired temperature range (high)"
+      },
+      "temperature_acceptable_range_low": {
+        "name": "Acceptable temperature range (low)"
+      },
+      "temperature_acceptable_range_high": {
+        "name": "Acceptable temperature range (high)"
       }
     },
     "select": {
@@ -486,14 +561,6 @@
       },
       "model": {
         "name": "Model"
-      },
-      "port_mode": {
-        "name": "Port {port} mode",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule"
-        }
       },
       "position": {
         "name": "Position",
@@ -521,18 +588,19 @@
           "un": "Uniform"
         }
       },
-      "socket_mode": {
-        "name": "Socket {socket} mode",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule"
-        }
-      },
       "supplements": {
         "name": "Supplements",
         "state": {
           "other": "Other"
+        }
+      },
+      "temperature_fusion_method": {
+        "name": "Temperature fusion method",
+        "state": {
+          "median": "Median",
+          "mean": "Mean",
+          "min": "Minimum",
+          "max": "Maximum"
         }
       }
     },
@@ -938,18 +1006,6 @@
       "skim_last_calibration": {
         "name": "Last Overskimming Calibration"
       },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
       "state": {
         "name": "State",
         "state": {
@@ -1091,6 +1147,208 @@
       },
       "zip_code": {
         "name": "ZIP Code"
+      },
+      "socket_0_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_1_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_2_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_3_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_4_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_5_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_6_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_7_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_0_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_1_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_2_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_3_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_4_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_5_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_6_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_7_state": {
+        "name": "Socket {socket} state"
+      },
+      "socket_0_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Socket {socket} mode",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_0_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_1_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_2_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_3_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_4_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_5_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_6_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_7_prev_mode": {
+        "name": "Socket {socket} previous mode"
+      },
+      "socket_0_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_1_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_2_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_3_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_4_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_5_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_6_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "socket_7_consumption": {
+        "name": "Socket {socket} consumption"
+      },
+      "total_consumption": {
+        "name": "Total consumption"
+      },
+      "connected_control_type": {
+        "name": "Connected control type"
+      },
+      "connected_control_status": {
+        "name": "Connected control status"
+      },
+      "temperature_fusion": {
+        "name": "Fused temperature"
+      },
+      "temperature_spread": {
+        "name": "Temperature spread"
+      },
+      "temperature_anomaly_source": {
+        "name": "Temperature anomaly source",
+        "state": {
+          "ok": "OK",
+          "unknown": "Unknown",
+          "maintenance": "Maintenance"
+        }
+      },
+      "probe_uid": {
+        "name": "{probe} uid"
       }
     },
     "switch": {
@@ -1211,11 +1469,50 @@
       "slm": {
         "name": "Volume Controller"
       },
-      "socket_on_off": {
-        "name": "Socket {socket}"
-      },
       "use_cloud_api": {
         "name": "Use cloud API"
+      },
+      "socket_0_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_1_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_2_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_3_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_4_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_5_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_6_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "socket_7_on_off": {
+        "name": "Socket {socket} switch"
+      },
+      "probe_maintenance": {
+        "name": "{probe} maintenance"
+      },
+      "probe_buzzer": {
+        "name": "{probe} buzzer"
+      },
+      "probe_enabled": {
+        "name": "{probe} enabled"
+      },
+      "probe_notify": {
+        "name": "{probe} notifications"
+      },
+      "temperature_notifications_enabled": {
+        "name": "Temperature notifications enabled"
+      },
+      "temperature_log_enabled": {
+        "name": "Temperature logging enabled"
       }
     },
     "text": {
@@ -1237,8 +1534,32 @@
       "pump_name": {
         "name": "Pump name"
       },
-      "socket_name": {
+      "socket_0_name": {
         "name": "Socket {socket} name"
+      },
+      "socket_1_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_2_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_3_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_4_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_5_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_6_name": {
+        "name": "Socket {socket} name"
+      },
+      "socket_7_name": {
+        "name": "Socket {socket} name"
+      },
+      "temperature_probe_name": {
+        "name": "Temperature probe name"
       }
     },
     "time": {
@@ -1258,7 +1579,8 @@
       "wifi_change_failed_connect": "Could not send the new Wi-Fi credentials to the device.",
       "wifi_change_failed_reset": "Could not reboot the device after sending the new Wi-Fi credentials.",
       "wifi_change_failed_rediscover": "The device rebooted but could not be found on the network. Check that it joined {ssid} and reconfigure its IP manually if needed.",
-      "wifi_change_failed_unknown": "Unexpected error while changing Wi-Fi network."
+      "wifi_change_failed_unknown": "Unexpected error while changing Wi-Fi network.",
+      "no_probes": "This hub has no probes to remove."
     },
     "error": {
       "auth_failed": "Authentification failed, check your crendentials",
@@ -1266,7 +1588,8 @@
       "wifi_no_networks": "The device reported no available Wi-Fi networks.",
       "wifi_no_ssid": "Please pick a network before submitting.",
       "wifi_bad_cidr": "That is not a valid IPv4 CIDR (expected e.g. 10.0.0.0/24).",
-      "wifi_manual_not_found": "The device could not be found on that subnet. Try another CIDR, or leave the field empty to give up."
+      "wifi_manual_not_found": "The device could not be found on that subnet. Try another CIDR, or leave the field empty to give up.",
+      "no_probe_detected": "No new probe of the selected type was detected. Put it in pairing mode and try again."
     },
     "progress": {
       "applying": "Applying the new Wi-Fi credentials and locating the device on the network..."
@@ -1281,7 +1604,10 @@
         },
         "menu_options": {
           "settings": "Device settings",
-          "wifi_scan": "Change Wi-Fi network"
+          "wifi_scan": "Change Wi-Fi network",
+          "add_probe": "Add a probe",
+          "del_probe": "Remove a probe",
+          "change_probe": "Replace a probe"
         },
         "title": "Configuration"
       },
@@ -1314,6 +1640,31 @@
         },
         "description": "The device joined {ssid} but was not found on any subnet Home Assistant is directly attached to (tried: {tried_subnets}). If you know which network the device landed on and Home Assistant can reach it through a router, enter the CIDR here (e.g. 10.0.0.0/24). Leave the field empty and submit to give up.",
         "title": "Locate the device on another subnet"
+      },
+      "add_probe": {
+        "title": "Add a probe",
+        "description": "Put the probe in pairing mode, choose its type, then confirm to scan.",
+        "data": {
+          "probe_type": "Probe type"
+        }
+      },
+      "del_probe": {
+        "title": "Remove a probe",
+        "description": "Select the probe(s) to remove.",
+        "data": {
+          "probes": "Probes"
+        }
+      },
+      "change_probe": {
+        "title": "Replace a probe",
+        "description": "Pick the probe to replace, then put a new probe of the same type in pairing mode and confirm. The new probe inherits the old one's history.",
+        "data": {
+          "old_probe": "Probe to replace"
+        }
+      },
+      "del_probe_confirm": {
+        "title": "Confirm removal",
+        "description": "This permanently removes the selected probe(s) and all their entities and history: {probes}.\n\nSubmit to continue, or close this dialog to cancel."
       }
     }
   },

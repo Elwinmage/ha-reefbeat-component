@@ -41,13 +41,13 @@ from .coordinator import (
     ReefLedCoordinator,
     ReefLedG2Coordinator,
     ReefMatCoordinator,
-    ReefPowerCoordinator,
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
 from .i18n import translate, translate_list
+from .reefbeat import fusion
 from .supplements_list import SUPPLEMENTS as SUPPLEMENTS_LIST
 
 # Keep the imported constant intact; use a local name for the sorted view.
@@ -109,48 +109,11 @@ class ReefDoseSelectEntityDescription(SelectEntityDescription):
     method: str = "post"
 
 
-@dataclass(kw_only=True, frozen=True)
-class ReefPowerSocketModeSelectEntityDescription(SelectEntityDescription):
-    """Describes a RSPOWER per-socket mode select (off/on/schedule).
-
-    Backed by ``PUT /sockets/config`` with a partial ``{"sockets":[{"mode",
-    "number"}]}`` body. The current value is read from the socket's
-    ``user_config_mode`` in ``/dashboard`` (the user's chosen mode, which
-    unlike ``mode`` isn't transiently overridden by a schedule window).
-    """
-
-    exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
-    value_name: str = ""
-    options: list[str] | None = None
-    socket: int = 0  # 0-based socket index used in the URL/payload
-
-
-@dataclass(kw_only=True, frozen=True)
-class ReefControlPortModeSelectEntityDescription(SelectEntityDescription):
-    """Describes a RSCONTROL per-port mode select (off/on/schedule).
-
-    The RSCONTROL 12V ports are configured exactly like the RSPOWER AC
-    sockets, only the transport differs: the write is a partial
-    ``PUT /ports/config`` with a **bare array** body ``[{"number", "mode"}]``
-    instead of the power center's ``{"sockets": [...]}`` wrapper. The current
-    value comes from the port's ``user_config_mode`` in ``/dashboard`` — the
-    user's chosen mode, which unlike ``mode`` isn't transiently overridden by
-    a schedule window.
-    """
-
-    exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
-    value_name: str = ""
-    options: list[str] | None = None
-    port: int = 0  # 0-based port index used in the URL/payload
-
-
 DescriptionT = (
     ReefBeatSelectEntityDescription
     | ReefRunSelectEntityDescription
     | ReefWaveSelectEntityDescription
     | ReefDoseSelectEntityDescription
-    | ReefPowerSocketModeSelectEntityDescription
-    | ReefControlPortModeSelectEntityDescription
 )
 
 
@@ -306,60 +269,23 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
-    elif isinstance(device, ReefPowerCoordinator):
-        # One mode select per AC socket (off/on/schedule). Socket indices are
-        # 0-based (RSPOWER6 -> 0..5, RSPOWER8 -> 0..7); the user-facing label
-        # uses n+1 to match the sensor/switch convention.
-        power_descs: list[ReefPowerSocketModeSelectEntityDescription] = []
-        for socket_idx in range(device.socket_count):
-            power_descs.append(
-                ReefPowerSocketModeSelectEntityDescription(
-                    key=f"socket_{socket_idx}_mode",
-                    translation_key="socket_mode",
-                    translation_placeholders={"socket": str(socket_idx + 1)},
-                    icon="mdi:power-settings",
-                    value_name=(
-                        "$.sources[?(@.name=='/dashboard')].data.sockets"
-                        f"[?(@.number=={socket_idx})].user_config_mode"
-                    ),
-                    options=["off", "on", "schedule"],
-                    entity_category=EntityCategory.CONFIG,
-                    socket=socket_idx,
-                )
-            )
-        entities.extend(
-            ReefPowerSocketModeSelectEntity(device, description)
-            for description in power_descs
-            if description.exists_fn(device)
-        )
-
     elif isinstance(device, ReefControlCoordinator):
-        # One mode select per 12V DC port, same contract as the RSPOWER
-        # sockets above. Port indices are 0-based (RSCONTROLLITE -> 0,
-        # RSCONTROLPRO -> 0..1); the user-facing label uses n+1 to match the
-        # sensor/switch convention.
-        control_descs: list[ReefControlPortModeSelectEntityDescription] = []
-        for port_idx in range(device.port_count):
-            control_descs.append(
-                ReefControlPortModeSelectEntityDescription(
-                    key=f"port_{port_idx}_mode",
-                    translation_key="port_mode",
-                    translation_placeholders={"port": str(port_idx + 1)},
-                    icon="mdi:power-settings",
-                    value_name=(
-                        "$.sources[?(@.name=='/dashboard')].data.ports"
-                        f"[?(@.number=={port_idx})].user_config_mode"
+        # Temperature fusion aggregation method (local config). Only meaningful
+        # with at least two temperature sources.
+        if cast(ReefControlCoordinator, device).temperature_source_count() >= 2:
+            entities.append(
+                ReefBeatSelectEntity(
+                    device,
+                    ReefBeatSelectEntityDescription(
+                        key="temperature_fusion_method",
+                        translation_key="temperature_fusion_method",
+                        icon="mdi:function-variant",
+                        value_name="$.local.fusion.method",
+                        options=list(fusion.FUSION_METHODS),
+                        entity_category=EntityCategory.CONFIG,
                     ),
-                    options=["off", "on", "schedule"],
-                    entity_category=EntityCategory.CONFIG,
-                    port=port_idx,
                 )
             )
-        entities.extend(
-            ReefControlPortModeSelectEntity(device, description)
-            for description in control_descs
-            if description.exists_fn(device)
-        )
 
     async_add_entities(entities, True)
 
@@ -448,6 +374,11 @@ class ReefBeatSelectEntity(ReefRoleMixin, ReefBeatRestoreEntity, SelectEntity): 
         self.async_write_ha_state()
 
         if self._source is None:
+            # Local-only value (e.g. $.local.*): nothing to push, but still
+            # refresh so dependent entities (fusion) recompute immediately.
+            refresh = getattr(self._device, "async_request_refresh", None)
+            if callable(refresh):
+                await cast(Callable[[], Awaitable[None]], refresh)()
             return
 
         await self._device.push_values(self._source, self._method)
@@ -492,113 +423,6 @@ class ReefRunSelectEntity(ReefBeatSelectEntity):
     def device_info(self) -> DeviceInfo:
         """Return device info extended with the pump identifier."""
         return cast(ReefRunCoordinator, self._device).pump_device_info(self._pump)
-
-
-# REEFPOWER
-class ReefPowerSocketModeSelectEntity(ReefBeatSelectEntity):
-    """Select entity for a RSPOWER socket's mode (off/on/schedule).
-
-    Unlike the generic select, the write is a partial ``PUT /sockets/config``
-    scoped to a single socket, so we override ``async_select_option`` to call
-    the coordinator's ``set_socket_mode`` rather than ``push_values``.
-    """
-
-    _attr_has_entity_name = True
-    _VALID_MODES = ("off", "on", "schedule")
-
-    def __init__(
-        self,
-        device: ReefBeatCoordinator,
-        entity_description: ReefPowerSocketModeSelectEntityDescription,
-    ) -> None:
-        """Initialize the per-socket mode select."""
-        self._socket: int = entity_description.socket
-        super().__init__(device, entity_description)
-        # Map a transient "setup" (or anything unexpected) to None so HA does
-        # not warn about a current option outside the selectable set.
-        self._update_val()
-
-    def _update_val(self) -> None:
-        val = self._device.get_data(self._value_name, is_None_possible=True)
-        self._attr_current_option = val if val in self._VALID_MODES else None
-
-    async def async_select_option(self, option: str) -> None:
-        """Push the new mode for this socket via PUT /sockets/config."""
-        self._attr_current_option = option
-        self.async_write_ha_state()
-        await cast(ReefPowerCoordinator, self._device).set_socket_mode(
-            self._socket, option
-        )
-
-    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
-    def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        return self._device.device_info
-
-
-# REEFCONTROL
-class ReefControlPortModeSelectEntity(ReefBeatSelectEntity):
-    """Select entity for a RSCONTROL 12V port's mode (off/on/schedule).
-
-    Same behaviour as :class:`ReefPowerSocketModeSelectEntity`: the write is a
-    partial config PUT scoped to a single port, so we override
-    ``async_select_option`` to call the coordinator's ``set_port_mode``
-    rather than ``push_values``.
-    """
-
-    _attr_has_entity_name = True
-    _VALID_MODES = ("off", "on", "schedule")
-
-    def __init__(
-        self,
-        device: ReefBeatCoordinator,
-        entity_description: ReefControlPortModeSelectEntityDescription,
-    ) -> None:
-        """Initialize the per-port mode select."""
-        self._port: int = entity_description.port
-        super().__init__(device, entity_description)
-        # Map a transient "setup" (or anything unexpected) to None so HA does
-        # not warn about a current option outside the selectable set.
-        self._update_val()
-
-    def _update_val(self) -> None:
-        # A port that has not been installed (`type == "unknown"`, `mode ==
-        # "setup"`) rejects every PUT /ports/config with a 503, so it has no
-        # selectable mode. Availability itself is handled by the `available`
-        # property below — setting `_attr_available` here would be ignored,
-        # since the base class exposes `available` as a property.
-        installed = cast(ReefControlCoordinator, self._device).port_is_installed(
-            self._port
-        )
-        val = self._device.get_data(self._value_name, is_None_possible=True)
-        self._attr_current_option = (
-            val if installed and val in self._VALID_MODES else None
-        )
-
-    @property
-    def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
-        """Uninstalled ports reject every write — expose them as unavailable.
-
-        Deliberately a plain `property` and not a `cached_property`: a port
-        can be installed at runtime, and a cached value would keep the entity
-        greyed out until Home Assistant restarts.
-        """
-        return self._device.last_update_success and cast(
-            ReefControlCoordinator, self._device
-        ).port_is_installed(self._port)
-
-    async def async_select_option(self, option: str) -> None:
-        """Push the new mode for this port via PUT /ports/config."""
-        self._attr_current_option = option
-        self.async_write_ha_state()
-        await cast(ReefControlCoordinator, self._device).set_port_mode(
-            self._port, option
-        )
-
-    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
-    def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        return self._device.device_info
 
 
 # REEFDOSE

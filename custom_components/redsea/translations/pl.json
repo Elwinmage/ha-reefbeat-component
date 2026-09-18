@@ -129,9 +129,6 @@
       "sensor_controlled": {
         "name": "Sterowany przez czujnik"
       },
-      "socket_enabled": {
-        "name": "Socket {socket} enabled"
-      },
       "status": {
         "name": "Status"
       },
@@ -143,6 +140,15 @@
       },
       "water_level": {
         "name": "Poziom wody"
+      },
+      "control_paired": {
+        "name": "Control sparowany"
+      },
+      "control_internet_connected": {
+        "name": "Internet control"
+      },
+      "temperature_coherent": {
+        "name": "Spójność temperatury"
       }
     },
     "button": {
@@ -263,12 +269,6 @@
       "port_delete": {
         "name": "Odinstaluj port {port}"
       },
-      "port_install_ato": {
-        "name": "Zainstaluj port {port} jako ATO"
-      },
-      "port_install_other": {
-        "name": "Zainstaluj port {port} jako urządzenie"
-      },
       "preview_save": {
         "name": "Zapisz podgląd"
       },
@@ -296,15 +296,6 @@
       "set_supplement_name": {
         "name": "Ustaw nową nazwę"
       },
-      "setup_finish": {
-        "name": "Zakończ konfigurację"
-      },
-      "socket_delete": {
-        "name": "Odinstaluj gniazdo {socket}"
-      },
-      "socket_unsubscribe": {
-        "name": "Anuluj subskrypcję gniazda {socket}"
-      },
       "start_calibration": {
         "name": "Rozpocznij kalibrację"
       },
@@ -319,6 +310,69 @@
       },
       "test_calibration": {
         "name": "Testuj nową kalibrację"
+      },
+      "socket_0_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_1_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_2_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_3_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_4_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_5_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_6_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_7_delete": {
+        "name": "Usuń gniazdko {socket}"
+      },
+      "socket_0_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_1_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_2_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_3_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_4_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_5_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_6_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "socket_7_unsubscribe": {
+        "name": "Wypisz gniazdko {socket}"
+      },
+      "install_temperature": {
+        "name": "Dodaj sondę temperatury"
+      },
+      "remove_temperature": {
+        "name": "Usuń sondę temperatury"
+      },
+      "pair_power": {
+        "name": "Sparuj Power Center"
+      },
+      "unpair_power": {
+        "name": "Rozłącz Power Center"
+      },
+      "unpair_control": {
+        "name": "Rozłącz hub sterujący"
       }
     },
     "light": {
@@ -470,6 +524,27 @@
       },
       "wave_preview_wave_duration": {
         "name": "Podgląd czas trwania fali"
+      },
+      "temperature_coherence_threshold": {
+        "name": "Próg spójności temperatury"
+      },
+      "probe_offset": {
+        "name": "Offset {probe}"
+      },
+      "temperature_offset": {
+        "name": "Offset temperatury"
+      },
+      "temperature_desired_range_low": {
+        "name": "Docelowy zakres temperatury (dolny)"
+      },
+      "temperature_desired_range_high": {
+        "name": "Docelowy zakres temperatury (górny)"
+      },
+      "temperature_acceptable_range_low": {
+        "name": "Akceptowalny zakres temperatury (dolny)"
+      },
+      "temperature_acceptable_range_high": {
+        "name": "Akceptowalny zakres temperatury (górny)"
       }
     },
     "select": {
@@ -486,14 +561,6 @@
       },
       "model": {
         "name": "Model"
-      },
-      "port_mode": {
-        "name": "Tryb portu {port}",
-        "state": {
-          "off": "Wyłączony",
-          "on": "Włączony",
-          "schedule": "Harmonogram"
-        }
       },
       "position": {
         "name": "Pozycja",
@@ -521,18 +588,19 @@
           "un": "Jednorodny"
         }
       },
-      "socket_mode": {
-        "name": "Tryb gniazda {socket}",
-        "state": {
-          "off": "Wyłączony",
-          "on": "Włączony",
-          "schedule": "Harmonogram"
-        }
-      },
       "supplements": {
         "name": "Suplementy",
         "state": {
           "other": "Inne"
+        }
+      },
+      "temperature_fusion_method": {
+        "name": "Metoda scalania temperatury",
+        "state": {
+          "median": "Mediana",
+          "mean": "Średnia",
+          "min": "Minimum",
+          "max": "Maksimum"
         }
       }
     },
@@ -930,18 +998,6 @@
       "skim_last_calibration": {
         "name": "Ostatnia kalibracja przeodtłuszczania"
       },
-      "socket_consumption": {
-        "name": "Socket {socket} consumption"
-      },
-      "socket_mode": {
-        "name": "Socket {socket} mode"
-      },
-      "socket_name": {
-        "name": "Socket {socket} name"
-      },
-      "socket_state": {
-        "name": "Socket {socket} state"
-      },
       "state": {
         "name": "Stan",
         "state": {
@@ -1083,6 +1139,208 @@
       },
       "zip_code": {
         "name": "Kod pocztowy"
+      },
+      "socket_0_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_1_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_2_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_3_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_4_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_5_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_6_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_7_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_0_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_1_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_2_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_3_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_4_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_5_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_6_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_7_state": {
+        "name": "Gniazdko {socket} stan"
+      },
+      "socket_0_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_1_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_2_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_3_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_4_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_5_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_6_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_7_mode": {
+        "name": "Gniazdko {socket} tryb",
+        "state": {
+          "off": "Off",
+          "on": "On",
+          "schedule": "Schedule",
+          "sensor": "Sensor",
+          "setup": "Setup"
+        }
+      },
+      "socket_0_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_1_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_2_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_3_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_4_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_5_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_6_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_7_prev_mode": {
+        "name": "Gniazdko {socket} poprzedni tryb"
+      },
+      "socket_0_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_1_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_2_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_3_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_4_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_5_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_6_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "socket_7_consumption": {
+        "name": "Gniazdko {socket} zużycie"
+      },
+      "total_consumption": {
+        "name": "Całkowite zużycie"
+      },
+      "connected_control_type": {
+        "name": "Typ podłączonego control"
+      },
+      "connected_control_status": {
+        "name": "Stan podłączonego control"
+      },
+      "temperature_fusion": {
+        "name": "Temperatura scalona"
+      },
+      "temperature_spread": {
+        "name": "Rozrzut temperatury"
+      },
+      "temperature_anomaly_source": {
+        "name": "Źródło anomalii temperatury",
+        "state": {
+          "ok": "OK",
+          "unknown": "Nieznane",
+          "maintenance": "Konserwacja"
+        }
+      },
+      "probe_uid": {
+        "name": "UID {probe}"
       }
     },
     "switch": {
@@ -1203,11 +1461,50 @@
       "slm": {
         "name": "Sterownik objętości"
       },
-      "socket_on_off": {
-        "name": "Gniazdo {socket}"
-      },
       "use_cloud_api": {
         "name": "Użyj API chmury"
+      },
+      "socket_0_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_1_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_2_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_3_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_4_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_5_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_6_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "socket_7_on_off": {
+        "name": "Gniazdko {socket} przełącznik"
+      },
+      "probe_maintenance": {
+        "name": "Konserwacja {probe}"
+      },
+      "probe_buzzer": {
+        "name": "Brzęczyk {probe}"
+      },
+      "probe_enabled": {
+        "name": "{probe} włączona"
+      },
+      "probe_notify": {
+        "name": "Powiadomienia {probe}"
+      },
+      "temperature_notifications_enabled": {
+        "name": "Powiadomienia o temperaturze włączone"
+      },
+      "temperature_log_enabled": {
+        "name": "Rejestrowanie temperatury włączone"
       }
     },
     "text": {
@@ -1229,8 +1526,32 @@
       "pump_name": {
         "name": "Nazwa pompy"
       },
-      "socket_name": {
-        "name": "Nazwa gniazda {socket}"
+      "socket_0_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_1_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_2_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_3_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_4_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_5_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_6_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "socket_7_name": {
+        "name": "Gniazdko {socket} nazwa"
+      },
+      "temperature_probe_name": {
+        "name": "Nazwa sondy temperatury"
       }
     },
     "time": {
@@ -1250,7 +1571,8 @@
       "wifi_change_failed_connect": "Nie udało się wysłać nowych danych uwierzytelniających Wi-Fi do urządzenia.",
       "wifi_change_failed_reset": "Nie udało się zrestartować urządzenia po wysłaniu nowych danych uwierzytelniających Wi-Fi.",
       "wifi_change_failed_rediscover": "Urządzenie zostało zrestartowane, ale nie znaleziono go w sieci. Sprawdź, czy dołączyło do {ssid}, i w razie potrzeby ręcznie skonfiguruj jego adres IP.",
-      "wifi_change_failed_unknown": "Nieoczekiwany błąd podczas zmiany sieci Wi-Fi."
+      "wifi_change_failed_unknown": "Nieoczekiwany błąd podczas zmiany sieci Wi-Fi.",
+      "no_probes": "Ten hub nie ma sond do usunięcia."
     },
     "error": {
       "auth_failed": "Uwierzytelnianie nie powiodło się, sprawdź dane logowania",
@@ -1258,7 +1580,8 @@
       "wifi_no_networks": "Urządzenie nie zgłasza żadnych dostępnych sieci Wi-Fi.",
       "wifi_no_ssid": "Wybierz sieć przed wysłaniem.",
       "wifi_bad_cidr": "Nieprawidłowy IPv4 CIDR (oczekiwano np. 10.0.0.0/24).",
-      "wifi_manual_not_found": "Nie znaleziono urządzenia w tej podsieci. Spróbuj innego CIDR lub zostaw pole puste, aby zrezygnować."
+      "wifi_manual_not_found": "Nie znaleziono urządzenia w tej podsieci. Spróbuj innego CIDR lub zostaw pole puste, aby zrezygnować.",
+      "no_probe_detected": "Nie wykryto nowej sondy wybranego typu. Przełącz ją w tryb parowania i spróbuj ponownie."
     },
     "progress": {
       "applying": "Wysyłanie nowych danych uwierzytelniających Wi-Fi i lokalizowanie urządzenia w sieci..."
@@ -1273,7 +1596,10 @@
         },
         "menu_options": {
           "settings": "Ustawienia urządzenia",
-          "wifi_scan": "Zmień sieć Wi-Fi"
+          "wifi_scan": "Zmień sieć Wi-Fi",
+          "add_probe": "Dodaj sondę",
+          "del_probe": "Usuń sondę",
+          "change_probe": "Wymień sondę"
         },
         "title": "Konfiguracja"
       },
@@ -1306,6 +1632,31 @@
         },
         "description": "Urządzenie dołączyło do {ssid}, ale nie zostało znalezione w żadnej z podsieci bezpośrednio podłączonych do Home Assistant (sprawdzone: {tried_subnets}). Jeśli wiesz, do której sieci trafiło urządzenie i Home Assistant może dotrzeć do niego przez router, wpisz tutaj CIDR (np. 10.0.0.0/24). Zostaw pole puste i wyślij, aby zrezygnować.",
         "title": "Znajdź urządzenie w innej podsieci"
+      },
+      "add_probe": {
+        "title": "Dodaj sondę",
+        "description": "Przełącz sondę w tryb parowania, wybierz typ, a następnie potwierdź, aby wyszukać.",
+        "data": {
+          "probe_type": "Typ sondy"
+        }
+      },
+      "del_probe": {
+        "title": "Usuń sondę",
+        "description": "Wybierz sondę(y) do usunięcia.",
+        "data": {
+          "probes": "Sondy"
+        }
+      },
+      "change_probe": {
+        "title": "Wymień sondę",
+        "description": "Wybierz sondę do wymiany, przełącz nową sondę tego samego typu w tryb parowania i potwierdź. Nowa sonda przejmuje historię starej.",
+        "data": {
+          "old_probe": "Sonda do wymiany"
+        }
+      },
+      "del_probe_confirm": {
+        "title": "Potwierdź usunięcie",
+        "description": "Trwale usuwa wybrane sondy oraz wszystkie ich encje i historię: {probes}.\n\nPotwierdź, aby kontynuować, lub zamknij okno, aby anulować."
       }
     }
   },

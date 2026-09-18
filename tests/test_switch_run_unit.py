@@ -30,7 +30,7 @@ async def test_run_switch_device_info_adds_pump_suffix() -> None:
         key="run",
         translation_key="run",
         value_name="$.local.x",
-        icon="mdi:on",
+        icon="mdi:power",
         pump=3,
     )
 
@@ -58,7 +58,7 @@ async def test_run_switch_notify_and_pushes_settings(hass: Any) -> None:
         key="run",
         translation_key="run",
         value_name="event.run",
-        icon="mdi:on",
+        icon="mdi:power",
         pump=1,
         notify=True,
         method="put",
@@ -92,7 +92,7 @@ async def test_run_switch_turn_on_notify_and_pushes_settings(hass: Any) -> None:
         key="run",
         translation_key="run",
         value_name="event.run",
-        icon="mdi:on",
+        icon="mdi:power",
         pump=1,
         notify=True,
         method="put",

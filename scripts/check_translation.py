@@ -77,10 +77,31 @@ def _string_values_from_expr(node: ast.AST) -> set[str]:
       - ast.Constant                    -> {value} if str
       - ast.Dict                        -> {every str value in the dict}
       - ast.Call to .get on ast.Dict   -> dict values + default arg
+      - ast.JoinedStr (f-string)       -> expand numeric variables over 0..MAX
     """
     result: set[str] = set()
     if isinstance(node, ast.Constant) and isinstance(node.value, str):
         result.add(node.value)
+    elif isinstance(node, ast.JoinedStr):
+        # f-string: expand any numeric loop variable (e.g. socket_idx)
+        # over a reasonable range so the checker knows all possible keys.
+        _MAX_IDX = 8  # covers both RSPOWER6 (0-5) and RSPOWER8 (0-7)
+        parts: list[tuple[str, str]] = []
+        has_variable = False
+        for value in node.values:
+            if isinstance(value, ast.Constant):
+                parts.append(("const", str(value.value)))
+            elif isinstance(value, ast.FormattedValue):
+                parts.append(("var", ""))
+                has_variable = True
+        if has_variable:
+            for idx in range(_MAX_IDX):
+                expanded = "".join(
+                    str(idx) if kind == "var" else val for kind, val in parts
+                )
+                result.add(expanded)
+        else:
+            result.add("".join(val for _, val in parts))
     elif isinstance(node, ast.Dict):
         for val in node.values:
             result |= _string_values_from_expr(val)

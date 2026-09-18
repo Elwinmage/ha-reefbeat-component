@@ -55,6 +55,33 @@ request:
       default: "{}"
       selector:
         text:
+    refresh:
+      required: false
+      description: >-
+        Which sources to re-read once the request has been sent. The device
+        is always re-read; this only chooses what. Defaults to "config",
+        which covers endpoints served as configuration such as a socket
+        schedule.
+      default: "config"
+      example: "config"
+      selector:
+        select:
+          options:
+            - "data"
+            - "config"
+    wait:
+      required: false
+      description: >-
+        Seconds to let the device settle before re-reading. Several endpoints
+        acknowledge a write before they serve the new value back, so reading
+        immediately returns the previous one.
+      default: 2
+      example: 3
+      selector:
+        number:
+          min: 0
+          max: 30
+          unit_of_measurement: seconds
 
 # Reset a maintenance task: stamps "now" as the new last_reset for the
 # (device, task) instance and recomputes derived values (days_left, overdue).

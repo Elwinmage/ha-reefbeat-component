@@ -64,6 +64,7 @@ class ReefBeatBinarySensorEntityDescription(
     value_name: str | None = None
     with_attr_name: str | None = None
     with_attr_value: str | None = None
+    attributes_fn: Callable[[TCoord], dict[str, Any]] | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -306,6 +307,38 @@ POWER_SENSORS: tuple[
         icon="mdi:link-variant",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
+    ReefBeatBinarySensorEntityDescription(
+        key="control_paired",
+        translation_key="control_paired",
+        # Pairing and reachability are two different states: a ReefControl
+        # stays paired while it is offline, and `connected_device` is null
+        # only when no hub was ever paired. Both are needed to tell "no hub"
+        # apart from "hub down", which the card shows differently.
+        value_fn=lambda device: (
+            device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid",
+                is_None_possible=True,
+            )
+            is not None
+        ),
+        icon="mdi:link-variant",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    ReefBeatBinarySensorEntityDescription(
+        key="control_internet_connected",
+        translation_key="control_internet_connected",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        value_fn=lambda device: (
+            device.get_data(
+                "$.sources[?(@.name=='/dashboard')]"
+                ".data.connected_device.internet_connected",
+                is_None_possible=True,
+            )
+            is True
+        ),
+        icon="mdi:web",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
 )
 
 # ReefControl binary sensors (read-only)
@@ -530,20 +563,21 @@ async def async_setup_entry(
         power_descs: list[
             ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator]
         ] = []
-        for socket_idx in range(device.socket_count):
-            base = f"$.sources[?(@.name=='/dashboard')].data.sockets[{socket_idx}]"
-            power_descs.append(
-                ReefBeatBinarySensorEntityDescription(
-                    key=f"socket_{socket_idx}_enabled",
-                    translation_key="socket_enabled",
-                    translation_placeholders={"socket": str(socket_idx + 1)},
-                    value_fn=lambda d, p=f"{base}.enabled": d.get_data(
-                        p, is_None_possible=True
-                    ),
-                    icon="mdi:power-plug",
-                    entity_category=EntityCategory.DIAGNOSTIC,
-                )
-            )
+        ## NOT used yet
+        # for socket_idx in range(device.socket_count):
+        #     base = f"$.sources[?(@.name=='/dashboard')].data.sockets[{socket_idx}]"
+        #     power_descs.append(
+        #         ReefBeatBinarySensorEntityDescription(
+        #             key=f"socket_{socket_idx}_enabled",
+        #             translation_key="socket_enabled",
+        #             translation_placeholders={"socket": str(socket_idx + 1)},
+        #             value_fn=lambda d, p=f"{base}.enabled": d.get_data(
+        #                 p, is_None_possible=True
+        #             ),
+        #             icon="mdi:power-plug",
+        #             entity_category=EntityCategory.DIAGNOSTIC,
+        #         )
+        #     )
         entities.extend(
             ReefBeatBinarySensorEntity(device, desc) for desc in power_descs
         )
@@ -687,6 +721,31 @@ async def async_setup_entry(
             )
         entities.extend(ReefBeatBinarySensorEntity(device, desc) for desc in leak_descs)
 
+        # Temperature coherence — a PROBLEM binary sensor that turns on when the
+        # hub's temperature readings disagree beyond the configured threshold.
+        # Only exists with at least two sources to compare.
+        entities.append(
+            ReefBeatBinarySensorEntity(
+                device,
+                ReefBeatBinarySensorEntityDescription(
+                    key="temperature_coherent",
+                    translation_key="temperature_coherent",
+                    device_class=BinarySensorDeviceClass.PROBLEM,
+                    icon="mdi:thermometer-alert",
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                    exists_fn=lambda d: (
+                        cast(ReefControlCoordinator, d).temperature_source_count() >= 2
+                    ),
+                    value_fn=lambda d: cast(
+                        ReefControlCoordinator, d
+                    ).temperature_incoherent(),
+                    attributes_fn=lambda d: cast(
+                        ReefControlCoordinator, d
+                    ).fusion_attributes(),
+                ),
+            )
+        )
+
     # Common sensors (device dependent)
     if isinstance(
         device, (ReefRunCoordinator, ReefLedCoordinator, ReefDoseCoordinator)
@@ -770,6 +829,9 @@ class ReefBeatBinarySensorEntity(  # pyright: ignore[reportIncompatibleVariableO
             self._attr_extra_state_attributes = {
                 with_attr_name: self._device.get_data(with_attr_value)
             }
+        attributes_fn = getattr(self.entity_description, "attributes_fn", None)
+        if attributes_fn is not None:
+            self._attr_extra_state_attributes = attributes_fn(self._device)
         self.async_write_ha_state()
 
     def _get_value(self) -> StateType:

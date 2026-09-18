@@ -92,7 +92,7 @@ def test_build_probe_descriptions_orp() -> None:
     keys = _keys(descs)
     assert any(k.endswith("_value") for k in keys)
     # Main value entity must carry the ORP unit and translation key.
-    main = next(d for d in descs if d.key == "probe_0x0orp1_value")
+    main = next(d for d in descs if d.key == "probe_orp_0x0orp1_value")
     assert main.native_unit_of_measurement == "mV"
     assert main.suggested_display_precision == 0
     assert main.translation_key == "probe_orp_value"
@@ -110,12 +110,12 @@ def test_build_probe_descriptions_ec() -> None:
     )
     keys = _keys(descs)
     # Main value + the three raw derivatives all present.
-    assert "probe_0x0ec01_value" in keys
-    assert "probe_0x0ec01_ec" in keys
-    assert "probe_0x0ec01_ppt" in keys
-    assert "probe_0x0ec01_sg" in keys
+    assert "probe_ec_0x0ec01_value" in keys
+    assert "probe_ec_0x0ec01_ec" in keys
+    assert "probe_ec_0x0ec01_ppt" in keys
+    assert "probe_ec_0x0ec01_sg" in keys
     # Main value should carry the display unit read from the payload.
-    main = next(d for d in descs if d.key == "probe_0x0ec01_value")
+    main = next(d for d in descs if d.key == "probe_ec_0x0ec01_value")
     assert main.native_unit_of_measurement == "ppt"
 
 
@@ -132,14 +132,14 @@ def test_build_probe_descriptions_ato() -> None:
     keys = _keys(descs)
 
     # No numeric `_value` entity for ATO probes.
-    assert "probe_0x0at01_value" not in keys
+    assert "probe_ato_0x0at01_value" not in keys
     # ATO probes have `water_level` (main) and `temp_level` (diagnostic) but
     # no top-level `level` field in the firmware payload — the generic
     # quality-level entity would be permanently unavailable, so it must NOT
     # be emitted.
-    assert "probe_0x0at01_level" not in keys
+    assert "probe_ato_0x0at01_level" not in keys
     # Enum `water_level` entity is present.
-    main = next(d for d in descs if d.key == "probe_0x0at01_water_level")
+    main = next(d for d in descs if d.key == "probe_ato_0x0at01_water_level")
     assert main.native_unit_of_measurement is None
     assert main.device_class == SensorDeviceClass.ENUM
     assert main.translation_key == "probe_water_level"
@@ -170,13 +170,14 @@ def test_build_probe_descriptions_leak() -> None:
         {"uid": "0x0LEAK", "type": "leak", "name": "Leak Sensor"}
     )
     keys = {d.key for d in descs}
-    assert "probe_0x0leak_value" not in keys
-    assert "probe_0x0leak_level" not in keys
+    assert "probe_leak_0x0leak_value" not in keys
+    assert "probe_leak_0x0leak_level" not in keys
     # The purely descriptive entities are still built.
     assert keys == {
-        "probe_0x0leak_status",
-        "probe_0x0leak_name",
-        "probe_0x0leak_last_installation",
+        "probe_leak_0x0leak_status",
+        "probe_leak_0x0leak_name",
+        "probe_leak_0x0leak_uid",
+        "probe_leak_0x0leak_last_installation",
     }
 
 
@@ -185,7 +186,7 @@ def test_build_probe_descriptions_unknown_type_falls_back() -> None:
     descs = _build_probe_descriptions(
         {"uid": "0x0UNK1", "type": "mystery", "name": "?"}
     )
-    main = next(d for d in descs if d.key == "probe_0x0unk1_value")
+    main = next(d for d in descs if d.key == "probe_mystery_0x0unk1_value")
     assert main.native_unit_of_measurement is None
     assert main.suggested_display_precision == 2
     assert main.translation_key == "probe_value"
@@ -214,7 +215,9 @@ def test_last_installation_value_fn_converts_epoch() -> None:
     fires (this covers _epoch_to_datetime end-to-end from the description path).
     """
     descs = _build_probe_descriptions({"uid": "0xTIME1", "type": "ph", "name": "T"})
-    install_desc = next(d for d in descs if d.key == "probe_0xtime1_last_installation")
+    install_desc = next(
+        d for d in descs if d.key == "probe_ph_0xtime1_last_installation"
+    )
     device = _StaticDevice(1704067200)  # 2024-01-01T00:00:00Z
     assert install_desc.value_fn is not None
     got = install_desc.value_fn(device)  # type: ignore[misc]
@@ -228,7 +231,7 @@ def test_last_adjustment_value_fn_handles_missing_field() -> None:
     descs = _build_probe_descriptions(
         {"uid": "0xTIME2", "type": "ec", "name": "T", "measurement_unit": "ppt"}
     )
-    adj_desc = next(d for d in descs if d.key == "probe_0xtime2_last_adjustment")
+    adj_desc = next(d for d in descs if d.key == "probe_ec_0xtime2_last_adjustment")
     device = _StaticDevice(None)
     assert adj_desc.value_fn is not None
     assert adj_desc.value_fn(device) is None  # type: ignore[misc]
