@@ -65,7 +65,7 @@ jobs:
           # Installation des dépendances du manifest
           python -c "import json; print('\n'.join(json.load(open('custom_components/redsea/manifest.json'))['requirements']))" > requirements_manifest.txt
           pip install -r requirements_manifest.txt
-
+          pip install "jsonpath-ng>=1.7.0"
       - name: Run Pytest
         run: |
           pytest --cov=custom_components --cov-report=xml
