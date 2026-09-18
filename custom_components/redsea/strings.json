@@ -269,12 +269,6 @@
       "port_delete": {
         "name": "Uninstall port {port}"
       },
-      "port_install_ato": {
-        "name": "Install port {port} as ATO"
-      },
-      "port_install_other": {
-        "name": "Install port {port} as device"
-      },
       "preview_save": {
         "name": "Save preview"
       },
@@ -370,6 +364,15 @@
       },
       "remove_temperature": {
         "name": "Remove temperature probe"
+      },
+      "pair_power": {
+        "name": "Pair power center"
+      },
+      "unpair_power": {
+        "name": "Unpair power center"
+      },
+      "unpair_control": {
+        "name": "Unpair control hub"
       }
     },
     "light": {
@@ -558,15 +561,6 @@
       },
       "model": {
         "name": "Model"
-      },
-      "port_mode": {
-        "name": "Port {port} mode",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
       },
       "position": {
         "name": "Position",
@@ -1352,6 +1346,9 @@
           "unknown": "Unknown",
           "maintenance": "Maintenance"
         }
+      },
+      "probe_uid": {
+        "name": "{probe} uid"
       }
     },
     "switch": {

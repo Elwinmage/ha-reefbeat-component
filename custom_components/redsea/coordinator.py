@@ -1536,6 +1536,11 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
         await cast(ReefPowerAPI, self.my_api).setup_finish()
         await self.async_request_refresh()
 
+    async def unpair_control(self) -> None:
+        """Unlink the paired RSControl hub and refresh."""
+        await cast(ReefPowerAPI, self.my_api).unpair_control()
+        await self.async_request_refresh(config=True)
+
     def has_local_temperature(self) -> bool:
         """Whether a local temperature probe is currently installed."""
         return (
@@ -1876,11 +1881,6 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         """
         return cast(ReefControlAPI, self.my_api).port_is_installed(number)
 
-    async def install_port(self, number: int, ptype: str = "other") -> None:
-        """Install a 12V port (default: third-party device) and refresh."""
-        await cast(ReefControlAPI, self.my_api).install_port(number, ptype)
-        await self.async_request_refresh(config=True)
-
     async def delete_port(self, number: int) -> None:
         """Uninstall a 12V port and hand the physical button over.
 
@@ -1898,11 +1898,6 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
                 break
 
         await self.async_request_refresh(config=True)
-
-    async def set_port_mode(self, number: int, mode: str) -> None:
-        """Set a 12V port's mode (off/on/schedule) and refresh."""
-        await cast(ReefControlAPI, self.my_api).set_port_mode(number, mode)
-        await self.async_request_refresh()
 
     async def set_port_name(self, number: int, name: str) -> None:
         """Rename a port and refresh.
@@ -1937,6 +1932,16 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         """Leave setup mode (device switches to auto) and refresh."""
         await cast(ReefControlAPI, self.my_api).setup_finish()
         await self.async_request_refresh()
+
+    async def pair_power(self) -> None:
+        """Pair with a nearby RSPower center and refresh."""
+        await cast(ReefControlAPI, self.my_api).power_discover(pair=True)
+        await self.async_request_refresh(config=True)
+
+    async def unpair_power(self) -> None:
+        """Unlink the paired RSPower center and refresh."""
+        await cast(ReefControlAPI, self.my_api).power_unpair()
+        await self.async_request_refresh(config=True)
 
 
 # CLOUD

@@ -1544,6 +1544,18 @@ def _build_probe_descriptions(
                     p, is_None_possible=True
                 ),
             ),
+            # uid: useful to cross-reference the probe with the config flow's
+            # add/replace/remove probe steps, which list probes by uid.
+            ReefBeatSensorEntityDescription(
+                key=f"probe_{uid_key}_uid",
+                translation_key="probe_uid",
+                translation_placeholders=tp,
+                icon="mdi:identifier",
+                entity_category=EntityCategory.DIAGNOSTIC,
+                value_fn=lambda d, p=_probe_path(uid, "uid"): d.get_data(
+                    p, is_None_possible=True
+                ),
+            ),
             # Installation date: the payload carries a unix epoch, which we
             # convert to a tz-aware datetime — HA does NOT parse it for us.
             ReefBeatSensorEntityDescription(

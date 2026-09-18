@@ -269,6 +269,18 @@ POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
         dependency="$.sources[?(@.name=='/dashboard')].data.temperature",
     ),
+    # Unlink the RSControl hub paired to this power center. Pairing itself
+    # is only ever initiated from the RSControl side (POST /power/discover
+    # {"pair": true}), so there is no "pair" button here — only "unpair".
+    ReefBeatButtonEntityDescription(
+        key="unpair_control",
+        translation_key="unpair_control",
+        exists_fn=lambda _: True,
+        press_fn=lambda device: cast(ReefPowerCoordinator, device).unpair_control(),
+        icon="mdi:link-off",
+        entity_category=EntityCategory.CONFIG,
+        dependency="$.sources[?(@.name=='/dashboard')].data.connected_device.hwid",
+    ),
 )
 
 PREVIEW_BUTTONS: tuple[ReefWaveButtonEntityDescription, ...] = (
@@ -373,6 +385,45 @@ async def async_setup_entry(
         _add_described_entities(entities, device, ReefBeatButtonEntity, ATO_BUTTONS)
 
     elif isinstance(device, ReefControlCoordinator):
+        # Pair/unpair the RSPower center this hub controls. Both always
+        # exist; availability follows whether a power center is currently
+        # linked — "pair" only while none is, "unpair" only once one is
+        # (mirrors RSPower's install/remove temperature-probe buttons).
+        # Pairing itself is fire-and-forget (POST /power/discover
+        # {"pair": true}); the app also does a {"pair": false} discovery
+        # scan first to show the device before committing, but that step is
+        # cosmetic — the "pair" button here goes straight to pairing.
+        _add_described_entities(
+            entities,
+            device,
+            ReefBeatButtonEntity,
+            (
+                ReefBeatButtonEntityDescription(
+                    key="pair_power",
+                    translation_key="pair_power",
+                    exists_fn=lambda _: True,
+                    press_fn=lambda d: cast(ReefControlCoordinator, d).pair_power(),
+                    dependency=(
+                        "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid"
+                    ),
+                    dependency_reverse=True,
+                    icon="mdi:link-plus",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+                ReefBeatButtonEntityDescription(
+                    key="unpair_power",
+                    translation_key="unpair_power",
+                    exists_fn=lambda _: True,
+                    press_fn=lambda d: cast(ReefControlCoordinator, d).unpair_power(),
+                    dependency=(
+                        "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid"
+                    ),
+                    icon="mdi:link-off",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            ),
+        )
+
         # Discover ATO ports the same way sensor.py does — walk the
         # /dashboard payload rather than going through a coordinator helper,
         # so this stays decoupled from the ReefControlCoordinator surface.
@@ -442,77 +493,15 @@ async def async_setup_entry(
             entities, device, ReefBeatButtonEntity, tuple(control_ato_buttons)
         )
 
-        # Uninstalled ports (`type == "unknown"`) can do nothing until they
-        # are installed: the firmware answers every PUT /ports/config with a
-        # 503 and refuses POST /port/<n>/toggle. The ReefBeat app's port
-        # wizard starts with POST /port/<n>/install {"type": …}, so expose
-        # that as a button. Install is one-shot — the firmware answers
-        # "Cannot install - port is already installed" afterwards — hence the
-        # buttons only exist while the port is still uninstalled.
-        uninstalled_ports: list[int] = (
-            [
-                p["number"]
-                for p in raw_ports
-                if isinstance(p, dict)
-                and p.get("type") in (None, "unknown")
-                and isinstance(p.get("number"), int)
-            ]
-            if isinstance(raw_ports, list)
-            else []
-        )
-        control_install_buttons: list[ReefBeatButtonEntityDescription] = []
-        for port_idx in uninstalled_ports:
-            # Bind `port_idx` in the default to avoid the late-binding trap.
-            control_install_buttons.extend(
-                [
-                    ReefBeatButtonEntityDescription(
-                        key=f"port_{port_idx}_install_other",
-                        translation_key="port_install_other",
-                        translation_placeholders={"port": str(port_idx + 1)},
-                        exists_fn=lambda _: True,
-                        press_fn=(
-                            lambda d, n=port_idx: cast(
-                                ReefControlCoordinator, d
-                            ).install_port(n, "other")
-                        ),
-                        icon="mdi:power-plug-outline",
-                        entity_category=EntityCategory.CONFIG,
-                    ),
-                    ReefBeatButtonEntityDescription(
-                        key=f"port_{port_idx}_install_ato",
-                        translation_key="port_install_ato",
-                        translation_placeholders={"port": str(port_idx + 1)},
-                        exists_fn=lambda _: True,
-                        press_fn=(
-                            lambda d, n=port_idx: cast(
-                                ReefControlCoordinator, d
-                            ).install_port(n, "ato")
-                        ),
-                        icon="mdi:water-plus-outline",
-                        entity_category=EntityCategory.CONFIG,
-                    ),
-                ]
-            )
-        _add_described_entities(
-            entities, device, ReefBeatButtonEntity, tuple(control_install_buttons)
-        )
-
         # The mirror image: an installed port can be handed back to the
         # firmware with DELETE /port/<n>, which resets its type, mode, name
         # and power level and drops any schedule or sensor subscription.
-        installed_ports: list[int] = (
-            [
-                p["number"]
-                for p in raw_ports
-                if isinstance(p, dict)
-                and p.get("type") not in (None, "unknown")
-                and isinstance(p.get("number"), int)
-            ]
-            if isinstance(raw_ports, list)
-            else []
-        )
+        # Always created (one per port_count) and gated by `available` —
+        # mirrors ReefPowerCoordinator's socket_N_delete — rather than only
+        # existing while installed, so a port newly installed (or emptied)
+        # at runtime is reflected without a reload.
         control_delete_buttons: list[ReefBeatButtonEntityDescription] = []
-        for port_idx in installed_ports:
+        for port_idx in range(device.port_count):
             control_delete_buttons.append(
                 ReefBeatButtonEntityDescription(
                     key=f"port_{port_idx}_delete",
@@ -524,6 +513,12 @@ async def async_setup_entry(
                             ReefControlCoordinator, d
                         ).delete_port(n)
                     ),
+                    dependency=(
+                        "$.sources[?(@.name=='/dashboard')]"
+                        f".data.ports[?(@.number=={port_idx})].type"
+                    ),
+                    dependency_values=["unknown", None],
+                    dependency_reverse=True,
                     icon="mdi:power-plug-off-outline",
                     entity_category=EntityCategory.CONFIG,
                 )

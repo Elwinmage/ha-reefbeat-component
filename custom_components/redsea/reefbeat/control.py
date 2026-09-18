@@ -177,24 +177,90 @@ class ReefControlAPI(ReefBeatAPI):
         return await self.http_send(self._offset_source_name(uid), None, "delete")
 
     # -- Probe install / delete --------------------------------------------
+    # Seeded on ``PUT /probe/config`` right after install — otherwise the
+    # probe answers but stays unconfigured (no ranges/buzzer/notify set),
+    # mirroring RSPower's local temperature probe needing its own config
+    # seeded on install. ``leak`` needs none: its ``/probe/config`` entry is
+    # just ``{name, type, uid}`` — writing to it 503s (buzzer/notify live in
+    # ``/leak/config`` instead, see ``_BUZZER_LOC``/``_NOTIFY_LOC``). Values
+    # mirror what a real hub reports for a probe fresh off `/probe/install`.
+    _PROBE_INSTALL_DEFAULTS: dict[str, dict[str, Any]] = {
+        "ec": {
+            "name": "EC",
+            "buzzer": True,
+            "notify": True,
+            "unit": "ec",
+            "ranges": [46.2, 49, 54.4, 59.7],
+            "temp": {"ranges": [21, 23, 26, 28], "notify": True},
+        },
+        "ph": {
+            "name": "pH",
+            "buzzer": False,
+            "notify": True,
+            "ranges": [7.6, 7.9, 8.4, 8.6],
+            "temp": {"ranges": [21, 23, 26, 28], "notify": True},
+        },
+        "orp": {
+            "name": "ORP",
+            "buzzer": False,
+            "notify": True,
+            "ranges": [100, 200, 400, 480],
+        },
+        "temperature": {
+            "name": "Temperature",
+            "buzzer": True,
+            "notify": True,
+            "ranges": [21, 23, 26, 28],
+        },
+        "ato": {
+            "name": "ATO",
+            "buzzer": False,
+            "notify": True,
+            "temp": {"ranges": [21, 23, 26, 28], "notify": True},
+        },
+    }
+
     async def install_probe(self, ptype: str) -> HttpResult | None:
         """Ask the hub to scan for and install a new probe of ``ptype``.
 
         The device performs a BLE scan during the request and returns
         ``{"uid": ..., "success": true}`` on success or ``success: false`` /
-        no uid when nothing is found. On success the BLE advertising of the new
-        probe is stopped.
+        no uid when nothing is found. On success the BLE advertising of the
+        new probe is stopped, then its config is seeded with defaults (see
+        ``_PROBE_INSTALL_DEFAULTS``) and read back immediately — ``/probe/
+        config`` is always registered (unlike RSPower's per-probe offset
+        sources), so no on-demand registration is needed to refresh it.
         """
         result = await self.http_send(f"/probe/install?type={ptype}", {}, "post")
         payload = result.get("json") if isinstance(result, dict) else None
         uid = payload.get("uid") if isinstance(payload, dict) else None
         if uid:
             await self.http_send(f"/ble/off?type={ptype}&uid={uid}", {}, "post")
+            defaults = self._PROBE_INSTALL_DEFAULTS.get(ptype.lower())
+            if defaults is not None:
+                body = dict(defaults)
+                body["type"] = ptype
+                body["uid"] = uid
+                await self.http_send("/probe/config", [body], "put")
+                await self.fetch_config("/probe/config")
         return result
 
     async def delete_probe(self, ptype: str, uid: str) -> HttpResult | None:
-        """Remove a probe from the hub (``DELETE /probe?type&uid``)."""
-        return await self.http_send(f"/probe?type={ptype}&uid={uid}", None, "delete")
+        """Remove a probe from the hub (``DELETE /probe?type&uid``).
+
+        For a temperature probe, its calibration-offset source is dropped
+        immediately rather than waiting for the next refresh's reconciliation
+        (gated on the dashboard's probes list, which can lag behind the
+        removal by a cycle or two) — otherwise it keeps getting polled (and
+        erroring) for a while after the probe is already gone.
+        """
+        result = await self.http_send(f"/probe?type={ptype}&uid={uid}", None, "delete")
+        if ptype.lower() == "temperature":
+            name = self._offset_source_name(uid)
+            sources = cast(list[SourceEntry], self.data.get("sources", []))
+            if any(s.get("name") == name for s in sources):
+                self.remove_source(name)
+        return result
 
     # -- Per-probe buzzer / notify (config, readable via /probe/config) ----
     # Where each probe type's primary buzzer / notify lives:
@@ -434,6 +500,30 @@ class ReefControlAPI(ReefBeatAPI):
     async def setup_finish(self) -> HttpResult | None:
         """Leave setup mode via ``POST /setup-finish`` (device switches to auto)."""
         return await self.http_send("/setup-finish", {}, "post")
+
+    # ------------------------------------------------------------------
+    # RSPower center pairing
+    # ------------------------------------------------------------------
+    #
+    # The paired power center shows up in this hub's own /dashboard as
+    # `connected_device` (hwid/type/state) — and, once paired, the link is
+    # visible from the power center's side too, as ITS /dashboard
+    # `connected_device` (hwid/type/status). There is no separate "pair"
+    # call on the power center's side: pairing is only ever initiated here.
+
+    async def power_discover(self, pair: bool = False) -> HttpResult | None:
+        """Scan for (``pair=False``) or pair with (``pair=True``) a nearby
+        RSPower center (``POST /power/discover``).
+
+        The app always does a scan first to show the device before
+        confirming, but a scan on its own commits nothing — only
+        ``pair=True`` actually links the two devices.
+        """
+        return await self.http_send("/power/discover", {"pair": pair}, "post")
+
+    async def power_unpair(self) -> HttpResult | None:
+        """Unlink the paired RSPower center (``POST /power/unpair``)."""
+        return await self.http_send("/power/unpair", {}, "post")
 
     # ------------------------------------------------------------------
     # Per-port ATO helpers

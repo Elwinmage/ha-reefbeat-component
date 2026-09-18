@@ -269,12 +269,6 @@
       "port_delete": {
         "name": "Poort {port} verwijderen"
       },
-      "port_install_ato": {
-        "name": "Poort {port} als ATO installeren"
-      },
-      "port_install_other": {
-        "name": "Poort {port} als apparaat installeren"
-      },
       "preview_save": {
         "name": "Voorvertoning opslaan"
       },
@@ -370,6 +364,15 @@
       },
       "remove_temperature": {
         "name": "Temperatuursonde verwijderen"
+      },
+      "pair_power": {
+        "name": "Power Center koppelen"
+      },
+      "unpair_power": {
+        "name": "Power Center ontkoppelen"
+      },
+      "unpair_control": {
+        "name": "Besturingshub ontkoppelen"
       }
     },
     "light": {
@@ -558,15 +561,6 @@
       },
       "model": {
         "name": "Model"
-      },
-      "port_mode": {
-        "name": "Poort {port} modus",
-        "state": {
-          "off": "Uit",
-          "on": "Aan",
-          "schedule": "Schema",
-          "sensor": "Sensor"
-        }
       },
       "position": {
         "name": "Positie",
@@ -1352,6 +1346,9 @@
           "unknown": "Onbekend",
           "maintenance": "Onderhoud"
         }
+      },
+      "probe_uid": {
+        "name": "UID van {probe}"
       }
     },
     "switch": {

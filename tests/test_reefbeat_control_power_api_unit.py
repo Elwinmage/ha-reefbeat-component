@@ -105,8 +105,35 @@ async def test_install_probe_success_stops_ble() -> None:
     api = _control_api()
     api.http_send = AsyncMock(return_value={"json": {"uid": "0xNEW", "success": True}})
     await api.install_probe("ph")
+    assert api.http_send.await_count == 3
+    api.http_send.assert_any_call("/ble/off?type=ph&uid=0xNEW", {}, "post")
+    api.http_send.assert_awaited_with(
+        "/probe/config",
+        [
+            {
+                "name": "pH",
+                "buzzer": False,
+                "notify": True,
+                "ranges": [7.6, 7.9, 8.4, 8.6],
+                "temp": {"ranges": [21, 23, 26, 28], "notify": True},
+                "type": "ph",
+                "uid": "0xNEW",
+            }
+        ],
+        "put",
+    )
+
+
+@pytest.mark.asyncio
+async def test_install_probe_leak_needs_no_config_seed() -> None:
+    """A leak probe's /probe/config entry is just {name, type, uid} — writing
+    to it 503s, so install_probe must not attempt a PUT for it.
+    """
+    api = _control_api()
+    api.http_send = AsyncMock(return_value={"json": {"uid": "0xLEAK", "success": True}})
+    await api.install_probe("leak")
     assert api.http_send.await_count == 2
-    api.http_send.assert_awaited_with("/ble/off?type=ph&uid=0xNEW", {}, "post")
+    api.http_send.assert_awaited_with("/ble/off?type=leak&uid=0xLEAK", {}, "post")
 
 
 @pytest.mark.asyncio
@@ -122,6 +149,44 @@ async def test_delete_probe() -> None:
     api = _control_api()
     await api.delete_probe("ph", "0xP")
     api.http_send.assert_awaited_with("/probe?type=ph&uid=0xP", None, "delete")
+
+
+@pytest.mark.asyncio
+async def test_delete_probe_drops_temperature_offset_source_immediately() -> None:
+    """delete_probe() must not wait for the next refresh's reconciliation
+    (gated on the dashboard's probes list, which can lag) to stop polling a
+    just-removed temperature probe's calibration-offset endpoint —
+    otherwise it keeps getting requested (and erroring) for a while.
+    """
+    api = _control_api(
+        extra_sources=[
+            {
+                "name": "/probe/offset?type=temperature&uid=0xT",
+                "type": "config",
+                "data": {"offset": 0.2},
+            }
+        ]
+    )
+    await api.delete_probe("temperature", "0xT")
+    assert "/probe/offset?type=temperature&uid=0xT" not in _source_names(api)
+
+
+@pytest.mark.asyncio
+async def test_delete_probe_non_temperature_leaves_other_sources_alone() -> None:
+    """A non-temperature probe has no offset source to clean up; deleting one
+    must not touch an unrelated temperature probe's offset source.
+    """
+    api = _control_api(
+        extra_sources=[
+            {
+                "name": "/probe/offset?type=temperature&uid=0xT",
+                "type": "config",
+                "data": {"offset": 0.2},
+            }
+        ]
+    )
+    await api.delete_probe("ph", "0xP")
+    assert "/probe/offset?type=temperature&uid=0xT" in _source_names(api)
 
 
 def test_probe_config_path_variants() -> None:
@@ -383,3 +448,84 @@ def test_power_temperature_offset_survives_probe_swap() -> None:
     )
     new_source["data"] = {"offset": -0.6}
     assert api.temperature_offset() == -0.6
+
+
+@pytest.mark.asyncio
+async def test_install_probe_seeds_defaults_for_every_configurable_type() -> None:
+    """Each configurable probe type gets its own default body shape — ec/ph
+    carry a temp-compensation sub-threshold, ato has no top-level ranges
+    (it measures water level, not a numeric value), orp/temperature are
+    flat. Locks in the exact defaults captured from a real hub's install
+    traffic (see ``_PROBE_INSTALL_DEFAULTS``).
+    """
+    api = _control_api()
+    api.http_send = AsyncMock(return_value={"json": {"uid": "0xNEW", "success": True}})
+
+    await api.install_probe("ec")
+    api.http_send.assert_awaited_with(
+        "/probe/config",
+        [
+            {
+                "name": "EC",
+                "buzzer": True,
+                "notify": True,
+                "unit": "ec",
+                "ranges": [46.2, 49, 54.4, 59.7],
+                "temp": {"ranges": [21, 23, 26, 28], "notify": True},
+                "type": "ec",
+                "uid": "0xNEW",
+            }
+        ],
+        "put",
+    )
+
+    api.http_send = AsyncMock(return_value={"json": {"uid": "0xNEW", "success": True}})
+    await api.install_probe("orp")
+    api.http_send.assert_awaited_with(
+        "/probe/config",
+        [
+            {
+                "name": "ORP",
+                "buzzer": False,
+                "notify": True,
+                "ranges": [100, 200, 400, 480],
+                "type": "orp",
+                "uid": "0xNEW",
+            }
+        ],
+        "put",
+    )
+
+    api.http_send = AsyncMock(return_value={"json": {"uid": "0xNEW", "success": True}})
+    await api.install_probe("temperature")
+    api.http_send.assert_awaited_with(
+        "/probe/config",
+        [
+            {
+                "name": "Temperature",
+                "buzzer": True,
+                "notify": True,
+                "ranges": [21, 23, 26, 28],
+                "type": "temperature",
+                "uid": "0xNEW",
+            }
+        ],
+        "put",
+    )
+
+    api.http_send = AsyncMock(return_value={"json": {"uid": "0xNEW", "success": True}})
+    await api.install_probe("ato")
+    api.http_send.assert_awaited_with(
+        "/probe/config",
+        [
+            {
+                "name": "ATO",
+                "buzzer": False,
+                "notify": True,
+                "temp": {"ranges": [21, 23, 26, 28], "notify": True},
+                "type": "ato",
+                "uid": "0xNEW",
+            }
+        ],
+        "put",
+    )

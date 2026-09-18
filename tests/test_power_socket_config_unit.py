@@ -94,6 +94,13 @@ async def test_setup_finish_posts_empty_body() -> None:
     api.http_send.assert_awaited_once_with("/setup-finish", {}, "post")
 
 
+@pytest.mark.asyncio
+async def test_unpair_control_deletes() -> None:
+    api = _make_api()
+    await api.unpair_control()
+    api.http_send.assert_awaited_once_with("/paired-device", None, "delete")
+
+
 # ===========================================================================
 # ReefPowerCoordinator delegating methods
 # ===========================================================================
@@ -113,6 +120,7 @@ def _make_coordinator() -> Any:
         set_socket_mode=AsyncMock(),
         set_socket_schedule=AsyncMock(),
         setup_finish=AsyncMock(),
+        unpair_control=AsyncMock(),
     )
     coord.async_request_refresh = AsyncMock()  # type: ignore[method-assign]
     return coord
@@ -132,6 +140,14 @@ async def test_coordinator_setup_finish_delegates_and_refreshes() -> None:
     coord = _make_coordinator()
     await coord.setup_finish()
     coord.my_api.setup_finish.assert_awaited_once()
+    coord.async_request_refresh.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_coordinator_unpair_control_delegates_and_refreshes() -> None:
+    coord = _make_coordinator()
+    await coord.unpair_control()
+    coord.my_api.unpair_control.assert_awaited_once()
     coord.async_request_refresh.assert_awaited_once()
 
 

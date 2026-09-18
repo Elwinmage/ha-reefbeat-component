@@ -857,9 +857,11 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         if not probes:
             return self.async_abort(reason="no_probes")
 
-        # value "type:uid" → label "name (type)"
+        # value "type:uid" → label "name (type- uid)" — the uid disambiguates
+        # two probes of the same type (e.g. two pH probes).
         options = {
-            f"{p['type']}:{p['uid']}": f"{p['name']} ({p['type']})" for p in probes
+            f"{p['type']}:{p['uid']}": f"{p['name']} ({p['type']}- {p['uid']})"
+            for p in probes
         }
 
         if user_input is not None:
@@ -919,8 +921,11 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         if not probes:
             return self.async_abort(reason="no_probes")
 
+        # value "type:uid" → label "name (type- uid)" — the uid disambiguates
+        # two probes of the same type (e.g. two pH probes).
         options = {
-            f"{p['type']}:{p['uid']}": f"{p['name']} ({p['type']})" for p in probes
+            f"{p['type']}:{p['uid']}": f"{p['name']} ({p['type']}- {p['uid']})"
+            for p in probes
         }
 
         if user_input is not None and coordinator is not None:

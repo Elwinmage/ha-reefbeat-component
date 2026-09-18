@@ -269,12 +269,6 @@
       "port_delete": {
         "name": "Port {port} deinstallieren"
       },
-      "port_install_ato": {
-        "name": "Port {port} als ATO installieren"
-      },
-      "port_install_other": {
-        "name": "Port {port} als Gerät installieren"
-      },
       "preview_save": {
         "name": "Vorschau speichern"
       },
@@ -370,6 +364,15 @@
       },
       "remove_temperature": {
         "name": "Temperatursonde entfernen"
+      },
+      "pair_power": {
+        "name": "Power Center koppeln"
+      },
+      "unpair_power": {
+        "name": "Power Center entkoppeln"
+      },
+      "unpair_control": {
+        "name": "Steuerungs-Hub entkoppeln"
       }
     },
     "light": {
@@ -558,15 +561,6 @@
       },
       "model": {
         "name": "Modell"
-      },
-      "port_mode": {
-        "name": "Port {port} Modus",
-        "state": {
-          "off": "Aus",
-          "on": "Ein",
-          "schedule": "Zeitplan",
-          "sensor": "Sensor"
-        }
       },
       "position": {
         "name": "Position",
@@ -1344,6 +1338,9 @@
           "unknown": "Unbekannt",
           "maintenance": "Wartung"
         }
+      },
+      "probe_uid": {
+        "name": "UID von {probe}"
       }
     },
     "switch": {

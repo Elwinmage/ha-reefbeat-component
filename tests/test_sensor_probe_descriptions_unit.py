@@ -176,6 +176,7 @@ def test_build_probe_descriptions_leak() -> None:
     assert keys == {
         "probe_leak_0x0leak_status",
         "probe_leak_0x0leak_name",
+        "probe_leak_0x0leak_uid",
         "probe_leak_0x0leak_last_installation",
     }
 

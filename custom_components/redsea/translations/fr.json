@@ -268,12 +268,6 @@
       "port_delete": {
         "name": "Désinstaller le port {port}"
       },
-      "port_install_ato": {
-        "name": "Installer le port {port} comme ATO"
-      },
-      "port_install_other": {
-        "name": "Installer le port {port} comme appareil"
-      },
       "preview_save": {
         "name": "Sauvegarder la prévisualisation"
       },
@@ -369,6 +363,15 @@
       },
       "remove_temperature": {
         "name": "Supprimer la sonde de température"
+      },
+      "pair_power": {
+        "name": "Apparier le Power Center"
+      },
+      "unpair_power": {
+        "name": "Désapparier le Power Center"
+      },
+      "unpair_control": {
+        "name": "Désapparier le hub de contrôle"
       }
     },
     "light": {
@@ -557,15 +560,6 @@
       },
       "model": {
         "name": "Modèle"
-      },
-      "port_mode": {
-        "name": "Port {port} mode",
-        "state": {
-          "off": "Arrêt",
-          "on": "Marche",
-          "schedule": "Programmation",
-          "sensor": "Sonde"
-        }
       },
       "position": {
         "name": "Position",
@@ -1344,6 +1338,9 @@
           "unknown": "Inconnue",
           "maintenance": "Maintenance"
         }
+      },
+      "probe_uid": {
+        "name": "UID de {probe}"
       }
     },
     "switch": {

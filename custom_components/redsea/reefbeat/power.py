@@ -266,3 +266,11 @@ class ReefPowerAPI(ReefBeatAPI):
     async def setup_finish(self) -> HttpResult | None:
         """Leave setup mode via ``POST /setup-finish`` (device switches to auto)."""
         return await self.http_send("/setup-finish", {}, "post")
+
+    async def unpair_control(self) -> HttpResult | None:
+        """Unlink the paired RSControl hub (``DELETE /paired-device``).
+
+        Pairing itself is only ever initiated from the RSControl side
+        (``POST /power/discover``), so there is no matching "pair" call here.
+        """
+        return await self.http_send("/paired-device", None, "delete")
