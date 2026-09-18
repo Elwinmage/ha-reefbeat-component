@@ -302,9 +302,6 @@
       "set_supplement_name": {
         "name": "Set new supplement name"
       },
-      "setup_finish": {
-        "name": "Finish setup"
-      },
       "start_calibration": {
         "name": "Start  Calibration"
       },
@@ -533,6 +530,18 @@
       },
       "temperature_offset": {
         "name": "Temperature offset"
+      },
+      "temperature_desired_range_low": {
+        "name": "Desired temperature range (low)"
+      },
+      "temperature_desired_range_high": {
+        "name": "Desired temperature range (high)"
+      },
+      "temperature_acceptable_range_low": {
+        "name": "Acceptable temperature range (low)"
+      },
+      "temperature_acceptable_range_high": {
+        "name": "Acceptable temperature range (high)"
       }
     },
     "select": {
@@ -589,78 +598,6 @@
         "name": "Supplements",
         "state": {
           "other": "Other"
-        }
-      },
-      "socket_0_mode": {
-        "name": "Socket {socket} mode",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_1_mode": {
-        "name": "Socket {socket} mode",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_2_mode": {
-        "name": "Socket {socket} mode",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_3_mode": {
-        "name": "Socket {socket} mode",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_4_mode": {
-        "name": "Socket {socket} mode",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_5_mode": {
-        "name": "Socket {socket} mode",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_6_mode": {
-        "name": "Socket {socket} mode",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_7_mode": {
-        "name": "Socket {socket} mode",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
         }
       },
       "temperature_fusion_method": {
@@ -1573,6 +1510,12 @@
       },
       "probe_notify": {
         "name": "{probe} notifications"
+      },
+      "temperature_notifications_enabled": {
+        "name": "Temperature notifications enabled"
+      },
+      "temperature_log_enabled": {
+        "name": "Temperature logging enabled"
       }
     },
     "text": {
@@ -1617,6 +1560,9 @@
       },
       "socket_7_name": {
         "name": "Socket {socket} name"
+      },
+      "temperature_probe_name": {
+        "name": "Temperature probe name"
       }
     },
     "time": {

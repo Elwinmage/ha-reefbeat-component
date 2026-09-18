@@ -418,6 +418,7 @@ The RSPOWER (Power Center) is a standalone device with its own IP address, expos
 
 - Per-socket state, mode, consumption and on/off toggle
 - 6 or 8 controllable sockets depending on the model (RSPOWER6 / RSPOWER8)
+- Optional local temperature probe: add/remove button, calibration offset, desired and acceptable temperature ranges, name, and notifications/logging toggles — all available once a probe is installed
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
 </p>
@@ -426,6 +427,13 @@ The RSPOWER (Power Center) is a standalone device with its own IP address, expos
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
 </p>
+
+### Socket mode and sensor-driven sockets
+A socket's mode (off / on / schedule / sensor) and its schedule/sensor-threshold settings (e.g. "turn this socket on when the local temperature drops below 24 °C") are not exposed as individual entities here — with up to 8 sockets and several probe types with their own ranges/units planned, that would mean dozens of rarely-used entities. Instead, configure them from [ha-reef-card](https://github.com/Elwinmage/ha-reef-card), which issues the same calls as the ReefBeat app in one action via the `redsea.request` service (see the integration's Services in Home Assistant's Developer Tools).
+
+Each socket still exposes a `sensor.socket_N_mode` entity for automations: its state is the socket's current mode, and its attributes carry the current `schedule` and (when in sensor mode) `sensor_config`, so an automation or a card can read the active configuration without an extra request.
+
+The device automatically leaves its initial "setup" state as soon as the first socket is configured, mirroring the ReefBeat app — no manual action needed.
 
 # ReefDose:
 - Edit daily dose

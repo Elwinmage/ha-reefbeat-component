@@ -11,13 +11,16 @@ buzzer/notify/enable path selection.
 from __future__ import annotations
 
 from typing import Any
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, call
 
 import pytest
 
 from custom_components.redsea.reefbeat.api import ReefBeatAPI
 from custom_components.redsea.reefbeat.control import ReefControlAPI
-from custom_components.redsea.reefbeat.power import ReefPowerAPI
+from custom_components.redsea.reefbeat.power import (
+    _TEMPERATURE_CONFIG_DEFAULTS,
+    ReefPowerAPI,
+)
 
 
 def _control_api(
@@ -214,7 +217,7 @@ async def test_control_fetch_data_reconciles(monkeypatch: pytest.MonkeyPatch) ->
 def test_power_temperature_offset_reads_source() -> None:
     api = _power_api(temperature=25.0)
     api.data["sources"].append(
-        {"name": "/temperature/config", "type": "config", "data": {"offset": -0.2}}
+        {"name": "/temperature/config", "type": "data", "data": {"offset": -0.2}}
     )
     assert api.temperature_offset() == -0.2
 
@@ -232,31 +235,109 @@ async def test_power_set_reset_offset() -> None:
 async def test_power_install_temperature_success_and_remove() -> None:
     api = _power_api()
     api.http_send = AsyncMock(return_value={"json": {"uid": "0xNEW"}})
+    api.fetch_config = AsyncMock()  # avoid a real GET for the polled sources
     await api.install_temperature()
-    assert api.http_send.await_count == 2
-    api.http_send.assert_awaited_with("/ble/off", {"type": "temperature"}, "post")
+
+    # 3 calls: sensor/install, ble/off, then the temperature/config seed —
+    # probe-info is polled via fetch_config, not http_send, so it does not
+    # add to this count.
+    assert api.http_send.await_count == 3
+    api.http_send.assert_any_call("/ble/off", {"type": "temperature"}, "post")
+    api.http_send.assert_any_call(
+        "/temperature/config", dict(_TEMPERATURE_CONFIG_DEFAULTS), "put"
+    )
+    # Polled once for the one-shot install info, once more each to read back
+    # the values just seeded into /temperature/config and the (still empty)
+    # /temperature/subscriptions — the dashboard is stale at this point in
+    # the flow (not yet re-fetched), so reconciliation alone would not have
+    # registered them in time for this refresh.
+    assert api.fetch_config.await_args_list == [
+        call("/temperature-probe-info"),
+        call("/temperature/config"),
+        call("/temperature/subscriptions"),
+    ]
+    # The one-shot info source used to poll it is not left registered, but
+    # both temperature sources now are (as "data" sources), ready to read.
+    assert "/temperature-probe-info" not in _source_names(api)
+    for name in ("/temperature/config", "/temperature/subscriptions"):
+        source = next(s for s in api.data["sources"] if s["name"] == name)
+        assert source["type"] == "data"
+
+    # A second install (e.g. after a swap) with the sources already
+    # registered (a prior dashboard refresh had already reconciled them in)
+    # must not add them twice.
+    api.http_send = AsyncMock(return_value={"json": {"uid": "0xNEW2"}})
+    api.fetch_config = AsyncMock()
+    await api.install_temperature()
+    for name in ("/temperature/config", "/temperature/subscriptions"):
+        assert sum(1 for s in api.data["sources"] if s["name"] == name) == 1
 
     api.http_send = AsyncMock(return_value={"json": {}})
-    await api.install_temperature()  # no uid -> single call
+    api.fetch_config = AsyncMock()
+    await api.install_temperature()  # no uid -> single call, nothing seeded
     assert api.http_send.await_count == 1
+    api.fetch_config.assert_not_awaited()
 
     await api.remove_temperature()
     api.http_send.assert_awaited_with("/sensor", None, "delete")
 
 
-def test_power_reconcile_temperature_source_add_and_remove() -> None:
-    # Probe present but source missing -> added.
+@pytest.mark.asyncio
+async def test_power_remove_temperature_drops_sources_immediately() -> None:
+    """remove_temperature() must not wait for the next refresh's
+    reconciliation (gated on /dashboard.temperature, which can lag) to stop
+    polling /temperature/config and /temperature/subscriptions — otherwise
+    they keep getting requested (and erroring, once the probe is gone) for
+    a while after the removal.
+    """
     api = _power_api(temperature=25.0)
-    api._reconcile_temperature_config_source()
-    assert "/temperature/config" in _source_names(api)
-
-    # Probe absent but source present -> removed.
-    api2 = _power_api(temperature=None)
-    api2.data["sources"].append(
-        {"name": "/temperature/config", "type": "config", "data": ""}
+    api.data["sources"].extend(
+        [
+            {"name": "/temperature/config", "type": "data", "data": {"offset": 0}},
+            {"name": "/temperature/subscriptions", "type": "data", "data": {}},
+        ]
     )
-    api2._reconcile_temperature_config_source()
-    assert "/temperature/config" not in _source_names(api2)
+    api.http_send = AsyncMock(return_value={"json": {}})
+
+    await api.remove_temperature()
+
+    assert "/temperature/config" not in _source_names(api)
+    assert "/temperature/subscriptions" not in _source_names(api)
+
+
+@pytest.mark.asyncio
+async def test_power_remove_temperature_tolerates_already_absent_sources() -> None:
+    """No prior install (or already removed) -> nothing to drop, no crash."""
+    api = _power_api()
+    api.http_send = AsyncMock(return_value={"json": {}})
+    await api.remove_temperature()
+    assert "/temperature/config" not in _source_names(api)
+    assert "/temperature/subscriptions" not in _source_names(api)
+
+
+def test_power_reconcile_temperature_sources_add_and_remove() -> None:
+    # Probe present but sources missing -> both added as "data" sources
+    # (not "config"), so they refresh on every poll regardless of
+    # live_config_update.
+    api = _power_api(temperature=25.0)
+    api._reconcile_temperature_sources()
+    for name in ("/temperature/config", "/temperature/subscriptions"):
+        assert name in _source_names(api)
+        source = next(s for s in api.data["sources"] if s["name"] == name)
+        assert source["type"] == "data"
+
+    # Probe absent but sources present -> both removed (no probe -> the
+    # endpoints 404, so they must not be registered).
+    api2 = _power_api(temperature=None)
+    api2.data["sources"].extend(
+        [
+            {"name": "/temperature/config", "type": "data", "data": ""},
+            {"name": "/temperature/subscriptions", "type": "data", "data": ""},
+        ]
+    )
+    api2._reconcile_temperature_sources()
+    for name in ("/temperature/config", "/temperature/subscriptions"):
+        assert name not in _source_names(api2)
 
 
 @pytest.mark.asyncio
@@ -266,6 +347,7 @@ async def test_power_fetch_data_reconciles(monkeypatch: pytest.MonkeyPatch) -> N
     result = await api.fetch_data()
     assert result == {"ok": 2}
     assert "/temperature/config" in _source_names(api)
+    assert "/temperature/subscriptions" in _source_names(api)
 
 
 def test_power_temperature_offset_survives_probe_swap() -> None:
@@ -277,7 +359,7 @@ def test_power_temperature_offset_survives_probe_swap() -> None:
     """
     api = _power_api(temperature=25.0)
     api.data["sources"].append(
-        {"name": "/temperature/config", "type": "config", "data": {"offset": 0.3}}
+        {"name": "/temperature/config", "type": "data", "data": {"offset": 0.3}}
     )
     assert api.temperature_offset() == 0.3
 
@@ -288,14 +370,14 @@ def test_power_temperature_offset_survives_probe_swap() -> None:
         s for s in api.data["sources"] if s["name"] != "/temperature/config"
     ]
     api.data["sources"][0]["data"]["temperature"] = None  # /dashboard entry
-    api._reconcile_temperature_config_source()
+    api._reconcile_temperature_sources()
     assert api.temperature_offset() is None
 
     # A different probe is paired in its place: reconciliation re-adds the
     # source and the very next read must return its (different) fresh value,
     # not the stale None from the moment before.
     api.data["sources"][0]["data"]["temperature"] = 24.0
-    api._reconcile_temperature_config_source()
+    api._reconcile_temperature_sources()
     new_source = next(
         s for s in api.data["sources"] if s["name"] == "/temperature/config"
     )

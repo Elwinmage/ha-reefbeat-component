@@ -60,6 +60,7 @@ from .const import (
     LED_BLUE_INTERNAL_NAME,
     LED_WHITE_INTERNAL_NAME,
     LINKED_LED,
+    PROBE_REFRESH_DELAY,
     REFRESH_DEVICE_DELAY,
     SCAN_INTERVAL,
     SCHEDULE_REFRESH_DELAY,
@@ -1423,9 +1424,6 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
 
     Owns a :class:`ReefPowerAPI` instance and exposes:
     - `socket_count`: number of AC sockets for this model (6 or 8)
-
-    Currently read-only; write endpoints (per-socket on/off/mode) are not yet
-    reverse-engineered.
     """
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -1449,22 +1447,44 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
             socket_count=self.socket_count,
         )
 
-    async def set_socket_mode(self, number: int, mode: str) -> None:
-        """Set a socket's mode (off/on/schedule) and refresh.
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch fresh data, then auto-leave setup mode if warranted.
 
-        The firmware requires the socket name alongside the mode, so we
-        always re-send the current name from the dashboard.
+        The hub starts in main mode "setup" with every socket individually
+        in socket-mode "setup" too. The ReefBeat app calls `/setup-finish`
+        (moving the hub to "auto") as soon as the first socket is configured
+        away from "setup". This runs after every refresh rather than being
+        tied to a particular write call, so it fires the same way whether a
+        socket was configured through this integration or through a raw
+        `redsea.request` service call (e.g. from a card) — neither of which
+        the device itself distinguishes.
         """
-        name = (
-            self.get_data(
-                "$.sources[?(@.name=='/dashboard')].data.sockets"
-                f"[?(@.number=={number})].name",
-                is_None_possible=True,
+        data = await super()._async_update_data()
+        try:
+            await self._maybe_finish_setup()
+        except Exception:  # never let this check break a refresh
+            _LOGGER.debug(
+                "%s: auto setup-finish check failed", self._title, exc_info=True
             )
-            or f"S{number + 1}"
+        return data
+
+    async def _maybe_finish_setup(self) -> None:
+        if (
+            self.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.mode", is_None_possible=True
+            )
+            != "setup"
+        ):
+            return
+        sockets = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.sockets", is_None_possible=True
         )
-        await cast(ReefPowerAPI, self.my_api).set_socket_mode(number, mode, name=name)
-        await self.async_request_refresh()
+        if not isinstance(sockets, list):
+            return
+        if any(isinstance(s, dict) and s.get("mode") != "setup" for s in sockets):
+            # Call the API directly (not the setup_finish() wrapper below,
+            # which also requests a refresh) — we are already inside one.
+            await cast(ReefPowerAPI, self.my_api).setup_finish()
 
     async def delete_socket(self, number: int) -> None:
         """Uninstall a socket, clearing any sensor binding it had.
@@ -1494,7 +1514,7 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
             f"[?(@.number=={number})].user_config_mode",
             is_None_possible=True,
         )
-        if mode not in ("off", "on", "schedule"):
+        if mode not in ("off", "on", "schedule", "sensor"):
             mode = "off"
         await cast(ReefPowerAPI, self.my_api).set_socket_mode(number, mode, name=name)
         await self.async_request_refresh()
@@ -1541,14 +1561,23 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
         await self.async_request_refresh(config=True)
 
     async def async_install_temperature(self) -> None:
-        """Install the local temperature probe and refresh."""
+        """Install the local temperature probe and refresh.
+
+        Pairing over BLE takes a moment before the device reports the new
+        probe, so wait a bit longer before reading it back (see
+        PROBE_REFRESH_DELAY).
+        """
         await cast(ReefPowerAPI, self.my_api).install_temperature()
-        await self.async_request_refresh()
+        await self.async_request_refresh(wait=PROBE_REFRESH_DELAY)
 
     async def async_remove_temperature(self) -> None:
-        """Remove the local temperature probe and refresh."""
+        """Remove the local temperature probe and refresh.
+
+        Same settle-time rationale as install: give the device a moment
+        before reading /dashboard back (see PROBE_REFRESH_DELAY).
+        """
         await cast(ReefPowerAPI, self.my_api).remove_temperature()
-        await self.async_request_refresh()
+        await self.async_request_refresh(wait=PROBE_REFRESH_DELAY)
 
 
 # REEFCONTROL

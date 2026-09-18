@@ -396,6 +396,63 @@ async def test__http_get_status_ge_400_returns_false() -> None:
     assert ok is False
 
 
+async def test__http_get_definitive_4xx_returns_none() -> None:
+    """A 400 (unlike a 5xx) is definitive — retrying it can never change the
+    outcome, e.g. RSPower's /temperature/subscriptions once the local probe
+    is gone. _http_get signals this with None rather than False.
+    """
+    session = _FakeSession(
+        responses={"get": [_FakeResponse(status=400, reason="bad request")]}
+    )
+    api = _make_api(session)
+    ReefBeatAPI._http_get = _ORIG_HTTP_GET  # type: ignore[method-assign]
+
+    class _Match:
+        def __init__(self, value: dict[str, Any]):
+            self.value = value
+            self.context = None
+            self.path = "/"
+
+    m = _Match({"name": "/temperature/subscriptions", "data": None})
+    assert await api._http_get(cast(Any, session), m) is None
+
+
+async def test__call_url_does_not_retry_or_error_on_definitive_4xx(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = _FakeSession()
+    api = _make_api(session)
+
+    sleeps: list[float] = []
+
+    async def _fake_sleep(delay: float) -> None:
+        sleeps.append(delay)
+
+    monkeypatch.setattr(api_mod.asyncio, "sleep", _fake_sleep)
+
+    calls = 0
+
+    async def _http_get_400(*_a: Any, **_k: Any) -> None:
+        nonlocal calls
+        calls += 1
+
+    monkeypatch.setattr(api, "_http_get", _http_get_400)
+
+    class _Match:
+        def __init__(self, value: dict[str, Any]):
+            self.value = value
+            self.context = None
+            self.path = "/"
+
+    await api._call_url(
+        cast(Any, session), _Match({"name": "/temperature/subscriptions"})
+    )
+
+    assert calls == 1  # no retries
+    assert sleeps == []  # no retry delay either
+    assert api._in_error is False  # a probe-absent source is not a device error
+
+
 @pytest.mark.asyncio
 async def test_connect_is_noop_and_fetch_data_default_data_only_branch(
     monkeypatch: pytest.MonkeyPatch,

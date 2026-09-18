@@ -2033,14 +2033,21 @@ async def async_setup_entry(
                             p, is_None_possible=True
                         ),
                         # The socket's on/off programme travels with its mode,
-                        # the same way a dosing head carries its schedule. A
+                        # the same way a dosing head carries its schedule —
+                        # and, when the socket is in "sensor" mode, so does
+                        # its threshold rule (value/is_above/turn_on), keyed
+                        # by probe type since a different probe would carry a
+                        # different range/unit (see reefbeat/power.py). A
                         # card opening the editor then reads what it already
                         # has instead of waiting on a request of its own.
-                        with_attr_name="schedule",
-                        with_attr_value=(
-                            f"$.sources[?(@.name=='/socket/{socket_idx}"
-                            "/config/schedule')].data"
-                        ),
+                        attributes_fn=lambda d, i=socket_idx, sched=(f"$.sources[?(@.name=='/socket/{socket_idx}/config/schedule')].data"): {
+                            "schedule": d.get_data(sched),
+                            "sensor_config": d.get_data(
+                                "$.sources[?(@.name=='/temperature/subscriptions')]"
+                                f".data.sockets[?(@.number=={i})]",
+                                is_None_possible=True,
+                            ),
+                        },
                     ),
                     ReefBeatSensorEntityDescription(
                         key=f"socket_{socket_idx}_prev_mode",

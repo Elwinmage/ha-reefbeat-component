@@ -302,9 +302,6 @@
       "set_supplement_name": {
         "name": "Stel nieuwe supplementnaam in"
       },
-      "setup_finish": {
-        "name": "Installatie voltooien"
-      },
       "start_calibration": {
         "name": "Start kalibratie"
       },
@@ -533,6 +530,18 @@
       },
       "temperature_offset": {
         "name": "Temperatuuroffset"
+      },
+      "temperature_desired_range_low": {
+        "name": "Gewenst temperatuurbereik (laag)"
+      },
+      "temperature_desired_range_high": {
+        "name": "Gewenst temperatuurbereik (hoog)"
+      },
+      "temperature_acceptable_range_low": {
+        "name": "Acceptabel temperatuurbereik (laag)"
+      },
+      "temperature_acceptable_range_high": {
+        "name": "Acceptabel temperatuurbereik (hoog)"
       }
     },
     "select": {
@@ -589,78 +598,6 @@
         "name": "Supplementen",
         "state": {
           "other": "Overig"
-        }
-      },
-      "socket_0_mode": {
-        "name": "Stopcontact {socket} modus",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_1_mode": {
-        "name": "Stopcontact {socket} modus",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_2_mode": {
-        "name": "Stopcontact {socket} modus",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_3_mode": {
-        "name": "Stopcontact {socket} modus",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_4_mode": {
-        "name": "Stopcontact {socket} modus",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_5_mode": {
-        "name": "Stopcontact {socket} modus",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_6_mode": {
-        "name": "Stopcontact {socket} modus",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_7_mode": {
-        "name": "Stopcontact {socket} modus",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
         }
       },
       "temperature_fusion_method": {
@@ -1573,6 +1510,12 @@
       },
       "probe_notify": {
         "name": "{probe} meldingen"
+      },
+      "temperature_notifications_enabled": {
+        "name": "Temperatuurmeldingen ingeschakeld"
+      },
+      "temperature_log_enabled": {
+        "name": "Temperatuurlogboek ingeschakeld"
       }
     },
     "text": {
@@ -1617,6 +1560,9 @@
       },
       "socket_7_name": {
         "name": "Stopcontact {socket} naam"
+      },
+      "temperature_probe_name": {
+        "name": "Naam van de temperatuursonde"
       }
     },
     "time": {

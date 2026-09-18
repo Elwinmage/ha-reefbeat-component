@@ -34,6 +34,20 @@ from .api import HttpResult, ReefBeatAPI, SourceEntry
 
 _LOGGER = logging.getLogger(__name__)
 
+# Defaults pushed to a freshly installed local temperature probe via
+# `PUT /temperature/config`. Without this push the probe stays in "config"
+# limbo (mirrors sockets needing `/setup-finish`) and never reports data —
+# these are exactly the values the ReefBeat app itself seeds on first pairing.
+_TEMPERATURE_CONFIG_DEFAULTS: dict[str, Any] = {
+    "desired_range_low": 25,
+    "desired_range_high": 26,
+    "acceptable_range_low": 24,
+    "acceptable_range_high": 28,
+    "name": "Temp",
+    "notifications_enabled": True,
+    "log_enabled": True,
+}
+
 
 # =============================================================================
 # Classes
@@ -75,13 +89,20 @@ class ReefPowerAPI(ReefBeatAPI):
             )
         self.data["sources"] = sources
 
-    # -- Local temperature probe (offset) ----------------------------------
-    # ``/temperature/config`` carries the local probe's calibration offset and
-    # ranges. It only answers when a probe is installed, so it is registered on
-    # demand (when ``/dashboard.temperature`` is present) rather than up front.
+    # -- Local temperature probe (offset, ranges, name, notify/log) --------
+    # ``/temperature/config`` and ``/temperature/subscriptions`` both answer
+    # GET only once a probe is installed; with none present they 404. So
+    # they are registered on demand (when ``/dashboard.temperature`` is
+    # present) rather than up front — avoiding a wasted GET (404 + retry)
+    # when there is nothing to read. They are registered as **data** sources
+    # (not config): that way they keep refreshing on every regular poll
+    # cycle, the same as /dashboard, rather than only when config sources
+    # are polled (which may be far less frequent, or never, if
+    # `live_config_update` is off).
     _TEMP_CONFIG_SOURCE = "/temperature/config"
+    _TEMP_SUBSCRIPTIONS_SOURCE = "/temperature/subscriptions"
 
-    def _reconcile_temperature_config_source(self) -> None:
+    def _reconcile_temperature_sources(self) -> None:
         present = (
             self.get_data(
                 "$.sources[?(@.name=='/dashboard')].data.temperature",
@@ -89,29 +110,32 @@ class ReefPowerAPI(ReefBeatAPI):
             )
             is not None
         )
-        sources = cast(list[SourceEntry], self.data.get("sources", []))
-        exists = any(s.get("name") == self._TEMP_CONFIG_SOURCE for s in sources)
-        if present and not exists:
-            self.add_source(self._TEMP_CONFIG_SOURCE, "config", "")
-        elif not present and exists:
-            self.remove_source(self._TEMP_CONFIG_SOURCE)
-        # No cache invalidation needed: /temperature/config is read
-        # non-positionally (volatile path) and fixed sources keep their slots.
+        for name in (self._TEMP_CONFIG_SOURCE, self._TEMP_SUBSCRIPTIONS_SOURCE):
+            sources = cast(list[SourceEntry], self.data.get("sources", []))
+            exists = any(s.get("name") == name for s in sources)
+            if present and not exists:
+                self.add_source(name, "data", "")
+            elif not present and exists:
+                self.remove_source(name)
+        # No cache invalidation needed: both are read non-positionally
+        # (volatile paths) and fixed sources keep their slots.
 
     async def fetch_data(self) -> dict[str, Any]:
-        """Fetch, registering the local-temp config source on demand.
+        """Fetch, registering the local-temp sources on demand.
 
         Refresh the dashboard first so the presence of a local temperature probe
-        is current, then reconcile the ``/temperature/config`` source before the
-        full fetch — so a just-removed probe's endpoint is dropped before it
-        would be polled (and 404 + retry).
+        is current, then reconcile the ``/temperature/config`` and
+        ``/temperature/subscriptions`` sources before the full fetch — so a
+        just-removed probe's endpoints are dropped before they would be polled
+        (and 404 + retry), and a newly-detected probe's sources are picked up
+        by this same full fetch.
         """
         if self.quick_refresh is None and self._live_config_update:
             self.quick_refresh = "/dashboard"
             await super().fetch_data()
-            self._reconcile_temperature_config_source()
+            self._reconcile_temperature_sources()
         data = await super().fetch_data()
-        self._reconcile_temperature_config_source()
+        self._reconcile_temperature_sources()
         return data
 
     def temperature_offset(self) -> float | None:
@@ -133,7 +157,11 @@ class ReefPowerAPI(ReefBeatAPI):
         """Scan for and install the local temperature probe.
 
         The type is fixed (a strip takes only a temperature probe), so no type
-        selection is needed. BLE advertising of the new probe is stopped after.
+        selection is needed. BLE advertising of the new probe is stopped after,
+        then its info is polled once (mirrors the app; the response carries no
+        state we track) and its configuration is seeded with defaults —
+        otherwise the probe is left in "config" limbo and never reports data,
+        the same way a socket needs `/setup-finish` to leave setup mode.
         """
         result = await self.http_send(
             "/sensor/install", {"type": "temperature"}, "post"
@@ -142,11 +170,44 @@ class ReefPowerAPI(ReefBeatAPI):
         uid = payload.get("uid") if isinstance(payload, dict) else None
         if uid:
             await self.http_send("/ble/off", {"type": "temperature"}, "post")
+            self.add_source("/temperature-probe-info", "config", "")
+            await self.fetch_config("/temperature-probe-info")
+            self.remove_source("/temperature-probe-info")
+            await self.http_send(
+                "/temperature/config", dict(_TEMPERATURE_CONFIG_DEFAULTS), "put"
+            )
+            # _reconcile_temperature_sources() gates on /dashboard's cached
+            # temperature reading, which is still stale here (the dashboard
+            # has not been re-fetched since the probe was installed) —
+            # register both sources directly and fetch them now (fetch_config()
+            # matches by name, so the "data" type does not stop this targeted
+            # call), so the range/name/notification/log entities — and any
+            # socket already subscribed to this probe — read back confirmed
+            # values immediately, instead of showing nothing until the next
+            # poll.
+            sources = cast(list[SourceEntry], self.data.get("sources", []))
+            existing_names = {s.get("name") for s in sources}
+            for name in (self._TEMP_CONFIG_SOURCE, self._TEMP_SUBSCRIPTIONS_SOURCE):
+                if name not in existing_names:
+                    self.add_source(name, "data", "")
+                await self.fetch_config(name)
         return result
 
     async def remove_temperature(self) -> HttpResult | None:
-        """Remove the local temperature probe (``DELETE /sensor``)."""
-        return await self.http_send("/sensor", None, "delete")
+        """Remove the local temperature probe (``DELETE /sensor``).
+
+        Drops ``/temperature/config`` and ``/temperature/subscriptions``
+        immediately rather than waiting for the next refresh's reconciliation
+        (gated on ``/dashboard.temperature``, which may lag behind the
+        removal by a cycle or two) — otherwise they keep getting polled and
+        erroring for a while after the probe is already gone.
+        """
+        result = await self.http_send("/sensor", None, "delete")
+        for name in (self._TEMP_CONFIG_SOURCE, self._TEMP_SUBSCRIPTIONS_SOURCE):
+            sources = cast(list[SourceEntry], self.data.get("sources", []))
+            if any(s.get("name") == name for s in sources):
+                self.remove_source(name)
+        return result
 
     async def set_socket_mode(
         self, number: int, mode: str, name: str | None = None

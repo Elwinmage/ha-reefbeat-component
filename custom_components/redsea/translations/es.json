@@ -302,9 +302,6 @@
       "set_supplement_name": {
         "name": "Establecer nuevo nombre"
       },
-      "setup_finish": {
-        "name": "Finalizar configuración"
-      },
       "start_calibration": {
         "name": "Iniciar calibración"
       },
@@ -533,6 +530,18 @@
       },
       "temperature_offset": {
         "name": "Offset de temperatura"
+      },
+      "temperature_desired_range_low": {
+        "name": "Rango de temperatura deseado (bajo)"
+      },
+      "temperature_desired_range_high": {
+        "name": "Rango de temperatura deseado (alto)"
+      },
+      "temperature_acceptable_range_low": {
+        "name": "Rango de temperatura aceptable (bajo)"
+      },
+      "temperature_acceptable_range_high": {
+        "name": "Rango de temperatura aceptable (alto)"
       }
     },
     "select": {
@@ -589,78 +598,6 @@
         "name": "Suplementos",
         "state": {
           "other": "Otro"
-        }
-      },
-      "socket_0_mode": {
-        "name": "Modo enchufe {socket}",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_1_mode": {
-        "name": "Modo enchufe {socket}",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_2_mode": {
-        "name": "Modo enchufe {socket}",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_3_mode": {
-        "name": "Modo enchufe {socket}",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_4_mode": {
-        "name": "Modo enchufe {socket}",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_5_mode": {
-        "name": "Modo enchufe {socket}",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_6_mode": {
-        "name": "Modo enchufe {socket}",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_7_mode": {
-        "name": "Modo enchufe {socket}",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
         }
       },
       "temperature_fusion_method": {
@@ -1565,6 +1502,12 @@
       },
       "probe_notify": {
         "name": "Notificaciones {probe}"
+      },
+      "temperature_notifications_enabled": {
+        "name": "Notificaciones de temperatura activadas"
+      },
+      "temperature_log_enabled": {
+        "name": "Registro de temperatura activado"
       }
     },
     "text": {
@@ -1609,6 +1552,9 @@
       },
       "socket_7_name": {
         "name": "Nombre enchufe {socket}"
+      },
+      "temperature_probe_name": {
+        "name": "Nombre de la sonda de temperatura"
       }
     },
     "time": {

@@ -244,10 +244,16 @@ class ReefBeatAPI:
             _LOGGER.debug("http_get failed: %s", err)
             return None
 
-    async def _http_get(self, session: aiohttp.ClientSession, source: Match) -> bool:
+    async def _http_get(
+        self, session: aiohttp.ClientSession, source: Match
+    ) -> bool | None:
         """HTTP GET one endpoint and store its response into self.data.
 
-        Returns True if request succeeded and response was parsed/accepted.
+        Returns True on success, False on a transient failure worth retrying
+        (network error, timeout, 5xx, or a stale 401), or None on a
+        definitive 4xx rejection (e.g. a conditionally-registered source —
+        RSPower's local-temperature endpoints — currently not applicable):
+        retrying the exact same request would never change that outcome.
         """
         endpoint = source.value.get("name")
         if not endpoint:
@@ -278,7 +284,11 @@ class ReefBeatAPI:
                             resp.reason,
                             source,
                         )
-                        return False
+                        return (
+                            None
+                            if 400 <= resp.status < 500 and resp.status != 401
+                            else False
+                        )
 
                     # Prefer JSON, but tolerate text
                     content_type = (resp.headers.get("Content-Type") or "").lower()
@@ -305,12 +315,17 @@ class ReefBeatAPI:
         """Fetch one source with retries.
 
         Marks the instance in error (`self._in_error=True`) if all retries fail.
+        A definitive 4xx (not 401) is never retried and never marks an error:
+        the exact same request would never succeed, so retrying it 5 times
+        (with a delay between each) only wastes time and floods the log —
+        this covers conditionally-registered sources whose current absence
+        is an expected state, not a device/network problem.
         """
         status_ok = False
         error_count = 0
         while status_ok is False and error_count < HTTP_MAX_RETRY:
             try:
-                status_ok = bool(await self._http_get(session, source))
+                result = await self._http_get(session, source)
             except Exception as e:
                 error_count += 1
                 _LOGGER.debug(
@@ -320,6 +335,11 @@ class ReefBeatAPI:
                     HTTP_MAX_RETRY,
                 )
                 _LOGGER.debug("Exception: %s", e, exc_info=True)
+                result = False
+
+            if result is None:
+                return
+            status_ok = result
 
             if not status_ok:
                 await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)

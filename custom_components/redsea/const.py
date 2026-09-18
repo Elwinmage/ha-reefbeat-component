@@ -97,6 +97,10 @@ SCHEDULE_REFRESH_DELAY: Final[int] = 3  # seconds
 # Switching a pump to (or from) sensor control makes it ramp to a new speed:
 # wait a bit longer before reading /dashboard back
 SENSOR_CONTROLLED_REFRESH_DELAY: Final[int] = 3
+# Pairing/unpairing a BLE probe (RSPower's local temperature probe) takes a
+# moment to settle before /dashboard reports it — same rationale as the
+# schedule/sensor-control delays above.
+PROBE_REFRESH_DELAY: Final[int] = 3
 DEFAULT_TIMEOUT: Final[int] = 20
 
 HTTP_MAX_RETRY: Final[int] = 5

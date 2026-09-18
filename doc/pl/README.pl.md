@@ -398,6 +398,7 @@ RSPOWER (Power Center) to samodzielne urządzenie z własnym adresem IP, widoczn
 
 - Stan, tryb, zużycie oraz włączanie/wyłączanie każdego gniazda
 - 6 lub 8 sterowalnych gniazd w zależności od modelu (RSPOWER6 / RSPOWER8)
+- Opcjonalna lokalna sonda temperatury: przycisk dodawania/usuwania, offset kalibracji, docelowy i akceptowalny zakres temperatury, nazwa oraz przełączniki powiadomień/rejestrowania — wszystko dostępne po zainstalowaniu sondy
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
 </p>
@@ -406,6 +407,13 @@ RSPOWER (Power Center) to samodzielne urządzenie z własnym adresem IP, widoczn
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
 </p>
+
+### Tryb gniazda i gniazda sterowane czujnikiem
+Tryb gniazda (off / on / schedule / sensor) oraz jego ustawienia harmonogramu/progu czujnika (np. „włącz to gniazdo, gdy lokalna temperatura spadnie poniżej 24 °C") nie są tu udostępniane jako osobne encje — przy maksymalnie 8 gniazdach i kilku planowanych typach sond, każdej z własnym zakresem/jednostką, byłyby to dziesiątki rzadko używanych encji. Skonfiguruj je zamiast tego z poziomu [ha-reef-card](https://github.com/Elwinmage/ha-reef-card), która wykonuje te same wywołania co aplikacja ReefBeat w jednej akcji za pomocą usługi `redsea.request` (zobacz Usługi integracji w Narzędziach deweloperskich Home Assistant).
+
+Każde gniazdo nadal udostępnia encję `sensor.socket_N_mode` dla automatyzacji: jej stan to bieżący tryb gniazda, a atrybuty zawierają bieżący `schedule` oraz, w trybie sensor, `sensor_config` — dzięki temu automatyzacja lub karta może odczytać aktywną konfigurację bez dodatkowego zapytania.
+
+Urządzenie automatycznie opuszcza początkowy stan „setup”, gdy tylko pierwsze gniazdo zostanie skonfigurowane, tak jak robi to aplikacja ReefBeat — bez żadnej ręcznej czynności.
 
 # ReefDose:
 - Edytuj dzienną dawkę

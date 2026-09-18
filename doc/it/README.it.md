@@ -402,6 +402,7 @@ L'RSPOWER (Power Center) è un apparecchio autonomo con un proprio indirizzo IP,
 
 - Stato, modalità, consumo e accensione/spegnimento per ogni presa
 - 6 o 8 prese controllabili a seconda del modello (RSPOWER6 / RSPOWER8)
+- Sonda di temperatura locale opzionale: pulsante di aggiunta/rimozione, offset di taratura, intervalli di temperatura desiderato e accettabile, nome e interruttori notifiche/registrazione — tutto disponibile una volta installata la sonda
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
 </p>
@@ -410,6 +411,13 @@ L'RSPOWER (Power Center) è un apparecchio autonomo con un proprio indirizzo IP,
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
 </p>
+
+### Modalità delle prese e prese pilotate da sensore
+La modalità di una presa (off / on / schedule / sensor) e le sue impostazioni di programmazione/soglia sensore (ad es. "accendi questa presa se la temperatura locale scende sotto 24 °C") non sono esposte qui come entità singole — con fino a 8 prese e diversi tipi di sonda previsti, ciascuno con il proprio intervallo/unità, sarebbero decine di entità usate di rado. Configuratele invece da [ha-reef-card](https://github.com/Elwinmage/ha-reef-card), che concatena le stesse chiamate dell'app ReefBeat in un'unica azione tramite il servizio `redsea.request` (vedi i Servizi dell'integrazione negli Strumenti per sviluppatori di Home Assistant).
+
+Ogni presa espone comunque un'entità `sensor.socket_N_mode` per le automazioni: il suo stato è la modalità corrente della presa, e i suoi attributi riportano il `schedule` attuale e, in modalità sensor, il `sensor_config` — così un'automazione o una card può leggere la configurazione attiva senza una richiesta aggiuntiva.
+
+L'apparecchio esce automaticamente dallo stato iniziale "setup" non appena viene configurata la prima presa, come fa l'app ReefBeat — nessuna azione manuale necessaria.
 
 # ReefDose:
 - Modificare la dose giornaliera

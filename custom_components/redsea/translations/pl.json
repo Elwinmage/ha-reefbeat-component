@@ -302,9 +302,6 @@
       "set_supplement_name": {
         "name": "Ustaw nową nazwę"
       },
-      "setup_finish": {
-        "name": "Zakończ konfigurację"
-      },
       "start_calibration": {
         "name": "Rozpocznij kalibrację"
       },
@@ -533,6 +530,18 @@
       },
       "temperature_offset": {
         "name": "Offset temperatury"
+      },
+      "temperature_desired_range_low": {
+        "name": "Docelowy zakres temperatury (dolny)"
+      },
+      "temperature_desired_range_high": {
+        "name": "Docelowy zakres temperatury (górny)"
+      },
+      "temperature_acceptable_range_low": {
+        "name": "Akceptowalny zakres temperatury (dolny)"
+      },
+      "temperature_acceptable_range_high": {
+        "name": "Akceptowalny zakres temperatury (górny)"
       }
     },
     "select": {
@@ -589,78 +598,6 @@
         "name": "Suplementy",
         "state": {
           "other": "Inne"
-        }
-      },
-      "socket_0_mode": {
-        "name": "Gniazdko {socket} tryb",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_1_mode": {
-        "name": "Gniazdko {socket} tryb",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_2_mode": {
-        "name": "Gniazdko {socket} tryb",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_3_mode": {
-        "name": "Gniazdko {socket} tryb",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_4_mode": {
-        "name": "Gniazdko {socket} tryb",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_5_mode": {
-        "name": "Gniazdko {socket} tryb",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_6_mode": {
-        "name": "Gniazdko {socket} tryb",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
-        }
-      },
-      "socket_7_mode": {
-        "name": "Gniazdko {socket} tryb",
-        "state": {
-          "off": "Off",
-          "on": "On",
-          "schedule": "Schedule",
-          "sensor": "Sensor"
         }
       },
       "temperature_fusion_method": {
@@ -1565,6 +1502,12 @@
       },
       "probe_notify": {
         "name": "Powiadomienia {probe}"
+      },
+      "temperature_notifications_enabled": {
+        "name": "Powiadomienia o temperaturze włączone"
+      },
+      "temperature_log_enabled": {
+        "name": "Rejestrowanie temperatury włączone"
       }
     },
     "text": {
@@ -1609,6 +1552,9 @@
       },
       "socket_7_name": {
         "name": "Gniazdko {socket} nazwa"
+      },
+      "temperature_probe_name": {
+        "name": "Nazwa sondy temperatury"
       }
     },
     "time": {

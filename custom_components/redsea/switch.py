@@ -617,6 +617,45 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
+        # Notifications / logging toggles for the local temperature probe,
+        # part of the same PUT /temperature/config payload as its name and
+        # range bounds (seeded True/True at install time). Always created;
+        # available only while a probe is installed (see
+        # ReefPowerTemperatureConfigSwitchEntity.available). Writes use the
+        # base class's generic push_values() path (method defaults to PUT),
+        # which resends the whole cached /temperature/config object.
+        entities.append(
+            ReefPowerTemperatureConfigSwitchEntity(
+                device,
+                ReefBeatSwitchEntityDescription(
+                    key="temperature_notifications_enabled",
+                    translation_key="temperature_notifications_enabled",
+                    value_name=(
+                        "$.sources[?(@.name=='/temperature/config')]"
+                        ".data.notifications_enabled"
+                    ),
+                    icon="mdi:bell-ring",
+                    icon_off="mdi:bell-off",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+        entities.append(
+            ReefPowerTemperatureConfigSwitchEntity(
+                device,
+                ReefBeatSwitchEntityDescription(
+                    key="temperature_log_enabled",
+                    translation_key="temperature_log_enabled",
+                    value_name=(
+                        "$.sources[?(@.name=='/temperature/config')].data.log_enabled"
+                    ),
+                    icon="mdi:database-clock",
+                    icon_off="mdi:database-off",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+
     elif isinstance(device, ReefControlCoordinator):
         # Per-port toggle switch — one per 12V DC port.
         # Endpoint: `POST /port/{n}/toggle`; `n` is the 0-based port index
@@ -1027,7 +1066,10 @@ class ReefBeatSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore
         super()._handle_coordinator_update()
 
     def _compute_is_on(self) -> bool:
-        raw = self._device.get_data(self._desc.value_name)
+        # A source can be legitimately absent (e.g. a conditionally-
+        # registered one like /temperature/config while no probe is
+        # installed) — read quietly rather than error-logging every refresh.
+        raw = self._device.get_data(self._desc.value_name, True)
 
         if self._desc.key == "device_state":
             return raw != "off"
@@ -1433,6 +1475,29 @@ class ReefPowerSocketSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type:
     @cached_property  # type: ignore[reportIncompatibleVariableOverride]
     def device_info(self) -> DeviceInfo:
         return self._device.device_info
+
+
+class ReefPowerTemperatureConfigSwitchEntity(ReefBeatSwitchEntity):
+    """A boolean field of the RSPower local temperature probe config.
+
+    Backs one flag of the ``PUT /temperature/config`` payload
+    (``notifications_enabled`` / ``log_enabled``) alongside the probe's name
+    and range bounds, all seeded with defaults at install time. Always
+    created; available only while a probe is installed — mirrors
+    ``ReefPowerTemperatureOffsetNumberEntity`` so it greys out/reappears
+    across a probe swap without a reload. The base class's generic
+    ``async_turn_on``/``async_turn_off`` already do the right thing here:
+    they mutate the cached field then call ``push_values()``, which resends
+    the whole cached ``/temperature/config`` object (method defaults to
+    PUT), since the firmware expects every field together.
+    """
+
+    @property
+    def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
+        return bool(
+            super().available
+            and cast(ReefPowerCoordinator, self._device).has_local_temperature()
+        )
 
 
 # REEFCONTROL — per-port toggle

@@ -398,6 +398,7 @@ Das RSPOWER (Power Center) ist ein eigenständiges Gerät mit eigener IP-Adresse
 
 - Zustand, Modus, Verbrauch und Ein/Aus-Umschaltung pro Steckdose
 - 6 oder 8 steuerbare Steckdosen je nach Modell (RSPOWER6 / RSPOWER8)
+- Optionale lokale Temperatursonde: Hinzufügen/Entfernen-Taste, Kalibrierungs-Offset, gewünschter und akzeptabler Temperaturbereich, Name sowie Benachrichtigungs-/Protokollierungsschalter — alles verfügbar, sobald eine Sonde installiert ist
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
 </p>
@@ -406,6 +407,13 @@ Das RSPOWER (Power Center) ist ein eigenständiges Gerät mit eigener IP-Adresse
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
 </p>
+
+### Steckdosenmodus und sensorgesteuerte Steckdosen
+Der Modus einer Steckdose (off / on / schedule / sensor) und ihre Zeitplan-/Sensor-Schwellenwerteinstellungen (z. B. „diese Steckdose einschalten, wenn die lokale Temperatur unter 24 °C fällt") werden hier nicht als einzelne Entitäten bereitgestellt — bei bis zu 8 Steckdosen und mehreren geplanten Sondentypen mit jeweils eigenem Bereich/eigener Einheit wären das Dutzende selten genutzter Entitäten. Konfigurieren Sie sie stattdessen über [ha-reef-card](https://github.com/Elwinmage/ha-reef-card), das dieselben Aufrufe wie die ReefBeat-App in einer einzigen Aktion über den Dienst `redsea.request` ausführt (siehe die Dienste der Integration in den Entwicklerwerkzeugen von Home Assistant).
+
+Jede Steckdose stellt weiterhin eine Entität `sensor.socket_N_mode` für Automatisierungen bereit: ihr Zustand ist der aktuelle Modus der Steckdose, und ihre Attribute tragen den aktuellen `schedule` sowie, im Sensor-Modus, die `sensor_config` — so kann eine Automatisierung oder eine Karte die aktive Konfiguration ohne zusätzliche Anfrage auslesen.
+
+Das Gerät verlässt seinen anfänglichen „setup“-Zustand automatisch, sobald die erste Steckdose konfiguriert wurde — genau wie die ReefBeat-App, ganz ohne manuellen Eingriff.
 
 # ReefDose:
 - Tagesdosis bearbeiten

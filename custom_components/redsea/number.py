@@ -668,6 +668,99 @@ async def async_setup_entry(
             )
         )
 
+        # Desired / acceptable temperature range bounds, part of the same
+        # PUT /temperature/config payload as the probe's name and
+        # notifications/logging toggles (seeded with defaults at install
+        # time). Always created; available only while a probe is installed
+        # (see ReefPowerTemperatureConfigNumberEntity.available). Writes go
+        # through the base class's generic push_values() path, which resends
+        # the whole cached /temperature/config object — the firmware expects
+        # every field together, not a single-key patch.
+        entities.append(
+            ReefPowerTemperatureConfigNumberEntity(
+                device,
+                ReefBeatNumberEntityDescription(
+                    key="temperature_desired_range_low",
+                    translation_key="temperature_desired_range_low",
+                    mode=NumberMode.BOX,
+                    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                    device_class=NumberDeviceClass.TEMPERATURE,
+                    native_min_value=24.1,
+                    native_step=0.1,
+                    native_max_value=29,
+                    value_name=(
+                        "$.sources[?(@.name=='/temperature/config')]"
+                        ".data.desired_range_low"
+                    ),
+                    icon="mdi:thermometer-low",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+        entities.append(
+            ReefPowerTemperatureConfigNumberEntity(
+                device,
+                ReefBeatNumberEntityDescription(
+                    key="temperature_desired_range_high",
+                    translation_key="temperature_desired_range_high",
+                    mode=NumberMode.BOX,
+                    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                    device_class=NumberDeviceClass.TEMPERATURE,
+                    native_min_value=24.1,
+                    native_step=0.1,
+                    native_max_value=29,
+                    value_name=(
+                        "$.sources[?(@.name=='/temperature/config')]"
+                        ".data.desired_range_high"
+                    ),
+                    icon="mdi:thermometer-high",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+        entities.append(
+            ReefPowerTemperatureConfigNumberEntity(
+                device,
+                ReefBeatNumberEntityDescription(
+                    key="temperature_acceptable_range_low",
+                    translation_key="temperature_acceptable_range_low",
+                    mode=NumberMode.BOX,
+                    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                    device_class=NumberDeviceClass.TEMPERATURE,
+                    native_min_value=1,
+                    native_step=0.1,
+                    native_max_value=60,
+                    value_name=(
+                        "$.sources[?(@.name=='/temperature/config')]"
+                        ".data.acceptable_range_low"
+                    ),
+                    icon="mdi:thermometer-minus",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+        entities.append(
+            ReefPowerTemperatureConfigNumberEntity(
+                device,
+                ReefBeatNumberEntityDescription(
+                    key="temperature_acceptable_range_high",
+                    translation_key="temperature_acceptable_range_high",
+                    mode=NumberMode.BOX,
+                    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                    device_class=NumberDeviceClass.TEMPERATURE,
+                    native_min_value=1,
+                    native_step=0.1,
+                    native_max_value=60,
+                    value_name=(
+                        "$.sources[?(@.name=='/temperature/config')]"
+                        ".data.acceptable_range_high"
+                    ),
+                    icon="mdi:thermometer-plus",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+
     elif isinstance(device, ReefControlCoordinator):
         # Per-ATO-port volume-left number. Endpoint:
         # POST /port/{n}/ato/update-volume {"volume": <mL>}.
@@ -1314,6 +1407,28 @@ class ReefPowerTemperatureOffsetNumberEntity(ReefBeatNumberEntity):
         self._attr_native_value = value
         self.async_write_ha_state()
         await cast(ReefPowerCoordinator, self._device).set_temperature_offset(value)
+
+
+class ReefPowerTemperatureConfigNumberEntity(ReefBeatNumberEntity):
+    """A numeric field of the RSPower local temperature probe config.
+
+    Backs one field of the ``PUT /temperature/config`` payload (desired/
+    acceptable range bounds) alongside the probe's name and notification/
+    logging toggles, all seeded with defaults at install time. Always
+    created; available only while a probe is installed — mirrors
+    ``ReefPowerTemperatureOffsetNumberEntity`` so it greys out/reappears
+    across a probe swap without a reload. Writes use the base class's
+    generic ``push_values()`` path, which resends the whole cached
+    ``/temperature/config`` object since the firmware expects every field
+    together, not a single-key patch.
+    """
+
+    @property
+    def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
+        return bool(
+            super().available
+            and cast(ReefPowerCoordinator, self._device).has_local_temperature()
+        )
 
 
 # =============================================================================

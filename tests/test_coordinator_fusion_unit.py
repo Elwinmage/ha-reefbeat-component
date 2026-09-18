@@ -17,6 +17,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from custom_components.redsea.const import PROBE_REFRESH_DELAY
 from custom_components.redsea.coordinator import (
     ReefControlCoordinator,
     ReefPowerCoordinator,
@@ -380,3 +381,9 @@ async def test_power_temperature_offset_writes_refresh() -> None:
     api.remove_temperature.assert_awaited_once()
 
     assert coord.async_request_refresh.await_count == 4
+    # Install/remove pair over BLE, which settles more slowly than a plain
+    # config write — both must wait the longer PROBE_REFRESH_DELAY before
+    # reading the device back, unlike the two calls before them.
+    install_call, remove_call = coord.async_request_refresh.await_args_list[-2:]
+    assert install_call.kwargs == {"wait": PROBE_REFRESH_DELAY}
+    assert remove_call.kwargs == {"wait": PROBE_REFRESH_DELAY}

@@ -243,14 +243,6 @@ LED_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
 )
 
 POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
-    ReefBeatButtonEntityDescription(
-        key="setup_finish",
-        translation_key="setup_finish",
-        exists_fn=lambda _: True,
-        press_fn=lambda device: cast(ReefPowerCoordinator, device).setup_finish(),
-        icon="mdi:check-circle-outline",
-        entity_category=EntityCategory.CONFIG,
-    ),
     # Local temperature probe add/remove. The type is fixed (temperature), so a
     # single button each does the job. Availability follows probe presence:
     # "add" shows only when absent, "remove" only when present.

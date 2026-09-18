@@ -397,6 +397,7 @@ Le RSPOWER (Power Center) est un device autonome avec sa propre adresse IP, expo
 
 - État, mode, consommation et contrôle on/off par prise
 - 6 ou 8 prises contrôlables selon le modèle (RSPOWER6 / RSPOWER8)
+- Sonde de température locale optionnelle : bouton d'ajout/suppression, offset d'étalonnage, plages de température souhaitée et acceptable, nom, et bascules notifications/journalisation — toutes disponibles une fois la sonde installée
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
 </p>
@@ -405,6 +406,13 @@ Le RSPOWER (Power Center) est un device autonome avec sa propre adresse IP, expo
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
 </p>
+
+### Mode des prises et prises pilotées par capteur
+Le mode d'une prise (off / on / schedule / sensor) et ses réglages de planning/seuil capteur (par ex. « allumer cette prise si la température locale descend sous 24 °C ») ne sont pas exposés en entités individuelles ici — avec jusqu'à 8 prises et plusieurs types de sondes à venir, chacune avec sa propre plage/unité, cela ferait des dizaines d'entités rarement utilisées. Configurez-les plutôt depuis [ha-reef-card](https://github.com/Elwinmage/ha-reef-card), qui enchaîne les mêmes appels que l'application ReefBeat en une seule action via le service `redsea.request` (voir les Services de l'intégration dans les Outils de développement de Home Assistant).
+
+Chaque prise expose tout de même une entité `sensor.socket_N_mode` pour les automatisations : son état est le mode courant de la prise, et ses attributs portent le `schedule` actuel ainsi que, en mode sensor, le `sensor_config` — une automatisation ou une carte peut ainsi lire la configuration active sans requête supplémentaire.
+
+Le device quitte automatiquement son état initial « setup » dès que la première prise est configurée, comme le fait l'application ReefBeat — aucune action manuelle nécessaire.
 
 # ReefDose :
 - Modification de la dose quotidienne
