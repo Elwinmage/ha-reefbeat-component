@@ -55,6 +55,6 @@ jobs:
           prerelease: true
           generateReleaseNotes: true
           tag: ${{ github.event.inputs.tag }}
-          artifacts: redsea.zip" # 👈 Nom officiel attendu
+          artifacts: redsea.zip # 👈 Nom officiel attendu
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
