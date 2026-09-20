@@ -105,3 +105,9 @@ repos:
           # Runtime dependency declared in manifest.json
           - jsonpath-ng>=1.7.0
 
+      - id: display_coverage
+        name: 100% coverage
+        language: system
+        verbose: true
+        entry: bash -c "[ `head -n 3 reports/coverage.xml |grep -oE 'line-rate=\"\b(0(\.[0-9]+)?|1(\.0+)?)\b\"';` == 'line-rate=\"1\"' ]"
+        pass_filenames: false
