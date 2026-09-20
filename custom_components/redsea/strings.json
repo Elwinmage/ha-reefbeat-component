@@ -545,6 +545,30 @@
       },
       "temperature_acceptable_range_high": {
         "name": "Acceptable temperature range (high)"
+      },
+      "probe_acceptable_range_low": {
+        "name": "{probe} acceptable range (low)"
+      },
+      "probe_desired_range_low": {
+        "name": "{probe} desired range (low)"
+      },
+      "probe_desired_range_high": {
+        "name": "{probe} desired range (high)"
+      },
+      "probe_acceptable_range_high": {
+        "name": "{probe} acceptable range (high)"
+      },
+      "probe_temp_acceptable_range_low": {
+        "name": "{probe} temperature acceptable range (low)"
+      },
+      "probe_temp_desired_range_low": {
+        "name": "{probe} temperature desired range (low)"
+      },
+      "probe_temp_desired_range_high": {
+        "name": "{probe} temperature desired range (high)"
+      },
+      "probe_temp_acceptable_range_high": {
+        "name": "{probe} temperature acceptable range (high)"
       }
     },
     "select": {
@@ -601,6 +625,14 @@
           "mean": "Mean",
           "min": "Minimum",
           "max": "Maximum"
+        }
+      },
+      "probe_ec_unit": {
+        "name": "{probe} unit",
+        "state": {
+          "ec": "Conductivity (mS/cm)",
+          "ppt": "Salinity (ppt)",
+          "sg": "Specific gravity"
         }
       }
     },

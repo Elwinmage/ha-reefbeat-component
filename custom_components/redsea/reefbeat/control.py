@@ -45,6 +45,7 @@ from typing import Any, cast
 
 import aiohttp
 
+from ..const import EC_UNIT_DEFAULT_RANGES
 from .api import HttpResult, ReefBeatAPI, SourceEntry
 
 _LOGGER = logging.getLogger(__name__)
@@ -348,6 +349,77 @@ class ReefControlAPI(ReefBeatAPI):
         method = "delete" if on else "post"
         return await self.http_send(
             f"/probe/disable?type={ptype}&uid={uid}", None, method
+        )
+
+    # -- Per-probe acceptable/desired range (config, readable via
+    # /probe/config) --------------------------------------------------------
+    # `ranges` (primary reading) and `temp.ranges` (embedded temperature
+    # compensation, on ec/ph/ato probes) are each a 4-element array:
+    # [acceptable_min, desired_min, desired_max, acceptable_max]. The
+    # firmware has no element-wise update for it — same contract as
+    # `ranges`/`buzzer`/`notify` above — so every write resends the whole
+    # 4-element array with just the changed bound replaced.
+    RANGE_FIELD_INDEX: dict[str, int] = {
+        "acceptable_range_low": 0,
+        "desired_range_low": 1,
+        "desired_range_high": 2,
+        "acceptable_range_high": 3,
+    }
+
+    def probe_entry(self, ptype: str, uid: str) -> dict[str, Any] | None:
+        """Return the cached ``/probe/config`` entry for a probe, if any."""
+        entry = self.get_data(
+            "$.sources[?(@.name=='/probe/config')]"
+            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]",
+            is_None_possible=True,
+        )
+        return entry if isinstance(entry, dict) else None
+
+    async def set_probe_range(
+        self, ptype: str, uid: str, field: str, value: float, *, is_temp: bool = False
+    ) -> HttpResult | None:
+        """Set one bound of a probe's acceptable/desired range.
+
+        ``is_temp`` targets the embedded temperature-compensation threshold
+        (``temp.ranges``) instead of the probe's own primary range.
+        """
+        idx = self.RANGE_FIELD_INDEX[field]
+        entry = self.probe_entry(ptype, uid) or {}
+        current = (
+            entry.get("temp", {}).get("ranges") if is_temp else entry.get("ranges")
+        )
+        ranges = (
+            list(current)
+            if isinstance(current, list) and len(current) == 4
+            else [0.0, 0.0, 0.0, 0.0]
+        )
+        ranges[idx] = value
+        body: dict[str, Any] = {"type": ptype, "uid": uid}
+        if is_temp:
+            body["temp"] = {"ranges": ranges}
+        else:
+            body["ranges"] = ranges
+        return await self.http_send("/probe/config", [body], "put")
+
+    async def set_probe_unit(self, uid: str, unit: str) -> HttpResult | None:
+        """Set an EC probe's measurement unit (``ec``/``ppt``/``sg``).
+
+        Also resets ``ranges`` to that unit's own default acceptable/desired
+        band (see ``EC_UNIT_DEFAULT_RANGES``): the device does not rescale
+        the existing numeric range when the unit changes, so leaving it as
+        is would keep, say, an EC-scale value like 54 labelled as SG.
+        """
+        return await self.http_send(
+            "/probe/config",
+            [
+                {
+                    "type": "ec",
+                    "uid": uid,
+                    "unit": unit,
+                    "ranges": list(EC_UNIT_DEFAULT_RANGES[unit]),
+                }
+            ],
+            "put",
         )
 
     # Wire values of `ControlPort$PortType` in the Red Sea app:

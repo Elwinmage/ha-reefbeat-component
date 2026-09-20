@@ -545,6 +545,30 @@
       },
       "temperature_acceptable_range_high": {
         "name": "Acceptabel temperatuurbereik (hoog)"
+      },
+      "probe_acceptable_range_low": {
+        "name": "Acceptabel bereik {probe} (min)"
+      },
+      "probe_desired_range_low": {
+        "name": "Gewenst bereik {probe} (min)"
+      },
+      "probe_desired_range_high": {
+        "name": "Gewenst bereik {probe} (max)"
+      },
+      "probe_acceptable_range_high": {
+        "name": "Acceptabel bereik {probe} (max)"
+      },
+      "probe_temp_acceptable_range_low": {
+        "name": "Acceptabel temperatuurbereik {probe} (min)"
+      },
+      "probe_temp_desired_range_low": {
+        "name": "Gewenst temperatuurbereik {probe} (min)"
+      },
+      "probe_temp_desired_range_high": {
+        "name": "Gewenst temperatuurbereik {probe} (max)"
+      },
+      "probe_temp_acceptable_range_high": {
+        "name": "Acceptabel temperatuurbereik {probe} (max)"
       }
     },
     "select": {
@@ -601,6 +625,14 @@
           "mean": "Gemiddelde",
           "min": "Minimum",
           "max": "Maximum"
+        }
+      },
+      "probe_ec_unit": {
+        "name": "Eenheid {probe}",
+        "state": {
+          "ec": "Geleidbaarheid (mS/cm)",
+          "ppt": "Saliniteit (ppt)",
+          "sg": "Dichtheid (SG)"
         }
       }
     },

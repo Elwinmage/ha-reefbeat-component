@@ -41,6 +41,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
 )
 from .entity import ReefRoleMixin
+from .probe_entities import probe_display_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -688,15 +689,18 @@ async def async_setup_entry(
             "$.sources[?(@.name=='/dashboard')].data.probes",
             is_None_possible=True,
         )
-        leak_probes: list[dict[str, Any]] = (
+        all_probes: list[dict[str, Any]] = (
             [
                 p
                 for p in raw_probes
-                if isinstance(p, dict) and p.get("type") == "leak" and p.get("uid")
+                if isinstance(p, dict) and p.get("uid") and p.get("type")
             ]
             if isinstance(raw_probes, list)
             else []
         )
+        leak_probes: list[dict[str, Any]] = [
+            p for p in all_probes if p.get("type") == "leak"
+        ]
         leak_descs: list[
             ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator]
         ] = []
@@ -711,7 +715,9 @@ async def async_setup_entry(
                 ReefBeatBinarySensorEntityDescription(
                     key=f"probe_{uid_key}_detected",
                     translation_key="probe_leak_detected",
-                    translation_placeholders={"probe": probe.get("name") or uid},
+                    translation_placeholders={
+                        "probe": probe_display_name(probe, all_probes)
+                    },
                     device_class=BinarySensorDeviceClass.MOISTURE,
                     # IMPORTANT: bind path into the lambda default to avoid the
                     # late-binding closure bug across loop iterations.

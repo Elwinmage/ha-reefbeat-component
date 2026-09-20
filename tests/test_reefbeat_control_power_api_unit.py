@@ -151,6 +151,124 @@ async def test_delete_probe() -> None:
     api.http_send.assert_awaited_with("/probe?type=ph&uid=0xP", None, "delete")
 
 
+def _probe_config_source(entries: list[dict[str, Any]]) -> dict[str, Any]:
+    return {"name": "/probe/config", "type": "config", "data": entries}
+
+
+def test_probe_entry_found_and_missing() -> None:
+    api = _control_api(
+        extra_sources=[
+            _probe_config_source(
+                [{"type": "ph", "uid": "0xP", "ranges": [7.6, 7.9, 8.4, 8.6]}]
+            )
+        ]
+    )
+    assert api.probe_entry("ph", "0xP") == {
+        "type": "ph",
+        "uid": "0xP",
+        "ranges": [7.6, 7.9, 8.4, 8.6],
+    }
+    assert api.probe_entry("ph", "0xMISSING") is None
+
+
+@pytest.mark.asyncio
+async def test_set_probe_range_primary_replaces_one_bound() -> None:
+    """The firmware has no element-wise update: the whole 4-element `ranges`
+    array is resent, with only the changed bound replaced.
+    """
+    api = _control_api(
+        extra_sources=[
+            _probe_config_source(
+                [{"type": "ph", "uid": "0xP", "ranges": [7.6, 7.9, 8.4, 8.6]}]
+            )
+        ]
+    )
+    await api.set_probe_range("ph", "0xP", "desired_range_high", 8.5)
+    api.http_send.assert_awaited_once_with(
+        "/probe/config",
+        [{"type": "ph", "uid": "0xP", "ranges": [7.6, 7.9, 8.5, 8.6]}],
+        "put",
+    )
+
+
+@pytest.mark.asyncio
+async def test_set_probe_range_temp_sub_threshold() -> None:
+    """`is_temp=True` targets the embedded temp-compensation ranges instead
+    of the probe's own primary range.
+    """
+    api = _control_api(
+        extra_sources=[
+            _probe_config_source(
+                [
+                    {
+                        "type": "ec",
+                        "uid": "0xE",
+                        "ranges": [46.2, 49, 54.4, 59.7],
+                        "temp": {"ranges": [21, 23, 26, 28]},
+                    }
+                ]
+            )
+        ]
+    )
+    await api.set_probe_range("ec", "0xE", "acceptable_range_low", 20, is_temp=True)
+    api.http_send.assert_awaited_once_with(
+        "/probe/config",
+        [{"type": "ec", "uid": "0xE", "temp": {"ranges": [20, 23, 26, 28]}}],
+        "put",
+    )
+
+
+@pytest.mark.asyncio
+async def test_set_probe_range_no_prior_entry_seeds_zeros() -> None:
+    """No cached /probe/config entry yet (e.g. right after install, before
+    the first confirmed read) — start from an all-zero array rather than
+    failing, so the write still goes through.
+    """
+    api = _control_api()  # no /probe/config source at all
+    await api.set_probe_range("orp", "0xO", "desired_range_low", 200)
+    api.http_send.assert_awaited_once_with(
+        "/probe/config",
+        [{"type": "orp", "uid": "0xO", "ranges": [0.0, 200, 0.0, 0.0]}],
+        "put",
+    )
+
+
+@pytest.mark.asyncio
+async def test_set_probe_unit_puts_unit_field_and_resets_default_ranges() -> None:
+    """The device does not rescale the stored ranges itself when the unit
+    changes, so the write must reset them to that unit's own defaults —
+    otherwise an EC-scale value like 54 stays labelled as SG.
+    """
+    api = _control_api()
+    await api.set_probe_unit("0xE", "sg")
+    api.http_send.assert_awaited_once_with(
+        "/probe/config",
+        [
+            {
+                "type": "ec",
+                "uid": "0xE",
+                "unit": "sg",
+                "ranges": [1.02, 1.023, 1.026, 1.028],
+            }
+        ],
+        "put",
+    )
+
+    await api.set_probe_unit("0xE", "ppt")
+    api.http_send.assert_awaited_with(
+        "/probe/config",
+        [{"type": "ec", "uid": "0xE", "unit": "ppt", "ranges": [30, 32, 36, 40]}],
+        "put",
+    )
+
+    await api.set_probe_unit("0xE", "ec")
+    api.http_send.assert_awaited_with(
+        "/probe/config",
+        [{"type": "ec", "uid": "0xE", "unit": "ec", "ranges": [46.2, 49, 54.4, 59.7]}],
+        "put",
+    )
+
+
 @pytest.mark.asyncio
 async def test_delete_probe_drops_temperature_offset_source_immediately() -> None:
     """delete_probe() must not wait for the next refresh's reconciliation

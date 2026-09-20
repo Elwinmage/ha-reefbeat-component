@@ -545,6 +545,30 @@
       },
       "temperature_acceptable_range_high": {
         "name": "Akzeptabler Temperaturbereich (hoch)"
+      },
+      "probe_acceptable_range_low": {
+        "name": "Akzeptabler Bereich {probe} (min)"
+      },
+      "probe_desired_range_low": {
+        "name": "Gewünschter Bereich {probe} (min)"
+      },
+      "probe_desired_range_high": {
+        "name": "Gewünschter Bereich {probe} (max)"
+      },
+      "probe_acceptable_range_high": {
+        "name": "Akzeptabler Bereich {probe} (max)"
+      },
+      "probe_temp_acceptable_range_low": {
+        "name": "Akzeptabler Temperaturbereich {probe} (min)"
+      },
+      "probe_temp_desired_range_low": {
+        "name": "Gewünschter Temperaturbereich {probe} (min)"
+      },
+      "probe_temp_desired_range_high": {
+        "name": "Gewünschter Temperaturbereich {probe} (max)"
+      },
+      "probe_temp_acceptable_range_high": {
+        "name": "Akzeptabler Temperaturbereich {probe} (max)"
       }
     },
     "select": {
@@ -601,6 +625,14 @@
           "mean": "Mittelwert",
           "min": "Minimum",
           "max": "Maximum"
+        }
+      },
+      "probe_ec_unit": {
+        "name": "Einheit {probe}",
+        "state": {
+          "ec": "Leitfähigkeit (mS/cm)",
+          "ppt": "Salinität (ppt)",
+          "sg": "Dichte (SG)"
         }
       }
     },

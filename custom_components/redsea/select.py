@@ -25,6 +25,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
     DOMAIN,
+    EC_UNITS,
     HW_MAT_MODEL,
     LED_MODE_INTERNAL_NAME,
     LED_MODES,
@@ -47,6 +48,7 @@ from .coordinator import (
 )
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
 from .i18n import translate, translate_list
+from .probe_entities import probe_display_name
 from .reefbeat import fusion
 from .supplements_list import SUPPLEMENTS as SUPPLEMENTS_LIST
 
@@ -284,6 +286,48 @@ async def async_setup_entry(
                         options=list(fusion.FUSION_METHODS),
                         entity_category=EntityCategory.CONFIG,
                     ),
+                )
+            )
+
+        # EC probe measurement unit (ec/ppt/sg). Changing it re-scales every
+        # bound of that same probe's acceptable/desired range number
+        # entities (see ReefControlProbeECRangeNumberEntity in number.py) —
+        # the device, not this integration, converts the stored range values
+        # to the new unit.
+        raw_probes = device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+        )
+        all_probes = (
+            [
+                p
+                for p in raw_probes
+                if isinstance(p, dict) and p.get("uid") and p.get("type")
+            ]
+            if isinstance(raw_probes, list)
+            else []
+        )
+        ec_probes = [p for p in all_probes if p.get("type") == "ec"]
+        for probe in ec_probes:
+            uid = str(probe["uid"])
+            uid_key = "ec_" + "".join(c for c in uid.lower() if c.isalnum())
+            entities.append(
+                ReefControlProbeECUnitSelectEntity(
+                    device,
+                    ReefBeatSelectEntityDescription(
+                        key=f"probe_{uid_key}_unit",
+                        translation_key="probe_ec_unit",
+                        translation_placeholders={
+                            "probe": probe_display_name(probe, all_probes)
+                        },
+                        icon="mdi:swap-horizontal",
+                        value_name=(
+                            "$.sources[?(@.name=='/probe/config')]"
+                            f".data[?(@.type=='ec' & @.uid=='{uid}')].unit"
+                        ),
+                        options=list(EC_UNITS),
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    uid=uid,
                 )
             )
 
@@ -525,3 +569,31 @@ class ReefWaveSelectEntity(ReefBeatSelectEntity):
         # Preview changes are local; update listeners without pushing to the device.
         self._device.async_update_listeners()
         self.async_write_ha_state()
+
+
+class ReefControlProbeECUnitSelectEntity(ReefBeatSelectEntity):
+    """An EC probe's measurement unit (``ec``/``ppt``/``sg``).
+
+    Backs the ``unit`` field of a single ``/probe/config`` entry. The
+    generic push mechanism does not apply here: ``/probe/config``'s cached
+    ``.data`` is the array of *every* probe, so resending it whole (as
+    ``push_values`` would) means resending every other probe's config too —
+    this instead writes only the changed probe via a dedicated coordinator
+    call, mirroring ``ReefControlProbeOffsetNumberEntity``.
+    """
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        entity_description: DescriptionT,
+        uid: str,
+    ) -> None:
+        super().__init__(device, entity_description)
+        self._uid = uid
+
+    async def async_select_option(self, option: str) -> None:
+        self._attr_current_option = option
+        self.async_write_ha_state()
+        await cast(ReefControlCoordinator, self._device).set_probe_unit(
+            self._uid, option
+        )

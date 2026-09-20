@@ -38,6 +38,7 @@ class _FakeCtl:
     )
     get_data_map: dict[str, Any] = field(default_factory=dict)
     offset_calls: list[tuple[str, float]] = field(default_factory=list)
+    range_calls: list[tuple[str, str, str, float, bool]] = field(default_factory=list)
     _listeners: list[Any] = field(default_factory=list)
 
     def async_add_listener(self, cb: Any) -> Any:
@@ -60,6 +61,11 @@ class _FakeCtl:
 
     async def set_probe_offset(self, uid: str, value: float) -> None:
         self.offset_calls.append((uid, value))
+
+    async def set_probe_range(
+        self, ptype: str, uid: str, field: str, value: float, *, is_temp: bool = False
+    ) -> None:
+        self.range_calls.append((ptype, uid, field, value, is_temp))
 
     async def async_request_refresh(self) -> None:
         return None
@@ -157,6 +163,56 @@ async def test_control_no_coherence_threshold_below_two_sources(
     assert "temperature_coherence_threshold" not in keys
 
 
+@pytest.mark.asyncio
+async def test_control_builds_twelve_range_numbers_per_ec_probe(
+    hass: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """One full range-number set (4 fields) per selectable unit (ec/ppt/sg)
+    -> 12 entities for a single EC probe.
+    """
+    monkeypatch.setattr(number_platform, "ReefControlCoordinator", _FakeCtl)
+
+    device = _FakeCtl(src_count=0)
+    device.get_data_map[_PROBES_PATH] = [
+        {"type": "ec", "uid": "0xE1", "name": "Salinity"},
+    ]
+    entry = MockConfigEntry(domain=DOMAIN, title="ctl", data={}, unique_id="c-ec")
+    added = await _run_setup(hass, entry, device)
+
+    ec_entities = [
+        e
+        for e in added
+        if e._description.key.startswith("probe_ec_0xe1_")
+        and "_temp_" not in e._description.key
+    ]
+    keys = {e._description.key for e in ec_entities}
+    assert len(keys) == 12
+    for unit in ("ec", "ppt", "sg"):
+        for fname in (
+            "acceptable_range_low",
+            "desired_range_low",
+            "desired_range_high",
+            "acceptable_range_high",
+        ):
+            assert f"probe_ec_0xe1_{unit}_{fname}" in keys
+
+    # Bounds match the unit, not a single shared value.
+    sg_low = next(
+        e
+        for e in ec_entities
+        if e._description.key == "probe_ec_0xe1_sg_acceptable_range_low"
+    )
+    assert sg_low._description.native_min_value == 1.0
+    assert sg_low._description.native_max_value == 1.04
+    ppt_low = next(
+        e
+        for e in ec_entities
+        if e._description.key == "probe_ec_0xe1_ppt_acceptable_range_low"
+    )
+    assert ppt_low._description.native_min_value == 0
+    assert ppt_low._description.native_max_value == 70
+
+
 # ---------------------------------------------------------------------------
 # async_setup_entry — RSPOWER branch
 # ---------------------------------------------------------------------------
@@ -215,6 +271,133 @@ def test_probe_offset_entity_handle_coordinator_update(
     ent._handle_coordinator_update()
     assert ent.native_value == 0.7
     assert ent.available is True  # no dependency -> always available
+
+
+def _probe_range_entity(device: Any, ptype: str = "ph", is_temp: bool = False) -> Any:
+    desc = number_platform.ReefBeatNumberEntityDescription(
+        key=f"probe_{ptype}_0xp1_desired_range_high",
+        translation_key="probe_desired_range_high",
+        native_min_value=7.9,
+        native_max_value=8.4,
+        native_step=0.1,
+        value_name=(
+            f"$.sources[?(@.name=='/probe/config')].data[?(@.type=='{ptype}' "
+            "& @.uid=='0xP1')].ranges[2]"
+        ),
+    )
+    return number_platform.ReefControlProbeRangeNumberEntity(
+        device, desc, ptype, "0xP1", "desired_range_high", is_temp=is_temp
+    )
+
+
+@pytest.mark.asyncio
+async def test_probe_range_entity_writes_via_set_probe_range(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    device = _FakeCtl()
+    ent = _probe_range_entity(device)
+    monkeypatch.setattr(ent, "async_write_ha_state", lambda: None, raising=False)
+
+    await ent.async_set_native_value(8.3)
+
+    assert ent.native_value == 8.3
+    assert device.range_calls == [("ph", "0xP1", "desired_range_high", 8.3, False)]
+
+
+@pytest.mark.asyncio
+async def test_probe_range_entity_temp_sub_threshold_flag_forwarded(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    device = _FakeCtl()
+    ent = _probe_range_entity(device, ptype="ec", is_temp=True)
+    monkeypatch.setattr(ent, "async_write_ha_state", lambda: None, raising=False)
+
+    await ent.async_set_native_value(25.0)
+
+    assert device.range_calls == [("ec", "0xP1", "desired_range_high", 25.0, True)]
+
+
+def _ec_unit_range_entity(device: Any, field: str, unit: str) -> Any:
+    bounds = {
+        "ec": (0, 100, 0.1),
+        "ppt": (0, 70, 0.1),
+        "sg": (1.0, 1.04, 0.001),
+    }[unit]
+    desc = number_platform.ReefBeatNumberEntityDescription(
+        key=f"probe_ec_0xe1_{unit}_{field}",
+        translation_key=f"probe_{field}",
+        native_min_value=bounds[0],
+        native_max_value=bounds[1],
+        native_step=bounds[2],
+        value_name=(
+            "$.sources[?(@.name=='/probe/config')].data[?(@.type=='ec' "
+            "& @.uid=='0xE1')].ranges[0]"
+        ),
+        dependency=(
+            "$.sources[?(@.name=='/probe/config')]"
+            ".data[?(@.type=='ec' & @.uid=='0xE1')].unit"
+        ),
+        dependency_values=[unit],
+    )
+    return number_platform.ReefControlProbeRangeNumberEntity(
+        device, desc, "ec", "0xE1", field
+    )
+
+
+_EC_UNIT_PATH = (
+    "$.sources[?(@.name=='/probe/config')].data[?(@.type=='ec' & @.uid=='0xE1')].unit"
+)
+
+
+def test_ec_unit_range_entity_available_only_for_current_unit() -> None:
+    """The device stores one `ranges` array for whatever unit is currently
+    selected — so only the matching unit's 4 entities are usable; the other
+    two units' entities for the same bound stay disabled, not deleted (no
+    unique_id churn/history loss when the user switches units). Relies on
+    `available` being a plain (non-cached) property, so it reacts to a
+    unit change instead of freezing at whatever it was on first access.
+    """
+    device = _FakeCtl()
+    ec = _ec_unit_range_entity(device, "acceptable_range_low", "ec")
+    ppt = _ec_unit_range_entity(device, "acceptable_range_low", "ppt")
+    sg = _ec_unit_range_entity(device, "acceptable_range_low", "sg")
+
+    device.get_data_map[_EC_UNIT_PATH] = "ec"
+    assert ec.available is True
+    assert ppt.available is False
+    assert sg.available is False
+
+    device.get_data_map[_EC_UNIT_PATH] = "sg"
+    assert ec.available is False
+    assert ppt.available is False
+    assert sg.available is True
+
+
+def test_ec_unit_range_entity_unavailable_when_unit_unknown() -> None:
+    """No unit read yet (probe not confirmed, or config still empty) ->
+    none of the 3 units' entities are available.
+    """
+    device = _FakeCtl()  # /probe/config unit path absent from get_data_map
+    ent = _ec_unit_range_entity(device, "acceptable_range_high", "ec")
+    assert ent.available is False
+
+
+@pytest.mark.asyncio
+async def test_ec_unit_range_entity_writes_via_set_probe_range(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Whichever unit is active, a write still goes through the same
+    set_probe_range() call — all 3 units' entities share one underlying
+    ranges[idx] value, there is nothing unit-specific to pass along.
+    """
+    device = _FakeCtl()
+    device.get_data_map[_EC_UNIT_PATH] = "sg"
+    ent = _ec_unit_range_entity(device, "acceptable_range_high", "sg")
+    monkeypatch.setattr(ent, "async_write_ha_state", lambda: None, raising=False)
+
+    await ent.async_set_native_value(1.03)
+
+    assert device.range_calls == [("ec", "0xE1", "acceptable_range_high", 1.03, False)]
 
 
 @pytest.mark.asyncio

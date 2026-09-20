@@ -35,6 +35,27 @@ def probe_sub_id(uid: str) -> int:
     return int(uid, 16)
 
 
+def probe_display_name(probe: dict, probes: list[dict]) -> str:
+    """A probe's label for entity friendly names (the ``{probe}`` placeholder).
+
+    Uses the probe's own name if set, falling back to its type. Two probes of
+    the same type usually still share the same *default* name (e.g. two ATO
+    probes both named "ATO" until the user renames them) — indistinguishable
+    entity names otherwise — so the 2nd and later same-type probes (in the
+    order the device lists them) get a " #N" suffix; the 1st stays plain.
+    """
+    label = str(probe.get("name") or probe.get("type") or "probe")
+    ptype = probe.get("type")
+    same_type = [p for p in probes if isinstance(p, dict) and p.get("type") == ptype]
+    if len(same_type) <= 1:
+        return label
+    uid = probe.get("uid")
+    for rank, p in enumerate(same_type, start=1):
+        if p.get("uid") == uid:
+            return label if rank == 1 else f"{label} #{rank}"
+    return label
+
+
 def probe_key_prefix(ptype: str, uid: str) -> str:
     """Unique_id key prefix (after ``{serial}_``) of a probe's direct entities."""
     return f"probe_{ptype.lower()}_{sanitise_uid(uid)}_"

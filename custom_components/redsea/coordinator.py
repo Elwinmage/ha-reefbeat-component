@@ -1854,6 +1854,20 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         await cast(ReefControlAPI, self.my_api).set_probe_notify(ptype, uid, on)
         await self.async_request_refresh(config=True)
 
+    async def set_probe_range(
+        self, ptype: str, uid: str, field: str, value: float, *, is_temp: bool = False
+    ) -> None:
+        """Set one bound of a probe's acceptable/desired range and refresh."""
+        await cast(ReefControlAPI, self.my_api).set_probe_range(
+            ptype, uid, field, value, is_temp=is_temp
+        )
+        await self.async_request_refresh(config=True)
+
+    async def set_probe_unit(self, uid: str, unit: str) -> None:
+        """Set an EC probe's measurement unit and refresh."""
+        await cast(ReefControlAPI, self.my_api).set_probe_unit(uid, unit)
+        await self.async_request_refresh(config=True)
+
     def probe_buzzer(self, ptype: str, uid: str) -> bool | None:
         """Current buzzer state for a probe (from /probe/config or /leak/config)."""
         return cast(ReefControlAPI, self.my_api).get_data(

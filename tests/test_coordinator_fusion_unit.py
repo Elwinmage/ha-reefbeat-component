@@ -333,6 +333,29 @@ async def test_probe_buzzer_notify_enabled_delegation() -> None:
     api.set_probe_enabled.assert_awaited_once_with("ph", "0xP", True)
 
 
+@pytest.mark.asyncio
+async def test_probe_range_and_unit_delegation() -> None:
+    coord, api = _control_with_mock_api()
+    api.set_probe_range = AsyncMock()
+    api.set_probe_unit = AsyncMock()
+
+    await coord.set_probe_range("ph", "0xP", "desired_range_high", 8.5)
+    api.set_probe_range.assert_awaited_once_with(
+        "ph", "0xP", "desired_range_high", 8.5, is_temp=False
+    )
+    assert coord.async_request_refresh.await_count == 1
+
+    await coord.set_probe_range("ec", "0xE", "acceptable_range_low", 20, is_temp=True)
+    api.set_probe_range.assert_awaited_with(
+        "ec", "0xE", "acceptable_range_low", 20, is_temp=True
+    )
+    assert coord.async_request_refresh.await_count == 2
+
+    await coord.set_probe_unit("0xE", "sg")
+    api.set_probe_unit.assert_awaited_once_with("0xE", "sg")
+    assert coord.async_request_refresh.await_count == 3
+
+
 # ---------------------------------------------------------------------------
 # ReefPowerCoordinator local-temperature helpers
 # ---------------------------------------------------------------------------

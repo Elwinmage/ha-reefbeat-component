@@ -44,6 +44,8 @@ from .const import (
     ATO_TANK_VOLUME_STEP,
     ATO_VOLUME_LEFT_INTERNAL_NAME,
     DOMAIN,
+    EC_UNIT_BOUNDS,
+    EC_UNITS,
     LED_ACCLIMATION_DURATION_INTERNAL_NAME,
     LED_ACCLIMATION_ENABLED_INTERNAL_NAME,
     LED_ACCLIMATION_INTENSITY_INTERNAL_NAME,
@@ -53,6 +55,7 @@ from .const import (
     MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
     MAT_MIN_ROLL_DIAMETER,
     MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
+    PROBE_RANGE_BOUNDS,
     WAVE_SHORTCUT_OFF_DELAY,
 )
 from .coordinator import (
@@ -77,6 +80,7 @@ from .maintenance import (
     iter_maintenance_probes,
     tasks_for,
 )
+from .probe_entities import probe_display_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -814,17 +818,18 @@ async def async_setup_entry(
         raw_probes = device.get_data(
             "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
         )
-        temp_probes = (
+        all_probes = (
             [
                 p
                 for p in raw_probes
-                if isinstance(p, dict)
-                and str(p.get("type", "")).lower() == "temperature"
-                and p.get("uid")
+                if isinstance(p, dict) and p.get("uid") and p.get("type")
             ]
             if isinstance(raw_probes, list)
             else []
         )
+        temp_probes = [
+            p for p in all_probes if str(p.get("type", "")).lower() == "temperature"
+        ]
         for probe in temp_probes:
             uid = str(probe["uid"])
             uid_key = "temperature_" + "".join(c for c in uid.lower() if c.isalnum())
@@ -834,7 +839,9 @@ async def async_setup_entry(
                     ReefBeatNumberEntityDescription(
                         key=f"probe_{uid_key}_offset",
                         translation_key="probe_offset",
-                        translation_placeholders={"probe": probe.get("name") or uid},
+                        translation_placeholders={
+                            "probe": probe_display_name(probe, all_probes)
+                        },
                         mode=NumberMode.BOX,
                         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                         device_class=NumberDeviceClass.TEMPERATURE,
@@ -849,6 +856,370 @@ async def async_setup_entry(
                         entity_category=EntityCategory.CONFIG,
                     ),
                     uid=uid,
+                )
+            )
+
+        # Acceptable/desired range bounds — one set of 4 numbers per probe
+        # of a type that has its own primary reading and a single fixed
+        # unit (ph/orp/temperature; ec is handled separately below since it
+        # has 3 selectable units — see EC_UNIT_BOUNDS. ato/leak have no
+        # primary range at all — ato only has the temp sub-threshold below,
+        # leak has neither). Bounds are the device's own input limits (see
+        # PROBE_RANGE_BOUNDS); the device — not this integration — enforces
+        # acceptable_min < desired_min < desired_max < acceptable_max.
+        range_probes = [
+            p
+            for p in all_probes
+            if str(p.get("type", "")).lower() in ("ph", "orp", "temperature")
+        ]
+        for probe in range_probes:
+            uid = str(probe["uid"])
+            ptype = str(probe.get("type", "")).lower()
+            uid_key = f"{ptype}_" + "".join(c for c in uid.lower() if c.isalnum())
+            pname = probe_display_name(probe, all_probes)
+            acc_min, acc_max, des_min, des_max, step = PROBE_RANGE_BOUNDS[ptype]
+
+            entities.append(
+                ReefControlProbeRangeNumberEntity(
+                    device,
+                    ReefBeatNumberEntityDescription(
+                        key=f"probe_{uid_key}_acceptable_range_low",
+                        translation_key="probe_acceptable_range_low",
+                        translation_placeholders={"probe": pname},
+                        mode=NumberMode.BOX,
+                        native_min_value=acc_min,
+                        native_step=step,
+                        native_max_value=acc_max,
+                        value_name=(
+                            "$.sources[?(@.name=='/probe/config')]"
+                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')].ranges[0]"
+                        ),
+                        icon="mdi:arrow-collapse-down",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    ptype,
+                    uid,
+                    "acceptable_range_low",
+                )
+            )
+            entities.append(
+                ReefControlProbeRangeNumberEntity(
+                    device,
+                    ReefBeatNumberEntityDescription(
+                        key=f"probe_{uid_key}_desired_range_low",
+                        translation_key="probe_desired_range_low",
+                        translation_placeholders={"probe": pname},
+                        mode=NumberMode.BOX,
+                        native_min_value=des_min,
+                        native_step=step,
+                        native_max_value=des_max,
+                        value_name=(
+                            "$.sources[?(@.name=='/probe/config')]"
+                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')].ranges[1]"
+                        ),
+                        icon="mdi:arrow-down-bold-box-outline",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    ptype,
+                    uid,
+                    "desired_range_low",
+                )
+            )
+            entities.append(
+                ReefControlProbeRangeNumberEntity(
+                    device,
+                    ReefBeatNumberEntityDescription(
+                        key=f"probe_{uid_key}_desired_range_high",
+                        translation_key="probe_desired_range_high",
+                        translation_placeholders={"probe": pname},
+                        mode=NumberMode.BOX,
+                        native_min_value=des_min,
+                        native_step=step,
+                        native_max_value=des_max,
+                        value_name=(
+                            "$.sources[?(@.name=='/probe/config')]"
+                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')].ranges[2]"
+                        ),
+                        icon="mdi:arrow-up-bold-box-outline",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    ptype,
+                    uid,
+                    "desired_range_high",
+                )
+            )
+            entities.append(
+                ReefControlProbeRangeNumberEntity(
+                    device,
+                    ReefBeatNumberEntityDescription(
+                        key=f"probe_{uid_key}_acceptable_range_high",
+                        translation_key="probe_acceptable_range_high",
+                        translation_placeholders={"probe": pname},
+                        mode=NumberMode.BOX,
+                        native_min_value=acc_min,
+                        native_step=step,
+                        native_max_value=acc_max,
+                        value_name=(
+                            "$.sources[?(@.name=='/probe/config')]"
+                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')].ranges[3]"
+                        ),
+                        icon="mdi:arrow-collapse-up",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    ptype,
+                    uid,
+                    "acceptable_range_high",
+                )
+            )
+
+        # EC: one full set of 4 range numbers PER SELECTABLE UNIT (12 total).
+        # The device stores exactly one `ranges` array, reinterpreted in
+        # whatever unit is currently selected (see the probe_ec_unit select
+        # in select.py) — there is no separate storage per unit. So all 3
+        # units' entities read/write the SAME `ranges[idx]`; only the set
+        # matching the probe's current unit is enabled, via the generic
+        # dependency/dependency_values gating (ReefBeatNumberEntity._compute_available)
+        # — the other two sets are disabled placeholders, not independent values.
+        ec_probes = [p for p in all_probes if str(p.get("type", "")).lower() == "ec"]
+        for probe in ec_probes:
+            uid = str(probe["uid"])
+            uid_key = "ec_" + "".join(c for c in uid.lower() if c.isalnum())
+            pname = probe_display_name(probe, all_probes)
+
+            for unit in EC_UNITS:
+                acc_min, acc_max, des_min, des_max, step = EC_UNIT_BOUNDS[unit]
+                unit_pname = f"{pname} ({unit.upper()})"
+                unit_key = f"{uid_key}_{unit}"
+
+                unit_path = (
+                    "$.sources[?(@.name=='/probe/config')]"
+                    f".data[?(@.type=='ec' & @.uid=='{uid}')].unit"
+                )
+
+                entities.append(
+                    ReefControlProbeRangeNumberEntity(
+                        device,
+                        ReefBeatNumberEntityDescription(
+                            key=f"probe_{unit_key}_acceptable_range_low",
+                            translation_key="probe_acceptable_range_low",
+                            translation_placeholders={"probe": unit_pname},
+                            mode=NumberMode.BOX,
+                            native_min_value=acc_min,
+                            native_step=step,
+                            native_max_value=acc_max,
+                            value_name=(
+                                "$.sources[?(@.name=='/probe/config')]"
+                                f".data[?(@.type=='ec' & @.uid=='{uid}')].ranges[0]"
+                            ),
+                            icon="mdi:arrow-collapse-down",
+                            entity_category=EntityCategory.CONFIG,
+                            dependency=unit_path,
+                            dependency_values=[unit],
+                        ),
+                        "ec",
+                        uid,
+                        "acceptable_range_low",
+                    )
+                )
+                entities.append(
+                    ReefControlProbeRangeNumberEntity(
+                        device,
+                        ReefBeatNumberEntityDescription(
+                            key=f"probe_{unit_key}_desired_range_low",
+                            translation_key="probe_desired_range_low",
+                            translation_placeholders={"probe": unit_pname},
+                            mode=NumberMode.BOX,
+                            native_min_value=des_min,
+                            native_step=step,
+                            native_max_value=des_max,
+                            value_name=(
+                                "$.sources[?(@.name=='/probe/config')]"
+                                f".data[?(@.type=='ec' & @.uid=='{uid}')].ranges[1]"
+                            ),
+                            icon="mdi:arrow-down-bold-box-outline",
+                            entity_category=EntityCategory.CONFIG,
+                            dependency=unit_path,
+                            dependency_values=[unit],
+                        ),
+                        "ec",
+                        uid,
+                        "desired_range_low",
+                    )
+                )
+                entities.append(
+                    ReefControlProbeRangeNumberEntity(
+                        device,
+                        ReefBeatNumberEntityDescription(
+                            key=f"probe_{unit_key}_desired_range_high",
+                            translation_key="probe_desired_range_high",
+                            translation_placeholders={"probe": unit_pname},
+                            mode=NumberMode.BOX,
+                            native_min_value=des_min,
+                            native_step=step,
+                            native_max_value=des_max,
+                            value_name=(
+                                "$.sources[?(@.name=='/probe/config')]"
+                                f".data[?(@.type=='ec' & @.uid=='{uid}')].ranges[2]"
+                            ),
+                            icon="mdi:arrow-up-bold-box-outline",
+                            entity_category=EntityCategory.CONFIG,
+                            dependency=unit_path,
+                            dependency_values=[unit],
+                        ),
+                        "ec",
+                        uid,
+                        "desired_range_high",
+                    )
+                )
+                entities.append(
+                    ReefControlProbeRangeNumberEntity(
+                        device,
+                        ReefBeatNumberEntityDescription(
+                            key=f"probe_{unit_key}_acceptable_range_high",
+                            translation_key="probe_acceptable_range_high",
+                            translation_placeholders={"probe": unit_pname},
+                            mode=NumberMode.BOX,
+                            native_min_value=acc_min,
+                            native_step=step,
+                            native_max_value=acc_max,
+                            value_name=(
+                                "$.sources[?(@.name=='/probe/config')]"
+                                f".data[?(@.type=='ec' & @.uid=='{uid}')].ranges[3]"
+                            ),
+                            icon="mdi:arrow-collapse-up",
+                            entity_category=EntityCategory.CONFIG,
+                            dependency=unit_path,
+                            dependency_values=[unit],
+                        ),
+                        "ec",
+                        uid,
+                        "acceptable_range_high",
+                    )
+                )
+
+        # Embedded temperature-compensation threshold — same 4 numbers as
+        # above, but for the `temp.ranges` sub-object carried by ec/ph/ato
+        # probes (always Celsius, unaffected by an EC probe's own unit).
+        temp_sub_probes = [
+            p
+            for p in all_probes
+            if str(p.get("type", "")).lower() in ("ec", "ph", "ato")
+        ]
+        t_acc_min, t_acc_max, t_des_min, t_des_max, t_step = PROBE_RANGE_BOUNDS[
+            "temperature"
+        ]
+        for probe in temp_sub_probes:
+            uid = str(probe["uid"])
+            ptype = str(probe.get("type", "")).lower()
+            uid_key = f"{ptype}_" + "".join(c for c in uid.lower() if c.isalnum())
+            pname = probe_display_name(probe, all_probes)
+
+            entities.append(
+                ReefControlProbeRangeNumberEntity(
+                    device,
+                    ReefBeatNumberEntityDescription(
+                        key=f"probe_{uid_key}_temp_acceptable_range_low",
+                        translation_key="probe_temp_acceptable_range_low",
+                        translation_placeholders={"probe": pname},
+                        mode=NumberMode.BOX,
+                        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                        device_class=NumberDeviceClass.TEMPERATURE,
+                        native_min_value=t_acc_min,
+                        native_step=t_step,
+                        native_max_value=t_acc_max,
+                        value_name=(
+                            "$.sources[?(@.name=='/probe/config')]"
+                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]"
+                            ".temp.ranges[0]"
+                        ),
+                        icon="mdi:thermometer-low",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    ptype,
+                    uid,
+                    "acceptable_range_low",
+                    is_temp=True,
+                )
+            )
+            entities.append(
+                ReefControlProbeRangeNumberEntity(
+                    device,
+                    ReefBeatNumberEntityDescription(
+                        key=f"probe_{uid_key}_temp_desired_range_low",
+                        translation_key="probe_temp_desired_range_low",
+                        translation_placeholders={"probe": pname},
+                        mode=NumberMode.BOX,
+                        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                        device_class=NumberDeviceClass.TEMPERATURE,
+                        native_min_value=t_des_min,
+                        native_step=t_step,
+                        native_max_value=t_des_max,
+                        value_name=(
+                            "$.sources[?(@.name=='/probe/config')]"
+                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]"
+                            ".temp.ranges[1]"
+                        ),
+                        icon="mdi:thermometer-chevron-down",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    ptype,
+                    uid,
+                    "desired_range_low",
+                    is_temp=True,
+                )
+            )
+            entities.append(
+                ReefControlProbeRangeNumberEntity(
+                    device,
+                    ReefBeatNumberEntityDescription(
+                        key=f"probe_{uid_key}_temp_desired_range_high",
+                        translation_key="probe_temp_desired_range_high",
+                        translation_placeholders={"probe": pname},
+                        mode=NumberMode.BOX,
+                        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                        device_class=NumberDeviceClass.TEMPERATURE,
+                        native_min_value=t_des_min,
+                        native_step=t_step,
+                        native_max_value=t_des_max,
+                        value_name=(
+                            "$.sources[?(@.name=='/probe/config')]"
+                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]"
+                            ".temp.ranges[2]"
+                        ),
+                        icon="mdi:thermometer-chevron-up",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    ptype,
+                    uid,
+                    "desired_range_high",
+                    is_temp=True,
+                )
+            )
+            entities.append(
+                ReefControlProbeRangeNumberEntity(
+                    device,
+                    ReefBeatNumberEntityDescription(
+                        key=f"probe_{uid_key}_temp_acceptable_range_high",
+                        translation_key="probe_temp_acceptable_range_high",
+                        translation_placeholders={"probe": pname},
+                        mode=NumberMode.BOX,
+                        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                        device_class=NumberDeviceClass.TEMPERATURE,
+                        native_min_value=t_acc_min,
+                        native_step=t_step,
+                        native_max_value=t_acc_max,
+                        value_name=(
+                            "$.sources[?(@.name=='/probe/config')]"
+                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]"
+                            ".temp.ranges[3]"
+                        ),
+                        icon="mdi:thermometer-high",
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    ptype,
+                    uid,
+                    "acceptable_range_high",
+                    is_temp=True,
                 )
             )
         # temperature sources may disagree before the coherence sensor flags a
@@ -1060,7 +1431,7 @@ class ReefBeatNumberEntity(CoordinatorEntity[ReefBeatCoordinator], RestoreNumber
             await self._device.push_values(self._source)
         await self._device.async_request_refresh()
 
-    @cached_property
+    @property
     def available(self) -> bool:  # type: ignore[override]
         return self._compute_available()
 
@@ -1386,6 +1757,43 @@ class ReefControlProbeOffsetNumberEntity(ReefBeatNumberEntity):
         self.async_write_ha_state()
         await cast(ReefControlCoordinator, self._device).set_probe_offset(
             self._uid, value
+        )
+
+
+class ReefControlProbeRangeNumberEntity(ReefBeatNumberEntity):
+    """One bound of a RSCONTROL probe's acceptable/desired range.
+
+    Backs one element of the ``ranges`` array (or, when ``is_temp=True``, the
+    embedded ``temp.ranges`` compensation threshold on ec/ph/ato probes) read
+    from ``/probe/config`` and written via ``PUT /probe/config``. The device
+    is the arbiter of the acceptable_min < desired_min < desired_max <
+    acceptable_max nesting invariant — the entity itself just carries one
+    bound and lets a rejected write surface as a stale value on the next
+    refresh, matching how the rest of this integration defers validation to
+    the device rather than replicating its rules client-side.
+    """
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        description: ReefBeatNumberEntityDescription,
+        ptype: str,
+        uid: str,
+        field: str,
+        *,
+        is_temp: bool = False,
+    ) -> None:
+        super().__init__(device, description)
+        self._ptype = ptype
+        self._uid = uid
+        self._field = field
+        self._is_temp = is_temp
+
+    async def async_set_native_value(self, value: float) -> None:
+        self._attr_native_value = value
+        self.async_write_ha_state()
+        await cast(ReefControlCoordinator, self._device).set_probe_range(
+            self._ptype, self._uid, self._field, value, is_temp=self._is_temp
         )
 
 

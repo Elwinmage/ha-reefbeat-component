@@ -545,6 +545,30 @@
       },
       "temperature_acceptable_range_high": {
         "name": "Akceptowalny zakres temperatury (górny)"
+      },
+      "probe_acceptable_range_low": {
+        "name": "Akceptowalny zakres {probe} (min)"
+      },
+      "probe_desired_range_low": {
+        "name": "Docelowy zakres {probe} (min)"
+      },
+      "probe_desired_range_high": {
+        "name": "Docelowy zakres {probe} (maks)"
+      },
+      "probe_acceptable_range_high": {
+        "name": "Akceptowalny zakres {probe} (maks)"
+      },
+      "probe_temp_acceptable_range_low": {
+        "name": "Akceptowalny zakres temperatury {probe} (min)"
+      },
+      "probe_temp_desired_range_low": {
+        "name": "Docelowy zakres temperatury {probe} (min)"
+      },
+      "probe_temp_desired_range_high": {
+        "name": "Docelowy zakres temperatury {probe} (maks)"
+      },
+      "probe_temp_acceptable_range_high": {
+        "name": "Akceptowalny zakres temperatury {probe} (maks)"
       }
     },
     "select": {
@@ -601,6 +625,14 @@
           "mean": "Średnia",
           "min": "Minimum",
           "max": "Maksimum"
+        }
+      },
+      "probe_ec_unit": {
+        "name": "Jednostka {probe}",
+        "state": {
+          "ec": "Przewodność (mS/cm)",
+          "ppt": "Zasolenie (ppt)",
+          "sg": "Gęstość (SG)"
         }
       }
     },

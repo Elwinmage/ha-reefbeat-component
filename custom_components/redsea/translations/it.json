@@ -545,6 +545,30 @@
       },
       "temperature_acceptable_range_high": {
         "name": "Intervallo di temperatura accettabile (alto)"
+      },
+      "probe_acceptable_range_low": {
+        "name": "Intervallo accettabile {probe} (min)"
+      },
+      "probe_desired_range_low": {
+        "name": "Intervallo desiderato {probe} (min)"
+      },
+      "probe_desired_range_high": {
+        "name": "Intervallo desiderato {probe} (max)"
+      },
+      "probe_acceptable_range_high": {
+        "name": "Intervallo accettabile {probe} (max)"
+      },
+      "probe_temp_acceptable_range_low": {
+        "name": "Intervallo di temperatura accettabile {probe} (min)"
+      },
+      "probe_temp_desired_range_low": {
+        "name": "Intervallo di temperatura desiderato {probe} (min)"
+      },
+      "probe_temp_desired_range_high": {
+        "name": "Intervallo di temperatura desiderato {probe} (max)"
+      },
+      "probe_temp_acceptable_range_high": {
+        "name": "Intervallo di temperatura accettabile {probe} (max)"
       }
     },
     "select": {
@@ -601,6 +625,14 @@
           "mean": "Media",
           "min": "Minimo",
           "max": "Massimo"
+        }
+      },
+      "probe_ec_unit": {
+        "name": "Unità {probe}",
+        "state": {
+          "ec": "Conducibilità (mS/cm)",
+          "ppt": "Salinità (ppt)",
+          "sg": "Densità (SG)"
         }
       }
     },

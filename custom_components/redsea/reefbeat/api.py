@@ -20,7 +20,13 @@ from typing import Any, Protocol, TypedDict, cast
 import aiohttp
 from jsonpath_ng.ext import parse as _parse  # type: ignore
 
-from ..const import DEFAULT_TIMEOUT, HTTP_DELAY_BETWEEN_RETRY, HTTP_MAX_RETRY
+from ..const import (
+    DEFAULT_TIMEOUT,
+    HTTP_DELAY_BETWEEN_RETRY,
+    HTTP_MAX_RETRY,
+    INITIAL_PROBE_MAX_RETRY,
+    INITIAL_PROBE_TIMEOUT,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -245,7 +251,10 @@ class ReefBeatAPI:
             return None
 
     async def _http_get(
-        self, session: aiohttp.ClientSession, source: Match
+        self,
+        session: aiohttp.ClientSession,
+        source: Match,
+        timeout_s: int | None = None,
     ) -> bool | None:
         """HTTP GET one endpoint and store its response into self.data.
 
@@ -254,6 +263,10 @@ class ReefBeatAPI:
         definitive 4xx rejection (e.g. a conditionally-registered source —
         RSPower's local-temperature endpoints — currently not applicable):
         retrying the exact same request would never change that outcome.
+
+        ``timeout_s`` overrides the per-attempt timeout (defaults to
+        ``self._timeout`` — see ``_call_url``'s ``timeout_s`` for why the
+        initial connectivity probe passes a shorter one).
         """
         endpoint = source.value.get("name")
         if not endpoint:
@@ -263,7 +276,9 @@ class ReefBeatAPI:
         _LOGGER.debug("_http_get %s", url)
 
         try:
-            req_timeout = getattr(self, "_timeout", 10)
+            req_timeout = (
+                timeout_s if timeout_s is not None else getattr(self, "_timeout", 10)
+            )
             async with timeout(req_timeout):
                 async with session.get(url, headers=self._header, ssl=False) as resp:
                     if resp.status == 401 and self._secure:
@@ -311,7 +326,13 @@ class ReefBeatAPI:
             _LOGGER.debug("GET %s error: %s", url, err)
             return False
 
-    async def _call_url(self, session: aiohttp.ClientSession, source: Match) -> None:
+    async def _call_url(
+        self,
+        session: aiohttp.ClientSession,
+        source: Match,
+        max_retry: int | None = None,
+        timeout_s: int | None = None,
+    ) -> None:
         """Fetch one source with retries.
 
         Marks the instance in error (`self._in_error=True`) if all retries fail.
@@ -320,19 +341,26 @@ class ReefBeatAPI:
         (with a delay between each) only wastes time and floods the log —
         this covers conditionally-registered sources whose current absence
         is an expected state, not a device/network problem.
+
+        ``max_retry``/``timeout_s`` override the module defaults — used by
+        the initial connectivity probe in ``get_initial_data()`` to fail
+        fast on an unreachable device instead of blocking Home Assistant's
+        startup for the full ~1-minute resilience budget meant for transient
+        blips during normal operation.
         """
+        retry_budget = HTTP_MAX_RETRY if max_retry is None else max_retry
         status_ok = False
         error_count = 0
-        while status_ok is False and error_count < HTTP_MAX_RETRY:
+        while status_ok is False and error_count < retry_budget:
             try:
-                result = await self._http_get(session, source)
+                result = await self._http_get(session, source, timeout_s=timeout_s)
             except Exception as e:
                 error_count += 1
                 _LOGGER.debug(
                     "Can not get data: %s, retry nb %d/%d",
                     source.value.get("name"),
                     error_count,
-                    HTTP_MAX_RETRY,
+                    retry_budget,
                 )
                 _LOGGER.debug("Exception: %s", e, exc_info=True)
                 result = False
@@ -349,7 +377,7 @@ class ReefBeatAPI:
                 "Can not get data from %s%s after %s try",
                 self.ip,
                 source.value.get("name"),
-                HTTP_MAX_RETRY,
+                retry_budget,
             )
             self._in_error = True
 
@@ -357,9 +385,21 @@ class ReefBeatAPI:
         """Fetch initial device data.
 
         Fetches:
-            1) device-info sources
+            1) device-info sources — a fast connectivity probe (see
+               INITIAL_PROBE_MAX_RETRY/INITIAL_PROBE_TIMEOUT): failing here
+               raises immediately rather than also spending the full data
+               fetch's retry budget on a device that is simply unreachable.
             2) config sources (unless live config update is enabled)
             3) data sources
+
+        This backs the coordinator's one-time `_async_setup()` hook, called
+        from the integration's own `coordinator.async_setup()` — NOT Home
+        Assistant's `DataUpdateCoordinator.async_config_entry_first_refresh()`
+        (never used here), which would otherwise fetch data on its own right
+        after setup. Skipping the data fetch here left every data-type
+        source (dashboard, mode, wifi, …) empty for every platform's
+        `async_setup_entry()`, since nothing else populates them before
+        entities are built from that same empty `self.data`.
 
         Returns:
             The internal `self.data` dict.
@@ -369,7 +409,13 @@ class ReefBeatAPI:
         sources: list[Match] = query.find(self.data)
 
         tasks: list[Awaitable[None]] = [
-            self._call_url(self._session, s) for s in sources
+            self._call_url(
+                self._session,
+                s,
+                max_retry=INITIAL_PROBE_MAX_RETRY,
+                timeout_s=INITIAL_PROBE_TIMEOUT,
+            )
+            for s in sources
         ]
         await asyncio.gather(*tasks, return_exceptions=True)
 

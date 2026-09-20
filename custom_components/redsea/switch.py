@@ -83,6 +83,7 @@ from .maintenance import (
     iter_maintenance_probes,
     tasks_for,
 )
+from .probe_entities import probe_display_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -683,6 +684,7 @@ async def async_setup_entry(
         # excluded from temperature fusion/coherence/anomaly so cleaning or
         # recalibrating it does not raise a false alarm. One switch per
         # temperature-capable probe (dedicated temperature probe + ec/ph/ato).
+        all_probes = _all_probes(device)
         for probe in _temperature_capable_probes(device):
             uid = str(probe["uid"])
             ptype = str(probe.get("type", "")).lower()
@@ -693,7 +695,9 @@ async def async_setup_entry(
                     ReefBeatSwitchEntityDescription(
                         key=f"probe_{uid_key}_maintenance",
                         translation_key="probe_maintenance",
-                        translation_placeholders={"probe": probe.get("name") or uid},
+                        translation_placeholders={
+                            "probe": probe_display_name(probe, all_probes)
+                        },
                         icon="mdi:account-wrench",
                         icon_off="mdi:account-wrench-outline",
                         entity_category=EntityCategory.CONFIG,
@@ -706,11 +710,11 @@ async def async_setup_entry(
         # so stateful) and enable (not reported, so optimistic local). All probe
         # types; the read/write path is chosen per type by the coordinator/API.
         control = cast(ReefControlCoordinator, device)
-        for probe in _all_probes(device):
+        for probe in all_probes:
             uid = str(probe["uid"])
             ptype = str(probe.get("type", "")).lower()
             uid_key = f"{ptype}_" + "".join(c for c in uid.lower() if c.isalnum())
-            pname = probe.get("name") or uid
+            pname = probe_display_name(probe, all_probes)
 
             def _mk(pt: str, u: str):
                 return (
