@@ -569,6 +569,21 @@
       },
       "probe_temp_acceptable_range_high": {
         "name": "{probe} temperature acceptable range (high)"
+      },
+      "leak_buzzer_frequency": {
+        "name": "Leak buzzer frequency"
+      },
+      "leak_buzzer_duty_cycle": {
+        "name": "Leak buzzer duty cycle"
+      },
+      "danger_buzzer_frequency": {
+        "name": "Danger buzzer frequency"
+      },
+      "danger_buzzer_duty_cycle": {
+        "name": "Danger buzzer duty cycle"
+      },
+      "danger_debounce_seconds": {
+        "name": "Danger debounce"
       }
     },
     "select": {
@@ -1545,6 +1560,15 @@
       },
       "temperature_log_enabled": {
         "name": "Temperature logging enabled"
+      },
+      "leak_buzzer_enabled": {
+        "name": "Leak buzzer"
+      },
+      "danger_buzzer_enabled": {
+        "name": "Danger buzzer"
+      },
+      "leak_detector_enabled": {
+        "name": "Leak detector"
       }
     },
     "text": {

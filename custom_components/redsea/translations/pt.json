@@ -569,6 +569,21 @@
       },
       "probe_temp_acceptable_range_high": {
         "name": "Intervalo de temperatura aceitável de {probe} (máx)"
+      },
+      "leak_buzzer_frequency": {
+        "name": "Frequência besouro de fuga"
+      },
+      "leak_buzzer_duty_cycle": {
+        "name": "Ciclo de trabalho besouro de fuga"
+      },
+      "danger_buzzer_frequency": {
+        "name": "Frequência besouro de perigo"
+      },
+      "danger_buzzer_duty_cycle": {
+        "name": "Ciclo de trabalho besouro de perigo"
+      },
+      "danger_debounce_seconds": {
+        "name": "Debounce de perigo"
       }
     },
     "select": {
@@ -1537,6 +1552,15 @@
       },
       "temperature_log_enabled": {
         "name": "Registo de temperatura ativado"
+      },
+      "leak_buzzer_enabled": {
+        "name": "Besouro de fuga"
+      },
+      "danger_buzzer_enabled": {
+        "name": "Besouro de perigo"
+      },
+      "leak_detector_enabled": {
+        "name": "Detetor de fugas"
       }
     },
     "text": {

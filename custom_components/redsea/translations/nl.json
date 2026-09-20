@@ -569,6 +569,21 @@
       },
       "probe_temp_acceptable_range_high": {
         "name": "Acceptabel temperatuurbereik {probe} (max)"
+      },
+      "leak_buzzer_frequency": {
+        "name": "Frequentie lekzoemer"
+      },
+      "leak_buzzer_duty_cycle": {
+        "name": "Duty cycle lekzoemer"
+      },
+      "danger_buzzer_frequency": {
+        "name": "Frequentie gevaarzoemer"
+      },
+      "danger_buzzer_duty_cycle": {
+        "name": "Duty cycle gevaarzoemer"
+      },
+      "danger_debounce_seconds": {
+        "name": "Ontdender gevaar"
       }
     },
     "select": {
@@ -1545,6 +1560,15 @@
       },
       "temperature_log_enabled": {
         "name": "Temperatuurlogboek ingeschakeld"
+      },
+      "leak_buzzer_enabled": {
+        "name": "Lekzoemer"
+      },
+      "danger_buzzer_enabled": {
+        "name": "Gevaarzoemer"
+      },
+      "leak_detector_enabled": {
+        "name": "Lekdetector"
       }
     },
     "text": {

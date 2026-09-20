@@ -658,6 +658,60 @@ async def async_setup_entry(
         )
 
     elif isinstance(device, ReefControlCoordinator):
+        # Global buzzer configuration, from /configuration:
+        #   {"leak_buzzer_config": {"enabled": bool, "frequency": int, "duty_cycle": int},
+        #    "danger_buzzer_config": {"enabled": bool, "frequency": int, "duty_cycle": int},
+        #    "leak_detector": bool, "danger_debounce_seconds": int, ...}
+        # `leak_detector` here is the hub-wide leak-detection master switch
+        # (distinct from any individual leak probe's own state).
+        entities.append(
+            ReefBeatSwitchEntity(
+                device,
+                ReefBeatSwitchEntityDescription(
+                    key="leak_buzzer_enabled",
+                    translation_key="leak_buzzer_enabled",
+                    value_name=(
+                        "$.sources[?(@.name=='/configuration')]"
+                        ".data.leak_buzzer_config.enabled"
+                    ),
+                    icon="mdi:bell-ring",
+                    icon_off="mdi:bell-off",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+        entities.append(
+            ReefBeatSwitchEntity(
+                device,
+                ReefBeatSwitchEntityDescription(
+                    key="danger_buzzer_enabled",
+                    translation_key="danger_buzzer_enabled",
+                    value_name=(
+                        "$.sources[?(@.name=='/configuration')]"
+                        ".data.danger_buzzer_config.enabled"
+                    ),
+                    icon="mdi:bell-alert",
+                    icon_off="mdi:bell-off",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+        entities.append(
+            ReefBeatSwitchEntity(
+                device,
+                ReefBeatSwitchEntityDescription(
+                    key="leak_detector_enabled",
+                    translation_key="leak_detector_enabled",
+                    value_name=(
+                        "$.sources[?(@.name=='/configuration')].data.leak_detector"
+                    ),
+                    icon="mdi:water-alert",
+                    icon_off="mdi:water-alert-outline",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+
         # Per-port toggle switch — one per 12V DC port.
         # Endpoint: `POST /port/{n}/toggle`; `n` is the 0-based port index
         # (RSCONTROLLITE exposes 0, RSCONTROLPRO exposes 0..1). The array

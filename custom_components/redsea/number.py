@@ -766,6 +766,110 @@ async def async_setup_entry(
         )
 
     elif isinstance(device, ReefControlCoordinator):
+        # Global buzzer configuration, from /configuration (see switch.py's
+        # leak_buzzer_enabled/danger_buzzer_enabled for the enable toggles).
+        # `frequency` bounds are a conservative guess (no confirmed device
+        # limit yet — observed defaults are 12 for leak, 6 for danger);
+        # `duty_cycle` is clearly a percentage (0-100, defaults 50/20).
+        entities.append(
+            ReefBeatNumberEntity(
+                device,
+                ReefBeatNumberEntityDescription(
+                    key="leak_buzzer_frequency",
+                    translation_key="leak_buzzer_frequency",
+                    mode=NumberMode.BOX,
+                    native_min_value=1,
+                    native_step=1,
+                    native_max_value=60,
+                    value_name=(
+                        "$.sources[?(@.name=='/configuration')]"
+                        ".data.leak_buzzer_config.frequency"
+                    ),
+                    icon="mdi:sine-wave",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+        entities.append(
+            ReefBeatNumberEntity(
+                device,
+                ReefBeatNumberEntityDescription(
+                    key="leak_buzzer_duty_cycle",
+                    translation_key="leak_buzzer_duty_cycle",
+                    mode=NumberMode.BOX,
+                    native_unit_of_measurement=PERCENTAGE,
+                    native_min_value=0,
+                    native_step=1,
+                    native_max_value=100,
+                    value_name=(
+                        "$.sources[?(@.name=='/configuration')]"
+                        ".data.leak_buzzer_config.duty_cycle"
+                    ),
+                    icon="mdi:percent",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+        entities.append(
+            ReefBeatNumberEntity(
+                device,
+                ReefBeatNumberEntityDescription(
+                    key="danger_buzzer_frequency",
+                    translation_key="danger_buzzer_frequency",
+                    mode=NumberMode.BOX,
+                    native_min_value=1,
+                    native_step=1,
+                    native_max_value=60,
+                    value_name=(
+                        "$.sources[?(@.name=='/configuration')]"
+                        ".data.danger_buzzer_config.frequency"
+                    ),
+                    icon="mdi:sine-wave",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+        entities.append(
+            ReefBeatNumberEntity(
+                device,
+                ReefBeatNumberEntityDescription(
+                    key="danger_buzzer_duty_cycle",
+                    translation_key="danger_buzzer_duty_cycle",
+                    mode=NumberMode.BOX,
+                    native_unit_of_measurement=PERCENTAGE,
+                    native_min_value=0,
+                    native_step=1,
+                    native_max_value=100,
+                    value_name=(
+                        "$.sources[?(@.name=='/configuration')]"
+                        ".data.danger_buzzer_config.duty_cycle"
+                    ),
+                    icon="mdi:percent",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+        entities.append(
+            ReefBeatNumberEntity(
+                device,
+                ReefBeatNumberEntityDescription(
+                    key="danger_debounce_seconds",
+                    translation_key="danger_debounce_seconds",
+                    mode=NumberMode.BOX,
+                    native_unit_of_measurement=UnitOfTime.SECONDS,
+                    native_min_value=0,
+                    native_step=1,
+                    native_max_value=300,
+                    value_name=(
+                        "$.sources[?(@.name=='/configuration')]"
+                        ".data.danger_debounce_seconds"
+                    ),
+                    icon="mdi:timer-sand",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+
         # Per-ATO-port volume-left number. Endpoint:
         # POST /port/{n}/ato/update-volume {"volume": <mL>}.
         # Discovered by walking /dashboard.ports[] for type == "ato" — same

@@ -215,6 +215,67 @@ async def test_async_setup_entry_control_pro_creates_2_entities(
     assert keys == {"port_0_on_off", "port_1_on_off"}
 
 
+@pytest.mark.asyncio
+async def test_async_setup_entry_control_builds_global_buzzer_switches(
+    hass: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Three always-created switches reading/writing /configuration:
+    per-kind buzzer enable (leak, danger) and the hub-wide leak detector.
+    """
+
+    class _ControlDevice(FakeControlCoordinator):
+        pass
+
+    monkeypatch.setattr(
+        platform, "ReefControlCoordinator", _ControlDevice, raising=True
+    )
+    monkeypatch.setattr(
+        platform, "ReefBeatCloudCoordinator", type("_Cloud", (), {}), raising=True
+    )
+
+    device = _ControlDevice(port_count=0)
+    device.get_data_map[
+        "$.sources[?(@.name=='/configuration')].data.leak_buzzer_config.enabled"
+    ] = True
+    device.get_data_map[
+        "$.sources[?(@.name=='/configuration')].data.danger_buzzer_config.enabled"
+    ] = False
+    device.get_data_map["$.sources[?(@.name=='/configuration')].data.leak_detector"] = (
+        True
+    )
+
+    entry = MockConfigEntry(domain=DOMAIN, title="ctl", data={}, unique_id="ctl-buzz")
+    entry.add_to_hass(hass)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = device
+
+    added: list[Any] = []
+    await platform.async_setup_entry(
+        hass,
+        cast(Any, entry),
+        cast(Any, lambda new, _u=False: added.extend(list(new))),
+    )
+
+    by_key = {e.entity_description.key: e for e in added}
+    for key in (
+        "leak_buzzer_enabled",
+        "danger_buzzer_enabled",
+        "leak_detector_enabled",
+    ):
+        assert key in by_key
+
+    leak = by_key["leak_buzzer_enabled"]
+    danger = by_key["danger_buzzer_enabled"]
+    detector = by_key["leak_detector_enabled"]
+    for ent in (leak, danger, detector):
+        monkeypatch.setattr(ent, "async_write_ha_state", lambda: None, raising=False)
+    leak._handle_coordinator_update()
+    danger._handle_coordinator_update()
+    detector._handle_coordinator_update()
+    assert leak.is_on is True
+    assert danger.is_on is False
+    assert detector.is_on is True
+
+
 # ---------------------------------------------------------------------------
 # Restore / async_added_to_hass / device_info — coverage top-up
 # ---------------------------------------------------------------------------

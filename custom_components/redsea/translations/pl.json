@@ -569,6 +569,21 @@
       },
       "probe_temp_acceptable_range_high": {
         "name": "Akceptowalny zakres temperatury {probe} (maks)"
+      },
+      "leak_buzzer_frequency": {
+        "name": "Częstotliwość brzęczyka wycieku"
+      },
+      "leak_buzzer_duty_cycle": {
+        "name": "Wypełnienie brzęczyka wycieku"
+      },
+      "danger_buzzer_frequency": {
+        "name": "Częstotliwość brzęczyka zagrożenia"
+      },
+      "danger_buzzer_duty_cycle": {
+        "name": "Wypełnienie brzęczyka zagrożenia"
+      },
+      "danger_debounce_seconds": {
+        "name": "Debounce zagrożenia"
       }
     },
     "select": {
@@ -1537,6 +1552,15 @@
       },
       "temperature_log_enabled": {
         "name": "Rejestrowanie temperatury włączone"
+      },
+      "leak_buzzer_enabled": {
+        "name": "Brzęczyk wycieku"
+      },
+      "danger_buzzer_enabled": {
+        "name": "Brzęczyk zagrożenia"
+      },
+      "leak_detector_enabled": {
+        "name": "Czujnik wycieku"
       }
     },
     "text": {

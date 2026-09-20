@@ -568,6 +568,21 @@
       },
       "probe_temp_acceptable_range_high": {
         "name": "Plage acceptable de température de {probe} (max)"
+      },
+      "leak_buzzer_frequency": {
+        "name": "Fréquence buzzer fuite"
+      },
+      "leak_buzzer_duty_cycle": {
+        "name": "Rapport cyclique buzzer fuite"
+      },
+      "danger_buzzer_frequency": {
+        "name": "Fréquence buzzer danger"
+      },
+      "danger_buzzer_duty_cycle": {
+        "name": "Rapport cyclique buzzer danger"
+      },
+      "danger_debounce_seconds": {
+        "name": "Délai anti-rebond danger"
       }
     },
     "select": {
@@ -1537,6 +1552,15 @@
       },
       "temperature_log_enabled": {
         "name": "Journalisation de température activée"
+      },
+      "leak_buzzer_enabled": {
+        "name": "Buzzer fuite"
+      },
+      "danger_buzzer_enabled": {
+        "name": "Buzzer danger"
+      },
+      "leak_detector_enabled": {
+        "name": "Détecteur de fuite"
       }
     },
     "text": {

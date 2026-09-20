@@ -164,6 +164,57 @@ async def test_control_no_coherence_threshold_below_two_sources(
 
 
 @pytest.mark.asyncio
+async def test_control_builds_global_buzzer_numbers(
+    hass: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Always-created numbers reading/writing /configuration: per-kind
+    buzzer frequency/duty_cycle (leak, danger) and the danger debounce.
+    """
+    monkeypatch.setattr(number_platform, "ReefControlCoordinator", _FakeCtl)
+
+    device = _FakeCtl(src_count=0)
+    device.get_data_map[_PROBES_PATH] = []
+    device.get_data_map[
+        "$.sources[?(@.name=='/configuration')].data.leak_buzzer_config.frequency"
+    ] = 12
+    device.get_data_map[
+        "$.sources[?(@.name=='/configuration')].data.leak_buzzer_config.duty_cycle"
+    ] = 50
+    device.get_data_map[
+        "$.sources[?(@.name=='/configuration')].data.danger_buzzer_config.frequency"
+    ] = 6
+    device.get_data_map[
+        "$.sources[?(@.name=='/configuration')].data.danger_buzzer_config.duty_cycle"
+    ] = 20
+    device.get_data_map[
+        "$.sources[?(@.name=='/configuration')].data.danger_debounce_seconds"
+    ] = 30
+    entry = MockConfigEntry(domain=DOMAIN, title="ctl", data={}, unique_id="c-buzz")
+    added = await _run_setup(hass, entry, device)
+
+    by_key = {e._description.key: e for e in added}
+    for key in (
+        "leak_buzzer_frequency",
+        "leak_buzzer_duty_cycle",
+        "danger_buzzer_frequency",
+        "danger_buzzer_duty_cycle",
+        "danger_debounce_seconds",
+    ):
+        assert key in by_key
+
+    freq = by_key["leak_buzzer_frequency"]
+    monkeypatch.setattr(freq, "async_write_ha_state", lambda: None, raising=False)
+    freq._handle_coordinator_update()
+    assert freq.native_value == 12
+    assert freq.available is True
+
+    debounce = by_key["danger_debounce_seconds"]
+    monkeypatch.setattr(debounce, "async_write_ha_state", lambda: None, raising=False)
+    debounce._handle_coordinator_update()
+    assert debounce.native_value == 30
+
+
+@pytest.mark.asyncio
 async def test_control_builds_twelve_range_numbers_per_ec_probe(
     hass: Any, monkeypatch: pytest.MonkeyPatch
 ) -> None:
