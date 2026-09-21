@@ -1746,6 +1746,16 @@
           "description": "Stabilny identyfikator zadania (np. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
         }
       }
+    },
+    "get_control_probes": {
+      "name": "Pobierz sondy sterownika",
+      "description": "Zwraca sondy (tożsamość i aktualne wartości) sparowanego huba RSCONTROL na podstawie jego identyfikatora sprzętowego.",
+      "fields": {
+        "hwid": {
+          "name": "Identyfikator sprzętowy huba",
+          "description": "Identyfikator sprzętowy (hwid) huba RSCONTROL, podawany w connected_device.hwid sparowanego RSPower."
+        }
+      }
     }
   }
 }

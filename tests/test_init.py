@@ -324,3 +324,69 @@ async def test_services_clean_message_and_request_handlers(
     req = handlers[f"{redsea_init.DOMAIN}.request"]
     bad = await req(SimpleNamespace(data={"device_id": 123}))
     assert bad == {"error": "Invalid device_id"}
+
+
+@pytest.mark.asyncio
+async def test_get_control_probes_service_handler(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """redsea.get_control_probes looks a RSCONTROL hub up by hwid — not a
+    Home Assistant device_id, since the RSPower card only knows the paired
+    hub's hardware id (from its own connected_device.hwid).
+    """
+    import custom_components.redsea as redsea_init
+
+    handlers: dict[str, Any] = {}
+
+    def _async_register(
+        self: Any,
+        domain: str,
+        service: str,
+        service_func: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        handlers[f"{domain}.{service}"] = service_func
+
+    monkeypatch.setattr(
+        type(hass.services), "async_register", _async_register, raising=True
+    )
+    assert await redsea_init.async_setup(hass, {}) is True
+    handler = handlers[f"{redsea_init.DOMAIN}.get_control_probes"]
+
+    class _StubControl:
+        def __init__(self, hwid: str, probes: Any) -> None:
+            self.model_id = hwid
+            self._probes = probes
+
+        def get_data(self, _path: str, is_None_possible: bool = False) -> Any:
+            return self._probes
+
+    monkeypatch.setattr(redsea_init, "ReefControlCoordinator", _StubControl)
+
+    probes = [
+        {"type": "ph", "uid": "0x00B39", "name": "pH", "value": 8.13},
+        {"type": "orp", "uid": "0x0071F", "name": "ORP", "value": 161},
+    ]
+    hass.data.setdefault(redsea_init.DOMAIN, {})
+    hass.data[redsea_init.DOMAIN]["ctl"] = _StubControl("d4e9f4e89208", probes)
+    # A non-ReefControlCoordinator entry (e.g. an unrelated RSPower/cloud
+    # coordinator sharing hass.data[DOMAIN]) must be skipped, not matched.
+    hass.data[redsea_init.DOMAIN]["other"] = object()
+
+    resp = await handler(SimpleNamespace(data={"hwid": "d4e9f4e89208"}))
+    assert resp == {"hwid": "d4e9f4e89208", "probes": probes}
+
+    # Unknown hwid.
+    resp2 = await handler(SimpleNamespace(data={"hwid": "unknown"}))
+    assert resp2 == {"error": "No RSCONTROL hub found for hwid 'unknown'"}
+
+    # Missing/blank hwid.
+    resp3 = await handler(SimpleNamespace(data={}))
+    assert resp3 == {"error": "hwid is required"}
+
+    # Probes data present but not a list (e.g. dashboard not yet fetched,
+    # still the "" placeholder) -> an empty list, not a crash.
+    hass.data[redsea_init.DOMAIN]["ctl2"] = _StubControl("hwid2", "")
+    resp4 = await handler(SimpleNamespace(data={"hwid": "hwid2"}))
+    assert resp4 == {"hwid": "hwid2", "probes": []}

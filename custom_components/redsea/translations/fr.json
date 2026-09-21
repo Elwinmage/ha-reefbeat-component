@@ -1746,6 +1746,16 @@
           "description": "Identifiant stable de la tâche (ex. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
         }
       }
+    },
+    "get_control_probes": {
+      "name": "Récupérer les sondes du contrôleur",
+      "description": "Renvoie les sondes (identité et valeurs actuelles) d'un hub RSCONTROL apparié, à partir de son identifiant matériel.",
+      "fields": {
+        "hwid": {
+          "name": "ID matériel du hub",
+          "description": "L'identifiant matériel (hwid) du hub RSCONTROL, tel que rapporté dans le connected_device.hwid d'un RSPower apparié."
+        }
+      }
     }
   }
 }

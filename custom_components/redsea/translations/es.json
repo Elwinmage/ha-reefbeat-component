@@ -1746,6 +1746,16 @@
           "description": "Identificador estable de la tarea (ej. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
         }
       }
+    },
+    "get_control_probes": {
+      "name": "Obtener sondas del controlador",
+      "description": "Devuelve las sondas (identidad y valores actuales) de un hub RSCONTROL emparejado, a partir de su ID de hardware.",
+      "fields": {
+        "hwid": {
+          "name": "ID de hardware del hub",
+          "description": "El ID de hardware (hwid) del hub RSCONTROL, como se indica en el connected_device.hwid de un RSPower emparejado."
+        }
+      }
     }
   }
 }

@@ -1754,6 +1754,16 @@
           "description": "Stable maintenance task identifier (e.g. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
         }
       }
+    },
+    "get_control_probes": {
+      "name": "Get control probes",
+      "description": "Return a paired RSCONTROL hub's probes (identity and current values) by hardware ID.",
+      "fields": {
+        "hwid": {
+          "name": "Hub hardware ID",
+          "description": "The RSCONTROL hub's hardware id (hwid), e.g. as reported in a paired RSPower's connected_device.hwid."
+        }
+      }
     }
   }
 }

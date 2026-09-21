@@ -784,6 +784,7 @@ def _make_button_entity(
     dependency_values: list[str] | None = None,
     dependency_reverse: bool = False,
     get_data_return: Any = None,
+    available_fn: Any = None,
 ) -> Any:
     """Build a ReefBeatButtonEntity with a fake device for availability tests."""
     device = type(
@@ -804,6 +805,7 @@ def _make_button_entity(
         dependency=dependency,
         dependency_values=dependency_values,
         dependency_reverse=dependency_reverse,
+        available_fn=available_fn,
     )
     entity = button_mod.ReefBeatButtonEntity(cast(Any, device), desc)
     return entity, device
@@ -812,6 +814,20 @@ def _make_button_entity(
 def test_compute_available_no_dependency() -> None:
     entity, _ = _make_button_entity()
     assert entity._compute_available() is True
+
+
+def test_compute_available_available_fn_wins_over_dependency() -> None:
+    """``available_fn``, when set, decides outright — for a compound
+    condition ("A and not B") the single dependency triple can't express —
+    regardless of what a (deliberately contradictory) dependency would say.
+    """
+    entity, device = _make_button_entity(
+        dependency="$.some.path",
+        get_data_return="truthy",  # would make the plain dependency check True
+        available_fn=lambda d: False,
+    )
+    assert entity._compute_available() is False
+    device.get_data.assert_not_called()  # available_fn bypasses it entirely
 
 
 def test_compute_available_truthy_dep_value() -> None:
@@ -863,6 +879,72 @@ def test_compute_available_reverse_not_in_list() -> None:
 def test_available_property_delegates_to_compute() -> None:
     entity, _ = _make_button_entity(dependency="$.path", get_data_return="on")
     assert entity.available is True
+
+
+def _power_device_for(*, has_temp: bool, has_control: bool) -> Any:
+    temp_path = "$.sources[?(@.name=='/dashboard')].data.temperature"
+    control_path = "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid"
+    values = {
+        temp_path: 25.1 if has_temp else None,
+        control_path: "d4e9f4e89208" if has_control else None,
+    }
+
+    def _get_data(self: Any, name: str, _is_none_possible: bool = False) -> Any:
+        return values.get(name)
+
+    return type(
+        "_PowerDev",
+        (),
+        {
+            "serial": "SN",
+            "device_info": None,
+            "get_data": _get_data,
+            "async_add_listener": lambda self, *_a, **_k: lambda: None,
+        },
+    )()
+
+
+def _power_button_availability(device: Any) -> dict[str, bool]:
+    return {
+        desc.key: button_mod.ReefBeatButtonEntity(
+            cast(Any, device), desc
+        )._compute_available()
+        for desc in button_mod.POWER_BUTTONS
+        if desc.key in ("install_temperature", "remove_temperature", "unpair_control")
+    }
+
+
+def test_power_buttons_only_add_available_with_neither_source() -> None:
+    avail = _power_button_availability(
+        _power_device_for(has_temp=False, has_control=False)
+    )
+    assert avail == {
+        "install_temperature": True,
+        "remove_temperature": False,
+        "unpair_control": False,
+    }
+
+
+def test_power_buttons_only_delete_available_with_local_probe() -> None:
+    avail = _power_button_availability(
+        _power_device_for(has_temp=True, has_control=False)
+    )
+    assert avail == {
+        "install_temperature": False,
+        "remove_temperature": True,
+        "unpair_control": False,
+    }
+
+
+def test_power_buttons_only_unpair_available_with_paired_control() -> None:
+    avail = _power_button_availability(
+        _power_device_for(has_temp=False, has_control=True)
+    )
+    assert avail == {
+        "install_temperature": False,
+        "remove_temperature": False,
+        "unpair_control": True,
+    }
 
 
 @pytest.mark.asyncio

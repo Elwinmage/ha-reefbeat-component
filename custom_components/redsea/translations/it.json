@@ -1746,6 +1746,16 @@
           "description": "Identificatore stabile dell'attività (es. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
         }
       }
+    },
+    "get_control_probes": {
+      "name": "Ottieni sonde del controllo",
+      "description": "Restituisce le sonde (identità e valori attuali) di un hub RSCONTROL abbinato, in base al suo ID hardware.",
+      "fields": {
+        "hwid": {
+          "name": "ID hardware dell'hub",
+          "description": "L'ID hardware (hwid) dell'hub RSCONTROL, come indicato nel connected_device.hwid di un RSPower abbinato."
+        }
+      }
     }
   }
 }

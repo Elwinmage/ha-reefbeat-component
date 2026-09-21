@@ -1754,6 +1754,16 @@
           "description": "Stabiele identifier van de onderhoudstaak (bv. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
         }
       }
+    },
+    "get_control_probes": {
+      "name": "Besturingssondes ophalen",
+      "description": "Geeft de sondes (identiteit en actuele waarden) van een gekoppelde RSCONTROL-hub terug, op basis van de hardware-ID.",
+      "fields": {
+        "hwid": {
+          "name": "Hardware-ID van de hub",
+          "description": "De hardware-ID (hwid) van de RSCONTROL-hub, zoals gerapporteerd in de connected_device.hwid van een gekoppelde RSPower."
+        }
+      }
     }
   }
 }

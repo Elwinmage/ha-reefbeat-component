@@ -139,6 +139,10 @@ class ReefBeatButtonEntityDescription(ButtonEntityDescription):
     dependency: str | None = None
     dependency_values: Sequence[Any] | None = None
     dependency_reverse: bool = False
+    # Escape hatch for a compound condition the single dependency/
+    # dependency_values/dependency_reverse triple can't express (e.g. "A and
+    # not B"). Takes precedence over dependency when set.
+    available_fn: Callable[[ReefBeatCoordinator], bool] | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -242,10 +246,34 @@ LED_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
     ),
 )
 
+
+def _power_has_local_temperature(device: ReefBeatCoordinator) -> bool:
+    """Whether this power center has its own local temperature probe."""
+    return bool(
+        device.get_data("$.sources[?(@.name=='/dashboard')].data.temperature", True)
+    )
+
+
+def _power_has_paired_control(device: ReefBeatCoordinator) -> bool:
+    """Whether this power center is currently paired to a RSControl hub."""
+    return bool(
+        device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid", True
+        )
+    )
+
+
 POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
-    # Local temperature probe add/remove. The type is fixed (temperature), so a
-    # single button each does the job. Availability follows probe presence:
-    # "add" shows only when absent, "remove" only when present.
+    # Local temperature probe add/remove, and unlinking a paired RSControl
+    # hub, are mutually exclusive: a power center gets its temperature
+    # reading from exactly one of "its own local probe" or "the hub it's
+    # paired to" (or neither, fresh out of the box) — never both. So each
+    # button is available in exactly one of those three states:
+    #   local probe installed -> only "remove" is available
+    #   paired to a hub       -> only "unpair" is available
+    #   neither                -> only "add" is available
+    # Pairing itself is only ever initiated from the RSControl side (POST
+    # /power/discover {"pair": true}), so there is no "pair" button here.
     ReefBeatButtonEntityDescription(
         key="install_temperature",
         translation_key="install_temperature",
@@ -255,8 +283,10 @@ POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         ).async_install_temperature(),
         icon="mdi:thermometer-plus",
         entity_category=EntityCategory.CONFIG,
-        dependency="$.sources[?(@.name=='/dashboard')].data.temperature",
-        dependency_reverse=True,
+        available_fn=lambda device: (
+            not _power_has_local_temperature(device)
+            and not _power_has_paired_control(device)
+        ),
     ),
     ReefBeatButtonEntityDescription(
         key="remove_temperature",
@@ -267,11 +297,11 @@ POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         ).async_remove_temperature(),
         icon="mdi:thermometer-minus",
         entity_category=EntityCategory.CONFIG,
-        dependency="$.sources[?(@.name=='/dashboard')].data.temperature",
+        available_fn=lambda device: (
+            _power_has_local_temperature(device)
+            and not _power_has_paired_control(device)
+        ),
     ),
-    # Unlink the RSControl hub paired to this power center. Pairing itself
-    # is only ever initiated from the RSControl side (POST /power/discover
-    # {"pair": true}), so there is no "pair" button here — only "unpair".
     ReefBeatButtonEntityDescription(
         key="unpair_control",
         translation_key="unpair_control",
@@ -279,7 +309,7 @@ POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         press_fn=lambda device: cast(ReefPowerCoordinator, device).unpair_control(),
         icon="mdi:link-off",
         entity_category=EntityCategory.CONFIG,
-        dependency="$.sources[?(@.name=='/dashboard')].data.connected_device.hwid",
+        available_fn=_power_has_paired_control,
     ),
 )
 
@@ -1029,12 +1059,16 @@ class ReefBeatButtonEntity(ButtonEntity):
     def _compute_available(self) -> bool:
         """Return True when this button should be shown as available.
 
-        Same contract as ``ReefBeatNumberEntity._compute_available``:
+        * ``available_fn`` set → its result wins outright (for a compound
+          condition the single dependency triple below can't express).
         * No ``dependency`` → always available.
         * ``dependency`` without ``dependency_values`` → truthy check.
         * ``dependency`` with ``dependency_values`` → membership check.
         * ``dependency_reverse`` inverts the result of either check.
         """
+        if self.desc.available_fn is not None:
+            return self.desc.available_fn(self._device)
+
         dep = self.desc.dependency
         if dep is None:
             return True

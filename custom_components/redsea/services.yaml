@@ -103,3 +103,19 @@ reset_maintenance:
       example: "led_lens"
       selector:
         text:
+
+# Look up a RSCONTROL hub's probes (identity + current values) by hardware
+# id — meant for a paired RSPower device's card, which only knows that
+# hub's hwid (from its own /dashboard.connected_device.hwid), not a Home
+# Assistant device_id for a different device.
+get_control_probes:
+  fields:
+    hwid:
+      name: Hub hardware ID
+      description: >-
+        The RSCONTROL hub's hardware id (hwid), e.g. as reported in a
+        paired RSPower's connected_device.hwid.
+      required: true
+      example: "d4e9f4e89208"
+      selector:
+        text:

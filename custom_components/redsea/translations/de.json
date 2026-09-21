@@ -1746,6 +1746,16 @@
           "description": "Stabile Kennung der Wartungsaufgabe (z. B. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
         }
       }
+    },
+    "get_control_probes": {
+      "name": "Steuerungssonden abrufen",
+      "description": "Liefert die Sonden (Identität und aktuelle Werte) eines gekoppelten RSCONTROL-Hubs anhand seiner Hardware-ID.",
+      "fields": {
+        "hwid": {
+          "name": "Hardware-ID des Hubs",
+          "description": "Die Hardware-ID (hwid) des RSCONTROL-Hubs, wie sie im connected_device.hwid eines gekoppelten RSPower angegeben ist."
+        }
+      }
     }
   }
 }

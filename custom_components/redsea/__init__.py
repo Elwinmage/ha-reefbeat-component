@@ -528,4 +528,48 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         supports_response=SupportsResponse.OPTIONAL,
     )
 
+    @callback
+    async def handle_get_control_probes(call: ServiceCall) -> ServiceResponse:
+        """Return a RSCONTROL hub's probes (identity + current values), by hwid.
+
+        Meant for a RSPower device's card to look up the probes of the
+        RSCONTROL hub it is paired with (RSPower only knows that hub's
+        hwid, from its own `/dashboard.connected_device.hwid`) — not a
+        Home Assistant device_id, which the card would have to resolve
+        separately and which doesn't apply across two different devices.
+
+        Served from the coordinator's own cached `/dashboard.probes` (same
+        shape as the hub's own `GET /probes/dashboard`, confirmed on a real
+        RSCONTROLPRO) rather than an extra live fetch — RSCONTROL already
+        polls this on its normal refresh cycle, so it's no less fresh than
+        any of its own entities.
+        """
+        hwid = call.data.get("hwid")
+        if not isinstance(hwid, str) or not hwid:
+            return {"error": "hwid is required"}
+
+        coordinator = None
+        for entry_data in hass.data.get(DOMAIN, {}).values():
+            if (
+                isinstance(entry_data, ReefControlCoordinator)
+                and entry_data.model_id == hwid
+            ):
+                coordinator = entry_data
+                break
+        if coordinator is None:
+            return {"error": f"No RSCONTROL hub found for hwid '{hwid}'"}
+
+        probes = coordinator.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+        )
+        return {"hwid": hwid, "probes": probes if isinstance(probes, list) else []}
+
+    _LOGGER.debug("Registering service redsea.get_control_probes")
+    hass.services.async_register(
+        DOMAIN,
+        "get_control_probes",
+        handle_get_control_probes,
+        supports_response=SupportsResponse.ONLY,
+    )
+
     return True
