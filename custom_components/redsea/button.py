@@ -1088,9 +1088,14 @@ class ReefBeatButtonEntity(ButtonEntity):
     # ---- lifecycle --------------------------------------------------------
 
     async def async_added_to_hass(self) -> None:
-        """Subscribe to coordinator updates when a dependency is set."""
+        """Subscribe to coordinator updates when availability is dynamic.
+
+        Subscribe whenever a ``dependency`` path OR an ``available_fn`` is
+        declared: both make availability dynamic and need re-evaluation on
+        every coordinator refresh.
+        """
         await super().async_added_to_hass()
-        if self.desc.dependency is not None:
+        if self.desc.dependency is not None or self.desc.available_fn is not None:
             self._unsub_coordinator = self._device.async_add_listener(
                 self._handle_coordinator_update
             )
