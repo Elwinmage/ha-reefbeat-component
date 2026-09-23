@@ -1916,9 +1916,11 @@ class ReefPowerTemperatureOffsetNumberEntity(ReefBeatNumberEntity):
         )
 
     async def async_set_native_value(self, value: float) -> None:
+        old_value = self._attr_native_value or 0.0
+        new_value = value - old_value
         self._attr_native_value = value
         self.async_write_ha_state()
-        await cast(ReefPowerCoordinator, self._device).set_temperature_offset(value)
+        await cast(ReefPowerCoordinator, self._device).set_temperature_offset(new_value)
 
 
 class ReefPowerTemperatureConfigNumberEntity(ReefBeatNumberEntity):
