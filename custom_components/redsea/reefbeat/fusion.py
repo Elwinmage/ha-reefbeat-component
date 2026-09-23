@@ -17,7 +17,7 @@ of Home Assistant imports.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 # Aggregation strategies exposed to the user through the fusion-method select.
 FUSION_METHODS = ("median", "mean", "min", "max")
@@ -27,6 +27,25 @@ DEFAULT_METHOD = "median"
 # firmware itself uses, so "incoherent" means the spread exceeds what the device
 # already treats as noise.
 DEFAULT_THRESHOLD = 0.5
+
+# Probe ``status`` values meaning the probe is unplugged from the hub. While
+# unplugged, the hub answers 503 to every per-probe request (reading, offset).
+DISCONNECTED_STATUSES: frozenset[str] = frozenset(
+    {"disconnected", "not_connected", "offline"}
+)
+
+
+def is_probe_disconnected(probe: Any) -> bool:
+    """Whether a ``/dashboard.probes`` entry reports an unplugged probe.
+
+    A missing or unknown status counts as connected, so a firmware that does
+    not report it keeps the previous behaviour.
+    """
+    if not isinstance(probe, dict):
+        return False
+    status: Any = cast(dict[str, Any], probe).get("status")
+    return isinstance(status, str) and status.lower() in DISCONNECTED_STATUSES
+
 
 # Probe types whose embedded temperature counts as a source, and the field the
 # reading lives in on the dashboard payload.
@@ -80,7 +99,7 @@ def temperature_candidates(probes: Any) -> list[dict[str, Any]]:
         reason: str | None = None
         if status == "disabled":
             reason = "disabled"
-        elif status in ("disconnected", "not_connected", "offline"):
+        elif status in DISCONNECTED_STATUSES:
             reason = "disconnected"
         elif value is None:
             reason = "no_value"

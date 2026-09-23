@@ -306,6 +306,12 @@ def _control_probe_read_buttons(
                 ),
                 icon="mdi:refresh",
                 entity_category=EntityCategory.CONFIG,
+                # An unplugged probe answers 503: nothing to read.
+                available_fn=(
+                    lambda d, t=ptype, u=uid: cast(
+                        ReefControlCoordinator, d
+                    ).probe_is_connected(t, u)
+                ),
                 refresh_after=False,
             )
         )

@@ -18,6 +18,7 @@ from custom_components.redsea.coordinator import (
     ReefPowerCoordinator,
 )
 from custom_components.redsea.reefbeat.control import ReefControlAPI
+from custom_components.redsea.reefbeat.fusion import is_probe_disconnected
 from custom_components.redsea.reefbeat.power import ReefPowerAPI
 
 # Payloads captured from a real RSCONTROLPRO.
@@ -320,6 +321,7 @@ class _FakeDevice:
         self._probes = probes
         self.async_read_probe = AsyncMock()
         self.async_request_refresh = AsyncMock()
+        self.probe_is_connected = MagicMock(return_value=True)
 
     def get_data(self, name: str, is_None_possible: bool = False) -> Any:
         return self._probes
@@ -398,3 +400,80 @@ async def test_other_buttons_still_refresh_after_press() -> None:
     await entity.async_press()
 
     device.async_request_refresh.assert_awaited_once()
+
+
+# ===========================================================================
+# Unplugged probes (the hub answers 503 to every per-probe request)
+# ===========================================================================
+
+
+@pytest.mark.parametrize(
+    ("probe", "expected"),
+    [
+        ({"status": "disconnected"}, True),
+        ({"status": "Not_Connected"}, True),
+        ({"status": "offline"}, True),
+        ({"status": "connected"}, False),
+        ({"status": "disabled"}, False),
+        ({"status": None}, False),
+        ({}, False),
+        ("garbage", False),
+    ],
+)
+def test_is_probe_disconnected(probe: Any, expected: bool) -> None:
+    assert is_probe_disconnected(probe) is expected
+
+
+def test_offset_source_dropped_while_probe_unplugged() -> None:
+    probes: list[dict[str, Any]] = [
+        {"type": "temperature", "uid": "0x000F7", "status": "disconnected"},
+        {"type": "temperature", "uid": "0x00842", "status": "connected"},
+    ]
+    api = _control_api(probes)
+    api.data["sources"].append(
+        {
+            "name": "/probe/offset?type=temperature&uid=0x000F7",
+            "type": "config",
+            "data": {"offset": 0.2},
+        }
+    )
+
+    api._reconcile_probe_offset_sources()
+    names = {s["name"] for s in api.data["sources"]}
+    assert "/probe/offset?type=temperature&uid=0x000F7" not in names
+    assert "/probe/offset?type=temperature&uid=0x00842" in names
+
+    # Plugged back in: the source is registered again.
+    probes[0]["status"] = "connected"
+    api._reconcile_probe_offset_sources()
+    names = {s["name"] for s in api.data["sources"]}
+    assert "/probe/offset?type=temperature&uid=0x000F7" in names
+
+
+@pytest.mark.parametrize(
+    ("probes", "expected"),
+    [
+        ([{"type": "temperature", "uid": "0x1", "status": "connected"}], True),
+        ([{"type": "temperature", "uid": "0x1"}], True),
+        ([{"type": "temperature", "uid": "0x1", "status": "disconnected"}], False),
+        ([{"type": "ph", "uid": "0x1", "status": "connected"}], False),
+        ([], False),
+    ],
+)
+def test_coordinator_probe_is_connected(
+    probes: list[dict[str, Any]], expected: bool
+) -> None:
+    coord = ReefControlCoordinator.__new__(ReefControlCoordinator)
+    coord.my_api = _control_api(probes)
+
+    assert coord.probe_is_connected("temperature", "0x1") is expected
+
+
+def test_probe_read_button_unavailable_while_unplugged() -> None:
+    device = _FakeDevice([{"type": "temperature", "uid": "0x000F7", "name": "T"}])
+    device.probe_is_connected.return_value = False
+    desc = button_mod._control_probe_read_buttons(cast(Any, device))[0]
+
+    assert desc.available_fn is not None
+    assert desc.available_fn(cast(Any, device)) is False
+    device.probe_is_connected.assert_called_once_with("temperature", "0x000F7")

@@ -39,6 +39,7 @@ class _FakeCtl:
     get_data_map: dict[str, Any] = field(default_factory=dict)
     offset_calls: list[tuple[str, float]] = field(default_factory=list)
     range_calls: list[tuple[str, str, str, float, bool]] = field(default_factory=list)
+    connected: bool = True
     _listeners: list[Any] = field(default_factory=list)
 
     def async_add_listener(self, cb: Any) -> Any:
@@ -58,6 +59,9 @@ class _FakeCtl:
 
     def temperature_source_count(self) -> int:
         return self.src_count
+
+    def probe_is_connected(self, ptype: str, uid: str) -> bool:
+        return self.connected
 
     async def set_probe_offset(self, uid: str, value: float) -> None:
         self.offset_calls.append((uid, value))
@@ -321,7 +325,11 @@ def test_probe_offset_entity_handle_coordinator_update(
 
     ent._handle_coordinator_update()
     assert ent.native_value == 0.7
-    assert ent.available is True  # no dependency -> always available
+    assert ent.available is True  # no dependency -> available while plugged
+
+    # Unplugged probe: its offset endpoint is not polled any more.
+    device.connected = False
+    assert ent.available is False
 
 
 def _probe_range_entity(device: Any, ptype: str = "ph", is_temp: bool = False) -> Any:

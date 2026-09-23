@@ -21,7 +21,7 @@ Everything here is pure (no Home Assistant imports) so it is unit-testable.
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, cast
 
 _TRAILING_INT = re.compile(r"_(\d+)$")
 
@@ -36,7 +36,7 @@ def probe_sub_id(uid: str) -> int:
     return int(uid, 16)
 
 
-def probe_display_name(probe: dict[str, Any], probes: list[dict[str, Any]]) -> str:
+def probe_display_name(probe: dict[str, Any], probes: list[Any]) -> str:
     """A probe's label for entity friendly names (the ``{probe}`` placeholder).
 
     Uses the probe's own name if set, falling back to its type. Two probes of
@@ -47,7 +47,11 @@ def probe_display_name(probe: dict[str, Any], probes: list[dict[str, Any]]) -> s
     """
     label = str(probe.get("name") or probe.get("type") or "probe")
     ptype = probe.get("type")
-    same_type = [p for p in probes if isinstance(p, dict) and p.get("type") == ptype]
+    same_type = [
+        p
+        for p in (cast(dict[str, Any], x) for x in probes if isinstance(x, dict))
+        if p.get("type") == ptype
+    ]
     if len(same_type) <= 1:
         return label
     uid = probe.get("uid")

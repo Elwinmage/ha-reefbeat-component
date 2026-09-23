@@ -1812,6 +1812,15 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         await self.async_request_refresh(config=True)
 
     # -- Probe add / remove (driven by the options flow) -------------------
+    def probe_is_connected(self, ptype: str, uid: str) -> bool:
+        """Whether a probe is on the hub's dashboard and not unplugged.
+
+        While unplugged, the hub refuses every per-probe request with a 503,
+        so the entities driving those requests are shown unavailable.
+        """
+        probe = self.my_api.dashboard_probe(ptype, uid)
+        return probe is not None and not fusion.is_probe_disconnected(probe)
+
     async def async_read_probe(self, ptype: str, uid: str) -> None:
         """Read one probe now (``GET /probe``) and push it to the entities.
 

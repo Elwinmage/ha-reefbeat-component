@@ -47,6 +47,7 @@ import aiohttp
 
 from ..const import EC_UNIT_DEFAULT_RANGES
 from .api import HttpResult, ReefBeatAPI, SourceEntry
+from .fusion import is_probe_disconnected
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -117,12 +118,16 @@ class ReefControlAPI(ReefBeatAPI):
             )
             or []
         )
+        # An unplugged probe answers 503 to its offset endpoint: drop its
+        # source while it is disconnected (no pointless request every poll),
+        # it is registered again as soon as the dashboard reports it back.
         wanted = {
             self._offset_source_name(p["uid"])
             for p in probes
             if isinstance(p, dict)
             and str(p.get("type", "")).lower() == "temperature"
             and p.get("uid")
+            and not is_probe_disconnected(p)
         }
         has_leak = any(
             isinstance(p, dict) and str(p.get("type", "")).lower() == "leak"
@@ -334,7 +339,7 @@ class ReefControlAPI(ReefBeatAPI):
 
         return updates
 
-    def _dashboard_probe(self, ptype: str, uid: str) -> dict[str, Any] | None:
+    def dashboard_probe(self, ptype: str, uid: str) -> dict[str, Any] | None:
         """Live reference to a probe's entry in the cached ``/dashboard``."""
         probes = self.get_data(
             "$.sources[?(@.name=='/dashboard')].data.probes",
@@ -375,7 +380,7 @@ class ReefControlAPI(ReefBeatAPI):
             return False
         payload = cast(dict[str, Any], raw)
 
-        probe = self._dashboard_probe(ptype, uid)
+        probe = self.dashboard_probe(ptype, uid)
         if probe is None:
             _LOGGER.debug("Probe %s/%s not in cached dashboard", ptype, uid)
             return False

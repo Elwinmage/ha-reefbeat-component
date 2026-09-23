@@ -1856,6 +1856,17 @@ class ReefControlProbeOffsetNumberEntity(ReefBeatNumberEntity):
         super().__init__(device, description)
         self._uid = uid
 
+    @property
+    def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
+        # Unplugged probe: its offset endpoint is not polled (it answers 503),
+        # so the cached value would be stale and a write would be refused.
+        return bool(
+            super().available
+            and cast(ReefControlCoordinator, self._device).probe_is_connected(
+                "temperature", self._uid
+            )
+        )
+
     async def async_set_native_value(self, value: float) -> None:
         self._attr_native_value = value
         self.async_write_ha_state()
