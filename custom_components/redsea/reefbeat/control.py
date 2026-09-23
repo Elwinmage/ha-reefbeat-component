@@ -263,6 +263,131 @@ class ReefControlAPI(ReefBeatAPI):
                 self.remove_source(name)
         return result
 
+    # -- On-demand probe reading -------------------------------------------
+    # ``GET /probe?type=<type>&uid=<uid>`` asks the hub for a fresh reading of
+    # one probe, without waiting for the next ``/dashboard`` poll. The answer
+    # does not share the dashboard's shape (observed on a real RSCONTROLPRO):
+    #   temperature: {"name", "status", "value"}
+    #   ph / orp:    {"name", "status", "value", "temperature": {"value"}}
+    #   ec:          {"name", "status", "ec", "ppt", "sg", "temperature": {...}}
+    #   ato:         {"name", "status", "ato_sensor_status", "temperature": {...}}
+    #   leak:        {"name", "status", "ec", "leak_status"}
+    # so it is mapped onto the cached ``/dashboard.probes`` entry field by field.
+    _EC_UNITS: tuple[str, ...] = ("ec", "ppt", "sg")
+    _LEAK_STATUS_DETECTED: dict[str, bool] = {
+        "dry": False,
+        "wet": True,
+        "leak": True,
+        "detected": True,
+    }
+
+    @staticmethod
+    def _is_number(value: Any) -> bool:
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+    @classmethod
+    def probe_reading_updates(
+        cls,
+        ptype: str,
+        payload: dict[str, Any],
+        measurement_unit: str | None = None,
+    ) -> dict[str, Any]:
+        """Translate a ``GET /probe`` answer into ``/dashboard.probes`` fields.
+
+        Only fields actually present (and well-typed) in the answer are
+        returned, so a partial or unexpected payload never blanks a cached
+        value. ``measurement_unit`` is the EC probe's displayed unit: its
+        dashboard ``value`` mirrors the reading in that unit.
+        """
+        kind = ptype.lower()
+        updates: dict[str, Any] = {}
+
+        status = payload.get("status")
+        if isinstance(status, str):
+            updates["status"] = status
+
+        if cls._is_number(payload.get("value")):
+            updates["value"] = payload["value"]
+
+        # Embedded temperature compensation (ec / ph / ato probes).
+        temp: Any = payload.get("temperature")
+        if isinstance(temp, dict):
+            temp_value: Any = cast(dict[str, Any], temp).get("value")
+            if cls._is_number(temp_value):
+                updates["temp_value"] = temp_value
+
+        if kind == "ec":
+            for unit in cls._EC_UNITS:
+                if cls._is_number(payload.get(unit)):
+                    updates[unit] = payload[unit]
+            unit = str(measurement_unit or "").lower()
+            if unit in updates:
+                updates["value"] = updates[unit]
+        elif kind == "ato":
+            level = payload.get("ato_sensor_status")
+            if isinstance(level, str):
+                updates["water_level"] = level
+        elif kind == "leak":
+            leak = payload.get("leak_status")
+            if isinstance(leak, str) and leak.lower() in cls._LEAK_STATUS_DETECTED:
+                updates["detected"] = cls._LEAK_STATUS_DETECTED[leak.lower()]
+
+        return updates
+
+    def _dashboard_probe(self, ptype: str, uid: str) -> dict[str, Any] | None:
+        """Live reference to a probe's entry in the cached ``/dashboard``."""
+        probes = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes",
+            is_None_possible=True,
+            cached=False,
+        )
+        if not isinstance(probes, list):
+            return None
+        for item in cast(list[Any], probes):
+            if not isinstance(item, dict):
+                continue
+            probe = cast(dict[str, Any], item)
+            if (
+                probe.get("uid") == uid
+                and str(probe.get("type", "")).lower() == ptype.lower()
+            ):
+                return probe
+        return None
+
+    async def read_probe(self, ptype: str, uid: str) -> bool:
+        """Read one probe now and patch the cached ``/dashboard`` with it.
+
+        Returns True when the cache was updated. The dashboard entry is looked
+        up *after* the request: a poll may have replaced the whole payload
+        while waiting, and patching the old dict would be lost.
+        """
+        result = await self.http_get(f"/probe?type={ptype}&uid={uid}")
+        if not result or not result.get("ok"):
+            _LOGGER.warning(
+                "Reading probe %s/%s failed: %s",
+                ptype,
+                uid,
+                result.get("status") if result else "no response",
+            )
+            return False
+        raw: Any = result.get("json")
+        if not isinstance(raw, dict):
+            return False
+        payload = cast(dict[str, Any], raw)
+
+        probe = self._dashboard_probe(ptype, uid)
+        if probe is None:
+            _LOGGER.debug("Probe %s/%s not in cached dashboard", ptype, uid)
+            return False
+
+        updates = self.probe_reading_updates(
+            ptype, payload, probe.get("measurement_unit")
+        )
+        if not updates:
+            return False
+        probe.update(updates)
+        return True
+
     # -- Per-probe buzzer / notify (config, readable via /probe/config) ----
     # Where each probe type's primary buzzer / notify lives:
     #   "top"  -> top-level field in the /probe/config entry

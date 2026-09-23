@@ -205,6 +205,12 @@
       "led_identify": {
         "name": "Identifier"
       },
+      "get_temperature": {
+        "name": "Obtenir la température"
+      },
+      "probe_get_value": {
+        "name": "Lire {probe} maintenant"
+      },
       "maint_ato_ec_sensor": {
         "name": "Nettoyer le capteur EC"
       },

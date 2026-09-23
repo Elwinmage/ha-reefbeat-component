@@ -176,6 +176,46 @@ class ReefBeatAPI:
         self._live_config_update = bool(live_config_update)
         self._header: dict[str, str] | None = None
 
+    # -- HTTP status policy ----------------------------------------------------
+    # Local firmwares answer 503 when they refuse a request for a lasting
+    # reason (probe disconnected from a RSControl, port not installed, leak
+    # probe config written through /probe/config, ...): retrying the same
+    # request cannot succeed, so it is a definitive failure there. The cloud
+    # API is a regular web service, where 503 is a genuine transient outage
+    # worth retrying — see ``_is_definitive_failure``.
+    _LOCAL_REFUSAL_STATUS = 503
+
+    def _path_of(self, url: str) -> str:
+        """Endpoint path of a full URL built on ``self._base_url``."""
+        base = getattr(self, "_base_url", "")
+        if base and url.startswith(base):
+            return url[len(base) :] or "/"
+        return url
+
+    def _is_quirk_ok(self, status: int, path: str, method: str) -> bool:
+        """Whether a non-2xx status means success for this device family.
+
+        None by default. Device families whose firmware reports success with
+        an error status override this, as narrowly as possible.
+        """
+        return False
+
+    def _is_status_ok(self, status: int, path: str, method: str) -> bool:
+        """Whether an HTTP answer is a success (2xx or a known firmware quirk)."""
+        return 200 <= status < 300 or self._is_quirk_ok(status, path, method)
+
+    def _is_definitive_failure(self, status: int) -> bool:
+        """Whether a failed status can never succeed on retry.
+
+        Covers the 4xx (except 401, which a token renewal may fix) and, on
+        local devices only, the firmware's 503 refusal.
+        """
+        if 400 <= status < 500 and status != 401:
+            return True
+        return status == self._LOCAL_REFUSAL_STATUS and not getattr(
+            self, "_secure", False
+        )
+
     def _build_result(
         self,
         *,
@@ -191,7 +231,7 @@ class ReefBeatAPI:
         """Build a structured result object for debugging and service responses."""
         elapsed_ms = int((time.time() - started) * 1000)
         result: HttpResult = {
-            "ok": 200 <= status < 300,
+            "ok": self._is_status_ok(int(status), self._path_of(url), method),
             "method": method,
             "url": url,
             "status": int(status),
@@ -288,9 +328,8 @@ class ReefBeatAPI:
                             url, headers=self._header, ssl=False
                         ) as resp2:
                             resp = resp2
-                    # 503 => Patch for some RSWAVE45
-                    if resp.status >= 400 and not (
-                        resp.status == 503 and url[-1] == "/"
+                    if resp.status >= 400 and not self._is_status_ok(
+                        resp.status, endpoint, "get"
                     ):
                         _LOGGER.debug(
                             "GET %s failed: %s %s %s",
@@ -299,10 +338,11 @@ class ReefBeatAPI:
                             resp.reason,
                             source,
                         )
+                        # A definitive refusal (4xx, local 503) is not
+                        # retried and does not mark the device in error: it
+                        # answered, and the same request will never succeed.
                         return (
-                            None
-                            if 400 <= resp.status < 500 and resp.status != 401
-                            else False
+                            None if self._is_definitive_failure(resp.status) else False
                         )
 
                     # Prefer JSON, but tolerate text
@@ -678,10 +718,15 @@ class ReefBeatAPI:
                         raise ValueError(f"Unsupported method: {method}")
 
                 status = int(last_result.get("status", 0)) if last_result else 0
-                status_ok = status in (200, 201, 202, 503)
+                status_ok = bool(last_result and last_result.get("ok"))
 
-                # Hard failures that should not be retried
-                if status in (400, 404):
+                # Hard failures that should not be retried. Other 4xx keep
+                # the historical retry behaviour; a local 503 is a firmware
+                # refusal (see _is_definitive_failure).
+                if status in (400, 404) or (
+                    status == self._LOCAL_REFUSAL_STATUS
+                    and self._is_definitive_failure(status)
+                ):
                     error_count = HTTP_MAX_RETRY
 
                 if not status_ok:

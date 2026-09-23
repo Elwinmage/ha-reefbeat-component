@@ -27,6 +27,15 @@ _LOGGER = logging.getLogger(__name__)
 class ReefWaveAPI(ReefBeatAPI):
     """ReefWave API wrapper (sources and preview defaults)."""
 
+    def _is_quirk_ok(self, status: int, path: str, method: str) -> bool:
+        """Accept the RSWAVE45 firmware's spurious 503.
+
+        Some RSWAVE45 firmwares answer 503 to requests they did apply: every
+        write, and the GET of the root ``/`` status page. Limited to those, so
+        a 503 on any other read still counts as a failure.
+        """
+        return status == 503 and (method.lower() != "get" or path == "/")
+
     def __init__(
         self,
         ip: str,

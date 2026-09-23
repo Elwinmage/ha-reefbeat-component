@@ -1584,6 +1584,15 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
         await cast(ReefPowerAPI, self.my_api).remove_temperature()
         await self.async_request_refresh(wait=PROBE_REFRESH_DELAY)
 
+    async def get_current_temperature(self) -> None:
+        """Read the local temperature now (``GET /temperature``).
+
+        The fresh values are merged into the cached ``/dashboard.temperature``
+        and pushed to the entities, without waiting for the next poll.
+        """
+        if await cast(ReefPowerAPI, self.my_api).get_current_temperature():
+            self.async_update_listeners()
+
 
 # REEFCONTROL
 class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
@@ -1803,6 +1812,15 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         await self.async_request_refresh(config=True)
 
     # -- Probe add / remove (driven by the options flow) -------------------
+    async def async_read_probe(self, ptype: str, uid: str) -> None:
+        """Read one probe now (``GET /probe``) and push it to the entities.
+
+        The fresh values are written into the cached ``/dashboard.probes``
+        entry, so every entity of that probe updates without a full poll.
+        """
+        if await self.my_api.read_probe(ptype, uid):
+            self.async_update_listeners()
+
     def list_probes(self) -> list[dict[str, str]]:
         """Current probes as ``{type, uid, name}`` (for the delete picker)."""
         probes = self.get_data(

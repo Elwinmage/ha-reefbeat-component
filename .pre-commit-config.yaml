@@ -110,5 +110,5 @@ repos:
         name: 100% coverage
         language: system
         verbose: true
-        entry: bash -c "[ `head -n 3 reports/coverage.xml |grep -oE 'line-rate=\"\b(0(\.[0-9]+)?|1(\.0+)?)\b\"';` == 'line-rate=\"1\"' ]"
+        entry: bash -c "./scripts/coverage.sh "
         pass_filenames: false

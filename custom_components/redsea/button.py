@@ -60,6 +60,7 @@ from .maintenance import (
     iter_maintenance_probes,
     tasks_for,
 )
+from .probe_entities import probe_display_name, probe_key_prefix
 from .supplements_list import SUPPLEMENTS
 
 _LOGGER = logging.getLogger(__name__)
@@ -143,6 +144,11 @@ class ReefBeatButtonEntityDescription(ButtonEntityDescription):
     # dependency_values/dependency_reverse triple can't express (e.g. "A and
     # not B"). Takes precedence over dependency when set.
     available_fn: Callable[[ReefBeatCoordinator], bool] | None = None
+    # Whether to re-read the device after the press. Off for buttons whose
+    # press_fn already writes fresh values into the cache (on-demand probe
+    # readings): the follow-up /dashboard poll could only bring back an
+    # older reading.
+    refresh_after: bool = True
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -263,6 +269,49 @@ def _power_has_paired_control(device: ReefBeatCoordinator) -> bool:
     )
 
 
+def _control_probe_read_buttons(
+    device: ReefBeatCoordinator,
+) -> tuple[ReefBeatButtonEntityDescription, ...]:
+    """Build one on-demand reading button per probe of a RSControl hub."""
+    raw_probes = device.get_data(
+        "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+    )
+    candidates: list[Any] = (
+        cast(list[Any], raw_probes) if isinstance(raw_probes, list) else []
+    )
+    probes: list[dict[str, Any]] = [
+        cast(dict[str, Any], p)
+        for p in candidates
+        if isinstance(p, dict)
+        and cast(dict[str, Any], p).get("uid")
+        and cast(dict[str, Any], p).get("type")
+    ]
+    buttons: list[ReefBeatButtonEntityDescription] = []
+    for probe in probes:
+        ptype = str(probe["type"]).lower()
+        uid = str(probe["uid"])
+        buttons.append(
+            ReefBeatButtonEntityDescription(
+                key=f"{probe_key_prefix(ptype, uid)}get_value",
+                translation_key="probe_get_value",
+                translation_placeholders={
+                    "probe": probe_display_name(probe, probes),
+                },
+                exists_fn=lambda _: True,
+                # Bind type/uid in the defaults (late-binding closure trap).
+                press_fn=(
+                    lambda d, t=ptype, u=uid: cast(
+                        ReefControlCoordinator, d
+                    ).async_read_probe(t, u)
+                ),
+                icon="mdi:refresh",
+                entity_category=EntityCategory.CONFIG,
+                refresh_after=False,
+            )
+        )
+    return tuple(buttons)
+
+
 POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
     # Local temperature probe add/remove, and unlinking a paired RSControl
     # hub, are mutually exclusive: a power center gets its temperature
@@ -287,6 +336,18 @@ POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
             not _power_has_local_temperature(device)
             and not _power_has_paired_control(device)
         ),
+    ),
+    ReefBeatButtonEntityDescription(
+        key="get_temperature",
+        translation_key="get_temperature",
+        exists_fn=lambda _: True,
+        press_fn=lambda device: cast(
+            ReefPowerCoordinator, device
+        ).get_current_temperature(),
+        icon="mdi:water-thermometer-outline",
+        entity_category=EntityCategory.CONFIG,
+        available_fn=lambda device: _power_has_local_temperature(device),
+        refresh_after=False,
     ),
     ReefBeatButtonEntityDescription(
         key="remove_temperature",
@@ -594,6 +655,18 @@ async def async_setup_entry(
             )
         _add_described_entities(
             entities, device, ReefBeatButtonEntity, tuple(control_unsub_buttons)
+        )
+
+        # One "read now" button per ReefSense probe: GET /probe?type&uid
+        # fetches a fresh reading and patches the cached /dashboard entry, so
+        # the probe's entities update without waiting for the next poll. The
+        # key uses the probe's entity prefix, so the button is purged/renamed
+        # together with the probe's other entities.
+        _add_described_entities(
+            entities,
+            device,
+            ReefBeatButtonEntity,
+            _control_probe_read_buttons(device),
         )
 
     elif isinstance(device, ReefPowerCoordinator):
@@ -1143,7 +1216,8 @@ class ReefBeatButtonEntity(ButtonEntity):
         #
         # A description with no press_fn is not a no-op: this refresh is its
         # whole action, which is how the fetch_data button works.
-        await self._device.async_request_refresh()
+        if self.desc.refresh_after:
+            await self._device.async_request_refresh()
 
 
 # REEFDOSE
