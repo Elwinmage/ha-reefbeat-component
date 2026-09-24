@@ -2,6 +2,12 @@ fail_fast: true
 repos:
   - repo: local
     hooks:
+      - id: display_banner
+        name: Header Banner
+        language: system
+        verbose: true
+        pass_filenames: false
+        entry: bash -c 'echo -e "\033[1;36m========================================================================\n                   EXÉCUTION DES VÉRIFICATIONS PRE-COMMIT\n                   $(date)\n========================================================================\033[0m"'
       - id: check-packages-versions
         #  ne pas oublier le -v : pre-commit run check-packages-versions --all-files -v
         name: Afficher les versions des dépendances
