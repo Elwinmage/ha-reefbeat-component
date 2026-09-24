@@ -227,8 +227,6 @@ def _rename_probe_entities(
     ``unique_id`` matches the newly-built entity. Returns how many were renamed.
     Collisions (target unique_id already present) are skipped.
     """
-    from homeassistant.helpers import entity_registry as er
-
     from . import probe_entities as pe
     from .const import CONFIG_FLOW_HW_MODEL
     from .maintenance import PROBE_SCOPES, tasks_for
@@ -264,8 +262,6 @@ def _purge_orphan_probe_entities(
     drops the leftovers. Guarded so a failed dashboard fetch (no probe data at
     all) never wipes every probe entity.
     """
-    from homeassistant.helpers import entity_registry as er
-
     from . import probe_entities as pe
     from .const import CONFIG_FLOW_HW_MODEL
     from .maintenance import PROBE_SCOPES, tasks_for
