@@ -306,6 +306,23 @@ def _purge_orphan_probe_entities(
             registry.async_remove(ent.entity_id)
 
 
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Allow deleting a device from the UI only once no entities are left on it.
+
+    Devices still in use keep refusing deletion. Empty ones - e.g. the
+    pre-v2.0.0 RSRUN pump sub-devices whose entities moved to the new-format
+    sub-devices - can then be removed without deleting the whole entry.
+    """
+    from homeassistant.helpers import entity_registry as er
+
+    ent_reg = er.async_get(hass)
+    return not er.async_entries_for_device(
+        ent_reg, device_entry.id, include_disabled_entities=True
+    )
+
+
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry and its platforms."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

@@ -324,3 +324,57 @@ async def test_services_clean_message_and_request_handlers(
     req = handlers[f"{redsea_init.DOMAIN}.request"]
     bad = await req(SimpleNamespace(data={"device_id": 123}))
     assert bad == {"error": "Invalid device_id"}
+
+
+@pytest.mark.asyncio
+async def test_remove_config_entry_device_only_when_empty(hass: HomeAssistant) -> None:
+    """Empty devices can be deleted from the UI; devices with entities cannot."""
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+
+    import custom_components.redsea as integration
+
+    mock_entry = MockConfigEntry(
+        domain=DOMAIN, data={"ip_address": "1.2.3.4", "hw_model": "X"}
+    )
+    mock_entry.add_to_hass(hass)
+    entry = cast(Any, mock_entry)
+    dev_reg = dr.async_get(hass)
+    ent_reg = er.async_get(hass)
+
+    empty = dev_reg.async_get_or_create(
+        config_entry_id=entry.entry_id, identifiers={(DOMAIN, "old_pump_1")}
+    )
+    used = dev_reg.async_get_or_create(
+        config_entry_id=entry.entry_id, identifiers={(DOMAIN, "pump_1")}
+    )
+    ent_reg.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        "pump_1_speed",
+        config_entry=entry,
+        device_id=used.id,
+    )
+    disabled_only = dev_reg.async_get_or_create(
+        config_entry_id=entry.entry_id, identifiers={(DOMAIN, "pump_2")}
+    )
+    ent_reg.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        "pump_2_speed",
+        config_entry=entry,
+        device_id=disabled_only.id,
+        disabled_by=er.RegistryEntryDisabler.USER,
+    )
+
+    assert (
+        await integration.async_remove_config_entry_device(hass, entry, empty) is True
+    )
+    assert (
+        await integration.async_remove_config_entry_device(hass, entry, used) is False
+    )
+    # A disabled entity still counts as in use.
+    assert (
+        await integration.async_remove_config_entry_device(hass, entry, disabled_only)
+        is False
+    )
