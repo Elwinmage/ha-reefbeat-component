@@ -36,6 +36,7 @@ from homeassistant.core import (
     callback,
 )
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -315,8 +316,6 @@ async def async_remove_config_entry_device(
     pre-v2.0.0 RSRUN pump sub-devices whose entities moved to the new-format
     sub-devices - can then be removed without deleting the whole entry.
     """
-    from homeassistant.helpers import entity_registry as er
-
     ent_reg = er.async_get(hass)
     return not er.async_entries_for_device(
         ent_reg, device_entry.id, include_disabled_entities=True
