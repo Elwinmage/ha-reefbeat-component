@@ -57,15 +57,15 @@ jobs:
 
           # Pour la beta, on installe la version pre-release du framework de test
           if [[ "${{ matrix.ha-version }}" == "beta" ]]; then
-            pip install --pre "pytest-homeassistant-custom-component>=0.13.360"
+            pip install --pre "pytest-homeassistant-custom-component>=0.13.366"
           else
-            pip install "pytest-homeassistant-custom-component>=0.13.360"
+            pip install "pytest-homeassistant-custom-component>=0.13.366"
           fi
 
           # Installation des dépendances du manifest
           python -c "import json; print('\n'.join(json.load(open('custom_components/redsea/manifest.json'))['requirements']))" > requirements_manifest.txt
           pip install -r requirements_manifest.txt
-
+          pip install "jsonpath-ng>=1.7.0"
       - name: Run Pytest
         run: |
           pytest --cov=custom_components --cov-report=xml

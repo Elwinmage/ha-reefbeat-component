@@ -36,6 +36,7 @@ from homeassistant.core import (
     callback,
 )
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -226,8 +227,6 @@ def _rename_probe_entities(
     ``unique_id`` matches the newly-built entity. Returns how many were renamed.
     Collisions (target unique_id already present) are skipped.
     """
-    from homeassistant.helpers import entity_registry as er
-
     from . import probe_entities as pe
     from .const import CONFIG_FLOW_HW_MODEL
     from .maintenance import PROBE_SCOPES, tasks_for
@@ -263,8 +262,6 @@ def _purge_orphan_probe_entities(
     drops the leftovers. Guarded so a failed dashboard fetch (no probe data at
     all) never wipes every probe entity.
     """
-    from homeassistant.helpers import entity_registry as er
-
     from . import probe_entities as pe
     from .const import CONFIG_FLOW_HW_MODEL
     from .maintenance import PROBE_SCOPES, tasks_for
@@ -304,6 +301,21 @@ def _purge_orphan_probe_entities(
         if orphan:
             _LOGGER.info("Removing orphaned probe entity %s", ent.entity_id)
             registry.async_remove(ent.entity_id)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Allow deleting a device from the UI only once no entities are left on it.
+
+    Devices still in use keep refusing deletion. Empty ones - e.g. the
+    pre-v2.0.0 RSRUN pump sub-devices whose entities moved to the new-format
+    sub-devices - can then be removed without deleting the whole entry.
+    """
+    ent_reg = er.async_get(hass)
+    return not er.async_entries_for_device(
+        ent_reg, device_entry.id, include_disabled_entities=True
+    )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

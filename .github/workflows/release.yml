@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: "Set version number from trigger's tag"
         id: update_manifest
@@ -55,6 +55,6 @@ jobs:
           prerelease: true
           generateReleaseNotes: true
           tag: ${{ github.event.inputs.tag }}
-          artifacts: redsea.zip" # 👈 Nom officiel attendu
+          artifacts: redsea.zip # 👈 Nom officiel attendu
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
