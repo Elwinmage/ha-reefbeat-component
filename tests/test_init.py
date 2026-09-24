@@ -135,10 +135,13 @@ async def test_async_setup_entry_returns_false_when_building_coordinator_fails(
 
 
 @pytest.mark.asyncio
-async def test_async_setup_entry_returns_false_when_coordinator_async_setup_fails(
+async def test_async_setup_entry_not_ready_when_coordinator_async_setup_fails(
     hass: HomeAssistant,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """An unreachable device must be retried, not left in setup_error."""
+    from homeassistant.exceptions import ConfigEntryNotReady
+
     import custom_components.redsea as integration
 
     entry = MockConfigEntry(
@@ -153,7 +156,37 @@ async def test_async_setup_entry_returns_false_when_coordinator_async_setup_fail
         integration, "_build_coordinator", lambda _h, _e: _Coordinator()
     )
 
-    assert await integration.async_setup_entry(hass, cast(Any, entry)) is False
+    with pytest.raises(ConfigEntryNotReady, match="setup failed"):
+        await integration.async_setup_entry(hass, cast(Any, entry))
+
+
+@pytest.mark.asyncio
+async def test_unreachable_device_entry_goes_to_setup_retry(
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """End to end through Home Assistant: the entry lands in SETUP_RETRY."""
+    from homeassistant.config_entries import ConfigEntryState
+
+    import custom_components.redsea as integration
+
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={"ip_address": "1.2.3.4", "hw_model": "X"}
+    )
+    entry.add_to_hass(hass)
+
+    class _Coordinator:
+        async def async_setup(self) -> None:
+            raise OSError("host unreachable")
+
+    monkeypatch.setattr(
+        integration, "_build_coordinator", lambda _h, _e: _Coordinator()
+    )
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert cast(Any, entry).state is ConfigEntryState.SETUP_RETRY
 
 
 @pytest.mark.asyncio

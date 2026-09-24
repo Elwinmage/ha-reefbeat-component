@@ -35,6 +35,7 @@ from homeassistant.core import (
     SupportsResponse,
     callback,
 )
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.typing import ConfigType
 
@@ -177,9 +178,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     try:
         await coordinator.async_setup()
-    except Exception:
-        _LOGGER.exception("Failed to setup coordinator for entry_id=%s", entry.entry_id)
-        return False
+    except Exception as err:
+        # Usually the device is unreachable (powered off, rebooting, Wi-Fi
+        # down). ConfigEntryNotReady makes Home Assistant retry with backoff,
+        # so the entry recovers on its own once the device is back; returning
+        # False would leave it in setup_error until reloaded by hand.
+        raise ConfigEntryNotReady(f"Failed to set up {entry.title}: {err}") from err
 
     # Per-entry persistent storage for user-driven maintenance tasks.
     # Loaded eagerly so platforms read fully-populated state at setup time.
