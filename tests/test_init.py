@@ -390,3 +390,112 @@ async def test_get_control_probes_service_handler(
     hass.data[redsea_init.DOMAIN]["ctl2"] = _StubControl("hwid2", "")
     resp4 = await handler(SimpleNamespace(data={"hwid": "hwid2"}))
     assert resp4 == {"hwid": "hwid2", "probes": []}
+
+
+@pytest.mark.asyncio
+async def test_get_control_subscriptions_service_handler(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """redsea.get_control_subscriptions reads the hub's socket rules live
+    (GET /subscription-info), addressed by hwid like get_control_probes.
+    """
+    import custom_components.redsea as redsea_init
+
+    handlers: dict[str, Any] = {}
+
+    def _async_register(
+        self: Any,
+        domain: str,
+        service: str,
+        service_func: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        handlers[f"{domain}.{service}"] = service_func
+
+    monkeypatch.setattr(
+        type(hass.services), "async_register", _async_register, raising=True
+    )
+    assert await redsea_init.async_setup(hass, {}) is True
+    handler = handlers[f"{redsea_init.DOMAIN}.get_control_subscriptions"]
+
+    class _StubControl:
+        def __init__(self, hwid: str, result: Any) -> None:
+            self.model_id = hwid
+            self.my_api = SimpleNamespace(http_get=AsyncMock(return_value=result))
+
+    monkeypatch.setattr(redsea_init, "ReefControlCoordinator", _StubControl)
+
+    external = [
+        {
+            "number": 1,
+            "type": "temperature",
+            "uid": "0x000F7",
+            "sensor": "value",
+            "is_above": True,
+            "value": 26.5,
+            "hysteresis": 0.2,
+            "trigger_op": "on",
+            "last_sock_op": "off",
+        }
+    ]
+    internal = [{"number": 1, "type": "ato"}]
+    ok = _StubControl(
+        "hub1",
+        {
+            "ok": True,
+            "status": 200,
+            "json": {"external": external, "internal": internal},
+        },
+    )
+    hass.data.setdefault(redsea_init.DOMAIN, {})
+    hass.data[redsea_init.DOMAIN]["ctl"] = ok
+    hass.data[redsea_init.DOMAIN]["other"] = object()
+
+    # Nominal: both rule lists returned, read live from the hub.
+    resp = await handler(SimpleNamespace(data={"hwid": "hub1"}))
+    assert resp == {"hwid": "hub1", "external": external, "internal": internal}
+    ok.my_api.http_get.assert_awaited_once_with("/subscription-info")
+
+    # Missing/blank hwid.
+    assert await handler(SimpleNamespace(data={})) == {"error": "hwid is required"}
+    assert await handler(SimpleNamespace(data={"hwid": ""})) == {
+        "error": "hwid is required"
+    }
+
+    # Unknown hwid.
+    assert await handler(SimpleNamespace(data={"hwid": "nope"})) == {
+        "error": "No RSCONTROL hub found for hwid 'nope'"
+    }
+
+    # Request raising.
+    boom = _StubControl("hub2", None)
+    boom.my_api.http_get.side_effect = RuntimeError("down")
+    hass.data[redsea_init.DOMAIN]["ctl2"] = boom
+    assert await handler(SimpleNamespace(data={"hwid": "hub2"})) == {
+        "error": "request failed"
+    }
+
+    # Failed request, no answer, or a non-dict payload.
+    for i, result in enumerate(
+        (
+            {"ok": False, "status": 503},
+            None,
+            {"ok": True, "status": 200, "json": ["not", "a", "dict"]},
+        )
+    ):
+        hwid = f"bad{i}"
+        hass.data[redsea_init.DOMAIN][hwid] = _StubControl(hwid, result)
+        assert await handler(SimpleNamespace(data={"hwid": hwid})) == {
+            "error": f"can not read the subscriptions of hub '{hwid}'"
+        }
+
+    # Lists missing or malformed -> empty lists, not a crash.
+    hass.data[redsea_init.DOMAIN]["partial"] = _StubControl(
+        "partial", {"ok": True, "json": {"external": "x"}}
+    )
+    assert await handler(SimpleNamespace(data={"hwid": "partial"})) == {
+        "hwid": "partial",
+        "external": [],
+        "internal": [],
+    }

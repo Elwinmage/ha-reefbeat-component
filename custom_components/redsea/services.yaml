@@ -119,3 +119,19 @@ get_control_probes:
       example: "d4e9f4e89208"
       selector:
         text:
+
+# Read back the rules a RSCONTROL hub applies to the sockets of its paired
+# RSPower (live GET /subscription-info), by hardware id like
+# get_control_probes: the RSPower only stores the probe type a socket
+# follows, the hub keeps the probe uid, sub-sensor and thresholds.
+get_control_subscriptions:
+  fields:
+    hwid:
+      name: Hub hardware ID
+      description: >-
+        The RSCONTROL hub's hardware id (hwid), e.g. as reported in a
+        paired RSPower's connected_device.hwid.
+      required: true
+      example: "d4e9f4e89208"
+      selector:
+        text:

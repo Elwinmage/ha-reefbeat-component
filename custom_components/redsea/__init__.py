@@ -528,6 +528,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         supports_response=SupportsResponse.OPTIONAL,
     )
 
+    def _find_control_coordinator(hwid: str) -> ReefControlCoordinator | None:
+        """Return the RSCONTROL coordinator whose hardware id is `hwid`."""
+        for entry_data in hass.data.get(DOMAIN, {}).values():
+            if (
+                isinstance(entry_data, ReefControlCoordinator)
+                and entry_data.model_id == hwid
+            ):
+                return entry_data
+        return None
+
     @callback
     async def handle_get_control_probes(call: ServiceCall) -> ServiceResponse:
         """Return a RSCONTROL hub's probes (identity + current values), by hwid.
@@ -548,14 +558,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         if not isinstance(hwid, str) or not hwid:
             return {"error": "hwid is required"}
 
-        coordinator = None
-        for entry_data in hass.data.get(DOMAIN, {}).values():
-            if (
-                isinstance(entry_data, ReefControlCoordinator)
-                and entry_data.model_id == hwid
-            ):
-                coordinator = entry_data
-                break
+        coordinator = _find_control_coordinator(hwid)
         if coordinator is None:
             return {"error": f"No RSCONTROL hub found for hwid '{hwid}'"}
 
@@ -569,6 +572,63 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         DOMAIN,
         "get_control_probes",
         handle_get_control_probes,
+        supports_response=SupportsResponse.ONLY,
+    )
+
+    @callback
+    async def handle_get_control_subscriptions(
+        call: ServiceCall,
+    ) -> ServiceResponse:
+        """Return the rules a RSCONTROL hub applies to sockets, by hwid.
+
+        A RSPower socket in sensor mode is configured on both devices: the
+        RSPower only stores which probe *type* it follows, while the hub
+        keeps the rule itself — the exact probe (uid, as two probes may
+        share a type), sub-sensor and thresholds — under the RSPower socket
+        number. The card reads them back through this service to show the
+        socket's real configuration, addressed like `get_control_probes`.
+
+        Fetched live from the hub's `GET /subscription-info` rather than
+        from the coordinator cache: it is not part of the polled sources,
+        and the card calls it right after writing a rule, so a cached copy
+        would show the previous one.
+
+        Response: `{hwid, external: [...], internal: [...]}` where
+        `external` holds one rule per RSPower socket
+        (`{number, type, uid, sensor, is_above, value, hysteresis,
+        trigger_op, last_sock_op}`) and `internal` the hub's own ports.
+        """
+        hwid = call.data.get("hwid")
+        if not isinstance(hwid, str) or not hwid:
+            return {"error": "hwid is required"}
+
+        coordinator = _find_control_coordinator(hwid)
+        if coordinator is None:
+            return {"error": f"No RSCONTROL hub found for hwid '{hwid}'"}
+
+        try:
+            r = await coordinator.my_api.http_get("/subscription-info")
+        except Exception:
+            _LOGGER.exception("Cannot read /subscription-info from hub %s", hwid)
+            return {"error": "request failed"}
+
+        data = r.get("json") if r and r.get("ok") else None
+        if not isinstance(data, dict):
+            return {"error": f"can not read the subscriptions of hub '{hwid}'"}
+
+        external = data.get("external")
+        internal = data.get("internal")
+        return {
+            "hwid": hwid,
+            "external": external if isinstance(external, list) else [],
+            "internal": internal if isinstance(internal, list) else [],
+        }
+
+    _LOGGER.debug("Registering service redsea.get_control_subscriptions")
+    hass.services.async_register(
+        DOMAIN,
+        "get_control_subscriptions",
+        handle_get_control_subscriptions,
         supports_response=SupportsResponse.ONLY,
     )
 
