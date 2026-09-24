@@ -35,6 +35,8 @@ from homeassistant.components.switch import SwitchEntity, SwitchEntityDescriptio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -445,6 +447,78 @@ RUN_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
 # -----------------------------------------------------------------------------
 
 
+def _cloud_shortcut_unique_id(
+    serial: str, description: ReefCloudSwitchEntityDescription
+) -> str:
+    """Unique id of a cloud shortcut switch.
+
+    The shortcut keys (``shortcut_feeding_1``...) repeat in every aquarium of
+    the account, so the aquarium uid must be part of the id: without it, the
+    shortcuts of a second aquarium collided with the first one's and were
+    dropped by Home Assistant.
+    """
+    aquarium_uid = description.aquarium.get("uid")
+    if not aquarium_uid:
+        return f"{serial}_{description.key}"
+    return f"{serial}_{aquarium_uid}_{description.key}"
+
+
+def _migrate_cloud_shortcut_unique_ids(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    device: ReefBeatCloudCoordinator,
+    descriptions: list[ReefCloudSwitchEntityDescription],
+) -> None:
+    """Move pre-existing shortcut switches onto the per-aquarium unique id.
+
+    Before the aquarium uid was part of the id, only one aquarium's shortcuts
+    could be registered, under ``{serial}_{key}``. The aquarium that owns such
+    an entry is found through its device (one device per aquarium), so its
+    entity_id, history and customisations carry over. With a single aquarium
+    on the account, the device is not even needed.
+    """
+    ent_reg = er.async_get(hass)
+    dev_reg = dr.async_get(hass)
+    serial = device.serial
+    aquarium_uids = {
+        str(d.aquarium["uid"]) for d in descriptions if d.aquarium.get("uid")
+    }
+
+    for description in descriptions:
+        aquarium_uid = description.aquarium.get("uid")
+        if not aquarium_uid:
+            continue
+        old_unique_id = f"{serial}_{description.key}"
+        entity_id = ent_reg.async_get_entity_id("switch", DOMAIN, old_unique_id)
+        if entity_id is None:
+            continue
+        registry_entry = ent_reg.async_get(entity_id)
+        if registry_entry is None or registry_entry.config_entry_id != entry.entry_id:
+            continue
+
+        if len(aquarium_uids) > 1:
+            # Several aquariums: only migrate onto the aquarium whose device
+            # holds the entity.
+            identifiers = device.aquarium_device_info(
+                description.aquarium.get("name")
+            ).get("identifiers", set())
+            owner = (
+                dev_reg.async_get(registry_entry.device_id)
+                if registry_entry.device_id
+                else None
+            )
+            if owner is None or not (owner.identifiers & set(identifiers)):
+                continue
+
+        new_unique_id = _cloud_shortcut_unique_id(serial, description)
+        if ent_reg.async_get_entity_id("switch", DOMAIN, new_unique_id):
+            continue  # already migrated or created: do not collide
+        _LOGGER.info(
+            "Migrating shortcut switch %s to unique id %s", entity_id, new_unique_id
+        )
+        ent_reg.async_update_entity(entity_id, new_unique_id=new_unique_id)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -527,6 +601,7 @@ async def async_setup_entry(
                     )
                 )
 
+        _migrate_cloud_shortcut_unique_ids(hass, entry, device, cloud_descs)
         entities.extend(
             ReefCloudSwitchEntity(device, description)
             for description in cloud_descs
@@ -1994,7 +2069,9 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
         else:
             self._attr_is_on = False
 
-        self._attr_unique_id = f"{device.serial}_{entity_description.key}"
+        self._attr_unique_id = _cloud_shortcut_unique_id(
+            device.serial, entity_description
+        )
 
         self._typed_desc: ReefCloudSwitchEntityDescription = entity_description
         self.entity_description = cast(SwitchEntityDescription, entity_description)
