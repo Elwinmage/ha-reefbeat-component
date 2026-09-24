@@ -647,3 +647,17 @@ async def test_install_probe_seeds_defaults_for_every_configurable_type() -> Non
         ],
         "put",
     )
+
+
+def test_control_api_polls_subscription_info_as_data() -> None:
+    """/subscription-info (probe -> socket rules) is refreshed on every poll,
+    so a rule changed outside Home Assistant reaches the RSPower socket_N_mode
+    `sensor_config` attribute; the hub's settings stay config sources.
+    """
+    session: Any = object()
+    api = ReefControlAPI("192.0.2.1", False, session)
+    types = {s["name"]: s["type"] for s in api.data["sources"]}
+
+    assert types["/subscription-info"] == "data"
+    for name in ("/configuration", "/ports/config", "/probe/config"):
+        assert types[name] == "config"

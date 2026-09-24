@@ -1559,6 +1559,63 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
         await cast(ReefPowerAPI, self.my_api).unpair_control()
         await self.async_request_refresh(config=True)
 
+    def connected_control(self) -> ReefControlCoordinator | None:
+        """The RSCONTROL hub this power center is paired with, if set up here.
+
+        Matched on the hub's hardware id, as reported by the power center's
+        own ``/dashboard.connected_device.hwid``.
+        """
+        hwid = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid",
+            is_None_possible=True,
+        )
+        if not hwid:
+            return None
+        for coordinator in self._hass.data.get(DOMAIN, {}).values():
+            if (
+                isinstance(coordinator, ReefControlCoordinator)
+                and coordinator.model_id == hwid
+            ):
+                return coordinator
+        return None
+
+    def socket_sensor_config(self, socket: int) -> tuple[str | None, Any]:
+        """Threshold rule driving a socket in sensor mode, and where it lives.
+
+        Returns ``(source, rule)``:
+
+        - ``("local", rule)``: the socket follows the power center's own
+          temperature probe; the rule is its ``/temperature/subscriptions``
+          entry (``value``, ``is_above``, ``turn_on``, ...).
+        - ``("control", rule)``: the socket follows a probe of the paired
+          RSCONTROL hub. The power center only keeps the probe type
+          (``sensor.app_cache`` in ``/sockets/config``); the hub holds the
+          rule under the socket number, in its ``/subscription-info``
+          ``external`` list (``type``, ``uid``, ``sensor``, ``is_above``,
+          ``value``, ``hysteresis``, ``trigger_op``, ``last_sock_op``).
+        - ``(None, None)``: no rule known for this socket.
+        """
+        local = self.get_data(
+            "$.sources[?(@.name=='/temperature/subscriptions')]"
+            f".data.sockets[?(@.number=={socket})]",
+            is_None_possible=True,
+        )
+        if local:
+            return "local", local
+
+        hub = self.connected_control()
+        if hub is None:
+            return None, None
+        rules = hub.get_data(
+            "$.sources[?(@.name=='/subscription-info')].data.external",
+            is_None_possible=True,
+        )
+        if isinstance(rules, list):
+            for rule in cast(list[Any], rules):
+                if isinstance(rule, dict) and rule.get("number") == socket:
+                    return "control", rule
+        return None, None
+
     def has_local_temperature(self) -> bool:
         """Whether a local temperature probe is currently installed."""
         return (

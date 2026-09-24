@@ -84,13 +84,21 @@ class ReefControlAPI(ReefBeatAPI):
         for name in (
             "/configuration",
             "/ports/config",
-            "/subscription-info",
             "/probe/config",
         ):
             sources.insert(
                 len(sources),
                 {"name": name, "type": "config", "data": ""},
             )
+        # `/subscription-info` holds the probe -> socket rules of the paired
+        # power center (`external`) and of the hub's own ports (`internal`).
+        # Polled as data, not config: a rule may be changed outside Home
+        # Assistant (ReefBeat app), and the RSPower socket_N_mode sensors
+        # expose it as their `sensor_config`.
+        sources.insert(
+            len(sources),
+            {"name": "/subscription-info", "type": "data", "data": ""},
+        )
         self.data["sources"] = sources
 
     # -- Dynamic per-probe temperature-offset sources ----------------------

@@ -1293,6 +1293,18 @@ def _epoch_to_datetime(ts: Any) -> datetime.datetime | None:
 _MANUAL_OVERRIDE_MODES: frozenset[str] = frozenset({"on", "off"})
 
 
+def _socket_sensor_attributes(device: Any, socket: int) -> dict[str, Any]:
+    """``sensor_config``/``sensor_source`` attributes of a socket_N_mode sensor.
+
+    The rule comes either from the power center's local temperature probe or
+    from the paired RSCONTROL hub (see
+    ``ReefPowerCoordinator.socket_sensor_config``); ``sensor_source`` tells a
+    card which of the two shapes ``sensor_config`` has.
+    """
+    source, config = cast(ReefPowerCoordinator, device).socket_sensor_config(socket)
+    return {"sensor_config": config, "sensor_source": source}
+
+
 def _effective_socket_state(mode: Any, state: Any) -> str | None:
     """Return a meaningful on/standby/off value for a RSPOWER socket or a
     RSCONTROL 12V port, working around a Red Sea firmware quirk.
@@ -2054,11 +2066,7 @@ async def async_setup_entry(
                         # has instead of waiting on a request of its own.
                         attributes_fn=lambda d, i=socket_idx, sched=(f"$.sources[?(@.name=='/socket/{socket_idx}/config/schedule')].data"): {
                             "schedule": d.get_data(sched),
-                            "sensor_config": d.get_data(
-                                "$.sources[?(@.name=='/temperature/subscriptions')]"
-                                f".data.sockets[?(@.number=={i})]",
-                                is_None_possible=True,
-                            ),
+                            **_socket_sensor_attributes(d, i),
                         },
                     ),
                     ReefBeatSensorEntityDescription(
