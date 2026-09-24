@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.redsea.const import DOMAIN
@@ -135,7 +136,7 @@ async def test_async_setup_entry_returns_false_when_building_coordinator_fails(
 
 
 @pytest.mark.asyncio
-async def test_async_setup_entry_returns_false_when_coordinator_async_setup_fails(
+async def test_async_setup_entry_not_ready_when_coordinator_async_setup_fails(
     hass: HomeAssistant,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -147,12 +148,38 @@ async def test_async_setup_entry_returns_false_when_coordinator_async_setup_fail
 
     class _Coordinator:
         async def async_setup(self) -> None:
-            raise RuntimeError("setup failed")
+            raise RuntimeError("Initialization failed, is your device on?")
 
     monkeypatch.setattr(
         integration, "_build_coordinator", lambda _h, _e: _Coordinator()
     )
 
+    # Unreachable device: Home Assistant retries the setup with backoff.
+    with pytest.raises(ConfigEntryNotReady, match="is your device on"):
+        await integration.async_setup_entry(hass, cast(Any, entry))
+
+
+@pytest.mark.asyncio
+async def test_async_setup_entry_returns_false_on_cloud_invalid_auth(
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import custom_components.redsea as integration
+    from custom_components.redsea.reefbeat.cloud import InvalidAuth
+
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={"ip_address": "1.2.3.4", "hw_model": "X"}
+    )
+
+    class _Coordinator:
+        async def async_setup(self) -> None:
+            raise InvalidAuth("bad credentials")
+
+    monkeypatch.setattr(
+        integration, "_build_coordinator", lambda _h, _e: _Coordinator()
+    )
+
+    # Wrong credentials: no retry loop.
     assert await integration.async_setup_entry(hass, cast(Any, entry)) is False
 
 

@@ -35,6 +35,7 @@ from homeassistant.core import (
     SupportsResponse,
     callback,
 )
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
@@ -72,6 +73,7 @@ from .coordinator import (
     ReefWaveCoordinator,
 )
 from .maintenance import MaintenanceStore, register_led_tasks
+from .reefbeat.cloud import InvalidAuth
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -178,9 +180,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     try:
         await coordinator.async_setup()
-    except Exception:
-        _LOGGER.exception("Failed to setup coordinator for entry_id=%s", entry.entry_id)
+    except InvalidAuth:
+        # Wrong cloud credentials: retrying cannot fix them, and retrying a
+        # login in a loop could get the account locked.
+        _LOGGER.exception("Cloud authentication failed for entry_id=%s", entry.entry_id)
+        _release(coordinator)
         return False
+    except Exception as err:
+        # Usually the device is unreachable (powered off, rebooting, Wi-Fi
+        # down). ConfigEntryNotReady makes Home Assistant retry with backoff,
+        # so the entry recovers on its own once the device is back; returning
+        # False would leave it in setup_error until reloaded by hand. The
+        # traceback is kept at debug level: Home Assistant only logs the
+        # message, which would hide a genuine bug behind endless retries.
+        _LOGGER.debug("Setup of %s failed", entry.title, exc_info=True)
+        # The next attempt builds a fresh coordinator: drop this one's
+        # event-bus listeners, or each retry would leave one more behind.
+        _release(coordinator)
+        raise ConfigEntryNotReady(f"Failed to set up {entry.title}: {err}") from err
 
     # Per-entry persistent storage for user-driven maintenance tasks.
     # Loaded eagerly so platforms read fully-populated state at setup time.
@@ -205,6 +222,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
     return True
+
+
+def _release(coordinator: Any) -> None:
+    """Best-effort teardown of a coordinator that will not be used."""
+    with suppress(Exception):
+        coordinator.unload()
 
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:

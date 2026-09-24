@@ -24,16 +24,18 @@ import asyncio
 import logging
 import uuid
 from asyncio import timeout
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from time import time
 from typing import Any, cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util.event_type import EventType
 
 from .const import (
     CONFIG_FLOW_CLOUD_PASSWORD,
@@ -123,6 +125,9 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             entry.data.get(CONFIG_FLOW_CONFIG_TYPE, False)
         )
         self._boot = True
+        # Unsubscribe callbacks of the event-bus listeners this coordinator
+        # registered (see _listen); all released by unload().
+        self._unsubs: list[CALLBACK_TYPE] = []
 
         # Default API for a generic ReefBeat device (specialized coordinators override this).
         self.my_api = ReefBeatAPI(self._ip, self._live_config_update, self._session)
@@ -326,9 +331,24 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Debug-friendly identifier for this coordinator/device."""
         return f"{self._ip} {self._hw} {self._title}"
 
+    def _listen(
+        self, event_type: EventType[Any] | str, handler: Callable[[Event], Any]
+    ) -> None:
+        """Listen to an event-bus event for as long as this coordinator lives.
+
+        A coordinator is rebuilt on every setup attempt (retries after
+        ConfigEntryNotReady, reloads): a listener registered straight on the
+        bus would outlive it and keep firing on a dead instance.
+        """
+        self._unsubs.append(self._hass.bus.async_listen(event_type, handler))
+
     def unload(self) -> None:
-        """Hook for teardown if needed."""
-        return
+        """Release the event-bus listeners of this coordinator.
+
+        Idempotent. Called on entry unload and after a failed setup.
+        """
+        while self._unsubs:
+            self._unsubs.pop()()
 
 
 # Cloud-linked base
@@ -345,9 +365,7 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
         self._cloud_link: ReefBeatCloudCoordinator | None = None
         self.latest_firmware_url: str | None = None
 
-        self._hass.bus.async_listen(
-            EVENT_HOMEASSISTANT_STARTED, self._handle_ask_for_link
-        )
+        self._listen(EVENT_HOMEASSISTANT_STARTED, self._handle_ask_for_link)
 
     async def _async_setup(self) -> None:
         """Perform one-time initialization and request cloud link if needed."""
@@ -359,7 +377,7 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
             if str(self._hass.state) == "RUNNING":
                 self._ask_for_link()
 
-            self._hass.bus.async_listen(
+            self._listen(
                 "redsea_ask_for_cloud_link_ready", self._handle_ask_for_link_ready
             )
 
@@ -525,7 +543,7 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         if str(self._hass.state) == "RUNNING":
             self._link_leds()
         else:
-            self._hass.bus.async_listen(EVENT_HOMEASSISTANT_STARTED, self._link_leds)
+            self._listen(EVENT_HOMEASSISTANT_STARTED, self._link_leds)
 
     async def async_setup(self) -> None:
         """Public entry-point for one-time initialization."""
@@ -2007,6 +2025,9 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
             self._entry.data[CONFIG_FLOW_DISABLE_SUPPLEMENT],
         )
         self.disable_supplement = self._entry.data[CONFIG_FLOW_DISABLE_SUPPLEMENT]
+        # Whether the linked devices were told this account is available: only
+        # then is there anything to withdraw on unload.
+        self._announced = False
 
     async def _async_setup(self) -> None:
         """Connect and fetch initial cloud data; start link request listener."""
@@ -2014,10 +2035,9 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
             self._boot = False
             await self.my_api.connect()
             await self.my_api.get_initial_data()
-            self._hass.bus.async_listen(
-                "redsea_ask_for_cloud_link", self._handle_link_requests
-            )
+            self._listen("redsea_ask_for_cloud_link", self._handle_link_requests)
             self._hass.bus.fire("redsea_ask_for_cloud_link_ready", {})
+            self._announced = True
 
     async def async_setup(self) -> None:
         """Public entry-point for one-time initialization."""
@@ -2063,11 +2083,19 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
         return await self.my_api.http_send(action, payload, method)
 
     def unload(self) -> None:
-        """Notify listeners that this cloud account coordinator is shutting down."""
-        self._hass.bus.fire(
-            "redsea_ask_for_cloud_link_ready",
-            {"state": "off", "account": self._title},
-        )
+        """Withdraw this cloud account from the linked devices, then release.
+
+        After a failed setup the account was never announced: firing "off"
+        would only make every local device ask for a link again, on each
+        ConfigEntryNotReady retry.
+        """
+        if self._announced:
+            self._announced = False
+            self._hass.bus.fire(
+                "redsea_ask_for_cloud_link_ready",
+                {"state": "off", "account": self._title},
+            )
+        super().unload()
 
     # Firmware helpers
     async def listen_for_firmware(self, url: str | None, device_name: str) -> None:

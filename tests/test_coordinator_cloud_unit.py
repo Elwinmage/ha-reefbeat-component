@@ -198,10 +198,18 @@ async def test_cloud_get_no_wave_and_send_cmd_and_unload(
 
     monkeypatch.setattr(type(hass.bus), "fire", _fake_fire, raising=True)
 
+    # Never announced (setup failed before): nothing to withdraw.
+    cloud.unload()
+    assert fired == []
+
+    cloud._announced = True
     cloud.unload()
     assert fired == [
         ("redsea_ask_for_cloud_link_ready", {"state": "off", "account": "MyCloud"})
     ]
+    # Idempotent: withdrawn once only.
+    cloud.unload()
+    assert len(fired) == 1
 
 
 @pytest.mark.asyncio
