@@ -85,7 +85,7 @@ from .maintenance import (
     iter_maintenance_probes,
     tasks_for,
 )
-from .probe_entities import probe_display_name
+from .probe_entities import probe_display_name, tag_port_entities, tag_probe_entities
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1000,6 +1000,12 @@ async def async_setup_entry(
     # One switch per maintenance task instance, mirroring the button/number
     # pair created in button.py / number.py.
     _add_maintenance_notify_switches(device, entities)
+
+    # Probe settings share their translation keys across probes: tag them
+    # with the probe they belong to, for the card.
+    if isinstance(device, ReefControlCoordinator):
+        tag_probe_entities(device, entities)
+        tag_port_entities(device, entities)
 
     async_add_entities(entities, True)
 

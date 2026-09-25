@@ -61,6 +61,154 @@ def probe_display_name(probe: dict[str, Any], probes: list[Any]) -> str:
     return label
 
 
+_DASHBOARD_PROBES = "$.sources[?(@.name=='/dashboard')].data.probes"
+
+
+def probe_index(device: Any, ptype: str, uid: str) -> int | None:
+    """Position of a probe in the hub's ``/dashboard.probes`` array.
+
+    The array order is the order the hub lists its probes in, which is what a
+    card needs to lay them out. It is looked up on every call rather than
+    frozen at setup: probes can be plugged or unplugged, which reorders the
+    array. A probe is identified by its ``(type, uid)`` pair, since uids are
+    only unique within a type.
+    """
+    probes = device.get_data(_DASHBOARD_PROBES, is_None_possible=True)
+    if not isinstance(probes, list):
+        return None
+    for idx, raw in enumerate(cast(list[Any], probes)):
+        if not isinstance(raw, dict):
+            continue
+        entry = cast(dict[str, Any], raw)
+        if str(entry.get("uid")) == uid and str(entry.get("type", "")).lower() == ptype:
+            return idx
+    return None
+
+
+def probe_ranges(
+    device: Any, ptype: str, uid: str, *, is_temp: bool = False
+) -> list[float] | None:
+    """Acceptable/desired bounds of a probe, from its ``/probe/config`` entry.
+
+    Returns ``[acceptable_low, desired_low, desired_high, acceptable_high]``
+    for the probe's primary reading, or for its embedded temperature
+    (``temp.ranges``) when ``is_temp`` is set. ``None`` when the entry is not
+    cached yet or does not carry four numbers.
+    """
+    entry = device.get_data(
+        "$.sources[?(@.name=='/probe/config')]"
+        f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]",
+        is_None_possible=True,
+    )
+    if not isinstance(entry, dict):
+        return None
+    config = cast(dict[str, Any], entry)
+    if is_temp:
+        temp: Any = config.get("temp")
+        raw: Any = (
+            cast(dict[str, Any], temp).get("ranges") if isinstance(temp, dict) else None
+        )
+    else:
+        raw = config.get("ranges")
+    if not isinstance(raw, list):
+        return None
+    values = cast(list[Any], raw)
+    if len(values) != 4 or not all(
+        isinstance(v, (int, float)) and not isinstance(v, bool) for v in values
+    ):
+        return None
+    return [float(v) for v in values]
+
+
+def probe_state_attributes(
+    device: Any, ptype: str, uid: str, ranges: str | None = None
+) -> dict[str, Any]:
+    """State attributes tying an entity to the probe it belongs to.
+
+    Every probe of a given type shares the same translation keys, so a card
+    cannot tell two pH probes' entities apart from the registry alone. These
+    attributes carry the probe's identity and position; a measurement entity
+    also carries the bounds its reading is judged against.
+
+    ``ranges`` is ``"primary"`` for the probe's own reading, ``"temp"`` for
+    its embedded temperature, ``None`` for entities without a range.
+    """
+    attrs: dict[str, Any] = {
+        "probe_uid": uid,
+        "probe_type": ptype,
+        "probe_index": probe_index(device, ptype, uid),
+    }
+    if ranges is not None:
+        attrs["ranges"] = probe_ranges(device, ptype, uid, is_temp=ranges == "temp")
+    return attrs
+
+
+def tag_probe_entities(device: Any, entities: list[Any]) -> None:
+    """Tag a hub's probe-scoped entities with the probe they belong to.
+
+    Covers the platforms whose entities carry no computed attributes
+    (number, switch, select, button): a probe's settings share their
+    translation keys with every other probe of its type, so without this a
+    card cannot tell whose buzzer or range bound an entity is. The probe is
+    recognised from the entity's unique_id (``{serial}_probe_{type}_{uid}_…``,
+    see ``probe_key_prefix``).
+
+    Only the identity is set, not ``probe_index``: these attributes are set
+    once here, and a position frozen at setup would go stale when probes are
+    reordered. The measurement sensors carry the live index.
+    """
+    probes = device.get_data(_DASHBOARD_PROBES, is_None_possible=True)
+    if not isinstance(probes, list):
+        return
+    scopes: list[tuple[str, str, str]] = []
+    for raw in cast(list[Any], probes):
+        if not isinstance(raw, dict):
+            continue
+        entry = cast(dict[str, Any], raw)
+        uid = entry.get("uid")
+        ptype = str(entry.get("type", "")).lower()
+        if uid and ptype:
+            prefix = f"{device.serial}_{probe_key_prefix(ptype, str(uid))}"
+            scopes.append((prefix, ptype, str(uid)))
+
+    for entity in entities:
+        unique_id = getattr(entity, "_attr_unique_id", None)
+        if not isinstance(unique_id, str):
+            continue
+        for prefix, ptype, uid in scopes:
+            if unique_id.startswith(prefix):
+                current = getattr(entity, "_attr_extra_state_attributes", None)
+                entity._attr_extra_state_attributes = {
+                    **(current or {}),
+                    "probe_uid": uid,
+                    "probe_type": ptype,
+                }
+                break
+
+
+def tag_port_entities(device: Any, entities: list[Any]) -> None:
+    """Tag a hub's 12V port entities with their port number (0-based).
+
+    Both ports share their translation keys (``port_on_off``, ``port_name``…),
+    so this attribute is what tells a card which port an entity drives. The
+    port is read from the unique_id, ``{serial}_port_{n}_…``. Covers the
+    platforms without computed attributes; the sensors set it themselves.
+    """
+    prefix = f"{device.serial}_port_"
+    for entity in entities:
+        unique_id = getattr(entity, "_attr_unique_id", None)
+        if not isinstance(unique_id, str) or not unique_id.startswith(prefix):
+            continue
+        number, sep, _rest = unique_id[len(prefix) :].partition("_")
+        if not sep or not number.isdigit():
+            continue
+        current = getattr(entity, "_attr_extra_state_attributes", None)
+        entity._attr_extra_state_attributes = {
+            **(current or {}),
+            "port": int(number),
+        }
+
+
 def probe_key_prefix(ptype: str, uid: str) -> str:
     """Unique_id key prefix (after ``{serial}_``) of a probe's direct entities."""
     return f"probe_{ptype.lower()}_{sanitise_uid(uid)}_"

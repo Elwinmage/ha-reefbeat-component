@@ -54,7 +54,7 @@ import logging
 import re
 from collections.abc import Callable
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cached_property
 from typing import Any, Protocol, TypeAlias, cast, runtime_checkable
 
@@ -108,6 +108,7 @@ from .coordinator import (
     ReefWaveCoordinator,
 )
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
+from .probe_entities import probe_state_attributes
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1336,6 +1337,21 @@ def _effective_socket_state(mode: Any, state: Any) -> str | None:
     return None
 
 
+def _port_mode_attributes_fn(
+    port: int,
+) -> Callable[[ReefBeatCoordinator], dict[str, Any]]:
+    """Attributes of a hub port's mode sensor: its number, then everything
+    the card's port editor reads (see ``port_mode_attributes``)."""
+
+    def attributes(device: ReefBeatCoordinator) -> dict[str, Any]:
+        return {
+            "port": port,
+            **cast(ReefControlCoordinator, device).port_mode_attributes(port),
+        }
+
+    return attributes
+
+
 # JSONPath selector to find a probe by its stable `uid` (independent of the
 # probe's array position, so plug/unplug reordering doesn't break entities).
 def _probe_path(uid: str, field: str) -> str:
@@ -1680,7 +1696,31 @@ def _build_probe_descriptions(
             ]
         )
 
-    return descs
+    # Every probe of a type shares the same translation keys: tag each entity
+    # with the probe it belongs to (and, for measurements, the bounds they are
+    # judged against) so a card can group them per probe.
+    ranges_of = {
+        f"probe_{uid_key}_value": "primary",
+        f"probe_{uid_key}_temp_value": "temp",
+    }
+    return [
+        replace(
+            desc,
+            attributes_fn=_probe_attributes_fn(ptype, uid, ranges_of.get(desc.key)),
+        )
+        for desc in descs
+    ]
+
+
+def _probe_attributes_fn(
+    ptype: str, uid: str, ranges: str | None
+) -> Callable[[ReefBeatCoordinator], dict[str, Any]]:
+    """Attributes tying a probe entity to its probe (``probe_state_attributes``)."""
+
+    def attributes(device: ReefBeatCoordinator) -> dict[str, Any]:
+        return probe_state_attributes(device, ptype, uid, ranges)
+
+    return attributes
 
 
 # -----------------------------------------------------------------------------
@@ -2116,6 +2156,7 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_name",
                         translation_key="port_name",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        attributes_fn=lambda _d, i=port_idx: {"port": i},
                         icon="mdi:usb-port",
                         value_fn=lambda d, p=f"{base}.name": d.get_data(
                             p, is_None_possible=True
@@ -2125,6 +2166,7 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_state",
                         translation_key="port_state",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        attributes_fn=lambda _d, i=port_idx: {"port": i},
                         icon="mdi:electric-switch",
                         # Same firmware quirk as sockets: mode == "on" | "off"
                         # forces state to "unknown". See _effective_socket_state
@@ -2140,6 +2182,9 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_mode",
                         translation_key="port_mode",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        # Everything the card's port editor reads, as the
+                        # socket_N_mode sensors of a power center do.
+                        attributes_fn=_port_mode_attributes_fn(port_idx),
                         icon="mdi:cog-outline",
                         value_fn=lambda d, p=f"{base}.mode": d.get_data(
                             p, is_None_possible=True
@@ -2149,6 +2194,7 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_type",
                         translation_key="port_type",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        attributes_fn=lambda _d, i=port_idx: {"port": i},
                         icon="mdi:import",
                         value_fn=lambda d, p=f"{base}.type": d.get_data(
                             p, is_None_possible=True
@@ -2159,6 +2205,7 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_consumption",
                         translation_key="port_consumption",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        attributes_fn=lambda _d, i=port_idx: {"port": i},
                         icon="mdi:flash",
                         native_unit_of_measurement=UnitOfPower.WATT,
                         device_class=SensorDeviceClass.POWER,
@@ -2204,6 +2251,7 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_today_volume",
                         translation_key="port_today_volume",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        attributes_fn=lambda _d, i=port_idx: {"port": i},
                         icon="mdi:cup-water",
                         native_unit_of_measurement="mL",
                         state_class=SensorStateClass.TOTAL_INCREASING,
@@ -2216,6 +2264,7 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_last_pump_on_cause",
                         translation_key="port_last_pump_on_cause",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        attributes_fn=lambda _d, i=port_idx: {"port": i},
                         icon="mdi:history",
                         device_class=SensorDeviceClass.ENUM,
                         options=list(_ATO_PUMP_CAUSE_OPTIONS),
@@ -2231,6 +2280,7 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_last_fill_date",
                         translation_key="port_last_fill_date",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        attributes_fn=lambda _d, i=port_idx: {"port": i},
                         icon="mdi:calendar-check",
                         device_class=SensorDeviceClass.TIMESTAMP,
                         entity_category=EntityCategory.DIAGNOSTIC,
@@ -2247,6 +2297,7 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_leak_status",
                         translation_key="port_leak_status",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        attributes_fn=lambda _d, i=port_idx: {"port": i},
                         icon="mdi:water-alert-outline",
                         device_class=SensorDeviceClass.ENUM,
                         options=list(_ATO_LEAK_STATUS_OPTIONS),

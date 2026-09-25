@@ -1690,6 +1690,13 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         # Lite exposes 1 port, Pro exposes 2. Anything else falls back to Pro.
         self.port_count: int = 1 if "LITE" in hw_model.upper() else 2
 
+        # A port's daily programme, read back like a power-center socket's
+        # (``/socket/<n>/config/schedule`` there). The GET mirrors the
+        # confirmed ``PUT /port/<n>/schedule``; a firmware without it just
+        # leaves the source empty, and the card's editor starts blank.
+        for number in range(self.port_count):
+            self.my_api.add_source(f"/port/{number}/schedule", "config")
+
         # Local state backing the temperature-fusion config entities. Kept in
         # the API's ``local`` bag so get_data/set_data JSONPaths resolve and the
         # number/select persist across polls without a device round-trip.
@@ -2031,6 +2038,54 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
             number, str(mode), name=name
         )
         await self.async_request_refresh()
+
+    def port_mode_attributes(self, number: int) -> dict[str, Any]:
+        """What a card needs to edit a 12V port, carried by its mode sensor.
+
+        Mirrors the power-center sockets (``socket_N_mode``), so the same
+        editor serves both:
+
+        - ``config``: the whole cached ``/ports/config`` entry — the firmware
+          wants every field back on a write, ``power_on_percent`` included;
+        - ``schedule``: the port's daily programme;
+        - ``sensor_config``: the hub's probe rule for this port, from the
+          ``internal`` part of ``/subscription-info`` (one entry per port,
+          matched on its number) or else the ``sensor`` field of the port's
+          own entry, with ``sensor_source`` set to ``control`` like a socket
+          driven by the hub.
+        """
+        api = self.my_api
+        rules = self.get_data(
+            "$.sources[?(@.name=='/subscription-info')].data.internal",
+            is_None_possible=True,
+        )
+        rule: dict[str, Any] | None = None
+        if isinstance(rules, list):
+            for raw in cast(list[Any], rules):
+                if not isinstance(raw, dict):
+                    continue
+                entry = cast(dict[str, Any], raw)
+                index = entry.get("number", entry.get("port"))
+                if index == number:
+                    rule = entry
+                    break
+        config = api.port_config(number)
+        if rule is None and config is not None:
+            # `/ports/config` entries carry a `sensor` field too (null on a
+            # port that follows no probe): the rule may live there instead.
+            own: Any = config.get("sensor")
+            if isinstance(own, dict):
+                rule = cast(dict[str, Any], own)
+        schedule = self.get_data(
+            f"$.sources[?(@.name=='/port/{number}/schedule')].data",
+            is_None_possible=True,
+        )
+        return {
+            "config": config,
+            "schedule": schedule if isinstance(schedule, dict) else None,
+            "sensor_config": rule,
+            "sensor_source": "control",
+        }
 
     async def unsubscribe_socket(self, number: int) -> None:
         """Clear the hub's binding of a probe to a power-center socket."""

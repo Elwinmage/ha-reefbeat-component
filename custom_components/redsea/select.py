@@ -48,7 +48,7 @@ from .coordinator import (
 )
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
 from .i18n import translate, translate_list
-from .probe_entities import probe_display_name
+from .probe_entities import probe_display_name, tag_probe_entities
 from .reefbeat import fusion
 from .supplements_list import SUPPLEMENTS as SUPPLEMENTS_LIST
 
@@ -330,6 +330,11 @@ async def async_setup_entry(
                     uid=uid,
                 )
             )
+
+    # Probe settings share their translation keys across probes: tag them
+    # with the probe they belong to, for the card.
+    if isinstance(device, ReefControlCoordinator):
+        tag_probe_entities(device, entities)
 
     async_add_entities(entities, True)
 

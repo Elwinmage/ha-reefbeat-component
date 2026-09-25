@@ -60,7 +60,12 @@ from .maintenance import (
     iter_maintenance_probes,
     tasks_for,
 )
-from .probe_entities import probe_display_name, probe_key_prefix
+from .probe_entities import (
+    probe_display_name,
+    probe_key_prefix,
+    tag_port_entities,
+    tag_probe_entities,
+)
 from .supplements_list import SUPPLEMENTS
 
 _LOGGER = logging.getLogger(__name__)
@@ -1019,6 +1024,12 @@ async def async_setup_entry(
     # in maintenance.TASKS. Skipped silently for cloud / virtual devices and
     # for hw_models with no tasks declared.
     _add_maintenance_buttons(device, entities)
+
+    # Probe settings share their translation keys across probes: tag them
+    # with the probe they belong to, for the card.
+    if isinstance(device, ReefControlCoordinator):
+        tag_probe_entities(device, entities)
+        tag_port_entities(device, entities)
 
     async_add_entities(entities, True)
 

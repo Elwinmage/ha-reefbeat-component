@@ -2,6 +2,37 @@
 
 ## MODIFICATIONS
 
+### RSCONTROL
+ - Every ReefSense probe entity (sensors and the leak `binary_sensor`) now
+   carries `probe_uid`, `probe_type` and `probe_index` state attributes. All
+   probes of a type share the same translation keys, so these attributes are
+   the only way for a card to group a hub's entities per probe;
+   `probe_index` is the probe's position in `/dashboard.probes`.
+ - The measurement sensors (main value and embedded temperature) also carry a
+   `ranges` attribute, `[acceptable_low, desired_low, desired_high,
+   acceptable_high]`, read from `/probe/config` (`temp.ranges` for the
+   temperature).
+ - Every per-port entity of the 12V ports (sensors and ATO binary sensors)
+   carries a `port` attribute (0-based), for the same reason.
+ - Every entity of a 12V port (switch, name, ATO buttons and numbers
+   included) now carries the `port` attribute, not only the sensors: both
+   ports share their translation keys, so it is what tells a card which port
+   an entity drives. The keys themselves are unchanged.
+ - The `port_N_mode` sensor carries what a card needs to edit the port, as
+   `socket_N_mode` does on a power center: `config` (the whole
+   `/ports/config` entry, `power_on_percent` included), `schedule` and
+   `sensor_config` (the hub's probe rule for the port, from the `internal`
+   part of `/subscription-info`, else the `sensor` field of the port entry),
+   with `sensor_source: control`.
+ - Each port's schedule is read back from `GET /port/<n>/schedule` on config
+   refreshes. The GET mirrors the confirmed `PUT`; it has not been checked
+   against a capture yet.
+ - The probe settings (range bounds, EC unit, temperature offset, buzzer /
+   notify / enabled / maintenance switches, "read now" button) carry
+   `probe_uid` and `probe_type` too, so a card can open the settings of one
+   probe. They carry no `probe_index`: these attributes are set once at
+   setup, and only the measurement sensors track the live position.
+
 ### RSATO
  - New `buzzer_enabled` switch on the RSATO+: enables/disables the leak alarm
    buzzer. Reverse-engineered from the Red Sea Android app

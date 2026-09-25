@@ -41,7 +41,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
 )
 from .entity import ReefRoleMixin
-from .probe_entities import probe_display_name
+from .probe_entities import probe_display_name, probe_state_attributes
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -618,6 +618,7 @@ async def async_setup_entry(
                     key=f"port_{port_idx}_is_pump_on",
                     translation_key="port_is_pump_on",
                     translation_placeholders={"port": str(port_idx + 1)},
+                    attributes_fn=lambda _d, i=port_idx: {"port": i},
                     device_class=BinarySensorDeviceClass.RUNNING,
                     value_fn=lambda d, p=f"{base}.is_pump_on": d.get_data(
                         p, is_None_possible=True
@@ -634,6 +635,7 @@ async def async_setup_entry(
                     key=f"port_{port_idx}_check_sensor",
                     translation_key="port_check_sensor",
                     translation_placeholders={"port": str(port_idx + 1)},
+                    attributes_fn=lambda _d, i=port_idx: {"port": i},
                     device_class=BinarySensorDeviceClass.PROBLEM,
                     value_fn=lambda d, p=f"{base}.check_sensor": d.get_data(
                         p, is_None_possible=True
@@ -651,6 +653,7 @@ async def async_setup_entry(
                     key=f"port_{port_idx}_is_advancing",
                     translation_key="port_is_advancing",
                     translation_placeholders={"port": str(port_idx + 1)},
+                    attributes_fn=lambda _d, i=port_idx: {"port": i},
                     device_class=BinarySensorDeviceClass.RUNNING,
                     value_fn=lambda d, p=f"{base}.is_advancing": d.get_data(
                         p, is_None_possible=True
@@ -666,6 +669,7 @@ async def async_setup_entry(
                     key=f"port_{port_idx}_leak_sensor",
                     translation_key="port_leak_sensor",
                     translation_placeholders={"port": str(port_idx + 1)},
+                    attributes_fn=lambda _d, i=port_idx: {"port": i},
                     device_class=BinarySensorDeviceClass.CONNECTIVITY,
                     value_fn=lambda d, p=f"{base}.leak_sensor": d.get_data(
                         p, is_None_possible=True
@@ -722,6 +726,9 @@ async def async_setup_entry(
                     # IMPORTANT: bind path into the lambda default to avoid the
                     # late-binding closure bug across loop iterations.
                     value_fn=lambda d, p=path: d.get_data(p, is_None_possible=True),
+                    # Same probe identity as the sensors (see
+                    # probe_state_attributes), so a card groups them per probe.
+                    attributes_fn=lambda d, u=uid: probe_state_attributes(d, "leak", u),
                     icon="mdi:water-alert",
                 )
             )
