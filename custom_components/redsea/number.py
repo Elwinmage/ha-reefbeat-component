@@ -870,52 +870,6 @@ async def async_setup_entry(
             )
         )
 
-        # Per-ATO-port volume-left number. Endpoint:
-        # POST /port/{n}/ato/update-volume {"volume": <mL>}.
-        # Discovered by walking /dashboard.ports[] for type == "ato" — same
-        # rule used by the sensor, binary_sensor, button and switch platforms.
-        raw_ports = device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.ports",
-            is_None_possible=True,
-        )
-        ato_port_indices: list[int] = (
-            [
-                p["number"]
-                for p in raw_ports
-                if isinstance(p, dict)
-                and p.get("type") == "ato"
-                and isinstance(p.get("number"), int)
-            ]
-            if isinstance(raw_ports, list)
-            else []
-        )
-        for port_idx in ato_port_indices:
-            entities.append(
-                ReefControlATOVolumeLeftNumberEntity(
-                    device,
-                    ReefBeatNumberEntityDescription(
-                        key=f"port_{port_idx}_ato_volume_left",
-                        translation_key="ato_volume_left",
-                        translation_placeholders={"port": str(port_idx + 1)},
-                        mode=NumberMode.BOX,
-                        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
-                        device_class=NumberDeviceClass.VOLUME,
-                        native_min_value=0,
-                        native_step=1,
-                        native_max_value=200000,
-                        # Bind the value_name to this specific port so
-                        # `set_data` writes to the right array slot.
-                        value_name=(
-                            "$.sources[?(@.name=='/dashboard')]"
-                            f".data.ports[{port_idx}].volume_left"
-                        ),
-                        icon="mdi:cup-water",
-                        entity_category=EntityCategory.CONFIG,
-                    ),
-                    port=port_idx,
-                )
-            )
-
         # Per-temperature-probe calibration offset (°C). One number per probe of
         # type "temperature"; the offset is read from the per-probe
         # /probe/offset source and written via POST /probe/offset.
@@ -1814,34 +1768,6 @@ class ReefATOTankVolumeNumberEntity(ReefBeatNumberEntity):
         self._attr_native_value = value
         self._device.set_data(self._description.value_name, value)
         self.async_write_ha_state()
-
-
-class ReefControlATOVolumeLeftNumberEntity(ReefBeatNumberEntity):
-    """Per-port ATO number on RSCONTROL: remaining reservoir volume (mL).
-
-    Backing endpoint: ``POST /port/{n}/ato/update-volume`` with a JSON body
-    ``{"volume": <mL>}``. The port index is stored on the entity so a single
-    RSCONTROLPRO with two ATO ports produces two independent entities.
-    """
-
-    def __init__(
-        self,
-        device: ReefBeatCoordinator,
-        description: ReefBeatNumberEntityDescription,
-        port: int,
-    ) -> None:
-        super().__init__(device, description)
-        self._port = port
-
-    async def async_set_native_value(self, value: float) -> None:
-        volume_ml = int(value)
-        # Prime the local cache so the UI reflects the change immediately;
-        # the coordinator will confirm on the next refresh.
-        self._device.set_data(self._description.value_name, volume_ml)
-        await cast(ReefControlCoordinator, self._device).my_api.ato_set_volume_left(
-            self._port, volume_ml
-        )
-        await self._device.async_request_refresh()
 
 
 class ReefControlProbeOffsetNumberEntity(ReefBeatNumberEntity):

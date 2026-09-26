@@ -99,18 +99,6 @@
       "missing_sensor": {
         "name": "Sensor fehlt"
       },
-      "port_check_sensor": {
-        "name": "Port {port} Sensor prüfen"
-      },
-      "port_is_advancing": {
-        "name": "Port {port} läuft"
-      },
-      "port_is_pump_on": {
-        "name": "Port {port} Pumpe"
-      },
-      "port_leak_sensor": {
-        "name": "Port {port} Leck-Sensor"
-      },
       "power_link_up": {
         "name": "Power center link"
       },
@@ -151,15 +139,6 @@
     "button": {
       "advance": {
         "name": "Vorschub"
-      },
-      "ato_manual_pump": {
-        "name": "Port {port} manuell nachfüllen"
-      },
-      "ato_resume": {
-        "name": "Port {port} fortsetzen"
-      },
-      "ato_stop": {
-        "name": "Port {port} stopp"
       },
       "delete_emergency": {
         "name": "Notfallalarm löschen"
@@ -893,26 +872,6 @@
       "port_consumption": {
         "name": "Port {port} consumption"
       },
-      "port_last_fill_date": {
-        "name": "Port {port} letzte Füllung"
-      },
-      "port_last_pump_on_cause": {
-        "name": "Port {port} letzter Pumpengrund",
-        "state": {
-          "none": "Keine",
-          "manual": "Manuell",
-          "ec_sensor_s1": "Füllstandsensor S1",
-          "ec_sensor_s2": "Füllstandsensor S2"
-        }
-      },
-      "port_leak_status": {
-        "name": "Port {port} Leck-Status",
-        "state": {
-          "dry": "Trocken",
-          "aquarium_water_leak": "Aquarienwasser-Leck",
-          "rodi_water_leak": "RO/DI-Wasser-Leck"
-        }
-      },
       "port_mode": {
         "name": "Port {port} mode"
       },
@@ -921,9 +880,6 @@
       },
       "port_state": {
         "name": "Port {port} state"
-      },
-      "port_today_volume": {
-        "name": "Port {port} heutige Menge"
       },
       "port_type": {
         "name": "Port {port} type"
@@ -936,6 +892,17 @@
       },
       "probe_ec": {
         "name": "{probe} conductivity"
+      },
+      "probe_leak_status": {
+        "name": "{probe} Leckursprung",
+        "state": {
+          "dry": "Trocken",
+          "aquarium_water_leak": "Aquariumwasser",
+          "rodi_water_leak": "Osmosewasser"
+        }
+      },
+      "probe_leak_conductivity": {
+        "name": "{probe} Leitfähigkeit des Lecks"
       },
       "probe_ec_value": {
         "name": "{probe} value"
@@ -1396,9 +1363,6 @@
     "switch": {
       "acclimation": {
         "name": "Akklimatisierung"
-      },
-      "ato_auto_fill": {
-        "name": "Port {port} Auto-Nachfüllung"
       },
       "auto_advance": {
         "name": "Automatischer Vorschub"

@@ -363,7 +363,71 @@ class ReefControlAPI(ReefBeatAPI):
         data = await super().fetch_data()
         self._reconcile_probe_offset_sources()
         await self._sync_port_schedules(from_config=False)
+        await self._read_new_leaks()
         return data
+
+    # -- Leak origin ---------------------------------------------------------
+    # `/dashboard` only says whether a leak probe is wet (`detected`). Where
+    # the water comes from is in the probe's own reading, `GET /probe`:
+    #   {"name", "status", "ec", "leak_status"}
+    # `leak_status` is `dry`, `aquarium_water_leak` or `rodi_water_leak` (the
+    # ReefBeat app's ControlLeakStatus, the same values as the RSATO+ leak
+    # sensor) and `ec` the conductivity the probe measures — salt water
+    # conducts, RO/DI water hardly does. The reading is kept apart from the
+    # dashboard, which each poll replaces whole.
+    _LEAK_SOURCES: tuple[str, ...] = ("aquarium_water_leak", "rodi_water_leak")
+
+    def _leak_readings(self) -> dict[str, dict[str, Any]]:
+        """Last reading of each leak probe, by uid."""
+        return cast(
+            dict[str, dict[str, Any]], self.__dict__.setdefault("_leak_cache", {})
+        )
+
+    def _wet_leaks(self) -> set[str]:
+        """Leak probes already read since they got wet."""
+        return cast(set[str], self.__dict__.setdefault("_leak_wet", set()))
+
+    async def _read_new_leaks(self) -> None:
+        """Read a leak probe as soon as it turns wet, to learn the origin.
+
+        Once per leak: a probe is read again only after it dried.
+        """
+        probes = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes",
+            is_None_possible=True,
+            cached=False,
+        )
+        wet = self._wet_leaks()
+        for raw in cast(list[Any], probes) if isinstance(probes, list) else []:
+            probe = _as_dict(raw)
+            if probe is None or str(probe.get("type", "")).lower() != "leak":
+                continue
+            uid = str(probe.get("uid"))
+            if probe.get("detected") is True:
+                if uid not in wet:
+                    wet.add(uid)
+                    await self.read_probe("leak", uid)
+            else:
+                wet.discard(uid)
+
+    def leak_status(self, uid: str) -> str | None:
+        """Where a leak probe's water comes from.
+
+        ``dry`` while the dashboard says the probe is dry, the origin of the
+        last reading while it is wet, None while wet and not read yet.
+        """
+        probe = self.dashboard_probe("leak", uid)
+        if probe is None or not isinstance(probe.get("detected"), bool):
+            return None
+        if not probe["detected"]:
+            return "dry"
+        status = self._leak_readings().get(uid, {}).get("leak_status")
+        return status if status in self._LEAK_SOURCES else None
+
+    def leak_conductivity(self, uid: str) -> float | None:
+        """Conductivity a leak probe measured at its last reading."""
+        value: Any = self._leak_readings().get(uid, {}).get("ec")
+        return float(cast(float, value)) if self._is_number(value) else None
 
     def probe_offset(self, uid: str) -> float | None:
         """Cached calibration offset for a temperature probe, if known."""
@@ -523,6 +587,9 @@ class ReefControlAPI(ReefBeatAPI):
     _EC_UNITS: tuple[str, ...] = ("ec", "ppt", "sg")
     _LEAK_STATUS_DETECTED: dict[str, bool] = {
         "dry": False,
+        "aquarium_water_leak": True,
+        "rodi_water_leak": True,
+        # Older guesses, kept in case a firmware answers so
         "wet": True,
         "leak": True,
         "detected": True,
@@ -626,6 +693,12 @@ class ReefControlAPI(ReefBeatAPI):
         if probe is None:
             _LOGGER.debug("Probe %s/%s not in cached dashboard", ptype, uid)
             return False
+
+        if ptype.lower() == "leak":
+            # The origin and conductivity outlive the next dashboard poll
+            self._leak_readings()[uid] = {
+                key: payload[key] for key in ("leak_status", "ec") if key in payload
+            }
 
         updates = self.probe_reading_updates(
             ptype, payload, probe.get("measurement_unit")
@@ -968,78 +1041,3 @@ class ReefControlAPI(ReefBeatAPI):
     async def power_unpair(self) -> HttpResult | None:
         """Unlink the paired RSPower center (``POST /power/unpair``)."""
         return await self.http_send("/power/unpair", {}, "post")
-
-    # ------------------------------------------------------------------
-    # Per-port ATO helpers
-    # ------------------------------------------------------------------
-    #
-    # All ATO endpoints are global; the port is passed as a `port_index`
-    # body field. On a hub with a single ATO port the field is either
-    # ignored or defaulted, which keeps the behaviour safe for RSCONTROLLITE
-    # / single-ATO RSCONTROLPRO setups.
-
-    async def ato_manual_pump(self, port: int) -> None:
-        """Trigger one manual ATO dose on the given port.
-
-        The firmware pumps until either the "desired" water-level sensor is
-        satisfied or the internal safety timer fires. This is the
-        equivalent of pressing the "fill" button on a standalone RSATO+.
-        """
-        await self._http_send(
-            f"{self._base_url}/ato/manual-pump",
-            payload={"port_index": int(port)},
-            method="post",
-        )
-
-    async def ato_stop(self, port: int) -> None:
-        """Cancel any ongoing ATO fill and stop the pump on the given port."""
-        await self._http_send(
-            f"{self._base_url}/ato/stop",
-            payload={"port_index": int(port)},
-            method="post",
-        )
-
-    async def ato_resume(self, port: int) -> None:
-        """Clear an "empty" latch and resume automated ATO operation.
-
-        Called after refilling the reservoir when the firmware has stopped
-        pumping because of an empty-tank detection.
-        """
-        await self._http_send(
-            f"{self._base_url}/ato/resume",
-            payload={"port_index": int(port)},
-            method="post",
-        )
-
-    async def ato_set_volume_left(self, port: int, volume_ml: int) -> None:
-        """Overwrite the reservoir "volume left" counter (in mL).
-
-        Used after a manual refill to tell the firmware how much fresh water
-        is available. Matches the RSATO+ `POST /update-volume` payload shape,
-        with `port_index` added for RSCONTROLPRO dual-ATO cases.
-        """
-        payload: dict[str, Any] = {
-            "port_index": int(port),
-            "volume": int(volume_ml),
-        }
-        await self._http_send(
-            f"{self._base_url}/ato/update-volume",
-            payload,
-            "post",
-        )
-
-    async def push_ato_configuration(self, port: int, auto_fill: bool) -> None:
-        """Push the `auto_fill` flag for a specific ATO port.
-
-        Uses `PUT /ato/configuration` to atomically toggle the firmware's
-        auto-fill behaviour on the requested port.
-        """
-        payload: dict[str, Any] = {
-            "port_index": int(port),
-            "auto_fill": bool(auto_fill),
-        }
-        await self._http_send(
-            f"{self._base_url}/ato/configuration",
-            payload,
-            "put",
-        )

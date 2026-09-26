@@ -11,6 +11,28 @@
    draws its level the same way.
 
 ### RSCONTROL
+ - Removed the per-port ATO entities, which could never work on the hub:
+   buttons `ato_manual_pump`, `ato_stop`, `ato_resume`, number
+   `ato_volume_left`, switch `ato_auto_fill`, binary sensors
+   `port_check_sensor`, `port_is_advancing`, `port_is_pump_on`,
+   `port_leak_sensor` and sensors `port_last_fill_date`,
+   `port_last_pump_on_cause`, `port_today_volume`, `port_leak_status`. They
+   were built for a port of type `ato` and read RSATO+ fields the hub's
+   `/dashboard.ports` never carries, and wrote to `/ato/…` endpoints it does
+   not have: a port driven by an ATO probe stays of type `other`. Their
+   API helpers and translations are gone with them.
+ - Leak probes tell where the water comes from. `/dashboard` only has the
+   boolean `detected`; the origin is in the probe's own reading
+   (`GET /probe?type=leak&uid=…` → `leak_status`: `dry`,
+   `aquarium_water_leak` or `rodi_water_leak`, and `ec`, the conductivity it
+   measured), as the ReefBeat app models it (ControlLeakStatus). Each leak
+   probe gets a `probe_leak_status` sensor (dry / aquarium water / RO/DI
+   water) and a `probe_leak_conductivity` diagnostic sensor. A probe is read
+   on its own as soon as it turns wet, once per leak; its "read value"
+   button reads it too.
+ - Fix: reading a leak probe on demand ignored a wet answer: only `dry`,
+   `wet`, `leak` and `detected` were understood, not the firmware's
+   `aquarium_water_leak` / `rodi_water_leak`.
  - Fix: a leak probe added from Home Assistant stayed in `status: setup` —
    not shown by the app, reporting nothing. Its install now follows the
    app's sequence: `POST /probe/install`, `GET /probe/info`, `POST

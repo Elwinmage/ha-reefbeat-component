@@ -172,12 +172,16 @@ def test_build_probe_descriptions_leak() -> None:
     keys = {d.key for d in descs}
     assert "probe_leak_0x0leak_value" not in keys
     assert "probe_leak_0x0leak_level" not in keys
-    # The purely descriptive entities are still built.
+    # The purely descriptive entities are still built, plus the origin of a
+    # leak and its conductivity (read from the probe, see
+    # test_leak_origin_unit.py).
     assert keys == {
         "probe_leak_0x0leak_status",
         "probe_leak_0x0leak_name",
         "probe_leak_0x0leak_uid",
         "probe_leak_0x0leak_last_installation",
+        "probe_leak_0x0leak_leak_status",
+        "probe_leak_0x0leak_conductivity",
     }
 
 

@@ -99,18 +99,6 @@
       "missing_sensor": {
         "name": "Sensor ontbreekt"
       },
-      "port_check_sensor": {
-        "name": "Poort {port} sensor controleren"
-      },
-      "port_is_advancing": {
-        "name": "Poort {port} bezig"
-      },
-      "port_is_pump_on": {
-        "name": "Poort {port} pomp"
-      },
-      "port_leak_sensor": {
-        "name": "Poort {port} leksensor"
-      },
       "power_link_up": {
         "name": "Power center link"
       },
@@ -151,15 +139,6 @@
     "button": {
       "advance": {
         "name": "Vooruit"
-      },
-      "ato_manual_pump": {
-        "name": "Poort {port} handmatig vullen"
-      },
-      "ato_resume": {
-        "name": "Poort {port} hervatten"
-      },
-      "ato_stop": {
-        "name": "Poort {port} stop"
       },
       "delete_emergency": {
         "name": "Noodmelding verwijderen"
@@ -901,26 +880,6 @@
       "port_consumption": {
         "name": "Port {port} consumption"
       },
-      "port_last_fill_date": {
-        "name": "Poort {port} laatste vulling"
-      },
-      "port_last_pump_on_cause": {
-        "name": "Poort {port} oorzaak laatste pomp",
-        "state": {
-          "none": "Geen",
-          "manual": "Handmatig",
-          "ec_sensor_s1": "Niveausensor S1",
-          "ec_sensor_s2": "Niveausensor S2"
-        }
-      },
-      "port_leak_status": {
-        "name": "Poort {port} lekstatus",
-        "state": {
-          "dry": "Droog",
-          "aquarium_water_leak": "Aquariumwaterlek",
-          "rodi_water_leak": "RO/DI-waterlek"
-        }
-      },
       "port_mode": {
         "name": "Port {port} mode"
       },
@@ -929,9 +888,6 @@
       },
       "port_state": {
         "name": "Port {port} state"
-      },
-      "port_today_volume": {
-        "name": "Poort {port} volume vandaag"
       },
       "port_type": {
         "name": "Port {port} type"
@@ -944,6 +900,17 @@
       },
       "probe_ec": {
         "name": "{probe} conductivity"
+      },
+      "probe_leak_status": {
+        "name": "{probe} lekbron",
+        "state": {
+          "dry": "Droog",
+          "aquarium_water_leak": "Aquariumwater",
+          "rodi_water_leak": "Osmosewater"
+        }
+      },
+      "probe_leak_conductivity": {
+        "name": "{probe} geleidbaarheid van het lek"
       },
       "probe_ec_value": {
         "name": "{probe} value"
@@ -1404,9 +1371,6 @@
     "switch": {
       "acclimation": {
         "name": "Acclimatisatie"
-      },
-      "ato_auto_fill": {
-        "name": "Poort {port} automatisch vullen"
       },
       "auto_advance": {
         "name": "Automatisch vooruit"

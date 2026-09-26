@@ -99,18 +99,6 @@
       "missing_sensor": {
         "name": "Missing Sensor"
       },
-      "port_check_sensor": {
-        "name": "Port {port} check sensor"
-      },
-      "port_is_advancing": {
-        "name": "Port {port} advancing"
-      },
-      "port_is_pump_on": {
-        "name": "Port {port} pump"
-      },
-      "port_leak_sensor": {
-        "name": "Port {port} leak sensor"
-      },
       "power_link_up": {
         "name": "Power center link"
       },
@@ -151,15 +139,6 @@
     "button": {
       "advance": {
         "name": "Advance"
-      },
-      "ato_manual_pump": {
-        "name": "Port {port} manual fill"
-      },
-      "ato_resume": {
-        "name": "Port {port} resume"
-      },
-      "ato_stop": {
-        "name": "Port {port} stop"
       },
       "delete_emergency": {
         "name": "Delete emergency alert"
@@ -901,26 +880,6 @@
       "port_consumption": {
         "name": "Port {port} consumption"
       },
-      "port_last_fill_date": {
-        "name": "Port {port} last fill"
-      },
-      "port_last_pump_on_cause": {
-        "name": "Port {port} last pump-on cause",
-        "state": {
-          "none": "None",
-          "manual": "Manual",
-          "ec_sensor_s1": "Level sensor S1",
-          "ec_sensor_s2": "Level sensor S2"
-        }
-      },
-      "port_leak_status": {
-        "name": "Port {port} leak status",
-        "state": {
-          "dry": "Dry",
-          "aquarium_water_leak": "Aquarium water leak",
-          "rodi_water_leak": "RO/DI water leak"
-        }
-      },
       "port_mode": {
         "name": "Port {port} mode"
       },
@@ -929,9 +888,6 @@
       },
       "port_state": {
         "name": "Port {port} state"
-      },
-      "port_today_volume": {
-        "name": "Port {port} today volume"
       },
       "port_type": {
         "name": "Port {port} type"
@@ -944,6 +900,17 @@
       },
       "probe_ec": {
         "name": "{probe} conductivity"
+      },
+      "probe_leak_status": {
+        "name": "{probe} leak origin",
+        "state": {
+          "dry": "Dry",
+          "aquarium_water_leak": "Aquarium water",
+          "rodi_water_leak": "RO/DI water"
+        }
+      },
+      "probe_leak_conductivity": {
+        "name": "{probe} leak conductivity"
       },
       "probe_ec_value": {
         "name": "{probe} value"
@@ -1404,9 +1371,6 @@
     "switch": {
       "acclimation": {
         "name": "Acclimation"
-      },
-      "ato_auto_fill": {
-        "name": "Port {port} auto-fill"
       },
       "auto_advance": {
         "name": "Auto advance"

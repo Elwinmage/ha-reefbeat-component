@@ -99,18 +99,6 @@
       "missing_sensor": {
         "name": "Sensor em falta"
       },
-      "port_check_sensor": {
-        "name": "Porta {port} verificar sensor"
-      },
-      "port_is_advancing": {
-        "name": "Porta {port} em curso"
-      },
-      "port_is_pump_on": {
-        "name": "Porta {port} bomba"
-      },
-      "port_leak_sensor": {
-        "name": "Porta {port} sensor de fuga"
-      },
       "power_link_up": {
         "name": "Power center link"
       },
@@ -151,15 +139,6 @@
     "button": {
       "advance": {
         "name": "Avançar"
-      },
-      "ato_manual_pump": {
-        "name": "Porta {port} enchimento manual"
-      },
-      "ato_resume": {
-        "name": "Porta {port} retomar"
-      },
-      "ato_stop": {
-        "name": "Porta {port} parar"
       },
       "delete_emergency": {
         "name": "Eliminar alerta de emergência"
@@ -893,26 +872,6 @@
       "port_consumption": {
         "name": "Port {port} consumption"
       },
-      "port_last_fill_date": {
-        "name": "Porta {port} último enchimento"
-      },
-      "port_last_pump_on_cause": {
-        "name": "Porta {port} causa último acionamento",
-        "state": {
-          "none": "Nenhuma",
-          "manual": "Manual",
-          "ec_sensor_s1": "Sensor de nível S1",
-          "ec_sensor_s2": "Sensor de nível S2"
-        }
-      },
-      "port_leak_status": {
-        "name": "Porta {port} estado de fuga",
-        "state": {
-          "dry": "Seco",
-          "aquarium_water_leak": "Fuga de água do aquário",
-          "rodi_water_leak": "Fuga de água RO/DI"
-        }
-      },
       "port_mode": {
         "name": "Port {port} mode"
       },
@@ -921,9 +880,6 @@
       },
       "port_state": {
         "name": "Port {port} state"
-      },
-      "port_today_volume": {
-        "name": "Porta {port} volume de hoje"
       },
       "port_type": {
         "name": "Port {port} type"
@@ -936,6 +892,17 @@
       },
       "probe_ec": {
         "name": "{probe} conductivity"
+      },
+      "probe_leak_status": {
+        "name": "{probe} origem da fuga",
+        "state": {
+          "dry": "Seco",
+          "aquarium_water_leak": "Água do aquário",
+          "rodi_water_leak": "Água osmotizada"
+        }
+      },
+      "probe_leak_conductivity": {
+        "name": "{probe} condutividade da fuga"
       },
       "probe_ec_value": {
         "name": "{probe} value"
@@ -1396,9 +1363,6 @@
     "switch": {
       "acclimation": {
         "name": "Aclimatação"
-      },
-      "ato_auto_fill": {
-        "name": "Porta {port} enchimento auto"
       },
       "auto_advance": {
         "name": "Avanço automático"

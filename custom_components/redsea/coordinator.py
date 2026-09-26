@@ -1938,6 +1938,14 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         if await self.my_api.read_probe(ptype, uid):
             self.async_update_listeners()
 
+    def leak_status(self, uid: str) -> str | None:
+        """Where a leak probe's water comes from (see ReefControlAPI)."""
+        return self.my_api.leak_status(uid)
+
+    def leak_conductivity(self, uid: str) -> float | None:
+        """Conductivity a leak probe measured at its last reading."""
+        return self.my_api.leak_conductivity(uid)
+
     def list_probes(self) -> list[dict[str, str]]:
         """Current probes as ``{type, uid, name}`` (for the delete picker)."""
         probes = self.get_data(
