@@ -1738,6 +1738,40 @@
           "description": "O ID de hardware (hwid) do hub RSCONTROL, tal como indicado no connected_device.hwid de um RSPower emparelhado."
         }
       }
+    },
+    "probe_calibration": {
+      "name": "Calibração da sonda",
+      "description": "Executa um passo da calibração de uma sonda pH ou EC do RSCONTROL: entrada, ponto, estado ou saída.",
+      "fields": {
+        "device_id": {
+          "name": "ID do dispositivo",
+          "description": "O hub RSCONTROL (entrada de configuração)."
+        },
+        "probe_type": {
+          "name": "Tipo de sonda",
+          "description": "Tipo da sonda a calibrar."
+        },
+        "probe_uid": {
+          "name": "Uid da sonda",
+          "description": "Uid da sonda, tal como o hub a indica."
+        },
+        "action": {
+          "name": "Passo",
+          "description": "Passo da calibração."
+        },
+        "point": {
+          "name": "Ponto",
+          "description": "Ponto de calibração (passo «point»)."
+        },
+        "solution_value": {
+          "name": "Valor da solução",
+          "description": "Valor da solução de calibração (pH, ou mS/cm para EC)."
+        },
+        "solution_rated_temp": {
+          "name": "Temperatura de referência da solução",
+          "description": "Temperatura a que o valor da solução é dado, em °C (apenas pH)."
+        }
+      }
     }
   }
 }

@@ -135,3 +135,75 @@ get_control_subscriptions:
       example: "d4e9f4e89208"
       selector:
         text:
+
+# Multi-point calibration of a RSCONTROL pH or EC probe, one step per call:
+# enter, then point (per calibration point) and status (poll until it
+# succeeds or fails), then exit. Returns the hub's answer.
+probe_calibration:
+  fields:
+    device_id:
+      name: Device ID
+      description: The RSCONTROL hub (config entry).
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    probe_type:
+      name: Probe type
+      description: Type of the probe to calibrate.
+      required: true
+      example: "ph"
+      selector:
+        select:
+          options:
+            - "ph"
+            - "ec"
+    probe_uid:
+      name: Probe uid
+      description: Uid of the probe, as the hub reports it.
+      required: true
+      example: "0x00B39"
+      selector:
+        text:
+    action:
+      name: Step
+      description: Calibration step.
+      required: true
+      selector:
+        select:
+          options:
+            - "enter"
+            - "point"
+            - "status"
+            - "exit"
+    point:
+      name: Point
+      description: Calibration point (step "point").
+      required: false
+      selector:
+        select:
+          options:
+            - "LOW"
+            - "MID"
+            - "HIGH"
+    solution_value:
+      name: Solution value
+      description: Value of the calibration solution (pH, or mS/cm for EC).
+      required: false
+      example: 7.0
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 0.001
+          mode: box
+    solution_rated_temp:
+      name: Solution rated temperature
+      description: Temperature the solution value is given at, °C (pH only).
+      required: false
+      example: 25
+      selector:
+        number:
+          min: 0
+          max: 50
+          mode: box

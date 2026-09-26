@@ -1746,6 +1746,40 @@
           "description": "The RSCONTROL hub's hardware id (hwid), e.g. as reported in a paired RSPower's connected_device.hwid."
         }
       }
+    },
+    "probe_calibration": {
+      "name": "Probe calibration",
+      "description": "Run one step of a RSCONTROL pH or EC probe's calibration: enter, point, status or exit.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The RSCONTROL hub (config entry)."
+        },
+        "probe_type": {
+          "name": "Probe type",
+          "description": "Type of the probe to calibrate."
+        },
+        "probe_uid": {
+          "name": "Probe uid",
+          "description": "Uid of the probe, as the hub reports it."
+        },
+        "action": {
+          "name": "Step",
+          "description": "Calibration step."
+        },
+        "point": {
+          "name": "Point",
+          "description": "Calibration point (step \"point\")."
+        },
+        "solution_value": {
+          "name": "Solution value",
+          "description": "Value of the calibration solution (pH, or mS/cm for EC)."
+        },
+        "solution_rated_temp": {
+          "name": "Solution rated temperature",
+          "description": "Temperature the solution value is given at, °C (pH only)."
+        }
+      }
     }
   }
 }

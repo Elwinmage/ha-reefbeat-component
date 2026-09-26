@@ -74,6 +74,7 @@ from .coordinator import (
 )
 from .maintenance import MaintenanceStore, register_led_tasks
 from .reefbeat.cloud import InvalidAuth
+from .reefbeat.control import ReefControlAPI
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -635,6 +636,48 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         DOMAIN,
         "reset_maintenance",
         handle_reset_maintenance,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    @callback
+    async def handle_probe_calibration(call: ServiceCall) -> ServiceResponse:
+        """Run one step of a RSCONTROL pH or EC probe's calibration.
+
+        Addressed like `redsea.request` (config entry id). Steps: `enter`,
+        `point` (with `point`, `solution_value` and, for pH,
+        `solution_rated_temp`), `status` (returns the calibration status to
+        poll) and `exit`. See ReefControlAPI.probe_calibration.
+        """
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefControlCoordinator):
+            return {"ok": False, "error": "Not a RSCONTROL hub"}
+        ptype = call.data.get("probe_type")
+        uid = call.data.get("probe_uid")
+        action = call.data.get("action")
+        if not isinstance(ptype, str) or not isinstance(uid, str) or not uid:
+            return {"ok": False, "error": "probe_type and probe_uid are required"}
+        if action not in ReefControlAPI.CALIBRATION_ACTIONS:
+            return {"ok": False, "error": f"unknown action {action!r}"}
+        try:
+            return await device.async_probe_calibration(
+                action,
+                ptype,
+                uid,
+                call.data.get("point"),
+                call.data.get("solution_value"),
+                call.data.get("solution_rated_temp"),
+            )
+        except Exception:
+            _LOGGER.exception(
+                "Probe calibration %s failed on %s/%s", action, ptype, uid
+            )
+            return {"ok": False, "error": "request failed"}
+
+    _LOGGER.debug("Registering service redsea.probe_calibration")
+    hass.services.async_register(
+        DOMAIN,
+        "probe_calibration",
+        handle_probe_calibration,
         supports_response=SupportsResponse.OPTIONAL,
     )
 

@@ -1910,6 +1910,27 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         self.async_update_listeners()
         await self.async_request_refresh(config=True)
 
+    async def async_probe_calibration(
+        self,
+        action: str,
+        ptype: str,
+        uid: str,
+        point: str | None = None,
+        solution_value: float | None = None,
+        rated_temp: float | None = None,
+    ) -> dict[str, Any]:
+        """Run one step of a pH or EC probe's multi-point calibration.
+
+        See ReefControlAPI.probe_calibration. Leaving calibration reads the
+        hub back, so the probe's calibration date (and its reminder) follow.
+        """
+        result = await cast(ReefControlAPI, self.my_api).probe_calibration(
+            action, ptype, uid, point, solution_value, rated_temp
+        )
+        if action == "exit":
+            await self.async_request_refresh(config=True)
+        return result
+
     # -- Calibration reminders follow the hub --------------------------------
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch, then date the calibration reminders from the hub."""

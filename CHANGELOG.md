@@ -15,6 +15,16 @@
    draws its level the same way.
 
 ### RSCONTROL
+ - New service `redsea.probe_calibration` to calibrate a pH or EC probe
+   point by point, one step per call, as the ReefBeat app drives the hub
+   (from its code, not captured yet): `enter`
+   (`POST /probe/calibration-enter {"time"}`), `point`
+   (`POST /probe/calibration-point-start {"point": LOW|MID|HIGH,
+   "solution_value", "solution_rated_temp"}`, the temperature for pH only),
+   `status` (`GET /probe/calibration-status`, returned to poll:
+   `calibration_status`, `time_left`, `stability_progress`) and `exit`
+   (`POST /probe/calibration-exit`, then the hub is read back). Addressed by
+   config entry like `redsea.request`.
  - Calibration of the embedded temperature of pH, EC and ATO probes
    (number `probe_temp_calibration`, °C), the same way: it goes through
    `/probe/offset?type=<ph|ec|ato>&uid=…`, captured on pH and EC (adds too,

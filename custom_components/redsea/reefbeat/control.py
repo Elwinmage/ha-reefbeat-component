@@ -42,6 +42,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 from typing import Any, cast
 
 import aiohttp
@@ -745,6 +746,67 @@ class ReefControlAPI(ReefBeatAPI):
             ):
                 return probe
         return None
+
+    # -- Multi-point calibration (pH, EC) ---------------------------------------
+    # As the ReefBeat app drives it (``BaseControlProbeCalibrationActivity``,
+    # not captured yet): enter calibration once, then per point start it with
+    # the solution and poll its status until it succeeds or fails, then exit.
+    #   POST /probe/calibration-enter?type&uid        {"time": <epoch s>}
+    #   POST /probe/calibration-point-start?type&uid  {"point": "LOW"|"MID"|
+    #        "HIGH", "solution_value": <float>, "solution_rated_temp": <°C>}
+    #        (rated temperature for pH only)
+    #   GET  /probe/calibration-status?type&uid
+    #        -> {"calibration_status", "time_left", "stability_progress"}
+    #   POST /probe/calibration-exit?type&uid         {}
+    CALIBRATION_ACTIONS: tuple[str, ...] = ("enter", "point", "status", "exit")
+    CALIBRATION_POINTS: tuple[str, ...] = ("LOW", "MID", "HIGH")
+
+    async def probe_calibration(
+        self,
+        action: str,
+        ptype: str,
+        uid: str,
+        point: str | None = None,
+        solution_value: float | None = None,
+        rated_temp: float | None = None,
+    ) -> dict[str, Any]:
+        """Run one step of a probe's multi-point calibration.
+
+        Returns ``{"ok", "status_code", "json"}``; for ``status``, ``json``
+        is the calibration status. A malformed step is refused without a
+        request: ``{"ok": False, "error"}``.
+        """
+        query = f"?type={ptype}&uid={uid}"
+        result: HttpResult | None
+        if action == "enter":
+            result = await self.http_send(
+                f"/probe/calibration-enter{query}", {"time": int(time.time())}, "post"
+            )
+        elif action == "point":
+            name = str(point or "").upper()
+            if name not in self.CALIBRATION_POINTS or not self._is_number(
+                solution_value
+            ):
+                return {"ok": False, "error": "point and solution_value required"}
+            body: dict[str, Any] = {"point": name, "solution_value": solution_value}
+            if self._is_number(rated_temp):
+                body["solution_rated_temp"] = int(cast(float, rated_temp))
+            result = await self.http_send(
+                f"/probe/calibration-point-start{query}", body, "post"
+            )
+        elif action == "status":
+            result = await self.http_get(f"/probe/calibration-status{query}")
+        elif action == "exit":
+            result = await self.http_send(f"/probe/calibration-exit{query}", {}, "post")
+        else:
+            return {"ok": False, "error": f"unknown action {action!r}"}
+        if result is None:
+            return {"ok": False, "status_code": None, "json": None}
+        return {
+            "ok": bool(result.get("ok")),
+            "status_code": result.get("status"),
+            "json": result.get("json"),
+        }
 
     async def read_probe(self, ptype: str, uid: str) -> bool:
         """Read one probe now and patch the cached ``/dashboard`` with it.

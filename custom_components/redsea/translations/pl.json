@@ -1738,6 +1738,40 @@
           "description": "Identyfikator sprzętowy (hwid) huba RSCONTROL, podawany w connected_device.hwid sparowanego RSPower."
         }
       }
+    },
+    "probe_calibration": {
+      "name": "Kalibracja sondy",
+      "description": "Wykonuje jeden krok kalibracji sondy pH lub EC RSCONTROL: wejście, punkt, stan lub wyjście.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Hub RSCONTROL (wpis konfiguracji)."
+        },
+        "probe_type": {
+          "name": "Typ sondy",
+          "description": "Typ kalibrowanej sondy."
+        },
+        "probe_uid": {
+          "name": "Uid sondy",
+          "description": "Uid sondy podany przez hub."
+        },
+        "action": {
+          "name": "Krok",
+          "description": "Krok kalibracji."
+        },
+        "point": {
+          "name": "Punkt",
+          "description": "Punkt kalibracji (krok „point”)."
+        },
+        "solution_value": {
+          "name": "Wartość roztworu",
+          "description": "Wartość roztworu kalibracyjnego (pH lub mS/cm dla EC)."
+        },
+        "solution_rated_temp": {
+          "name": "Temperatura odniesienia roztworu",
+          "description": "Temperatura, dla której podano wartość roztworu, w °C (tylko pH)."
+        }
+      }
     }
   }
 }

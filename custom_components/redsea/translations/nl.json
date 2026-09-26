@@ -1746,6 +1746,40 @@
           "description": "De hardware-ID (hwid) van de RSCONTROL-hub, zoals gerapporteerd in de connected_device.hwid van een gekoppelde RSPower."
         }
       }
+    },
+    "probe_calibration": {
+      "name": "Sondekalibratie",
+      "description": "Voert een stap uit van de kalibratie van een pH- of EC-sonde van de RSCONTROL: starten, punt, status of stoppen.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De RSCONTROL-hub (configuratie-item)."
+        },
+        "probe_type": {
+          "name": "Sondetype",
+          "description": "Type van de te kalibreren sonde."
+        },
+        "probe_uid": {
+          "name": "Sonde-uid",
+          "description": "Uid van de sonde, zoals de hub die meldt."
+        },
+        "action": {
+          "name": "Stap",
+          "description": "Kalibratiestap."
+        },
+        "point": {
+          "name": "Punt",
+          "description": "Kalibratiepunt (stap \"point\")."
+        },
+        "solution_value": {
+          "name": "Waarde van de oplossing",
+          "description": "Waarde van de kalibratieoplossing (pH, of mS/cm voor EC)."
+        },
+        "solution_rated_temp": {
+          "name": "Referentietemperatuur van de oplossing",
+          "description": "Temperatuur waarbij de waarde van de oplossing geldt, in °C (alleen pH)."
+        }
+      }
     }
   }
 }
