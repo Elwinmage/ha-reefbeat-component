@@ -104,7 +104,9 @@ async def test_set_and_reset_probe_offset() -> None:
 async def test_install_probe_success_stops_ble() -> None:
     api = _control_api()
     api.http_send = AsyncMock(return_value={"json": {"uid": "0xNEW", "success": True}})
+    api.http_get = AsyncMock(return_value=None)
     await api.install_probe("ph")
+    api.http_get.assert_awaited_once_with("/probe/info?type=ph&uid=0xNEW")
     assert api.http_send.await_count == 3
     api.http_send.assert_any_call("/ble/off?type=ph&uid=0xNEW", {}, "post")
     api.http_send.assert_awaited_with(
@@ -125,15 +127,44 @@ async def test_install_probe_success_stops_ble() -> None:
 
 
 @pytest.mark.asyncio
-async def test_install_probe_leak_needs_no_config_seed() -> None:
-    """A leak probe's /probe/config entry is just {name, type, uid} — writing
-    to it 503s, so install_probe must not attempt a PUT for it.
+async def test_install_probe_leak_follows_the_app() -> None:
+    """A leak probe stays in `setup` (hidden by the app, silent) until its
+    alarm settings and its name are written, as the app does (capture of
+    the app installing leak probe 0x0032B).
     """
     api = _control_api()
-    api.http_send = AsyncMock(return_value={"json": {"uid": "0xLEAK", "success": True}})
+    api.http_get = AsyncMock(return_value={"json": {"hwid": "x"}})
+    api.fetch_config = AsyncMock()
+    api.http_send = AsyncMock(
+        return_value={"json": {"uid": "0x0032B", "success": True}}
+    )
     await api.install_probe("leak")
-    assert api.http_send.await_count == 2
-    api.http_send.assert_awaited_with("/ble/off?type=leak&uid=0xLEAK", {}, "post")
+    api.http_get.assert_awaited_once_with("/probe/info?type=leak&uid=0x0032B")
+    assert [c.args for c in api.http_send.await_args_list] == [
+        ("/probe/install?type=leak", {}, "post"),
+        ("/ble/off?type=leak&uid=0x0032B", {}, "post"),
+        (
+            "/leak/config",
+            {
+                "buzzer": True,
+                "leak_detector": True,
+                "notify": True,
+                "emergency_shutdown": False,
+            },
+            "put",
+        ),
+        (
+            "/probe/config",
+            [{"name": "Leak 32B", "uid": "0x0032B", "type": "leak"}],
+            "put",
+        ),
+    ]
+    api.fetch_config.assert_awaited_once_with("/probe/config")
+
+
+def test_leak_probe_name() -> None:
+    assert ReefControlAPI._leak_probe_name("0x0032B") == "Leak 32B"
+    assert ReefControlAPI._leak_probe_name("0x00000") == "Leak 0"
 
 
 @pytest.mark.asyncio

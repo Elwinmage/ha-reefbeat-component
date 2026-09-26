@@ -64,6 +64,7 @@ def _control_with_mock_api() -> tuple[Any, MagicMock]:
     coord = ReefControlCoordinator.__new__(ReefControlCoordinator)
     coord.my_api = api
     coord.async_request_refresh = AsyncMock()
+    coord.async_update_listeners = MagicMock()
     return coord, api
 
 
@@ -366,6 +367,7 @@ def _power_with_mock_api() -> tuple[Any, MagicMock]:
     coord = ReefPowerCoordinator.__new__(ReefPowerCoordinator)
     coord.my_api = api
     coord.async_request_refresh = AsyncMock()
+    coord.async_update_listeners = MagicMock()
     return coord, api
 
 

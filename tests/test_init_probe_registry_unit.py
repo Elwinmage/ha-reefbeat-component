@@ -152,3 +152,73 @@ async def test_async_setup_entry_purges_control_orphans(
     ok = await integration.async_setup_entry(hass, cast(Any, entry))
     assert ok is True
     assert reg.async_get(orphan) is None  # purged during setup
+
+
+def _mk_bs(reg: er.EntityRegistry, entry: MockConfigEntry, unique_id: str) -> str:
+    ent = reg.async_get_or_create(
+        "binary_sensor", DOMAIN, unique_id, config_entry=cast(Any, entry)
+    )
+    return ent.entity_id
+
+
+_LEAK = {"type": "leak", "uid": "0x0032B", "name": "Fuite 32B"}
+
+
+@pytest.mark.asyncio
+async def test_purge_keeps_a_current_leak_probe(hass: Any) -> None:
+    """The leak sensor's typed key is recognised as a live probe entity."""
+    entry = _entry(hass)
+    reg = er.async_get(hass)
+    leak = _mk_bs(reg, entry, "CTL123_probe_leak_0x0032b_detected")
+    coordinator = _FakeControl(probes=[_LEAK], dashboard={"probes": [_LEAK]})
+    integration._purge_orphan_probe_entities(
+        hass, cast(Any, entry), cast(Any, coordinator)
+    )
+    assert reg.async_get(leak) is not None
+
+
+@pytest.mark.asyncio
+async def test_migrate_leak_unique_ids_keeps_the_entity_id(hass: Any) -> None:
+    entry = _entry(hass)
+    reg = er.async_get(hass)
+    legacy = _mk_bs(reg, entry, "CTL123_probe_0x0032b_detected")
+    other = _mk(reg, entry, "CTL123_probe_temperature_0xab_value")
+    foreign = _mk_bs(reg, entry, "OTHER_probe_0x0032b_detected")
+    coordinator = _FakeControl(
+        probes=[_LEAK, {"type": "temperature", "uid": "0xAB", "name": "T"}],
+        dashboard={},
+    )
+    integration._migrate_leak_unique_ids(hass, cast(Any, entry), cast(Any, coordinator))
+    moved = reg.async_get(legacy)
+    assert moved is not None
+    assert moved.unique_id == "CTL123_probe_leak_0x0032b_detected"
+    kept = reg.async_get(other)
+    assert kept is not None
+    assert kept.unique_id == "CTL123_probe_temperature_0xab_value"
+    untouched = reg.async_get(foreign)
+    assert untouched is not None
+    assert untouched.unique_id == "OTHER_probe_0x0032b_detected"
+
+
+@pytest.mark.asyncio
+async def test_migrate_leak_unique_ids_drops_a_duplicate(hass: Any) -> None:
+    entry = _entry(hass)
+    reg = er.async_get(hass)
+    legacy = _mk_bs(reg, entry, "CTL123_probe_0x0032b_detected")
+    current = _mk_bs(reg, entry, "CTL123_probe_leak_0x0032b_detected")
+    coordinator = _FakeControl(probes=[_LEAK], dashboard={})
+    integration._migrate_leak_unique_ids(hass, cast(Any, entry), cast(Any, coordinator))
+    assert reg.async_get(legacy) is None
+    assert reg.async_get(current) is not None
+
+
+@pytest.mark.asyncio
+async def test_migrate_leak_unique_ids_without_leak_probe(hass: Any) -> None:
+    entry = _entry(hass)
+    reg = er.async_get(hass)
+    ent = _mk_bs(reg, entry, "CTL123_probe_0x0032b_detected")
+    coordinator = _FakeControl(probes=[], dashboard={})
+    integration._migrate_leak_unique_ids(hass, cast(Any, entry), cast(Any, coordinator))
+    entry_after = reg.async_get(ent)
+    assert entry_after is not None
+    assert entry_after.unique_id == "CTL123_probe_0x0032b_detected"

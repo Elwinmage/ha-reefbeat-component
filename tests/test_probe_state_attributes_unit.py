@@ -230,3 +230,13 @@ def test_tag_probe_entities_without_probe_list() -> None:
     entity = _Entity("SER_probe_ph_0x001_buzzer")
     tag_probe_entities(_TaggedHub(None, {}), [entity])
     assert not hasattr(entity, "_attr_extra_state_attributes")
+
+
+def test_legacy_leak_key() -> None:
+    from custom_components.redsea.probe_entities import legacy_leak_key
+
+    assert legacy_leak_key("probe_0x0032b_detected", {"0x0032b"}) == (
+        "probe_leak_0x0032b_detected"
+    )
+    assert legacy_leak_key("probe_leak_0x0032b_detected", {"0x0032b"}) is None
+    assert legacy_leak_key("probe_0x0032b_detected", set()) is None

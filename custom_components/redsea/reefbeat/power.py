@@ -193,6 +193,35 @@ class ReefPowerAPI(ReefBeatAPI):
                 await self.fetch_config(name)
         return result
 
+    def _mirror_write(
+        self, action: str, payload: Any, method: str, result: HttpResult
+    ) -> None:
+        """Apply the local probe and pairing writes to the cache at once.
+
+        Installing or removing the local temperature probe and unpairing the
+        hub show right away (see ReefBeatAPI._mirror_write). An installed
+        probe has no reading yet: only its uid is known until the next poll.
+        """
+        dashboard = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data", is_None_possible=True
+        )
+        if not isinstance(dashboard, dict):
+            return
+        board = cast(dict[str, Any], dashboard)
+        if method == "delete" and action == "/sensor":
+            board["temperature"] = None
+        elif method == "delete" and action == "/paired-device":
+            board["connected_device"] = None
+        elif method == "post" and action == "/sensor/install":
+            body: Any = result.get("json")
+            uid: Any = (
+                cast(dict[str, Any], body).get("uid")
+                if isinstance(body, dict)
+                else None
+            )
+            if uid and not board.get("temperature"):
+                board["temperature"] = {"uid": uid}
+
     async def remove_temperature(self) -> HttpResult | None:
         """Remove the local temperature probe (``DELETE /sensor``).
 

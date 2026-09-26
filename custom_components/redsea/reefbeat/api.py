@@ -331,12 +331,13 @@ class ReefBeatAPI:
                     if resp.status >= 400 and not self._is_status_ok(
                         resp.status, endpoint, "get"
                     ):
+                        # Only the endpoint: the source match carries the
+                        # whole cached device data along with it.
                         _LOGGER.debug(
-                            "GET %s failed: %s %s %s",
+                            "GET %s failed: %s %s",
                             url,
                             resp.status,
                             resp.reason,
-                            source,
                         )
                         # A definitive refusal (4xx, local 503) is not
                         # retried and does not mark the device in error: it
@@ -651,7 +652,23 @@ class ReefBeatAPI:
         Returns:
             The final `aiohttp.Response` if a request was performed, else None.
         """
-        return await self._http_send(self._base_url + action, payload, method)
+        result = await self._http_send(self._base_url + action, payload, method)
+        if result is not None and result.get("ok"):
+            self._mirror_write(action, payload, method.lower(), result)
+        return result
+
+    def _mirror_write(
+        self, action: str, payload: Any, method: str, result: HttpResult
+    ) -> None:
+        """Apply an accepted write to the cached data, before the read-back.
+
+        Optimistic update: the entities can show the expected outcome as
+        soon as the device acknowledged the command, instead of after the
+        settle delay and refresh that follow it. The next read-back replaces
+        it with what the device really reports, so a command that did not
+        take effect is corrected on the following poll. No-op here; device
+        APIs override it for the writes they know.
+        """
 
     async def _http_send(
         self, url: str, payload: Any = None, method: str = "post"

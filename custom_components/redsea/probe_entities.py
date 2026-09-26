@@ -214,6 +214,20 @@ def probe_key_prefix(ptype: str, uid: str) -> str:
     return f"probe_{ptype.lower()}_{sanitise_uid(uid)}_"
 
 
+def legacy_leak_key(key: str, leak_uid_keys: set[str]) -> str | None:
+    """Current key of a leak probe entity still under its pre-fix key.
+
+    Leak probes' ``detected`` sensor used to be keyed ``probe_{uid}_detected``
+    — without the type every other probe entity carries — so the orphan purge
+    took it for a stale probe and dropped it on every start-up. Returns
+    ``probe_leak_{uid}_detected`` for such a key, else None.
+    """
+    for uid_key in leak_uid_keys:
+        if key == f"probe_{uid_key}_detected":
+            return f"probe_leak_{uid_key}_detected"
+    return None
+
+
 def is_orphan_probe_entity(key: str, valid_prefixes: set[str]) -> bool:
     """Whether ``key`` is a ``probe_*`` entity of a probe that no longer exists."""
     if not key.startswith("probe_"):

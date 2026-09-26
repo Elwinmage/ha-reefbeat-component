@@ -2,7 +2,38 @@
 
 ## MODIFICATIONS
 
+### RSPOWER
+ - Optimistic updates for installing or removing the local temperature
+   probe and unpairing the hub (see RSCONTROL).
+ - `power_temperature` carries `ranges` (`[acceptable_low, desired_low,
+   desired_high, acceptable_high]`, from `/temperature/config`) and `level`
+   (from `/dashboard.temperature.level`), as the hub probes do, so a card
+   draws its level the same way.
+
 ### RSCONTROL
+ - Fix: a leak probe added from Home Assistant stayed in `status: setup` —
+   not shown by the app, reporting nothing. Its install now follows the
+   app's sequence: `POST /probe/install`, `GET /probe/info`, `POST
+   /ble/off`, then `PUT /leak/config` (buzzer, leak detector, notification
+   on, emergency shutdown off) and `PUT /probe/config` with its name
+   (`Leak <uid digits>`, as the app names it). Every probe type now reads
+   `/probe/info` after its install, as the app does.
+ - Optimistic updates: an accepted write is shown at once, before the
+   settle delay and read-back that follow it; the read-back corrects it if
+   the device did not apply it. Covers the 12V ports as the card writes them
+   through `redsea.request` (mode, name and power in `/ports/config`, probe
+   rule in `/ports/subscribe`, install, uninstall), the port uninstall
+   button, and pairing / unpairing the power center — both ends at once when
+   the power center is set up too (pairing only when a single free power
+   center makes it certain which one).
+ - A failed GET no longer dumps the whole cached device data into the debug
+   log: only the URL, status and reason are logged.
+ - Fix: leak probe sensors were removed at every start-up ("Removing orphaned
+   probe entity …_leak"). Their unique_id lacked the probe type
+   (`probe_{uid}_detected`), so the orphan purge did not recognise them as
+   belonging to a current probe. They are now keyed
+   `probe_leak_{uid}_detected`; an existing entry is migrated before the
+   platforms load, so the entity_id and its history are kept.
  - Every ReefSense probe entity (sensors and the leak `binary_sensor`) now
    carries `probe_uid`, `probe_type` and `probe_index` state attributes. All
    probes of a type share the same translation keys, so these attributes are
@@ -22,11 +53,16 @@
    `socket_N_mode` does on a power center: `config` (the whole
    `/ports/config` entry, `power_on_percent` included), `schedule` and
    `sensor_config` (the hub's probe rule for the port, from the `internal`
-   part of `/subscription-info`, else the `sensor` field of the port entry),
+   part of `/subscription-info`, else the `sensor` field of the port entry
+   when it names a probe — the app's own `{default_state, app_cache}` there
+   is not a rule),
    with `sensor_source: control`.
- - Each port's schedule is read back from `GET /port/<n>/schedule` on config
-   refreshes. The GET mirrors the confirmed `PUT`; it has not been checked
-   against a capture yet.
+ - A port's schedule is read back from `GET /port/<n>/schedule`, only while
+   the port is in `schedule` mode (from `/dashboard` on polls, from
+   `/ports/config` after a config refresh): an uninstalled port answers 503
+   and a port on, off or probe-driven does not use it. The source is
+   registered when the port switches to schedule, fetched at once, and
+   dropped when it leaves that mode.
  - The probe settings (range bounds, EC unit, temperature offset, buzzer /
    notify / enabled / maintenance switches, "read now" button) carry
    `probe_uid` and `probe_type` too, so a card can open the settings of one

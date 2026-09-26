@@ -208,6 +208,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator.maintenance = maintenance_store  # type: ignore[attr-defined]
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+
+    # Before the platforms build their entities, so a leak probe keeps its
+    # entity_id (hence history) across the unique_id fix.
+    if isinstance(coordinator, ReefControlCoordinator):
+        with suppress(Exception):
+            _migrate_leak_unique_ids(hass, entry, coordinator)
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     # After a probe is removed (via the options flow, which reloads the entry),
@@ -272,6 +279,38 @@ def _rename_probe_entities(
         registry.async_update_entity(ent.entity_id, new_unique_id=new_unique_id)
         renamed += 1
     return renamed
+
+
+def _migrate_leak_unique_ids(
+    hass: HomeAssistant, entry: ConfigEntry, coordinator: ReefControlCoordinator
+) -> None:
+    """Move leak probe entities onto their typed unique_id.
+
+    See ``probe_entities.legacy_leak_key``. When the new unique_id is
+    already registered, the legacy entry is a leftover and is dropped.
+    """
+    from . import probe_entities as pe
+
+    leak_uid_keys = {
+        pe.sanitise_uid(p["uid"])
+        for p in coordinator.list_probes()
+        if p["type"].lower() == "leak"
+    }
+    if not leak_uid_keys:
+        return
+    serial_prefix = f"{coordinator.serial}_"
+    registry = er.async_get(hass)
+    for ent in list(er.async_entries_for_config_entry(registry, entry.entry_id)):
+        if not ent.unique_id.startswith(serial_prefix):
+            continue
+        new_key = pe.legacy_leak_key(ent.unique_id[len(serial_prefix) :], leak_uid_keys)
+        if new_key is None:
+            continue
+        new_unique_id = serial_prefix + new_key
+        if registry.async_get_entity_id(ent.domain, ent.platform, new_unique_id):
+            registry.async_remove(ent.entity_id)
+        else:
+            registry.async_update_entity(ent.entity_id, new_unique_id=new_unique_id)
 
 
 def _purge_orphan_probe_entities(
@@ -436,6 +475,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         if not r:
             title = getattr(device, "title", getattr(device, "_title", device_id))
             return {"error": f"can not access to device {title}"}
+
+        # An accepted write is already mirrored in the cache when the API
+        # knows it (optimistic update, see ReefBeatAPI._mirror_write): show
+        # it now rather than after the settle delay below.
+        if r.get("ok") and method != "get":
+            device.async_update_listeners()
 
         # Debug-friendly structured response (matches reefbeat.api.HttpResult)
         resp: dict[str, Any] = {

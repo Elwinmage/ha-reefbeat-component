@@ -36,9 +36,6 @@
       "ato_sensor_connected": {
         "name": "Temperature probe connected"
       },
-      "auto_from_buttons": {
-        "name": "Auto from buttons"
-      },
       "battery_level": {
         "name": "Battery Level"
       },

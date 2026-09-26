@@ -87,6 +87,11 @@ from .reefbeat import (
 _LOGGER = logging.getLogger(__name__)
 
 
+def _accepted(result: Any) -> bool:
+    """Whether the device acknowledged a write (an ``HttpResult`` with ok)."""
+    return isinstance(result, dict) and bool(cast(dict[str, Any], result).get("ok"))
+
+
 # Base coordinator types and common helpers
 
 # =============================================================================
@@ -1555,8 +1560,18 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
         await self.async_request_refresh()
 
     async def unpair_control(self) -> None:
-        """Unlink the paired RSControl hub and refresh."""
-        await cast(ReefPowerAPI, self.my_api).unpair_control()
+        """Unlink the paired RSControl hub and refresh.
+
+        Optimistic: once the power center accepted it, both ends show the
+        link gone at once (the hub's side too, when it is set up here); the
+        read-back corrects them if the unpairing did not happen.
+        """
+        hub = self.connected_control()
+        result = await cast(ReefPowerAPI, self.my_api).unpair_control()
+        if _accepted(result):
+            self.async_update_listeners()
+            if hub is not None:
+                hub.set_connected_device(None)
         await self.async_request_refresh(config=True)
 
     def connected_control(self) -> ReefControlCoordinator | None:
@@ -1578,6 +1593,15 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
             ):
                 return coordinator
         return None
+
+    def set_connected_device(self, device: dict[str, Any] | None) -> None:
+        """Set the power center's cached pairing and show it (optimistic)."""
+        dashboard = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data", is_None_possible=True
+        )
+        if isinstance(dashboard, dict):
+            dashboard["connected_device"] = device
+            self.async_update_listeners()
 
     def socket_sensor_config(self, socket: int) -> tuple[str | None, Any]:
         """Threshold rule driving a socket in sensor mode, and where it lives.
@@ -1648,6 +1672,8 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
         PROBE_REFRESH_DELAY).
         """
         await cast(ReefPowerAPI, self.my_api).install_temperature()
+        # The API already cached the new probe (optimistic): show it now
+        self.async_update_listeners()
         await self.async_request_refresh(wait=PROBE_REFRESH_DELAY)
 
     async def async_remove_temperature(self) -> None:
@@ -1657,6 +1683,8 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
         before reading /dashboard back (see PROBE_REFRESH_DELAY).
         """
         await cast(ReefPowerAPI, self.my_api).remove_temperature()
+        # The API already dropped the probe from the cache (optimistic)
+        self.async_update_listeners()
         await self.async_request_refresh(wait=PROBE_REFRESH_DELAY)
 
     async def get_current_temperature(self) -> None:
@@ -1690,12 +1718,10 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         # Lite exposes 1 port, Pro exposes 2. Anything else falls back to Pro.
         self.port_count: int = 1 if "LITE" in hw_model.upper() else 2
 
-        # A port's daily programme, read back like a power-center socket's
-        # (``/socket/<n>/config/schedule`` there). The GET mirrors the
-        # confirmed ``PUT /port/<n>/schedule``; a firmware without it just
-        # leaves the source empty, and the card's editor starts blank.
-        for number in range(self.port_count):
-            self.my_api.add_source(f"/port/{number}/schedule", "config")
+        # A port's daily programme (``/port/<n>/schedule``) is polled only
+        # while the port is in schedule mode: the API registers and drops
+        # those sources as the ports' modes change (see
+        # ReefControlAPI._reconcile_port_schedule_sources).
 
         # Local state backing the temperature-fusion config entities. Kept in
         # the API's ``local`` bag so get_data/set_data JSONPaths resolve and the
@@ -2014,6 +2040,8 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         """
         api = cast(ReefControlAPI, self.my_api)
         await api.delete_port(number)
+        # The API already reset the port in the cache (optimistic)
+        self.async_update_listeners()
 
         for other in range(self.port_count):
             if other != number and api.port_is_installed(other):
@@ -2072,9 +2100,11 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         config = api.port_config(number)
         if rule is None and config is not None:
             # `/ports/config` entries carry a `sensor` field too (null on a
-            # port that follows no probe): the rule may live there instead.
+            # port that follows no probe). On a probe-driven port the app
+            # only keeps `{default_state, app_cache}` there: it counts as a
+            # rule only when it names the probe it follows.
             own: Any = config.get("sensor")
-            if isinstance(own, dict):
+            if isinstance(own, dict) and ("uid" in own or "type" in own):
                 rule = cast(dict[str, Any], own)
         schedule = self.get_data(
             f"$.sources[?(@.name=='/port/{number}/schedule')].data",
@@ -2104,14 +2134,89 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         await cast(ReefControlAPI, self.my_api).setup_finish()
         await self.async_request_refresh()
 
+    def set_connected_device(self, device: dict[str, Any] | None) -> None:
+        """Set the hub's cached pairing and show it (optimistic update)."""
+        dashboard = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data", is_None_possible=True
+        )
+        if isinstance(dashboard, dict):
+            dashboard["connected_device"] = device
+            self.async_update_listeners()
+
+    def connected_power(self) -> ReefPowerCoordinator | None:
+        """The power center this hub is paired with, if set up here."""
+        hwid = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid",
+            is_None_possible=True,
+        )
+        if not hwid:
+            return None
+        for coordinator in self._hass.data.get(DOMAIN, {}).values():
+            if (
+                isinstance(coordinator, ReefPowerCoordinator)
+                and coordinator.model_id == hwid
+            ):
+                return coordinator
+        return None
+
+    def _pairing_candidate(self) -> ReefPowerCoordinator | None:
+        """The power center a pairing will link, when it can be told.
+
+        Pairing links whichever power center answers nearby; the guess is
+        only made when exactly one set up here is free (neither paired nor
+        using a local probe, which excludes a hub).
+        """
+        free = [
+            c
+            for c in self._hass.data.get(DOMAIN, {}).values()
+            if isinstance(c, ReefPowerCoordinator)
+            and not c.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid",
+                is_None_possible=True,
+            )
+            and not c.has_local_temperature()
+        ]
+        return free[0] if len(free) == 1 else None
+
     async def pair_power(self) -> None:
-        """Pair with a nearby RSPower center and refresh."""
-        await cast(ReefControlAPI, self.my_api).power_discover(pair=True)
+        """Pair with a nearby RSPower center and refresh.
+
+        Optimistic when the power center can be told (see
+        _pairing_candidate): both ends show the link at once, the read-back
+        corrects them if the pairing did not happen.
+        """
+        power = self._pairing_candidate()
+        result = await cast(ReefControlAPI, self.my_api).power_discover(pair=True)
+        if power is not None and _accepted(result):
+            self.set_connected_device(
+                {
+                    "state": "paired_connected",
+                    "hwid": power.model_id,
+                    "internet_connected": True,
+                }
+            )
+            power.set_connected_device(
+                {
+                    "type": "control",
+                    "hwid": self.model_id,
+                    "status": "connected",
+                    "internet_connected": True,
+                }
+            )
         await self.async_request_refresh(config=True)
 
     async def unpair_power(self) -> None:
-        """Unlink the paired RSPower center and refresh."""
-        await cast(ReefControlAPI, self.my_api).power_unpair()
+        """Unlink the paired RSPower center and refresh.
+
+        Optimistic: both ends show the link gone at once (the API clears the
+        hub's side), the read-back corrects them if it did not happen.
+        """
+        power = self.connected_power()
+        result = await cast(ReefControlAPI, self.my_api).power_unpair()
+        if _accepted(result):
+            self.async_update_listeners()
+            if power is not None:
+                power.set_connected_device(None)
         await self.async_request_refresh(config=True)
 
 

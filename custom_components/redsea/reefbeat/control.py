@@ -41,6 +41,7 @@ Evidence:
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any, cast
 
 import aiohttp
@@ -50,6 +51,11 @@ from .api import HttpResult, ReefBeatAPI, SourceEntry
 from .fusion import is_probe_disconnected
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _as_dict(value: Any) -> dict[str, Any] | None:
+    """A JSON object from the cache, typed, or None for anything else."""
+    return cast(dict[str, Any], value) if isinstance(value, dict) else None
 
 
 # =============================================================================
@@ -157,6 +163,191 @@ class ReefControlAPI(ReefBeatAPI):
         for name in existing - wanted:
             self.remove_source(name)
 
+    # ── Optimistic updates ─────────────────────────────────────────────
+
+    _PORT_PATH = re.compile(r"^/port/(\d+)(/install)?$")
+    _SOCKET_UNSUBSCRIBE = re.compile(r"^/socket/(\d+)/unsubscribe$")
+
+    def _source(self, name: str) -> Any:
+        """Cached payload of a source (the live object, not a copy)."""
+        return self.get_data(
+            f"$.sources[?(@.name=='{name}')].data", is_None_possible=True
+        )
+
+    def _dashboard_port(self, number: int) -> dict[str, Any] | None:
+        ports = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.ports", is_None_possible=True
+        )
+        if isinstance(ports, list):
+            for raw in cast(list[Any], ports):
+                entry = _as_dict(raw)
+                if entry is not None and entry.get("number") == number:
+                    return entry
+        return None
+
+    def _update_port(self, number: int, fields: dict[str, Any]) -> None:
+        """Set fields of a port in `/ports/config` and `/dashboard`."""
+        entry = self.port_config(number)
+        if entry is not None:
+            entry.update(fields)
+        dash = self._dashboard_port(number)
+        if dash is not None:
+            for key in ("mode", "type", "name"):
+                if key in fields:
+                    dash[key] = fields[key]
+            if "mode" in fields:
+                dash["user_config_mode"] = fields["mode"]
+
+    def _replace_rules(
+        self, kind: str, number: int, rule: dict[str, Any] | None
+    ) -> None:
+        """Replace a port's (``internal``) or socket's (``external``) rule."""
+        info = self._source("/subscription-info")
+        if not isinstance(info, dict):
+            return
+        rules: Any = cast(dict[str, Any], info).get(kind)
+        kept: list[Any] = []
+        for raw in cast(list[Any], rules) if isinstance(rules, list) else []:
+            entry = _as_dict(raw)
+            if entry is None or entry.get("number") != number:
+                kept.append(raw)
+        if rule is not None:
+            kept.append(rule)
+        info[kind] = kept
+
+    def _mirror_write(
+        self, action: str, payload: Any, method: str, result: HttpResult
+    ) -> None:
+        """Apply the hub's port and pairing writes to the cache at once.
+
+        Covers what the card writes through ``redsea.request`` as much as the
+        integration's own calls: a port's mode, name or power
+        (``PUT /ports/config``), its probe rule (``PUT /ports/subscribe``),
+        installing or uninstalling it, and unpairing the power center.
+        """
+        if method == "put" and action == "/ports/config":
+            for raw in cast(list[Any], payload) if isinstance(payload, list) else []:
+                entry = _as_dict(raw)
+                if entry is not None and isinstance(entry.get("number"), int):
+                    self._update_port(
+                        entry["number"],
+                        {k: v for k, v in entry.items() if k != "number"},
+                    )
+            return
+        if method == "put" and action == "/ports/subscribe":
+            ports: Any = (
+                cast(dict[str, Any], payload).get("ports")
+                if isinstance(payload, dict)
+                else None
+            )
+            for raw in cast(list[Any], ports) if isinstance(ports, list) else []:
+                rule = _as_dict(raw)
+                if rule is not None and isinstance(rule.get("number"), int):
+                    self._replace_rules("internal", rule["number"], dict(rule))
+            return
+        if method == "post" and action == "/power/unpair":
+            dashboard = self._source("/dashboard")
+            if isinstance(dashboard, dict):
+                dashboard["connected_device"] = None
+            return
+        match = self._SOCKET_UNSUBSCRIBE.match(action)
+        if match and method == "put":
+            self._replace_rules("external", int(match.group(1)), None)
+            return
+        match = self._PORT_PATH.match(action)
+        if match is None:
+            return
+        number = int(match.group(1))
+        if match.group(2) and method == "post" and isinstance(payload, dict):
+            ptype: Any = cast(dict[str, Any], payload).get("type")
+            if isinstance(ptype, str):
+                self._update_port(number, {"type": ptype})
+        elif not match.group(2) and method == "delete":
+            # What the firmware resets the port to (see delete_port)
+            self._update_port(
+                number,
+                {
+                    "type": self.PORT_TYPE_UNINSTALLED,
+                    "mode": "setup",
+                    "name": f"S{number + 1}",
+                    "power_on_percent": 100,
+                    "sensor": None,
+                },
+            )
+            self._replace_rules("internal", number, None)
+
+    # ── Port schedules ──────────────────────────────────────────────────
+
+    _PORT_SCHEDULE = "/port/{}/schedule"
+
+    def _port_modes(self, from_config: bool) -> dict[int, str]:
+        """Mode of each 12V port, keyed by its 0-based number.
+
+        Read from ``/ports/config`` right after a config fetch (fresh there),
+        else from ``/dashboard`` (fresh on every poll); the other source is
+        the fallback when the preferred one is not cached yet.
+        """
+        paths = [
+            "$.sources[?(@.name=='/dashboard')].data.ports",
+            "$.sources[?(@.name=='/ports/config')].data",
+        ]
+        if from_config:
+            paths.reverse()
+        for path in paths:
+            ports = self.get_data(path, is_None_possible=True)
+            if not isinstance(ports, list):
+                continue
+            modes: dict[int, str] = {}
+            for idx, raw in enumerate(cast(list[Any], ports)):
+                if not isinstance(raw, dict):
+                    continue
+                entry = cast(dict[str, Any], raw)
+                number = entry.get("number", idx)
+                if isinstance(number, int):
+                    modes[number] = str(entry.get("mode", ""))
+            return modes
+        return {}
+
+    def _reconcile_port_schedule_sources(self, from_config: bool) -> list[str]:
+        """Poll a port's schedule only while the port runs on it.
+
+        An uninstalled port (mode ``setup``) answers ``503`` to
+        ``GET /port/<n>/schedule``, and a port that is on, off or driven by a
+        probe does not use its schedule: its source is registered only while
+        the port is in ``schedule`` mode. Returns the sources just added, for
+        the caller to fetch at once (they would otherwise wait for the next
+        config refresh).
+        """
+        wanted = {
+            self._PORT_SCHEDULE.format(number)
+            for number, mode in self._port_modes(from_config).items()
+            if mode == "schedule"
+        }
+        sources = cast(list[SourceEntry], self.data.get("sources", []))
+        existing = {
+            str(s.get("name"))
+            for s in sources
+            if str(s.get("name", "")).startswith("/port/")
+            and str(s.get("name", "")).endswith("/schedule")
+        }
+        added = sorted(wanted - existing)
+        for name in added:
+            self.add_source(name, "config", "")
+        for name in existing - wanted:
+            self.remove_source(name)
+        return added
+
+    async def _sync_port_schedules(self, from_config: bool) -> None:
+        """Reconcile the schedule sources and fetch the new ones."""
+        for name in self._reconcile_port_schedule_sources(from_config):
+            await super().fetch_config(name)
+
+    async def fetch_config(self, config_path: str | None = None) -> None:
+        """Fetch config sources, then the schedules the ports now use."""
+        await super().fetch_config(config_path)
+        if config_path is None:
+            await self._sync_port_schedules(from_config=True)
+
     async def fetch_data(self) -> dict[str, Any]:
         """Fetch, keeping per-probe offset sources in sync with the probes.
 
@@ -171,6 +362,7 @@ class ReefControlAPI(ReefBeatAPI):
             self._reconcile_probe_offset_sources()
         data = await super().fetch_data()
         self._reconcile_probe_offset_sources()
+        await self._sync_port_schedules(from_config=False)
         return data
 
     def probe_offset(self, uid: str) -> float | None:
@@ -194,10 +386,11 @@ class ReefControlAPI(ReefBeatAPI):
     # Seeded on ``PUT /probe/config`` right after install — otherwise the
     # probe answers but stays unconfigured (no ranges/buzzer/notify set),
     # mirroring RSPower's local temperature probe needing its own config
-    # seeded on install. ``leak`` needs none: its ``/probe/config`` entry is
-    # just ``{name, type, uid}`` — writing to it 503s (buzzer/notify live in
-    # ``/leak/config`` instead, see ``_BUZZER_LOC``/``_NOTIFY_LOC``). Values
-    # mirror what a real hub reports for a probe fresh off `/probe/install`.
+    # seeded on install. ``leak`` is set up apart (see _setup_leak_probe):
+    # its ``/probe/config`` entry is just ``{name, type, uid}`` and its
+    # buzzer/notify live in ``/leak/config`` (see ``_BUZZER_LOC``/
+    # ``_NOTIFY_LOC``). Values mirror what a real hub reports for a probe
+    # fresh off `/probe/install`.
     _PROBE_INSTALL_DEFAULTS: dict[str, dict[str, Any]] = {
         "ec": {
             "name": "EC",
@@ -234,6 +427,39 @@ class ReefControlAPI(ReefBeatAPI):
         },
     }
 
+    # What the app writes to ``/leak/config`` when it installs a leak probe
+    _LEAK_INSTALL_CONFIG: dict[str, bool] = {
+        "buzzer": True,
+        "leak_detector": True,
+        "notify": True,
+        "emergency_shutdown": False,
+    }
+
+    @staticmethod
+    def _leak_probe_name(uid: str) -> str:
+        """Default name of a leak probe, as the app gives it: its uid digits.
+
+        ``0x0032B`` gives ``Leak 32B`` (the app writes ``Fuite 32B`` in
+        French), which tells two leak probes apart from the start.
+        """
+        digits = uid.lower().removeprefix("0x").lstrip("0").upper()
+        return f"Leak {digits or '0'}"
+
+    async def _setup_leak_probe(self, uid: str) -> None:
+        """Finish installing a leak probe the way the app does.
+
+        Captured from the app: ``PUT /leak/config`` with the alarm settings,
+        then ``PUT /probe/config`` with the probe's name. Until then the hub
+        lists it with ``status: setup``, the app does not show it and it
+        reports nothing; after it, ``status: auto``.
+        """
+        await self.http_send("/leak/config", dict(self._LEAK_INSTALL_CONFIG), "put")
+        await self.http_send(
+            "/probe/config",
+            [{"name": self._leak_probe_name(uid), "uid": uid, "type": "leak"}],
+            "put",
+        )
+
     async def install_probe(self, ptype: str) -> HttpResult | None:
         """Ask the hub to scan for and install a new probe of ``ptype``.
 
@@ -244,14 +470,22 @@ class ReefControlAPI(ReefBeatAPI):
         ``_PROBE_INSTALL_DEFAULTS``) and read back immediately — ``/probe/
         config`` is always registered (unlike RSPower's per-probe offset
         sources), so no on-demand registration is needed to refresh it.
+
+        Same order as the app: install, read the probe's info, stop its BLE
+        advertising, then configure it.
         """
         result = await self.http_send(f"/probe/install?type={ptype}", {}, "post")
-        payload = result.get("json") if isinstance(result, dict) else None
-        uid = payload.get("uid") if isinstance(payload, dict) else None
+        payload = _as_dict(result.get("json")) if isinstance(result, dict) else None
+        uid: Any = payload.get("uid") if payload is not None else None
         if uid:
+            # The answer (hwid, versions) is not kept: the app reads it too
+            await self.http_get(f"/probe/info?type={ptype}&uid={uid}")
             await self.http_send(f"/ble/off?type={ptype}&uid={uid}", {}, "post")
             defaults = self._PROBE_INSTALL_DEFAULTS.get(ptype.lower())
-            if defaults is not None:
+            if ptype.lower() == "leak":
+                await self._setup_leak_probe(str(uid))
+                await self.fetch_config("/probe/config")
+            elif defaults is not None:
                 body = dict(defaults)
                 body["type"] = ptype
                 body["uid"] = uid

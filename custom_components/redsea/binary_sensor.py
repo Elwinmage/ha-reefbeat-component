@@ -286,15 +286,6 @@ POWER_SENSORS: tuple[
     ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], ...
 ] = (
     ReefBeatBinarySensorEntityDescription(
-        key="auto_from_buttons",
-        translation_key="auto_from_buttons",
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.auto_from_buttons"
-        ),
-        icon="mdi:gesture-tap-button",
-        entity_category=EntityCategory.DIAGNOSTIC,
-    ),
-    ReefBeatBinarySensorEntityDescription(
         key="control_link_up",
         translation_key="control_link_up",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
@@ -717,7 +708,11 @@ async def async_setup_entry(
             )
             leak_descs.append(
                 ReefBeatBinarySensorEntityDescription(
-                    key=f"probe_{uid_key}_detected",
+                    # Same `probe_{type}_{uid}_` prefix as every other probe
+                    # entity: the orphan purge and the probe replacement
+                    # recognise a probe's entities by it (see
+                    # probe_entities.probe_key_prefix).
+                    key=f"probe_leak_{uid_key}_detected",
                     translation_key="probe_leak_detected",
                     translation_placeholders={
                         "probe": probe_display_name(probe, all_probes)

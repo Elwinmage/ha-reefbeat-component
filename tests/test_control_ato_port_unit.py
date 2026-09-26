@@ -1005,10 +1005,10 @@ async def test_binary_sensor_platform_builds_leak_probe_entities(
     )
 
     keys = {e.entity_description.key for e in added}
-    assert "probe_ab12_detected" in keys
-    assert "probe_cd34_detected" in keys
+    assert "probe_leak_ab12_detected" in keys
+    assert "probe_leak_cd34_detected" in keys
     # Temperature probe must NOT produce a leak entity.
-    assert "probe_xx99_detected" not in keys
+    assert "probe_leak_xx99_detected" not in keys
 
 
 @pytest.mark.asyncio

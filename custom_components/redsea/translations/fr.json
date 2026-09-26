@@ -35,9 +35,6 @@
       "ato_sensor_connected": {
         "name": "Sonde de température connectée"
       },
-      "auto_from_buttons": {
-        "name": "Auto depuis les boutons"
-      },
       "battery_level": {
         "name": "Batterie"
       },

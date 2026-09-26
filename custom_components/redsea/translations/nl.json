@@ -36,9 +36,6 @@
       "ato_sensor_connected": {
         "name": "Temperatuursensor verbonden"
       },
-      "auto_from_buttons": {
-        "name": "Auto from buttons"
-      },
       "battery_level": {
         "name": "Batterijniveau"
       },

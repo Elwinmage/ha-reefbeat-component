@@ -1129,6 +1129,8 @@ POWER_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         # On a standalone RSPower with a local temperature probe, `temperature`
         # is an object {value,status,level,...}; without a probe it is null.
         value_fn=lambda device: _power_local_temperature(device),
+        # Same shape as a hub probe's reading, so a card draws both alike
+        attributes_fn=lambda device: _power_temperature_attributes(device),
         icon="mdi:thermometer",
         suggested_display_precision=1,
     ),
@@ -1375,6 +1377,39 @@ def _power_local_temperature(device: ReefBeatCoordinator) -> StateType:
     if isinstance(temp, (int, float)):
         return temp
     return None
+
+
+_POWER_RANGE_FIELDS: tuple[str, ...] = (
+    "acceptable_range_low",
+    "desired_range_low",
+    "desired_range_high",
+    "acceptable_range_high",
+)
+
+
+def _power_temperature_attributes(device: ReefBeatCoordinator) -> dict[str, Any]:
+    """Bounds and level of the RSPower local temperature.
+
+    ``ranges`` is ``[acceptable_low, desired_low, desired_high,
+    acceptable_high]`` from ``/temperature/config`` (None until it is cached
+    or when a bound is missing), as the hub probes carry it; ``level`` is the
+    power center's own verdict from ``/dashboard.temperature.level``.
+    """
+    config = device.get_data(
+        "$.sources[?(@.name=='/temperature/config')].data", is_None_possible=True
+    )
+    ranges: list[float] | None = None
+    if isinstance(config, dict):
+        values = [cast(dict[str, Any], config).get(f) for f in _POWER_RANGE_FIELDS]
+        if all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in values):
+            ranges = [float(cast(float, v)) for v in values]
+    temp = device.get_data(
+        "$.sources[?(@.name=='/dashboard')].data.temperature", is_None_possible=True
+    )
+    level: Any = (
+        cast(dict[str, Any], temp).get("level") if isinstance(temp, dict) else None
+    )
+    return {"ranges": ranges, "level": level}
 
 
 # Icons per probe type — falls back to a generic sensor icon if unknown.

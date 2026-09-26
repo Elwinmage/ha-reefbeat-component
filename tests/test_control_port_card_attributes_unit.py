@@ -129,6 +129,15 @@ def test_port_mode_attributes_falls_back_to_the_port_entry() -> None:
     assert coord.port_mode_attributes(0)["sensor_config"] is None
 
 
+def test_port_mode_attributes_ignores_the_app_cache() -> None:
+    """The app's own `sensor` cache on a port entry is not a probe rule."""
+    cached = {**_PORT1, "sensor": {"default_state": "off", "app_cache": {}}}
+    coord = _coordinator(
+        [{"name": "/ports/config", "type": "config", "data": [_PORT0, cached]}]
+    )
+    assert coord.port_mode_attributes(1)["sensor_config"] is None
+
+
 def test_port_mode_attributes_without_any_config() -> None:
     coord = _coordinator([])
     attrs = coord.port_mode_attributes(0)
@@ -136,11 +145,11 @@ def test_port_mode_attributes_without_any_config() -> None:
     assert attrs["sensor_config"] is None
 
 
-def test_coordinator_polls_each_port_schedule() -> None:
-    """One schedule source per port: 1 on a Lite, 2 on a Pro."""
+def test_coordinator_registers_no_schedule_up_front() -> None:
+    """Schedules are polled per port mode (by the API), not at setup."""
     from custom_components.redsea.coordinator import ReefControlCoordinator
 
-    for model, expected in (("RSCONTROLLITE", 1), ("RSCONTROLPRO", 2)):
+    for model in ("RSCONTROLLITE", "RSCONTROLPRO"):
         entry = MagicMock()
         entry.data = {
             "hw_model": model,
@@ -161,7 +170,7 @@ def test_coordinator_polls_each_port_schedule() -> None:
             coord_mod.ReefBeatCloudLinkedCoordinator.__init__ = orig  # type: ignore[method-assign]
         names = [s["name"] for s in coord.my_api.data["sources"]]
         schedules = [n for n in names if n.startswith("/port/")]
-        assert schedules == [f"/port/{n}/schedule" for n in range(expected)]
+        assert schedules == []
 
 
 def test_port_mode_sensor_attributes() -> None:
