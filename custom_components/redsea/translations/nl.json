@@ -200,6 +200,9 @@
       "maint_control_probe_calibration_ph": {
         "name": "Sonde {probe} kalibreren"
       },
+      "maint_control_probe_calibration_ec": {
+        "name": "Sonde {probe} kalibreren"
+      },
       "maint_control_probe_clean": {
         "name": "Sonde {probe} reinigen"
       },
@@ -408,8 +411,11 @@
       "maint_control_probe_calibration_orp_interval_months": {
         "name": "Sonde {probe} controleren (maanden)"
       },
-      "maint_control_probe_calibration_ph_interval_weeks": {
-        "name": "Sonde {probe} kalibreren (weken)"
+      "maint_control_probe_calibration_ph_interval_months": {
+        "name": "Sonde {probe} kalibreren (maanden)"
+      },
+      "maint_control_probe_calibration_ec_interval_months": {
+        "name": "Sonde {probe} kalibreren (maanden)"
       },
       "maint_control_probe_clean_interval_weeks": {
         "name": "Sonde {probe} reinigen (weken)"
@@ -510,11 +516,17 @@
       "temperature_coherence_threshold": {
         "name": "Drempel temperatuurcoherentie"
       },
-      "probe_offset": {
-        "name": "Offset {probe}"
+      "probe_orp_calibration": {
+        "name": "{probe} kalibreren (waarde van de oplossing)"
       },
-      "temperature_offset": {
-        "name": "Temperatuuroffset"
+      "probe_temperature_calibration": {
+        "name": "{probe} kalibreren (werkelijke temperatuur)"
+      },
+      "probe_temp_calibration": {
+        "name": "Temperatuur van {probe} kalibreren (werkelijke temperatuur)"
+      },
+      "temperature_calibration": {
+        "name": "Temperatuur kalibreren (werkelijke temperatuur)"
       },
       "temperature_desired_range_low": {
         "name": "Gewenst temperatuurbereik (laag)"
@@ -1406,6 +1418,9 @@
         "name": "Sonde {probe} controleren (meldingen)"
       },
       "maint_control_probe_calibration_ph_notify": {
+        "name": "Sonde {probe} kalibreren (meldingen)"
+      },
+      "maint_control_probe_calibration_ec_notify": {
         "name": "Sonde {probe} kalibreren (meldingen)"
       },
       "maint_control_probe_clean_notify": {

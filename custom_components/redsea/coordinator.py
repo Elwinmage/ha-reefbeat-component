@@ -25,7 +25,7 @@ import logging
 import uuid
 from asyncio import timeout
 from collections.abc import Callable
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from time import time
 from typing import Any, cast
 
@@ -69,6 +69,7 @@ from .const import (
     VIRTUAL_LED,
     WAVES_LIBRARY,
 )
+from .maintenance import CALIBRATION_TASKS, MaintenanceStore, probe_sub_id
 from .reefbeat import (
     ReefATOAPI,
     ReefBeatAPI,
@@ -1650,18 +1651,10 @@ class ReefPowerCoordinator(ReefBeatCloudLinkedCoordinator):
             is not None
         )
 
-    def temperature_offset(self) -> float | None:
-        """Cached local-temperature calibration offset."""
-        return cast(ReefPowerAPI, self.my_api).temperature_offset()
-
-    async def set_temperature_offset(self, offset: float) -> None:
-        """Set the local temperature offset and refresh so it reflects back."""
-        await cast(ReefPowerAPI, self.my_api).set_temperature_offset(offset)
-        await self.async_request_refresh(config=True)
-
-    async def reset_temperature_offset(self) -> None:
-        """Clear the local temperature offset and refresh."""
-        await cast(ReefPowerAPI, self.my_api).reset_temperature_offset()
+    async def async_calibrate_temperature(self, reference: float) -> None:
+        """Calibrate the local temperature against a reference, refresh."""
+        await cast(ReefPowerAPI, self.my_api).calibrate_temperature(reference)
+        self.async_update_listeners()
         await self.async_request_refresh(config=True)
 
     async def async_install_temperature(self) -> None:
@@ -1904,20 +1897,64 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
             "threshold": self.fusion_threshold(),
         }
 
-    # -- Temperature probe calibration offset ------------------------------
-    def probe_offset(self, uid: str) -> float | None:
-        """Cached calibration offset for a temperature probe."""
-        return cast(ReefControlAPI, self.my_api).probe_offset(uid)
+    # -- Probe calibration against a reference (temperature, ORP) ----------
+    async def async_calibrate_probe(
+        self, ptype: str, uid: str, reference: float
+    ) -> None:
+        """Calibrate a probe's offset reading against a reference, refresh.
 
-    async def set_probe_offset(self, uid: str, offset: float) -> None:
-        """Set a temperature probe's offset and refresh so it reflects back."""
-        await cast(ReefControlAPI, self.my_api).set_probe_offset(uid, offset)
+        The reading of a temperature or ORP probe, the embedded temperature
+        of a pH, EC or ATO probe (see ReefControlAPI.calibrate_probe).
+        """
+        await cast(ReefControlAPI, self.my_api).calibrate_probe(ptype, uid, reference)
+        self.async_update_listeners()
         await self.async_request_refresh(config=True)
 
-    async def reset_probe_offset(self, uid: str) -> None:
-        """Clear a temperature probe's offset and refresh."""
-        await cast(ReefControlAPI, self.my_api).reset_probe_offset(uid)
-        await self.async_request_refresh(config=True)
+    # -- Calibration reminders follow the hub --------------------------------
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch, then date the calibration reminders from the hub."""
+        data = await super()._async_update_data()
+        try:
+            await self._sync_calibration_maintenance()
+        except Exception:  # never let this break a refresh
+            _LOGGER.debug(
+                "%s: calibration reminder sync failed", self._title, exc_info=True
+            )
+        return data
+
+    async def _sync_calibration_maintenance(self) -> None:
+        """Mark a probe's calibration task done when the hub says it was.
+
+        A probe calibrated from the ReefBeat app (or validated, for ORP)
+        carries its date (see ReefControlAPI.calibration_date). The reminder
+        moves forward to it, never back: a later press of the task's button
+        is kept.
+        """
+        store = cast(MaintenanceStore | None, getattr(self, "maintenance", None))
+        if store is None:
+            return
+        api = cast(ReefControlAPI, self.my_api)
+        for probe in self._probes():
+            if not isinstance(probe, dict):
+                continue
+            ptype = str(probe.get("type", "")).lower()
+            uid = probe.get("uid")
+            task_key = CALIBRATION_TASKS.get(ptype)
+            if task_key is None or not isinstance(uid, str) or not uid:
+                continue
+            epoch = api.calibration_date(ptype, uid)
+            if epoch is None:
+                continue
+            try:
+                sub_id = probe_sub_id(uid)
+            except ValueError:
+                continue
+            await store.async_record_reset(
+                self.serial,
+                sub_id,
+                task_key,
+                datetime.fromtimestamp(epoch, tz=timezone.utc),
+            )
 
     # -- Probe add / remove (driven by the options flow) -------------------
     def probe_is_connected(self, ptype: str, uid: str) -> bool:

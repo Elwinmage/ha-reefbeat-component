@@ -269,16 +269,17 @@ TASKS: Final[dict[str, tuple[MaintenanceTask, ...]]] = {
     # Probes are discovered at runtime from /dashboard.probes, so these tasks
     # are instantiated per probe uid rather than per fixed sub-device index.
     #
-    # Intervals follow Red Sea's own guidance, which differs sharply per probe
-    # type and must not be averaged into a single task:
-    #   pH   - wear item, ~12 months of continuous use (6-month warranty),
-    #          recalibrate monthly with the pH 7 / pH 10 solutions.
-    #   ORP  - wear item, ~12 months (6-month warranty), but validated every
-    #          2 months against a 460 mV reference, not monthly.
-    #   EC   - 4-pole conductivity cell with no consumable electrolyte:
-    #          24-month warranty, and *no* routine recalibration — only after
-    #          a cleaning. It therefore gets the cleaning reminder only.
-    #   temperature / leak - nothing to calibrate, nothing that depletes.
+    # Calibration intervals follow Red Sea's official recommendations, which
+    # differ per probe type and must not be averaged into a single task:
+    #   pH          - 3-point calibration (4 / 7 / 10) every 3 months.
+    #   salinity    - single-point calibration (35 ppt standard, ~53 mS/cm)
+    #                 every 2 months.
+    #   ORP         - calibrated against the supplied solution every 6 months.
+    #   temperature - single-point offset, no regular calibration.
+    #   leak        - nothing to calibrate.
+    # pH and ORP electrodes are wear items (~12 months of continuous use); the
+    # 4-pole EC cell has no consumable electrolyte and is never replaced on a
+    # schedule.
     "RSCONTROLPRO": (
         MaintenanceTask(
             key="control_probe_clean",
@@ -293,19 +294,29 @@ TASKS: Final[dict[str, tuple[MaintenanceTask, ...]]] = {
         MaintenanceTask(
             key="control_probe_calibration_ph",
             translation_key="maint_control_probe_calibration_ph",
-            default_days=30,  # monthly per Red Sea
-            min_days=14,
-            max_days=56,
+            default_days=90,  # every 3 months per Red Sea (widened to 2-4m)
+            min_days=60,
+            max_days=120,
             applies_to_sub="probe_ph",
             icon="mdi:water-check",
-            unit="weeks",
+            unit="months",
+        ),
+        MaintenanceTask(
+            key="control_probe_calibration_ec",
+            translation_key="maint_control_probe_calibration_ec",
+            default_days=60,  # every 2 months per Red Sea (widened to 1-3m)
+            min_days=30,
+            max_days=90,
+            applies_to_sub="probe_ec",
+            icon="mdi:water-check",
+            unit="months",
         ),
         MaintenanceTask(
             key="control_probe_calibration_orp",
             translation_key="maint_control_probe_calibration_orp",
-            default_days=60,  # every 2 months per Red Sea
-            min_days=30,
-            max_days=120,
+            default_days=180,  # every 6 months per Red Sea (widened to 5-7m)
+            min_days=150,
+            max_days=210,
             applies_to_sub="probe_orp",
             icon="mdi:water-check",
             unit="months",
@@ -373,14 +384,25 @@ def tasks_for(hw_model: str) -> tuple[MaintenanceTask, ...]:
 PROBE_SCOPES: Final[dict[str, frozenset[str] | None]] = {
     # Any probe in the water eventually grows biofilm.
     "probe": None,
-    # Monthly two-point calibration.
+    # Calibration every 3 months (pH 4 / 7 / 10).
     "probe_ph": frozenset({"ph"}),
-    # Validated every 2 months against a 460 mV reference.
+    # Single-point salinity calibration every 2 months (35 ppt standard).
+    "probe_ec": frozenset({"ec"}),
+    # Calibration against the supplied solution every 6 months.
     "probe_orp": frozenset({"orp"}),
     # Consumable electrodes: ~12 months of continuous use. The EC probe is
     # deliberately absent — its 4-pole cell has no electrolyte to deplete and
     # Red Sea gives it a 24-month warranty with no replacement schedule.
     "probe_wear": frozenset({"ph", "orp"}),
+}
+
+
+# Calibration task of each probe type the hub dates (see
+# ReefControlCoordinator._sync_calibration_maintenance).
+CALIBRATION_TASKS: Final[dict[str, str]] = {
+    "ph": "control_probe_calibration_ph",
+    "ec": "control_probe_calibration_ec",
+    "orp": "control_probe_calibration_orp",
 }
 
 
@@ -562,6 +584,23 @@ class MaintenanceStore:
         await self._async_save()
         self._notify(_instance_id(serial, sub_id, task_key))
         return now
+
+    async def async_record_reset(
+        self, serial: str, sub_id: int, task_key: str, when: datetime
+    ) -> bool:
+        """Mark a task done at ``when`` if later than its last reset.
+
+        For a date the device reports (a probe calibrated from the vendor
+        app): the task never moves back, so a later reset is kept. Returns
+        whether it moved.
+        """
+        state = self.get_state(serial, sub_id, task_key)
+        if state.last_reset is not None and when <= state.last_reset:
+            return False
+        state.last_reset = when
+        await self._async_save()
+        self._notify(_instance_id(serial, sub_id, task_key))
+        return True
 
     async def async_set_interval(
         self, serial: str, sub_id: int, task_key: str, days: int

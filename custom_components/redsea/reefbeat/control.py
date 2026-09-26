@@ -107,21 +107,31 @@ class ReefControlAPI(ReefBeatAPI):
         )
         self.data["sources"] = sources
 
-    # -- Dynamic per-probe temperature-offset sources ----------------------
-    # The temperature calibration offset is read via
-    # ``GET /probe/offset?type=temperature&uid=<uid>`` — one endpoint per
-    # temperature probe. Probes come and go at runtime, so these sources are
-    # reconciled after every dashboard fetch rather than registered up front.
-    _OFFSET_PREFIX = "/probe/offset?type=temperature&uid="
+    # -- Dynamic per-probe offset sources ------------------------------------
+    # A single-point calibration offset is read via
+    # ``GET /probe/offset?type=<type>&uid=<uid>`` — one endpoint per probe
+    # (``{"offset", "last_adjustment_date"}``): the reading of a temperature
+    # or ORP probe, the embedded temperature of a pH, EC or ATO probe.
+    # Probes come and go at runtime, so these sources are reconciled after
+    # every dashboard fetch rather than registered up front.
+    _OFFSET_PREFIX = "/probe/offset?type="
+    # pH, EC and ATO probes: the offset of their embedded temperature sensor
+    # (captured: ``/probe/offset?type=ph`` and ``?type=ec`` move
+    # ``temp_value``).
+    _OFFSET_TYPES: tuple[str, ...] = ("temperature", "orp", "ph", "ec", "ato")
+    # Probe types whose own reading has no offset, only their temperature
+    _TEMPERATURE_OFFSET_TYPES: frozenset[str] = frozenset({"ph", "ec", "ato"})
+    # Decimals an offset is kept with, per probe type (whole millivolts).
+    _OFFSET_DIGITS: dict[str, int] = {"orp": 0}
 
     @classmethod
-    def _offset_source_name(cls, uid: str) -> str:
-        return f"{cls._OFFSET_PREFIX}{uid}"
+    def _offset_source_name(cls, uid: str, ptype: str = "temperature") -> str:
+        return f"{cls._OFFSET_PREFIX}{ptype}&uid={uid}"
 
     def _reconcile_probe_offset_sources(self) -> None:
         """Keep dynamic probe-dependent sources in sync with the probes.
 
-        Two kinds: one ``/probe/offset`` source per temperature probe, and
+        Two kinds: one ``/probe/offset`` source per temperature or ORP probe, and
         ``/leak/config`` when a leak probe exists (its buzzer/notify live there,
         not in ``/probe/config``). These are read non-positionally, so no cache
         invalidation is needed and the fixed sources keep their front slots.
@@ -136,10 +146,10 @@ class ReefControlAPI(ReefBeatAPI):
         # source while it is disconnected (no pointless request every poll),
         # it is registered again as soon as the dashboard reports it back.
         wanted = {
-            self._offset_source_name(p["uid"])
+            self._offset_source_name(p["uid"], str(p.get("type", "")).lower())
             for p in probes
             if isinstance(p, dict)
-            and str(p.get("type", "")).lower() == "temperature"
+            and str(p.get("type", "")).lower() in self._OFFSET_TYPES
             and p.get("uid")
             and not is_probe_disconnected(p)
         }
@@ -364,7 +374,40 @@ class ReefControlAPI(ReefBeatAPI):
         self._reconcile_probe_offset_sources()
         await self._sync_port_schedules(from_config=False)
         await self._read_new_leaks()
+        await self._refresh_config_on_probe_install()
         return data
+
+    # -- Probe (re)installed elsewhere -----------------------------------------
+    # Installing a probe (again) resets its settings on the hub: a reinstalled
+    # ORP probe is back to its default ranges. Config sources are only read at
+    # startup and after the integration's own writes, so a probe installed
+    # from the ReefBeat app would keep its old ranges here while the hub
+    # judges its level against the new ones. Every probe carries
+    # `last_installation_date` in /dashboard: when a probe appears or that
+    # date changes, /probe/config is read again.
+
+    def _probe_install_dates(self) -> dict[str, Any]:
+        probes = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+        )
+        dates: dict[str, Any] = {}
+        for raw in cast(list[Any], probes) if isinstance(probes, list) else []:
+            probe = _as_dict(raw)
+            if probe is not None and probe.get("uid"):
+                key = f"{str(probe.get('type', '')).lower()}:{probe['uid']}"
+                dates[key] = probe.get("last_installation_date")
+        return dates
+
+    async def _refresh_config_on_probe_install(self) -> None:
+        dates = self._probe_install_dates()
+        known: dict[str, Any] | None = getattr(self, "_known_install_dates", None)
+        self._known_install_dates = dates
+        # The first poll comes with a full config read already
+        if known is None:
+            return
+        if any(key not in known or known[key] != date for key, date in dates.items()):
+            _LOGGER.debug("Probe installed or reinstalled: reading /probe/config")
+            await self.fetch_config("/probe/config")
 
     # -- Leak origin ---------------------------------------------------------
     # `/dashboard` only says whether a leak probe is wet (`detected`). Where
@@ -429,22 +472,57 @@ class ReefControlAPI(ReefBeatAPI):
         value: Any = self._leak_readings().get(uid, {}).get("ec")
         return float(cast(float, value)) if self._is_number(value) else None
 
-    def probe_offset(self, uid: str) -> float | None:
-        """Cached calibration offset for a temperature probe, if known."""
-        return self.get_data(
-            f"$.sources[?(@.name=='{self._offset_source_name(uid)}')].data.offset",
-            is_None_possible=True,
-        )
+    async def calibrate_probe(
+        self, ptype: str, uid: str, reference: float
+    ) -> HttpResult | None:
+        """Calibrate a probe's offset reading against a known reference.
 
-    async def set_probe_offset(self, uid: str, offset: float) -> HttpResult | None:
-        """Set a temperature probe's calibration offset (``POST /probe/offset``)."""
-        return await self.http_send(
-            self._offset_source_name(uid), {"offset": offset}, "post"
+        The reading of a temperature or ORP probe, the embedded temperature
+        of a pH, EC or ATO probe. The probe is in a solution (ORP, mV) or
+        water (°C) of known value: it is read now, and its offset is moved by
+        ``reference - reading`` (the reading includes the current offset),
+        so the probe then reads the reference. As the ReefBeat app's ORP
+        validation does.
+        """
+        field = "temp_value" if ptype in self._TEMPERATURE_OFFSET_TYPES else "value"
+        read = await self.read_probe(ptype, uid)
+        probe = self.dashboard_probe(ptype, uid)
+        reading: Any = probe.get(field) if probe else None
+        if not read or not self._is_number(reading):
+            _LOGGER.warning("%s probe %s: no reading, calibration skipped", ptype, uid)
+            return None
+        name = self._offset_source_name(uid, ptype)
+        result = await self.shift_offset(
+            name, name, reference - float(reading), self._OFFSET_DIGITS.get(ptype, 1)
         )
+        if result is not None and result.get("ok"):
+            # Until the next poll reads it back
+            fresh = self.dashboard_probe(ptype, uid)
+            if fresh is not None:
+                fresh[field] = reference
+        return result
 
-    async def reset_probe_offset(self, uid: str) -> HttpResult | None:
-        """Clear a temperature probe's calibration offset (``DELETE``)."""
-        return await self.http_send(self._offset_source_name(uid), None, "delete")
+    def calibration_date(self, ptype: str, uid: str) -> float | None:
+        """Epoch of a probe's last calibration, None when never or unknown.
+
+        pH and EC report it in ``/dashboard.probes[].last_adjustment_date``
+        (null until calibrated). ORP has no such field there: its date is
+        the offset's, ``GET /probe/offset`` -> ``last_adjustment_date``,
+        updated by every ORP validation, even one leaving the offset as is.
+        """
+        value: Any
+        # The offset of a temperature probe, or the embedded temperature of
+        # a pH / EC one, is not their calibration
+        if ptype == "orp":
+            value = self.get_data(
+                f"$.sources[?(@.name=='{self._offset_source_name(uid, ptype)}')]"
+                ".data.last_adjustment_date",
+                is_None_possible=True,
+            )
+        else:
+            probe = self.dashboard_probe(ptype, uid)
+            value = probe.get("last_adjustment_date") if probe else None
+        return float(value) if self._is_number(value) and value > 0 else None
 
     # -- Probe install / delete --------------------------------------------
     # Seeded on ``PUT /probe/config`` right after install — otherwise the
@@ -560,15 +638,15 @@ class ReefControlAPI(ReefBeatAPI):
     async def delete_probe(self, ptype: str, uid: str) -> HttpResult | None:
         """Remove a probe from the hub (``DELETE /probe?type&uid``).
 
-        For a temperature probe, its calibration-offset source is dropped
+        For a temperature or ORP probe, its calibration-offset source is dropped
         immediately rather than waiting for the next refresh's reconciliation
         (gated on the dashboard's probes list, which can lag behind the
         removal by a cycle or two) — otherwise it keeps getting polled (and
         erroring) for a while after the probe is already gone.
         """
         result = await self.http_send(f"/probe?type={ptype}&uid={uid}", None, "delete")
-        if ptype.lower() == "temperature":
-            name = self._offset_source_name(uid)
+        if ptype.lower() in self._OFFSET_TYPES:
+            name = self._offset_source_name(uid, ptype.lower())
             sources = cast(list[SourceEntry], self.data.get("sources", []))
             if any(s.get("name") == name for s in sources):
                 self.remove_source(name)

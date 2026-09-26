@@ -199,6 +199,9 @@
       "maint_control_probe_calibration_ph": {
         "name": "Étalonner la sonde {probe}"
       },
+      "maint_control_probe_calibration_ec": {
+        "name": "Étalonner la sonde {probe}"
+      },
       "maint_control_probe_clean": {
         "name": "Nettoyer la sonde {probe}"
       },
@@ -407,8 +410,11 @@
       "maint_control_probe_calibration_orp_interval_months": {
         "name": "Vérifier la sonde {probe} (mois)"
       },
-      "maint_control_probe_calibration_ph_interval_weeks": {
-        "name": "Étalonner la sonde {probe} (semaines)"
+      "maint_control_probe_calibration_ph_interval_months": {
+        "name": "Étalonner la sonde {probe} (mois)"
+      },
+      "maint_control_probe_calibration_ec_interval_months": {
+        "name": "Étalonner la sonde {probe} (mois)"
       },
       "maint_control_probe_clean_interval_weeks": {
         "name": "Nettoyer la sonde {probe} (semaines)"
@@ -509,11 +515,17 @@
       "temperature_coherence_threshold": {
         "name": "Seuil de cohérence de température"
       },
-      "probe_offset": {
-        "name": "Offset {probe}"
+      "probe_orp_calibration": {
+        "name": "Étalonner {probe} (valeur de la solution)"
       },
-      "temperature_offset": {
-        "name": "Offset de température"
+      "probe_temperature_calibration": {
+        "name": "Étalonner {probe} (température réelle)"
+      },
+      "probe_temp_calibration": {
+        "name": "Étalonner la température de {probe} (température réelle)"
+      },
+      "temperature_calibration": {
+        "name": "Étalonner la température (température réelle)"
       },
       "temperature_desired_range_low": {
         "name": "Plage de température souhaitée (basse)"
@@ -1398,6 +1410,9 @@
         "name": "Vérifier la sonde {probe} (notifications)"
       },
       "maint_control_probe_calibration_ph_notify": {
+        "name": "Étalonner la sonde {probe} (notifications)"
+      },
+      "maint_control_probe_calibration_ec_notify": {
         "name": "Étalonner la sonde {probe} (notifications)"
       },
       "maint_control_probe_clean_notify": {

@@ -1679,6 +1679,24 @@ def _build_probe_descriptions(
             ]
         )
 
+    # ORP: no calibration date in /dashboard. The date of its last validation
+    # is the offset's, read from the per-probe /probe/offset source (updated
+    # by every validation, even one leaving the offset as is).
+    if ptype == "orp":
+        descs.append(
+            ReefBeatSensorEntityDescription(
+                key=f"probe_{uid_key}_last_adjustment",
+                translation_key="probe_last_adjustment",
+                translation_placeholders=tp,
+                icon="mdi:tune-vertical",
+                device_class=SensorDeviceClass.TIMESTAMP,
+                entity_category=EntityCategory.DIAGNOSTIC,
+                value_fn=lambda d, p=(f"$.sources[?(@.name=='/probe/offset?type=orp&uid={uid}')].data.last_adjustment_date"): (
+                    _epoch_to_datetime(d.get_data(p, is_None_possible=True))
+                ),
+            )
+        )
+
     # Leak probe: where the water comes from and the conductivity behind it,
     # from the probe's own reading (the dashboard only has `detected`, see
     # ReefControlAPI.leak_status). Read on its own as soon as it turns wet,

@@ -200,6 +200,9 @@
       "maint_control_probe_calibration_ph": {
         "name": "Calibrare la sonda {probe}"
       },
+      "maint_control_probe_calibration_ec": {
+        "name": "Calibrare la sonda {probe}"
+      },
       "maint_control_probe_clean": {
         "name": "Pulire la sonda {probe}"
       },
@@ -408,8 +411,11 @@
       "maint_control_probe_calibration_orp_interval_months": {
         "name": "Verificare la sonda {probe} (mesi)"
       },
-      "maint_control_probe_calibration_ph_interval_weeks": {
-        "name": "Calibrare la sonda {probe} (settimane)"
+      "maint_control_probe_calibration_ph_interval_months": {
+        "name": "Calibrare la sonda {probe} (mesi)"
+      },
+      "maint_control_probe_calibration_ec_interval_months": {
+        "name": "Calibrare la sonda {probe} (mesi)"
       },
       "maint_control_probe_clean_interval_weeks": {
         "name": "Pulire la sonda {probe} (settimane)"
@@ -510,11 +516,17 @@
       "temperature_coherence_threshold": {
         "name": "Soglia di coerenza temperatura"
       },
-      "probe_offset": {
-        "name": "Offset {probe}"
+      "probe_orp_calibration": {
+        "name": "Calibrare {probe} (valore della soluzione)"
       },
-      "temperature_offset": {
-        "name": "Offset temperatura"
+      "probe_temperature_calibration": {
+        "name": "Calibrare {probe} (temperatura reale)"
+      },
+      "probe_temp_calibration": {
+        "name": "Calibrare la temperatura di {probe} (temperatura reale)"
+      },
+      "temperature_calibration": {
+        "name": "Calibrare la temperatura (temperatura reale)"
       },
       "temperature_desired_range_low": {
         "name": "Intervallo di temperatura desiderato (basso)"
@@ -1398,6 +1410,9 @@
         "name": "Verificare la sonda {probe} (notifiche)"
       },
       "maint_control_probe_calibration_ph_notify": {
+        "name": "Calibrare la sonda {probe} (notifiche)"
+      },
+      "maint_control_probe_calibration_ec_notify": {
         "name": "Calibrare la sonda {probe} (notifiche)"
       },
       "maint_control_probe_clean_notify": {

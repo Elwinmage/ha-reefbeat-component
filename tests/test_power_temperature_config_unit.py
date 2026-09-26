@@ -97,7 +97,7 @@ async def test_number_setup_builds_range_bounds(
     added = await _run_setup(number_platform, hass, _FakePower(socket_count=0))
     keys = {e._description.key for e in added}
     assert {
-        "temperature_offset",
+        "temperature_calibration",
         "temperature_desired_range_low",
         "temperature_desired_range_high",
         "temperature_acceptable_range_low",

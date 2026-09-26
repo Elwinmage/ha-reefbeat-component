@@ -657,6 +657,59 @@ class ReefBeatAPI:
             self._mirror_write(action, payload, method.lower(), result)
         return result
 
+    # -- Probe calibration offsets ---------------------------------------------
+    # ``POST /probe/offset {"offset": x}`` *adds* x to the probe's current
+    # offset rather than replacing it: captured on an RSCONTROL ORP probe
+    # (offset 1, POST 35 -> 36, POST 20 -> 56, POST -55 -> 1), and how the
+    # RSPower local temperature was already driven. The readings include
+    # the offset. Not captured yet for an RSCONTROL temperature probe, so
+    # every write is checked, and corrected if a hub replaced the offset.
+
+    def cached_offset(self, source: str) -> float:
+        """Offset in the cached ``source`` (``{"offset": …}``), 0 when unknown."""
+        value: Any = self.get_data(
+            f"$.sources[?(@.name=='{source}')].data.offset", is_None_possible=True
+        )
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            return float(value)
+        return 0.0
+
+    @staticmethod
+    def _offset_value(value: float, digits: int) -> float | int:
+        return round(value) if digits == 0 else round(value, digits)
+
+    async def shift_offset(
+        self, action: str, source: str, correction: float, digits: int
+    ) -> HttpResult | None:
+        """Move a probe's offset by ``correction`` through ``POST action``.
+
+        ``source`` is where the offset is read back. The hub adds the posted
+        value, so ``correction`` is what is posted. If the hub then holds the
+        posted value instead of the sum (it replaced the offset), the full
+        offset is posted.
+        """
+        await self.fetch_config(source)
+        current = self.cached_offset(source)
+        delta = self._offset_value(correction, digits)
+        target = current + delta
+        result = await self.http_send(action, {"offset": delta}, "post")
+        if result is None or not result.get("ok"):
+            return result
+        await self.fetch_config(source)
+        held = self.cached_offset(source)
+        tolerance = 10**-digits / 2
+        if (
+            abs(current) > tolerance
+            and abs(held - target) > tolerance
+            and abs(held - delta) <= tolerance
+        ):
+            _LOGGER.info("%s replaces the offset: posting the full offset", action)
+            result = await self.http_send(
+                action, {"offset": self._offset_value(target, digits)}, "post"
+            )
+            await self.fetch_config(source)
+        return result
+
     def _mirror_write(
         self, action: str, payload: Any, method: str, result: HttpResult
     ) -> None:

@@ -3,6 +3,10 @@
 ## MODIFICATIONS
 
 ### RSPOWER
+ - Calibration against a reference temperature (number
+   `temperature_calibration`) replaces the `temperature_offset` number, as
+   on the RSCONTROL probes (see there). `temperature_offset` is purged from
+   the registry.
  - Optimistic updates for installing or removing the local temperature
    probe and unpairing the hub (see RSCONTROL).
  - `power_temperature` carries `ranges` (`[acceptable_low, desired_low,
@@ -11,6 +15,43 @@
    draws its level the same way.
 
 ### RSCONTROL
+ - Calibration of the embedded temperature of pH, EC and ATO probes
+   (number `probe_temp_calibration`, °C), the same way: it goes through
+   `/probe/offset?type=<ph|ec|ato>&uid=…`, captured on pH and EC (adds too,
+   and moves `temp_value`). Its date is not the probe's calibration date.
+ - Calibration against a reference value replaces the offset numbers:
+   `probe_orp_calibration` (mV) and `probe_temperature_calibration` (°C) per
+   probe show its reading; with the probe in a solution or water of known
+   value, setting the number to that value reads the probe again and moves
+   its offset by `reference - reading`, as the ReefBeat app's ORP validation
+   does, so the probe then reads the reference. The `probe_offset` numbers
+   are removed, and purged from the registry.
+ - `/probe/config` is read again when a probe appears or its
+   `last_installation_date` changes. Reinstalling a probe resets its settings
+   on the hub (an ORP probe goes back to `[100, 200, 400, 480]`); installed
+   from the ReefBeat app, the integration kept the old ranges while the hub
+   judged the level against the new ones (a card's bar and dot disagreed).
+ - ORP probes get the date of their last validation (sensor
+   `probe_last_adjustment`), read from `GET /probe/offset?type=orp&uid=…`
+   (`{"offset", "last_adjustment_date"}`).
+ - `POST /probe/offset` *adds* the posted value to the current offset
+   (captured on an ORP probe: 1 + 35 = 36, 36 + 20 = 56, 56 - 55 = 1) and
+   the readings include it. Every offset write posts the correction only,
+   reads the offset back, and posts the full offset if a hub replaced it
+   instead (not captured yet for a temperature probe).
+ - Calibration reminders are dated by the hub: a pH or EC probe calibrated
+   from the ReefBeat app (`/dashboard.probes[].last_adjustment_date`) or an
+   ORP probe validated (`/probe/offset` `last_adjustment_date`) marks its
+   calibration task done at that date. The task only moves forward, so a
+   later press of its button is kept.
+ - Probe calibration reminders follow Red Sea's official intervals: pH every
+   3 months (was monthly; its interval is now set in months, number
+   `maint_control_probe_calibration_ph_interval_months` replaces
+   `..._interval_weeks`), ORP every 6 months (was 2) and a new salinity (EC)
+   calibration task every 2 months (button, interval and notification switch
+   per EC probe). Temperature probes still get no calibration reminder.
+   Only the defaults change: an interval already set by the user is kept,
+   so a pH or ORP interval chosen under the old ranges should be set again.
  - Removed the per-port ATO entities, which could never work on the hub:
    buttons `ato_manual_pump`, `ato_stop`, `ato_resume`, number
    `ato_volume_left`, switch `ato_auto_fill`, binary sensors

@@ -200,6 +200,9 @@
       "maint_control_probe_calibration_ph": {
         "name": "Calibrate probe {probe}"
       },
+      "maint_control_probe_calibration_ec": {
+        "name": "Calibrate probe {probe}"
+      },
       "maint_control_probe_clean": {
         "name": "Clean probe {probe}"
       },
@@ -408,8 +411,11 @@
       "maint_control_probe_calibration_orp_interval_months": {
         "name": "Validate probe {probe} (months)"
       },
-      "maint_control_probe_calibration_ph_interval_weeks": {
-        "name": "Calibrate probe {probe} (weeks)"
+      "maint_control_probe_calibration_ph_interval_months": {
+        "name": "Calibrate probe {probe} (months)"
+      },
+      "maint_control_probe_calibration_ec_interval_months": {
+        "name": "Calibrate probe {probe} (months)"
       },
       "maint_control_probe_clean_interval_weeks": {
         "name": "Clean probe {probe} (weeks)"
@@ -510,11 +516,17 @@
       "temperature_coherence_threshold": {
         "name": "Temperature coherence threshold"
       },
-      "probe_offset": {
-        "name": "{probe} offset"
+      "probe_orp_calibration": {
+        "name": "Calibrate {probe} (solution value)"
       },
-      "temperature_offset": {
-        "name": "Temperature offset"
+      "probe_temperature_calibration": {
+        "name": "Calibrate {probe} (real temperature)"
+      },
+      "probe_temp_calibration": {
+        "name": "Calibrate {probe} temperature (real temperature)"
+      },
+      "temperature_calibration": {
+        "name": "Calibrate temperature (real temperature)"
       },
       "temperature_desired_range_low": {
         "name": "Desired temperature range (low)"
@@ -1406,6 +1418,9 @@
         "name": "Validate probe {probe} (notifications)"
       },
       "maint_control_probe_calibration_ph_notify": {
+        "name": "Calibrate probe {probe} (notifications)"
+      },
+      "maint_control_probe_calibration_ec_notify": {
         "name": "Calibrate probe {probe} (notifications)"
       },
       "maint_control_probe_clean_notify": {

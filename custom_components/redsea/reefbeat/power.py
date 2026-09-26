@@ -138,20 +138,38 @@ class ReefPowerAPI(ReefBeatAPI):
         self._reconcile_temperature_sources()
         return data
 
-    def temperature_offset(self) -> float | None:
-        """Cached local-temperature calibration offset, if known."""
-        return self.get_data(
-            "$.sources[?(@.name=='/temperature/config')].data.offset",
+    def local_temperature(self) -> float | None:
+        """Cached local temperature reading (``/dashboard.temperature``)."""
+        temp: Any = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.temperature",
             is_None_possible=True,
         )
+        value: Any = temp.get("value") if isinstance(temp, dict) else temp
+        return float(value) if self._is_number(value) else None
 
-    async def set_temperature_offset(self, offset: float) -> HttpResult | None:
-        """Set the local temperature offset (``POST /probe/offset``)."""
-        return await self.http_send("/probe/offset", {"offset": offset}, "post")
+    async def calibrate_temperature(self, reference: float) -> HttpResult | None:
+        """Calibrate the local temperature probe against a known temperature.
 
-    async def reset_temperature_offset(self) -> HttpResult | None:
-        """Clear the local temperature offset (``DELETE /probe/offset``)."""
-        return await self.http_send("/probe/offset", None, "delete")
+        The probe is read now (``/dashboard``) and its offset moved by
+        ``reference - reading``, the reading including the current offset,
+        so the probe then reads the reference.
+        """
+        await self.fetch_config("/dashboard")
+        reading = self.local_temperature()
+        if reading is None:
+            _LOGGER.warning("Local temperature: no reading, calibration skipped")
+            return None
+        result = await self.shift_offset(
+            "/probe/offset", self._TEMP_CONFIG_SOURCE, reference - reading, 1
+        )
+        if result is not None and result.get("ok"):
+            temp: Any = self.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.temperature",
+                is_None_possible=True,
+            )
+            if isinstance(temp, dict):
+                cast(dict[str, Any], temp)["value"] = reference
+        return result
 
     async def install_temperature(self) -> HttpResult | None:
         """Scan for and install the local temperature probe.

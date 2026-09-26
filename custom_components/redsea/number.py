@@ -84,6 +84,43 @@ from .probe_entities import probe_display_name, tag_port_entities, tag_probe_ent
 
 _LOGGER = logging.getLogger(__name__)
 
+# Calibration against a reference value, per probe type:
+# (unit, device class, min, max, step).
+_PROBE_REFERENCE: dict[
+    str, tuple[str, NumberDeviceClass | None, float, float, float]
+] = {
+    "temperature": (
+        UnitOfTemperature.CELSIUS,
+        NumberDeviceClass.TEMPERATURE,
+        0,
+        50,
+        0.1,
+    ),
+    "orp": ("mV", None, -800, 800, 1),
+    # Embedded temperature sensor of a pH, EC or ATO probe
+    "ph": (
+        UnitOfTemperature.CELSIUS,
+        NumberDeviceClass.TEMPERATURE,
+        0,
+        50,
+        0.1,
+    ),
+    "ec": (
+        UnitOfTemperature.CELSIUS,
+        NumberDeviceClass.TEMPERATURE,
+        0,
+        50,
+        0.1,
+    ),
+    "ato": (
+        UnitOfTemperature.CELSIUS,
+        NumberDeviceClass.TEMPERATURE,
+        0,
+        50,
+        0.1,
+    ),
+}
+
 
 # Coordinator capability protocols (typing only)
 @runtime_checkable
@@ -648,25 +685,26 @@ async def async_setup_entry(
         )
 
     elif isinstance(device, ReefPowerCoordinator):
-        # Local temperature probe calibration offset (°C). Always created; it
-        # becomes available once a probe is installed and unavailable when it is
-        # removed (see ReefPowerTemperatureOffsetNumberEntity.available).
+        # Local temperature probe calibration against a reference: shows the
+        # reading; set to the real temperature, the offset is computed and
+        # applied. Always created; available only while a probe is installed
+        # (see ReefPowerTemperatureCalibrationNumberEntity.available).
         entities.append(
-            ReefPowerTemperatureOffsetNumberEntity(
+            ReefPowerTemperatureCalibrationNumberEntity(
                 device,
                 ReefBeatNumberEntityDescription(
-                    key="temperature_offset",
-                    translation_key="temperature_offset",
+                    key="temperature_calibration",
+                    translation_key="temperature_calibration",
                     mode=NumberMode.BOX,
                     native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                     device_class=NumberDeviceClass.TEMPERATURE,
-                    native_min_value=-5,
+                    native_min_value=0,
                     native_step=0.1,
-                    native_max_value=5,
+                    native_max_value=50,
                     value_name=(
-                        "$.sources[?(@.name=='/temperature/config')].data.offset"
+                        "$.sources[?(@.name=='/dashboard')].data.temperature.value"
                     ),
-                    icon="mdi:tune-vertical",
+                    icon="mdi:water-check",
                     entity_category=EntityCategory.CONFIG,
                 ),
             )
@@ -870,9 +908,6 @@ async def async_setup_entry(
             )
         )
 
-        # Per-temperature-probe calibration offset (°C). One number per probe of
-        # type "temperature"; the offset is read from the per-probe
-        # /probe/offset source and written via POST /probe/offset.
         raw_probes = device.get_data(
             "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
         )
@@ -885,35 +920,54 @@ async def async_setup_entry(
             if isinstance(raw_probes, list)
             else []
         )
-        temp_probes = [
-            p for p in all_probes if str(p.get("type", "")).lower() == "temperature"
-        ]
-        for probe in temp_probes:
+        # Calibration against a reference: the number shows the probe's
+        # reading (the embedded temperature of a pH, EC or ATO probe). With
+        # the probe in a solution (ORP) or water (temperature) of known
+        # value, setting it to that value makes the integration compute and
+        # apply the offset (see ReefControlAPI.calibrate_probe), so the probe
+        # then reads that value.
+        for probe in all_probes:
+            ptype = str(probe.get("type", "")).lower()
+            reference = _PROBE_REFERENCE.get(ptype)
+            if reference is None:
+                continue
+            unit, device_class, low, high, step = reference
             uid = str(probe["uid"])
-            uid_key = "temperature_" + "".join(c for c in uid.lower() if c.isalnum())
+            uid_key = f"{ptype}_" + "".join(c for c in uid.lower() if c.isalnum())
             entities.append(
-                ReefControlProbeOffsetNumberEntity(
+                ReefControlProbeCalibrationNumberEntity(
                     device,
                     ReefBeatNumberEntityDescription(
-                        key=f"probe_{uid_key}_offset",
-                        translation_key="probe_offset",
+                        key=f"probe_{uid_key}_calibration",
+                        translation_key={
+                            "temperature": "probe_temperature_calibration",
+                            "ph": "probe_temp_calibration",
+                            "ec": "probe_temp_calibration",
+                            "ato": "probe_temp_calibration",
+                        }.get(ptype, "probe_orp_calibration"),
                         translation_placeholders={
                             "probe": probe_display_name(probe, all_probes)
                         },
                         mode=NumberMode.BOX,
-                        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-                        device_class=NumberDeviceClass.TEMPERATURE,
-                        native_min_value=-5,
-                        native_step=0.1,
-                        native_max_value=5,
+                        native_unit_of_measurement=unit,
+                        device_class=device_class,
+                        native_min_value=low,
+                        native_step=step,
+                        native_max_value=high,
                         value_name=(
-                            "$.sources[?(@.name=="
-                            f"'/probe/offset?type=temperature&uid={uid}')].data.offset"
+                            "$.sources[?(@.name=='/dashboard')].data.probes"
+                            f"[?(@.uid=='{uid}')]."
+                            + (
+                                "value"
+                                if ptype in ("temperature", "orp")
+                                else "temp_value"
+                            )
                         ),
-                        icon="mdi:tune-vertical",
+                        icon="mdi:water-check",
                         entity_category=EntityCategory.CONFIG,
                     ),
                     uid=uid,
+                    ptype=ptype,
                 )
             )
 
@@ -1770,13 +1824,14 @@ class ReefATOTankVolumeNumberEntity(ReefBeatNumberEntity):
         self.async_write_ha_state()
 
 
-class ReefControlProbeOffsetNumberEntity(ReefBeatNumberEntity):
-    """Calibration offset (°C) for one RSCONTROL temperature probe.
+class ReefControlProbeCalibrationNumberEntity(ReefBeatNumberEntity):
+    """Calibrate an RSCONTROL probe by a reference value.
 
-    Displays the device-reported offset (from the per-probe
-    ``/probe/offset?type=temperature&uid=<uid>`` source) and writes it back via
-    ``POST /probe/offset``. This is the single-point offset, not the multi-point
-    calibration wizard.
+    The reading of an ORP or temperature probe, or the embedded temperature
+    of a pH, EC or ATO probe. Shows that reading. With the probe in a solution (ORP, mV) or
+    water (temperature, °C) of known value, setting the number to that value
+    computes the offset from a fresh reading and applies it
+    (``POST /probe/offset``), as the ReefBeat app's ORP validation does.
     """
 
     def __init__(
@@ -1784,26 +1839,27 @@ class ReefControlProbeOffsetNumberEntity(ReefBeatNumberEntity):
         device: ReefBeatCoordinator,
         description: ReefBeatNumberEntityDescription,
         uid: str,
+        ptype: str,
     ) -> None:
         super().__init__(device, description)
         self._uid = uid
+        self._ptype = ptype
 
     @property
     def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
-        # Unplugged probe: its offset endpoint is not polled (it answers 503),
-        # so the cached value would be stale and a write would be refused.
+        # An unplugged probe answers 503: nothing to read, nothing to set.
         return bool(
             super().available
             and cast(ReefControlCoordinator, self._device).probe_is_connected(
-                "temperature", self._uid
+                self._ptype, self._uid
             )
         )
 
     async def async_set_native_value(self, value: float) -> None:
         self._attr_native_value = value
         self.async_write_ha_state()
-        await cast(ReefControlCoordinator, self._device).set_probe_offset(
-            self._uid, value
+        await cast(ReefControlCoordinator, self._device).async_calibrate_probe(
+            self._ptype, self._uid, value
         )
 
 
@@ -1844,11 +1900,12 @@ class ReefControlProbeRangeNumberEntity(ReefBeatNumberEntity):
         )
 
 
-class ReefPowerTemperatureOffsetNumberEntity(ReefBeatNumberEntity):
-    """Calibration offset (°C) for the RSPower local temperature probe.
+class ReefPowerTemperatureCalibrationNumberEntity(ReefBeatNumberEntity):
+    """Calibrate the RSPower local temperature probe by a reference value.
 
-    Always created; available only while a probe is installed, so it greys out
-    when the probe is removed and comes back when one is added.
+    Shows the probe's reading. With the probe in water of known temperature,
+    setting the number to that value computes the offset from a fresh
+    reading and applies it. Available only while a probe is installed.
     """
 
     @property
@@ -1859,11 +1916,11 @@ class ReefPowerTemperatureOffsetNumberEntity(ReefBeatNumberEntity):
         )
 
     async def async_set_native_value(self, value: float) -> None:
-        old_value = self._attr_native_value or 0.0
-        new_value = value - old_value
         self._attr_native_value = value
         self.async_write_ha_state()
-        await cast(ReefPowerCoordinator, self._device).set_temperature_offset(new_value)
+        await cast(ReefPowerCoordinator, self._device).async_calibrate_temperature(
+            value
+        )
 
 
 class ReefPowerTemperatureConfigNumberEntity(ReefBeatNumberEntity):
@@ -1873,7 +1930,7 @@ class ReefPowerTemperatureConfigNumberEntity(ReefBeatNumberEntity):
     acceptable range bounds) alongside the probe's name and notification/
     logging toggles, all seeded with defaults at install time. Always
     created; available only while a probe is installed — mirrors
-    ``ReefPowerTemperatureOffsetNumberEntity`` so it greys out/reappears
+    ``ReefPowerTemperatureCalibrationNumberEntity`` so it greys out/reappears
     across a probe swap without a reload. Writes use the base class's
     generic ``push_values()`` path, which resends the whole cached
     ``/temperature/config`` object since the firmware expects every field

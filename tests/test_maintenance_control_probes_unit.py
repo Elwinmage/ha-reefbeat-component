@@ -55,6 +55,7 @@ def test_control_tasks_registered_for_both_models() -> None:
     assert keys == {
         "control_probe_clean",
         "control_probe_calibration_ph",
+        "control_probe_calibration_ec",
         "control_probe_calibration_orp",
         "control_probe_replace",
     }
@@ -64,32 +65,44 @@ def test_only_cleaning_applies_to_every_probe() -> None:
     """Calibration and replacement are for drifting/wearing probes only."""
     assert _task("control_probe_clean").applies_to_sub == "probe"
     assert _task("control_probe_calibration_ph").applies_to_sub == "probe_ph"
+    assert _task("control_probe_calibration_ec").applies_to_sub == "probe_ec"
     assert _task("control_probe_calibration_orp").applies_to_sub == "probe_orp"
     assert _task("control_probe_replace").applies_to_sub == "probe_wear"
 
 
-def test_ph_and_orp_calibration_intervals_differ() -> None:
-    """Red Sea: pH recalibrates monthly, ORP is validated every 2 months.
+def test_calibration_intervals_follow_red_sea() -> None:
+    """Official Red Sea intervals: pH 3 months, salinity 2, ORP 6.
 
-    Averaging both into one task would either over-remind on ORP or let pH
-    drift for a month too long.
+    Averaging them into one task would over-remind on ORP or let pH and
+    salinity drift too long. All three are set in months.
     """
-    assert _task("control_probe_calibration_ph").default_days == 30
-    assert _task("control_probe_calibration_orp").default_days == 60
+    assert _task("control_probe_calibration_ph").default_days == 90
+    assert _task("control_probe_calibration_ec").default_days == 60
+    assert _task("control_probe_calibration_orp").default_days == 180
+    for key in ("ph", "ec", "orp"):
+        assert _task(f"control_probe_calibration_{key}").unit == "months"
 
 
-def test_ec_probe_has_no_calibration_or_replacement_task() -> None:
+def test_ec_probe_is_calibrated_but_never_replaced() -> None:
     """The 4-pole conductivity cell has no electrolyte to deplete.
 
-    Red Sea gives it a 24-month warranty, no routine recalibration (only
-    after a cleaning) and no replacement schedule — unlike pH and ORP, which
-    are both ~12-month wear items.
+    It gets its own salinity calibration (35 ppt standard) but no
+    replacement schedule, unlike pH and ORP, which are ~12-month wear items.
     """
+    assert PROBE_SCOPES["probe_ec"] == frozenset({"ec"})
     assert "ec" not in (PROBE_SCOPES["probe_ph"] or set())
     assert "ec" not in (PROBE_SCOPES["probe_orp"] or set())
     assert "ec" not in (PROBE_SCOPES["probe_wear"] or set())
-    # ...but it still needs cleaning like every other wet probe.
+    # ...and it still needs cleaning like every other wet probe.
     assert PROBE_SCOPES["probe"] is None
+
+
+def test_temperature_probe_has_no_calibration_task() -> None:
+    """Temperature: single-point offset, no regular calibration."""
+    for task in tasks_for("RSCONTROLPRO"):
+        scope = PROBE_SCOPES.get(task.applies_to_sub or "")
+        if scope is not None:
+            assert "temperature" not in scope
 
 
 def test_wear_replacement_is_about_twelve_months() -> None:
@@ -146,6 +159,13 @@ def test_ph_calibration_targets_only_the_ph_probe() -> None:
         _FakeDevice(_PROBES), _task("control_probe_calibration_ph")
     )
     assert [name for _, name in got] == ["pH bac"]
+
+
+def test_ec_calibration_targets_only_the_ec_probe() -> None:
+    got = iter_maintenance_probes(
+        _FakeDevice(_PROBES), _task("control_probe_calibration_ec")
+    )
+    assert [name for _, name in got] == ["Salinite"]
 
 
 def test_orp_validation_targets_only_the_orp_probe() -> None:

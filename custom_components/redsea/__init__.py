@@ -223,6 +223,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         with suppress(Exception):
             _purge_orphan_probe_entities(hass, entry, coordinator)
 
+    # Entities this version no longer builds would linger as "no longer
+    # provided" — drop them.
+    if isinstance(coordinator, (ReefControlCoordinator, ReefPowerCoordinator)):
+        with suppress(Exception):
+            _purge_retired_entities(hass, entry, coordinator)
+
     # Best-effort cosmetic migration; doesn't affect identifiers or entities.
     with suppress(Exception):
         await _migrate_head_device_names(hass, entry)
@@ -362,6 +368,30 @@ def _purge_orphan_probe_entities(
             orphan = sub is not None and sub not in current_sub_ids
         if orphan:
             _LOGGER.info("Removing orphaned probe entity %s", ent.entity_id)
+            registry.async_remove(ent.entity_id)
+
+
+# unique_id keys (after ``{serial}_``) of entities no longer built:
+# the calibration offsets, replaced by the calibration against a reference
+# value (``probe_{type}_{uid}_calibration``, ``temperature_calibration``).
+_RETIRED_ENTITY_KEYS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"^probe_(temperature|orp)_[0-9a-z]+_offset$"),
+    re.compile(r"^temperature_offset$"),
+)
+
+
+def _purge_retired_entities(
+    hass: HomeAssistant, entry: ConfigEntry, coordinator: Any
+) -> None:
+    """Remove the registry entries of entities no longer built."""
+    serial_prefix = f"{coordinator.serial}_"
+    registry = er.async_get(hass)
+    for ent in list(er.async_entries_for_config_entry(registry, entry.entry_id)):
+        if not ent.unique_id.startswith(serial_prefix):
+            continue
+        key = ent.unique_id[len(serial_prefix) :]
+        if any(pattern.match(key) for pattern in _RETIRED_ENTITY_KEYS):
+            _LOGGER.info("Removing retired entity %s", ent.entity_id)
             registry.async_remove(ent.entity_id)
 
 

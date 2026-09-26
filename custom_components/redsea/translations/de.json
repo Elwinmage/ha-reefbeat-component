@@ -200,6 +200,9 @@
       "maint_control_probe_calibration_ph": {
         "name": "Sonde {probe} kalibrieren"
       },
+      "maint_control_probe_calibration_ec": {
+        "name": "Sonde {probe} kalibrieren"
+      },
       "maint_control_probe_clean": {
         "name": "Sonde {probe} reinigen"
       },
@@ -408,8 +411,11 @@
       "maint_control_probe_calibration_orp_interval_months": {
         "name": "Sonde {probe} prüfen (Monate)"
       },
-      "maint_control_probe_calibration_ph_interval_weeks": {
-        "name": "Sonde {probe} kalibrieren (Wochen)"
+      "maint_control_probe_calibration_ph_interval_months": {
+        "name": "Sonde {probe} kalibrieren (Monate)"
+      },
+      "maint_control_probe_calibration_ec_interval_months": {
+        "name": "Sonde {probe} kalibrieren (Monate)"
       },
       "maint_control_probe_clean_interval_weeks": {
         "name": "Sonde {probe} reinigen (Wochen)"
@@ -510,11 +516,17 @@
       "temperature_coherence_threshold": {
         "name": "Schwelle Temperaturkohärenz"
       },
-      "probe_offset": {
-        "name": "Offset {probe}"
+      "probe_orp_calibration": {
+        "name": "{probe} kalibrieren (Wert der Lösung)"
       },
-      "temperature_offset": {
-        "name": "Temperatur-Offset"
+      "probe_temperature_calibration": {
+        "name": "{probe} kalibrieren (tatsächliche Temperatur)"
+      },
+      "probe_temp_calibration": {
+        "name": "Temperatur von {probe} kalibrieren (tatsächliche Temperatur)"
+      },
+      "temperature_calibration": {
+        "name": "Temperatur kalibrieren (tatsächliche Temperatur)"
       },
       "temperature_desired_range_low": {
         "name": "Gewünschter Temperaturbereich (niedrig)"
@@ -1398,6 +1410,9 @@
         "name": "Sonde {probe} prüfen (Benachrichtigungen)"
       },
       "maint_control_probe_calibration_ph_notify": {
+        "name": "Sonde {probe} kalibrieren (Benachrichtigungen)"
+      },
+      "maint_control_probe_calibration_ec_notify": {
         "name": "Sonde {probe} kalibrieren (Benachrichtigungen)"
       },
       "maint_control_probe_clean_notify": {

@@ -84,20 +84,8 @@ def test_probe_offset_reads_dynamic_source() -> None:
             }
         ],
     )
-    assert api.probe_offset("0xT") == 0.3
-
-
-@pytest.mark.asyncio
-async def test_set_and_reset_probe_offset() -> None:
-    api = _control_api()
-    await api.set_probe_offset("0xT", 0.5)
-    api.http_send.assert_awaited_with(
-        "/probe/offset?type=temperature&uid=0xT", {"offset": 0.5}, "post"
-    )
-    await api.reset_probe_offset("0xT")
-    api.http_send.assert_awaited_with(
-        "/probe/offset?type=temperature&uid=0xT", None, "delete"
-    )
+    assert api.cached_offset("/probe/offset?type=temperature&uid=0xT") == 0.3
+    assert api.cached_offset("/probe/offset?type=orp&uid=0xT") == 0.0
 
 
 @pytest.mark.asyncio
@@ -428,23 +416,6 @@ async def test_control_fetch_data_reconciles(monkeypatch: pytest.MonkeyPatch) ->
 # ===========================================================================
 
 
-def test_power_temperature_offset_reads_source() -> None:
-    api = _power_api(temperature=25.0)
-    api.data["sources"].append(
-        {"name": "/temperature/config", "type": "data", "data": {"offset": -0.2}}
-    )
-    assert api.temperature_offset() == -0.2
-
-
-@pytest.mark.asyncio
-async def test_power_set_reset_offset() -> None:
-    api = _power_api()
-    await api.set_temperature_offset(0.4)
-    api.http_send.assert_awaited_with("/probe/offset", {"offset": 0.4}, "post")
-    await api.reset_temperature_offset()
-    api.http_send.assert_awaited_with("/probe/offset", None, "delete")
-
-
 @pytest.mark.asyncio
 async def test_power_install_temperature_success_and_remove() -> None:
     api = _power_api()
@@ -564,6 +535,13 @@ async def test_power_fetch_data_reconciles(monkeypatch: pytest.MonkeyPatch) -> N
     assert "/temperature/subscriptions" in _source_names(api)
 
 
+def _power_offset(api: Any) -> Any:
+    return api.get_data(
+        "$.sources[?(@.name=='/temperature/config')].data.offset",
+        is_None_possible=True,
+    )
+
+
 def test_power_temperature_offset_survives_probe_swap() -> None:
     """A physical probe swap (remove then re-pair) must never leak a stale
     reading: RSPOWER has at most one temperature probe, so the offset entity
@@ -575,7 +553,7 @@ def test_power_temperature_offset_survives_probe_swap() -> None:
     api.data["sources"].append(
         {"name": "/temperature/config", "type": "data", "data": {"offset": 0.3}}
     )
-    assert api.temperature_offset() == 0.3
+    assert _power_offset(api) == 0.3
 
     # Probe unplugged: reconciliation (run by fetch_data on every refresh)
     # drops the config source. The very next read must return None, not the
@@ -585,7 +563,7 @@ def test_power_temperature_offset_survives_probe_swap() -> None:
     ]
     api.data["sources"][0]["data"]["temperature"] = None  # /dashboard entry
     api._reconcile_temperature_sources()
-    assert api.temperature_offset() is None
+    assert _power_offset(api) is None
 
     # A different probe is paired in its place: reconciliation re-adds the
     # source and the very next read must return its (different) fresh value,
@@ -596,7 +574,7 @@ def test_power_temperature_offset_survives_probe_swap() -> None:
         s for s in api.data["sources"] if s["name"] == "/temperature/config"
     )
     new_source["data"] = {"offset": -0.6}
-    assert api.temperature_offset() == -0.6
+    assert _power_offset(api) == -0.6
 
 
 @pytest.mark.asyncio

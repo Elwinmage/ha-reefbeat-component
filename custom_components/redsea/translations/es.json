@@ -200,6 +200,9 @@
       "maint_control_probe_calibration_ph": {
         "name": "Calibrar la sonda {probe}"
       },
+      "maint_control_probe_calibration_ec": {
+        "name": "Calibrar la sonda {probe}"
+      },
       "maint_control_probe_clean": {
         "name": "Limpiar la sonda {probe}"
       },
@@ -408,8 +411,11 @@
       "maint_control_probe_calibration_orp_interval_months": {
         "name": "Verificar la sonda {probe} (meses)"
       },
-      "maint_control_probe_calibration_ph_interval_weeks": {
-        "name": "Calibrar la sonda {probe} (semanas)"
+      "maint_control_probe_calibration_ph_interval_months": {
+        "name": "Calibrar la sonda {probe} (meses)"
+      },
+      "maint_control_probe_calibration_ec_interval_months": {
+        "name": "Calibrar la sonda {probe} (meses)"
       },
       "maint_control_probe_clean_interval_weeks": {
         "name": "Limpiar la sonda {probe} (semanas)"
@@ -510,11 +516,17 @@
       "temperature_coherence_threshold": {
         "name": "Umbral de coherencia de temperatura"
       },
-      "probe_offset": {
-        "name": "Offset {probe}"
+      "probe_orp_calibration": {
+        "name": "Calibrar {probe} (valor de la solución)"
       },
-      "temperature_offset": {
-        "name": "Offset de temperatura"
+      "probe_temperature_calibration": {
+        "name": "Calibrar {probe} (temperatura real)"
+      },
+      "probe_temp_calibration": {
+        "name": "Calibrar la temperatura de {probe} (temperatura real)"
+      },
+      "temperature_calibration": {
+        "name": "Calibrar la temperatura (temperatura real)"
       },
       "temperature_desired_range_low": {
         "name": "Rango de temperatura deseado (bajo)"
@@ -1398,6 +1410,9 @@
         "name": "Verificar la sonda {probe} (notificaciones)"
       },
       "maint_control_probe_calibration_ph_notify": {
+        "name": "Calibrar la sonda {probe} (notificaciones)"
+      },
+      "maint_control_probe_calibration_ec_notify": {
         "name": "Calibrar la sonda {probe} (notificaciones)"
       },
       "maint_control_probe_clean_notify": {

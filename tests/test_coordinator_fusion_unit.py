@@ -245,25 +245,14 @@ def test_fusion_attributes_shape() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_probe_offset_delegation() -> None:
-    coord, api = _control_with_mock_api()
-    api.probe_offset.return_value = 0.3
-    assert coord.probe_offset("uid") == 0.3
-    api.probe_offset.assert_called_once_with("uid")
-
-
 @pytest.mark.asyncio
-async def test_set_and_reset_probe_offset_refresh() -> None:
+async def test_calibrate_probe_refresh() -> None:
     coord, api = _control_with_mock_api()
-    api.set_probe_offset = AsyncMock()
-    api.reset_probe_offset = AsyncMock()
-
-    await coord.set_probe_offset("uid", 0.4)
-    api.set_probe_offset.assert_awaited_once_with("uid", 0.4)
-
-    await coord.reset_probe_offset("uid")
-    api.reset_probe_offset.assert_awaited_once_with("uid")
-    assert coord.async_request_refresh.await_count == 2
+    api.calibrate_probe = AsyncMock()
+    await coord.async_calibrate_probe("temperature", "uid", 25.3)
+    api.calibrate_probe.assert_awaited_once_with("temperature", "uid", 25.3)
+    coord.async_update_listeners.assert_called_once()
+    coord.async_request_refresh.assert_awaited_once_with(config=True)
 
 
 def test_list_probes_filters_invalid() -> None:
@@ -379,25 +368,16 @@ def test_power_has_local_temperature() -> None:
     assert coord.has_local_temperature() is False
 
 
-def test_power_temperature_offset_delegation() -> None:
-    coord, api = _power_with_mock_api()
-    api.temperature_offset.return_value = -0.2
-    assert coord.temperature_offset() == -0.2
-
-
 @pytest.mark.asyncio
-async def test_power_temperature_offset_writes_refresh() -> None:
+async def test_power_temperature_writes_refresh() -> None:
     coord, api = _power_with_mock_api()
-    api.set_temperature_offset = AsyncMock()
-    api.reset_temperature_offset = AsyncMock()
+    api.calibrate_temperature = AsyncMock()
     api.install_temperature = AsyncMock()
     api.remove_temperature = AsyncMock()
 
-    await coord.set_temperature_offset(0.5)
-    api.set_temperature_offset.assert_awaited_once_with(0.5)
-
-    await coord.reset_temperature_offset()
-    api.reset_temperature_offset.assert_awaited_once()
+    await coord.async_calibrate_temperature(25.4)
+    api.calibrate_temperature.assert_awaited_once_with(25.4)
+    coord.async_update_listeners.assert_called_once()
 
     await coord.async_install_temperature()
     api.install_temperature.assert_awaited_once()
@@ -405,10 +385,10 @@ async def test_power_temperature_offset_writes_refresh() -> None:
     await coord.async_remove_temperature()
     api.remove_temperature.assert_awaited_once()
 
-    assert coord.async_request_refresh.await_count == 4
+    assert coord.async_request_refresh.await_count == 3
     # Install/remove pair over BLE, which settles more slowly than a plain
     # config write — both must wait the longer PROBE_REFRESH_DELAY before
-    # reading the device back, unlike the two calls before them.
+    # reading the device back, unlike the calibration before them.
     install_call, remove_call = coord.async_request_refresh.await_args_list[-2:]
     assert install_call.kwargs == {"wait": PROBE_REFRESH_DELAY}
     assert remove_call.kwargs == {"wait": PROBE_REFRESH_DELAY}
