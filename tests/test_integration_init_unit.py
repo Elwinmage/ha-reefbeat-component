@@ -158,11 +158,17 @@ class _FakeDevice:
     # checked rather than just its occurrence.
     refresh_calls: list[tuple[bool, int]] = field(default_factory=list)
 
+    # Optimistic updates shown before the read-back
+    listener_updates: int = 0
+
     async def async_request_refresh(
         self, source: str | None = None, config: bool = False, wait: int = 2
     ) -> None:
         self.refreshed.append(source)
         self.refresh_calls.append((config, wait))
+
+    def async_update_listeners(self) -> None:
+        self.listener_updates += 1
 
 
 @pytest.mark.asyncio
@@ -247,6 +253,8 @@ async def test_request_service_get_and_send(hass: HomeAssistant) -> None:
 
     assert send_called == [("/x", {"v": 1}, "post")]
     assert resp2["ok"] is True
+    # The accepted write is shown at once (optimistic), not the read
+    assert fake.listener_updates == 1
     assert resp2["status"] == 201
     assert "text" in resp2
 

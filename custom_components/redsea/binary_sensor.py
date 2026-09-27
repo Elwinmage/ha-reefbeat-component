@@ -41,6 +41,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
 )
 from .entity import ReefRoleMixin
+from .probe_entities import probe_display_name, probe_state_attributes
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -284,15 +285,6 @@ RUN_SENSORS: tuple[ReefBeatBinarySensorEntityDescription[ReefRunCoordinator], ..
 POWER_SENSORS: tuple[
     ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], ...
 ] = (
-    ReefBeatBinarySensorEntityDescription(
-        key="auto_from_buttons",
-        translation_key="auto_from_buttons",
-        value_fn=lambda device: device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.auto_from_buttons"
-        ),
-        icon="mdi:gesture-tap-button",
-        entity_category=EntityCategory.DIAGNOSTIC,
-    ),
     ReefBeatBinarySensorEntityDescription(
         key="control_link_up",
         translation_key="control_link_up",
@@ -589,92 +581,6 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
-        # Per-ATO-port `is_pump_on` — mirrors the physical pump state on the
-        # ATO 12V outlet. We discover ATO ports by walking the /dashboard
-        # payload (same pattern as the ATO sensors in sensor.py) so the
-        # entity set survives dynamic add/remove of ATO probes.
-        raw_ports = device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.ports",
-            is_None_possible=True,
-        )
-        ato_ports: list[dict[str, Any]] = (
-            [
-                p
-                for p in raw_ports
-                if isinstance(p, dict)
-                and p.get("type") == "ato"
-                and isinstance(p.get("number"), int)
-            ]
-            if isinstance(raw_ports, list)
-            else []
-        )
-        ato_descs: list[ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator]] = []
-        for port in ato_ports:
-            port_idx = port["number"]
-            base = f"$.sources[?(@.name=='/dashboard')].data.ports[{port_idx}]"
-            ato_descs.append(
-                ReefBeatBinarySensorEntityDescription(
-                    key=f"port_{port_idx}_is_pump_on",
-                    translation_key="port_is_pump_on",
-                    translation_placeholders={"port": str(port_idx + 1)},
-                    device_class=BinarySensorDeviceClass.RUNNING,
-                    value_fn=lambda d, p=f"{base}.is_pump_on": d.get_data(
-                        p, is_None_possible=True
-                    ),
-                    icon="mdi:water-pump",
-                )
-            )
-            # `check_sensor` is the firmware flag that requests physical
-            # inspection of the level probe. There is intentionally no button
-            # to reset it — the firmware clears it automatically once the
-            # sensor reads normally again. Payload field: `check_sensor`.
-            ato_descs.append(
-                ReefBeatBinarySensorEntityDescription(
-                    key=f"port_{port_idx}_check_sensor",
-                    translation_key="port_check_sensor",
-                    translation_placeholders={"port": str(port_idx + 1)},
-                    device_class=BinarySensorDeviceClass.PROBLEM,
-                    value_fn=lambda d, p=f"{base}.check_sensor": d.get_data(
-                        p, is_None_possible=True
-                    ),
-                    icon="mdi:magnify-scan",
-                    entity_category=EntityCategory.DIAGNOSTIC,
-                )
-            )
-            # `is_advancing` is the firmware's own "pump progressing" flag.
-            # On some firmware builds it duplicates `is_pump_on`; on others
-            # it stays true across brief pump pauses within a single fill
-            # attempt. Exposed as a diagnostic entity so users can compare.
-            ato_descs.append(
-                ReefBeatBinarySensorEntityDescription(
-                    key=f"port_{port_idx}_is_advancing",
-                    translation_key="port_is_advancing",
-                    translation_placeholders={"port": str(port_idx + 1)},
-                    device_class=BinarySensorDeviceClass.RUNNING,
-                    value_fn=lambda d, p=f"{base}.is_advancing": d.get_data(
-                        p, is_None_possible=True
-                    ),
-                    icon="mdi:progress-upload",
-                    entity_category=EntityCategory.DIAGNOSTIC,
-                )
-            )
-            # `leak_sensor` = leak probe present/connected on the ATO port.
-            # Modelled as CONNECTIVITY so `true` means "OK, connected".
-            ato_descs.append(
-                ReefBeatBinarySensorEntityDescription(
-                    key=f"port_{port_idx}_leak_sensor",
-                    translation_key="port_leak_sensor",
-                    translation_placeholders={"port": str(port_idx + 1)},
-                    device_class=BinarySensorDeviceClass.CONNECTIVITY,
-                    value_fn=lambda d, p=f"{base}.leak_sensor": d.get_data(
-                        p, is_None_possible=True
-                    ),
-                    icon="mdi:water-alert",
-                    entity_category=EntityCategory.DIAGNOSTIC,
-                )
-            )
-        entities.extend(ReefBeatBinarySensorEntity(device, desc) for desc in ato_descs)
-
         # Standalone ReefSense leak probes (`type == "leak"` in
         # /dashboard.probes). Their payload is minimal — confirmed on a real
         # RSCONTROLPRO:
@@ -688,15 +594,18 @@ async def async_setup_entry(
             "$.sources[?(@.name=='/dashboard')].data.probes",
             is_None_possible=True,
         )
-        leak_probes: list[dict[str, Any]] = (
+        all_probes: list[dict[str, Any]] = (
             [
                 p
                 for p in raw_probes
-                if isinstance(p, dict) and p.get("type") == "leak" and p.get("uid")
+                if isinstance(p, dict) and p.get("uid") and p.get("type")
             ]
             if isinstance(raw_probes, list)
             else []
         )
+        leak_probes: list[dict[str, Any]] = [
+            p for p in all_probes if p.get("type") == "leak"
+        ]
         leak_descs: list[
             ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator]
         ] = []
@@ -709,13 +618,22 @@ async def async_setup_entry(
             )
             leak_descs.append(
                 ReefBeatBinarySensorEntityDescription(
-                    key=f"probe_{uid_key}_detected",
+                    # Same `probe_{type}_{uid}_` prefix as every other probe
+                    # entity: the orphan purge and the probe replacement
+                    # recognise a probe's entities by it (see
+                    # probe_entities.probe_key_prefix).
+                    key=f"probe_leak_{uid_key}_detected",
                     translation_key="probe_leak_detected",
-                    translation_placeholders={"probe": probe.get("name") or uid},
+                    translation_placeholders={
+                        "probe": probe_display_name(probe, all_probes)
+                    },
                     device_class=BinarySensorDeviceClass.MOISTURE,
                     # IMPORTANT: bind path into the lambda default to avoid the
                     # late-binding closure bug across loop iterations.
                     value_fn=lambda d, p=path: d.get_data(p, is_None_possible=True),
+                    # Same probe identity as the sensors (see
+                    # probe_state_attributes), so a card groups them per probe.
+                    attributes_fn=lambda d, u=uid: probe_state_attributes(d, "leak", u),
                     icon="mdi:water-alert",
                 )
             )

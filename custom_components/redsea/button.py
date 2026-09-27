@@ -60,6 +60,12 @@ from .maintenance import (
     iter_maintenance_probes,
     tasks_for,
 )
+from .probe_entities import (
+    probe_display_name,
+    probe_key_prefix,
+    tag_port_entities,
+    tag_probe_entities,
+)
 from .supplements_list import SUPPLEMENTS
 
 _LOGGER = logging.getLogger(__name__)
@@ -139,6 +145,15 @@ class ReefBeatButtonEntityDescription(ButtonEntityDescription):
     dependency: str | None = None
     dependency_values: Sequence[Any] | None = None
     dependency_reverse: bool = False
+    # Escape hatch for a compound condition the single dependency/
+    # dependency_values/dependency_reverse triple can't express (e.g. "A and
+    # not B"). Takes precedence over dependency when set.
+    available_fn: Callable[[ReefBeatCoordinator], bool] | None = None
+    # Whether to re-read the device after the press. Off for buttons whose
+    # press_fn already writes fresh values into the cache (on-demand probe
+    # readings): the follow-up /dashboard poll could only bring back an
+    # older reading.
+    refresh_after: bool = True
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -242,10 +257,83 @@ LED_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
     ),
 )
 
+
+def _power_has_local_temperature(device: ReefBeatCoordinator) -> bool:
+    """Whether this power center has its own local temperature probe."""
+    return bool(
+        device.get_data("$.sources[?(@.name=='/dashboard')].data.temperature", True)
+    )
+
+
+def _power_has_paired_control(device: ReefBeatCoordinator) -> bool:
+    """Whether this power center is currently paired to a RSControl hub."""
+    return bool(
+        device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.connected_device.hwid", True
+        )
+    )
+
+
+def _control_probe_read_buttons(
+    device: ReefBeatCoordinator,
+) -> tuple[ReefBeatButtonEntityDescription, ...]:
+    """Build one on-demand reading button per probe of a RSControl hub."""
+    raw_probes = device.get_data(
+        "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+    )
+    candidates: list[Any] = (
+        cast(list[Any], raw_probes) if isinstance(raw_probes, list) else []
+    )
+    probes: list[dict[str, Any]] = [
+        cast(dict[str, Any], p)
+        for p in candidates
+        if isinstance(p, dict)
+        and cast(dict[str, Any], p).get("uid")
+        and cast(dict[str, Any], p).get("type")
+    ]
+    buttons: list[ReefBeatButtonEntityDescription] = []
+    for probe in probes:
+        ptype = str(probe["type"]).lower()
+        uid = str(probe["uid"])
+        buttons.append(
+            ReefBeatButtonEntityDescription(
+                key=f"{probe_key_prefix(ptype, uid)}get_value",
+                translation_key="probe_get_value",
+                translation_placeholders={
+                    "probe": probe_display_name(probe, probes),
+                },
+                exists_fn=lambda _: True,
+                # Bind type/uid in the defaults (late-binding closure trap).
+                press_fn=(
+                    lambda d, t=ptype, u=uid: cast(
+                        ReefControlCoordinator, d
+                    ).async_read_probe(t, u)
+                ),
+                icon="mdi:refresh",
+                entity_category=EntityCategory.CONFIG,
+                # An unplugged probe answers 503: nothing to read.
+                available_fn=(
+                    lambda d, t=ptype, u=uid: cast(
+                        ReefControlCoordinator, d
+                    ).probe_is_connected(t, u)
+                ),
+                refresh_after=False,
+            )
+        )
+    return tuple(buttons)
+
+
 POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
-    # Local temperature probe add/remove. The type is fixed (temperature), so a
-    # single button each does the job. Availability follows probe presence:
-    # "add" shows only when absent, "remove" only when present.
+    # Local temperature probe add/remove, and unlinking a paired RSControl
+    # hub, are mutually exclusive: a power center gets its temperature
+    # reading from exactly one of "its own local probe" or "the hub it's
+    # paired to" (or neither, fresh out of the box) — never both. So each
+    # button is available in exactly one of those three states:
+    #   local probe installed -> only "remove" is available
+    #   paired to a hub       -> only "unpair" is available
+    #   neither                -> only "add" is available
+    # Pairing itself is only ever initiated from the RSControl side (POST
+    # /power/discover {"pair": true}), so there is no "pair" button here.
     ReefBeatButtonEntityDescription(
         key="install_temperature",
         translation_key="install_temperature",
@@ -255,8 +343,22 @@ POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         ).async_install_temperature(),
         icon="mdi:thermometer-plus",
         entity_category=EntityCategory.CONFIG,
-        dependency="$.sources[?(@.name=='/dashboard')].data.temperature",
-        dependency_reverse=True,
+        available_fn=lambda device: (
+            not _power_has_local_temperature(device)
+            and not _power_has_paired_control(device)
+        ),
+    ),
+    ReefBeatButtonEntityDescription(
+        key="get_temperature",
+        translation_key="get_temperature",
+        exists_fn=lambda _: True,
+        press_fn=lambda device: cast(
+            ReefPowerCoordinator, device
+        ).get_current_temperature(),
+        icon="mdi:water-thermometer-outline",
+        entity_category=EntityCategory.CONFIG,
+        available_fn=lambda device: _power_has_local_temperature(device),
+        refresh_after=False,
     ),
     ReefBeatButtonEntityDescription(
         key="remove_temperature",
@@ -267,11 +369,11 @@ POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         ).async_remove_temperature(),
         icon="mdi:thermometer-minus",
         entity_category=EntityCategory.CONFIG,
-        dependency="$.sources[?(@.name=='/dashboard')].data.temperature",
+        available_fn=lambda device: (
+            _power_has_local_temperature(device)
+            and not _power_has_paired_control(device)
+        ),
     ),
-    # Unlink the RSControl hub paired to this power center. Pairing itself
-    # is only ever initiated from the RSControl side (POST /power/discover
-    # {"pair": true}), so there is no "pair" button here — only "unpair".
     ReefBeatButtonEntityDescription(
         key="unpair_control",
         translation_key="unpair_control",
@@ -279,7 +381,7 @@ POWER_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
         press_fn=lambda device: cast(ReefPowerCoordinator, device).unpair_control(),
         icon="mdi:link-off",
         entity_category=EntityCategory.CONFIG,
-        dependency="$.sources[?(@.name=='/dashboard')].data.connected_device.hwid",
+        available_fn=_power_has_paired_control,
     ),
 )
 
@@ -424,75 +526,6 @@ async def async_setup_entry(
             ),
         )
 
-        # Discover ATO ports the same way sensor.py does — walk the
-        # /dashboard payload rather than going through a coordinator helper,
-        # so this stays decoupled from the ReefControlCoordinator surface.
-        raw_ports = device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.ports",
-            is_None_possible=True,
-        )
-        ato_port_indices: list[int] = (
-            [
-                p["number"]
-                for p in raw_ports
-                if isinstance(p, dict)
-                and p.get("type") == "ato"
-                and isinstance(p.get("number"), int)
-            ]
-            if isinstance(raw_ports, list)
-            else []
-        )
-        control_ato_buttons: list[ReefBeatButtonEntityDescription] = []
-        for port_idx in ato_port_indices:
-            # Bind `port_idx` in the default so each lambda captures its own
-            # value (avoids the "late binding closure" trap on the loop var).
-            control_ato_buttons.extend(
-                [
-                    ReefBeatButtonEntityDescription(
-                        key=f"port_{port_idx}_ato_manual_pump",
-                        translation_key="ato_manual_pump",
-                        translation_placeholders={"port": str(port_idx + 1)},
-                        exists_fn=lambda _: True,
-                        press_fn=(
-                            lambda d, n=port_idx: cast(
-                                ReefControlCoordinator, d
-                            ).my_api.ato_manual_pump(n)
-                        ),
-                        icon="mdi:water-pump",
-                        entity_category=EntityCategory.CONFIG,
-                    ),
-                    ReefBeatButtonEntityDescription(
-                        key=f"port_{port_idx}_ato_stop",
-                        translation_key="ato_stop",
-                        translation_placeholders={"port": str(port_idx + 1)},
-                        exists_fn=lambda _: True,
-                        press_fn=(
-                            lambda d, n=port_idx: cast(
-                                ReefControlCoordinator, d
-                            ).my_api.ato_stop(n)
-                        ),
-                        icon="mdi:water-pump-off",
-                        entity_category=EntityCategory.CONFIG,
-                    ),
-                    ReefBeatButtonEntityDescription(
-                        key=f"port_{port_idx}_ato_resume",
-                        translation_key="ato_resume",
-                        translation_placeholders={"port": str(port_idx + 1)},
-                        exists_fn=lambda _: True,
-                        press_fn=(
-                            lambda d, n=port_idx: cast(
-                                ReefControlCoordinator, d
-                            ).my_api.ato_resume(n)
-                        ),
-                        icon="mdi:play-circle-outline",
-                        entity_category=EntityCategory.CONFIG,
-                    ),
-                ]
-            )
-        _add_described_entities(
-            entities, device, ReefBeatButtonEntity, tuple(control_ato_buttons)
-        )
-
         # The mirror image: an installed port can be handed back to the
         # firmware with DELETE /port/<n>, which resets its type, mode, name
         # and power level and drops any schedule or sensor subscription.
@@ -564,6 +597,18 @@ async def async_setup_entry(
             )
         _add_described_entities(
             entities, device, ReefBeatButtonEntity, tuple(control_unsub_buttons)
+        )
+
+        # One "read now" button per ReefSense probe: GET /probe?type&uid
+        # fetches a fresh reading and patches the cached /dashboard entry, so
+        # the probe's entities update without waiting for the next poll. The
+        # key uses the probe's entity prefix, so the button is purged/renamed
+        # together with the probe's other entities.
+        _add_described_entities(
+            entities,
+            device,
+            ReefBeatButtonEntity,
+            _control_probe_read_buttons(device),
         )
 
     elif isinstance(device, ReefPowerCoordinator):
@@ -911,6 +956,12 @@ async def async_setup_entry(
     # for hw_models with no tasks declared.
     _add_maintenance_buttons(device, entities)
 
+    # Probe settings share their translation keys across probes: tag them
+    # with the probe they belong to, for the card.
+    if isinstance(device, ReefControlCoordinator):
+        tag_probe_entities(device, entities)
+        tag_port_entities(device, entities)
+
     async_add_entities(entities, True)
 
 
@@ -1029,12 +1080,16 @@ class ReefBeatButtonEntity(ButtonEntity):
     def _compute_available(self) -> bool:
         """Return True when this button should be shown as available.
 
-        Same contract as ``ReefBeatNumberEntity._compute_available``:
+        * ``available_fn`` set → its result wins outright (for a compound
+          condition the single dependency triple below can't express).
         * No ``dependency`` → always available.
         * ``dependency`` without ``dependency_values`` → truthy check.
         * ``dependency`` with ``dependency_values`` → membership check.
         * ``dependency_reverse`` inverts the result of either check.
         """
+        if self.desc.available_fn is not None:
+            return self.desc.available_fn(self._device)
+
         dep = self.desc.dependency
         if dep is None:
             return True
@@ -1054,9 +1109,14 @@ class ReefBeatButtonEntity(ButtonEntity):
     # ---- lifecycle --------------------------------------------------------
 
     async def async_added_to_hass(self) -> None:
-        """Subscribe to coordinator updates when a dependency is set."""
+        """Subscribe to coordinator updates when availability is dynamic.
+
+        Subscribe whenever a ``dependency`` path OR an ``available_fn`` is
+        declared: both make availability dynamic and need re-evaluation on
+        every coordinator refresh.
+        """
         await super().async_added_to_hass()
-        if self.desc.dependency is not None:
+        if self.desc.dependency is not None or self.desc.available_fn is not None:
             self._unsub_coordinator = self._device.async_add_listener(
                 self._handle_coordinator_update
             )
@@ -1104,7 +1164,8 @@ class ReefBeatButtonEntity(ButtonEntity):
         #
         # A description with no press_fn is not a no-op: this refresh is its
         # whole action, which is how the fetch_data button works.
-        await self._device.async_request_refresh()
+        if self.desc.refresh_after:
+            await self._device.async_request_refresh()
 
 
 # REEFDOSE

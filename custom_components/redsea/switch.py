@@ -35,6 +35,8 @@ from homeassistant.components.switch import SwitchEntity, SwitchEntityDescriptio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -83,6 +85,7 @@ from .maintenance import (
     iter_maintenance_probes,
     tasks_for,
 )
+from .probe_entities import probe_display_name, tag_port_entities, tag_probe_entities
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -275,21 +278,6 @@ class ReefControlPortSwitchEntityDescription(SwitchEntityDescription):
 
 
 @dataclass(kw_only=True, frozen=True)
-class ReefControlATOSwitchEntityDescription(SwitchEntityDescription):
-    """Description for the per-port ATO auto-fill switch.
-
-    Unlike the port toggle, this switch has a definite state boolean stored
-    on the coordinator (`ports[?(@.number==N)].auto_fill`) and its update
-    endpoint expects the full config payload, so we don't need any of the
-    "compare current vs desired" gymnastics used by the socket/port toggle.
-    """
-
-    exists_fn: Callable[[ReefControlCoordinator], bool] = lambda _: True
-    port: int = 0
-    icon_off: str = ""
-
-
-@dataclass(kw_only=True, frozen=True)
 class SaveStateSwitchEntityDescription(SwitchEntityDescription):
     """Description for switches that persist their state locally across restarts."""
 
@@ -444,6 +432,78 @@ RUN_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
 # -----------------------------------------------------------------------------
 
 
+def _cloud_shortcut_unique_id(
+    serial: str, description: ReefCloudSwitchEntityDescription
+) -> str:
+    """Unique id of a cloud shortcut switch.
+
+    The shortcut keys (``shortcut_feeding_1``...) repeat in every aquarium of
+    the account, so the aquarium uid must be part of the id: without it, the
+    shortcuts of a second aquarium collided with the first one's and were
+    dropped by Home Assistant.
+    """
+    aquarium_uid = description.aquarium.get("uid")
+    if not aquarium_uid:
+        return f"{serial}_{description.key}"
+    return f"{serial}_{aquarium_uid}_{description.key}"
+
+
+def _migrate_cloud_shortcut_unique_ids(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    device: ReefBeatCloudCoordinator,
+    descriptions: list[ReefCloudSwitchEntityDescription],
+) -> None:
+    """Move pre-existing shortcut switches onto the per-aquarium unique id.
+
+    Before the aquarium uid was part of the id, only one aquarium's shortcuts
+    could be registered, under ``{serial}_{key}``. The aquarium that owns such
+    an entry is found through its device (one device per aquarium), so its
+    entity_id, history and customisations carry over. With a single aquarium
+    on the account, the device is not even needed.
+    """
+    ent_reg = er.async_get(hass)
+    dev_reg = dr.async_get(hass)
+    serial = device.serial
+    aquarium_uids = {
+        str(d.aquarium["uid"]) for d in descriptions if d.aquarium.get("uid")
+    }
+
+    for description in descriptions:
+        aquarium_uid = description.aquarium.get("uid")
+        if not aquarium_uid:
+            continue
+        old_unique_id = f"{serial}_{description.key}"
+        entity_id = ent_reg.async_get_entity_id("switch", DOMAIN, old_unique_id)
+        if entity_id is None:
+            continue
+        registry_entry = ent_reg.async_get(entity_id)
+        if registry_entry is None or registry_entry.config_entry_id != entry.entry_id:
+            continue
+
+        if len(aquarium_uids) > 1:
+            # Several aquariums: only migrate onto the aquarium whose device
+            # holds the entity.
+            identifiers = device.aquarium_device_info(
+                description.aquarium.get("name")
+            ).get("identifiers", set())
+            owner = (
+                dev_reg.async_get(registry_entry.device_id)
+                if registry_entry.device_id
+                else None
+            )
+            if owner is None or not (owner.identifiers & set(identifiers)):
+                continue
+
+        new_unique_id = _cloud_shortcut_unique_id(serial, description)
+        if ent_reg.async_get_entity_id("switch", DOMAIN, new_unique_id):
+            continue  # already migrated or created: do not collide
+        _LOGGER.info(
+            "Migrating shortcut switch %s to unique id %s", entity_id, new_unique_id
+        )
+        ent_reg.async_update_entity(entity_id, new_unique_id=new_unique_id)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -526,6 +586,7 @@ async def async_setup_entry(
                     )
                 )
 
+        _migrate_cloud_shortcut_unique_ids(hass, entry, device, cloud_descs)
         entities.extend(
             ReefCloudSwitchEntity(device, description)
             for description in cloud_descs
@@ -657,6 +718,60 @@ async def async_setup_entry(
         )
 
     elif isinstance(device, ReefControlCoordinator):
+        # Global buzzer configuration, from /configuration:
+        #   {"leak_buzzer_config": {"enabled": bool, "frequency": int, "duty_cycle": int},
+        #    "danger_buzzer_config": {"enabled": bool, "frequency": int, "duty_cycle": int},
+        #    "leak_detector": bool, "danger_debounce_seconds": int, ...}
+        # `leak_detector` here is the hub-wide leak-detection master switch
+        # (distinct from any individual leak probe's own state).
+        entities.append(
+            ReefBeatSwitchEntity(
+                device,
+                ReefBeatSwitchEntityDescription(
+                    key="leak_buzzer_enabled",
+                    translation_key="leak_buzzer_enabled",
+                    value_name=(
+                        "$.sources[?(@.name=='/configuration')]"
+                        ".data.leak_buzzer_config.enabled"
+                    ),
+                    icon="mdi:bell-ring",
+                    icon_off="mdi:bell-off",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+        entities.append(
+            ReefBeatSwitchEntity(
+                device,
+                ReefBeatSwitchEntityDescription(
+                    key="danger_buzzer_enabled",
+                    translation_key="danger_buzzer_enabled",
+                    value_name=(
+                        "$.sources[?(@.name=='/configuration')]"
+                        ".data.danger_buzzer_config.enabled"
+                    ),
+                    icon="mdi:bell-alert",
+                    icon_off="mdi:bell-off",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+        entities.append(
+            ReefBeatSwitchEntity(
+                device,
+                ReefBeatSwitchEntityDescription(
+                    key="leak_detector_enabled",
+                    translation_key="leak_detector_enabled",
+                    value_name=(
+                        "$.sources[?(@.name=='/configuration')].data.leak_detector"
+                    ),
+                    icon="mdi:water-alert",
+                    icon_off="mdi:water-alert-outline",
+                    entity_category=EntityCategory.CONFIG,
+                ),
+            )
+        )
+
         # Per-port toggle switch — one per 12V DC port.
         # Endpoint: `POST /port/{n}/toggle`; `n` is the 0-based port index
         # (RSCONTROLLITE exposes 0, RSCONTROLPRO exposes 0..1). The array
@@ -683,6 +798,7 @@ async def async_setup_entry(
         # excluded from temperature fusion/coherence/anomaly so cleaning or
         # recalibrating it does not raise a false alarm. One switch per
         # temperature-capable probe (dedicated temperature probe + ec/ph/ato).
+        all_probes = _all_probes(device)
         for probe in _temperature_capable_probes(device):
             uid = str(probe["uid"])
             ptype = str(probe.get("type", "")).lower()
@@ -693,7 +809,9 @@ async def async_setup_entry(
                     ReefBeatSwitchEntityDescription(
                         key=f"probe_{uid_key}_maintenance",
                         translation_key="probe_maintenance",
-                        translation_placeholders={"probe": probe.get("name") or uid},
+                        translation_placeholders={
+                            "probe": probe_display_name(probe, all_probes)
+                        },
                         icon="mdi:account-wrench",
                         icon_off="mdi:account-wrench-outline",
                         entity_category=EntityCategory.CONFIG,
@@ -706,11 +824,11 @@ async def async_setup_entry(
         # so stateful) and enable (not reported, so optimistic local). All probe
         # types; the read/write path is chosen per type by the coordinator/API.
         control = cast(ReefControlCoordinator, device)
-        for probe in _all_probes(device):
+        for probe in all_probes:
             uid = str(probe["uid"])
             ptype = str(probe.get("type", "")).lower()
             uid_key = f"{ptype}_" + "".join(c for c in uid.lower() if c.isalnum())
-            pname = probe.get("name") or uid
+            pname = probe_display_name(probe, all_probes)
 
             def _mk(pt: str, u: str):
                 return (
@@ -768,44 +886,6 @@ async def async_setup_entry(
                     default_on=True,
                 )
             )
-
-        # ATO auto-fill switch per ATO port. Discovered by walking the
-        # /dashboard payload (`type == "ato"` on a `ports[]` entry), same
-        # rule as the sensor/binary_sensor/button platforms. This is
-        # coordinator-surface-agnostic.
-        raw_ports = device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.ports",
-            is_None_possible=True,
-        )
-        ato_port_indices: list[int] = (
-            [
-                p["number"]
-                for p in raw_ports
-                if isinstance(p, dict)
-                and p.get("type") == "ato"
-                and isinstance(p.get("number"), int)
-            ]
-            if isinstance(raw_ports, list)
-            else []
-        )
-        ato_switch_descs: list[ReefControlATOSwitchEntityDescription] = []
-        for port_idx in ato_port_indices:
-            ato_switch_descs.append(
-                ReefControlATOSwitchEntityDescription(
-                    key=f"port_{port_idx}_ato_auto_fill",
-                    translation_key="ato_auto_fill",
-                    translation_placeholders={"port": str(port_idx + 1)},
-                    icon="mdi:waves-arrow-up",
-                    icon_off="mdi:waves",
-                    port=port_idx,
-                    entity_category=EntityCategory.CONFIG,
-                )
-            )
-        entities.extend(
-            ReefControlATOSwitchEntity(device, description)
-            for description in ato_switch_descs
-            if description.exists_fn(device)
-        )
 
     elif isinstance(device, ReefDoseCoordinator):
         dose_descs: list[ReefDoseSwitchEntityDescription] = []
@@ -867,6 +947,12 @@ async def async_setup_entry(
     # One switch per maintenance task instance, mirroring the button/number
     # pair created in button.py / number.py.
     _add_maintenance_notify_switches(device, entities)
+
+    # Probe settings share their translation keys across probes: tag them
+    # with the probe they belong to, for the card.
+    if isinstance(device, ReefControlCoordinator):
+        tag_probe_entities(device, entities)
+        tag_port_entities(device, entities)
 
     async_add_entities(entities, True)
 
@@ -1761,92 +1847,6 @@ class ReefControlProbeConfigSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  
         return self._device.device_info
 
 
-# REEFCONTROL — per-port ATO auto-fill toggle
-class ReefControlATOSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
-    """Toggle the ``auto_fill`` flag on an ATO 12V port.
-
-    Backing endpoint: ``PUT /port/{n}/ato/configuration`` with a JSON body
-    ``{"auto_fill": bool}``. Unlike the socket/port toggle switches, the
-    firmware maintains a proper boolean state here, so we can drive
-    ``_attr_is_on`` directly from ``ports[?(@.number==N)].auto_fill``.
-    """
-
-    _attr_has_entity_name = True
-
-    @staticmethod
-    def _restore_is_on(state: str) -> bool:
-        return state == "on"
-
-    def __init__(
-        self,
-        device: ReefControlCoordinator,
-        entity_description: ReefControlATOSwitchEntityDescription,
-    ) -> None:
-        ReefBeatRestoreEntity.__init__(
-            self,
-            device,
-            restore=RestoreSpec("_attr_is_on", self._restore_is_on),
-        )
-        self._device: ReefControlCoordinator = device
-        self._desc: ReefControlATOSwitchEntityDescription = entity_description
-        self.entity_description = cast(SwitchEntityDescription, entity_description)
-        self._port: int = entity_description.port
-
-        self._attr_available = False
-        self._attr_unique_id = f"{device.serial}_{entity_description.key}"
-        self._attr_is_on = False
-
-        base = f"$.sources[?(@.name=='/dashboard')].data.ports[{self._port}]"
-        self._auto_fill_path = f"{base}.auto_fill"
-
-    async def async_added_to_hass(self) -> None:
-        await super().async_added_to_hass()
-
-        last_state = await self.async_get_last_state()
-        if last_state and last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
-            if self._attr_is_on is None or not self._attr_available:
-                self._attr_is_on = last_state.state == "on"
-                self._attr_available = True
-                self.async_write_ha_state()
-
-        self._handle_coordinator_update()
-        self.async_write_ha_state()
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        self._attr_available = True
-        auto_fill = self._device.get_data(self._auto_fill_path, is_None_possible=True)
-        if isinstance(auto_fill, bool):
-            self._attr_is_on = auto_fill
-        self._set_icon()
-        super()._handle_coordinator_update()
-
-    def _set_icon(self) -> None:
-        if self._attr_is_on:
-            self._attr_icon = self._desc.icon
-        elif self._desc.icon_off:
-            self._attr_icon = self._desc.icon_off
-
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        # Optimistic update for immediate UI feedback.
-        self._attr_is_on = True
-        self._set_icon()
-        self.async_write_ha_state()
-        await self._device.my_api.push_ato_configuration(self._port, True)
-        await self._device.async_request_refresh()
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        self._attr_is_on = False
-        self._set_icon()
-        self.async_write_ha_state()
-        await self._device.my_api.push_ato_configuration(self._port, False)
-        await self._device.async_request_refresh()
-
-    @cached_property  # type: ignore[reportIncompatibleVariableOverride]
-    def device_info(self) -> DeviceInfo:
-        return self._device.device_info
-
-
 # REEFCLOUD
 class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
     """Reef cloud shortcuts switch."""
@@ -1936,11 +1936,8 @@ class ReefCloudSwitchEntity(ReefBeatSwitchEntity):
         else:
             self._attr_is_on = False
 
-        # Include the aquarium uid in the unique_id so accounts with
-        # multiple aquariums do not produce collisions on the same key.
-        aquarium_uid = self._aquarium.get("uid", "")
-        self._attr_unique_id = (
-            f"{device.serial}_{aquarium_uid}_{entity_description.key}"
+        self._attr_unique_id = _cloud_shortcut_unique_id(
+            device.serial, entity_description
         )
 
         self._typed_desc: ReefCloudSwitchEntityDescription = entity_description

@@ -119,7 +119,6 @@ async def test_rspower_setup_creates_per_socket_binary_sensors(
     keys = {e.entity_description.key for e in added}
     # Global binary sensors for RSPOWER
     assert "cloud_state" in keys
-    assert "auto_from_buttons" in keys
 
 
 @pytest.mark.asyncio

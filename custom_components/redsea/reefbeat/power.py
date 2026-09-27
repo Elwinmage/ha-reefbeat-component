@@ -138,20 +138,38 @@ class ReefPowerAPI(ReefBeatAPI):
         self._reconcile_temperature_sources()
         return data
 
-    def temperature_offset(self) -> float | None:
-        """Cached local-temperature calibration offset, if known."""
-        return self.get_data(
-            "$.sources[?(@.name=='/temperature/config')].data.offset",
+    def local_temperature(self) -> float | None:
+        """Cached local temperature reading (``/dashboard.temperature``)."""
+        temp: Any = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.temperature",
             is_None_possible=True,
         )
+        value: Any = temp.get("value") if isinstance(temp, dict) else temp
+        return float(value) if self._is_number(value) else None
 
-    async def set_temperature_offset(self, offset: float) -> HttpResult | None:
-        """Set the local temperature offset (``POST /probe/offset``)."""
-        return await self.http_send("/probe/offset", {"offset": offset}, "post")
+    async def calibrate_temperature(self, reference: float) -> HttpResult | None:
+        """Calibrate the local temperature probe against a known temperature.
 
-    async def reset_temperature_offset(self) -> HttpResult | None:
-        """Clear the local temperature offset (``DELETE /probe/offset``)."""
-        return await self.http_send("/probe/offset", None, "delete")
+        The probe is read now (``/dashboard``) and its offset moved by
+        ``reference - reading``, the reading including the current offset,
+        so the probe then reads the reference.
+        """
+        await self.fetch_config("/dashboard")
+        reading = self.local_temperature()
+        if reading is None:
+            _LOGGER.warning("Local temperature: no reading, calibration skipped")
+            return None
+        result = await self.shift_offset(
+            "/probe/offset", self._TEMP_CONFIG_SOURCE, reference - reading, 1
+        )
+        if result is not None and result.get("ok"):
+            temp: Any = self.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.temperature",
+                is_None_possible=True,
+            )
+            if isinstance(temp, dict):
+                cast(dict[str, Any], temp)["value"] = reference
+        return result
 
     async def install_temperature(self) -> HttpResult | None:
         """Scan for and install the local temperature probe.
@@ -192,6 +210,35 @@ class ReefPowerAPI(ReefBeatAPI):
                     self.add_source(name, "data", "")
                 await self.fetch_config(name)
         return result
+
+    def _mirror_write(
+        self, action: str, payload: Any, method: str, result: HttpResult
+    ) -> None:
+        """Apply the local probe and pairing writes to the cache at once.
+
+        Installing or removing the local temperature probe and unpairing the
+        hub show right away (see ReefBeatAPI._mirror_write). An installed
+        probe has no reading yet: only its uid is known until the next poll.
+        """
+        dashboard = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data", is_None_possible=True
+        )
+        if not isinstance(dashboard, dict):
+            return
+        board = cast(dict[str, Any], dashboard)
+        if method == "delete" and action == "/sensor":
+            board["temperature"] = None
+        elif method == "delete" and action == "/paired-device":
+            board["connected_device"] = None
+        elif method == "post" and action == "/sensor/install":
+            body: Any = result.get("json")
+            uid: Any = (
+                cast(dict[str, Any], body).get("uid")
+                if isinstance(body, dict)
+                else None
+            )
+            if uid and not board.get("temperature"):
+                board["temperature"] = {"uid": uid}
 
     async def remove_temperature(self) -> HttpResult | None:
         """Remove the local temperature probe (``DELETE /sensor``).
@@ -274,3 +321,60 @@ class ReefPowerAPI(ReefBeatAPI):
         (``POST /power/discover``), so there is no matching "pair" call here.
         """
         return await self.http_send("/paired-device", None, "delete")
+
+    # -- On-demand local temperature reading --------------------------------
+    # ``GET /temperature`` returns a fresh reading of the local probe without
+    # waiting for the next ``/dashboard`` poll, as a bare number (observed on
+    # a real RSPOWER):
+    #   {"temperature": 28.636499404907227}
+    # It is merged into the cached ``/dashboard.temperature`` object (``{value,
+    # status, level, ...}``) instead of replacing it, the same way RSControl
+    # probe readings are merged.
+    _DASHBOARD_TEMPERATURE = "$.sources[?(@.name=='/dashboard')].data.temperature"
+
+    @staticmethod
+    def _is_number(value: Any) -> bool:
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+    @classmethod
+    def temperature_reading_updates(cls, payload: Any) -> dict[str, Any]:
+        """Translate a ``GET /temperature`` answer into dashboard fields.
+
+        Returns ``{}`` for anything but a numeric reading, so an unexpected
+        answer never blanks the cached value.
+        """
+        if not isinstance(payload, dict):
+            return {}
+        reading: Any = cast(dict[str, Any], payload).get("temperature")
+        return {"value": reading} if cls._is_number(reading) else {}
+
+    async def get_current_temperature(self) -> bool:
+        """Read the local temperature now and patch the cached ``/dashboard``.
+
+        Returns True when the cache was updated. The cached entry is looked up
+        *after* the request: a poll may have replaced the whole payload while
+        waiting, and patching the old object would be lost. Nothing is written
+        while no local probe is known (``temperature`` is null): creating the
+        object here would make the probe look installed.
+        """
+        result = await self.http_get("/temperature")
+        if not result or not result.get("ok"):
+            _LOGGER.warning(
+                "Reading local temperature failed: %s",
+                result.get("status") if result else "no response",
+            )
+            return False
+
+        updates = self.temperature_reading_updates(result.get("json"))
+        if not updates:
+            return False
+
+        cached = self.get_data(self._DASHBOARD_TEMPERATURE, is_None_possible=True)
+        if isinstance(cached, dict):
+            cast(dict[str, Any], cached).update(updates)
+            return True
+        if self._is_number(cached):
+            # Older firmware exposes a bare float: keep that shape.
+            self.set_data(self._DASHBOARD_TEMPERATURE, updates["value"])
+            return True
+        return False

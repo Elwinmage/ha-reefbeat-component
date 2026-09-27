@@ -35,7 +35,9 @@ from homeassistant.core import (
     SupportsResponse,
     callback,
 )
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
@@ -71,6 +73,8 @@ from .coordinator import (
     ReefWaveCoordinator,
 )
 from .maintenance import MaintenanceStore, register_led_tasks
+from .reefbeat.cloud import InvalidAuth
+from .reefbeat.control import ReefControlAPI
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -177,9 +181,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     try:
         await coordinator.async_setup()
-    except Exception:
-        _LOGGER.exception("Failed to setup coordinator for entry_id=%s", entry.entry_id)
+    except InvalidAuth:
+        # Wrong cloud credentials: retrying cannot fix them, and retrying a
+        # login in a loop could get the account locked.
+        _LOGGER.exception("Cloud authentication failed for entry_id=%s", entry.entry_id)
+        _release(coordinator)
         return False
+    except Exception as err:
+        # Usually the device is unreachable (powered off, rebooting, Wi-Fi
+        # down). ConfigEntryNotReady makes Home Assistant retry with backoff,
+        # so the entry recovers on its own once the device is back; returning
+        # False would leave it in setup_error until reloaded by hand. The
+        # traceback is kept at debug level: Home Assistant only logs the
+        # message, which would hide a genuine bug behind endless retries.
+        _LOGGER.debug("Setup of %s failed", entry.title, exc_info=True)
+        # The next attempt builds a fresh coordinator: drop this one's
+        # event-bus listeners, or each retry would leave one more behind.
+        _release(coordinator)
+        raise ConfigEntryNotReady(f"Failed to set up {entry.title}: {err}") from err
 
     # Per-entry persistent storage for user-driven maintenance tasks.
     # Loaded eagerly so platforms read fully-populated state at setup time.
@@ -190,6 +209,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator.maintenance = maintenance_store  # type: ignore[attr-defined]
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+
+    # Before the platforms build their entities, so a leak probe keeps its
+    # entity_id (hence history) across the unique_id fix.
+    if isinstance(coordinator, ReefControlCoordinator):
+        with suppress(Exception):
+            _migrate_leak_unique_ids(hass, entry, coordinator)
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     # After a probe is removed (via the options flow, which reloads the entry),
@@ -198,12 +224,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         with suppress(Exception):
             _purge_orphan_probe_entities(hass, entry, coordinator)
 
+    # Entities this version no longer builds would linger as "no longer
+    # provided" — drop them.
+    if isinstance(coordinator, (ReefControlCoordinator, ReefPowerCoordinator)):
+        with suppress(Exception):
+            _purge_retired_entities(hass, entry, coordinator)
+
     # Best-effort cosmetic migration; doesn't affect identifiers or entities.
     with suppress(Exception):
         await _migrate_head_device_names(hass, entry)
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
     return True
+
+
+def _release(coordinator: Any) -> None:
+    """Best-effort teardown of a coordinator that will not be used."""
+    with suppress(Exception):
+        coordinator.unload()
 
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -226,8 +264,6 @@ def _rename_probe_entities(
     ``unique_id`` matches the newly-built entity. Returns how many were renamed.
     Collisions (target unique_id already present) are skipped.
     """
-    from homeassistant.helpers import entity_registry as er
-
     from . import probe_entities as pe
     from .const import CONFIG_FLOW_HW_MODEL
     from .maintenance import PROBE_SCOPES, tasks_for
@@ -252,6 +288,38 @@ def _rename_probe_entities(
     return renamed
 
 
+def _migrate_leak_unique_ids(
+    hass: HomeAssistant, entry: ConfigEntry, coordinator: ReefControlCoordinator
+) -> None:
+    """Move leak probe entities onto their typed unique_id.
+
+    See ``probe_entities.legacy_leak_key``. When the new unique_id is
+    already registered, the legacy entry is a leftover and is dropped.
+    """
+    from . import probe_entities as pe
+
+    leak_uid_keys = {
+        pe.sanitise_uid(p["uid"])
+        for p in coordinator.list_probes()
+        if p["type"].lower() == "leak"
+    }
+    if not leak_uid_keys:
+        return
+    serial_prefix = f"{coordinator.serial}_"
+    registry = er.async_get(hass)
+    for ent in list(er.async_entries_for_config_entry(registry, entry.entry_id)):
+        if not ent.unique_id.startswith(serial_prefix):
+            continue
+        new_key = pe.legacy_leak_key(ent.unique_id[len(serial_prefix) :], leak_uid_keys)
+        if new_key is None:
+            continue
+        new_unique_id = serial_prefix + new_key
+        if registry.async_get_entity_id(ent.domain, ent.platform, new_unique_id):
+            registry.async_remove(ent.entity_id)
+        else:
+            registry.async_update_entity(ent.entity_id, new_unique_id=new_unique_id)
+
+
 def _purge_orphan_probe_entities(
     hass: HomeAssistant, entry: ConfigEntry, coordinator: ReefControlCoordinator
 ) -> None:
@@ -263,8 +331,6 @@ def _purge_orphan_probe_entities(
     drops the leftovers. Guarded so a failed dashboard fetch (no probe data at
     all) never wipes every probe entity.
     """
-    from homeassistant.helpers import entity_registry as er
-
     from . import probe_entities as pe
     from .const import CONFIG_FLOW_HW_MODEL
     from .maintenance import PROBE_SCOPES, tasks_for
@@ -304,6 +370,45 @@ def _purge_orphan_probe_entities(
         if orphan:
             _LOGGER.info("Removing orphaned probe entity %s", ent.entity_id)
             registry.async_remove(ent.entity_id)
+
+
+# unique_id keys (after ``{serial}_``) of entities no longer built:
+# the calibration offsets, replaced by the calibration against a reference
+# value (``probe_{type}_{uid}_calibration``, ``temperature_calibration``).
+_RETIRED_ENTITY_KEYS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"^probe_(temperature|orp)_[0-9a-z]+_offset$"),
+    re.compile(r"^temperature_offset$"),
+)
+
+
+def _purge_retired_entities(
+    hass: HomeAssistant, entry: ConfigEntry, coordinator: Any
+) -> None:
+    """Remove the registry entries of entities no longer built."""
+    serial_prefix = f"{coordinator.serial}_"
+    registry = er.async_get(hass)
+    for ent in list(er.async_entries_for_config_entry(registry, entry.entry_id)):
+        if not ent.unique_id.startswith(serial_prefix):
+            continue
+        key = ent.unique_id[len(serial_prefix) :]
+        if any(pattern.match(key) for pattern in _RETIRED_ENTITY_KEYS):
+            _LOGGER.info("Removing retired entity %s", ent.entity_id)
+            registry.async_remove(ent.entity_id)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, config_entry: ConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Allow deleting a device from the UI only once no entities are left on it.
+
+    Devices still in use keep refusing deletion. Empty ones - e.g. the
+    pre-v2.0.0 RSRUN pump sub-devices whose entities moved to the new-format
+    sub-devices - can then be removed without deleting the whole entry.
+    """
+    ent_reg = er.async_get(hass)
+    return not er.async_entries_for_device(
+        ent_reg, device_entry.id, include_disabled_entities=True
+    )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -401,6 +506,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         if not r:
             title = getattr(device, "title", getattr(device, "_title", device_id))
             return {"error": f"can not access to device {title}"}
+
+        # An accepted write is already mirrored in the cache when the API
+        # knows it (optimistic update, see ReefBeatAPI._mirror_write): show
+        # it now rather than after the settle delay below.
+        if r.get("ok") and method != "get":
+            device.async_update_listeners()
 
         # Debug-friendly structured response (matches reefbeat.api.HttpResult)
         resp: dict[str, Any] = {
@@ -526,6 +637,152 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         "reset_maintenance",
         handle_reset_maintenance,
         supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    @callback
+    async def handle_probe_calibration(call: ServiceCall) -> ServiceResponse:
+        """Run one step of a RSCONTROL pH or EC probe's calibration.
+
+        Addressed like `redsea.request` (config entry id). Steps: `enter`,
+        `point` (with `point`, `solution_value` and, for pH,
+        `solution_rated_temp`), `status` (returns the calibration status to
+        poll) and `exit`. See ReefControlAPI.probe_calibration.
+        """
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefControlCoordinator):
+            return {"ok": False, "error": "Not a RSCONTROL hub"}
+        ptype = call.data.get("probe_type")
+        uid = call.data.get("probe_uid")
+        action = call.data.get("action")
+        if not isinstance(ptype, str) or not isinstance(uid, str) or not uid:
+            return {"ok": False, "error": "probe_type and probe_uid are required"}
+        if action not in ReefControlAPI.CALIBRATION_ACTIONS:
+            return {"ok": False, "error": f"unknown action {action!r}"}
+        try:
+            return await device.async_probe_calibration(
+                action,
+                ptype,
+                uid,
+                call.data.get("point"),
+                call.data.get("solution_value"),
+                call.data.get("solution_rated_temp"),
+            )
+        except Exception:
+            _LOGGER.exception(
+                "Probe calibration %s failed on %s/%s", action, ptype, uid
+            )
+            return {"ok": False, "error": "request failed"}
+
+    _LOGGER.debug("Registering service redsea.probe_calibration")
+    hass.services.async_register(
+        DOMAIN,
+        "probe_calibration",
+        handle_probe_calibration,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    def _find_control_coordinator(hwid: str) -> ReefControlCoordinator | None:
+        """Return the RSCONTROL coordinator whose hardware id is `hwid`."""
+        for entry_data in hass.data.get(DOMAIN, {}).values():
+            if (
+                isinstance(entry_data, ReefControlCoordinator)
+                and entry_data.model_id == hwid
+            ):
+                return entry_data
+        return None
+
+    @callback
+    async def handle_get_control_probes(call: ServiceCall) -> ServiceResponse:
+        """Return a RSCONTROL hub's probes (identity + current values), by hwid.
+
+        Meant for a RSPower device's card to look up the probes of the
+        RSCONTROL hub it is paired with (RSPower only knows that hub's
+        hwid, from its own `/dashboard.connected_device.hwid`) — not a
+        Home Assistant device_id, which the card would have to resolve
+        separately and which doesn't apply across two different devices.
+
+        Served from the coordinator's own cached `/dashboard.probes` (same
+        shape as the hub's own `GET /probes/dashboard`, confirmed on a real
+        RSCONTROLPRO) rather than an extra live fetch — RSCONTROL already
+        polls this on its normal refresh cycle, so it's no less fresh than
+        any of its own entities.
+        """
+        hwid = call.data.get("hwid")
+        if not isinstance(hwid, str) or not hwid:
+            return {"error": "hwid is required"}
+
+        coordinator = _find_control_coordinator(hwid)
+        if coordinator is None:
+            return {"error": f"No RSCONTROL hub found for hwid '{hwid}'"}
+
+        probes = coordinator.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+        )
+        return {"hwid": hwid, "probes": probes if isinstance(probes, list) else []}
+
+    _LOGGER.debug("Registering service redsea.get_control_probes")
+    hass.services.async_register(
+        DOMAIN,
+        "get_control_probes",
+        handle_get_control_probes,
+        supports_response=SupportsResponse.ONLY,
+    )
+
+    @callback
+    async def handle_get_control_subscriptions(
+        call: ServiceCall,
+    ) -> ServiceResponse:
+        """Return the rules a RSCONTROL hub applies to sockets, by hwid.
+
+        A RSPower socket in sensor mode is configured on both devices: the
+        RSPower only stores which probe *type* it follows, while the hub
+        keeps the rule itself — the exact probe (uid, as two probes may
+        share a type), sub-sensor and thresholds — under the RSPower socket
+        number. The card reads them back through this service to show the
+        socket's real configuration, addressed like `get_control_probes`.
+
+        Fetched live from the hub's `GET /subscription-info` rather than
+        from the coordinator cache: it is not part of the polled sources,
+        and the card calls it right after writing a rule, so a cached copy
+        would show the previous one.
+
+        Response: `{hwid, external: [...], internal: [...]}` where
+        `external` holds one rule per RSPower socket
+        (`{number, type, uid, sensor, is_above, value, hysteresis,
+        trigger_op, last_sock_op}`) and `internal` the hub's own ports.
+        """
+        hwid = call.data.get("hwid")
+        if not isinstance(hwid, str) or not hwid:
+            return {"error": "hwid is required"}
+
+        coordinator = _find_control_coordinator(hwid)
+        if coordinator is None:
+            return {"error": f"No RSCONTROL hub found for hwid '{hwid}'"}
+
+        try:
+            r = await coordinator.my_api.http_get("/subscription-info")
+        except Exception:
+            _LOGGER.exception("Cannot read /subscription-info from hub %s", hwid)
+            return {"error": "request failed"}
+
+        data = r.get("json") if r and r.get("ok") else None
+        if not isinstance(data, dict):
+            return {"error": f"can not read the subscriptions of hub '{hwid}'"}
+
+        external = data.get("external")
+        internal = data.get("internal")
+        return {
+            "hwid": hwid,
+            "external": external if isinstance(external, list) else [],
+            "internal": internal if isinstance(internal, list) else [],
+        }
+
+    _LOGGER.debug("Registering service redsea.get_control_subscriptions")
+    hass.services.async_register(
+        DOMAIN,
+        "get_control_subscriptions",
+        handle_get_control_subscriptions,
+        supports_response=SupportsResponse.ONLY,
     )
 
     return True

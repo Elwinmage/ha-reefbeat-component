@@ -36,9 +36,6 @@
       "ato_sensor_connected": {
         "name": "Temperature probe connected"
       },
-      "auto_from_buttons": {
-        "name": "Auto from buttons"
-      },
       "battery_level": {
         "name": "Battery Level"
       },
@@ -102,18 +99,6 @@
       "missing_sensor": {
         "name": "Missing Sensor"
       },
-      "port_check_sensor": {
-        "name": "Port {port} check sensor"
-      },
-      "port_is_advancing": {
-        "name": "Port {port} advancing"
-      },
-      "port_is_pump_on": {
-        "name": "Port {port} pump"
-      },
-      "port_leak_sensor": {
-        "name": "Port {port} leak sensor"
-      },
       "power_link_up": {
         "name": "Power center link"
       },
@@ -154,15 +139,6 @@
     "button": {
       "advance": {
         "name": "Advance"
-      },
-      "ato_manual_pump": {
-        "name": "Port {port} manual fill"
-      },
-      "ato_resume": {
-        "name": "Port {port} resume"
-      },
-      "ato_stop": {
-        "name": "Port {port} stop"
       },
       "delete_emergency": {
         "name": "Delete emergency alert"
@@ -206,6 +182,12 @@
       "led_identify": {
         "name": "Identify"
       },
+      "get_temperature": {
+        "name": "Fetch temperature"
+      },
+      "probe_get_value": {
+        "name": "Read {probe} now"
+      },
       "maint_ato_ec_sensor": {
         "name": "Clean EC sensor"
       },
@@ -216,6 +198,9 @@
         "name": "Validate probe {probe}"
       },
       "maint_control_probe_calibration_ph": {
+        "name": "Calibrate probe {probe}"
+      },
+      "maint_control_probe_calibration_ec": {
         "name": "Calibrate probe {probe}"
       },
       "maint_control_probe_clean": {
@@ -426,8 +411,11 @@
       "maint_control_probe_calibration_orp_interval_months": {
         "name": "Validate probe {probe} (months)"
       },
-      "maint_control_probe_calibration_ph_interval_weeks": {
-        "name": "Calibrate probe {probe} (weeks)"
+      "maint_control_probe_calibration_ph_interval_months": {
+        "name": "Calibrate probe {probe} (months)"
+      },
+      "maint_control_probe_calibration_ec_interval_months": {
+        "name": "Calibrate probe {probe} (months)"
       },
       "maint_control_probe_clean_interval_weeks": {
         "name": "Clean probe {probe} (weeks)"
@@ -528,11 +516,17 @@
       "temperature_coherence_threshold": {
         "name": "Temperature coherence threshold"
       },
-      "probe_offset": {
-        "name": "{probe} offset"
+      "probe_orp_calibration": {
+        "name": "Calibrate {probe} (solution value)"
       },
-      "temperature_offset": {
-        "name": "Temperature offset"
+      "probe_temperature_calibration": {
+        "name": "Calibrate {probe} (real temperature)"
+      },
+      "probe_temp_calibration": {
+        "name": "Calibrate {probe} temperature (real temperature)"
+      },
+      "temperature_calibration": {
+        "name": "Calibrate temperature (real temperature)"
       },
       "temperature_desired_range_low": {
         "name": "Desired temperature range (low)"
@@ -545,6 +539,45 @@
       },
       "temperature_acceptable_range_high": {
         "name": "Acceptable temperature range (high)"
+      },
+      "probe_acceptable_range_low": {
+        "name": "{probe} acceptable range (low)"
+      },
+      "probe_desired_range_low": {
+        "name": "{probe} desired range (low)"
+      },
+      "probe_desired_range_high": {
+        "name": "{probe} desired range (high)"
+      },
+      "probe_acceptable_range_high": {
+        "name": "{probe} acceptable range (high)"
+      },
+      "probe_temp_acceptable_range_low": {
+        "name": "{probe} temperature acceptable range (low)"
+      },
+      "probe_temp_desired_range_low": {
+        "name": "{probe} temperature desired range (low)"
+      },
+      "probe_temp_desired_range_high": {
+        "name": "{probe} temperature desired range (high)"
+      },
+      "probe_temp_acceptable_range_high": {
+        "name": "{probe} temperature acceptable range (high)"
+      },
+      "leak_buzzer_frequency": {
+        "name": "Leak buzzer frequency"
+      },
+      "leak_buzzer_duty_cycle": {
+        "name": "Leak buzzer duty cycle"
+      },
+      "danger_buzzer_frequency": {
+        "name": "Danger buzzer frequency"
+      },
+      "danger_buzzer_duty_cycle": {
+        "name": "Danger buzzer duty cycle"
+      },
+      "danger_debounce_seconds": {
+        "name": "Danger debounce"
       }
     },
     "select": {
@@ -601,6 +634,14 @@
           "mean": "Mean",
           "min": "Minimum",
           "max": "Maximum"
+        }
+      },
+      "probe_ec_unit": {
+        "name": "{probe} unit",
+        "state": {
+          "ec": "Conductivity (mS/cm)",
+          "ppt": "Salinity (ppt)",
+          "sg": "Specific gravity"
         }
       }
     },
@@ -851,26 +892,6 @@
       "port_consumption": {
         "name": "Port {port} consumption"
       },
-      "port_last_fill_date": {
-        "name": "Port {port} last fill"
-      },
-      "port_last_pump_on_cause": {
-        "name": "Port {port} last pump-on cause",
-        "state": {
-          "none": "None",
-          "manual": "Manual",
-          "ec_sensor_s1": "Level sensor S1",
-          "ec_sensor_s2": "Level sensor S2"
-        }
-      },
-      "port_leak_status": {
-        "name": "Port {port} leak status",
-        "state": {
-          "dry": "Dry",
-          "aquarium_water_leak": "Aquarium water leak",
-          "rodi_water_leak": "RO/DI water leak"
-        }
-      },
       "port_mode": {
         "name": "Port {port} mode"
       },
@@ -879,9 +900,6 @@
       },
       "port_state": {
         "name": "Port {port} state"
-      },
-      "port_today_volume": {
-        "name": "Port {port} today volume"
       },
       "port_type": {
         "name": "Port {port} type"
@@ -894,6 +912,17 @@
       },
       "probe_ec": {
         "name": "{probe} conductivity"
+      },
+      "probe_leak_status": {
+        "name": "{probe} leak origin",
+        "state": {
+          "dry": "Dry",
+          "aquarium_water_leak": "Aquarium water",
+          "rodi_water_leak": "RO/DI water"
+        }
+      },
+      "probe_leak_conductivity": {
+        "name": "{probe} leak conductivity"
       },
       "probe_ec_value": {
         "name": "{probe} value"
@@ -1355,9 +1384,6 @@
       "acclimation": {
         "name": "Acclimation"
       },
-      "ato_auto_fill": {
-        "name": "Port {port} auto-fill"
-      },
       "auto_advance": {
         "name": "Auto advance"
       },
@@ -1392,6 +1418,9 @@
         "name": "Validate probe {probe} (notifications)"
       },
       "maint_control_probe_calibration_ph_notify": {
+        "name": "Calibrate probe {probe} (notifications)"
+      },
+      "maint_control_probe_calibration_ec_notify": {
         "name": "Calibrate probe {probe} (notifications)"
       },
       "maint_control_probe_clean_notify": {
@@ -1513,6 +1542,15 @@
       },
       "temperature_log_enabled": {
         "name": "Temperature logging enabled"
+      },
+      "leak_buzzer_enabled": {
+        "name": "Leak buzzer"
+      },
+      "danger_buzzer_enabled": {
+        "name": "Danger buzzer"
+      },
+      "leak_detector_enabled": {
+        "name": "Leak detector"
       }
     },
     "text": {
@@ -1696,6 +1734,50 @@
         "task_key": {
           "name": "Task key",
           "description": "Stable maintenance task identifier (e.g. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
+        }
+      }
+    },
+    "get_control_probes": {
+      "name": "Get control probes",
+      "description": "Return a paired RSCONTROL hub's probes (identity and current values) by hardware ID.",
+      "fields": {
+        "hwid": {
+          "name": "Hub hardware ID",
+          "description": "The RSCONTROL hub's hardware id (hwid), e.g. as reported in a paired RSPower's connected_device.hwid."
+        }
+      }
+    },
+    "probe_calibration": {
+      "name": "Probe calibration",
+      "description": "Run one step of a RSCONTROL pH or EC probe's calibration: enter, point, status or exit.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The RSCONTROL hub (config entry)."
+        },
+        "probe_type": {
+          "name": "Probe type",
+          "description": "Type of the probe to calibrate."
+        },
+        "probe_uid": {
+          "name": "Probe uid",
+          "description": "Uid of the probe, as the hub reports it."
+        },
+        "action": {
+          "name": "Step",
+          "description": "Calibration step."
+        },
+        "point": {
+          "name": "Point",
+          "description": "Calibration point (step \"point\")."
+        },
+        "solution_value": {
+          "name": "Solution value",
+          "description": "Value of the calibration solution (pH, or mS/cm for EC)."
+        },
+        "solution_rated_temp": {
+          "name": "Solution rated temperature",
+          "description": "Temperature the solution value is given at, °C (pH only)."
         }
       }
     }

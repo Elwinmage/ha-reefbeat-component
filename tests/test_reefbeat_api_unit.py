@@ -599,9 +599,16 @@ async def test_get_initial_data_success_and_in_error(
     api = _make_api(session)
 
     called: list[str] = []
+    probe_calls: list[tuple[Any, Any]] = []
 
-    async def _call_url(_session: Any, source: Any) -> None:
+    async def _call_url(
+        _session: Any,
+        source: Any,
+        max_retry: Any = None,
+        timeout_s: Any = None,
+    ) -> None:
         called.append(str(source.value.get("name")))
+        probe_calls.append((max_retry, timeout_s))
 
     async def _fetch_config(config_path: str | None = None) -> None:
         called.append(f"config:{config_path}")
@@ -623,6 +630,17 @@ async def test_get_initial_data_success_and_in_error(
     await api.get_initial_data()
     assert "/device-info" in called
     assert "config:None" in called
+    # The initial connectivity probe uses the short fail-fast budget, not
+    # the module's default retry/timeout (see INITIAL_PROBE_MAX_RETRY /
+    # INITIAL_PROBE_TIMEOUT) — an unreachable device must not block Home
+    # Assistant's startup for the full resilience budget.
+    assert probe_calls == [
+        (api_mod.INITIAL_PROBE_MAX_RETRY, api_mod.INITIAL_PROBE_TIMEOUT)
+    ]
+    # fetch_data() IS called here: this codebase's coordinator.async_setup()
+    # is a thin wrapper around _async_setup() alone (no HA
+    # async_config_entry_first_refresh() involved), so nothing else would
+    # ever populate dashboard/mode/wifi/etc. before entities are built.
     assert "data" in called
 
     api._in_error = True

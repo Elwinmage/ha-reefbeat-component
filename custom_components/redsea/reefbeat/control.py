@@ -41,13 +41,22 @@ Evidence:
 from __future__ import annotations
 
 import logging
+import re
+import time
 from typing import Any, cast
 
 import aiohttp
 
+from ..const import EC_UNIT_DEFAULT_RANGES
 from .api import HttpResult, ReefBeatAPI, SourceEntry
+from .fusion import is_probe_disconnected
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _as_dict(value: Any) -> dict[str, Any] | None:
+    """A JSON object from the cache, typed, or None for anything else."""
+    return cast(dict[str, Any], value) if isinstance(value, dict) else None
 
 
 # =============================================================================
@@ -82,30 +91,48 @@ class ReefControlAPI(ReefBeatAPI):
         for name in (
             "/configuration",
             "/ports/config",
-            "/subscription-info",
             "/probe/config",
         ):
             sources.insert(
                 len(sources),
                 {"name": name, "type": "config", "data": ""},
             )
+        # `/subscription-info` holds the probe -> socket rules of the paired
+        # power center (`external`) and of the hub's own ports (`internal`).
+        # Polled as data, not config: a rule may be changed outside Home
+        # Assistant (ReefBeat app), and the RSPower socket_N_mode sensors
+        # expose it as their `sensor_config`.
+        sources.insert(
+            len(sources),
+            {"name": "/subscription-info", "type": "data", "data": ""},
+        )
         self.data["sources"] = sources
 
-    # -- Dynamic per-probe temperature-offset sources ----------------------
-    # The temperature calibration offset is read via
-    # ``GET /probe/offset?type=temperature&uid=<uid>`` — one endpoint per
-    # temperature probe. Probes come and go at runtime, so these sources are
-    # reconciled after every dashboard fetch rather than registered up front.
-    _OFFSET_PREFIX = "/probe/offset?type=temperature&uid="
+    # -- Dynamic per-probe offset sources ------------------------------------
+    # A single-point calibration offset is read via
+    # ``GET /probe/offset?type=<type>&uid=<uid>`` — one endpoint per probe
+    # (``{"offset", "last_adjustment_date"}``): the reading of a temperature
+    # or ORP probe, the embedded temperature of a pH, EC or ATO probe.
+    # Probes come and go at runtime, so these sources are reconciled after
+    # every dashboard fetch rather than registered up front.
+    _OFFSET_PREFIX = "/probe/offset?type="
+    # pH, EC and ATO probes: the offset of their embedded temperature sensor
+    # (captured: ``/probe/offset?type=ph`` and ``?type=ec`` move
+    # ``temp_value``).
+    _OFFSET_TYPES: tuple[str, ...] = ("temperature", "orp", "ph", "ec", "ato")
+    # Probe types whose own reading has no offset, only their temperature
+    _TEMPERATURE_OFFSET_TYPES: frozenset[str] = frozenset({"ph", "ec", "ato"})
+    # Decimals an offset is kept with, per probe type (whole millivolts).
+    _OFFSET_DIGITS: dict[str, int] = {"orp": 0}
 
     @classmethod
-    def _offset_source_name(cls, uid: str) -> str:
-        return f"{cls._OFFSET_PREFIX}{uid}"
+    def _offset_source_name(cls, uid: str, ptype: str = "temperature") -> str:
+        return f"{cls._OFFSET_PREFIX}{ptype}&uid={uid}"
 
     def _reconcile_probe_offset_sources(self) -> None:
         """Keep dynamic probe-dependent sources in sync with the probes.
 
-        Two kinds: one ``/probe/offset`` source per temperature probe, and
+        Two kinds: one ``/probe/offset`` source per temperature or ORP probe, and
         ``/leak/config`` when a leak probe exists (its buzzer/notify live there,
         not in ``/probe/config``). These are read non-positionally, so no cache
         invalidation is needed and the fixed sources keep their front slots.
@@ -116,12 +143,16 @@ class ReefControlAPI(ReefBeatAPI):
             )
             or []
         )
+        # An unplugged probe answers 503 to its offset endpoint: drop its
+        # source while it is disconnected (no pointless request every poll),
+        # it is registered again as soon as the dashboard reports it back.
         wanted = {
-            self._offset_source_name(p["uid"])
+            self._offset_source_name(p["uid"], str(p.get("type", "")).lower())
             for p in probes
             if isinstance(p, dict)
-            and str(p.get("type", "")).lower() == "temperature"
+            and str(p.get("type", "")).lower() in self._OFFSET_TYPES
             and p.get("uid")
+            and not is_probe_disconnected(p)
         }
         has_leak = any(
             isinstance(p, dict) and str(p.get("type", "")).lower() == "leak"
@@ -143,6 +174,191 @@ class ReefControlAPI(ReefBeatAPI):
         for name in existing - wanted:
             self.remove_source(name)
 
+    # ── Optimistic updates ─────────────────────────────────────────────
+
+    _PORT_PATH = re.compile(r"^/port/(\d+)(/install)?$")
+    _SOCKET_UNSUBSCRIBE = re.compile(r"^/socket/(\d+)/unsubscribe$")
+
+    def _source(self, name: str) -> Any:
+        """Cached payload of a source (the live object, not a copy)."""
+        return self.get_data(
+            f"$.sources[?(@.name=='{name}')].data", is_None_possible=True
+        )
+
+    def _dashboard_port(self, number: int) -> dict[str, Any] | None:
+        ports = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.ports", is_None_possible=True
+        )
+        if isinstance(ports, list):
+            for raw in cast(list[Any], ports):
+                entry = _as_dict(raw)
+                if entry is not None and entry.get("number") == number:
+                    return entry
+        return None
+
+    def _update_port(self, number: int, fields: dict[str, Any]) -> None:
+        """Set fields of a port in `/ports/config` and `/dashboard`."""
+        entry = self.port_config(number)
+        if entry is not None:
+            entry.update(fields)
+        dash = self._dashboard_port(number)
+        if dash is not None:
+            for key in ("mode", "type", "name"):
+                if key in fields:
+                    dash[key] = fields[key]
+            if "mode" in fields:
+                dash["user_config_mode"] = fields["mode"]
+
+    def _replace_rules(
+        self, kind: str, number: int, rule: dict[str, Any] | None
+    ) -> None:
+        """Replace a port's (``internal``) or socket's (``external``) rule."""
+        info = self._source("/subscription-info")
+        if not isinstance(info, dict):
+            return
+        rules: Any = cast(dict[str, Any], info).get(kind)
+        kept: list[Any] = []
+        for raw in cast(list[Any], rules) if isinstance(rules, list) else []:
+            entry = _as_dict(raw)
+            if entry is None or entry.get("number") != number:
+                kept.append(raw)
+        if rule is not None:
+            kept.append(rule)
+        info[kind] = kept
+
+    def _mirror_write(
+        self, action: str, payload: Any, method: str, result: HttpResult
+    ) -> None:
+        """Apply the hub's port and pairing writes to the cache at once.
+
+        Covers what the card writes through ``redsea.request`` as much as the
+        integration's own calls: a port's mode, name or power
+        (``PUT /ports/config``), its probe rule (``PUT /ports/subscribe``),
+        installing or uninstalling it, and unpairing the power center.
+        """
+        if method == "put" and action == "/ports/config":
+            for raw in cast(list[Any], payload) if isinstance(payload, list) else []:
+                entry = _as_dict(raw)
+                if entry is not None and isinstance(entry.get("number"), int):
+                    self._update_port(
+                        entry["number"],
+                        {k: v for k, v in entry.items() if k != "number"},
+                    )
+            return
+        if method == "put" and action == "/ports/subscribe":
+            ports: Any = (
+                cast(dict[str, Any], payload).get("ports")
+                if isinstance(payload, dict)
+                else None
+            )
+            for raw in cast(list[Any], ports) if isinstance(ports, list) else []:
+                rule = _as_dict(raw)
+                if rule is not None and isinstance(rule.get("number"), int):
+                    self._replace_rules("internal", rule["number"], dict(rule))
+            return
+        if method == "post" and action == "/power/unpair":
+            dashboard = self._source("/dashboard")
+            if isinstance(dashboard, dict):
+                dashboard["connected_device"] = None
+            return
+        match = self._SOCKET_UNSUBSCRIBE.match(action)
+        if match and method == "put":
+            self._replace_rules("external", int(match.group(1)), None)
+            return
+        match = self._PORT_PATH.match(action)
+        if match is None:
+            return
+        number = int(match.group(1))
+        if match.group(2) and method == "post" and isinstance(payload, dict):
+            ptype: Any = cast(dict[str, Any], payload).get("type")
+            if isinstance(ptype, str):
+                self._update_port(number, {"type": ptype})
+        elif not match.group(2) and method == "delete":
+            # What the firmware resets the port to (see delete_port)
+            self._update_port(
+                number,
+                {
+                    "type": self.PORT_TYPE_UNINSTALLED,
+                    "mode": "setup",
+                    "name": f"S{number + 1}",
+                    "power_on_percent": 100,
+                    "sensor": None,
+                },
+            )
+            self._replace_rules("internal", number, None)
+
+    # ── Port schedules ──────────────────────────────────────────────────
+
+    _PORT_SCHEDULE = "/port/{}/schedule"
+
+    def _port_modes(self, from_config: bool) -> dict[int, str]:
+        """Mode of each 12V port, keyed by its 0-based number.
+
+        Read from ``/ports/config`` right after a config fetch (fresh there),
+        else from ``/dashboard`` (fresh on every poll); the other source is
+        the fallback when the preferred one is not cached yet.
+        """
+        paths = [
+            "$.sources[?(@.name=='/dashboard')].data.ports",
+            "$.sources[?(@.name=='/ports/config')].data",
+        ]
+        if from_config:
+            paths.reverse()
+        for path in paths:
+            ports = self.get_data(path, is_None_possible=True)
+            if not isinstance(ports, list):
+                continue
+            modes: dict[int, str] = {}
+            for idx, raw in enumerate(cast(list[Any], ports)):
+                if not isinstance(raw, dict):
+                    continue
+                entry = cast(dict[str, Any], raw)
+                number = entry.get("number", idx)
+                if isinstance(number, int):
+                    modes[number] = str(entry.get("mode", ""))
+            return modes
+        return {}
+
+    def _reconcile_port_schedule_sources(self, from_config: bool) -> list[str]:
+        """Poll a port's schedule only while the port runs on it.
+
+        An uninstalled port (mode ``setup``) answers ``503`` to
+        ``GET /port/<n>/schedule``, and a port that is on, off or driven by a
+        probe does not use its schedule: its source is registered only while
+        the port is in ``schedule`` mode. Returns the sources just added, for
+        the caller to fetch at once (they would otherwise wait for the next
+        config refresh).
+        """
+        wanted = {
+            self._PORT_SCHEDULE.format(number)
+            for number, mode in self._port_modes(from_config).items()
+            if mode == "schedule"
+        }
+        sources = cast(list[SourceEntry], self.data.get("sources", []))
+        existing = {
+            str(s.get("name"))
+            for s in sources
+            if str(s.get("name", "")).startswith("/port/")
+            and str(s.get("name", "")).endswith("/schedule")
+        }
+        added = sorted(wanted - existing)
+        for name in added:
+            self.add_source(name, "config", "")
+        for name in existing - wanted:
+            self.remove_source(name)
+        return added
+
+    async def _sync_port_schedules(self, from_config: bool) -> None:
+        """Reconcile the schedule sources and fetch the new ones."""
+        for name in self._reconcile_port_schedule_sources(from_config):
+            await super().fetch_config(name)
+
+    async def fetch_config(self, config_path: str | None = None) -> None:
+        """Fetch config sources, then the schedules the ports now use."""
+        await super().fetch_config(config_path)
+        if config_path is None:
+            await self._sync_port_schedules(from_config=True)
+
     async def fetch_data(self) -> dict[str, Any]:
         """Fetch, keeping per-probe offset sources in sync with the probes.
 
@@ -157,33 +373,167 @@ class ReefControlAPI(ReefBeatAPI):
             self._reconcile_probe_offset_sources()
         data = await super().fetch_data()
         self._reconcile_probe_offset_sources()
+        await self._sync_port_schedules(from_config=False)
+        await self._read_new_leaks()
+        await self._refresh_config_on_probe_install()
         return data
 
-    def probe_offset(self, uid: str) -> float | None:
-        """Cached calibration offset for a temperature probe, if known."""
-        return self.get_data(
-            f"$.sources[?(@.name=='{self._offset_source_name(uid)}')].data.offset",
+    # -- Probe (re)installed elsewhere -----------------------------------------
+    # Installing a probe (again) resets its settings on the hub: a reinstalled
+    # ORP probe is back to its default ranges. Config sources are only read at
+    # startup and after the integration's own writes, so a probe installed
+    # from the ReefBeat app would keep its old ranges here while the hub
+    # judges its level against the new ones. Every probe carries
+    # `last_installation_date` in /dashboard: when a probe appears or that
+    # date changes, /probe/config is read again.
+
+    def _probe_install_dates(self) -> dict[str, Any]:
+        probes = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes", is_None_possible=True
+        )
+        dates: dict[str, Any] = {}
+        for raw in cast(list[Any], probes) if isinstance(probes, list) else []:
+            probe = _as_dict(raw)
+            if probe is not None and probe.get("uid"):
+                key = f"{str(probe.get('type', '')).lower()}:{probe['uid']}"
+                dates[key] = probe.get("last_installation_date")
+        return dates
+
+    async def _refresh_config_on_probe_install(self) -> None:
+        dates = self._probe_install_dates()
+        known: dict[str, Any] | None = getattr(self, "_known_install_dates", None)
+        self._known_install_dates = dates
+        # The first poll comes with a full config read already
+        if known is None:
+            return
+        if any(key not in known or known[key] != date for key, date in dates.items()):
+            _LOGGER.debug("Probe installed or reinstalled: reading /probe/config")
+            await self.fetch_config("/probe/config")
+
+    # -- Leak origin ---------------------------------------------------------
+    # `/dashboard` only says whether a leak probe is wet (`detected`). Where
+    # the water comes from is in the probe's own reading, `GET /probe`:
+    #   {"name", "status", "ec", "leak_status"}
+    # `leak_status` is `dry`, `aquarium_water_leak` or `rodi_water_leak` (the
+    # ReefBeat app's ControlLeakStatus, the same values as the RSATO+ leak
+    # sensor) and `ec` the conductivity the probe measures — salt water
+    # conducts, RO/DI water hardly does. The reading is kept apart from the
+    # dashboard, which each poll replaces whole.
+    _LEAK_SOURCES: tuple[str, ...] = ("aquarium_water_leak", "rodi_water_leak")
+
+    def _leak_readings(self) -> dict[str, dict[str, Any]]:
+        """Last reading of each leak probe, by uid."""
+        return cast(
+            dict[str, dict[str, Any]], self.__dict__.setdefault("_leak_cache", {})
+        )
+
+    def _wet_leaks(self) -> set[str]:
+        """Leak probes already read since they got wet."""
+        return cast(set[str], self.__dict__.setdefault("_leak_wet", set()))
+
+    async def _read_new_leaks(self) -> None:
+        """Read a leak probe as soon as it turns wet, to learn the origin.
+
+        Once per leak: a probe is read again only after it dried.
+        """
+        probes = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes",
             is_None_possible=True,
+            cached=False,
         )
+        wet = self._wet_leaks()
+        for raw in cast(list[Any], probes) if isinstance(probes, list) else []:
+            probe = _as_dict(raw)
+            if probe is None or str(probe.get("type", "")).lower() != "leak":
+                continue
+            uid = str(probe.get("uid"))
+            if probe.get("detected") is True:
+                if uid not in wet:
+                    wet.add(uid)
+                    await self.read_probe("leak", uid)
+            else:
+                wet.discard(uid)
 
-    async def set_probe_offset(self, uid: str, offset: float) -> HttpResult | None:
-        """Set a temperature probe's calibration offset (``POST /probe/offset``)."""
-        return await self.http_send(
-            self._offset_source_name(uid), {"offset": offset}, "post"
+    def leak_status(self, uid: str) -> str | None:
+        """Where a leak probe's water comes from.
+
+        ``dry`` while the dashboard says the probe is dry, the origin of the
+        last reading while it is wet, None while wet and not read yet.
+        """
+        probe = self.dashboard_probe("leak", uid)
+        if probe is None or not isinstance(probe.get("detected"), bool):
+            return None
+        if not probe["detected"]:
+            return "dry"
+        status = self._leak_readings().get(uid, {}).get("leak_status")
+        return status if status in self._LEAK_SOURCES else None
+
+    def leak_conductivity(self, uid: str) -> float | None:
+        """Conductivity a leak probe measured at its last reading."""
+        value: Any = self._leak_readings().get(uid, {}).get("ec")
+        return float(cast(float, value)) if self._is_number(value) else None
+
+    async def calibrate_probe(
+        self, ptype: str, uid: str, reference: float
+    ) -> HttpResult | None:
+        """Calibrate a probe's offset reading against a known reference.
+
+        The reading of a temperature or ORP probe, the embedded temperature
+        of a pH, EC or ATO probe. The probe is in a solution (ORP, mV) or
+        water (°C) of known value: it is read now, and its offset is moved by
+        ``reference - reading`` (the reading includes the current offset),
+        so the probe then reads the reference. As the ReefBeat app's ORP
+        validation does.
+        """
+        field = "temp_value" if ptype in self._TEMPERATURE_OFFSET_TYPES else "value"
+        read = await self.read_probe(ptype, uid)
+        probe = self.dashboard_probe(ptype, uid)
+        reading: Any = probe.get(field) if probe else None
+        if not read or not self._is_number(reading):
+            _LOGGER.warning("%s probe %s: no reading, calibration skipped", ptype, uid)
+            return None
+        name = self._offset_source_name(uid, ptype)
+        result = await self.shift_offset(
+            name, name, reference - float(reading), self._OFFSET_DIGITS.get(ptype, 1)
         )
+        if result is not None and result.get("ok"):
+            # Until the next poll reads it back
+            fresh = self.dashboard_probe(ptype, uid)
+            if fresh is not None:
+                fresh[field] = reference
+        return result
 
-    async def reset_probe_offset(self, uid: str) -> HttpResult | None:
-        """Clear a temperature probe's calibration offset (``DELETE``)."""
-        return await self.http_send(self._offset_source_name(uid), None, "delete")
+    def calibration_date(self, ptype: str, uid: str) -> float | None:
+        """Epoch of a probe's last calibration, None when never or unknown.
+
+        pH and EC report it in ``/dashboard.probes[].last_adjustment_date``
+        (null until calibrated). ORP has no such field there: its date is
+        the offset's, ``GET /probe/offset`` -> ``last_adjustment_date``,
+        updated by every ORP validation, even one leaving the offset as is.
+        """
+        value: Any
+        # The offset of a temperature probe, or the embedded temperature of
+        # a pH / EC one, is not their calibration
+        if ptype == "orp":
+            value = self.get_data(
+                f"$.sources[?(@.name=='{self._offset_source_name(uid, ptype)}')]"
+                ".data.last_adjustment_date",
+                is_None_possible=True,
+            )
+        else:
+            probe = self.dashboard_probe(ptype, uid)
+            value = probe.get("last_adjustment_date") if probe else None
+        return float(value) if self._is_number(value) and value > 0 else None
 
     # -- Probe install / delete --------------------------------------------
     # Seeded on ``PUT /probe/config`` right after install — otherwise the
     # probe answers but stays unconfigured (no ranges/buzzer/notify set),
     # mirroring RSPower's local temperature probe needing its own config
-    # seeded on install. ``leak`` needs none: its ``/probe/config`` entry is
-    # just ``{name, type, uid}`` — writing to it 503s (buzzer/notify live in
-    # ``/leak/config`` instead, see ``_BUZZER_LOC``/``_NOTIFY_LOC``). Values
-    # mirror what a real hub reports for a probe fresh off `/probe/install`.
+    # seeded on install. ``leak`` is set up apart (see _setup_leak_probe):
+    # its ``/probe/config`` entry is just ``{name, type, uid}`` and its
+    # buzzer/notify live in ``/leak/config`` (see ``_BUZZER_LOC``/
+    # ``_NOTIFY_LOC``). Values mirror what a real hub reports for a probe
+    # fresh off `/probe/install`.
     _PROBE_INSTALL_DEFAULTS: dict[str, dict[str, Any]] = {
         "ec": {
             "name": "EC",
@@ -220,6 +570,39 @@ class ReefControlAPI(ReefBeatAPI):
         },
     }
 
+    # What the app writes to ``/leak/config`` when it installs a leak probe
+    _LEAK_INSTALL_CONFIG: dict[str, bool] = {
+        "buzzer": True,
+        "leak_detector": True,
+        "notify": True,
+        "emergency_shutdown": False,
+    }
+
+    @staticmethod
+    def _leak_probe_name(uid: str) -> str:
+        """Default name of a leak probe, as the app gives it: its uid digits.
+
+        ``0x0032B`` gives ``Leak 32B`` (the app writes ``Fuite 32B`` in
+        French), which tells two leak probes apart from the start.
+        """
+        digits = uid.lower().removeprefix("0x").lstrip("0").upper()
+        return f"Leak {digits or '0'}"
+
+    async def _setup_leak_probe(self, uid: str) -> None:
+        """Finish installing a leak probe the way the app does.
+
+        Captured from the app: ``PUT /leak/config`` with the alarm settings,
+        then ``PUT /probe/config`` with the probe's name. Until then the hub
+        lists it with ``status: setup``, the app does not show it and it
+        reports nothing; after it, ``status: auto``.
+        """
+        await self.http_send("/leak/config", dict(self._LEAK_INSTALL_CONFIG), "put")
+        await self.http_send(
+            "/probe/config",
+            [{"name": self._leak_probe_name(uid), "uid": uid, "type": "leak"}],
+            "put",
+        )
+
     async def install_probe(self, ptype: str) -> HttpResult | None:
         """Ask the hub to scan for and install a new probe of ``ptype``.
 
@@ -230,14 +613,22 @@ class ReefControlAPI(ReefBeatAPI):
         ``_PROBE_INSTALL_DEFAULTS``) and read back immediately — ``/probe/
         config`` is always registered (unlike RSPower's per-probe offset
         sources), so no on-demand registration is needed to refresh it.
+
+        Same order as the app: install, read the probe's info, stop its BLE
+        advertising, then configure it.
         """
         result = await self.http_send(f"/probe/install?type={ptype}", {}, "post")
-        payload = result.get("json") if isinstance(result, dict) else None
-        uid = payload.get("uid") if isinstance(payload, dict) else None
+        payload = _as_dict(result.get("json")) if isinstance(result, dict) else None
+        uid: Any = payload.get("uid") if payload is not None else None
         if uid:
+            # The answer (hwid, versions) is not kept: the app reads it too
+            await self.http_get(f"/probe/info?type={ptype}&uid={uid}")
             await self.http_send(f"/ble/off?type={ptype}&uid={uid}", {}, "post")
             defaults = self._PROBE_INSTALL_DEFAULTS.get(ptype.lower())
-            if defaults is not None:
+            if ptype.lower() == "leak":
+                await self._setup_leak_probe(str(uid))
+                await self.fetch_config("/probe/config")
+            elif defaults is not None:
                 body = dict(defaults)
                 body["type"] = ptype
                 body["uid"] = uid
@@ -248,19 +639,214 @@ class ReefControlAPI(ReefBeatAPI):
     async def delete_probe(self, ptype: str, uid: str) -> HttpResult | None:
         """Remove a probe from the hub (``DELETE /probe?type&uid``).
 
-        For a temperature probe, its calibration-offset source is dropped
+        For a temperature or ORP probe, its calibration-offset source is dropped
         immediately rather than waiting for the next refresh's reconciliation
         (gated on the dashboard's probes list, which can lag behind the
         removal by a cycle or two) — otherwise it keeps getting polled (and
         erroring) for a while after the probe is already gone.
         """
         result = await self.http_send(f"/probe?type={ptype}&uid={uid}", None, "delete")
-        if ptype.lower() == "temperature":
-            name = self._offset_source_name(uid)
+        if ptype.lower() in self._OFFSET_TYPES:
+            name = self._offset_source_name(uid, ptype.lower())
             sources = cast(list[SourceEntry], self.data.get("sources", []))
             if any(s.get("name") == name for s in sources):
                 self.remove_source(name)
         return result
+
+    # -- On-demand probe reading -------------------------------------------
+    # ``GET /probe?type=<type>&uid=<uid>`` asks the hub for a fresh reading of
+    # one probe, without waiting for the next ``/dashboard`` poll. The answer
+    # does not share the dashboard's shape (observed on a real RSCONTROLPRO):
+    #   temperature: {"name", "status", "value"}
+    #   ph / orp:    {"name", "status", "value", "temperature": {"value"}}
+    #   ec:          {"name", "status", "ec", "ppt", "sg", "temperature": {...}}
+    #   ato:         {"name", "status", "ato_sensor_status", "temperature": {...}}
+    #   leak:        {"name", "status", "ec", "leak_status"}
+    # so it is mapped onto the cached ``/dashboard.probes`` entry field by field.
+    _EC_UNITS: tuple[str, ...] = ("ec", "ppt", "sg")
+    _LEAK_STATUS_DETECTED: dict[str, bool] = {
+        "dry": False,
+        "aquarium_water_leak": True,
+        "rodi_water_leak": True,
+        # Older guesses, kept in case a firmware answers so
+        "wet": True,
+        "leak": True,
+        "detected": True,
+    }
+
+    @staticmethod
+    def _is_number(value: Any) -> bool:
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+    @classmethod
+    def probe_reading_updates(
+        cls,
+        ptype: str,
+        payload: dict[str, Any],
+        measurement_unit: str | None = None,
+    ) -> dict[str, Any]:
+        """Translate a ``GET /probe`` answer into ``/dashboard.probes`` fields.
+
+        Only fields actually present (and well-typed) in the answer are
+        returned, so a partial or unexpected payload never blanks a cached
+        value. ``measurement_unit`` is the EC probe's displayed unit: its
+        dashboard ``value`` mirrors the reading in that unit.
+        """
+        kind = ptype.lower()
+        updates: dict[str, Any] = {}
+
+        status = payload.get("status")
+        if isinstance(status, str):
+            updates["status"] = status
+
+        if cls._is_number(payload.get("value")):
+            updates["value"] = payload["value"]
+
+        # Embedded temperature compensation (ec / ph / ato probes).
+        temp: Any = payload.get("temperature")
+        if isinstance(temp, dict):
+            temp_value: Any = cast(dict[str, Any], temp).get("value")
+            if cls._is_number(temp_value):
+                updates["temp_value"] = temp_value
+
+        if kind == "ec":
+            for unit in cls._EC_UNITS:
+                if cls._is_number(payload.get(unit)):
+                    updates[unit] = payload[unit]
+            unit = str(measurement_unit or "").lower()
+            if unit in updates:
+                updates["value"] = updates[unit]
+        elif kind == "ato":
+            level = payload.get("ato_sensor_status")
+            if isinstance(level, str):
+                updates["water_level"] = level
+        elif kind == "leak":
+            leak = payload.get("leak_status")
+            if isinstance(leak, str) and leak.lower() in cls._LEAK_STATUS_DETECTED:
+                updates["detected"] = cls._LEAK_STATUS_DETECTED[leak.lower()]
+
+        return updates
+
+    def dashboard_probe(self, ptype: str, uid: str) -> dict[str, Any] | None:
+        """Live reference to a probe's entry in the cached ``/dashboard``."""
+        probes = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.probes",
+            is_None_possible=True,
+            cached=False,
+        )
+        if not isinstance(probes, list):
+            return None
+        for item in cast(list[Any], probes):
+            if not isinstance(item, dict):
+                continue
+            probe = cast(dict[str, Any], item)
+            if (
+                probe.get("uid") == uid
+                and str(probe.get("type", "")).lower() == ptype.lower()
+            ):
+                return probe
+        return None
+
+    # -- Multi-point calibration (pH, EC) ---------------------------------------
+    # As the ReefBeat app drives it (``BaseControlProbeCalibrationActivity``,
+    # not captured yet): enter calibration once, then per point start it with
+    # the solution and poll its status until it succeeds or fails, then exit.
+    #   POST /probe/calibration-enter?type&uid        {"time": <epoch s>}
+    #   POST /probe/calibration-point-start?type&uid  {"point": "LOW"|"MID"|
+    #        "HIGH", "solution_value": <float>, "solution_rated_temp": <°C>}
+    #        (rated temperature for pH only)
+    #   GET  /probe/calibration-status?type&uid
+    #        -> {"calibration_status", "time_left", "stability_progress"}
+    #   POST /probe/calibration-exit?type&uid         {}
+    CALIBRATION_ACTIONS: tuple[str, ...] = ("enter", "point", "status", "exit")
+    CALIBRATION_POINTS: tuple[str, ...] = ("LOW", "MID", "HIGH")
+
+    async def probe_calibration(
+        self,
+        action: str,
+        ptype: str,
+        uid: str,
+        point: str | None = None,
+        solution_value: float | None = None,
+        rated_temp: float | None = None,
+    ) -> dict[str, Any]:
+        """Run one step of a probe's multi-point calibration.
+
+        Returns ``{"ok", "status_code", "json"}``; for ``status``, ``json``
+        is the calibration status. A malformed step is refused without a
+        request: ``{"ok": False, "error"}``.
+        """
+        query = f"?type={ptype}&uid={uid}"
+        result: HttpResult | None
+        if action == "enter":
+            result = await self.http_send(
+                f"/probe/calibration-enter{query}", {"time": int(time.time())}, "post"
+            )
+        elif action == "point":
+            name = str(point or "").upper()
+            if name not in self.CALIBRATION_POINTS or not self._is_number(
+                solution_value
+            ):
+                return {"ok": False, "error": "point and solution_value required"}
+            body: dict[str, Any] = {"point": name, "solution_value": solution_value}
+            if self._is_number(rated_temp):
+                body["solution_rated_temp"] = int(cast(float, rated_temp))
+            result = await self.http_send(
+                f"/probe/calibration-point-start{query}", body, "post"
+            )
+        elif action == "status":
+            result = await self.http_get(f"/probe/calibration-status{query}")
+        elif action == "exit":
+            result = await self.http_send(f"/probe/calibration-exit{query}", {}, "post")
+        else:
+            return {"ok": False, "error": f"unknown action {action!r}"}
+        if result is None:
+            return {"ok": False, "status_code": None, "json": None}
+        return {
+            "ok": bool(result.get("ok")),
+            "status_code": result.get("status"),
+            "json": result.get("json"),
+        }
+
+    async def read_probe(self, ptype: str, uid: str) -> bool:
+        """Read one probe now and patch the cached ``/dashboard`` with it.
+
+        Returns True when the cache was updated. The dashboard entry is looked
+        up *after* the request: a poll may have replaced the whole payload
+        while waiting, and patching the old dict would be lost.
+        """
+        result = await self.http_get(f"/probe?type={ptype}&uid={uid}")
+        if not result or not result.get("ok"):
+            _LOGGER.warning(
+                "Reading probe %s/%s failed: %s",
+                ptype,
+                uid,
+                result.get("status") if result else "no response",
+            )
+            return False
+        raw: Any = result.get("json")
+        if not isinstance(raw, dict):
+            return False
+        payload = cast(dict[str, Any], raw)
+
+        probe = self.dashboard_probe(ptype, uid)
+        if probe is None:
+            _LOGGER.debug("Probe %s/%s not in cached dashboard", ptype, uid)
+            return False
+
+        if ptype.lower() == "leak":
+            # The origin and conductivity outlive the next dashboard poll
+            self._leak_readings()[uid] = {
+                key: payload[key] for key in ("leak_status", "ec") if key in payload
+            }
+
+        updates = self.probe_reading_updates(
+            ptype, payload, probe.get("measurement_unit")
+        )
+        if not updates:
+            return False
+        probe.update(updates)
+        return True
 
     # -- Per-probe buzzer / notify (config, readable via /probe/config) ----
     # Where each probe type's primary buzzer / notify lives:
@@ -348,6 +934,77 @@ class ReefControlAPI(ReefBeatAPI):
         method = "delete" if on else "post"
         return await self.http_send(
             f"/probe/disable?type={ptype}&uid={uid}", None, method
+        )
+
+    # -- Per-probe acceptable/desired range (config, readable via
+    # /probe/config) --------------------------------------------------------
+    # `ranges` (primary reading) and `temp.ranges` (embedded temperature
+    # compensation, on ec/ph/ato probes) are each a 4-element array:
+    # [acceptable_min, desired_min, desired_max, acceptable_max]. The
+    # firmware has no element-wise update for it — same contract as
+    # `ranges`/`buzzer`/`notify` above — so every write resends the whole
+    # 4-element array with just the changed bound replaced.
+    RANGE_FIELD_INDEX: dict[str, int] = {
+        "acceptable_range_low": 0,
+        "desired_range_low": 1,
+        "desired_range_high": 2,
+        "acceptable_range_high": 3,
+    }
+
+    def probe_entry(self, ptype: str, uid: str) -> dict[str, Any] | None:
+        """Return the cached ``/probe/config`` entry for a probe, if any."""
+        entry = self.get_data(
+            "$.sources[?(@.name=='/probe/config')]"
+            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]",
+            is_None_possible=True,
+        )
+        return entry if isinstance(entry, dict) else None
+
+    async def set_probe_range(
+        self, ptype: str, uid: str, field: str, value: float, *, is_temp: bool = False
+    ) -> HttpResult | None:
+        """Set one bound of a probe's acceptable/desired range.
+
+        ``is_temp`` targets the embedded temperature-compensation threshold
+        (``temp.ranges``) instead of the probe's own primary range.
+        """
+        idx = self.RANGE_FIELD_INDEX[field]
+        entry = self.probe_entry(ptype, uid) or {}
+        current = (
+            entry.get("temp", {}).get("ranges") if is_temp else entry.get("ranges")
+        )
+        ranges = (
+            list(current)
+            if isinstance(current, list) and len(current) == 4
+            else [0.0, 0.0, 0.0, 0.0]
+        )
+        ranges[idx] = value
+        body: dict[str, Any] = {"type": ptype, "uid": uid}
+        if is_temp:
+            body["temp"] = {"ranges": ranges}
+        else:
+            body["ranges"] = ranges
+        return await self.http_send("/probe/config", [body], "put")
+
+    async def set_probe_unit(self, uid: str, unit: str) -> HttpResult | None:
+        """Set an EC probe's measurement unit (``ec``/``ppt``/``sg``).
+
+        Also resets ``ranges`` to that unit's own default acceptable/desired
+        band (see ``EC_UNIT_DEFAULT_RANGES``): the device does not rescale
+        the existing numeric range when the unit changes, so leaving it as
+        is would keep, say, an EC-scale value like 54 labelled as SG.
+        """
+        return await self.http_send(
+            "/probe/config",
+            [
+                {
+                    "type": "ec",
+                    "uid": uid,
+                    "unit": unit,
+                    "ranges": list(EC_UNIT_DEFAULT_RANGES[unit]),
+                }
+            ],
+            "put",
         )
 
     # Wire values of `ControlPort$PortType` in the Red Sea app:
@@ -524,78 +1181,3 @@ class ReefControlAPI(ReefBeatAPI):
     async def power_unpair(self) -> HttpResult | None:
         """Unlink the paired RSPower center (``POST /power/unpair``)."""
         return await self.http_send("/power/unpair", {}, "post")
-
-    # ------------------------------------------------------------------
-    # Per-port ATO helpers
-    # ------------------------------------------------------------------
-    #
-    # All ATO endpoints are global; the port is passed as a `port_index`
-    # body field. On a hub with a single ATO port the field is either
-    # ignored or defaulted, which keeps the behaviour safe for RSCONTROLLITE
-    # / single-ATO RSCONTROLPRO setups.
-
-    async def ato_manual_pump(self, port: int) -> None:
-        """Trigger one manual ATO dose on the given port.
-
-        The firmware pumps until either the "desired" water-level sensor is
-        satisfied or the internal safety timer fires. This is the
-        equivalent of pressing the "fill" button on a standalone RSATO+.
-        """
-        await self._http_send(
-            f"{self._base_url}/ato/manual-pump",
-            payload={"port_index": int(port)},
-            method="post",
-        )
-
-    async def ato_stop(self, port: int) -> None:
-        """Cancel any ongoing ATO fill and stop the pump on the given port."""
-        await self._http_send(
-            f"{self._base_url}/ato/stop",
-            payload={"port_index": int(port)},
-            method="post",
-        )
-
-    async def ato_resume(self, port: int) -> None:
-        """Clear an "empty" latch and resume automated ATO operation.
-
-        Called after refilling the reservoir when the firmware has stopped
-        pumping because of an empty-tank detection.
-        """
-        await self._http_send(
-            f"{self._base_url}/ato/resume",
-            payload={"port_index": int(port)},
-            method="post",
-        )
-
-    async def ato_set_volume_left(self, port: int, volume_ml: int) -> None:
-        """Overwrite the reservoir "volume left" counter (in mL).
-
-        Used after a manual refill to tell the firmware how much fresh water
-        is available. Matches the RSATO+ `POST /update-volume` payload shape,
-        with `port_index` added for RSCONTROLPRO dual-ATO cases.
-        """
-        payload: dict[str, Any] = {
-            "port_index": int(port),
-            "volume": int(volume_ml),
-        }
-        await self._http_send(
-            f"{self._base_url}/ato/update-volume",
-            payload,
-            "post",
-        )
-
-    async def push_ato_configuration(self, port: int, auto_fill: bool) -> None:
-        """Push the `auto_fill` flag for a specific ATO port.
-
-        Uses `PUT /ato/configuration` to atomically toggle the firmware's
-        auto-fill behaviour on the requested port.
-        """
-        payload: dict[str, Any] = {
-            "port_index": int(port),
-            "auto_fill": bool(auto_fill),
-        }
-        await self._http_send(
-            f"{self._base_url}/ato/configuration",
-            payload,
-            "put",
-        )

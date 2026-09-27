@@ -20,7 +20,13 @@ from typing import Any, Protocol, TypedDict, cast
 import aiohttp
 from jsonpath_ng.ext import parse as _parse  # type: ignore
 
-from ..const import DEFAULT_TIMEOUT, HTTP_DELAY_BETWEEN_RETRY, HTTP_MAX_RETRY
+from ..const import (
+    DEFAULT_TIMEOUT,
+    HTTP_DELAY_BETWEEN_RETRY,
+    HTTP_MAX_RETRY,
+    INITIAL_PROBE_MAX_RETRY,
+    INITIAL_PROBE_TIMEOUT,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -170,6 +176,46 @@ class ReefBeatAPI:
         self._live_config_update = bool(live_config_update)
         self._header: dict[str, str] | None = None
 
+    # -- HTTP status policy ----------------------------------------------------
+    # Local firmwares answer 503 when they refuse a request for a lasting
+    # reason (probe disconnected from a RSControl, port not installed, leak
+    # probe config written through /probe/config, ...): retrying the same
+    # request cannot succeed, so it is a definitive failure there. The cloud
+    # API is a regular web service, where 503 is a genuine transient outage
+    # worth retrying — see ``_is_definitive_failure``.
+    _LOCAL_REFUSAL_STATUS = 503
+
+    def _path_of(self, url: str) -> str:
+        """Endpoint path of a full URL built on ``self._base_url``."""
+        base = getattr(self, "_base_url", "")
+        if base and url.startswith(base):
+            return url[len(base) :] or "/"
+        return url
+
+    def _is_quirk_ok(self, status: int, path: str, method: str) -> bool:
+        """Whether a non-2xx status means success for this device family.
+
+        None by default. Device families whose firmware reports success with
+        an error status override this, as narrowly as possible.
+        """
+        return False
+
+    def _is_status_ok(self, status: int, path: str, method: str) -> bool:
+        """Whether an HTTP answer is a success (2xx or a known firmware quirk)."""
+        return 200 <= status < 300 or self._is_quirk_ok(status, path, method)
+
+    def _is_definitive_failure(self, status: int) -> bool:
+        """Whether a failed status can never succeed on retry.
+
+        Covers the 4xx (except 401, which a token renewal may fix) and, on
+        local devices only, the firmware's 503 refusal.
+        """
+        if 400 <= status < 500 and status != 401:
+            return True
+        return status == self._LOCAL_REFUSAL_STATUS and not getattr(
+            self, "_secure", False
+        )
+
     def _build_result(
         self,
         *,
@@ -185,7 +231,7 @@ class ReefBeatAPI:
         """Build a structured result object for debugging and service responses."""
         elapsed_ms = int((time.time() - started) * 1000)
         result: HttpResult = {
-            "ok": 200 <= status < 300,
+            "ok": self._is_status_ok(int(status), self._path_of(url), method),
             "method": method,
             "url": url,
             "status": int(status),
@@ -245,7 +291,10 @@ class ReefBeatAPI:
             return None
 
     async def _http_get(
-        self, session: aiohttp.ClientSession, source: Match
+        self,
+        session: aiohttp.ClientSession,
+        source: Match,
+        timeout_s: int | None = None,
     ) -> bool | None:
         """HTTP GET one endpoint and store its response into self.data.
 
@@ -254,6 +303,10 @@ class ReefBeatAPI:
         definitive 4xx rejection (e.g. a conditionally-registered source —
         RSPower's local-temperature endpoints — currently not applicable):
         retrying the exact same request would never change that outcome.
+
+        ``timeout_s`` overrides the per-attempt timeout (defaults to
+        ``self._timeout`` — see ``_call_url``'s ``timeout_s`` for why the
+        initial connectivity probe passes a shorter one).
         """
         endpoint = source.value.get("name")
         if not endpoint:
@@ -263,7 +316,9 @@ class ReefBeatAPI:
         _LOGGER.debug("_http_get %s", url)
 
         try:
-            req_timeout = getattr(self, "_timeout", 10)
+            req_timeout = (
+                timeout_s if timeout_s is not None else getattr(self, "_timeout", 10)
+            )
             async with timeout(req_timeout):
                 async with session.get(url, headers=self._header, ssl=False) as resp:
                     if resp.status == 401 and self._secure:
@@ -273,21 +328,22 @@ class ReefBeatAPI:
                             url, headers=self._header, ssl=False
                         ) as resp2:
                             resp = resp2
-                    # 503 => Patch for some RSWAVE45
-                    if resp.status >= 400 and not (
-                        resp.status == 503 and url[-1] == "/"
+                    if resp.status >= 400 and not self._is_status_ok(
+                        resp.status, endpoint, "get"
                     ):
+                        # Only the endpoint: the source match carries the
+                        # whole cached device data along with it.
                         _LOGGER.debug(
-                            "GET %s failed: %s %s %s",
+                            "GET %s failed: %s %s",
                             url,
                             resp.status,
                             resp.reason,
-                            source,
                         )
+                        # A definitive refusal (4xx, local 503) is not
+                        # retried and does not mark the device in error: it
+                        # answered, and the same request will never succeed.
                         return (
-                            None
-                            if 400 <= resp.status < 500 and resp.status != 401
-                            else False
+                            None if self._is_definitive_failure(resp.status) else False
                         )
 
                     # Prefer JSON, but tolerate text
@@ -311,7 +367,13 @@ class ReefBeatAPI:
             _LOGGER.debug("GET %s error: %s", url, err)
             return False
 
-    async def _call_url(self, session: aiohttp.ClientSession, source: Match) -> None:
+    async def _call_url(
+        self,
+        session: aiohttp.ClientSession,
+        source: Match,
+        max_retry: int | None = None,
+        timeout_s: int | None = None,
+    ) -> None:
         """Fetch one source with retries.
 
         Marks the instance in error (`self._in_error=True`) if all retries fail.
@@ -320,19 +382,26 @@ class ReefBeatAPI:
         (with a delay between each) only wastes time and floods the log —
         this covers conditionally-registered sources whose current absence
         is an expected state, not a device/network problem.
+
+        ``max_retry``/``timeout_s`` override the module defaults — used by
+        the initial connectivity probe in ``get_initial_data()`` to fail
+        fast on an unreachable device instead of blocking Home Assistant's
+        startup for the full ~1-minute resilience budget meant for transient
+        blips during normal operation.
         """
+        retry_budget = HTTP_MAX_RETRY if max_retry is None else max_retry
         status_ok = False
         error_count = 0
-        while status_ok is False and error_count < HTTP_MAX_RETRY:
+        while status_ok is False and error_count < retry_budget:
             try:
-                result = await self._http_get(session, source)
+                result = await self._http_get(session, source, timeout_s=timeout_s)
             except Exception as e:
                 error_count += 1
                 _LOGGER.debug(
                     "Can not get data: %s, retry nb %d/%d",
                     source.value.get("name"),
                     error_count,
-                    HTTP_MAX_RETRY,
+                    retry_budget,
                 )
                 _LOGGER.debug("Exception: %s", e, exc_info=True)
                 result = False
@@ -349,7 +418,7 @@ class ReefBeatAPI:
                 "Can not get data from %s%s after %s try",
                 self.ip,
                 source.value.get("name"),
-                HTTP_MAX_RETRY,
+                retry_budget,
             )
             self._in_error = True
 
@@ -357,9 +426,21 @@ class ReefBeatAPI:
         """Fetch initial device data.
 
         Fetches:
-            1) device-info sources
+            1) device-info sources — a fast connectivity probe (see
+               INITIAL_PROBE_MAX_RETRY/INITIAL_PROBE_TIMEOUT): failing here
+               raises immediately rather than also spending the full data
+               fetch's retry budget on a device that is simply unreachable.
             2) config sources (unless live config update is enabled)
             3) data sources
+
+        This backs the coordinator's one-time `_async_setup()` hook, called
+        from the integration's own `coordinator.async_setup()` — NOT Home
+        Assistant's `DataUpdateCoordinator.async_config_entry_first_refresh()`
+        (never used here), which would otherwise fetch data on its own right
+        after setup. Skipping the data fetch here left every data-type
+        source (dashboard, mode, wifi, …) empty for every platform's
+        `async_setup_entry()`, since nothing else populates them before
+        entities are built from that same empty `self.data`.
 
         Returns:
             The internal `self.data` dict.
@@ -369,7 +450,13 @@ class ReefBeatAPI:
         sources: list[Match] = query.find(self.data)
 
         tasks: list[Awaitable[None]] = [
-            self._call_url(self._session, s) for s in sources
+            self._call_url(
+                self._session,
+                s,
+                max_retry=INITIAL_PROBE_MAX_RETRY,
+                timeout_s=INITIAL_PROBE_TIMEOUT,
+            )
+            for s in sources
         ]
         await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -565,7 +652,76 @@ class ReefBeatAPI:
         Returns:
             The final `aiohttp.Response` if a request was performed, else None.
         """
-        return await self._http_send(self._base_url + action, payload, method)
+        result = await self._http_send(self._base_url + action, payload, method)
+        if result is not None and result.get("ok"):
+            self._mirror_write(action, payload, method.lower(), result)
+        return result
+
+    # -- Probe calibration offsets ---------------------------------------------
+    # ``POST /probe/offset {"offset": x}`` *adds* x to the probe's current
+    # offset rather than replacing it: captured on an RSCONTROL ORP probe
+    # (offset 1, POST 35 -> 36, POST 20 -> 56, POST -55 -> 1), and how the
+    # RSPower local temperature was already driven. The readings include
+    # the offset. Not captured yet for an RSCONTROL temperature probe, so
+    # every write is checked, and corrected if a hub replaced the offset.
+
+    def cached_offset(self, source: str) -> float:
+        """Offset in the cached ``source`` (``{"offset": …}``), 0 when unknown."""
+        value: Any = self.get_data(
+            f"$.sources[?(@.name=='{source}')].data.offset", is_None_possible=True
+        )
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            return float(value)
+        return 0.0
+
+    @staticmethod
+    def _offset_value(value: float, digits: int) -> float | int:
+        return round(value) if digits == 0 else round(value, digits)
+
+    async def shift_offset(
+        self, action: str, source: str, correction: float, digits: int
+    ) -> HttpResult | None:
+        """Move a probe's offset by ``correction`` through ``POST action``.
+
+        ``source`` is where the offset is read back. The hub adds the posted
+        value, so ``correction`` is what is posted. If the hub then holds the
+        posted value instead of the sum (it replaced the offset), the full
+        offset is posted.
+        """
+        await self.fetch_config(source)
+        current = self.cached_offset(source)
+        delta = self._offset_value(correction, digits)
+        target = current + delta
+        result = await self.http_send(action, {"offset": delta}, "post")
+        if result is None or not result.get("ok"):
+            return result
+        await self.fetch_config(source)
+        held = self.cached_offset(source)
+        tolerance = 10**-digits / 2
+        if (
+            abs(current) > tolerance
+            and abs(held - target) > tolerance
+            and abs(held - delta) <= tolerance
+        ):
+            _LOGGER.info("%s replaces the offset: posting the full offset", action)
+            result = await self.http_send(
+                action, {"offset": self._offset_value(target, digits)}, "post"
+            )
+            await self.fetch_config(source)
+        return result
+
+    def _mirror_write(
+        self, action: str, payload: Any, method: str, result: HttpResult
+    ) -> None:
+        """Apply an accepted write to the cached data, before the read-back.
+
+        Optimistic update: the entities can show the expected outcome as
+        soon as the device acknowledged the command, instead of after the
+        settle delay and refresh that follow it. The next read-back replaces
+        it with what the device really reports, so a command that did not
+        take effect is corrected on the following poll. No-op here; device
+        APIs override it for the writes they know.
+        """
 
     async def _http_send(
         self, url: str, payload: Any = None, method: str = "post"
@@ -632,10 +788,15 @@ class ReefBeatAPI:
                         raise ValueError(f"Unsupported method: {method}")
 
                 status = int(last_result.get("status", 0)) if last_result else 0
-                status_ok = status in (200, 201, 202, 503)
+                status_ok = bool(last_result and last_result.get("ok"))
 
-                # Hard failures that should not be retried
-                if status in (400, 404):
+                # Hard failures that should not be retried. Other 4xx keep
+                # the historical retry behaviour; a local 503 is a firmware
+                # refusal (see _is_definitive_failure).
+                if status in (400, 404) or (
+                    status == self._LOCAL_REFUSAL_STATUS
+                    and self._is_definitive_failure(status)
+                ):
                     error_count = HTTP_MAX_RETRY
 
                 if not status_ok:

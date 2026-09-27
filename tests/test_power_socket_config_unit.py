@@ -123,6 +123,8 @@ def _make_coordinator() -> Any:
         unpair_control=AsyncMock(),
     )
     coord.async_request_refresh = AsyncMock()  # type: ignore[method-assign]
+    coord.async_update_listeners = MagicMock()  # type: ignore[method-assign]
+    coord._hass = MagicMock(data={})  # type: ignore[attr-defined]
     return coord
 
 

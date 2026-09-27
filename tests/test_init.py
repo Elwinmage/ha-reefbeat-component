@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.redsea.const import DOMAIN
@@ -135,7 +136,7 @@ async def test_async_setup_entry_returns_false_when_building_coordinator_fails(
 
 
 @pytest.mark.asyncio
-async def test_async_setup_entry_returns_false_when_coordinator_async_setup_fails(
+async def test_async_setup_entry_not_ready_when_coordinator_async_setup_fails(
     hass: HomeAssistant,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -147,12 +148,38 @@ async def test_async_setup_entry_returns_false_when_coordinator_async_setup_fail
 
     class _Coordinator:
         async def async_setup(self) -> None:
-            raise RuntimeError("setup failed")
+            raise RuntimeError("Initialization failed, is your device on?")
 
     monkeypatch.setattr(
         integration, "_build_coordinator", lambda _h, _e: _Coordinator()
     )
 
+    # Unreachable device: Home Assistant retries the setup with backoff.
+    with pytest.raises(ConfigEntryNotReady, match="is your device on"):
+        await integration.async_setup_entry(hass, cast(Any, entry))
+
+
+@pytest.mark.asyncio
+async def test_async_setup_entry_returns_false_on_cloud_invalid_auth(
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import custom_components.redsea as integration
+    from custom_components.redsea.reefbeat.cloud import InvalidAuth
+
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={"ip_address": "1.2.3.4", "hw_model": "X"}
+    )
+
+    class _Coordinator:
+        async def async_setup(self) -> None:
+            raise InvalidAuth("bad credentials")
+
+    monkeypatch.setattr(
+        integration, "_build_coordinator", lambda _h, _e: _Coordinator()
+    )
+
+    # Wrong credentials: no retry loop.
     assert await integration.async_setup_entry(hass, cast(Any, entry)) is False
 
 
@@ -324,3 +351,178 @@ async def test_services_clean_message_and_request_handlers(
     req = handlers[f"{redsea_init.DOMAIN}.request"]
     bad = await req(SimpleNamespace(data={"device_id": 123}))
     assert bad == {"error": "Invalid device_id"}
+
+
+@pytest.mark.asyncio
+async def test_get_control_probes_service_handler(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """redsea.get_control_probes looks a RSCONTROL hub up by hwid — not a
+    Home Assistant device_id, since the RSPower card only knows the paired
+    hub's hardware id (from its own connected_device.hwid).
+    """
+    import custom_components.redsea as redsea_init
+
+    handlers: dict[str, Any] = {}
+
+    def _async_register(
+        self: Any,
+        domain: str,
+        service: str,
+        service_func: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        handlers[f"{domain}.{service}"] = service_func
+
+    monkeypatch.setattr(
+        type(hass.services), "async_register", _async_register, raising=True
+    )
+    assert await redsea_init.async_setup(hass, {}) is True
+    handler = handlers[f"{redsea_init.DOMAIN}.get_control_probes"]
+
+    class _StubControl:
+        def __init__(self, hwid: str, probes: Any) -> None:
+            self.model_id = hwid
+            self._probes = probes
+
+        def get_data(self, _path: str, is_None_possible: bool = False) -> Any:
+            return self._probes
+
+    monkeypatch.setattr(redsea_init, "ReefControlCoordinator", _StubControl)
+
+    probes = [
+        {"type": "ph", "uid": "0x00B39", "name": "pH", "value": 8.13},
+        {"type": "orp", "uid": "0x0071F", "name": "ORP", "value": 161},
+    ]
+    hass.data.setdefault(redsea_init.DOMAIN, {})
+    hass.data[redsea_init.DOMAIN]["ctl"] = _StubControl("d4e9f4e89208", probes)
+    # A non-ReefControlCoordinator entry (e.g. an unrelated RSPower/cloud
+    # coordinator sharing hass.data[DOMAIN]) must be skipped, not matched.
+    hass.data[redsea_init.DOMAIN]["other"] = object()
+
+    resp = await handler(SimpleNamespace(data={"hwid": "d4e9f4e89208"}))
+    assert resp == {"hwid": "d4e9f4e89208", "probes": probes}
+
+    # Unknown hwid.
+    resp2 = await handler(SimpleNamespace(data={"hwid": "unknown"}))
+    assert resp2 == {"error": "No RSCONTROL hub found for hwid 'unknown'"}
+
+    # Missing/blank hwid.
+    resp3 = await handler(SimpleNamespace(data={}))
+    assert resp3 == {"error": "hwid is required"}
+
+    # Probes data present but not a list (e.g. dashboard not yet fetched,
+    # still the "" placeholder) -> an empty list, not a crash.
+    hass.data[redsea_init.DOMAIN]["ctl2"] = _StubControl("hwid2", "")
+    resp4 = await handler(SimpleNamespace(data={"hwid": "hwid2"}))
+    assert resp4 == {"hwid": "hwid2", "probes": []}
+
+
+@pytest.mark.asyncio
+async def test_get_control_subscriptions_service_handler(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """redsea.get_control_subscriptions reads the hub's socket rules live
+    (GET /subscription-info), addressed by hwid like get_control_probes.
+    """
+    import custom_components.redsea as redsea_init
+
+    handlers: dict[str, Any] = {}
+
+    def _async_register(
+        self: Any,
+        domain: str,
+        service: str,
+        service_func: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        handlers[f"{domain}.{service}"] = service_func
+
+    monkeypatch.setattr(
+        type(hass.services), "async_register", _async_register, raising=True
+    )
+    assert await redsea_init.async_setup(hass, {}) is True
+    handler = handlers[f"{redsea_init.DOMAIN}.get_control_subscriptions"]
+
+    class _StubControl:
+        def __init__(self, hwid: str, result: Any) -> None:
+            self.model_id = hwid
+            self.my_api = SimpleNamespace(http_get=AsyncMock(return_value=result))
+
+    monkeypatch.setattr(redsea_init, "ReefControlCoordinator", _StubControl)
+
+    external = [
+        {
+            "number": 1,
+            "type": "temperature",
+            "uid": "0x000F7",
+            "sensor": "value",
+            "is_above": True,
+            "value": 26.5,
+            "hysteresis": 0.2,
+            "trigger_op": "on",
+            "last_sock_op": "off",
+        }
+    ]
+    internal = [{"number": 1, "type": "ato"}]
+    ok = _StubControl(
+        "hub1",
+        {
+            "ok": True,
+            "status": 200,
+            "json": {"external": external, "internal": internal},
+        },
+    )
+    hass.data.setdefault(redsea_init.DOMAIN, {})
+    hass.data[redsea_init.DOMAIN]["ctl"] = ok
+    hass.data[redsea_init.DOMAIN]["other"] = object()
+
+    # Nominal: both rule lists returned, read live from the hub.
+    resp = await handler(SimpleNamespace(data={"hwid": "hub1"}))
+    assert resp == {"hwid": "hub1", "external": external, "internal": internal}
+    ok.my_api.http_get.assert_awaited_once_with("/subscription-info")
+
+    # Missing/blank hwid.
+    assert await handler(SimpleNamespace(data={})) == {"error": "hwid is required"}
+    assert await handler(SimpleNamespace(data={"hwid": ""})) == {
+        "error": "hwid is required"
+    }
+
+    # Unknown hwid.
+    assert await handler(SimpleNamespace(data={"hwid": "nope"})) == {
+        "error": "No RSCONTROL hub found for hwid 'nope'"
+    }
+
+    # Request raising.
+    boom = _StubControl("hub2", None)
+    boom.my_api.http_get.side_effect = RuntimeError("down")
+    hass.data[redsea_init.DOMAIN]["ctl2"] = boom
+    assert await handler(SimpleNamespace(data={"hwid": "hub2"})) == {
+        "error": "request failed"
+    }
+
+    # Failed request, no answer, or a non-dict payload.
+    for i, result in enumerate(
+        (
+            {"ok": False, "status": 503},
+            None,
+            {"ok": True, "status": 200, "json": ["not", "a", "dict"]},
+        )
+    ):
+        hwid = f"bad{i}"
+        hass.data[redsea_init.DOMAIN][hwid] = _StubControl(hwid, result)
+        assert await handler(SimpleNamespace(data={"hwid": hwid})) == {
+            "error": f"can not read the subscriptions of hub '{hwid}'"
+        }
+
+    # Lists missing or malformed -> empty lists, not a crash.
+    hass.data[redsea_init.DOMAIN]["partial"] = _StubControl(
+        "partial", {"ok": True, "json": {"external": "x"}}
+    )
+    assert await handler(SimpleNamespace(data={"hwid": "partial"})) == {
+        "hwid": "partial",
+        "external": [],
+        "internal": [],
+    }

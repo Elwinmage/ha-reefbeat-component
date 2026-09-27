@@ -54,6 +54,11 @@ class _Dev:
     def fusion_attributes(self) -> dict[str, Any]:
         return {"count": self.src_count, "fused": 25.1}
 
+    async def set_probe_unit(self, uid: str, unit: str) -> None:
+        self.unit_calls.append((uid, unit))
+
+    unit_calls: list[tuple[str, str]] = field(default_factory=list)
+
 
 # ---------------------------------------------------------------------------
 # select — fusion-method entity gated on >=2 sources
@@ -99,6 +104,65 @@ async def test_select_no_fusion_method_below_two_sources(
         cast(Any, lambda new, _u=False: added.extend(list(new))),
     )
     assert added == []
+
+
+# ---------------------------------------------------------------------------
+# select — EC probe unit
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_select_builds_ec_unit_for_ec_probes(
+    hass: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(select_platform, "ReefControlCoordinator", _Dev)
+
+    device = _Dev(port_count=0, src_count=0)
+    device.get_data_map["$.sources[?(@.name=='/dashboard')].data.probes"] = [
+        {"type": "ec", "uid": "0xE1", "name": "EC"},
+        {"type": "ph", "uid": "0xP1", "name": "pH"},  # not ec -> no unit select
+    ]
+    entry = MockConfigEntry(domain=DOMAIN, title="ctl", data={}, unique_id="sel-ec")
+    entry.add_to_hass(hass)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = device
+
+    added: list[Any] = []
+    await select_platform.async_setup_entry(
+        hass,
+        cast(Any, entry),
+        cast(Any, lambda new, _u=False: added.extend(list(new))),
+    )
+    keys = {e._description.key for e in added}
+    assert "probe_ec_0xe1_unit" in keys
+    assert not any(k.endswith("_unit") and "0xp1" in k for k in keys)
+
+    unit_entity = next(e for e in added if e._description.key == "probe_ec_0xe1_unit")
+    assert unit_entity._description.options == ["ec", "ppt", "sg"]
+
+
+@pytest.mark.asyncio
+async def test_ec_unit_select_writes_via_set_probe_unit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    device = _Dev(port_count=0, src_count=0)
+    desc = select_platform.ReefBeatSelectEntityDescription(
+        key="probe_ec_0xe1_unit",
+        translation_key="probe_ec_unit",
+        options=["ec", "ppt", "sg"],
+        value_name=(
+            "$.sources[?(@.name=='/probe/config')].data[?(@.type=='ec' "
+            "& @.uid=='0xE1')].unit"
+        ),
+    )
+    ent = select_platform.ReefControlProbeECUnitSelectEntity(
+        cast(Any, device), desc, uid="0xE1"
+    )
+    monkeypatch.setattr(ent, "async_write_ha_state", lambda: None, raising=False)
+
+    await ent.async_select_option("sg")
+
+    assert ent.current_option == "sg"
+    assert device.unit_calls == [("0xE1", "sg")]
 
 
 # ---------------------------------------------------------------------------

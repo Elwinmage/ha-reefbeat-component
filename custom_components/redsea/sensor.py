@@ -54,7 +54,7 @@ import logging
 import re
 from collections.abc import Callable
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cached_property
 from typing import Any, Protocol, TypeAlias, cast, runtime_checkable
 
@@ -108,6 +108,7 @@ from .coordinator import (
     ReefWaveCoordinator,
 )
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
+from .probe_entities import probe_state_attributes
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -1128,6 +1129,8 @@ POWER_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         # On a standalone RSPower with a local temperature probe, `temperature`
         # is an object {value,status,level,...}; without a probe it is null.
         value_fn=lambda device: _power_local_temperature(device),
+        # Same shape as a hub probe's reading, so a card draws both alike
+        attributes_fn=lambda device: _power_temperature_attributes(device),
         icon="mdi:thermometer",
         suggested_display_precision=1,
     ),
@@ -1293,6 +1296,18 @@ def _epoch_to_datetime(ts: Any) -> datetime.datetime | None:
 _MANUAL_OVERRIDE_MODES: frozenset[str] = frozenset({"on", "off"})
 
 
+def _socket_sensor_attributes(device: Any, socket: int) -> dict[str, Any]:
+    """``sensor_config``/``sensor_source`` attributes of a socket_N_mode sensor.
+
+    The rule comes either from the power center's local temperature probe or
+    from the paired RSCONTROL hub (see
+    ``ReefPowerCoordinator.socket_sensor_config``); ``sensor_source`` tells a
+    card which of the two shapes ``sensor_config`` has.
+    """
+    source, config = cast(ReefPowerCoordinator, device).socket_sensor_config(socket)
+    return {"sensor_config": config, "sensor_source": source}
+
+
 def _effective_socket_state(mode: Any, state: Any) -> str | None:
     """Return a meaningful on/standby/off value for a RSPOWER socket or a
     RSCONTROL 12V port, working around a Red Sea firmware quirk.
@@ -1324,6 +1339,21 @@ def _effective_socket_state(mode: Any, state: Any) -> str | None:
     return None
 
 
+def _port_mode_attributes_fn(
+    port: int,
+) -> Callable[[ReefBeatCoordinator], dict[str, Any]]:
+    """Attributes of a hub port's mode sensor: its number, then everything
+    the card's port editor reads (see ``port_mode_attributes``)."""
+
+    def attributes(device: ReefBeatCoordinator) -> dict[str, Any]:
+        return {
+            "port": port,
+            **cast(ReefControlCoordinator, device).port_mode_attributes(port),
+        }
+
+    return attributes
+
+
 # JSONPath selector to find a probe by its stable `uid` (independent of the
 # probe's array position, so plug/unplug reordering doesn't break entities).
 def _probe_path(uid: str, field: str) -> str:
@@ -1347,6 +1377,39 @@ def _power_local_temperature(device: ReefBeatCoordinator) -> StateType:
     if isinstance(temp, (int, float)):
         return temp
     return None
+
+
+_POWER_RANGE_FIELDS: tuple[str, ...] = (
+    "acceptable_range_low",
+    "desired_range_low",
+    "desired_range_high",
+    "acceptable_range_high",
+)
+
+
+def _power_temperature_attributes(device: ReefBeatCoordinator) -> dict[str, Any]:
+    """Bounds and level of the RSPower local temperature.
+
+    ``ranges`` is ``[acceptable_low, desired_low, desired_high,
+    acceptable_high]`` from ``/temperature/config`` (None until it is cached
+    or when a bound is missing), as the hub probes carry it; ``level`` is the
+    power center's own verdict from ``/dashboard.temperature.level``.
+    """
+    config = device.get_data(
+        "$.sources[?(@.name=='/temperature/config')].data", is_None_possible=True
+    )
+    ranges: list[float] | None = None
+    if isinstance(config, dict):
+        values = [cast(dict[str, Any], config).get(f) for f in _POWER_RANGE_FIELDS]
+        if all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in values):
+            ranges = [float(cast(float, v)) for v in values]
+    temp = device.get_data(
+        "$.sources[?(@.name=='/dashboard')].data.temperature", is_None_possible=True
+    )
+    level: Any = (
+        cast(dict[str, Any], temp).get("level") if isinstance(temp, dict) else None
+    )
+    return {"ranges": ranges, "level": level}
 
 
 # Icons per probe type — falls back to a generic sensor icon if unknown.
@@ -1616,6 +1679,52 @@ def _build_probe_descriptions(
             ]
         )
 
+    # ORP: no calibration date in /dashboard. The date of its last validation
+    # is the offset's, read from the per-probe /probe/offset source (updated
+    # by every validation, even one leaving the offset as is).
+    if ptype == "orp":
+        descs.append(
+            ReefBeatSensorEntityDescription(
+                key=f"probe_{uid_key}_last_adjustment",
+                translation_key="probe_last_adjustment",
+                translation_placeholders=tp,
+                icon="mdi:tune-vertical",
+                device_class=SensorDeviceClass.TIMESTAMP,
+                entity_category=EntityCategory.DIAGNOSTIC,
+                value_fn=lambda d, p=(f"$.sources[?(@.name=='/probe/offset?type=orp&uid={uid}')].data.last_adjustment_date"): (
+                    _epoch_to_datetime(d.get_data(p, is_None_possible=True))
+                ),
+            )
+        )
+
+    # Leak probe: where the water comes from and the conductivity behind it,
+    # from the probe's own reading (the dashboard only has `detected`, see
+    # ReefControlAPI.leak_status). Read on its own as soon as it turns wet,
+    # and by its "read value" button.
+    if ptype == "leak":
+        descs.extend(
+            [
+                ReefBeatSensorEntityDescription(
+                    key=f"probe_{uid_key}_leak_status",
+                    translation_key="probe_leak_status",
+                    translation_placeholders=tp,
+                    icon="mdi:water-alert",
+                    device_class=SensorDeviceClass.ENUM,
+                    options=list(_PROBE_LEAK_STATUS_OPTIONS),
+                    value_fn=_leak_status_fn(uid),
+                ),
+                ReefBeatSensorEntityDescription(
+                    key=f"probe_{uid_key}_conductivity",
+                    translation_key="probe_leak_conductivity",
+                    translation_placeholders=tp,
+                    icon="mdi:current-ac",
+                    state_class=SensorStateClass.MEASUREMENT,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                    value_fn=_leak_conductivity_fn(uid),
+                ),
+            ]
+        )
+
     # EC probe: expose the three raw derived values plus the display unit.
     if ptype == "ec":
         descs.extend(
@@ -1668,7 +1777,56 @@ def _build_probe_descriptions(
             ]
         )
 
-    return descs
+    # Every probe of a type shares the same translation keys: tag each entity
+    # with the probe it belongs to (and, for measurements, the bounds they are
+    # judged against) so a card can group them per probe.
+    ranges_of = {
+        f"probe_{uid_key}_value": "primary",
+        f"probe_{uid_key}_temp_value": "temp",
+    }
+    return [
+        replace(
+            desc,
+            attributes_fn=_probe_attributes_fn(ptype, uid, ranges_of.get(desc.key)),
+        )
+        for desc in descs
+    ]
+
+
+_PROBE_LEAK_STATUS_OPTIONS: tuple[str, ...] = (
+    "dry",
+    "aquarium_water_leak",
+    "rodi_water_leak",
+)
+
+
+def _leak_status_fn(uid: str) -> Callable[[ReefBeatCoordinator], StateType]:
+    """Origin of a leak probe's water (``ReefControlCoordinator.leak_status``)."""
+
+    def value(device: ReefBeatCoordinator) -> StateType:
+        return cast(ReefControlCoordinator, device).leak_status(uid)
+
+    return value
+
+
+def _leak_conductivity_fn(uid: str) -> Callable[[ReefBeatCoordinator], StateType]:
+    """Conductivity of a leak probe's last reading."""
+
+    def value(device: ReefBeatCoordinator) -> StateType:
+        return cast(ReefControlCoordinator, device).leak_conductivity(uid)
+
+    return value
+
+
+def _probe_attributes_fn(
+    ptype: str, uid: str, ranges: str | None
+) -> Callable[[ReefBeatCoordinator], dict[str, Any]]:
+    """Attributes tying a probe entity to its probe (``probe_state_attributes``)."""
+
+    def attributes(device: ReefBeatCoordinator) -> dict[str, Any]:
+        return probe_state_attributes(device, ptype, uid, ranges)
+
+    return attributes
 
 
 # -----------------------------------------------------------------------------
@@ -2054,11 +2212,7 @@ async def async_setup_entry(
                         # has instead of waiting on a request of its own.
                         attributes_fn=lambda d, i=socket_idx, sched=(f"$.sources[?(@.name=='/socket/{socket_idx}/config/schedule')].data"): {
                             "schedule": d.get_data(sched),
-                            "sensor_config": d.get_data(
-                                "$.sources[?(@.name=='/temperature/subscriptions')]"
-                                f".data.sockets[?(@.number=={i})]",
-                                is_None_possible=True,
-                            ),
+                            **_socket_sensor_attributes(d, i),
                         },
                     ),
                     ReefBeatSensorEntityDescription(
@@ -2108,6 +2262,7 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_name",
                         translation_key="port_name",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        attributes_fn=lambda _d, i=port_idx: {"port": i},
                         icon="mdi:usb-port",
                         value_fn=lambda d, p=f"{base}.name": d.get_data(
                             p, is_None_possible=True
@@ -2117,6 +2272,7 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_state",
                         translation_key="port_state",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        attributes_fn=lambda _d, i=port_idx: {"port": i},
                         icon="mdi:electric-switch",
                         # Same firmware quirk as sockets: mode == "on" | "off"
                         # forces state to "unknown". See _effective_socket_state
@@ -2132,6 +2288,9 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_mode",
                         translation_key="port_mode",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        # Everything the card's port editor reads, as the
+                        # socket_N_mode sensors of a power center do.
+                        attributes_fn=_port_mode_attributes_fn(port_idx),
                         icon="mdi:cog-outline",
                         value_fn=lambda d, p=f"{base}.mode": d.get_data(
                             p, is_None_possible=True
@@ -2141,6 +2300,7 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_type",
                         translation_key="port_type",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        attributes_fn=lambda _d, i=port_idx: {"port": i},
                         icon="mdi:import",
                         value_fn=lambda d, p=f"{base}.type": d.get_data(
                             p, is_None_possible=True
@@ -2151,6 +2311,7 @@ async def async_setup_entry(
                         key=f"port_{port_idx}_consumption",
                         translation_key="port_consumption",
                         translation_placeholders={"port": str(port_idx + 1)},
+                        attributes_fn=lambda _d, i=port_idx: {"port": i},
                         icon="mdi:flash",
                         native_unit_of_measurement=UnitOfPower.WATT,
                         device_class=SensorDeviceClass.POWER,
@@ -2164,93 +2325,6 @@ async def async_setup_entry(
             )
         entities.extend(
             ReefBeatSensorEntity(device, description) for description in control_descs
-        )
-
-        # ATO-only per-port sensors. Ports that carry an ATO probe expose
-        # extra fields (today_volume, volume_left, last_pump_on_cause) that
-        # are absent from generic "other" ports (Ozone, etc.). We walk the
-        # /dashboard payload directly rather than going through a coordinator
-        # helper so this stays independent of the coordinator surface.
-        raw_ports = device.get_data(
-            "$.sources[?(@.name=='/dashboard')].data.ports",
-            is_None_possible=True,
-        )
-        ato_ports: list[dict[str, Any]] = (
-            [
-                p
-                for p in raw_ports
-                if isinstance(p, dict)
-                and p.get("type") == "ato"
-                and isinstance(p.get("number"), int)
-            ]
-            if isinstance(raw_ports, list)
-            else []
-        )
-        ato_port_descs: list[ReefBeatSensorEntityDescription] = []
-        for port in ato_ports:
-            port_idx = port["number"]
-            base = f"$.sources[?(@.name=='/dashboard')].data.ports[{port_idx}]"
-            ato_port_descs.extend(
-                [
-                    ReefBeatSensorEntityDescription(
-                        key=f"port_{port_idx}_today_volume",
-                        translation_key="port_today_volume",
-                        translation_placeholders={"port": str(port_idx + 1)},
-                        icon="mdi:cup-water",
-                        native_unit_of_measurement="mL",
-                        state_class=SensorStateClass.TOTAL_INCREASING,
-                        suggested_display_precision=0,
-                        value_fn=lambda d, p=f"{base}.today_volume": d.get_data(
-                            p, is_None_possible=True
-                        ),
-                    ),
-                    ReefBeatSensorEntityDescription(
-                        key=f"port_{port_idx}_last_pump_on_cause",
-                        translation_key="port_last_pump_on_cause",
-                        translation_placeholders={"port": str(port_idx + 1)},
-                        icon="mdi:history",
-                        device_class=SensorDeviceClass.ENUM,
-                        options=list(_ATO_PUMP_CAUSE_OPTIONS),
-                        entity_category=EntityCategory.DIAGNOSTIC,
-                        value_fn=lambda d, p=f"{base}.last_pump_on_cause": d.get_data(
-                            p, is_None_possible=True
-                        ),
-                    ),
-                    # Timestamp of the last successful ATO fill. Field
-                    # `last_fill_date` in the firmware payload; may be absent
-                    # until at least one fill happens.
-                    ReefBeatSensorEntityDescription(
-                        key=f"port_{port_idx}_last_fill_date",
-                        translation_key="port_last_fill_date",
-                        translation_placeholders={"port": str(port_idx + 1)},
-                        icon="mdi:calendar-check",
-                        device_class=SensorDeviceClass.TIMESTAMP,
-                        entity_category=EntityCategory.DIAGNOSTIC,
-                        value_fn=lambda d, p=f"{base}.last_fill_date": (
-                            _epoch_to_datetime(d.get_data(p, is_None_possible=True))
-                        ),
-                    ),
-                    # Water source detected by the leak probe. `dry` =
-                    # healthy, `aquarium_water_leak` / `rodi_water_leak` = leak
-                    # from the tank vs the RO/DI feed. Field `leak_status` in
-                    # the payload; only present when the ATO module has a leak
-                    # sensor.
-                    ReefBeatSensorEntityDescription(
-                        key=f"port_{port_idx}_leak_status",
-                        translation_key="port_leak_status",
-                        translation_placeholders={"port": str(port_idx + 1)},
-                        icon="mdi:water-alert-outline",
-                        device_class=SensorDeviceClass.ENUM,
-                        options=list(_ATO_LEAK_STATUS_OPTIONS),
-                        entity_category=EntityCategory.DIAGNOSTIC,
-                        value_fn=lambda d, p=f"{base}.leak_status": d.get_data(
-                            p, is_None_possible=True
-                        ),
-                    ),
-                ]
-            )
-        entities.extend(
-            ReefBeatSensorEntity(device, description) for description in ato_port_descs
         )
 
         # Discover connected ReefSense probes (dynamic — depends on physical

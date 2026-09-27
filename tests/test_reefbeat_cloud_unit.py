@@ -67,6 +67,46 @@ async def test_cloud_connect_non_200_raises_invalidauth() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("status", [400, 403])
+async def test_cloud_connect_rejected_credentials_raise_invalidauth(
+    status: int,
+) -> None:
+    mod = importlib.reload(cloud_mod)
+    session = _FakeSession(_FakeResponse(status=status, text_body="bad", json_body={}))
+    api = mod.ReefBeatCloudAPI(
+        username="u",
+        password="p",
+        live_config_update=True,
+        ip="cloud.example",
+        session=cast(Any, session),
+        disable_supplement=True,
+    )
+
+    with pytest.raises(mod.InvalidAuth, match="bad"):
+        await api.connect()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("status", [429, 500, 503])
+async def test_cloud_connect_outage_raises_cloud_unavailable(status: int) -> None:
+    # An outage is not a credentials verdict: it must stay retryable.
+    mod = importlib.reload(cloud_mod)
+    session = _FakeSession(_FakeResponse(status=status, text_body="down", json_body={}))
+    api = mod.ReefBeatCloudAPI(
+        username="u",
+        password="p",
+        live_config_update=True,
+        ip="cloud.example",
+        session=cast(Any, session),
+        disable_supplement=True,
+    )
+
+    with pytest.raises(mod.CloudUnavailable, match=f"HTTP {status}"):
+        await api.connect()
+    assert not issubclass(mod.CloudUnavailable, mod.InvalidAuth)
+
+
+@pytest.mark.asyncio
 async def test_cloud_connect_missing_token_raises_invalidauth() -> None:
     mod = importlib.reload(cloud_mod)
     ReefBeatCloudAPI2 = mod.ReefBeatCloudAPI

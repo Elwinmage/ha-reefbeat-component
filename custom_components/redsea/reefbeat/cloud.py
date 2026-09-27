@@ -30,6 +30,11 @@ _LOGGER = logging.getLogger(__name__)
 # =============================================================================
 
 
+# OAuth token endpoint statuses meaning "these credentials are refused". Any
+# other failure (5xx, 429, ...) is an outage, not a credentials problem.
+_AUTH_REJECTED_STATUSES: frozenset[int] = frozenset({400, 401, 403})
+
+
 class ReefBeatCloudAPI(ReefBeatAPI):
     """ReefBeat cloud API wrapper.
 
@@ -138,9 +143,14 @@ class ReefBeatCloudAPI(ReefBeatAPI):
             with suppress(Exception):
                 r_json = await resp.json(content_type=None)
 
-        if r_status != 200:
+        if r_status in _AUTH_REJECTED_STATUSES:
             _LOGGER.error("Authentification fail. Verify your credentials")
             raise InvalidAuth(r_text)
+        if r_status != 200:
+            # Cloud outage or maintenance (5xx, 429, ...): the credentials may
+            # well be right, so this must stay retryable.
+            _LOGGER.warning("ReefBeat cloud unavailable (HTTP %s)", r_status)
+            raise CloudUnavailable(f"HTTP {r_status}: {r_text}")
 
         data: dict[str, Any] = {}
         if isinstance(r_json, dict):
@@ -177,3 +187,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
 
 class InvalidAuth(HomeAssistantError):
     """Error to indicate invalid authentication."""
+
+
+class CloudUnavailable(HomeAssistantError):
+    """The cloud answered, but not with a credentials verdict (outage...)."""

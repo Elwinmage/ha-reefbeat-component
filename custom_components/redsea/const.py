@@ -106,6 +106,16 @@ DEFAULT_TIMEOUT: Final[int] = 20
 HTTP_MAX_RETRY: Final[int] = 5
 HTTP_DELAY_BETWEEN_RETRY: Final[int] = 2
 
+# Budget for the one-time connectivity probe in `get_initial_data()` (the
+# device-info fetch that gates the whole entry setup). Deliberately much
+# smaller than HTTP_MAX_RETRY/DEFAULT_TIMEOUT: an unreachable device (e.g.
+# unplugged) fails identically on retry 1 as on retry 5, so burning the full
+# resilience budget here only blocks Home Assistant's startup longer for no
+# benefit — a transient blip still gets a fresh attempt shortly after via
+# ConfigEntryNotReady's own retry-with-backoff.
+INITIAL_PROBE_MAX_RETRY: Final[int] = 2
+INITIAL_PROBE_TIMEOUT: Final[int] = 5
+
 # -----------------------------------------------------------------------------
 # Wi-Fi provisioning (options flow)
 # -----------------------------------------------------------------------------
@@ -554,3 +564,51 @@ WAVES_DATA_NAMES: Final[tuple[str, ...]] = (
     "sn",
     "pd",
 )
+
+# -----------------------------------------------------------------------------
+# RSCONTROL probe acceptable/desired range bounds
+# -----------------------------------------------------------------------------
+#
+# Input bounds per probe type/unit for the acceptable_range_low/high and
+# desired_range_low/high number entities. The acceptable bounds are the
+# ReefBeat app's own hard limits on those fields, extracted from
+# `ControlProbe.minimumValue()`/`maximumValue()` and
+# `EcProbeMeasuringUnit.getMinimumValue()`/`getMaximumValue()` (decompiled
+# classes2.dex); the desired bounds are a separate, narrower "recommended
+# zone" the app also enforces there (matching well-known reef-keeping
+# targets — e.g. pH 7.6-8.4 — for ec/ppt/sg the two coincide, so there is no
+# separate narrower zone for those two units). The device itself is the
+# arbiter of the acceptable_min < desired_min < desired_max < acceptable_max
+# nesting invariant — not enforced client-side (see the entity docstrings).
+# Temperature's bounds are reused for every probe's embedded
+# temperature-compensation threshold (the `temp.ranges` sub-object).
+PROBE_RANGE_BOUNDS: Final[dict[str, tuple[float, float, float, float, float]]] = {
+    # probe type -> (acceptable_min, acceptable_max, desired_min, desired_max, step)
+    "temperature": (0, 60, 21, 26, 0.1),
+    "ph": (0, 15, 7.6, 8.4, 0.1),
+    "orp": (-800, 800, 100, 400, 1),
+}
+
+# RSCONTROL EC (salinity) probes report in one of three units, selectable by
+# the user; each has its own bounds and step.
+EC_UNIT_BOUNDS: Final[dict[str, tuple[float, float, float, float, float]]] = {
+    # unit -> (acceptable_min, acceptable_max, desired_min, desired_max, step)
+    "ec": (0, 100, 46.2, 54.4, 0.1),  # conductivity, mS/cm
+    "ppt": (0, 70, 0, 70, 0.1),  # salinity, parts per thousand
+    "sg": (1.0, 1.04, 1.0, 1.04, 0.001),  # specific gravity
+}
+EC_UNITS: Final[tuple[str, ...]] = ("ec", "ppt", "sg")
+
+# Default [acceptable_min, desired_min, desired_max, acceptable_max] pushed to
+# a probe's `ranges` when its unit changes: the device does NOT rescale the
+# existing numeric range itself, so leaving it as-is after a unit switch
+# produces nonsensical bounds (e.g. an EC-scale value like 54 read as SG,
+# which only spans 1.0-1.04). "ec" is confirmed from a real hub's
+# /probe/config; "ppt" is confirmed from a real probe currently set to that
+# unit; "sg" is estimated (no observed sample yet) from the typical target
+# range for reef tanks — verify against a real device and adjust if needed.
+EC_UNIT_DEFAULT_RANGES: Final[dict[str, list[float]]] = {
+    "ec": [46.2, 49, 54.4, 59.7],
+    "ppt": [30, 32, 36, 40],
+    "sg": [1.020, 1.023, 1.026, 1.028],  # estimated — please verify
+}

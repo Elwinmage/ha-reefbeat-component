@@ -84,27 +84,17 @@ def test_probe_offset_reads_dynamic_source() -> None:
             }
         ],
     )
-    assert api.probe_offset("0xT") == 0.3
-
-
-@pytest.mark.asyncio
-async def test_set_and_reset_probe_offset() -> None:
-    api = _control_api()
-    await api.set_probe_offset("0xT", 0.5)
-    api.http_send.assert_awaited_with(
-        "/probe/offset?type=temperature&uid=0xT", {"offset": 0.5}, "post"
-    )
-    await api.reset_probe_offset("0xT")
-    api.http_send.assert_awaited_with(
-        "/probe/offset?type=temperature&uid=0xT", None, "delete"
-    )
+    assert api.cached_offset("/probe/offset?type=temperature&uid=0xT") == 0.3
+    assert api.cached_offset("/probe/offset?type=orp&uid=0xT") == 0.0
 
 
 @pytest.mark.asyncio
 async def test_install_probe_success_stops_ble() -> None:
     api = _control_api()
     api.http_send = AsyncMock(return_value={"json": {"uid": "0xNEW", "success": True}})
+    api.http_get = AsyncMock(return_value=None)
     await api.install_probe("ph")
+    api.http_get.assert_awaited_once_with("/probe/info?type=ph&uid=0xNEW")
     assert api.http_send.await_count == 3
     api.http_send.assert_any_call("/ble/off?type=ph&uid=0xNEW", {}, "post")
     api.http_send.assert_awaited_with(
@@ -125,15 +115,44 @@ async def test_install_probe_success_stops_ble() -> None:
 
 
 @pytest.mark.asyncio
-async def test_install_probe_leak_needs_no_config_seed() -> None:
-    """A leak probe's /probe/config entry is just {name, type, uid} — writing
-    to it 503s, so install_probe must not attempt a PUT for it.
+async def test_install_probe_leak_follows_the_app() -> None:
+    """A leak probe stays in `setup` (hidden by the app, silent) until its
+    alarm settings and its name are written, as the app does (capture of
+    the app installing leak probe 0x0032B).
     """
     api = _control_api()
-    api.http_send = AsyncMock(return_value={"json": {"uid": "0xLEAK", "success": True}})
+    api.http_get = AsyncMock(return_value={"json": {"hwid": "x"}})
+    api.fetch_config = AsyncMock()
+    api.http_send = AsyncMock(
+        return_value={"json": {"uid": "0x0032B", "success": True}}
+    )
     await api.install_probe("leak")
-    assert api.http_send.await_count == 2
-    api.http_send.assert_awaited_with("/ble/off?type=leak&uid=0xLEAK", {}, "post")
+    api.http_get.assert_awaited_once_with("/probe/info?type=leak&uid=0x0032B")
+    assert [c.args for c in api.http_send.await_args_list] == [
+        ("/probe/install?type=leak", {}, "post"),
+        ("/ble/off?type=leak&uid=0x0032B", {}, "post"),
+        (
+            "/leak/config",
+            {
+                "buzzer": True,
+                "leak_detector": True,
+                "notify": True,
+                "emergency_shutdown": False,
+            },
+            "put",
+        ),
+        (
+            "/probe/config",
+            [{"name": "Leak 32B", "uid": "0x0032B", "type": "leak"}],
+            "put",
+        ),
+    ]
+    api.fetch_config.assert_awaited_once_with("/probe/config")
+
+
+def test_leak_probe_name() -> None:
+    assert ReefControlAPI._leak_probe_name("0x0032B") == "Leak 32B"
+    assert ReefControlAPI._leak_probe_name("0x00000") == "Leak 0"
 
 
 @pytest.mark.asyncio
@@ -149,6 +168,124 @@ async def test_delete_probe() -> None:
     api = _control_api()
     await api.delete_probe("ph", "0xP")
     api.http_send.assert_awaited_with("/probe?type=ph&uid=0xP", None, "delete")
+
+
+def _probe_config_source(entries: list[dict[str, Any]]) -> dict[str, Any]:
+    return {"name": "/probe/config", "type": "config", "data": entries}
+
+
+def test_probe_entry_found_and_missing() -> None:
+    api = _control_api(
+        extra_sources=[
+            _probe_config_source(
+                [{"type": "ph", "uid": "0xP", "ranges": [7.6, 7.9, 8.4, 8.6]}]
+            )
+        ]
+    )
+    assert api.probe_entry("ph", "0xP") == {
+        "type": "ph",
+        "uid": "0xP",
+        "ranges": [7.6, 7.9, 8.4, 8.6],
+    }
+    assert api.probe_entry("ph", "0xMISSING") is None
+
+
+@pytest.mark.asyncio
+async def test_set_probe_range_primary_replaces_one_bound() -> None:
+    """The firmware has no element-wise update: the whole 4-element `ranges`
+    array is resent, with only the changed bound replaced.
+    """
+    api = _control_api(
+        extra_sources=[
+            _probe_config_source(
+                [{"type": "ph", "uid": "0xP", "ranges": [7.6, 7.9, 8.4, 8.6]}]
+            )
+        ]
+    )
+    await api.set_probe_range("ph", "0xP", "desired_range_high", 8.5)
+    api.http_send.assert_awaited_once_with(
+        "/probe/config",
+        [{"type": "ph", "uid": "0xP", "ranges": [7.6, 7.9, 8.5, 8.6]}],
+        "put",
+    )
+
+
+@pytest.mark.asyncio
+async def test_set_probe_range_temp_sub_threshold() -> None:
+    """`is_temp=True` targets the embedded temp-compensation ranges instead
+    of the probe's own primary range.
+    """
+    api = _control_api(
+        extra_sources=[
+            _probe_config_source(
+                [
+                    {
+                        "type": "ec",
+                        "uid": "0xE",
+                        "ranges": [46.2, 49, 54.4, 59.7],
+                        "temp": {"ranges": [21, 23, 26, 28]},
+                    }
+                ]
+            )
+        ]
+    )
+    await api.set_probe_range("ec", "0xE", "acceptable_range_low", 20, is_temp=True)
+    api.http_send.assert_awaited_once_with(
+        "/probe/config",
+        [{"type": "ec", "uid": "0xE", "temp": {"ranges": [20, 23, 26, 28]}}],
+        "put",
+    )
+
+
+@pytest.mark.asyncio
+async def test_set_probe_range_no_prior_entry_seeds_zeros() -> None:
+    """No cached /probe/config entry yet (e.g. right after install, before
+    the first confirmed read) — start from an all-zero array rather than
+    failing, so the write still goes through.
+    """
+    api = _control_api()  # no /probe/config source at all
+    await api.set_probe_range("orp", "0xO", "desired_range_low", 200)
+    api.http_send.assert_awaited_once_with(
+        "/probe/config",
+        [{"type": "orp", "uid": "0xO", "ranges": [0.0, 200, 0.0, 0.0]}],
+        "put",
+    )
+
+
+@pytest.mark.asyncio
+async def test_set_probe_unit_puts_unit_field_and_resets_default_ranges() -> None:
+    """The device does not rescale the stored ranges itself when the unit
+    changes, so the write must reset them to that unit's own defaults —
+    otherwise an EC-scale value like 54 stays labelled as SG.
+    """
+    api = _control_api()
+    await api.set_probe_unit("0xE", "sg")
+    api.http_send.assert_awaited_once_with(
+        "/probe/config",
+        [
+            {
+                "type": "ec",
+                "uid": "0xE",
+                "unit": "sg",
+                "ranges": [1.02, 1.023, 1.026, 1.028],
+            }
+        ],
+        "put",
+    )
+
+    await api.set_probe_unit("0xE", "ppt")
+    api.http_send.assert_awaited_with(
+        "/probe/config",
+        [{"type": "ec", "uid": "0xE", "unit": "ppt", "ranges": [30, 32, 36, 40]}],
+        "put",
+    )
+
+    await api.set_probe_unit("0xE", "ec")
+    api.http_send.assert_awaited_with(
+        "/probe/config",
+        [{"type": "ec", "uid": "0xE", "unit": "ec", "ranges": [46.2, 49, 54.4, 59.7]}],
+        "put",
+    )
 
 
 @pytest.mark.asyncio
@@ -279,23 +416,6 @@ async def test_control_fetch_data_reconciles(monkeypatch: pytest.MonkeyPatch) ->
 # ===========================================================================
 
 
-def test_power_temperature_offset_reads_source() -> None:
-    api = _power_api(temperature=25.0)
-    api.data["sources"].append(
-        {"name": "/temperature/config", "type": "data", "data": {"offset": -0.2}}
-    )
-    assert api.temperature_offset() == -0.2
-
-
-@pytest.mark.asyncio
-async def test_power_set_reset_offset() -> None:
-    api = _power_api()
-    await api.set_temperature_offset(0.4)
-    api.http_send.assert_awaited_with("/probe/offset", {"offset": 0.4}, "post")
-    await api.reset_temperature_offset()
-    api.http_send.assert_awaited_with("/probe/offset", None, "delete")
-
-
 @pytest.mark.asyncio
 async def test_power_install_temperature_success_and_remove() -> None:
     api = _power_api()
@@ -415,6 +535,13 @@ async def test_power_fetch_data_reconciles(monkeypatch: pytest.MonkeyPatch) -> N
     assert "/temperature/subscriptions" in _source_names(api)
 
 
+def _power_offset(api: Any) -> Any:
+    return api.get_data(
+        "$.sources[?(@.name=='/temperature/config')].data.offset",
+        is_None_possible=True,
+    )
+
+
 def test_power_temperature_offset_survives_probe_swap() -> None:
     """A physical probe swap (remove then re-pair) must never leak a stale
     reading: RSPOWER has at most one temperature probe, so the offset entity
@@ -426,7 +553,7 @@ def test_power_temperature_offset_survives_probe_swap() -> None:
     api.data["sources"].append(
         {"name": "/temperature/config", "type": "data", "data": {"offset": 0.3}}
     )
-    assert api.temperature_offset() == 0.3
+    assert _power_offset(api) == 0.3
 
     # Probe unplugged: reconciliation (run by fetch_data on every refresh)
     # drops the config source. The very next read must return None, not the
@@ -436,7 +563,7 @@ def test_power_temperature_offset_survives_probe_swap() -> None:
     ]
     api.data["sources"][0]["data"]["temperature"] = None  # /dashboard entry
     api._reconcile_temperature_sources()
-    assert api.temperature_offset() is None
+    assert _power_offset(api) is None
 
     # A different probe is paired in its place: reconciliation re-adds the
     # source and the very next read must return its (different) fresh value,
@@ -447,7 +574,7 @@ def test_power_temperature_offset_survives_probe_swap() -> None:
         s for s in api.data["sources"] if s["name"] == "/temperature/config"
     )
     new_source["data"] = {"offset": -0.6}
-    assert api.temperature_offset() == -0.6
+    assert _power_offset(api) == -0.6
 
 
 @pytest.mark.asyncio
@@ -529,3 +656,17 @@ async def test_install_probe_seeds_defaults_for_every_configurable_type() -> Non
         ],
         "put",
     )
+
+
+def test_control_api_polls_subscription_info_as_data() -> None:
+    """/subscription-info (probe -> socket rules) is refreshed on every poll,
+    so a rule changed outside Home Assistant reaches the RSPower socket_N_mode
+    `sensor_config` attribute; the hub's settings stay config sources.
+    """
+    session: Any = object()
+    api = ReefControlAPI("192.0.2.1", False, session)
+    types = {s["name"]: s["type"] for s in api.data["sources"]}
+
+    assert types["/subscription-info"] == "data"
+    for name in ("/configuration", "/ports/config", "/probe/config"):
+        assert types[name] == "config"

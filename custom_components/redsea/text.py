@@ -35,6 +35,7 @@ from .coordinator import (
     ReefRunCoordinator,
 )
 from .entity import ReefBeatRestoreEntity, RestoreSpec
+from .probe_entities import tag_port_entities
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -254,6 +255,10 @@ async def async_setup_entry(
             for description in control_descs
             if description.exists_fn(device)
         )
+
+    # Both ports share their translation keys: tag each entity with its port
+    if isinstance(device, ReefControlCoordinator):
+        tag_port_entities(device, entities)
 
     async_add_entities(entities, True)
 

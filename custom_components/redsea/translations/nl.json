@@ -36,9 +36,6 @@
       "ato_sensor_connected": {
         "name": "Temperatuursensor verbonden"
       },
-      "auto_from_buttons": {
-        "name": "Auto from buttons"
-      },
       "battery_level": {
         "name": "Batterijniveau"
       },
@@ -102,18 +99,6 @@
       "missing_sensor": {
         "name": "Sensor ontbreekt"
       },
-      "port_check_sensor": {
-        "name": "Poort {port} sensor controleren"
-      },
-      "port_is_advancing": {
-        "name": "Poort {port} bezig"
-      },
-      "port_is_pump_on": {
-        "name": "Poort {port} pomp"
-      },
-      "port_leak_sensor": {
-        "name": "Poort {port} leksensor"
-      },
       "power_link_up": {
         "name": "Power center link"
       },
@@ -154,15 +139,6 @@
     "button": {
       "advance": {
         "name": "Vooruit"
-      },
-      "ato_manual_pump": {
-        "name": "Poort {port} handmatig vullen"
-      },
-      "ato_resume": {
-        "name": "Poort {port} hervatten"
-      },
-      "ato_stop": {
-        "name": "Poort {port} stop"
       },
       "delete_emergency": {
         "name": "Noodmelding verwijderen"
@@ -206,6 +182,12 @@
       "led_identify": {
         "name": "Identificeren"
       },
+      "get_temperature": {
+        "name": "Temperatuur ophalen"
+      },
+      "probe_get_value": {
+        "name": "{probe} nu uitlezen"
+      },
       "maint_ato_ec_sensor": {
         "name": "EC-sensor reinigen"
       },
@@ -216,6 +198,9 @@
         "name": "Sonde {probe} controleren"
       },
       "maint_control_probe_calibration_ph": {
+        "name": "Sonde {probe} kalibreren"
+      },
+      "maint_control_probe_calibration_ec": {
         "name": "Sonde {probe} kalibreren"
       },
       "maint_control_probe_clean": {
@@ -426,8 +411,11 @@
       "maint_control_probe_calibration_orp_interval_months": {
         "name": "Sonde {probe} controleren (maanden)"
       },
-      "maint_control_probe_calibration_ph_interval_weeks": {
-        "name": "Sonde {probe} kalibreren (weken)"
+      "maint_control_probe_calibration_ph_interval_months": {
+        "name": "Sonde {probe} kalibreren (maanden)"
+      },
+      "maint_control_probe_calibration_ec_interval_months": {
+        "name": "Sonde {probe} kalibreren (maanden)"
       },
       "maint_control_probe_clean_interval_weeks": {
         "name": "Sonde {probe} reinigen (weken)"
@@ -528,11 +516,17 @@
       "temperature_coherence_threshold": {
         "name": "Drempel temperatuurcoherentie"
       },
-      "probe_offset": {
-        "name": "Offset {probe}"
+      "probe_orp_calibration": {
+        "name": "{probe} kalibreren (waarde van de oplossing)"
       },
-      "temperature_offset": {
-        "name": "Temperatuuroffset"
+      "probe_temperature_calibration": {
+        "name": "{probe} kalibreren (werkelijke temperatuur)"
+      },
+      "probe_temp_calibration": {
+        "name": "Temperatuur van {probe} kalibreren (werkelijke temperatuur)"
+      },
+      "temperature_calibration": {
+        "name": "Temperatuur kalibreren (werkelijke temperatuur)"
       },
       "temperature_desired_range_low": {
         "name": "Gewenst temperatuurbereik (laag)"
@@ -545,6 +539,45 @@
       },
       "temperature_acceptable_range_high": {
         "name": "Acceptabel temperatuurbereik (hoog)"
+      },
+      "probe_acceptable_range_low": {
+        "name": "Acceptabel bereik {probe} (min)"
+      },
+      "probe_desired_range_low": {
+        "name": "Gewenst bereik {probe} (min)"
+      },
+      "probe_desired_range_high": {
+        "name": "Gewenst bereik {probe} (max)"
+      },
+      "probe_acceptable_range_high": {
+        "name": "Acceptabel bereik {probe} (max)"
+      },
+      "probe_temp_acceptable_range_low": {
+        "name": "Acceptabel temperatuurbereik {probe} (min)"
+      },
+      "probe_temp_desired_range_low": {
+        "name": "Gewenst temperatuurbereik {probe} (min)"
+      },
+      "probe_temp_desired_range_high": {
+        "name": "Gewenst temperatuurbereik {probe} (max)"
+      },
+      "probe_temp_acceptable_range_high": {
+        "name": "Acceptabel temperatuurbereik {probe} (max)"
+      },
+      "leak_buzzer_frequency": {
+        "name": "Frequentie lekzoemer"
+      },
+      "leak_buzzer_duty_cycle": {
+        "name": "Duty cycle lekzoemer"
+      },
+      "danger_buzzer_frequency": {
+        "name": "Frequentie gevaarzoemer"
+      },
+      "danger_buzzer_duty_cycle": {
+        "name": "Duty cycle gevaarzoemer"
+      },
+      "danger_debounce_seconds": {
+        "name": "Ontdender gevaar"
       }
     },
     "select": {
@@ -601,6 +634,14 @@
           "mean": "Gemiddelde",
           "min": "Minimum",
           "max": "Maximum"
+        }
+      },
+      "probe_ec_unit": {
+        "name": "Eenheid {probe}",
+        "state": {
+          "ec": "Geleidbaarheid (mS/cm)",
+          "ppt": "Saliniteit (ppt)",
+          "sg": "Dichtheid (SG)"
         }
       }
     },
@@ -851,26 +892,6 @@
       "port_consumption": {
         "name": "Port {port} consumption"
       },
-      "port_last_fill_date": {
-        "name": "Poort {port} laatste vulling"
-      },
-      "port_last_pump_on_cause": {
-        "name": "Poort {port} oorzaak laatste pomp",
-        "state": {
-          "none": "Geen",
-          "manual": "Handmatig",
-          "ec_sensor_s1": "Niveausensor S1",
-          "ec_sensor_s2": "Niveausensor S2"
-        }
-      },
-      "port_leak_status": {
-        "name": "Poort {port} lekstatus",
-        "state": {
-          "dry": "Droog",
-          "aquarium_water_leak": "Aquariumwaterlek",
-          "rodi_water_leak": "RO/DI-waterlek"
-        }
-      },
       "port_mode": {
         "name": "Port {port} mode"
       },
@@ -879,9 +900,6 @@
       },
       "port_state": {
         "name": "Port {port} state"
-      },
-      "port_today_volume": {
-        "name": "Poort {port} volume vandaag"
       },
       "port_type": {
         "name": "Port {port} type"
@@ -894,6 +912,17 @@
       },
       "probe_ec": {
         "name": "{probe} conductivity"
+      },
+      "probe_leak_status": {
+        "name": "{probe} lekbron",
+        "state": {
+          "dry": "Droog",
+          "aquarium_water_leak": "Aquariumwater",
+          "rodi_water_leak": "Osmosewater"
+        }
+      },
+      "probe_leak_conductivity": {
+        "name": "{probe} geleidbaarheid van het lek"
       },
       "probe_ec_value": {
         "name": "{probe} value"
@@ -1355,9 +1384,6 @@
       "acclimation": {
         "name": "Acclimatisatie"
       },
-      "ato_auto_fill": {
-        "name": "Poort {port} automatisch vullen"
-      },
       "auto_advance": {
         "name": "Automatisch vooruit"
       },
@@ -1392,6 +1418,9 @@
         "name": "Sonde {probe} controleren (meldingen)"
       },
       "maint_control_probe_calibration_ph_notify": {
+        "name": "Sonde {probe} kalibreren (meldingen)"
+      },
+      "maint_control_probe_calibration_ec_notify": {
         "name": "Sonde {probe} kalibreren (meldingen)"
       },
       "maint_control_probe_clean_notify": {
@@ -1513,6 +1542,15 @@
       },
       "temperature_log_enabled": {
         "name": "Temperatuurlogboek ingeschakeld"
+      },
+      "leak_buzzer_enabled": {
+        "name": "Lekzoemer"
+      },
+      "danger_buzzer_enabled": {
+        "name": "Gevaarzoemer"
+      },
+      "leak_detector_enabled": {
+        "name": "Lekdetector"
       }
     },
     "text": {
@@ -1696,6 +1734,50 @@
         "task_key": {
           "name": "Taak-id",
           "description": "Stabiele identifier van de onderhoudstaak (bv. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
+        }
+      }
+    },
+    "get_control_probes": {
+      "name": "Besturingssondes ophalen",
+      "description": "Geeft de sondes (identiteit en actuele waarden) van een gekoppelde RSCONTROL-hub terug, op basis van de hardware-ID.",
+      "fields": {
+        "hwid": {
+          "name": "Hardware-ID van de hub",
+          "description": "De hardware-ID (hwid) van de RSCONTROL-hub, zoals gerapporteerd in de connected_device.hwid van een gekoppelde RSPower."
+        }
+      }
+    },
+    "probe_calibration": {
+      "name": "Sondekalibratie",
+      "description": "Voert een stap uit van de kalibratie van een pH- of EC-sonde van de RSCONTROL: starten, punt, status of stoppen.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De RSCONTROL-hub (configuratie-item)."
+        },
+        "probe_type": {
+          "name": "Sondetype",
+          "description": "Type van de te kalibreren sonde."
+        },
+        "probe_uid": {
+          "name": "Sonde-uid",
+          "description": "Uid van de sonde, zoals de hub die meldt."
+        },
+        "action": {
+          "name": "Stap",
+          "description": "Kalibratiestap."
+        },
+        "point": {
+          "name": "Punt",
+          "description": "Kalibratiepunt (stap \"point\")."
+        },
+        "solution_value": {
+          "name": "Waarde van de oplossing",
+          "description": "Waarde van de kalibratieoplossing (pH, of mS/cm voor EC)."
+        },
+        "solution_rated_temp": {
+          "name": "Referentietemperatuur van de oplossing",
+          "description": "Temperatuur waarbij de waarde van de oplossing geldt, in °C (alleen pH)."
         }
       }
     }

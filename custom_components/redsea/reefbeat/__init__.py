@@ -11,7 +11,7 @@ from .api import ReefBeatAPI, parse
 
 # Device/cloud implementations (import and re-export)
 from .ato import ReefATOAPI
-from .cloud import InvalidAuth, ReefBeatCloudAPI
+from .cloud import CloudUnavailable, InvalidAuth, ReefBeatCloudAPI
 from .control import ReefControlAPI
 from .dose import ReefDoseAPI
 from .led import ReefLedAPI
@@ -21,6 +21,7 @@ from .run import ReefRunAPI
 from .wave import ReefWaveAPI
 
 __all__ = [
+    "CloudUnavailable",
     "InvalidAuth",
     "ReefATOAPI",
     "ReefBeatAPI",

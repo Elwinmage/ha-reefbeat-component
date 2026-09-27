@@ -36,9 +36,6 @@
       "ato_sensor_connected": {
         "name": "Sonda de temperatura conectada"
       },
-      "auto_from_buttons": {
-        "name": "Auto from buttons"
-      },
       "battery_level": {
         "name": "Nivel de batería"
       },
@@ -102,18 +99,6 @@
       "missing_sensor": {
         "name": "Sensor ausente"
       },
-      "port_check_sensor": {
-        "name": "Puerto {port} revisar sensor"
-      },
-      "port_is_advancing": {
-        "name": "Puerto {port} en marcha"
-      },
-      "port_is_pump_on": {
-        "name": "Puerto {port} bomba"
-      },
-      "port_leak_sensor": {
-        "name": "Puerto {port} sensor de fuga"
-      },
       "power_link_up": {
         "name": "Power center link"
       },
@@ -154,15 +139,6 @@
     "button": {
       "advance": {
         "name": "Avanzar"
-      },
-      "ato_manual_pump": {
-        "name": "Puerto {port} rellenar manual"
-      },
-      "ato_resume": {
-        "name": "Puerto {port} reanudar"
-      },
-      "ato_stop": {
-        "name": "Puerto {port} parar"
       },
       "delete_emergency": {
         "name": "Eliminar alerta de emergencia"
@@ -206,6 +182,12 @@
       "led_identify": {
         "name": "Identificar"
       },
+      "get_temperature": {
+        "name": "Obtener temperatura"
+      },
+      "probe_get_value": {
+        "name": "Leer {probe} ahora"
+      },
       "maint_ato_ec_sensor": {
         "name": "Limpiar el sensor EC"
       },
@@ -216,6 +198,9 @@
         "name": "Verificar la sonda {probe}"
       },
       "maint_control_probe_calibration_ph": {
+        "name": "Calibrar la sonda {probe}"
+      },
+      "maint_control_probe_calibration_ec": {
         "name": "Calibrar la sonda {probe}"
       },
       "maint_control_probe_clean": {
@@ -426,8 +411,11 @@
       "maint_control_probe_calibration_orp_interval_months": {
         "name": "Verificar la sonda {probe} (meses)"
       },
-      "maint_control_probe_calibration_ph_interval_weeks": {
-        "name": "Calibrar la sonda {probe} (semanas)"
+      "maint_control_probe_calibration_ph_interval_months": {
+        "name": "Calibrar la sonda {probe} (meses)"
+      },
+      "maint_control_probe_calibration_ec_interval_months": {
+        "name": "Calibrar la sonda {probe} (meses)"
       },
       "maint_control_probe_clean_interval_weeks": {
         "name": "Limpiar la sonda {probe} (semanas)"
@@ -528,11 +516,17 @@
       "temperature_coherence_threshold": {
         "name": "Umbral de coherencia de temperatura"
       },
-      "probe_offset": {
-        "name": "Offset {probe}"
+      "probe_orp_calibration": {
+        "name": "Calibrar {probe} (valor de la solución)"
       },
-      "temperature_offset": {
-        "name": "Offset de temperatura"
+      "probe_temperature_calibration": {
+        "name": "Calibrar {probe} (temperatura real)"
+      },
+      "probe_temp_calibration": {
+        "name": "Calibrar la temperatura de {probe} (temperatura real)"
+      },
+      "temperature_calibration": {
+        "name": "Calibrar la temperatura (temperatura real)"
       },
       "temperature_desired_range_low": {
         "name": "Rango de temperatura deseado (bajo)"
@@ -545,6 +539,45 @@
       },
       "temperature_acceptable_range_high": {
         "name": "Rango de temperatura aceptable (alto)"
+      },
+      "probe_acceptable_range_low": {
+        "name": "Rango aceptable de {probe} (mín)"
+      },
+      "probe_desired_range_low": {
+        "name": "Rango deseado de {probe} (mín)"
+      },
+      "probe_desired_range_high": {
+        "name": "Rango deseado de {probe} (máx)"
+      },
+      "probe_acceptable_range_high": {
+        "name": "Rango aceptable de {probe} (máx)"
+      },
+      "probe_temp_acceptable_range_low": {
+        "name": "Rango aceptable de temperatura de {probe} (mín)"
+      },
+      "probe_temp_desired_range_low": {
+        "name": "Rango deseado de temperatura de {probe} (mín)"
+      },
+      "probe_temp_desired_range_high": {
+        "name": "Rango deseado de temperatura de {probe} (máx)"
+      },
+      "probe_temp_acceptable_range_high": {
+        "name": "Rango aceptable de temperatura de {probe} (máx)"
+      },
+      "leak_buzzer_frequency": {
+        "name": "Frecuencia zumbador de fuga"
+      },
+      "leak_buzzer_duty_cycle": {
+        "name": "Ciclo de trabajo zumbador de fuga"
+      },
+      "danger_buzzer_frequency": {
+        "name": "Frecuencia zumbador de peligro"
+      },
+      "danger_buzzer_duty_cycle": {
+        "name": "Ciclo de trabajo zumbador de peligro"
+      },
+      "danger_debounce_seconds": {
+        "name": "Antirrebote de peligro"
       }
     },
     "select": {
@@ -601,6 +634,14 @@
           "mean": "Media",
           "min": "Mínimo",
           "max": "Máximo"
+        }
+      },
+      "probe_ec_unit": {
+        "name": "Unidad de {probe}",
+        "state": {
+          "ec": "Conductividad (mS/cm)",
+          "ppt": "Salinidad (ppt)",
+          "sg": "Densidad (SG)"
         }
       }
     },
@@ -843,26 +884,6 @@
       "port_consumption": {
         "name": "Port {port} consumption"
       },
-      "port_last_fill_date": {
-        "name": "Puerto {port} último llenado"
-      },
-      "port_last_pump_on_cause": {
-        "name": "Puerto {port} causa última bomba",
-        "state": {
-          "none": "Ninguna",
-          "manual": "Manual",
-          "ec_sensor_s1": "Sensor de nivel S1",
-          "ec_sensor_s2": "Sensor de nivel S2"
-        }
-      },
-      "port_leak_status": {
-        "name": "Puerto {port} estado de fuga",
-        "state": {
-          "dry": "Seco",
-          "aquarium_water_leak": "Fuga de agua del acuario",
-          "rodi_water_leak": "Fuga de agua RO/DI"
-        }
-      },
       "port_mode": {
         "name": "Port {port} mode"
       },
@@ -871,9 +892,6 @@
       },
       "port_state": {
         "name": "Port {port} state"
-      },
-      "port_today_volume": {
-        "name": "Puerto {port} volumen de hoy"
       },
       "port_type": {
         "name": "Port {port} type"
@@ -886,6 +904,17 @@
       },
       "probe_ec": {
         "name": "{probe} conductivity"
+      },
+      "probe_leak_status": {
+        "name": "{probe} origen de la fuga",
+        "state": {
+          "dry": "Seco",
+          "aquarium_water_leak": "Agua del acuario",
+          "rodi_water_leak": "Agua osmotizada"
+        }
+      },
+      "probe_leak_conductivity": {
+        "name": "{probe} conductividad de la fuga"
       },
       "probe_ec_value": {
         "name": "{probe} value"
@@ -1347,9 +1376,6 @@
       "acclimation": {
         "name": "Aclimatación"
       },
-      "ato_auto_fill": {
-        "name": "Puerto {port} auto-rellenado"
-      },
       "auto_advance": {
         "name": "Avance automático"
       },
@@ -1384,6 +1410,9 @@
         "name": "Verificar la sonda {probe} (notificaciones)"
       },
       "maint_control_probe_calibration_ph_notify": {
+        "name": "Calibrar la sonda {probe} (notificaciones)"
+      },
+      "maint_control_probe_calibration_ec_notify": {
         "name": "Calibrar la sonda {probe} (notificaciones)"
       },
       "maint_control_probe_clean_notify": {
@@ -1505,6 +1534,15 @@
       },
       "temperature_log_enabled": {
         "name": "Registro de temperatura activado"
+      },
+      "leak_buzzer_enabled": {
+        "name": "Zumbador de fuga"
+      },
+      "danger_buzzer_enabled": {
+        "name": "Zumbador de peligro"
+      },
+      "leak_detector_enabled": {
+        "name": "Detector de fugas"
       }
     },
     "text": {
@@ -1688,6 +1726,50 @@
         "task_key": {
           "name": "Identificador de tarea",
           "description": "Identificador estable de la tarea (ej. 'ato_ec_sensor', 'run_skim_venturi', 'led_lens')."
+        }
+      }
+    },
+    "get_control_probes": {
+      "name": "Obtener sondas del controlador",
+      "description": "Devuelve las sondas (identidad y valores actuales) de un hub RSCONTROL emparejado, a partir de su ID de hardware.",
+      "fields": {
+        "hwid": {
+          "name": "ID de hardware del hub",
+          "description": "El ID de hardware (hwid) del hub RSCONTROL, como se indica en el connected_device.hwid de un RSPower emparejado."
+        }
+      }
+    },
+    "probe_calibration": {
+      "name": "Calibración de sonda",
+      "description": "Ejecuta un paso de la calibración de una sonda pH o EC del RSCONTROL: entrada, punto, estado o salida.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "El hub RSCONTROL (entrada de configuración)."
+        },
+        "probe_type": {
+          "name": "Tipo de sonda",
+          "description": "Tipo de la sonda a calibrar."
+        },
+        "probe_uid": {
+          "name": "Uid de la sonda",
+          "description": "Uid de la sonda, tal como la indica el hub."
+        },
+        "action": {
+          "name": "Paso",
+          "description": "Paso de la calibración."
+        },
+        "point": {
+          "name": "Punto",
+          "description": "Punto de calibración (paso «point»)."
+        },
+        "solution_value": {
+          "name": "Valor de la solución",
+          "description": "Valor de la solución de calibración (pH, o mS/cm para EC)."
+        },
+        "solution_rated_temp": {
+          "name": "Temperatura de referencia de la solución",
+          "description": "Temperatura a la que se da el valor de la solución, en °C (solo pH)."
         }
       }
     }

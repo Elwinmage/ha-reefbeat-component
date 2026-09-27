@@ -260,7 +260,11 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
             if self.entity_description.key == "kelvin_intensity"
             else EVENT_KELVIN_LIGHT_UPDATED
         )
-        self.hass.bus.async_listen(event, self._handle_event_update)
+        # Removed with the entity: otherwise every reload of the entry would
+        # leave a listener behind, bound to a dead entity.
+        self.async_on_remove(
+            self.hass.bus.async_listen(event, self._handle_event_update)
+        )
 
         self._update_from_device()
 

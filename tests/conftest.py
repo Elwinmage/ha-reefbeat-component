@@ -288,7 +288,9 @@ def patch_reefbeat_network(
         supplements_library: [],
     }
 
-    async def _fake_http_get(self: ReefBeatAPI, session: Any, source: Any) -> bool:
+    async def _fake_http_get(
+        self: ReefBeatAPI, session: Any, source: Any, timeout_s: Any = None
+    ) -> bool:
         endpoint = None
         try:
             endpoint = source.value.get("name")
