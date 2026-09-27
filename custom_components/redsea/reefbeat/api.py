@@ -396,13 +396,6 @@ class ReefBeatAPI:
             try:
                 result = await self._http_get(session, source, timeout_s=timeout_s)
             except Exception as e:
-                error_count += 1
-                _LOGGER.debug(
-                    "Can not get data: %s, retry nb %d/%d",
-                    source.value.get("name"),
-                    error_count,
-                    retry_budget,
-                )
                 _LOGGER.debug("Exception: %s", e, exc_info=True)
                 result = False
 
@@ -411,6 +404,17 @@ class ReefBeatAPI:
             status_ok = result
 
             if not status_ok:
+                # Count every failed attempt, not only exceptions: _http_get
+                # catches network errors and timeouts itself and returns
+                # False, so an unreachable device would otherwise retry
+                # forever and never set _in_error.
+                error_count += 1
+                _LOGGER.debug(
+                    "Can not get data: %s, retry nb %d/%d",
+                    source.value.get("name"),
+                    error_count,
+                    retry_budget,
+                )
                 await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
 
         if not status_ok:

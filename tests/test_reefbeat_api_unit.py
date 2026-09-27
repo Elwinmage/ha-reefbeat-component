@@ -592,6 +592,45 @@ async def test__call_url_retries_and_sets_error(
 
 
 @pytest.mark.asyncio
+async def test__call_url_gives_up_when_http_get_returns_false(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # _http_get turns network errors and timeouts into False rather than
+    # raising, so an unreachable device looks like this. Each False must use
+    # up the retry budget, or setup never fails and never retries.
+    session = _FakeSession()
+    api = _make_api(session)
+
+    monkeypatch.setattr(api_mod, "HTTP_MAX_RETRY", 3)
+
+    async def _fake_sleep(_delay: float) -> None:
+        return None
+
+    monkeypatch.setattr(api_mod.asyncio, "sleep", _fake_sleep)
+
+    calls = 0
+
+    async def _http_get_false(*_a: Any, **_k: Any) -> bool:
+        nonlocal calls
+        calls += 1
+        # Safety valve so the old behaviour ends the test instead of hanging.
+        return calls > 10
+
+    monkeypatch.setattr(api, "_http_get", _http_get_false)
+
+    class _Match:
+        def __init__(self, value: dict[str, Any]):
+            self.value = value
+            self.context = None
+            self.path = "/"
+
+    await api._call_url(cast(Any, session), _Match({"name": "/device-info"}))
+
+    assert calls == 3
+    assert api._in_error is True
+
+
+@pytest.mark.asyncio
 async def test_get_initial_data_success_and_in_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
