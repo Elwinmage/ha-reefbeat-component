@@ -503,7 +503,7 @@ La modalità di una presa (off / on / schedule / sensor) e le sue impostazioni d
 
 Ogni presa espone un'entità `sensor.socket_N_mode` per le automazioni: il suo stato è la modalità attuale della presa, e i suoi attributi portano lo `schedule` attuale e (in modalità sensor) la `sensor_config`, contrassegnata da `sensor_source`: `local` per la sonda propria del Power Center, `control` per una regola dell'hub accoppiato.
 
-Una presa pilotata da un programma o da una sonda può essere forzata a mano su acceso o spento: la sua modalità indica allora `on` / `off`, mentre il sensore **modalità precedente** conserva la modalità automatica a cui tornerà.
+Una presa pilotata da un programma o da una sonda può essere spenta a mano: la sua modalità indica allora `off`, mentre il sensore **modalità precedente** conserva la modalità automatica a cui tornerà.
 
 Il dispositivo esce automaticamente dallo stato iniziale «setup» non appena viene configurata la prima presa, come fa l'app ReefBeat — nessuna azione manuale necessaria.
 

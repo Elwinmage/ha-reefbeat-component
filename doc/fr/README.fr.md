@@ -498,7 +498,7 @@ Le mode d'une prise (off / on / schedule / sensor) et ses réglages de programme
 
 Chaque prise expose une entité `sensor.socket_N_mode` pour les automatisations : son état est le mode courant de la prise, et ses attributs portent le `schedule` actuel et (en mode sensor) le `sensor_config`, marqué par `sensor_source` : `local` pour la sonde propre au Power Center, `control` pour une règle portée par le hub appairé.
 
-Une prise pilotée par un programme ou une sonde peut être forcée en marche ou à l'arrêt à la main : son mode indique alors `on` / `off`, tandis que le capteur **mode précédent** garde le mode automatique vers lequel elle reviendra.
+Une prise pilotée par un programme ou une sonde peut être forcée à l'arrêt à la main : son mode indique alors `off`, tandis que le capteur **mode précédent** garde le mode automatique vers lequel elle reviendra.
 
 Le device quitte automatiquement son état initial « setup » dès que la première prise est configurée, comme le fait l'application ReefBeat — aucune action manuelle nécessaire.
 

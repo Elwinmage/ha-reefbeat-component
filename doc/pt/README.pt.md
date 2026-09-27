@@ -499,7 +499,7 @@ O modo de uma tomada (off / on / schedule / sensor) e as suas definições de pr
 
 Cada tomada expõe uma entidade `sensor.socket_N_mode` para as automações: o seu estado é o modo atual da tomada, e os seus atributos têm o `schedule` atual e (em modo sensor) a `sensor_config`, marcada por `sensor_source`: `local` para a sonda própria do Power Center, `control` para uma regra do hub emparelhado.
 
-Uma tomada controlada por um programa ou por uma sonda pode ser forçada à mão a ligar ou desligar: o seu modo indica então `on` / `off`, enquanto o sensor **modo anterior** guarda o modo automático para o qual voltará.
+Uma tomada controlada por um programa ou por uma sonda pode ser desligada à mão: o seu modo indica então `off`, enquanto o sensor **modo anterior** guarda o modo automático para o qual voltará.
 
 O aparelho sai automaticamente do seu estado inicial «setup» assim que a primeira tomada é configurada, tal como a aplicação ReefBeat — não é necessária qualquer ação manual.
 

@@ -499,7 +499,7 @@ Der Modus einer Steckdose (off / on / schedule / sensor) und ihre Zeitplan- bzw.
 
 Jede Steckdose stellt eine Entität `sensor.socket_N_mode` für Automatisierungen bereit: Ihr Zustand ist der aktuelle Modus der Steckdose, ihre Attribute tragen den aktuellen `schedule` und (im Sensormodus) die `sensor_config`, gekennzeichnet durch `sensor_source`: `local` für die eigene Sonde des Power Centers, `control` für eine Regel des gekoppelten Hubs.
 
-Eine per Zeitplan oder Sonde gesteuerte Steckdose kann von Hand ein- oder ausgeschaltet werden: Ihr Modus zeigt dann `on` / `off`, während der Sensor **vorheriger Modus** den automatischen Modus behält, zu dem sie zurückkehrt.
+Eine per Zeitplan oder Sonde gesteuerte Steckdose kann von Hand ausgeschaltet werden: Ihr Modus zeigt dann `off`, während der Sensor **vorheriger Modus** den automatischen Modus behält, zu dem sie zurückkehrt.
 
 Das Gerät verlässt seinen anfänglichen „setup“-Zustand automatisch, sobald die erste Steckdose konfiguriert ist, wie in der ReefBeat-App — keine manuelle Aktion nötig.
 

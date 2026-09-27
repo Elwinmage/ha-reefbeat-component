@@ -518,7 +518,7 @@ A socket's mode (off / on / schedule / sensor) and its schedule/sensor-threshold
 
 Each socket exposes a `sensor.socket_N_mode` entity for automations: its state is the socket's current mode, and its attributes carry the current `schedule` and (when in sensor mode) `sensor_config`, tagged by `sensor_source`: `local` for the power center's own probe, `control` for a rule held by the paired hub.
 
-A socket driven by a schedule or a probe can be forced on or off by hand: its mode then reads `on` / `off` while the **previous mode** sensor keeps the automatic mode it will return to.
+A socket driven by a schedule or a probe can be switched off by hand: its mode then reads `off` while the **previous mode** sensor keeps the automatic mode it will return to.
 
 The device automatically leaves its initial "setup" state as soon as the first socket is configured, mirroring the ReefBeat app — no manual action needed.
 

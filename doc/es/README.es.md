@@ -499,7 +499,7 @@ El modo de una toma (off / on / schedule / sensor) y sus ajustes de programa o d
 
 Cada toma expone una entidad `sensor.socket_N_mode` para las automatizaciones: su estado es el modo actual de la toma, y sus atributos llevan el `schedule` actual y (en modo sensor) el `sensor_config`, marcado por `sensor_source`: `local` para la sonda propia del Power Center, `control` para una regla del hub emparejado.
 
-Una toma controlada por un programa o una sonda puede forzarse a mano a encendido o apagado: su modo indica entonces `on` / `off`, mientras el sensor **modo anterior** conserva el modo automático al que volverá.
+Una toma controlada por un programa o una sonda puede apagarse a mano: su modo indica entonces `off`, mientras el sensor **modo anterior** conserva el modo automático al que volverá.
 
 El dispositivo sale automáticamente de su estado inicial «setup» en cuanto se configura la primera toma, igual que la aplicación ReefBeat — no hace falta ninguna acción manual.
 

@@ -499,7 +499,7 @@ Tryb gniazda (off / on / schedule / sensor) i jego ustawienia harmonogramu lub p
 
 Każde gniazdo udostępnia encję `sensor.socket_N_mode` dla automatyzacji: jej stan to bieżący tryb gniazda, a atrybuty zawierają bieżący `schedule` oraz (w trybie sensor) `sensor_config`, oznaczony przez `sensor_source`: `local` dla własnej sondy Power Center, `control` dla reguły sparowanego huba.
 
-Gniazdo sterowane harmonogramem lub sondą można ręcznie wymusić na włączone lub wyłączone: jego tryb pokazuje wtedy `on` / `off`, a czujnik **poprzedni tryb** zachowuje tryb automatyczny, do którego gniazdo wróci.
+Gniazdo sterowane harmonogramem lub sondą można ręcznie wyłączyć: jego tryb pokazuje wtedy `off`, a czujnik **poprzedni tryb** zachowuje tryb automatyczny, do którego gniazdo wróci.
 
 Urządzenie automatycznie opuszcza początkowy stan „setup”, gdy tylko zostanie skonfigurowane pierwsze gniazdo, tak jak w aplikacji ReefBeat — nie jest potrzebna żadna ręczna czynność.
 
