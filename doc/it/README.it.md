@@ -1,7 +1,7 @@
 # Red Sea (Dispositivi ReefBeat) 🐠
 > Parte dell'[**Ecosistema Progetto ReefTech**](https://elwinmage.github.io/reeftank/)
 <p align="center">
-  <img src="icon.png"  width="50%"/>
+  <img src="../../icon.png"  width="50%"/>
 </p>
 
 [![HACS Badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=flat-square)](https://github.com/hacs/default)
