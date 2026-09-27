@@ -164,10 +164,15 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             overall_timeout = (
                 (per_try_timeout + HTTP_DELAY_BETWEEN_RETRY) * HTTP_MAX_RETRY
             ) + 5  # small buffer
+            # A source whose retries all run out leaves its previous values in
+            # place; count that poll as failed rather than as fresh data.
+            self.my_api.reset_error_state()
             async with timeout(overall_timeout):
                 res = cast(dict[str, Any] | None, await self.my_api.fetch_data())
             if res is None:
                 raise UpdateFailed(f"No data received from API: {self._title}")
+            if self.my_api._in_error:
+                raise UpdateFailed(f"{self._title} ({self._ip}) did not respond")
             return res
         except UpdateFailed:
             raise
