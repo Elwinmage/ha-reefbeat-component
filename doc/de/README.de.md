@@ -85,7 +85,7 @@ Alle zusammen sind auf der [ReefTech-Projektseite](https://elwinmage.github.io/r
 <td><b>Issues</b> <br/>📆(Planned) <br/> 🐛(Bugs)</td>
 </th>
 <tr>
-<td><a href="#reefato">ReefATO+</a></td>
+<td><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefato.de.md#reefato">ReefATO+</a></td>
 <td colspan="2">RSATO+</td><td>✅ </td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSATO+.png"/></td>
 <td align="center">–</td>
@@ -95,7 +95,7 @@ Alle zusammen sind auf der [ReefTech-Projektseite](https://elwinmage.github.io/r
 </td>
 </tr>
 <tr>
-<td rowspan="2"><a href="#reefcontrol">ReefControl</a></td>
+<td rowspan="2"><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefcontrol.de.md#reefcontrol">ReefControl</a></td>
 <td colspan="2">RSCONTROLPRO</td><td>✅</td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROLPRO.png"/></td>
 <td align="center" rowspan="2">–</td>
@@ -109,7 +109,7 @@ Alle zusammen sind auf der [ReefTech-Projektseite](https://elwinmage.github.io/r
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROLLITE.png"/></td>
 </tr>
 <tr>
-<td rowspan="2"><a href="#reefcontrol-power">ReefControl-Power</a></td>
+<td rowspan="2"><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefcontrol-power.de.md#reefcontrol-power">ReefControl-Power</a></td>
 <td colspan="2">RSPOWER6</td><td>✅</td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSPOWER6.png"/></td>
 <td align="center" rowspan="2">–</td>
@@ -123,7 +123,7 @@ Alle zusammen sind auf der [ReefTech-Projektseite](https://elwinmage.github.io/r
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSPOWER8.png"/></td>
 </tr>
 <tr>
-<td rowspan="2"><a href="#reefdose">ReefDose</a></td>
+<td rowspan="2"><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefdose.de.md#reefdose">ReefDose</a></td>
 <td colspan="2">RSDOSE2</td>
 <td>✅</td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSDOSE2.png"/></td>
@@ -138,7 +138,7 @@ Alle zusammen sind auf der [ReefTech-Projektseite](https://elwinmage.github.io/r
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSDOSE4.png"/></td>
 </tr>
 <tr>
-<td rowspan="6"> <a href="#reefled">ReefLed</a></td>
+<td rowspan="6"> <a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefled.de.md#reefled">ReefLed</a></td>
 <td rowspan="3">G1</td>
 <td>RSLED50</td>
 <td>✅</td>
@@ -169,7 +169,7 @@ Alle zusammen sind auf der [ReefTech-Projektseite](https://elwinmage.github.io/r
 <td>RSLED170</td><td>☑️</td>
 </tr>
 <tr>
-<td rowspan="3"><a href="#reefmat">ReefMat</a></td>
+<td rowspan="3"><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefmat.de.md#reefmat">ReefMat</a></td>
 <td colspan="2">RSMAT250</td>
 <td>✅</td>
 <td rowspan="3" width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSMAT.png"/></td>
@@ -186,7 +186,7 @@ Alle zusammen sind auf der [ReefTech-Projektseite](https://elwinmage.github.io/r
 <td colspan="2">RSMAT1200</td><td>✅ </td>
 </tr>
 <tr>
-<td><a href="#reefrun">ReefRun & DC Skimmer</a></td>
+<td><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefrun.de.md#reefrun">ReefRun & DC Skimmer</a></td>
 <td colspan="2">RSRUN</td><td>✅</td>
 <td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSRUN.png"/></td>
 <td align="center">✅</td>
@@ -196,7 +196,7 @@ Alle zusammen sind auf der [ReefTech-Projektseite](https://elwinmage.github.io/r
 </td>
 </tr>
 <tr>
-<td rowspan="2"><a href="#reefwave">ReefWave (*)</a></td>
+<td rowspan="2"><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefwave.de.md#reefwave">ReefWave (*)</a></td>
 <td colspan="2">RSWAVE25</td>
 <td>✅</td>
 <td width="200px" rowspan="2"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSWAVE.png"/></td>
@@ -211,23 +211,23 @@ Alle zusammen sind auf der [ReefTech-Projektseite](https://elwinmage.github.io/r
 </tr>
 </table>
 
-(*) ReefWave-Benutzer, bitte lesen Sie [dies](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)
+(*) ReefWave-Benutzer, bitte lesen Sie [dies](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefwave.de.md#reefwave)
 
 # Zusammenfassung
-- [Installation via HACS](https://github.com/Elwinmage/ha-reefbeat-component/#installation-via-hacs)
-- [Gemeinsame Funktionen](https://github.com/Elwinmage/ha-reefbeat-component/#common-functions)
-- [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/#reefato)
-- [ReefControl](https://github.com/Elwinmage/ha-reefbeat-component/#reefcontrol)
-- [ReefControl-Power](https://github.com/Elwinmage/ha-reefbeat-component/#reefcontrol-power)
-- [ReefDose](https://github.com/Elwinmage/ha-reefbeat-component/#reefdose)
-- [ReefLED](https://github.com/Elwinmage/ha-reefbeat-component/#reefled)
-- [Virtuelle LED](https://github.com/Elwinmage/ha-reefbeat-component/#virtual-led)
-- [ReefMat](https://github.com/Elwinmage/ha-reefbeat-component/#reefmat)
-- [ReefRun](https://github.com/Elwinmage/ha-reefbeat-component/#reefrun)
-- [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)
-- [Wartung](https://github.com/Elwinmage/ha-reefbeat-component/#maintenance)
-- [Cloud API](https://github.com/Elwinmage/ha-reefbeat-component/#cloud-api)
-- [FAQ](https://github.com/Elwinmage/ha-reefbeat-component/#faq)
+- [Installation via HACS](#installation-via-hacs)
+- [Gemeinsame Funktionen](#gemeinsame-funktionen)
+- [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefato.de.md#reefato)
+- [ReefControl](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefcontrol.de.md#reefcontrol)
+- [ReefControl-Power](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefcontrol-power.de.md#reefcontrol-power)
+- [ReefDose](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefdose.de.md#reefdose)
+- [ReefLED](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefled.de.md#reefled)
+- [Virtuelle LED](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/virtual-led.de.md#virtuelle-led)
+- [ReefMat](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefmat.de.md#reefmat)
+- [ReefRun](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefrun.de.md#reefrun)
+- [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefwave.de.md#reefwave)
+- [Wartung](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/maintenance.de.md#wartung)
+- [Cloud API](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/cloud-api.de.md#cloud-api)
+- [FAQ](#faq)
 
 # Installation via HACS
 
@@ -259,8 +259,8 @@ Beim Hinzufügen eines neuen Geräts haben Sie 4 Optionen:
 </p>
 
 ### Cloud-API hinzufügen
-***Für ReefWave erforderlich, wenn Sie es mit der ReefBeat Mobile App synchronisiert halten möchten*** (Read [this](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)). <br />
-***Erforderlich, um über neue Firmware-Versionen benachrichtigt zu werden*** (Read [this](https://github.com/Elwinmage/ha-reefbeat-component/#firmware-update)).
+***Für ReefWave erforderlich, wenn Sie es mit der ReefBeat Mobile App synchronisiert halten möchten*** (Read [this](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/de/reefwave.de.md#reefwave)). <br />
+***Erforderlich, um über neue Firmware-Versionen benachrichtigt zu werden*** (Read [this](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/README.md#firmware-update)).
 - Benutzerinformationen abrufen
 - Aquarien abrufen
 - Waves-Bibliothek abrufen
@@ -271,7 +271,7 @@ Beim Hinzufügen eines neuen Geräts haben Sie 4 Optionen:
 </p>
 
 ### Automatische Erkennung im privaten Netzwerk
-Wenn Sie sich nicht im gleichen Netzwerk befinden, lesen Sie [dies](#my-device-is-not-detected) und verwenden Sie den [„Manuellen Modus"](https://github.com/Elwinmage/ha-reefbeat-component/#manual-mode).
+Wenn Sie sich nicht im gleichen Netzwerk befinden, lesen Sie [dies](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/README.md#my-device-is-not-detected) und verwenden Sie den [„Manuellen Modus"](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/README.md#manual-mode).
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/auto_detect.png" alt="Image">
 </p>
@@ -321,7 +321,7 @@ Wählen Sie das Zielnetzwerk, geben Sie dessen Passwort ein und bestätigen Sie.
 ## Live-Aktualisierung
 
 > [!NOTE]
-> It is possible to choose whether to enable live_update_config or not. In this mode (old default), configuration data is continuously retrieved along with normal data. For RSDOSE or RSLED, these large HTTP requests can take a long time (7–9 seconds). Sometimes the device does not respond to the request, so a retry function has been implemented. When live_update_config is disabled, configuration data is only retrieved at startup and when requested via the "Fetch Configuration" button. This new mode is activated by default. You can change it in the device configuration. <p align="center">
+> Sie können wählen, ob live_update_config aktiviert wird oder nicht. In diesem Modus (früherer Standard) werden die Konfigurationsdaten laufend zusammen mit den normalen Daten abgerufen. Bei RSDOSE oder RSLED können diese großen HTTP-Anfragen lange dauern (7–9 Sekunden). Manchmal antwortet das Gerät nicht auf die Anfrage, daher wurde eine Wiederholungsfunktion eingebaut. Ist live_update_config deaktiviert, werden die Konfigurationsdaten nur beim Start und auf Anforderung über die Schaltfläche „Konfiguration abrufen" geladen. Dieser neue Modus ist standardmäßig aktiv. Sie können ihn in der Gerätekonfiguration ändern. <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/configure_device_live_update_config.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/fetch_config_button.png" alt="Image">
 </p>
@@ -330,635 +330,21 @@ Wählen Sie das Zielnetzwerk, geben Sie dessen Passwort ein und bestätigen Sie.
 > Jedes Gerät bietet außerdem eine Schaltfläche „Daten abrufen". Sie erzwingt ein sofortiges Lesen der regelmäßig abgefragten Quellen, ohne auf das nächste Scan-Intervall zu warten, und funktioniert unabhängig von der Einstellung Live_update_config — anders als „Konfiguration abrufen", das nur die Konfigurationsquellen aktualisiert.
 
 ## Firmware-Aktualisierung
-Sie können benachrichtigt werden und Ihr Gerät aktualisieren, wenn eine neue Firmware-Version verfügbar ist. You must have an active ["Cloud API"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) device with your credentials and the "Use Cloud API" switch must be enabled.
+Sie können benachrichtigt werden und Ihr Gerät aktualisieren, wenn eine neue Firmware-Version verfügbar ist. Dazu benötigen Sie ein aktives [„Cloud API"](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/README.md#add-cloud-api)-Gerät mit Ihren Zugangsdaten, und der Schalter „Cloud-API verwenden" muss aktiviert sein.
 > [!TIP]
-> The "Cloud API" is only needed to get the version number of the new release and compare it to the installed version. To update your firmware, the Cloud API is not strictly required.
-> If you do not use the "Cloud API" (switch disabled or no Cloud API device installed), you will not be alerted when a new version is available, but you can still use the hidden "Force Firmware Update" button. If a new version is available, it will be installed.
+> Die „Cloud API" wird nur benötigt, um die Versionsnummer der neuen Version abzurufen und mit der installierten zu vergleichen. Für die Aktualisierung der Firmware selbst ist die Cloud API nicht zwingend erforderlich.
+> Wenn Sie die „Cloud API" nicht verwenden (Schalter deaktiviert oder kein Cloud-API-Gerät installiert), werden Sie nicht über eine neue Version benachrichtigt, können aber weiterhin die versteckte Schaltfläche „Firmware-Update erzwingen" verwenden. Ist eine neue Version verfügbar, wird sie installiert.
 <p align="center">
   <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/firmware_update_1.png" alt="Image">
   <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/firmware_update_2.png" alt="Image">
 </p>
 
-# ReefATO:
-- Automatisches Befüllen aktivieren/deaktivieren
-- Manuelles Befüllen
-- Leckalarm-Summer aktivieren/deaktivieren
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_diag.png" alt="Image">
-</p>
-
-### Wartungsaufgaben
-| Aufgabe | Standard | Spanne |
-| ------- | -------- | ------ |
-| EC-Sonde reinigen | 6 Wochen | 3 – 9 Wochen |
-| Rückförderpumpe reinigen | 4,5 Monate | 2 – 7 Monate |
-
-Siehe den Abschnitt [Wartung](README.de.md#wartung).
-
-# ReefControl:
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_devices.png" alt="Image">
-</p>
-
-Der ReefControl-Hub (RSCONTROLPRO / RSCONTROLLITE) liest die ReefSense-Sonden an seinen Erweiterungsboxen, steuert seine 12V-DC-Ports (2 beim Pro, 1 beim Lite) und, sobald gekoppelt, die Steckdosen eines [ReefControl-Power](README.de.md#reefcontrol-power).
-
-- **ReefSense-Sonden** — pH, ORP, Salinität (EC), Temperatur, ATO (Wasserstand) und Leck: Wert und Stufe (erwünscht / akzeptabel / Gefahr), Status, Name, UID, Datum der letzten Installation und der letzten Kalibrierung sowie die eingebaute Temperatur der pH-, EC- und ATO-Sonden. Jede Sonden-Entität trägt die Attribute `probe_uid`, `probe_type` und `probe_index`, die Messsensoren zusätzlich ein Attribut `ranges` (`[acceptable_low, desired_low, desired_high, acceptable_high]`).
-- **Salinitätssonden** — Sensoren für Leitfähigkeit, Salinität (ppt) und spezifisches Gewicht sowie ein Select für die Anzeigeeinheit.
-- **Lecksonden** — trocken/nass, **Herkunft des Wassers** (trocken / Aquariumwasser / Osmosewasser) und die gemessene Leitfähigkeit, gelesen sobald die Sonde nass wird.
-- **Einstellungen pro Sonde** — erwünschter und akzeptabler Bereich (Hauptmesswert und eingebaute Temperatur), Schalter für Aktiviert / Summer / Benachrichtigungen / Wartung und eine Schaltfläche „Jetzt auslesen“, die einen frischen Messwert holt, ohne auf die nächste Abfrage zu warten.
-- **Sondenkalibrierung** — siehe [unten](README.de.md#sondenkalibrierung).
-- **Summer** — Gefahren- und Lecksummer (Aktivierung, Frequenz, Tastverhältnis), Entprellung der Gefahr, Schalter des Leckdetektors; Zustand aktiv / quittiert des Summers und seine Ursache.
-- **12V-Ports** — bearbeitbarer Name, Ein/Aus-Schalter, Zustand, Modus, Typ, Verbrauch und eine Schaltfläche „Port deinstallieren“. Der Sensor `port_N_mode` trägt die gesamte Portkonfiguration, seinen Zeitplan und seine Sondenregel als Attribute, damit eine Karte den Port bearbeiten kann (siehe [Port- und Steckdosenmodi](README.de.md#port--und-steckdosenmodi)).
-- **Kopplung mit ReefControl-Power** — gekoppeltes Power Center, sein Zustand und seine Verbindung, Schaltflächen „Power Center koppeln“ / „Power Center entkoppeln“ und eine Schaltfläche „Steckdose abmelden“ pro Steckdose des Power Centers, die der Hub über eine Sonde steuert.
-- **Sonden hinzufügen, ersetzen oder entfernen** über das Optionsmenü der Integration (siehe [unten](README.de.md#sondenverwaltung-hinzufügen--ersetzen--entfernen)).
-- Schreibvorgänge werden sofort angezeigt (optimistische Aktualisierung) und anschließend durch erneutes Auslesen des Geräts bestätigt.
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
-</p>
-
-> [!TIP]
-> Die [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) zeichnet den Hub, seine Sonden, seine Ports und das gekoppelte Power Center und führt Kalibrierungen und Portmodi mit wenigen Klicks durch.
-
-## Sondenverwaltung (hinzufügen / ersetzen / entfernen)
-BLE-Sonden (pH, ORP, EC, ATO, Leck, Temperatur) werden über das Menü **Optionen** der Integration verwaltet, wie in der Red Sea App:
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_probe_management.png" alt="Image">
-</p>
-
-- **Sonde hinzufügen**: Sonde in den Kopplungsmodus versetzen, Typ wählen und zum Suchen bestätigen. Die Sonde wird so eingerichtet wie von der App: Eine Lecksonde zum Beispiel heißt `Leak <uid>`, mit eingeschaltetem Summer, Leckdetektor und Benachrichtigungen.
-- **Sonde ersetzen**: die zu ersetzende Sonde wählen, eine neue Sonde desselben Typs in den Kopplungsmodus versetzen und bestätigen. Die neue Sonde übernimmt Verlauf und Statistiken der alten.
-- **Sonde entfernen**: eine oder mehrere Sonden auswählen und bestätigen — dies löscht die Entitäten der Sonde und ihren Verlauf endgültig.
-
-> [!NOTE]
-> Eine erneut installierte Sonde verliert ihre Einstellungen auf dem Hub (eine ORP-Sonde kehrt zu ihren Werksbereichen zurück). Die Integration liest die Sondenkonfiguration neu, sobald eine Sonde erscheint oder neu installiert wird, ob aus Home Assistant oder aus der ReefBeat-App.
-
-## Sondenkalibrierung
-Jeder Sondentyp wird so kalibriert wie in der ReefBeat-App.
-
-| Sonde | Vorgehen | Entität / Dienst |
-| ----- | -------- | ---------------- |
-| ORP | Sonde in die Kalibrierlösung tauchen, dann die Zahl auf den Wert der Lösung setzen | `{probe} kalibrieren (Wert der Lösung)` |
-| Temperatur | Die Zahl auf die tatsächliche Temperatur des Wassers setzen, in dem die Sonde steckt | `{probe} kalibrieren (tatsächliche Temperatur)` |
-| Eingebaute Temperatur (pH, EC, ATO) | Ebenso, für den in die Sonde eingebauten Temperatursensor | `Temperatur von {probe} kalibrieren (tatsächliche Temperatur)` |
-| pH | Zwei Punkte: pH 7, dann pH 10 (Salzwasser) oder pH 4 (Süßwasser) | `redsea.probe_calibration` |
-| Salinität (EC) | Ein Punkt, mit dem Wert der Lösung in mS/cm | `redsea.probe_calibration` |
-
-Die **Referenzwert-Zahlen** (ORP und Temperaturen) zeigen den aktuellen Messwert. Wird eine davon auf die Referenz gesetzt, liest sie die Sonde erneut und verschiebt deren Offset um `Referenz - Messwert`, sodass die Sonde danach die Referenz anzeigt.
-
-Die **pH- und EC-Kalibrierungen** laufen in mehreren Schritten über den Dienst `redsea.probe_calibration`, ein Schritt pro Aufruf: `enter`, dann `point` für jeden Kalibrierpunkt, `status` abgefragt, bis der Hub Erfolg oder Fehlschlag meldet (er liefert dabei `calibration_status`, `time_left` und `stability_progress`), und schließlich `exit`. Die [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) erledigt die ganze Abfolge für Sie.
-
-```yaml
-action: redsea.probe_calibration
-data:
-  device_id: <config entry of the hub>
-  probe_type: ph
-  probe_uid: "0x00B39"
-  action: point
-  point: MID
-  solution_value: 7.0
-  solution_rated_temp: 25
-```
-
-Das Datum der letzten Kalibrierung stammt vom Hub: Eine in der ReefBeat-App kalibrierte pH- oder EC-Sonde oder eine geprüfte ORP-Sonde markiert ihre Wartungsaufgabe zu diesem Datum als erledigt.
-
-## Temperatur-Fusion mehrerer Sonden
-Sobald zwei oder mehr Temperaturquellen vorhanden sind (die dedizierte Temperatursonde plus die in den EC-/pH-/ATO-Sonden eingebettete Temperatur), berechnet ReefControl eine robuste **fusionierte Temperatur** aus den Einzelwerten:
-
-- **Fusionierte Temperatur** (`sensor`): ein einzelner Wert, aggregiert mit der gewählten Methode — Median (Standard), Mittelwert, Minimum oder Maximum. Konfigurierbar über die Select-Entität **Temperatur-Fusionsmethode**.
-- **Temperaturkohärenz** (`binary_sensor`) und **Temperaturspanne** (`sensor`, Diagnose): zeigen, ob die Quellen innerhalb der **Schwelle Temperaturkohärenz** (konfigurierbar, Standard 0,5 °C) übereinstimmen und wie stark sie ggf. abweichen.
-- **Temperatur-Anomaliequelle** (`sensor`, Diagnose): `OK`, wenn alle Quellen übereinstimmen, der Name der Sonde(n), die im Verdacht stehen zu driften oder falsch zu messen, oder `Unbekannt`, wenn die Abweichung keiner einzelnen Sonde zugeordnet werden kann. Die Attribute des Sensors listen jede Quelle mit Wert, 1‑Stunden-Änderung und Status auf.
-- Ein **Wartungsschalter pro temperaturfähiger Sonde**: bei Aktivierung wird diese Sonde vorübergehend aus der Fusions-/Kohärenz-/Anomalieberechnung ausgeschlossen, sodass Reinigung oder Kalibrierung nie einen Fehlalarm auslöst.
-- Eine **Kalibrierung auf die tatsächliche Temperatur** (`number`) pro temperaturfähiger Sonde (siehe [Sondenkalibrierung](README.de.md#sondenkalibrierung)).
-
-Diese Entitäten erscheinen erst, wenn mindestens zwei Temperaturquellen erkannt wurden.
-
-## Port- und Steckdosenmodi
-Ein 12V-Port des Hubs läuft, wie eine Steckdose des Power Centers, in einem von vier Modi: **off**, **on**, **schedule** (Zeitplan) oder **sensor** (von einer Sonde gesteuert). Ein noch nicht installierter Port ist im Modus `setup` und lehnt jeden Schreibvorgang ab, bis er installiert ist.
-
-Diese Einstellungen werden nicht als einzelne Entitäten bereitgestellt — bei mehreren Ports und Steckdosen und einem Satz Schwellwerte pro Sondentyp wären das Dutzende selten genutzter Entitäten. Konfigurieren Sie sie über die [ha-reef-card](https://github.com/Elwinmage/ha-reef-card), die dieselben Aufrufe wie die ReefBeat-App in einem Schritt über den Dienst `redsea.request` ausführt (siehe die Dienste der Integration in den Entwicklerwerkzeugen von Home Assistant).
-
-Der Sensor `port_N_mode` trägt dennoch alles, was eine Automatisierung braucht, um die aktive Konfiguration zu lesen: `config` (der vollständige Porteintrag, einschließlich `power_on_percent`), `schedule` (vom Hub gelesen, solange der Port im Zeitplanmodus ist) und `sensor_config` (die Sondenregel), mit `sensor_source: control`.
-
-> [!NOTE]
-> Ein Port, der eine ATO-Pumpe über eine ATO-Sonde steuert, bleibt vom Typ `other`: Der Assistent des ATO-Kits der ReefBeat-App verknüpft beide. Der Hub stellt die ATO-Befehle des RSATO+ (manuelles Befüllen, automatisches Befüllen, Restvolumen…) nicht bereit.
-
-## Wartungsaufgaben
-| Aufgabe | Sonden | Standard | Bereich |
-| ------- | ------ | -------- | ------- |
-| Sonde reinigen | Alle | 30 Tage | 2 – 8 Wochen |
-| Sonde kalibrieren | pH | 3 Monate | 2 – 4 Monate |
-| Sonde kalibrieren | Salinität (EC) | 2 Monate | 1 – 3 Monate |
-| Sonde prüfen | ORP | 6 Monate | 5 – 7 Monate |
-| Sonde ersetzen | pH, ORP | 12 Monate | 9 – 18 Monate |
-
-Die Aufgaben werden **pro Sonde** verfolgt, nach den offiziellen Empfehlungen von Red Sea. Temperatur- und Lecksonden erhalten keine Kalibriererinnerung, und die 4-polige EC-Zelle wird nie nach Zeitplan ersetzt. Siehe den Abschnitt [Wartung](README.de.md#wartung).
-
-## ReefControl-Power
-
-Das RSPOWER (Power Center) ist ein eigenständiges Gerät mit eigener IP-Adresse und wird in Home Assistant separat angezeigt.
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
-</p>
-
-- 6 oder 8 steuerbare Steckdosen je nach Modell (RSPOWER6 / RSPOWER8)
-- **Pro Steckdose**: bearbeitbarer Name, Ein/Aus-Schalter, Zustand, Modus, vorheriger Modus, Verbrauch und eine Schaltfläche „Steckdose löschen“, die die Steckdose in den Werkszustand zurücksetzt (Modus `setup`, Werksname)
-- **Gerät**: Gesamtverbrauch, Batteriestand, Modus, Modellregion und Anzahl der Steckdosen
-- **Lokale Temperatursonde** (optional): Schaltflächen zum Hinzufügen / Entfernen, Schaltfläche „Temperatur abrufen“, Kalibrierung auf die tatsächliche Temperatur, erwünschter und akzeptabler Temperaturbereich, Name, Schalter für Benachrichtigungen und Protokollierung — alle verfügbar, sobald eine Sonde installiert ist. Der Temperatursensor trägt die Attribute `ranges` und `level`, wie die Sonden des Hubs.
-- **ReefControl-Kopplung**: gekoppelter Hub, sein Typ und Status, Verbindungs- und Internetzustand sowie eine Schaltfläche „Steuerungs-Hub entkoppeln“
-- Schreibvorgänge werden sofort angezeigt (optimistische Aktualisierung) und anschließend durch erneutes Auslesen des Geräts bestätigt
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
-</p>
-
-> [!NOTE]
-> Die lokale Temperatursonde und der ReefControl-Hub schließen sich gegenseitig aus: „Temperatursonde hinzufügen“ ist nur ohne beide verfügbar, „Temperatursonde entfernen“ mit einer lokalen Sonde und „Steuerungs-Hub entkoppeln“ mit einem gekoppelten Hub. Die Schaltflächen bleiben sichtbar, aber nicht verfügbar, wenn sie nicht zutreffen.
-
-### Kopplung mit einem ReefControl
-Die Kopplung wird immer vom Hub aus gestartet, mit seiner Schaltfläche **Power Center koppeln**: Der Hub koppelt sich mit dem Power Center, das er im Netzwerk findet. Entkoppeln funktioniert von beiden Seiten. Sind beide Geräte in Home Assistant eingerichtet, erscheint die Änderung auf beiden gleichzeitig — bei einer Kopplung nur, wenn ein einziges freies Power Center eindeutig festlegt, welches gemeint ist.
-
-Nach der Kopplung können die Sonden des Hubs die Steckdosen steuern. Das Power Center speichert nur, welchem Sondentyp eine Steckdose folgt; die Sonde selbst und die Schwellwerte liegen auf dem Hub. Zwei Dienste erlauben einer Karte oder Automatisierung, diese Seite zu lesen:
-
-- `redsea.get_control_probes` — die Sonden eines Hubs (Identität und aktuelle Werte), über seine Hardware-ID
-- `redsea.get_control_subscriptions` — die Regeln, die der Hub auf die Steckdosen seines Power Centers anwendet, über seine Hardware-ID
-
-Das Löschen einer Steckdose am Power Center entfernt nur ihre Hälfte einer Sondenregel: Die Schaltfläche **Steckdose N abmelden** des Hubs entfernt die andere Hälfte.
-
-### Steckdosenmodus und sensorgesteuerte Steckdosen
-Der Modus einer Steckdose (off / on / schedule / sensor) und ihre Zeitplan- bzw. Sensorschwellwert-Einstellungen (z. B. „diese Steckdose einschalten, wenn die lokale Temperatur unter 24 °C fällt“) werden über die [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) konfiguriert, wie bei den [Ports des Hubs](README.de.md#port--und-steckdosenmodi).
-
-Jede Steckdose stellt eine Entität `sensor.socket_N_mode` für Automatisierungen bereit: Ihr Zustand ist der aktuelle Modus der Steckdose, ihre Attribute tragen den aktuellen `schedule` und (im Sensormodus) die `sensor_config`, gekennzeichnet durch `sensor_source`: `local` für die eigene Sonde des Power Centers, `control` für eine Regel des gekoppelten Hubs.
-
-Eine per Zeitplan oder Sonde gesteuerte Steckdose kann von Hand ausgeschaltet werden: Ihr Modus zeigt dann `off`, während der Sensor **vorheriger Modus** den automatischen Modus behält, zu dem sie zurückkehrt.
-
-Das Gerät verlässt seinen anfänglichen „setup“-Zustand automatisch, sobald die erste Steckdose konfiguriert ist, wie in der ReefBeat-App — keine manuelle Aktion nötig.
-
-# ReefDose:
-- Tagesdosis bearbeiten
-- Manuelle Dosierung
-- Supplemente hinzufügen und entfernen
-- Behältervolumen bearbeiten und steuern. Container volume settings are automatically enabled or disabled according to the volume control switch.
-- Zeitplan pro Pumpe aktivieren/deaktivieren
-- Konfiguration von Bestandsalarmen
-- Dosierungsverzögerung zwischen Supplementen
-- Befüllen (Bitte lesen Sie [this](https://github.com/Elwinmage/ha-reefbeat-component/#calibration-and-priming))
-- Kalibrierung (Bitte lesen Sie [this](https://github.com/Elwinmage/ha-reefbeat-component/#calibration-and-priming))
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_devices.png" alt="Image">
-</p>
-
-### Hauptgerät
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_main_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_main_diag.png" alt="Image">
-</p>
-
-### Köpfe
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_diag.png" alt="Image">
-</p>
-
-#### Calibration and Priming
-
-> [!CAUTION]
-> Sie müssen die folgende Reihenfolge genau einhalten (Using the [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) is safer).<br /><br />
-> <ins>Calibration</ins>:
->  1. Place the graduated container and press "Start Calibration"
->  2. Enter the measured value using the "Dose of Calibration" field
->  3. Press "Set Calibration Value"
->  4. Empty the graduated container and press "Test new Calibration". If the value obtained is not 4 mL, go back to step 1.
->  5. Press "Stop and Save Graduation"
->
-> <ins>For priming</ins>:
->  1. (a) Press "Start Priming"
->  2. (b) When the liquid flows out, press "Stop Priming"
->  3. (1) Place the graduated container and press "Start Calibration"
->  4. (2) Enter the measured value using the "Dose of Calibration" field
->  5. (3) Press "Set Calibration Value"
->  6. (4) Empty the graduated container and press "Test new Calibration". If the value obtained is not 4 mL, go back to step 1.
->  7. (5) Press "Stop and Save Graduation"
->
-> ⚠️ Priming must always be followed by a calibration (steps 1 to 5)!⚠️
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/calibration.png" alt="Image">
-</p>
-
-### Wartungsaufgaben
-| Aufgabe | Ebene | Standard | Spanne |
-| ------- | ----- | -------- | ------ |
-| Dosierköpfe kalibrieren | Gerät | 90 Tage | 80 – 120 Tage |
-| Köpfe und Schläuche tauschen | Je Kopf | 15 Monate | 11 – 19 Monate |
-
-Der Tausch wird **je Kopf** verfolgt: Kopf 2 zu wechseln setzt den Countdown der
-anderen drei nicht zurück. Siehe den Abschnitt [Wartung](README.de.md#wartung).
-
-# ReefLED:
-
-- Weiß- und Blaukanal abrufen und einstellen (only for G1: RSLED50, RSLED90, RSLED160)
-- Farbtemperatur, Intensität und Mond abrufen und einstellen (all LEDs)
-- Akklimatisierung verwalten. Acclimation settings are automatically enabled or disabled according to the acclimation switch.
-- Mondphasen verwalten. Moon phase settings are automatically enabled or disabled according to the moon phase switch.
-- Manuellen Farbmodus mit oder ohne Dauer einstellen.
-- Lüfter- und Temperaturwerte abrufen.
-- Name und Wert für Programme abrufen (with cloud support). Only for G1 LEDs.
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_G1_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_diag.png" alt="Image">
-</p>
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_G1_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_conf.png" alt="Image">
-</p>
-
-***
-
-Color Temperature support for G1 LEDs takes into account the specificities of each of the three models.
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/leds_specs.png" alt="Image">
-</p>
-
-***
-## WICHTIG für G1- und G2-Leuchten
-
-### G2-LEUCHTEN
-
-#### Intensität
-Because G2 LEDs ensure constant intensity across the entire color range, your LEDs do not utilize their full capacity in the middle of the spectrum. At 8,000K, the white channel is at 100% and the blue channel at 0% (the opposite at 23,000K). At 14,000K with 100% intensity for G2 lights, the power of the white and blue channels is approximately 85%.
-Here is the loss curve for the G2s.
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/intensity_factor.png" alt="Image">
-</p>
-
-#### Farbtemperatur
-The G2 interface does not support the entire temperature range. From 8,000K to 10,000K, values are incremented in 200K steps, and from 10,000K to 23,000K in 500K steps. This behavior is handled automatically: if you choose an invalid value (e.g. 8,300K), a valid value will be automatically selected (8,200K in this example). This is why you may sometimes observe a slight cursor adjustment when selecting the color on a G2 light — the cursor repositions itself to an allowed value.
-
-### G1-LEUCHTEN
-
-G1 LEDs use white and blue channel control, which allows full power across the entire range, but not constant intensity without compensation.
-That is why intensity compensation has been implemented.
-This compensation ensures you get the same [PAR](https://en.wikipedia.org/wiki/Photosynthetically_active_radiation) (light intensity) regardless of your color temperature choice (in the range 12,000 to 23,000K).
-> [!NOTE]
-> Because Red Sea does not publish PAR values below 12,000K, compensation is only available in the 12,000 to 23,000K range. If you have a G1 LED and a PAR meter, you can [contact me](https://github.com/Elwinmage/ha-reefbeat-component/discussions/) to add compensation for the full range (9,000 to 23,000K).
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/intensity_compensation.png" alt="Image">
-</p>
-
-In other words, without compensation, an intensity of x% at 9,000K does not provide the same PAR as at 23,000K or 15,000K.
-
-Here are the power curves:
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/PAR_curves.png" alt="Image">
-</p>
-
-If you want to use the full power of your LED, disable intensity compensation (default).
-
-If you enable intensity compensation, the light intensity will be constant across all color temperature values, but in the middle of the range you will not use the full capacity of your LEDs (as with G2 models).
-
-Also note that if compensation is enabled, the intensity factor can exceed 100% for G1 lights if you manually adjust the White/Blue channels. This allows you to harness the full power of your LEDs!
-
-***
-
-### Wartungsaufgaben
-| Aufgabe | Standard | Spanne |
-| ------- | -------- | ------ |
-| Linsen reinigen | 3 Wochen | 1 – 5 Wochen |
-| Lüfter und Gitter entstauben | 6 Monate | 5 – 7 Monate |
-
-Diese beiden Aufgaben entstehen für alle ReefLED-Generationen, auch für die
-virtuelle LED. Siehe den Abschnitt [Wartung](README.de.md#wartung).
-
-# Virtuelle LED
-- LEDs mit einem virtuellen Gerät gruppieren und verwalten (create a virtual device from the integration panel, then use the configure button to link the LEDs).
-- Sie können Kelvin und Intensität zur Steuerung nur verwenden, wenn Sie G2 oder eine Mischung aus G1 und G2 haben.
-- Sie können sowohl Kelvin/Intensität als auch Weiß & Blau verwenden, wenn Sie nur G1-Leuchten haben.
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/virtual_led_config_1.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/virtual_led_config_2.png" alt="Image">
-</p>
-
-# ReefMat:
-- Automatischer Vorschubschalter (aktivieren/deaktivieren)
-- Geplanter Vorschub
-- Benutzerdefinierter Vorschubwert: Vorschubwert der Rolle wählbar
-- Manueller Vorschub
-- Rolle wechseln.
->[!TIP]
-> For a new full roll, please set "roll diameter" to the minimum (4.0 cm). The size will be adjusted according to your RSMAT version. For a partially used roll, enter the value in cm.
-- Zwei versteckte Parameter: Modell und Position, falls Sie Ihr RSMAT neu konfigurieren müssen
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_ctr.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_diag.png" alt="Image">
-</p>
-
-### Wartungsaufgaben
-| Aufgabe | Standard | Spanne |
-| ------- | -------- | ------ |
-| Aktivkohle tauschen | 25 Tage | 2 – 5 Wochen |
-
-Siehe den Abschnitt [Wartung](README.de.md#wartung).
-
-# ReefRun:
-- Pumpengeschwindigkeit einstellen
-- Überschäumen verwalten
-- Erkennung eines vollen Auffangbehälters verwalten
-- Skimmer-Modell änderbar
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_devices.png" alt="Image">
-</p>
-
-### Hauptgerät
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_ctrl.png" alt="Image">
-</p>
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_diag.png" alt="Image">
-</p>
-
-### Pumpen
-<p align="center"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_conf.png" alt="Image">
-</p>
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_diag.png" alt="Image">
-</p>
-
-### Wartungsaufgaben
-Die Aufgaben hängen am Untergerät Pumpe und richten sich nach deren Typ.
-
-| Aufgabe | Pumpe | Standard | Spanne |
-| ------- | ----- | -------- | ------ |
-| Motor und Rotor reinigen | Rückförderung | 4,5 Monate | 2 – 7 Monate |
-| Ansaugsieb reinigen | Rückförderung | 6 Wochen | 3 – 9 Wochen |
-| Venturi und Luftschlauch reinigen | Abschäumer | 5 Wochen | 3 – 7 Wochen |
-| Rotor des Abschäumers reinigen | Abschäumer | 4,5 Monate | 2 – 7 Monate |
-| Sonde für vollen Becher kalibrieren | Abschäumer | 4 Wochen | 2 – 6 Wochen |
-| Sonde für Überschäumen kalibrieren | Abschäumer | 4 Wochen | 2 – 6 Wochen |
-
-Die beiden Kalibrieraufgaben überwacht auch das Alarm-Blueprint, das das vom
-Gerät gemeldete Datum der letzten Kalibrierung mit dem hier gesetzten Intervall
-vergleicht. Siehe den Abschnitt [Wartung](README.de.md#wartung).
-
-### Werkzeug zum Ausbau des Rotors
-
-Die obige Aufgabe *Rotor des Abschäumers reinigen* erfordert das Aufschrauben
-des Pumpenkörpers, der nass so gut wie keinen Griff bietet. Ein 3D-druckbares
-Werkzeug dafür, mit Video zur Anwendung, gibt es hier:
-[Red Sea DC Skimmer Rotorwerkzeug](https://elwinmage.github.io/reeftank/#-red-sea-dc-skimmer-impeller-tool).
-
-# ReefWave:
-> [!IMPORTANT]
-> ReefWave devices are different from other ReefBeat devices. They are the only devices that are slaves to the ReefBeat cloud.<br/>
-> When you launch the ReefBeat mobile app, the status of all devices is queried and data from the ReefBeat app is retrieved from device state.<br/>
-> For ReefWave, it is the opposite: there is no local control point (as you can see in the ReefBeat app, you cannot add a ReefWave to a disconnected aquarium).<br/>
-> <center><img width="20%" src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/reefbeat_rswave.jpg" alt="Image"></center><br />
-> Waves are stored in the cloud user library. When you change a wave's value, it is changed in the cloud library and applied to the new schedule.<br/>
-> So there is no local mode? Not so simple. There is a hidden local API to control ReefWave, but the ReefBeat app will not detect the changes. As a result, the device and Home Assistant on one side, and the ReefBeat mobile app on the other, will be out of sync. The device and Home Assistant will always be synchronized.<br/>
-> Now that you know, make your choice!
-
-> [!NOTE]
-> ReefWave waves have many linked parameters, and the range of some parameters depends on other parameters. I was not able to test all possible combinations. If you find a bug, you can create an issue [here](https://github.com/Elwinmage/ha-reefbeat-component/issues).
-
-## ReefWave-Modi
-As explained above, ReefWave devices are the only devices that can become unsynchronized with the ReefBeat app if you use the local API.
-Es stehen drei Modi zur Verfügung: Cloud, Lokal und Hybrid.
-Sie können den Modus durch Einstellen der Schalter „Mit Cloud verbinden" und „Cloud-API verwenden" ändern, wie in der folgenden Tabelle beschrieben.
-
-<table>
-<tr>
-<td>Modusname</td>
-<td>Schalter Mit Cloud verbinden</td>
-<td>Schalter Cloud-API verwenden</td>
-<td>Verhalten</td>
-<td>ReefBeat und HA sind synchronisiert</td>
-</tr>
-<tr>
-<td>Cloud (Standard)</td>
-<td>✅</td>
-<td>✅</td>
-<td>Data is fetched via the local API. <br />On/off commands are also sent via the local API. <br />Wave commands are sent via the cloud API.</td>
-<td>✅</td>
-</tr>
-<tr>
-<td>Local</td>
-<td>❌</td>
-<td>❌</td>
-<td>Data is fetched via the local API. <br />Commands are sent via the local API. <br />Device is shown as "off" in the ReefBeat app.</td>
-<td>❌</td>
-</tr>
-<tr>
-<td>Hybrid</td>
-<td>✅</td>
-<td>❌</td>
-<td>Data is fetched via the local API. <br />Commands are sent via the local API.<br />The ReefBeat mobile app does not display the correct wave values if they have been changed via HA.<br/>Home Assistant always displays the correct values.<br/>You can change values from both the ReefBeat app and Home Assistant.</td>
-<td>❌</td>
-</tr>
-</table>
-
-For Cloud and Hybrid modes you must link your ReefBeat cloud account.
-First create a ["Cloud API"](https://github.com/Elwinmage/ha-reefbeat-component/#add-cloud-api) device with your credentials, and that's it!
-The "Linked to account" sensor will be updated with the name of your ReefBeat account once the connection is established.
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_linked.png" alt="Image">
-</p>
-
-## Aktuelle Werte ändern
-To load current wave values into the preview fields, use the "Set Preview From Current Wave" button.
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_set_preview.png" alt="Image">
-</p>
-To change the current wave values, set the preview values and use the "Save Preview" button.
-
-The behavior is the same as the ReefBeat mobile app. All waves with the same ID in the current schedule will be updated.
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_save_preview.png" alt="Image">
-</p>
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_diag.png" alt="Image">
-</p>
-
-### Wartungsaufgaben
-| Aufgabe | Standard | Spanne |
-| ------- | -------- | ------ |
-| Rotorkäfige reinigen | 2 Monate | 1 – 3 Monate |
-
-Siehe den Abschnitt [Wartung](README.de.md#wartung).
-
-# Wartung
-
-Über die Steuerung der Hardware hinaus verfolgt die Integration die
-**wiederkehrenden Wartungsaufgaben** deiner Ausrüstung: das Venturi eines
-Abschäumers reinigen, die Schläuche einer Dosierpumpe wechseln, die Aktivkohle
-des ReefMat tauschen … Home Assistant erinnert sich daran, nicht mehr du.
-
-Aufgaben hängen am betreffenden Gerät und am **Untergerät**, wenn das genauer
-ist: einem ReefDose-Kopf, einer ReefRun-Pumpe. Ein ReefRun zeigt die Aufgaben
-der Rückförderpumpe an Pumpe 1 und die des Abschäumers an Pumpe 2, nie
-umgekehrt: die Liste folgt dem vom Gerät gemeldeten Pumpentyp.
-
-## Die drei Entitäten einer Aufgabe
-
-Jede Aufgabe erzeugt drei Entitäten, alle in den Kategorien *Konfiguration* und
-*Diagnose*, damit dein Haupt-Dashboard übersichtlich bleibt:
-
-| Entität | Rolle |
-| ------- | ----- |
-| `button.<Gerät>_<Aufgabe>` | **Aufgabe erledigt.** Ein Druck speichert das heutige Datum als letzte Ausführung und startet den Countdown neu. |
-| `number.<Gerät>_<Aufgabe>_interval_<Einheit>` | **Intervall.** Wie oft die Aufgabe zu wiederholen ist, je nach Aufgabe in Tagen, Wochen oder Monaten. |
-| `switch.<Gerät>_<Aufgabe>_notify` | **Benachrichtigungen.** Schaltet die Überfälligkeitsmeldung genau dieser Aufgabe stumm, ohne ihre Frist zu ändern. |
-
-Der Button ist die Entität, die den Zustand trägt. Alles Abgeleitete steht in
-Attributen, sodass eine einzige Entität für ein Dashboard oder eine
-Automatisierung genügt:
-
-| Attribut | Bedeutung |
-| -------- | --------- |
-| `last_reset` | ISO-8601-Datum des letzten Drucks, oder `null`, wenn nie ausgeführt |
-| `interval_days` | Aktuelles Intervall, immer in Tagen normalisiert |
-| `days_left` | Verbleibende Tage, negativ nach Ablauf der Frist |
-| `overdue` | `true`, sobald `days_left` negativ ist |
-| `reef_role` | `maint_<Aufgabenschlüssel>`, die stabile Markierung zum Auffinden der Aufgaben |
-
-> [!TIP]
-> `reef_role` macht das Ganze erweiterbar: Karte und Alarm-Blueprint finden die
-> Aufgaben, indem sie nach diesem Attribut suchen. Eine in einer künftigen
-> Version der Integration ergänzte Aufgabe erscheint in beiden ohne jede
-> Aktualisierung auf deren Seite.
-
-## Intervalle
-
-Die Standardintervalle folgen den Empfehlungen von Red Sea und nehmen den Median
-der veröffentlichten Spanne. Jede Aufgabe definiert zusätzlich ein Minimum und
-ein Maximum, die von der `number`-Entität erzwungen werden: du kannst ein
-Intervall an die Belastung deines Beckens anpassen, aber keinen absurden Wert
-setzen.
-
-Intervalle werden in der für die Aufgabe sinnvollen Einheit angezeigt (Wochen
-für ein Venturi, Monate für einen Rotor) und intern in Tagen gespeichert, sodass
-ein Einheitenwechsel nie Genauigkeit verliert.
-
-## Persistenz
-
-Daten und Intervalle speichert Home Assistant in
-`.storage/redsea_maintenance_<entry_id>`, eine Datei je Konfigurationseintrag.
-Sie überstehen Neustarts, Neuladen der Integration und Geräte-Reboots und werden
-**nie an die Red-Sea-Cloud gesendet**. Wird der Konfigurationseintrag entfernt,
-verschwindet auch die Datei.
-
-## Die Wartungsansicht von ha-reef-card
-
-Die Begleitkarte [ha-reef-card](https://github.com/Elwinmage/ha-reef-card)
-sammelt alle Aufgaben der Anlage in einer eigenen Ansicht, als wäre die Wartung
-ein eigenes Gerät: ein Fortschrittsbalken je Aufgabe, nach Restzeit eingefärbt,
-sortierbar nach Gerät oder Fälligkeit, mit einem Button zum Abhaken, einer
-Glocke zum Stummschalten und einem eingebetteten Schieberegler zum Ändern des
-Intervalls.
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/maintenance_task.png" alt="Wartungsaufgaben in ha-reef-card">
-</p>
-
-## Benachrichtigungen: das Alarm-Blueprint
-
-Die Integration benachrichtigt bewusst nicht selbst: wen, wann und wie
-informiert wird, entscheidest du. Diese Rolle übernimmt das mitgelieferte
-Blueprint **ReefBeat watch**, das auch ungewöhnliche Modi, überfällige
-Kalibrierungen, schwache Batterien und nicht erreichbare Geräte abdeckt.
-
-### Installation
-
-Klicke auf die Schaltfläche unten und bestätige den Import in Home Assistant:
-
-[![Öffne deine Home-Assistant-Instanz und zeige den Blueprint-Importdialog.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FElwinmage%2Fha-reefbeat-component%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fredsea_alerts.en.yaml)
-
-Es gibt auch eine französische Fassung,
-[`redsea_alerts.fr.yaml`](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/blueprints/automation/redsea_alerts.fr.yaml).
-Alternativ kopierst du die Datei nach
-`config/blueprints/automation/redsea_alerts/` und lädst die Automatisierungen
-neu.
-
-Erstelle anschließend eine Automatisierung aus dem Blueprint:
-*Einstellungen → Automatisierungen & Szenen → Automatisierung erstellen →
-Blueprint verwenden → ReefBeat watch (redsea)*.
-
-### Konfiguration
-
-Nur das erste Feld ist Pflicht:
-
-| Abschnitt | Rolle |
-| --------- | ----- |
-| **Benachrichtigungsziele** | Die zu benachrichtigenden Mobilgeräte, ausgewählt im Geräteauswahlfeld. Der Dienst `notify.mobile_app_*` wird automatisch ermittelt. Ein Android-Benachrichtigungskanal lässt sich angeben (Standard `ReefBeat`). |
-| **Wartung überfällig** | Meldet, wenn eine Aufgabe ihre Frist überschreitet. Die Option *Benachrichtigungsschalter je Aufgabe beachten* (standardmäßig aktiv) lässt die Automatisierung den `switch.*_notify`-Entitäten folgen: eine in der Karte stummgeschaltete Aufgabe schweigt damit auch in der Automatisierung. |
-| **Ungewöhnlicher Modus** | Meldet, wenn ein Gerät seinen erwarteten Modus verlässt. `off_grace_minutes` (Standard 5) verhindert Fehlalarme während eines Fütterungszyklus oder eines kurzen manuellen Eingriffs. |
-| **Kalibrierung überfällig** | ReefDose-Köpfe und Kalibrierungen der ReefRun-Abschäumer. |
-| **Verzögerung der Sondenkalibrierung (RSRUN)** | Sonden für vollen Becher und Überschäumen der ReefRun-Abschäumer. |
-| **Alarmmeldung des Geräts** | Leitet die von den Geräten selbst gesendeten Alarmmeldungen weiter. |
-| **Schwache Batterie** / **Gerät nicht erreichbar** | Ohne Überraschungen. |
-
-Jeder Abschnitt lässt sich einzeln abschalten und hat eine eigene
-**Ausschlussliste**: ein Gerät im Test überflutet dich nicht mit Meldungen,
-während die übrigen weiter überwacht werden. Die Automatisierung läuft im
-5-Minuten-Takt und berücksichtigt im nächsten Zyklus Geräte, die der Integration
-hinzugefügt oder aus ihr entfernt wurden — ohne dass du etwas ändern musst.
-
-> [!NOTE]
-> Das Blueprint überwacht **alle** Geräte der Integration und deren Untergeräte.
-> Beim Hinzufügen eines neuen ReefBeat-Geräts ist nichts zu deklarieren.
-
-# Cloud-API
-Die Cloud-API ermöglicht Ihnen:
-- Verknüpfungen starten oder stoppen: Notfall, Wartung und Fütterung,
-- Benutzerinformationen abrufen,
-- Waves-Bibliothek abrufen,
-- Supplement-Bibliothek abrufen,
-- LED-Programmbibliothek abrufen,
-- Über eine [neue Firmware-Version] benachrichtigt werden(https://github.com/Elwinmage/ha-reefbeat-component/#firmware-update),
-- Befehle an ReefWave senden, wenn der Modus „[Cloud oder Hybrid](https://github.com/Elwinmage/ha-reefbeat-component/#reefwave)" mode is selected.
-
-Verknüpfungen, Wellenparameter und LED-Parameter sind nach Aquarium sortiert.
-<p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_devices.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_supplements.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_led_and_waves.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_conf.png" alt="Image">
-</p>
-
->[!TIP]
-> Sie können das Abrufen der Supplements-Liste in der Cloud-API-Gerätekonfiguration deaktivieren.
->    <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_config.png" alt="Image">
-***
 # FAQ
 
 ## Mein Gerät wird nicht erkannt
 - Versuchen Sie, die automatische Erkennung mit der Schaltfläche „Eintrag hinzufügen" neu zu starten. Sometimes devices do not respond because they are busy.
-- If your Red Sea devices are not on the same subnet as your Home Assistant, auto-detection will first fail and then offer you the option to enter the IP address of your device or the address of the subnet where your devices are located. For subnet detection, please use the format IP/MASK, for example: 192.168.14.0/255.255.255.0.
-- You can also use [Manual Mode](https://github.com/Elwinmage/ha-reefbeat-component/#manual-mode).
+- Befinden sich Ihre Red Sea-Geräte nicht im selben Subnetz wie Home Assistant, schlägt die automatische Erkennung zunächst fehl und bietet Ihnen dann an, die IP-Adresse Ihres Geräts oder die Adresse des Subnetzes Ihrer Geräte einzugeben. Verwenden Sie für die Subnetzerkennung das Format IP/MASKE, zum Beispiel: 192.168.14.0/255.255.255.0.
+- You can also use [Manual Mode](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/README.md#manual-mode).
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/subnetwork.png" alt="Image">
@@ -970,7 +356,7 @@ Die Daten sind in drei Teile unterteilt: Daten, Konfiguration und Geräteinforma
 - Konfigurationsdaten werden nur beim Start und beim Drücken der Schaltfläche „Konfiguration abrufen" aktualisiert.
 - Geräteinformationen werden nur beim Starten aktualisiert.
 
-Um sicherzustellen, dass Konfigurationsdaten regelmäßig aktualisiert werden, aktivieren Sie bitte [Live-Konfigurationsaktualisierung](#live-update).
+Um sicherzustellen, dass Konfigurationsdaten regelmäßig aktualisiert werden, aktivieren Sie bitte [Live-Konfigurationsaktualisierung](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/README.md#live-update).
 
 ***
 
