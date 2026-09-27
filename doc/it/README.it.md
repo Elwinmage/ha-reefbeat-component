@@ -366,17 +366,71 @@ Vedi la sezione [Manutenzione](https://github.com/Elwinmage/ha-reefbeat-componen
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_devices.png" alt="Image">
 </p>
 
-- Leggere tutte le sonde ReefSense collegate (pH, ORP, salinità, temperatura, ATO, perdite) con valore e livello di qualità
-- Attivazione/disattivazione del cicalino e delle notifiche per sonda, e attivazione/disattivazione del monitoraggio
-- Stato del cicalino e del rilevatore di perdite
-- Accensione/spegnimento della porta 12V DC (RSCONTROL)
-- Aggiunta, sostituzione o rimozione di sonde BLE dal menu opzioni dell'integrazione
+L'hub ReefControl (RSCONTROLPRO / RSCONTROLLITE) legge le sonde ReefSense collegate ai suoi box di estensione, gestisce le sue porte 12V DC (2 sul Pro, 1 sul Lite) e, una volta accoppiato, le prese di un [ReefControl-Power](README.it.md#reefcontrol-power).
+
+- **Sonde ReefSense** — pH, ORP, salinità (EC), temperatura, ATO (livello dell'acqua) e perdita: valore e livello (desiderato / accettabile / pericolo), stato, nome, uid, date dell'ultima installazione e dell'ultima calibrazione, e la temperatura integrata delle sonde pH, EC e ATO. Ogni entità di sonda porta gli attributi `probe_uid`, `probe_type` e `probe_index`, e i sensori di misura un attributo `ranges` (`[acceptable_low, desired_low, desired_high, acceptable_high]`).
+- **Sonde di salinità** — sensori di conducibilità, salinità (ppt) e densità, più un select dell'unità di visualizzazione.
+- **Sonde di perdita** — stato asciutto/bagnato, **origine dell'acqua** (asciutto / acqua dell'acquario / acqua osmotica) e la conducibilità misurata, letti non appena la sonda si bagna.
+- **Impostazioni per sonda** — intervalli desiderato e accettabile (misura principale e temperatura integrata), interruttori attivata / buzzer / notifiche / manutenzione, e un pulsante «Leggi ora» che recupera una misura aggiornata senza attendere la prossima interrogazione.
+- **Calibrazione delle sonde** — vedi [più avanti](README.it.md#calibrazione-delle-sonde).
+- **Buzzer** — buzzer di pericolo e buzzer di perdita (attivazione, frequenza, duty cycle), antirimbalzo del pericolo, interruttore del rilevatore di perdite; stato attivo / tacitato del buzzer e sua causa.
+- **Porte 12V** — nome modificabile, interruttore acceso/spento, stato, modalità, tipo, consumo e un pulsante «Disinstalla porta». Il sensore `port_N_mode` porta come attributi l'intera configurazione della porta, il suo programma e la sua regola di sonda, così che una card possa modificare la porta (vedi [Modalità delle porte e delle prese](README.it.md#modalità-delle-porte-e-delle-prese)).
+- **Accoppiamento con ReefControl-Power** — Power Center accoppiato, il suo stato e il suo collegamento, pulsanti «Accoppia Power Center» / «Disaccoppia Power Center», e un pulsante «Annulla iscrizione presa» per ogni presa del Power Center che l'hub gestisce da una sonda.
+- **Aggiunta, sostituzione o rimozione delle sonde** dal menu delle opzioni dell'integrazione (vedi [più avanti](README.it.md#gestione-delle-sonde-aggiungi--sostituisci--rimuovi)).
+- Le scritture vengono mostrate subito (aggiornamento ottimistico), poi confermate rileggendo il dispositivo.
+
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
 </p>
+
+> [!TIP]
+> La [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) disegna l'hub, le sue sonde, le sue porte e il Power Center accoppiato, e gestisce le calibrazioni e le modalità delle porte in pochi clic.
+
+## Gestione delle sonde (aggiungi / sostituisci / rimuovi)
+Le sonde BLE (pH, ORP, EC, ATO, perdita, temperatura) si gestiscono dal menu **Opzioni** dell'integrazione, come nell'app Red Sea:
+
+<p align="center">
+<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_probe_management.png" alt="Image">
+</p>
+
+- **Aggiungere una sonda**: mettete la sonda in modalità di accoppiamento, sceglietene il tipo e confermate per avviare la ricerca. La sonda viene configurata come fa l'app: una sonda di perdita, ad esempio, si chiama `Leak <uid>` con buzzer, rilevatore di perdite e notifiche attivi.
+- **Sostituire una sonda**: scegliete la sonda da sostituire, mettete una nuova sonda dello stesso tipo in modalità di accoppiamento e confermate. La nuova sonda eredita la cronologia e le statistiche della precedente.
+- **Rimuovere una sonda**: selezionate una o più sonde e confermate — questo elimina definitivamente le entità della sonda e la loro cronologia.
+
+> [!NOTE]
+> Reinstallare una sonda ne azzera le impostazioni sull'hub (una sonda ORP torna ai suoi intervalli di fabbrica). L'integrazione rilegge la configurazione delle sonde ogni volta che una sonda compare o viene reinstallata, sia da Home Assistant che dall'app ReefBeat.
+
+## Calibrazione delle sonde
+Ogni tipo di sonda si calibra come nell'app ReefBeat.
+
+| Sonda | Come | Entità / servizio |
+| ----- | ---- | ----------------- |
+| ORP | Immergete la sonda nella soluzione di calibrazione, poi impostate il numero sul valore della soluzione | `Calibrare {probe} (valore della soluzione)` |
+| Temperatura | Impostate il numero sulla temperatura reale dell'acqua in cui si trova la sonda | `Calibrare {probe} (temperatura reale)` |
+| Temperatura integrata (pH, EC, ATO) | Allo stesso modo, per il sensore di temperatura integrato nella sonda | `Calibrare la temperatura di {probe} (temperatura reale)` |
+| pH | Due punti: pH 7, poi pH 10 (acqua salata) o pH 4 (acqua dolce) | `redsea.probe_calibration` |
+| Salinità (EC) | Un punto, con il valore della soluzione in mS/cm | `redsea.probe_calibration` |
+
+I **numeri a valore di riferimento** (ORP e temperature) mostrano la misura attuale. Impostarne uno sul riferimento rilegge la sonda e ne sposta l'offset di `riferimento - misura`, così che la sonda legga poi il riferimento.
+
+Le **calibrazioni pH ed EC** richiedono più passaggi e passano dal servizio `redsea.probe_calibration`, un passaggio per chiamata: `enter`, poi `point` per ogni punto di calibrazione, `status` interrogato finché l'hub non segnala il successo o il fallimento (nel frattempo restituisce `calibration_status`, `time_left` e `stability_progress`), e infine `exit`. La [ha-reef-card](https://github.com/Elwinmage/ha-reef-card) esegue l'intera sequenza per voi.
+
+```yaml
+action: redsea.probe_calibration
+data:
+  device_id: <config entry of the hub>
+  probe_type: ph
+  probe_uid: "0x00B39"
+  action: point
+  point: MID
+  solution_value: 7.0
+  solution_rated_temp: 25
+```
+
+La data dell'ultima calibrazione viene dall'hub: una sonda pH o EC calibrata dall'app ReefBeat, o una sonda ORP verificata, segna la sua attività di manutenzione come svolta in quella data.
 
 ## Fusione della temperatura multi-sonda
 Non appena sono presenti due o più fonti di temperatura (la sonda di temperatura dedicata più la temperatura incorporata nelle sonde EC/pH/ATO), ReefControl calcola una **temperatura combinata** robusta a partire dalle letture individuali:
@@ -385,39 +439,73 @@ Non appena sono presenti due o più fonti di temperatura (la sonda di temperatur
 - **Coerenza temperatura** (`binary_sensor`) e **Scarto di temperatura** (`sensor`, diagnostica): indicano se le fonti concordano entro la **Soglia di coerenza temperatura** (configurabile, 0,5 °C predefinita), e l'entità di un eventuale disaccordo.
 - **Origine anomalia temperatura** (`sensor`, diagnostica): `OK` quando tutte le fonti concordano, il nome della/e sonda/e sospettata/e di deriva o lettura errata, oppure `Sconosciuta` quando il disaccordo non può essere attribuito a una sonda precisa. Gli attributi del sensore elencano ogni fonte con valore, variazione in 1 ora e stato.
 - Un **interruttore di manutenzione per ogni sonda compatibile con la temperatura**: attivandolo, quella sonda viene temporaneamente esclusa dal calcolo di fusione/coerenza/anomalia, così pulizia o taratura non generano mai un falso allarme.
-- Un **offset di taratura** (`number`) per ogni sonda compatibile con la temperatura.
+- Una **calibrazione sulla temperatura reale** (`number`) per ogni sonda compatibile con la temperatura (vedi [Calibrazione delle sonde](README.it.md#calibrazione-delle-sonde)).
 
 Queste entità compaiono solo quando vengono rilevate almeno due fonti di temperatura.
 
-## Gestione delle sonde (aggiungi / sostituisci / rimuovi)
-Le sonde BLE (pH, ORP, EC, ATO, perdite, temperatura) si gestiscono dal menu **Opzioni** dell'integrazione, come nell'app Red Sea:
+## Modalità delle porte e delle prese
+Una porta 12V dell'hub, come una presa del Power Center, funziona in una di quattro modalità: **off**, **on**, **schedule** (programma) o **sensor** (pilotata da una sonda). Una porta non ancora installata è in modalità `setup` e rifiuta qualsiasi scrittura finché non viene installata.
 
-- **Aggiungi sonda**: metti la sonda in abbinamento, scegli il tipo, poi conferma per avviare la scansione.
-- **Sostituisci una sonda**: scegli la sonda da sostituire, metti una nuova sonda dello stesso tipo in abbinamento e conferma. La nuova sonda eredita lo storico/le statistiche della vecchia.
-- **Rimuovi sonda**: seleziona una o più sonde e conferma — questo elimina definitivamente le entità della sonda e il relativo storico.
+Queste impostazioni non sono esposte come entità singole — con più porte e prese e un insieme di soglie per tipo di sonda, sarebbero decine di entità usate di rado. Configuratele dalla [ha-reef-card](https://github.com/Elwinmage/ha-reef-card), che esegue le stesse chiamate dell'app ReefBeat in un'unica azione tramite il servizio `redsea.request` (vedi i Servizi dell'integrazione negli Strumenti per sviluppatori di Home Assistant).
+
+Il sensore `port_N_mode` porta comunque ciò che serve a un'automazione per leggere la configurazione attiva: `config` (l'intera voce della porta, `power_on_percent` compreso), `schedule` (riletto dall'hub finché la porta è in modalità programma) e `sensor_config` (la regola di sonda), con `sensor_source: control`.
+
+> [!NOTE]
+> Una porta che pilota una pompa ATO da una sonda ATO resta di tipo `other`: è la procedura guidata del kit ATO dell'app ReefBeat a collegarle. L'hub non espone i comandi ATO dell'RSATO+ (riempimento manuale, riempimento automatico, volume rimanente…).
+
+## Attività di manutenzione
+| Attività | Sonde | Predefinito | Intervallo |
+| -------- | ----- | ----------- | ---------- |
+| Pulire la sonda | Tutte | 30 giorni | 2 – 8 settimane |
+| Calibrare la sonda | pH | 3 mesi | 2 – 4 mesi |
+| Calibrare la sonda | Salinità (EC) | 2 mesi | 1 – 3 mesi |
+| Verificare la sonda | ORP | 6 mesi | 5 – 7 mesi |
+| Sostituire la sonda | pH, ORP | 12 mesi | 9 – 18 mesi |
+
+Le attività sono seguite **per sonda**, secondo le raccomandazioni ufficiali di Red Sea. Le sonde di temperatura e di perdita non hanno promemoria di calibrazione, e la cella EC a 4 poli non viene mai sostituita secondo un calendario. Vedi la sezione [Manutenzione](README.it.md#manutenzione).
 
 ## ReefControl-Power
 
-L'RSPOWER (Power Center) è un apparecchio autonomo con un proprio indirizzo IP, esposto separatamente in Home Assistant.
+L'RSPOWER (Power Center) è un dispositivo autonomo con un proprio indirizzo IP, esposto separatamente in Home Assistant.
 
-- Stato, modalità, consumo e accensione/spegnimento per ogni presa
-- 6 o 8 prese controllabili a seconda del modello (RSPOWER6 / RSPOWER8)
-- Sonda di temperatura locale opzionale: pulsante di aggiunta/rimozione, offset di taratura, intervalli di temperatura desiderato e accettabile, nome e interruttori notifiche/registrazione — tutto disponibile una volta installata la sonda
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
 </p>
+
+- 6 o 8 prese controllabili a seconda del modello (RSPOWER6 / RSPOWER8)
+- **Per presa**: nome modificabile, interruttore acceso/spento, stato, modalità, modalità precedente, consumo e un pulsante «Elimina presa» che riporta la presa allo stato di fabbrica (modalità `setup`, nome di fabbrica)
+- **Dispositivo**: consumo totale, livello della batteria, modalità, regione del modello e numero di prese
+- **Sonda di temperatura locale** (opzionale): pulsanti di aggiunta / rimozione, pulsante «Recupera temperatura», calibrazione sulla temperatura reale, intervalli di temperatura desiderato e accettabile, nome, interruttori di notifiche e registrazione — tutti disponibili una volta installata la sonda. Il sensore di temperatura porta gli attributi `ranges` e `level`, come le sonde dell'hub.
+- **Accoppiamento ReefControl**: hub accoppiato, suo tipo e stato, stato del collegamento e di internet, e un pulsante «Disaccoppia hub di controllo»
+- Le scritture vengono mostrate subito (aggiornamento ottimistico), poi confermate rileggendo il dispositivo
+
 <p align="center">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_ctrl.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
 </p>
 
+> [!NOTE]
+> La sonda di temperatura locale e l'hub ReefControl si escludono: «Aggiungi sonda temperatura» è disponibile solo senza nessuno dei due, «Rimuovi sonda temperatura» con una sonda locale e «Disaccoppia hub di controllo» con un hub accoppiato. I pulsanti restano visibili ma non disponibili quando non si applicano.
+
+### Accoppiamento con un ReefControl
+L'accoppiamento si avvia sempre dall'hub, con il suo pulsante **Accoppia Power Center**: l'hub si accoppia con il Power Center che trova sulla rete. Il disaccoppiamento funziona da entrambi i lati. Quando i due dispositivi sono configurati in Home Assistant, la modifica compare su entrambi contemporaneamente — per un accoppiamento, solo quando un unico Power Center libero rende certo quale sia.
+
+Una volta accoppiato, le sonde dell'hub possono pilotare le prese. Il Power Center memorizza solo il tipo di sonda che una presa segue; la sonda stessa e le soglie risiedono sull'hub. Due servizi permettono a una card o a un'automazione di leggere quel lato:
+
+- `redsea.get_control_probes` — le sonde di un hub (identità e valori attuali), tramite il suo identificativo hardware
+- `redsea.get_control_subscriptions` — le regole che l'hub applica alle prese del suo Power Center, tramite il suo identificativo hardware
+
+Eliminare una presa sul Power Center cancella solo la sua metà di una regola di sonda: il pulsante **Annulla iscrizione presa N** dell'hub cancella l'altra metà.
+
 ### Modalità delle prese e prese pilotate da sensore
-La modalità di una presa (off / on / schedule / sensor) e le sue impostazioni di programmazione/soglia sensore (ad es. "accendi questa presa se la temperatura locale scende sotto 24 °C") non sono esposte qui come entità singole — con fino a 8 prese e diversi tipi di sonda previsti, ciascuno con il proprio intervallo/unità, sarebbero decine di entità usate di rado. Configuratele invece da [ha-reef-card](https://github.com/Elwinmage/ha-reef-card), che concatena le stesse chiamate dell'app ReefBeat in un'unica azione tramite il servizio `redsea.request` (vedi i Servizi dell'integrazione negli Strumenti per sviluppatori di Home Assistant).
+La modalità di una presa (off / on / schedule / sensor) e le sue impostazioni di programma o di soglia del sensore (ad es. «accendere questa presa quando la temperatura locale scende sotto i 24 °C») si configurano dalla [ha-reef-card](https://github.com/Elwinmage/ha-reef-card), come per le [porte dell'hub](README.it.md#modalità-delle-porte-e-delle-prese).
 
-Ogni presa espone comunque un'entità `sensor.socket_N_mode` per le automazioni: il suo stato è la modalità corrente della presa, e i suoi attributi riportano il `schedule` attuale e, in modalità sensor, il `sensor_config` — così un'automazione o una card può leggere la configurazione attiva senza una richiesta aggiuntiva.
+Ogni presa espone un'entità `sensor.socket_N_mode` per le automazioni: il suo stato è la modalità attuale della presa, e i suoi attributi portano lo `schedule` attuale e (in modalità sensor) la `sensor_config`, contrassegnata da `sensor_source`: `local` per la sonda propria del Power Center, `control` per una regola dell'hub accoppiato.
 
-L'apparecchio esce automaticamente dallo stato iniziale "setup" non appena viene configurata la prima presa, come fa l'app ReefBeat — nessuna azione manuale necessaria.
+Una presa pilotata da un programma o da una sonda può essere forzata a mano su acceso o spento: la sua modalità indica allora `on` / `off`, mentre il sensore **modalità precedente** conserva la modalità automatica a cui tornerà.
+
+Il dispositivo esce automaticamente dallo stato iniziale «setup» non appena viene configurata la prima presa, come fa l'app ReefBeat — nessuna azione manuale necessaria.
 
 # ReefDose:
 - Modificare la dose giornaliera
