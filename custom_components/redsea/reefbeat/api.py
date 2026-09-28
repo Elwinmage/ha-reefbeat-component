@@ -147,6 +147,8 @@ class ReefBeatAPI:
         self._session = session
         self._auth_date: float | None = None
         self._in_error = False
+        # (failed, total) sources of the last fetch_data() — see fetch_failures.
+        self._last_fetch: tuple[int, int] = (0, 0)
 
         self._base_url = ("https://" if secure else "http://") + ip
 
@@ -373,10 +375,13 @@ class ReefBeatAPI:
         source: Match,
         max_retry: int | None = None,
         timeout_s: int | None = None,
-    ) -> None:
+    ) -> bool:
         """Fetch one source with retries.
 
-        Marks the instance in error (`self._in_error=True`) if all retries fail.
+        Returns False when all retries failed (the device did not answer),
+        True otherwise — including a definitive refusal, since the device did
+        answer. Marks the instance in error (`self._in_error=True`) if all
+        retries fail.
         A definitive 4xx (not 401) is never retried and never marks an error:
         the exact same request would never succeed, so retrying it 5 times
         (with a delay between each) only wastes time and floods the log —
@@ -400,7 +405,7 @@ class ReefBeatAPI:
                 result = False
 
             if result is None:
-                return
+                return True
             status_ok = result
 
             if not status_ok:
@@ -415,7 +420,9 @@ class ReefBeatAPI:
                     error_count,
                     retry_budget,
                 )
-                await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
+                # No pause after the last attempt: nothing follows it.
+                if error_count < retry_budget:
+                    await asyncio.sleep(HTTP_DELAY_BETWEEN_RETRY)
 
         if not status_ok:
             _LOGGER.error(
@@ -425,6 +432,19 @@ class ReefBeatAPI:
                 retry_budget,
             )
             self._in_error = True
+        return status_ok
+
+    @property
+    def fetch_failures(self) -> tuple[int, int]:
+        """(failed, total) sources of the last ``fetch_data()`` call.
+
+        A source counts as failed when its retries all ran out; a definitive
+        refusal is an answer, not a failure. Set once at the end of each
+        ``fetch_data()``, so a concurrent ``fetch_config()`` (service call,
+        button press) cannot taint the outcome of a poll the way the
+        instance-wide ``_in_error`` flag would.
+        """
+        return self._last_fetch
 
     async def get_initial_data(self) -> dict[str, Any]:
         """Fetch initial device data.
@@ -453,7 +473,7 @@ class ReefBeatAPI:
         query = parse("$.sources[?(@.type=='device-info')]")
         sources: list[Match] = query.find(self.data)
 
-        tasks: list[Awaitable[None]] = [
+        tasks: list[Awaitable[bool]] = [
             self._call_url(
                 self._session,
                 s,
@@ -487,7 +507,7 @@ class ReefBeatAPI:
             query = parse("$.sources[?(@.name=='" + config_path + "')]")
         sources: list[Match] = query.find(self.data)
 
-        tasks: list[Awaitable[None]] = [
+        tasks: list[Awaitable[bool]] = [
             self._call_url(self._session, s) for s in sources
         ]
         await asyncio.gather(*tasks, return_exceptions=True)
@@ -511,10 +531,12 @@ class ReefBeatAPI:
                 query = parse("$.sources[?(@.type=='data')]")
             sources = query.find(self.data)
 
-        tasks: list[Awaitable[None]] = [
+        tasks: list[Awaitable[bool]] = [
             self._call_url(self._session, s) for s in sources
         ]
-        await asyncio.gather(*tasks, return_exceptions=True)
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        failed = sum(1 for r in results if r is False or isinstance(r, BaseException))
+        self._last_fetch = (failed, len(results))
 
         return self.data
 
