@@ -592,6 +592,115 @@ async def test__call_url_retries_and_sets_error(
 
 
 @pytest.mark.asyncio
+async def test__call_url_gives_up_when_http_get_returns_false(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # _http_get turns network errors and timeouts into False rather than
+    # raising, so an unreachable device looks like this. Each False must use
+    # up the retry budget, or setup never fails and never retries.
+    session = _FakeSession()
+    api = _make_api(session)
+
+    monkeypatch.setattr(api_mod, "HTTP_MAX_RETRY", 3)
+
+    sleeps: list[float] = []
+
+    async def _fake_sleep(delay: float) -> None:
+        sleeps.append(delay)
+
+    monkeypatch.setattr(api_mod.asyncio, "sleep", _fake_sleep)
+
+    calls = 0
+
+    async def _http_get_false(*_a: Any, **_k: Any) -> bool:
+        nonlocal calls
+        calls += 1
+        # Safety valve so the old behaviour ends the test instead of hanging.
+        return calls > 10
+
+    monkeypatch.setattr(api, "_http_get", _http_get_false)
+
+    class _Match:
+        def __init__(self, value: dict[str, Any]):
+            self.value = value
+            self.context = None
+            self.path = "/"
+
+    ok = await api._call_url(cast(Any, session), _Match({"name": "/device-info"}))
+
+    assert ok is False
+    assert calls == 3
+    assert api._in_error is True
+    # A pause between attempts, none after the last one.
+    assert len(sleeps) == 2
+
+
+@pytest.mark.asyncio
+async def test__call_url_reports_answered_sources(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Success and definitive refusal both mean the device answered.
+    session = _FakeSession()
+    api = _make_api(session)
+
+    class _Match:
+        def __init__(self, value: dict[str, Any]):
+            self.value = value
+            self.context = None
+            self.path = "/"
+
+    async def _http_get_ok(*_a: Any, **_k: Any) -> bool:
+        return True
+
+    monkeypatch.setattr(api, "_http_get", _http_get_ok)
+    assert await api._call_url(cast(Any, session), _Match({"name": "/a"})) is True
+
+    async def _http_get_refused(*_a: Any, **_k: Any) -> None:
+        return None
+
+    monkeypatch.setattr(api, "_http_get", _http_get_refused)
+    assert await api._call_url(cast(Any, session), _Match({"name": "/b"})) is True
+    assert api._in_error is False
+
+
+@pytest.mark.asyncio
+async def test_fetch_data_records_failed_sources(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = _FakeSession()
+    api = _make_api(session)
+
+    assert api.fetch_failures == (0, 0)
+
+    api.data["sources"] = [
+        {"name": "/ok", "type": "data", "data": ""},
+        {"name": "/down", "type": "data", "data": ""},
+        {"name": "/boom", "type": "data", "data": ""},
+        {"name": "/cfg", "type": "config", "data": ""},
+    ]
+
+    async def _call_url(_session: Any, source: Any) -> bool:
+        name = source.value.get("name")
+        if name == "/boom":
+            raise RuntimeError("boom")
+        return name != "/down"
+
+    monkeypatch.setattr(api, "_call_url", _call_url)
+
+    await api.fetch_data()
+    # A raised exception counts as a failed source too.
+    assert api.fetch_failures == (2, 3)
+
+    # fetch_config() never touches the outcome of the last poll.
+    await api.fetch_config()
+    assert api.fetch_failures == (2, 3)
+
+    api.quick_refresh = "/ok"
+    await api.fetch_data()
+    assert api.fetch_failures == (0, 1)
+
+
+@pytest.mark.asyncio
 async def test_get_initial_data_success_and_in_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

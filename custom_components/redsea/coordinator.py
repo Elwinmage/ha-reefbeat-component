@@ -168,6 +168,21 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 res = cast(dict[str, Any] | None, await self.my_api.fetch_data())
             if res is None:
                 raise UpdateFailed(f"No data received from API: {self._title}")
+            # Only a device that answered none of its sources is treated as
+            # down. A partial failure (one flaky endpoint) keeps the previous
+            # values of that source and the rest of the device available;
+            # _call_url already logs which source gave up.
+            failed, total = self.my_api.fetch_failures
+            if total and failed >= total:
+                raise UpdateFailed(f"{self._title} ({self._ip}) did not respond")
+            if failed:
+                _LOGGER.debug(
+                    "%s (%s): %d/%d sources did not respond, keeping their previous values",
+                    self._title,
+                    self._ip,
+                    failed,
+                    total,
+                )
             return res
         except UpdateFailed:
             raise

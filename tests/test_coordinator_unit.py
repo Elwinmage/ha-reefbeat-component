@@ -29,6 +29,7 @@ class _FakeAPI:
     get_data_map: dict[str, Any] = field(default_factory=dict)
     fetch_data_result: dict[str, Any] | None = field(default_factory=dict)
     fetch_data_exc: BaseException | None = None
+    fetch_failures: tuple[int, int] = (0, 0)
 
     _timeout: int = 1
     quick_refresh: str | None = None
@@ -99,6 +100,53 @@ async def test_coordinator_async_update_data_none_raises(hass: HomeAssistant) ->
 
     with pytest.raises(UpdateFailed, match="No data received from API"):
         await coordinator._async_update_data()
+
+
+@pytest.mark.asyncio
+async def test_coordinator_async_update_data_all_sources_failed_raises(
+    hass: HomeAssistant,
+) -> None:
+    # Every source used up its retries: the device is down, so the poll must
+    # fail rather than hand stale data to the entities as fresh.
+    entry = _make_entry(title="Test", ip="192.0.2.10", hw_model="RSLED50")
+    coordinator = ReefBeatCoordinator(hass, cast(Any, entry))
+
+    coordinator.my_api = cast(
+        Any, _FakeAPI(fetch_data_result={"ok": 1}, fetch_failures=(3, 3))
+    )
+
+    with pytest.raises(UpdateFailed, match=r"did not respond"):
+        await coordinator._async_update_data()
+
+
+@pytest.mark.asyncio
+async def test_coordinator_async_update_data_partial_failure_keeps_data(
+    hass: HomeAssistant,
+) -> None:
+    # One flaky endpoint must not make the whole device unavailable.
+    entry = _make_entry(title="Test", ip="192.0.2.10", hw_model="RSLED50")
+    coordinator = ReefBeatCoordinator(hass, cast(Any, entry))
+
+    coordinator.my_api = cast(
+        Any, _FakeAPI(fetch_data_result={"ok": 1}, fetch_failures=(1, 3))
+    )
+
+    assert await coordinator._async_update_data() == {"ok": 1}
+
+
+@pytest.mark.asyncio
+async def test_coordinator_async_update_data_no_source_is_not_a_failure(
+    hass: HomeAssistant,
+) -> None:
+    # A fetch with nothing to poll has nothing that failed.
+    entry = _make_entry(title="Test", ip="192.0.2.10", hw_model="RSLED50")
+    coordinator = ReefBeatCoordinator(hass, cast(Any, entry))
+
+    coordinator.my_api = cast(
+        Any, _FakeAPI(fetch_data_result={"ok": 1}, fetch_failures=(0, 0))
+    )
+
+    assert await coordinator._async_update_data() == {"ok": 1}
 
 
 @pytest.mark.asyncio
