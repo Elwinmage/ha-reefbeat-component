@@ -527,6 +527,27 @@ LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         ),
         icon="mdi:sun-wireless-outline",
     ),
+    # Live acclimation progress: the card shows both next to the acclimation
+    # switch ("3 days / 35 %"), the device reports them on /acclimation.
+    ReefBeatSensorEntityDescription(
+        key="acclimation_remaining_days",
+        translation_key="acclimation_remaining_days",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/acclimation')].data.remaining_days", True
+        ),
+        icon="mdi:calendar-clock",
+    ),
+    ReefBeatSensorEntityDescription(
+        key="acclimation_current_intensity_factor",
+        translation_key="acclimation_current_intensity_factor",
+        native_unit_of_measurement=PERCENTAGE,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/acclimation')].data.current_intensity_factor",
+            True,
+        ),
+        icon="mdi:brightness-percent",
+    ),
 )
 
 G2_LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (

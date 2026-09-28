@@ -646,8 +646,14 @@
       }
     },
     "sensor": {
+      "acclimation_current_intensity_factor": {
+        "name": "Bieżący współczynnik intensywności aklimatyzacji"
+      },
       "acclimation_duration": {
         "name": "Czas aklimatyzacji"
+      },
+      "acclimation_remaining_days": {
+        "name": "Pozostałe dni aklimatyzacji"
       },
       "acclimation_start_intensity_factor": {
         "name": "Początkowy współczynnik intensywności aklimatyzacji"

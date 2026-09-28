@@ -177,3 +177,18 @@ async def test_async_setup_entry_led_schedule_branch(
     assert any(
         isinstance(e, sensor_platform.ReefLedScheduleSensorEntity) for e in added
     )
+
+
+def test_led_acclimation_progress_sensors_read_acclimation_source() -> None:
+    """Remaining days and current factor come straight from /acclimation."""
+    device = _FakeCoordinator()
+    device.get_data_map["$.sources[?(@.name=='/acclimation')].data.remaining_days"] = 3
+    device.get_data_map[
+        "$.sources[?(@.name=='/acclimation')].data.current_intensity_factor"
+    ] = 35
+
+    descs = {d.key: d for d in sensor_platform.LED_SENSORS}
+    assert descs["acclimation_remaining_days"].value_fn(cast(Any, device)) == 3
+    assert (
+        descs["acclimation_current_intensity_factor"].value_fn(cast(Any, device)) == 35
+    )

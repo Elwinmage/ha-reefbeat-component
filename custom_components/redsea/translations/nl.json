@@ -646,8 +646,14 @@
       }
     },
     "sensor": {
+      "acclimation_current_intensity_factor": {
+        "name": "Huidige acclimatisatie-intensiteitsfactor"
+      },
       "acclimation_duration": {
         "name": "Acclimatisatie duur"
+      },
+      "acclimation_remaining_days": {
+        "name": "Resterende acclimatisatiedagen"
       },
       "acclimation_start_intensity_factor": {
         "name": "Acclimatisatie start intensiteit factor"
