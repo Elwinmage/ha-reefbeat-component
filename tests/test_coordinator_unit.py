@@ -29,21 +29,15 @@ class _FakeAPI:
     get_data_map: dict[str, Any] = field(default_factory=dict)
     fetch_data_result: dict[str, Any] | None = field(default_factory=dict)
     fetch_data_exc: BaseException | None = None
-    fetch_data_sets_error: bool = False
+    fetch_failures: tuple[int, int] = (0, 0)
 
     _timeout: int = 1
-    _in_error: bool = False
     quick_refresh: str | None = None
     data: dict[str, Any] = field(default_factory=dict)
-
-    def reset_error_state(self) -> None:
-        self._in_error = False
 
     async def fetch_data(self) -> dict[str, Any] | None:
         if self.fetch_data_exc is not None:
             raise self.fetch_data_exc
-        if self.fetch_data_sets_error:
-            self._in_error = True
         return self.fetch_data_result
 
     async def fetch_config(self, config_path: str | None = None) -> None:
@@ -109,16 +103,16 @@ async def test_coordinator_async_update_data_none_raises(hass: HomeAssistant) ->
 
 
 @pytest.mark.asyncio
-async def test_coordinator_async_update_data_source_in_error_raises(
+async def test_coordinator_async_update_data_all_sources_failed_raises(
     hass: HomeAssistant,
 ) -> None:
-    # A source that used up its retries leaves stale data behind; the poll
-    # must fail rather than hand that data to the entities as fresh.
+    # Every source used up its retries: the device is down, so the poll must
+    # fail rather than hand stale data to the entities as fresh.
     entry = _make_entry(title="Test", ip="192.0.2.10", hw_model="RSLED50")
     coordinator = ReefBeatCoordinator(hass, cast(Any, entry))
 
     coordinator.my_api = cast(
-        Any, _FakeAPI(fetch_data_result={"ok": 1}, fetch_data_sets_error=True)
+        Any, _FakeAPI(fetch_data_result={"ok": 1}, fetch_failures=(3, 3))
     )
 
     with pytest.raises(UpdateFailed, match=r"did not respond"):
@@ -126,16 +120,31 @@ async def test_coordinator_async_update_data_source_in_error_raises(
 
 
 @pytest.mark.asyncio
-async def test_coordinator_async_update_data_clears_previous_error(
+async def test_coordinator_async_update_data_partial_failure_keeps_data(
     hass: HomeAssistant,
 ) -> None:
-    # An error left over from an earlier poll must not fail a good one.
+    # One flaky endpoint must not make the whole device unavailable.
     entry = _make_entry(title="Test", ip="192.0.2.10", hw_model="RSLED50")
     coordinator = ReefBeatCoordinator(hass, cast(Any, entry))
 
-    api = _FakeAPI(fetch_data_result={"ok": 1})
-    api._in_error = True
-    coordinator.my_api = cast(Any, api)
+    coordinator.my_api = cast(
+        Any, _FakeAPI(fetch_data_result={"ok": 1}, fetch_failures=(1, 3))
+    )
+
+    assert await coordinator._async_update_data() == {"ok": 1}
+
+
+@pytest.mark.asyncio
+async def test_coordinator_async_update_data_no_source_is_not_a_failure(
+    hass: HomeAssistant,
+) -> None:
+    # A fetch with nothing to poll has nothing that failed.
+    entry = _make_entry(title="Test", ip="192.0.2.10", hw_model="RSLED50")
+    coordinator = ReefBeatCoordinator(hass, cast(Any, entry))
+
+    coordinator.my_api = cast(
+        Any, _FakeAPI(fetch_data_result={"ok": 1}, fetch_failures=(0, 0))
+    )
 
     assert await coordinator._async_update_data() == {"ok": 1}
 

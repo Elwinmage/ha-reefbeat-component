@@ -82,10 +82,8 @@ class _FakeAPI:
             fetch_data_result if fetch_data_result is not None else {}
         )
         self.get_data_map = get_data_map if get_data_map is not None else {}
-        self._in_error = False
-
-    def reset_error_state(self) -> None:
-        self._in_error = False
+        # (failed, total) sources of the last fetch: every source answered.
+        self.fetch_failures: tuple[int, int] = (0, 0)
 
     async def fetch_data(self) -> dict[str, Any] | None:
         return self.fetch_data_result
