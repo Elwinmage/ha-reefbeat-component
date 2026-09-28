@@ -18,24 +18,29 @@ Per-port configuration (mirrors the RSPOWER socket API, different wire shape):
     - POST /port/<n>/toggle   — flip the port state
     - POST /setup-finish      — leave setup mode (device switches to auto)
 
-ATO endpoints (globally-scoped, port disambiguation via body):
-    - POST /ato/manual-pump   — one manual dose on the ATO port
-    - POST /ato/stop          — cancel ongoing fill / stop pump
-    - POST /ato/resume        — clear an empty latch, resume automation
-    - POST /ato/update-volume — set remaining reservoir volume (mL)
-    - PUT  /ato/configuration — push per-port config (auto_fill flag)
-
-Evidence:
-    The Red Sea Android app's decompiled DEX (com.hippotec.redsea) uses the
-    un-prefixed ``/ato/*`` paths and models the PUT body via
-    ``ServerAtoConfiguration$Put``. All fields on that class are boxed
-    (Boolean/Integer/Double, i.e. nullable), which means GSON omits nulls
-    on the wire and the firmware accepts partial updates — so sending just
-    ``{"port_index": N, "auto_fill": <bool>}`` preserves every other setting
-    (hose, notify, debug, pump_override, etc.). The ``port_index`` field is
-    named ``portIndex`` in the Kotlin class; the wire form uses snake_case,
-    consistent with every other field name observed on the /dashboard
-    payload.
+ATO module — the Red Sea ATO kit (pump + ATO probe) on a 12V port, captured
+while the app installed one on port 1 (port type ``ato``):
+    - POST /port/<n>/install   {"uid": <ATO probe uid>, "type": "ato"}
+    - POST /ato/update-volume  {"volume": <mL>} — reservoir volume left
+    - PUT  /ato/configuration  {"volume_left", "port_index", "hose":
+                               {"length", "height"} (cm), "auto_fill",
+                               "notify", "rvm_enabled"}; answers the whole
+                               configuration (also read by GET)
+    - PUT  /ports/config       [{"number", "name": "ATO Module", "type":
+                               "ato", "is_btn_assigned": true}, {other port,
+                               "is_btn_assigned": false}]
+    - PUT  /ato/configuration  {"pump_override": {"speed_override",
+                               "flow_rate_override"}, "port_index"} — the
+                               pump flow rate (mL/min, -1 back to default)
+    - POST /ato/resume         {} — clear a fault (empty, stalled…)
+    - POST /ato/manual-pump    {} / POST /ato/stop {} (app code, not captured)
+The ``/dashboard`` entry of such a port carries ``auto_fill``,
+``temp_log_enabled``, ``uid``, ``today_volume``, ``is_pump_on``,
+``last_pump_on_cause`` and ``volume_left``; its ``mode`` reports the module's
+faults (``missing_pump``, ``stalled``, ``empty``, ``timeout``, ``leak``,
+``port_malfunction``), as the app's ``ControlPort.getAtoError`` reads them.
+``PUT /ato/configuration`` is partial (the app sends only changed fields,
+``ServerAtoConfiguration$Put`` has nullable fields only).
 """
 
 from __future__ import annotations
@@ -196,6 +201,10 @@ class ReefControlAPI(ReefBeatAPI):
                     return entry
         return None
 
+    def dashboard_port(self, number: int) -> dict[str, Any] | None:
+        """Live ``/dashboard`` entry of a 12V port, None when not listed."""
+        return self._dashboard_port(number)
+
     def _update_port(self, number: int, fields: dict[str, Any]) -> None:
         """Set fields of a port in `/ports/config` and `/dashboard`."""
         entry = self.port_config(number)
@@ -236,6 +245,9 @@ class ReefControlAPI(ReefBeatAPI):
         (``PUT /ports/config``), its probe rule (``PUT /ports/subscribe``),
         installing or uninstalling it, and unpairing the power center.
         """
+        if action.startswith("/ato/"):
+            self._mirror_ato_write(action, payload, method, result)
+            return
         if method == "put" and action == "/ports/config":
             for raw in cast(list[Any], payload) if isinstance(payload, list) else []:
                 entry = _as_dict(raw)
@@ -273,6 +285,11 @@ class ReefControlAPI(ReefBeatAPI):
             ptype: Any = cast(dict[str, Any], payload).get("type")
             if isinstance(ptype, str):
                 self._update_port(number, {"type": ptype})
+                if ptype == self.PORT_TYPE_ATO:
+                    dash = self._dashboard_port(number)
+                    if dash is not None:
+                        dash["uid"] = cast(dict[str, Any], payload).get("uid")
+                        dash.pop("state", None)
         elif not match.group(2) and method == "delete":
             # What the firmware resets the port to (see delete_port)
             self._update_port(
@@ -374,6 +391,8 @@ class ReefControlAPI(ReefBeatAPI):
         data = await super().fetch_data()
         self._reconcile_probe_offset_sources()
         await self._sync_port_schedules(from_config=False)
+        if self._reconcile_ato_source():
+            await self.fetch_config(self.ATO_CONFIG)
         await self._read_new_leaks()
         await self._refresh_config_on_probe_install()
         return data
@@ -563,6 +582,7 @@ class ReefControlAPI(ReefBeatAPI):
             "ranges": [21, 23, 26, 28],
         },
         "ato": {
+            # Replaced by _probe_default_name (uid digits, as the app does)
             "name": "ATO",
             "buzzer": False,
             "notify": True,
@@ -579,14 +599,29 @@ class ReefControlAPI(ReefBeatAPI):
     }
 
     @staticmethod
-    def _leak_probe_name(uid: str) -> str:
+    def _uid_digits(uid: str) -> str:
+        """Significant digits of a probe uid: ``0x0032B`` gives ``32B``."""
+        digits = uid.lower().removeprefix("0x").lstrip("0").upper()
+        return digits or "0"
+
+    @classmethod
+    def _leak_probe_name(cls, uid: str) -> str:
         """Default name of a leak probe, as the app gives it: its uid digits.
 
         ``0x0032B`` gives ``Leak 32B`` (the app writes ``Fuite 32B`` in
         French), which tells two leak probes apart from the start.
         """
-        digits = uid.lower().removeprefix("0x").lstrip("0").upper()
-        return f"Leak {digits or '0'}"
+        return f"Leak {cls._uid_digits(uid)}"
+
+    @classmethod
+    def _ato_probe_name(cls, uid: str) -> str:
+        """Default name of an ATO probe: its temperature and uid digits.
+
+        Captured from the app in French, ``Temp. osmolateur 24E`` for
+        ``0x0024E``: the probe is shown by its temperature, the water level
+        belonging to the ATO module that uses it.
+        """
+        return f"ATO Temp. {cls._uid_digits(uid)}"
 
     async def _setup_leak_probe(self, uid: str) -> None:
         """Finish installing a leak probe the way the app does.
@@ -632,6 +667,8 @@ class ReefControlAPI(ReefBeatAPI):
                 body = dict(defaults)
                 body["type"] = ptype
                 body["uid"] = uid
+                if ptype.lower() == "ato":
+                    body["name"] = self._ato_probe_name(str(uid))
                 await self.http_send("/probe/config", [body], "put")
                 await self.fetch_config("/probe/config")
         return result
@@ -1157,6 +1194,236 @@ class ReefControlAPI(ReefBeatAPI):
     async def setup_finish(self) -> HttpResult | None:
         """Leave setup mode via ``POST /setup-finish`` (device switches to auto)."""
         return await self.http_send("/setup-finish", {}, "post")
+
+    # ------------------------------------------------------------------
+    # ATO module (the Red Sea ATO kit on a 12V port, port type "ato")
+    # ------------------------------------------------------------------
+    #
+    # See the module docstring for the captured sequence. The module's
+    # configuration (hose, auto fill, volume monitoring, flow rate…) is read
+    # from ``GET /ato/configuration``, registered as a config source only
+    # while a port is of type ``ato`` (the hub has one module at most).
+
+    ATO_CONFIG = "/ato/configuration"
+    # Port name the app gives the module
+    ATO_PORT_NAME = "ATO Module"
+    # Port modes reporting a fault of the module (``ControlPortMode`` wire
+    # values mapped by ``ControlPort.getAtoError`` in the app), each cleared
+    # by ``POST /ato/resume``
+    ATO_FAULT_MODES: tuple[str, ...] = (
+        "port_malfunction",
+        "stalled",
+        "empty",
+        "missing_pump",
+        "timeout",
+        "leak",
+    )
+    # Flow rate override meaning "back to the pump's default" (app's
+    # ``ATOModule.defaultFlowRate``); the app accepts 0.2 to 4 L/min
+    ATO_DEFAULT_FLOW_RATE = -1
+
+    def ato_port_number(self) -> int | None:
+        """0-based number of the port the ATO module is on, None without one."""
+        ports = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.ports", is_None_possible=True
+        )
+        for raw in cast(list[Any], ports) if isinstance(ports, list) else []:
+            entry = _as_dict(raw)
+            if (
+                entry is not None
+                and entry.get("type") == self.PORT_TYPE_ATO
+                and isinstance(entry.get("number"), int)
+            ):
+                return int(entry["number"])
+        return None
+
+    def _reconcile_ato_source(self) -> bool:
+        """Poll ``/ato/configuration`` only while an ATO module is installed.
+
+        Returns True when the source was just added, for the caller to read
+        it at once rather than at the next config refresh.
+        """
+        wanted = self.ato_port_number() is not None
+        sources = cast(list[SourceEntry], self.data.get("sources", []))
+        present = any(s.get("name") == self.ATO_CONFIG for s in sources)
+        if wanted and not present:
+            self.add_source(self.ATO_CONFIG, "config", "")
+            return True
+        if present and not wanted:
+            self.remove_source(self.ATO_CONFIG)
+        return False
+
+    def ato_config(self) -> dict[str, Any] | None:
+        """Cached ``/ato/configuration``, None when not read (yet)."""
+        return _as_dict(self._source(self.ATO_CONFIG))
+
+    def ato_dashboard(self) -> dict[str, Any] | None:
+        """``/dashboard`` entry of the ATO module's port, None without one."""
+        number = self.ato_port_number()
+        return None if number is None else self._dashboard_port(number)
+
+    def _mirror_ato_write(
+        self, action: str, payload: Any, method: str, result: HttpResult
+    ) -> None:
+        """Optimistic updates of the ATO module's writes.
+
+        ``PUT /ato/configuration`` answers the whole configuration: it
+        replaces the cached one. The fields the dashboard also carries are
+        set there, as is the volume left after ``POST /ato/update-volume``,
+        and ``POST /ato/resume`` gives the port back its configured mode.
+        """
+        dash = self.ato_dashboard()
+        if method == "put" and action == self.ATO_CONFIG:
+            answer = _as_dict(result.get("json"))
+            if answer is not None and "port_index" in answer:
+                sources = cast(list[SourceEntry], self.data.get("sources", []))
+                for source in sources:
+                    if source.get("name") == self.ATO_CONFIG:
+                        source["data"] = answer
+            body = _as_dict(payload) or {}
+            if dash is not None:
+                for key in ("auto_fill", "temp_log_enabled", "volume_left"):
+                    if key in body:
+                        dash[key] = body[key]
+            return
+        if dash is None:
+            return
+        if method == "post" and action == "/ato/update-volume":
+            volume: Any = (_as_dict(payload) or {}).get("volume")
+            if self._is_number(volume):
+                dash["volume_left"] = volume
+        elif method == "post" and action == "/ato/resume":
+            if dash.get("mode") in self.ATO_FAULT_MODES:
+                dash["mode"] = dash.get("user_config_mode", "auto")
+        elif method == "post" and action == "/ato/stop":
+            dash["is_pump_on"] = False
+
+    async def install_ato_port(
+        self,
+        number: int,
+        uid: str,
+        volume_ml: float,
+        hose_length_cm: float,
+        hose_height_cm: float,
+        *,
+        auto_fill: bool = True,
+        volume_monitor: bool = True,
+        notify: bool = True,
+        port_count: int = 2,
+    ) -> HttpResult | None:
+        """Install the ATO module on a 12V port, in the app's order.
+
+        The ATO probe ``uid`` must be installed already. The port gets the
+        module's name and the hub's physical button (the app hands it over
+        from the other port). Stops at the first refused request.
+        """
+        n = int(number)
+        result = await self.http_send(
+            f"/port/{n}/install", {"uid": uid, "type": self.PORT_TYPE_ATO}, "post"
+        )
+        if result is None or not result.get("ok"):
+            return result
+        if volume_monitor:
+            await self.update_ato_volume(volume_ml)
+        result = await self.http_send(
+            self.ATO_CONFIG,
+            {
+                "volume_left": volume_ml,
+                "port_index": n,
+                "hose": {"length": hose_length_cm, "height": hose_height_cm},
+                "auto_fill": auto_fill,
+                "notify": notify,
+                "rvm_enabled": volume_monitor,
+            },
+            "put",
+        )
+        if result is None or not result.get("ok"):
+            return result
+        ports: list[dict[str, Any]] = [
+            {
+                "number": n,
+                "name": self.ATO_PORT_NAME,
+                "type": self.PORT_TYPE_ATO,
+                "is_btn_assigned": True,
+            }
+        ]
+        ports += [
+            {"number": other, "is_btn_assigned": False}
+            for other in range(int(port_count))
+            if other != n
+        ]
+        result = await self.http_send("/ports/config", ports, "put")
+        self._reconcile_ato_source()
+        await self.fetch_config(self.ATO_CONFIG)
+        await self.fetch_config("/ports/config")
+        return result
+
+    async def set_ato_config(self, fields: dict[str, Any]) -> HttpResult | None:
+        """Change settings of the ATO module (partial ``PUT``).
+
+        ``port_index`` is added, as the app always sends it. Nothing is sent
+        without a module.
+        """
+        number = self.ato_port_number()
+        if number is None:
+            _LOGGER.warning("No ATO module installed: %s not sent", fields)
+            return None
+        return await self.http_send(
+            self.ATO_CONFIG, {**fields, "port_index": number}, "put"
+        )
+
+    async def set_ato_hose(
+        self, length_cm: float | None = None, height_cm: float | None = None
+    ) -> HttpResult | None:
+        """Set the hose length and/or height (cm); the other one is resent."""
+        hose: Any = (self.ato_config() or {}).get("hose")
+        current = _as_dict(hose) or {}
+        return await self.set_ato_config(
+            {
+                "hose": {
+                    "length": length_cm
+                    if length_cm is not None
+                    else current.get("length", 0),
+                    "height": height_cm
+                    if height_cm is not None
+                    else current.get("height", 0),
+                }
+            }
+        )
+
+    async def set_ato_flow_rate(self, flow_ml_min: float) -> HttpResult | None:
+        """Override the pump flow rate (mL/min); 0 or less: back to default."""
+        override: Any = (self.ato_config() or {}).get("pump_override")
+        speed: Any = (_as_dict(override) or {}).get("speed_override", 0)
+        rate = (
+            round(float(flow_ml_min)) if flow_ml_min > 0 else self.ATO_DEFAULT_FLOW_RATE
+        )
+        return await self.set_ato_config(
+            {
+                "pump_override": {
+                    "speed_override": speed if self._is_number(speed) else 0,
+                    "flow_rate_override": rate,
+                }
+            }
+        )
+
+    async def update_ato_volume(self, volume_ml: float) -> HttpResult | None:
+        """Set the volume left in the reservoir (``POST /ato/update-volume``)."""
+        return await self.http_send(
+            "/ato/update-volume", {"volume": round(float(volume_ml))}, "post"
+        )
+
+    async def ato_resume(self) -> HttpResult | None:
+        """Clear a fault of the ATO module (``POST /ato/resume``)."""
+        return await self.http_send("/ato/resume", {}, "post")
+
+    async def ato_manual_pump(self) -> HttpResult | None:
+        """Start a manual fill (``POST /ato/manual-pump``)."""
+        return await self.http_send("/ato/manual-pump", {}, "post")
+
+    async def ato_stop(self) -> HttpResult | None:
+        """Stop the ATO pump (``POST /ato/stop``)."""
+        return await self.http_send("/ato/stop", {}, "post")
 
     # ------------------------------------------------------------------
     # RSPower center pairing

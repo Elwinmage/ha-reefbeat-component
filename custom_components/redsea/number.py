@@ -1355,6 +1355,12 @@ async def async_setup_entry(
                     ),
                 )
             )
+    # The ATO module (Red Sea ATO kit) on the port of type "ato"
+    if isinstance(device, ReefControlCoordinator):
+        for port_idx in range(device.port_count):
+            if device.ato_is_port(port_idx):
+                entities.extend(_ato_port_numbers(device, port_idx))
+
     # One number entity per task instance, paired with the matching button.
     # Mirrors the button's sub-device fan-out (heads / pumps).
     _add_maintenance_numbers(device, entities)
@@ -1898,6 +1904,144 @@ class ReefControlProbeRangeNumberEntity(ReefBeatNumberEntity):
         await cast(ReefControlCoordinator, self._device).set_probe_range(
             self._ptype, self._uid, self._field, value, is_temp=self._is_temp
         )
+
+
+# REEFCONTROL — ATO module
+class ReefControlAtoNumberEntity(ReefBeatNumberEntity):
+    """A setting of the ATO module (Red Sea ATO kit) of a RSCONTROL hub.
+
+    Read and written through the coordinator (``read_fn`` / ``write_fn``)
+    rather than a JSONPath: the module's configuration is only polled while
+    it is installed, and its writes go to ``/ato/…`` endpoints.
+    """
+
+    def __init__(
+        self,
+        device: ReefBeatCoordinator,
+        description: ReefBeatNumberEntityDescription,
+        read_fn: Callable[[], float | None],
+        write_fn: Callable[[float], Any],
+    ) -> None:
+        super().__init__(device, description)
+        self._read_fn = read_fn
+        self._write_fn = write_fn
+
+    async def async_added_to_hass(self) -> None:
+        # Nothing to restore into the cache: the hub is the source
+        await super(ReefBeatNumberEntity, self).async_added_to_hass()
+        self._attr_native_value = self._read_fn()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        self._attr_native_value = self._read_fn()
+        super(ReefBeatNumberEntity, self)._handle_coordinator_update()
+
+    @property
+    def available(self) -> bool:  # type: ignore[override]
+        return self._read_fn() is not None
+
+    async def async_set_native_value(self, value: float) -> None:
+        self._attr_native_value = value
+        self.async_write_ha_state()
+        await self._write_fn(value)
+
+
+def _as_float(value: Any) -> float | None:
+    """A number read from the hub, None for anything else."""
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return float(value)
+    return None
+
+
+def _ato_port_numbers(
+    device: ReefControlCoordinator, port: int
+) -> list[ReefControlAtoNumberEntity]:
+    """Numbers of the ATO module on a hub port."""
+    placeholders = {"port": str(port + 1)}
+
+    def flow_rate() -> float | None:
+        rate = _as_float(device.ato_config_value("pump_override", "flow_rate_override"))
+        if rate is None:
+            return None
+        # 0 (never set) or -1 (reset): the pump's own default, shown as 0
+        return round(rate / 1000, 2) if rate > 0 else 0.0
+
+    return [
+        # Volume left in the reservoir, as the app's "reservoir volume" sets
+        ReefControlAtoNumberEntity(
+            device,
+            ReefBeatNumberEntityDescription(
+                key=f"port_{port}_ato_volume_left",
+                translation_key="port_ato_volume_left_set",
+                translation_placeholders=placeholders,
+                mode=NumberMode.BOX,
+                native_min_value=0,
+                native_max_value=500000,
+                native_step=100,
+                native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+                device_class=NumberDeviceClass.VOLUME_STORAGE,
+                icon="mdi:storage-tank",
+            ),
+            read_fn=lambda: _as_float(device.ato_port_value(port, "volume_left")),
+            write_fn=device.async_update_ato_volume,
+        ),
+        # Hose from the pump to the tank: the app offers 0.5 to 5 m and 0 or
+        # 0.4 to 2.5 m of height, sent in cm
+        ReefControlAtoNumberEntity(
+            device,
+            ReefBeatNumberEntityDescription(
+                key=f"port_{port}_ato_hose_length",
+                translation_key="port_ato_hose_length",
+                translation_placeholders=placeholders,
+                mode=NumberMode.BOX,
+                native_min_value=50,
+                native_max_value=500,
+                native_step=10,
+                native_unit_of_measurement=UnitOfLength.CENTIMETERS,
+                device_class=NumberDeviceClass.DISTANCE,
+                icon="mdi:pipe",
+                entity_category=EntityCategory.CONFIG,
+            ),
+            read_fn=lambda: _as_float(device.ato_config_value("hose", "length")),
+            write_fn=lambda v: device.async_set_ato_hose(length_cm=v),
+        ),
+        ReefControlAtoNumberEntity(
+            device,
+            ReefBeatNumberEntityDescription(
+                key=f"port_{port}_ato_hose_height",
+                translation_key="port_ato_hose_height",
+                translation_placeholders=placeholders,
+                mode=NumberMode.BOX,
+                native_min_value=0,
+                native_max_value=250,
+                native_step=10,
+                native_unit_of_measurement=UnitOfLength.CENTIMETERS,
+                device_class=NumberDeviceClass.DISTANCE,
+                icon="mdi:arrow-expand-vertical",
+                entity_category=EntityCategory.CONFIG,
+            ),
+            read_fn=lambda: _as_float(device.ato_config_value("hose", "height")),
+            write_fn=lambda v: device.async_set_ato_hose(height_cm=v),
+        ),
+        # Pump flow rate override: 0.2 to 4 L/min in the app, 0 = default
+        ReefControlAtoNumberEntity(
+            device,
+            ReefBeatNumberEntityDescription(
+                key=f"port_{port}_ato_flow_rate",
+                translation_key="port_ato_flow_rate",
+                translation_placeholders=placeholders,
+                mode=NumberMode.BOX,
+                native_min_value=0,
+                native_max_value=4,
+                native_step=0.1,
+                native_unit_of_measurement="L/min",
+                icon="mdi:speedometer",
+                entity_category=EntityCategory.CONFIG,
+            ),
+            read_fn=flow_rate,
+            write_fn=lambda v: device.async_set_ato_flow_rate(0 if v < 0.2 else v),
+        ),
+    ]
 
 
 class ReefPowerTemperatureCalibrationNumberEntity(ReefBeatNumberEntity):

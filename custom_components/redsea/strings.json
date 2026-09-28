@@ -134,6 +134,12 @@
       },
       "temperature_coherent": {
         "name": "Temperature coherence"
+      },
+      "port_ato_pump_on": {
+        "name": "Port {port} ATO pump"
+      },
+      "port_ato_fault": {
+        "name": "Port {port} ATO fault"
       }
     },
     "button": {
@@ -358,6 +364,15 @@
       },
       "unpair_control": {
         "name": "Unpair control hub"
+      },
+      "port_ato_resume": {
+        "name": "Port {port} ATO resume"
+      },
+      "port_ato_manual_pump": {
+        "name": "Port {port} ATO manual fill"
+      },
+      "port_ato_stop": {
+        "name": "Port {port} ATO stop"
       }
     },
     "light": {
@@ -578,6 +593,18 @@
       },
       "danger_debounce_seconds": {
         "name": "Danger debounce"
+      },
+      "port_ato_volume_left_set": {
+        "name": "Port {port} ATO reservoir volume left"
+      },
+      "port_ato_hose_length": {
+        "name": "Port {port} ATO hose length"
+      },
+      "port_ato_hose_height": {
+        "name": "Port {port} ATO hose height"
+      },
+      "port_ato_flow_rate": {
+        "name": "Port {port} ATO flow rate"
       }
     },
     "select": {
@@ -1378,6 +1405,33 @@
       },
       "probe_uid": {
         "name": "{probe} uid"
+      },
+      "port_ato_status": {
+        "name": "Port {port} ATO status",
+        "state": {
+          "ok": "OK",
+          "port_malfunction": "Port malfunction",
+          "stalled": "Pump stalled",
+          "empty": "Reservoir empty",
+          "missing_pump": "Pump missing",
+          "timeout": "Fill timeout",
+          "leak": "Leak"
+        }
+      },
+      "port_ato_today_volume": {
+        "name": "Port {port} ATO volume today"
+      },
+      "port_ato_volume_left": {
+        "name": "Port {port} ATO volume left"
+      },
+      "port_ato_last_pump_on_cause": {
+        "name": "Port {port} ATO last fill cause",
+        "state": {
+          "none": "None",
+          "manual": "Manual",
+          "ec_sensor_s1": "Level sensor 1",
+          "ec_sensor_s2": "Level sensor 2"
+        }
       }
     },
     "switch": {
@@ -1551,6 +1605,18 @@
       },
       "leak_detector_enabled": {
         "name": "Leak detector"
+      },
+      "port_ato_auto_fill": {
+        "name": "Port {port} ATO auto fill"
+      },
+      "port_ato_volume_monitor": {
+        "name": "Port {port} ATO reservoir monitoring"
+      },
+      "port_ato_notify": {
+        "name": "Port {port} ATO notifications"
+      },
+      "port_ato_temp_log": {
+        "name": "Port {port} ATO temperature log"
       }
     },
     "text": {
@@ -1618,7 +1684,9 @@
       "wifi_change_failed_reset": "Could not reboot the device after sending the new Wi-Fi credentials.",
       "wifi_change_failed_rediscover": "The device rebooted but could not be found on the network. Check that it joined {ssid} and reconfigure its IP manually if needed.",
       "wifi_change_failed_unknown": "Unexpected error while changing Wi-Fi network.",
-      "no_probes": "This hub has no probes to remove."
+      "no_probes": "This hub has no probes to remove.",
+      "no_ato_probe": "This hub has no ATO probe: add one first.",
+      "no_free_port": "This hub has no free 12V port for the ATO module."
     },
     "error": {
       "auth_failed": "Authentification failed, check your crendentials",
@@ -1627,7 +1695,8 @@
       "wifi_no_ssid": "Please pick a network before submitting.",
       "wifi_bad_cidr": "That is not a valid IPv4 CIDR (expected e.g. 10.0.0.0/24).",
       "wifi_manual_not_found": "The device could not be found on that subnet. Try another CIDR, or leave the field empty to give up.",
-      "no_probe_detected": "No new probe of the selected type was detected. Put it in pairing mode and try again."
+      "no_probe_detected": "No new probe of the selected type was detected. Put it in pairing mode and try again.",
+      "ato_install_failed": "The hub refused to install the ATO module. Check that the port is free and the ATO probe connected."
     },
     "progress": {
       "applying": "Applying the new Wi-Fi credentials and locating the device on the network..."
@@ -1645,7 +1714,8 @@
           "wifi_scan": "Change Wi-Fi network",
           "add_probe": "Add a probe",
           "del_probe": "Remove a probe",
-          "change_probe": "Replace a probe"
+          "change_probe": "Replace a probe",
+          "install_ato": "Install the ATO module"
         },
         "title": "Configuration"
       },
@@ -1703,6 +1773,19 @@
       "del_probe_confirm": {
         "title": "Confirm removal",
         "description": "This permanently removes the selected probe(s) and all their entities and history: {probes}.\n\nSubmit to continue, or close this dialog to cancel."
+      },
+      "install_ato": {
+        "title": "Install the ATO module",
+        "description": "Installs the Red Sea ATO kit on a 12V port. Add its ATO probe first (Add a probe). The hose goes from the pump to the tank; the height is how far above the pump it rises.",
+        "data": {
+          "ato_port": "12V port",
+          "ato_probe": "ATO probe",
+          "ato_volume": "Reservoir volume (L)",
+          "ato_hose_length": "Hose length (cm)",
+          "ato_hose_height": "Hose height (cm)",
+          "ato_auto_fill": "Auto fill",
+          "ato_volume_monitor": "Reservoir monitoring"
+        }
       }
     }
   },

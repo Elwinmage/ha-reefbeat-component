@@ -1354,6 +1354,96 @@ def _port_mode_attributes_fn(
     return attributes
 
 
+def _port_state(device: ReefBeatCoordinator, base: str, port: int) -> str | None:
+    """State of a hub 12V port (see ``_effective_socket_state``).
+
+    The ATO module's port reports no ``state``: its pump is on while
+    ``is_pump_on`` says so, in standby otherwise.
+    """
+    control = cast(ReefControlCoordinator, device)
+    pumping = control.ato_port_value(port, "is_pump_on")
+    if isinstance(pumping, bool):
+        return "on" if pumping else "standby"
+    return _effective_socket_state(
+        device.get_data(f"{base}.mode", is_None_possible=True),
+        device.get_data(f"{base}.state", is_None_possible=True),
+    )
+
+
+# `ok`, or the fault the ATO module's port reports as its mode: `ok` then
+# ReefControlAPI.ATO_FAULT_MODES (the app's AtoModuleError), spelt out for
+# the translation checker.
+_ATO_STATUS_OPTIONS: list[str] = [
+    "ok",
+    "port_malfunction",
+    "stalled",
+    "empty",
+    "missing_pump",
+    "timeout",
+    "leak",
+]
+
+# What started the module's last fill. The app models `manual` and `none`
+# (AtoAdvanceCause); a module not run yet reports "unknown", shown as such.
+_ATO_PORT_PUMP_CAUSE_OPTIONS: list[str] = list(_ATO_PUMP_CAUSE_OPTIONS)
+
+
+def _ato_port_sensors(port: int) -> list[ReefBeatSensorEntityDescription]:
+    """Sensors of the ATO module on a hub port (``/dashboard.ports[n]``)."""
+
+    def ato(field: str) -> Callable[[ReefBeatCoordinator], Any]:
+        return lambda d: cast(ReefControlCoordinator, d).ato_port_value(port, field)
+
+    placeholders = {"port": str(port + 1)}
+    return [
+        ReefBeatSensorEntityDescription(
+            key=f"port_{port}_ato_status",
+            translation_key="port_ato_status",
+            translation_placeholders=placeholders,
+            attributes_fn=lambda _d: {"port": port},
+            device_class=SensorDeviceClass.ENUM,
+            options=_ATO_STATUS_OPTIONS,
+            value_fn=lambda d: cast(ReefControlCoordinator, d).ato_status(port),
+            icon="mdi:water-pump",
+        ),
+        ReefBeatSensorEntityDescription(
+            key=f"port_{port}_today_volume",
+            translation_key="port_ato_today_volume",
+            translation_placeholders=placeholders,
+            attributes_fn=lambda _d: {"port": port},
+            native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+            device_class=SensorDeviceClass.VOLUME,
+            state_class=SensorStateClass.TOTAL_INCREASING,
+            value_fn=ato("today_volume"),
+            icon="mdi:waves-arrow-up",
+            suggested_display_precision=0,
+        ),
+        ReefBeatSensorEntityDescription(
+            key=f"port_{port}_volume_left",
+            translation_key="port_ato_volume_left",
+            translation_placeholders=placeholders,
+            attributes_fn=lambda _d: {"port": port},
+            native_unit_of_measurement=UnitOfVolume.MILLILITERS,
+            device_class=SensorDeviceClass.VOLUME_STORAGE,
+            state_class=SensorStateClass.MEASUREMENT,
+            value_fn=ato("volume_left"),
+            icon="mdi:storage-tank-outline",
+            suggested_display_precision=0,
+        ),
+        ReefBeatSensorEntityDescription(
+            key=f"port_{port}_last_pump_on_cause",
+            translation_key="port_ato_last_pump_on_cause",
+            translation_placeholders=placeholders,
+            attributes_fn=lambda _d: {"port": port},
+            device_class=SensorDeviceClass.ENUM,
+            options=_ATO_PORT_PUMP_CAUSE_OPTIONS,
+            value_fn=ato("last_pump_on_cause"),
+            icon="mdi:history",
+            entity_category=EntityCategory.DIAGNOSTIC,
+        ),
+    ]
+
+
 # JSONPath selector to find a probe by its stable `uid` (independent of the
 # probe's array position, so plug/unplug reordering doesn't break entities).
 def _probe_path(uid: str, field: str) -> str:
@@ -2277,12 +2367,7 @@ async def async_setup_entry(
                         # Same firmware quirk as sockets: mode == "on" | "off"
                         # forces state to "unknown". See _effective_socket_state
                         # for the derivation rules.
-                        value_fn=lambda d, m=f"{base}.mode", s=f"{base}.state": (
-                            _effective_socket_state(
-                                d.get_data(m, is_None_possible=True),
-                                d.get_data(s, is_None_possible=True),
-                            )
-                        ),
+                        value_fn=lambda d, b=base, i=port_idx: _port_state(d, b, i),
                     ),
                     ReefBeatSensorEntityDescription(
                         key=f"port_{port_idx}_mode",
@@ -2323,6 +2408,13 @@ async def async_setup_entry(
                     ),
                 ]
             )
+        # The ATO module (Red Sea ATO kit), on the port reporting type "ato"
+        control_descs.extend(
+            description
+            for port_idx in range(device.port_count)
+            if device.ato_is_port(port_idx)
+            for description in _ato_port_sensors(port_idx)
+        )
         entities.extend(
             ReefBeatSensorEntity(device, description) for description in control_descs
         )

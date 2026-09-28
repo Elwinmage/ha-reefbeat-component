@@ -89,8 +89,15 @@ Estos ajustes no se exponen como entidades individuales — con varios puertos y
 
 El sensor `port_N_mode` lleva igualmente lo que una automatización necesita para leer la configuración activa: `config` (la entrada completa del puerto, incluido `power_on_percent`), `schedule` (leído del hub mientras el puerto está en modo programa) y `sensor_config` (la regla de sonda), con `sensor_source: control`.
 
-> [!NOTE]
-> Un puerto que controla una bomba ATO desde una sonda ATO sigue siendo de tipo `other`: es el asistente del kit ATO de la aplicación ReefBeat el que los enlaza. El hub no expone los controles ATO del RSATO+ (llenado manual, llenado automático, volumen restante…).
+## Módulo ATO (kit ATO de Red Sea)
+El kit ATO de Red Sea — una bomba en un puerto de 12V y una sonda ATO — se instala como lo hace el asistente de la aplicación, desde el menú **Opciones** de la integración:
+
+1. **Añadir una sonda** de tipo `ato` (se llama `ATO Temp. <uid>`, por su temperatura, como en la aplicación).
+2. **Instalar el módulo ATO**: elija el puerto de 12V libre, la sonda ATO, el volumen del depósito (L), la longitud y la altura del tubo (cm, de la bomba al acuario; la altura es lo que sube por encima de la bomba), el llenado automático y el seguimiento del depósito.
+
+El puerto pasa a ser de tipo `ato` y recibe las entidades del módulo: estado (`OK` o el fallo indicado: falta la bomba, bomba bloqueada, depósito vacío, tiempo de llenado excedido, fuga, fallo del puerto), fallo y bomba (sensores binarios), volumen de hoy / restante (mL), causa del último llenado, interruptores de llenado automático, seguimiento del depósito, notificaciones y registro de temperatura, números para el volumen restante del depósito, la longitud/altura del tubo (cm) y el caudal (0,2 a 4 L/min, 0 = por defecto), y botones para reanudar (solo con un fallo), llenar manualmente y detener.
+
+Desinstalar el puerto retira el módulo; recargue la integración para eliminar sus entidades.
 
 ## Tareas de mantenimiento
 | Tarea | Sondas | Por defecto | Rango |

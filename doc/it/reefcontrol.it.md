@@ -89,8 +89,15 @@ Queste impostazioni non sono esposte come entità singole — con più porte e p
 
 Il sensore `port_N_mode` porta comunque ciò che serve a un'automazione per leggere la configurazione attiva: `config` (l'intera voce della porta, `power_on_percent` compreso), `schedule` (riletto dall'hub finché la porta è in modalità programma) e `sensor_config` (la regola di sonda), con `sensor_source: control`.
 
-> [!NOTE]
-> Una porta che pilota una pompa ATO da una sonda ATO resta di tipo `other`: è la procedura guidata del kit ATO dell'app ReefBeat a collegarle. L'hub non espone i comandi ATO dell'RSATO+ (riempimento manuale, riempimento automatico, volume rimanente…).
+## Modulo ATO (kit ATO Red Sea)
+Il kit ATO Red Sea — una pompa su una porta 12V e una sonda ATO — si installa come fa la procedura guidata dell'app, dal menu **Opzioni** dell'integrazione:
+
+1. **Aggiungi una sonda** di tipo `ato` (si chiama `ATO Temp. <uid>`, dalla sua temperatura, come nell'app).
+2. **Installa il modulo ATO**: scegli la porta 12V libera, la sonda ATO, il volume del serbatoio (L), la lunghezza e l'altezza del tubo (cm, dalla pompa alla vasca; l'altezza è quanto sale sopra la pompa), il rabbocco automatico e il monitoraggio del serbatoio.
+
+La porta diventa di tipo `ato` e riceve le entità del modulo: stato (`OK` o il guasto segnalato: pompa assente, pompa bloccata, serbatoio vuoto, tempo di rabbocco superato, perdita, guasto della porta), guasto e pompa (sensori binari), volume di oggi / residuo (mL), causa dell'ultimo rabbocco, interruttori per rabbocco automatico, monitoraggio serbatoio, notifiche e registro temperatura, numeri per il volume residuo del serbatoio, lunghezza/altezza del tubo (cm) e portata (da 0,2 a 4 L/min, 0 = predefinita), e pulsanti per riprendere (solo in caso di guasto), rabboccare manualmente e fermare.
+
+Disinstallare la porta rimuove il modulo; ricarica l'integrazione per eliminarne le entità.
 
 ## Attività di manutenzione
 | Attività | Sonde | Predefinito | Intervallo |

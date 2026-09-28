@@ -134,6 +134,12 @@
       },
       "temperature_coherent": {
         "name": "Spójność temperatury"
+      },
+      "port_ato_pump_on": {
+        "name": "Port {port} pompa ATO"
+      },
+      "port_ato_fault": {
+        "name": "Port {port} awaria ATO"
       }
     },
     "button": {
@@ -358,6 +364,15 @@
       },
       "unpair_control": {
         "name": "Rozłącz hub sterujący"
+      },
+      "port_ato_resume": {
+        "name": "Port {port} wznów ATO"
+      },
+      "port_ato_manual_pump": {
+        "name": "Port {port} ręczna dolewka"
+      },
+      "port_ato_stop": {
+        "name": "Port {port} zatrzymaj ATO"
       }
     },
     "light": {
@@ -578,6 +593,18 @@
       },
       "danger_debounce_seconds": {
         "name": "Debounce zagrożenia"
+      },
+      "port_ato_volume_left_set": {
+        "name": "Port {port} pozostała objętość zbiornika"
+      },
+      "port_ato_hose_length": {
+        "name": "Port {port} długość węża ATO"
+      },
+      "port_ato_hose_height": {
+        "name": "Port {port} wysokość węża ATO"
+      },
+      "port_ato_flow_rate": {
+        "name": "Port {port} przepływ ATO"
       }
     },
     "select": {
@@ -1370,6 +1397,33 @@
       },
       "probe_uid": {
         "name": "UID {probe}"
+      },
+      "port_ato_status": {
+        "name": "Port {port} stan ATO",
+        "state": {
+          "ok": "OK",
+          "port_malfunction": "Awaria portu",
+          "stalled": "Pompa zablokowana",
+          "empty": "Zbiornik pusty",
+          "missing_pump": "Brak pompy",
+          "timeout": "Przekroczony czas dolewki",
+          "leak": "Wyciek"
+        }
+      },
+      "port_ato_today_volume": {
+        "name": "Port {port} objętość ATO dziś"
+      },
+      "port_ato_volume_left": {
+        "name": "Port {port} pozostała objętość ATO"
+      },
+      "port_ato_last_pump_on_cause": {
+        "name": "Port {port} przyczyna ostatniej dolewki",
+        "state": {
+          "none": "Brak",
+          "manual": "Ręcznie",
+          "ec_sensor_s1": "Czujnik poziomu 1",
+          "ec_sensor_s2": "Czujnik poziomu 2"
+        }
       }
     },
     "switch": {
@@ -1543,6 +1597,18 @@
       },
       "leak_detector_enabled": {
         "name": "Czujnik wycieku"
+      },
+      "port_ato_auto_fill": {
+        "name": "Port {port} automatyczna dolewka"
+      },
+      "port_ato_volume_monitor": {
+        "name": "Port {port} monitorowanie zbiornika"
+      },
+      "port_ato_notify": {
+        "name": "Port {port} powiadomienia ATO"
+      },
+      "port_ato_temp_log": {
+        "name": "Port {port} dziennik temperatury ATO"
       }
     },
     "text": {
@@ -1610,7 +1676,9 @@
       "wifi_change_failed_reset": "Nie udało się zrestartować urządzenia po wysłaniu nowych danych uwierzytelniających Wi-Fi.",
       "wifi_change_failed_rediscover": "Urządzenie zostało zrestartowane, ale nie znaleziono go w sieci. Sprawdź, czy dołączyło do {ssid}, i w razie potrzeby ręcznie skonfiguruj jego adres IP.",
       "wifi_change_failed_unknown": "Nieoczekiwany błąd podczas zmiany sieci Wi-Fi.",
-      "no_probes": "Ten hub nie ma sond do usunięcia."
+      "no_probes": "Ten hub nie ma sond do usunięcia.",
+      "no_ato_probe": "Ten hub nie ma sondy ATO: najpierw ją dodaj.",
+      "no_free_port": "Ten hub nie ma wolnego portu 12V dla modułu ATO."
     },
     "error": {
       "auth_failed": "Uwierzytelnianie nie powiodło się, sprawdź dane logowania",
@@ -1619,7 +1687,8 @@
       "wifi_no_ssid": "Wybierz sieć przed wysłaniem.",
       "wifi_bad_cidr": "Nieprawidłowy IPv4 CIDR (oczekiwano np. 10.0.0.0/24).",
       "wifi_manual_not_found": "Nie znaleziono urządzenia w tej podsieci. Spróbuj innego CIDR lub zostaw pole puste, aby zrezygnować.",
-      "no_probe_detected": "Nie wykryto nowej sondy wybranego typu. Przełącz ją w tryb parowania i spróbuj ponownie."
+      "no_probe_detected": "Nie wykryto nowej sondy wybranego typu. Przełącz ją w tryb parowania i spróbuj ponownie.",
+      "ato_install_failed": "Hub odmówił instalacji modułu ATO. Sprawdź, czy port jest wolny, a sonda ATO podłączona."
     },
     "progress": {
       "applying": "Wysyłanie nowych danych uwierzytelniających Wi-Fi i lokalizowanie urządzenia w sieci..."
@@ -1637,7 +1706,8 @@
           "wifi_scan": "Zmień sieć Wi-Fi",
           "add_probe": "Dodaj sondę",
           "del_probe": "Usuń sondę",
-          "change_probe": "Wymień sondę"
+          "change_probe": "Wymień sondę",
+          "install_ato": "Zainstaluj moduł ATO"
         },
         "title": "Konfiguracja"
       },
@@ -1695,6 +1765,19 @@
       "del_probe_confirm": {
         "title": "Potwierdź usunięcie",
         "description": "Trwale usuwa wybrane sondy oraz wszystkie ich encje i historię: {probes}.\n\nPotwierdź, aby kontynuować, lub zamknij okno, aby anulować."
+      },
+      "install_ato": {
+        "title": "Zainstaluj moduł ATO",
+        "description": "Instaluje zestaw ATO Red Sea na porcie 12V. Najpierw dodaj jego sondę ATO (Dodaj sondę). Wąż biegnie od pompy do akwarium; wysokość to, jak wysoko wznosi się nad pompą.",
+        "data": {
+          "ato_port": "Port 12V",
+          "ato_probe": "Sonda ATO",
+          "ato_volume": "Objętość zbiornika (L)",
+          "ato_hose_length": "Długość węża (cm)",
+          "ato_hose_height": "Wysokość węża (cm)",
+          "ato_auto_fill": "Automatyczna dolewka",
+          "ato_volume_monitor": "Monitorowanie zbiornika"
+        }
       }
     }
   },

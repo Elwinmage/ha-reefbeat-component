@@ -2215,6 +2215,126 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         await cast(ReefControlAPI, self.my_api).setup_finish()
         await self.async_request_refresh()
 
+    # -- ATO module (Red Sea ATO kit on a 12V port) ------------------------
+    def ato_port_number(self) -> int | None:
+        """0-based port the ATO module is on, None without one."""
+        return self.my_api.ato_port_number()
+
+    def ato_is_port(self, number: int) -> bool:
+        """Whether the ATO module is on this port."""
+        return self.ato_port_number() == number
+
+    def ato_config(self) -> dict[str, Any] | None:
+        """The module's cached ``/ato/configuration``."""
+        return self.my_api.ato_config()
+
+    def ato_config_value(self, *keys: str) -> Any:
+        """A field of ``/ato/configuration`` (nested keys), None when absent."""
+        value: Any = self.ato_config()
+        for key in keys:
+            if not isinstance(value, dict):
+                return None
+            value = cast(dict[str, Any], value).get(key)
+        return value
+
+    def ato_port_value(self, number: int, field: str) -> Any:
+        """A field of the ATO module's ``/dashboard`` port entry.
+
+        None when the port does not hold the module, so its entities show
+        unknown rather than another port's value.
+        """
+        if not self.ato_is_port(number):
+            return None
+        entry = self.my_api.dashboard_port(number) or {}
+        return entry.get(field)
+
+    def ato_status(self, number: int) -> str | None:
+        """``ok`` or the fault the ATO module's port reports (its mode)."""
+        mode = self.ato_port_value(number, "mode")
+        if mode is None:
+            return None
+        return mode if mode in ReefControlAPI.ATO_FAULT_MODES else "ok"
+
+    def ato_probes(self) -> list[dict[str, str]]:
+        """ATO probes of the hub, as ``{uid, name}`` (for the install form)."""
+        return [
+            {"uid": p["uid"], "name": p["name"]}
+            for p in self.list_probes()
+            if p.get("type") == "ato"
+        ]
+
+    def ato_free_ports(self) -> list[int]:
+        """Ports the ATO module can be installed on: those not installed."""
+        return [n for n in range(self.port_count) if not self.port_is_installed(n)]
+
+    async def async_install_ato_port(
+        self,
+        number: int,
+        uid: str,
+        volume_ml: float,
+        hose_length_cm: float,
+        hose_height_cm: float,
+        *,
+        auto_fill: bool = True,
+        volume_monitor: bool = True,
+    ) -> bool:
+        """Install the ATO module on a port; True when the hub accepted it."""
+        result = await self.my_api.install_ato_port(
+            number,
+            uid,
+            volume_ml,
+            hose_length_cm,
+            hose_height_cm,
+            auto_fill=auto_fill,
+            volume_monitor=volume_monitor,
+            port_count=self.port_count,
+        )
+        self.async_update_listeners()
+        await self.async_request_refresh(config=True)
+        return bool(result and result.get("ok"))
+
+    async def _after_ato_write(self) -> None:
+        # The API already mirrored the write in the cache (optimistic)
+        self.async_update_listeners()
+        await self.async_request_refresh()
+
+    async def async_set_ato_config(self, fields: dict[str, Any]) -> None:
+        """Change settings of the ATO module and refresh."""
+        await self.my_api.set_ato_config(fields)
+        await self._after_ato_write()
+
+    async def async_set_ato_hose(
+        self, length_cm: float | None = None, height_cm: float | None = None
+    ) -> None:
+        """Set the ATO hose length or height (cm) and refresh."""
+        await self.my_api.set_ato_hose(length_cm, height_cm)
+        await self._after_ato_write()
+
+    async def async_set_ato_flow_rate(self, liters_per_minute: float) -> None:
+        """Override the ATO pump flow rate (L/min, 0 = default) and refresh."""
+        await self.my_api.set_ato_flow_rate(liters_per_minute * 1000)
+        await self._after_ato_write()
+
+    async def async_update_ato_volume(self, volume_ml: float) -> None:
+        """Set the volume left in the ATO reservoir and refresh."""
+        await self.my_api.update_ato_volume(volume_ml)
+        await self._after_ato_write()
+
+    async def async_ato_resume(self) -> None:
+        """Clear a fault of the ATO module and refresh."""
+        await self.my_api.ato_resume()
+        await self._after_ato_write()
+
+    async def async_ato_manual_pump(self) -> None:
+        """Start a manual ATO fill and refresh."""
+        await self.my_api.ato_manual_pump()
+        await self._after_ato_write()
+
+    async def async_ato_stop(self) -> None:
+        """Stop the ATO pump and refresh."""
+        await self.my_api.ato_stop()
+        await self._after_ato_write()
+
     def set_connected_device(self, device: dict[str, Any] | None) -> None:
         """Set the hub's cached pairing and show it (optimistic update)."""
         dashboard = self.get_data(

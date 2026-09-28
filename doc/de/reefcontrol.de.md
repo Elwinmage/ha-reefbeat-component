@@ -89,8 +89,15 @@ Diese Einstellungen werden nicht als einzelne Entitäten bereitgestellt — bei 
 
 Der Sensor `port_N_mode` trägt dennoch alles, was eine Automatisierung braucht, um die aktive Konfiguration zu lesen: `config` (der vollständige Porteintrag, einschließlich `power_on_percent`), `schedule` (vom Hub gelesen, solange der Port im Zeitplanmodus ist) und `sensor_config` (die Sondenregel), mit `sensor_source: control`.
 
-> [!NOTE]
-> Ein Port, der eine ATO-Pumpe über eine ATO-Sonde steuert, bleibt vom Typ `other`: Der Assistent des ATO-Kits der ReefBeat-App verknüpft beide. Der Hub stellt die ATO-Befehle des RSATO+ (manuelles Befüllen, automatisches Befüllen, Restvolumen…) nicht bereit.
+## ATO-Modul (Red Sea ATO-Kit)
+Das Red Sea ATO-Kit — eine Pumpe an einem 12V-Port und eine ATO-Sonde — wird wie mit dem Assistenten der App über das Menü **Optionen** der Integration installiert:
+
+1. **Sonde hinzufügen** vom Typ `ato` (sie heißt `ATO Temp. <uid>`, nach ihrer Temperatur, wie in der App).
+2. **ATO-Modul installieren**: freien 12V-Port, ATO-Sonde, Behältervolumen (L), Schlauchlänge und -höhe (cm, von der Pumpe zum Becken; die Höhe ist, wie weit er über die Pumpe steigt), automatisches Nachfüllen und Behälterüberwachung wählen.
+
+Der Port wird dann vom Typ `ato` und erhält die Entitäten des Moduls: Status (`OK` oder die gemeldete Störung: Pumpe fehlt, blockiert, Behälter leer, Füllzeit überschritten, Leck, Portstörung), Störung und Pumpe (Binärsensoren), Volumen heute / Restvolumen (mL), Ursache der letzten Füllung, Schalter für automatisches Nachfüllen, Behälterüberwachung, Benachrichtigungen und Temperaturprotokoll, Zahlen für Restvolumen im Behälter, Schlauchlänge/-höhe (cm) und Durchfluss (0,2 bis 4 L/min, 0 = Standard der Pumpe), und Tasten zum Fortsetzen (nur bei einer Störung), manuellen Befüllen und Stoppen.
+
+Die Deinstallation des Ports entfernt das Modul; laden Sie die Integration neu, um seine Entitäten zu entfernen.
 
 ## Wartungsaufgaben
 | Aufgabe | Sonden | Standard | Bereich |

@@ -89,8 +89,15 @@ Estas definições não são expostas como entidades individuais — com várias
 
 O sensor `port_N_mode` tem ainda tudo o que uma automação precisa para ler a configuração ativa: `config` (a entrada completa da porta, incluindo `power_on_percent`), `schedule` (lido do hub enquanto a porta está em modo programa) e `sensor_config` (a regra de sonda), com `sensor_source: control`.
 
-> [!NOTE]
-> Uma porta que controla uma bomba ATO a partir de uma sonda ATO continua a ser do tipo `other`: é o assistente do kit ATO da aplicação ReefBeat que as liga. O hub não expõe os comandos ATO do RSATO+ (enchimento manual, enchimento automático, volume restante…).
+## Módulo ATO (kit ATO Red Sea)
+O kit ATO Red Sea — uma bomba numa porta de 12V e uma sonda ATO — instala-se como o assistente da aplicação, a partir do menu **Opções** da integração:
+
+1. **Adicionar uma sonda** do tipo `ato` (chama-se `ATO Temp. <uid>`, pela sua temperatura, como na aplicação).
+2. **Instalar o módulo ATO**: escolha a porta de 12V livre, a sonda ATO, o volume do reservatório (L), o comprimento e a altura do tubo (cm, da bomba ao aquário; a altura é quanto sobe acima da bomba), o enchimento automático e a monitorização do reservatório.
+
+A porta passa a ser do tipo `ato` e recebe as entidades do módulo: estado (`OK` ou a falha indicada: bomba ausente, bomba bloqueada, reservatório vazio, tempo de enchimento excedido, fuga, falha da porta), falha e bomba (sensores binários), volume de hoje / restante (mL), causa do último enchimento, interruptores de enchimento automático, monitorização do reservatório, notificações e registo de temperatura, números para o volume restante do reservatório, comprimento/altura do tubo (cm) e caudal (0,2 a 4 L/min, 0 = predefinido), e botões para retomar (apenas com uma falha), encher manualmente e parar.
+
+Desinstalar a porta remove o módulo; recarregue a integração para eliminar as suas entidades.
 
 ## Tarefas de manutenção
 | Tarefa | Sondas | Predefinição | Intervalo |
