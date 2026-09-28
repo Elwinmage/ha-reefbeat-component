@@ -548,6 +548,44 @@ LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         ),
         icon="mdi:brightness-percent",
     ),
+    # Program the lamp is running, from its own clock: `active_preset` is the
+    # weekday of the /auto/<day> source in use (G1 and G2 dashboards).
+    ReefBeatSensorEntityDescription(
+        key="current_program",
+        translation_key="current_program",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.current_program.name", True
+        ),
+        attributes_fn=lambda device: {
+            "active_preset": device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.current_program.active_preset",
+                True,
+            )
+        },
+        exists_fn=lambda device: (
+            not isinstance(device, ReefVirtualLedCoordinator)
+            and device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.current_program", True
+            )
+            is not None
+        ),
+        icon="mdi:calendar-star",
+    ),
+)
+
+# Virtual LED: the lamps it drives, for the card (list, links, program writes)
+VIRTUAL_LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
+    ReefBeatSensorEntityDescription(
+        key="linked_leds",
+        translation_key="linked_leds",
+        value_fn=lambda device: len(
+            cast(ReefVirtualLedCoordinator, device).linked_leds()
+        ),
+        attributes_fn=lambda device: {
+            "leds": cast(ReefVirtualLedCoordinator, device).linked_leds()
+        },
+        icon="mdi:lightbulb-group",
+    ),
 )
 
 G2_LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
@@ -1886,6 +1924,13 @@ async def async_setup_entry(
         entities.extend(
             ReefBeatSensorEntity(device, description)
             for description in G2_LED_SENSORS
+            if description.exists_fn(device)
+        )
+
+    if isinstance(device, ReefVirtualLedCoordinator):
+        entities.extend(
+            ReefBeatSensorEntity(device, description)
+            for description in VIRTUAL_LED_SENSORS
             if description.exists_fn(device)
         )
 

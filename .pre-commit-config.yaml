@@ -53,7 +53,7 @@ repos:
         # entry: env PYTHONPATH=/usr/src/homeassistant python3 /usr/src/homeassistant/script/hassfest
         entry: env PYTHONPATH=/usr/src/ha-hassfest python3 -m script.hassfest
         language: system
-        args: ["--integration-path", "custom_components/redsea"]
+        args: ["--core-path", "/usr/src/ha-hassfest", "--integration-path", "custom_components/redsea"]
         pass_filenames: false
         always_run: true
 

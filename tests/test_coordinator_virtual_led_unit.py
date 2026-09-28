@@ -103,6 +103,9 @@ class _FakeAPI:
 class _LinkedLed:
     title: str
     is_g1: bool
+    # Hardware id and model, as a real coordinator exposes them
+    model_id: str = ""
+    model: str = ""
 
     my_api: Any = field(default_factory=_FakeAPI)
 
@@ -436,3 +439,50 @@ async def test_virtual_led_broadcasts_to_linked_leds(
         _fake_super_refresh,
         raising=True,
     )
+
+
+def test_virtual_led_linked_leds_describes_each_lamp(hass: HomeAssistant) -> None:
+    """linked_leds() gives the card what it needs to list and write to lamps."""
+    hass.state = "STARTING"  # type: ignore[assignment]
+    hass.data.setdefault(DOMAIN, {})
+    led1 = _LinkedLed(title="LED1", is_g1=True, model_id="hw1", model="RSLED160")
+    led2 = _LinkedLed(title="LED2", is_g1=False, model_id="hw2", model="RSLED170")
+    hass.data[DOMAIN]["id1"] = led1
+    hass.data[DOMAIN]["id2"] = led2
+
+    entry = _make_entry(
+        title="VLED",
+        ip="192.0.2.10",
+        hw_model="RSLED50",
+        linked=["0 LED1-RSLED160 (id1)", "1 LED2-RSLED170 (id2)"],
+    )
+    vled = coord.ReefVirtualLedCoordinator(hass, cast(Any, entry))
+    vled._link_leds()  # type: ignore[attr-defined]
+
+    assert vled.linked_leds() == [
+        {
+            "hwid": "hw1",
+            "name": "LED1",
+            "model": "RSLED160",
+            "g2": False,
+            "entry_id": "id1",
+        },
+        {
+            "hwid": "hw2",
+            "name": "LED2",
+            "model": "RSLED170",
+            "g2": True,
+            "entry_id": "id2",
+        },
+    ]
+    # A lamp linked without its entry (defensive): no entry id
+    vled._linked_entries = []  # type: ignore[attr-defined]
+    assert vled.linked_leds()[0]["entry_id"] is None
+
+    # The sensor exposes the count and the list
+    import custom_components.redsea.sensor as sensor_platform
+
+    desc = sensor_platform.VIRTUAL_LED_SENSORS[0]
+    assert desc.value_fn(vled) == 2
+    assert desc.attributes_fn is not None
+    assert len(desc.attributes_fn(vled)["leds"]) == 2

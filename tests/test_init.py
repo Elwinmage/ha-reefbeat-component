@@ -526,3 +526,82 @@ async def test_get_control_subscriptions_service_handler(
         "external": [],
         "internal": [],
     }
+
+
+@pytest.mark.asyncio
+async def test_led_convert_service_handler(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """redsea.led_convert converts G1 points with the lamp's own API."""
+    import custom_components.redsea as redsea_init
+
+    handlers: dict[str, Any] = {}
+
+    def _async_register(
+        self: Any,
+        domain: str,
+        service: str,
+        service_func: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        handlers[f"{domain}.{service}"] = service_func
+
+    monkeypatch.setattr(
+        type(hass.services), "async_register", _async_register, raising=True
+    )
+    assert await redsea_init.async_setup(hass, {}) is True
+    handler = handlers[f"{redsea_init.DOMAIN}.led_convert"]
+
+    class _Api:
+        def kelvin_to_white_and_blue(self, kelvin: Any, intensity: int) -> Any:
+            return {
+                "kelvin": kelvin,
+                "intensity": intensity,
+                "white": 100,
+                "blue": 0,
+                "moon": 1,
+            }
+
+        def white_and_blue_to_kelvin(self, white: Any, blue: Any) -> Any:
+            return {"kelvin": 23000, "intensity": 100, "white": white, "blue": blue}
+
+    class _G1(redsea_init.ReefLedCoordinator):
+        def __init__(self) -> None:  # no HA setup needed
+            self.my_api = _Api()
+
+    class _G2(redsea_init.ReefLedG2Coordinator):
+        def __init__(self) -> None:
+            self.my_api = _Api()
+
+    hass.data.setdefault(redsea_init.DOMAIN, {})
+    hass.data[redsea_init.DOMAIN]["g1"] = _G1()
+    hass.data[redsea_init.DOMAIN]["g2"] = _G2()
+
+    resp = await handler(
+        SimpleNamespace(
+            data={
+                "device_id": "g1",
+                "points": [
+                    {"kelvin": 9000, "intensity": 50},
+                    {"kelvin": 12000},
+                    {"white": 10, "blue": 100},
+                    "junk",
+                ],
+            }
+        )
+    )
+    assert resp == {
+        "points": [
+            {"kelvin": 9000, "intensity": 50, "white": 100, "blue": 0},
+            {"kelvin": 12000, "intensity": 100, "white": 100, "blue": 0},
+            {"kelvin": 23000, "intensity": 100, "white": 10, "blue": 100},
+            {},
+        ]
+    }
+
+    bad = await handler(SimpleNamespace(data={"device_id": "g1", "points": "x"}))
+    assert bad == {"error": "points must be a list"}
+    for device_id in ("g2", "unknown"):
+        resp2 = await handler(SimpleNamespace(data={"device_id": device_id}))
+        assert resp2 == {"error": "Not a G1 ReefLED"}

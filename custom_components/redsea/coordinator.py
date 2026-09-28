@@ -545,6 +545,8 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the virtual LED and discover linked devices."""
         self._linked: list[Any] = []
+        # Config entry of each linked LED, in the same order as _linked
+        self._linked_entries: list[str] = []
         self._only_g1: bool = True
         if LINKED_LED not in entry.data:
             _LOGGER.error(
@@ -578,10 +580,12 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
 
         _LOGGER.info("Linking leds to %s", self._title)
         self._linked = []
+        self._linked_entries = []
         for led in self._entry.data[LINKED_LED]:
             name = str(led).split(" ")[1]
             entry_id = str(led).split("(")[1][:-1]
             self._linked.append(self._hass.data[DOMAIN][entry_id])
+            self._linked_entries.append(entry_id)
             _LOGGER.info(" - %s", name)
 
         if len(self._linked) == 0:
@@ -790,6 +794,29 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
     def only_g1(self) -> bool:
         """True when all linked lights are G1 (enables per-channel white/blue)."""
         return self._only_g1
+
+    def linked_leds(self) -> list[dict[str, Any]]:
+        """Describe the linked LEDs for the card.
+
+        The card lists them (with a link to each device) and writes the
+        programs to each of them: it needs their hardware id (the device
+        registry identifier), name, model, generation and config entry.
+        """
+        res: list[dict[str, Any]] = []
+        for n, led in enumerate(self._linked):
+            is_g1 = bool(getattr(led, "is_g1", bool(getattr(led.my_api, "_g1", False))))
+            res.append(
+                {
+                    "hwid": led.model_id,
+                    "name": led.title,
+                    "model": led.model,
+                    "g2": not is_g1,
+                    "entry_id": self._linked_entries[n]
+                    if n < len(self._linked_entries)
+                    else None,
+                }
+            )
+        return res
 
 
 # REEFMAT

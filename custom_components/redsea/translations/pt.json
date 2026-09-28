@@ -658,6 +658,12 @@
       "acclimation_start_intensity_factor": {
         "name": "Fator de intensidade inicial da aclimatação"
       },
+      "current_program": {
+        "name": "Programa atual"
+      },
+      "linked_leds": {
+        "name": "LEDs ligados"
+      },
       "ato_sensor_code": {
         "name": "Código da sonda de temperatura"
       },
@@ -1776,6 +1782,20 @@
         "solution_rated_temp": {
           "name": "Temperatura de referência da solução",
           "description": "Temperatura a que o valor da solução é dado, em °C (apenas pH)."
+        }
+      }
+    },
+    "led_convert": {
+      "name": "Converter cores ReefLED",
+      "description": "Converte pontos de uma ReefLED G1 entre branco/azul e kelvin/intensidade, com a tabela do modelo e a compensação de intensidade.",
+      "fields": {
+        "device_id": {
+          "name": "ID do dispositivo",
+          "description": "A entrada de configuração da ReefLED G1."
+        },
+        "points": {
+          "name": "Pontos",
+          "description": "Lista de pontos, cada um (kelvin, intensity) ou (white, blue)."
         }
       }
     }

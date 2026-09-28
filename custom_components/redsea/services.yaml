@@ -207,3 +207,24 @@ probe_calibration:
           min: 0
           max: 50
           mode: box
+
+# Convert G1 ReefLED points between white/blue and kelvin/intensity, with the
+# lamp's own model table and intensity compensation (used by the card's
+# program editor).
+led_convert:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the G1 ReefLED.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    points:
+      name: Points
+      description: >-
+        List of points, each either (kelvin, intensity) or (white, blue).
+      required: true
+      example: '[{"kelvin": 15000, "intensity": 80}, {"white": 50, "blue": 100}]'
+      selector:
+        object:

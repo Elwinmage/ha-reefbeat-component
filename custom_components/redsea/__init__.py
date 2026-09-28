@@ -39,6 +39,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.util.json import JsonValueType
 
 from .const import (
     CONFIG_FLOW_CLOUD_USERNAME,
@@ -782,6 +783,57 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         DOMAIN,
         "get_control_subscriptions",
         handle_get_control_subscriptions,
+        supports_response=SupportsResponse.ONLY,
+    )
+
+    @callback
+    async def handle_led_convert(call: ServiceCall) -> ServiceResponse:
+        """Convert G1 ReefLED points between white/blue and kelvin/intensity.
+
+        The card edits G1 programs either channel by channel or as
+        intensity + colour temperature. The conversion depends on the model
+        (LEDS_CONV table) and on the intensity compensation option of the
+        entry: rather than duplicating both, the card asks the lamp's own
+        API object, the one its light entities already use.
+
+        Each point is either `{kelvin, intensity}` or `{white, blue}`; every
+        answer carries all four values, in the same order.
+        """
+        device_id = call.data.get("device_id")
+        device = hass.data.get(DOMAIN, {}).get(device_id)
+        if not isinstance(device, ReefLedCoordinator) or isinstance(
+            device, (ReefLedG2Coordinator, ReefVirtualLedCoordinator)
+        ):
+            return {"error": "Not a G1 ReefLED"}
+
+        points = call.data.get("points")
+        if not isinstance(points, list):
+            return {"error": "points must be a list"}
+
+        api = device.my_api
+        result: list[JsonValueType] = []
+        for point in points:
+            if not isinstance(point, dict):
+                result.append({})
+                continue
+            if "kelvin" in point:
+                raw = api.kelvin_to_white_and_blue(
+                    point.get("kelvin"), int(point.get("intensity", 100))
+                )
+            else:
+                raw = api.white_and_blue_to_kelvin(
+                    point.get("white"), point.get("blue")
+                )
+            result.append(
+                {key: raw.get(key) for key in ("kelvin", "intensity", "white", "blue")}
+            )
+        return {"points": result}
+
+    _LOGGER.debug("Registering service redsea.led_convert")
+    hass.services.async_register(
+        DOMAIN,
+        "led_convert",
+        handle_led_convert,
         supports_response=SupportsResponse.ONLY,
     )
 

@@ -192,3 +192,21 @@ def test_led_acclimation_progress_sensors_read_acclimation_source() -> None:
     assert (
         descs["acclimation_current_intensity_factor"].value_fn(cast(Any, device)) == 35
     )
+
+
+def test_led_current_program_sensor_reads_dashboard() -> None:
+    """Name, active preset and existence come from /dashboard."""
+    device = _FakeCoordinator()
+    base = "$.sources[?(@.name=='/dashboard')].data.current_program"
+    desc = {d.key: d for d in sensor_platform.LED_SENSORS}["current_program"]
+
+    # RSLED90 without /dashboard: no entity
+    assert desc.exists_fn(cast(Any, device)) is False
+
+    device.get_data_map[base] = {"active_preset": 5, "name": "test"}
+    device.get_data_map[base + ".name"] = "test"
+    device.get_data_map[base + ".active_preset"] = 5
+    assert desc.exists_fn(cast(Any, device)) is True
+    assert desc.value_fn(cast(Any, device)) == "test"
+    assert desc.attributes_fn is not None
+    assert desc.attributes_fn(cast(Any, device)) == {"active_preset": 5}
