@@ -133,6 +133,12 @@
       },
       "temperature_coherent": {
         "name": "Cohérence des températures"
+      },
+      "port_ato_pump_on": {
+        "name": "Port {port} pompe osmolateur"
+      },
+      "port_ato_fault": {
+        "name": "Port {port} défaut osmolateur"
       }
     },
     "button": {
@@ -357,6 +363,15 @@
       },
       "unpair_control": {
         "name": "Désapparier le hub de contrôle"
+      },
+      "port_ato_resume": {
+        "name": "Port {port} reprise osmolateur"
+      },
+      "port_ato_manual_pump": {
+        "name": "Port {port} remplissage manuel"
+      },
+      "port_ato_stop": {
+        "name": "Port {port} arrêt osmolateur"
       }
     },
     "light": {
@@ -577,6 +592,18 @@
       },
       "danger_debounce_seconds": {
         "name": "Délai anti-rebond danger"
+      },
+      "port_ato_volume_left_set": {
+        "name": "Port {port} volume restant du réservoir"
+      },
+      "port_ato_hose_length": {
+        "name": "Port {port} longueur du tuyau osmolateur"
+      },
+      "port_ato_hose_height": {
+        "name": "Port {port} hauteur du tuyau osmolateur"
+      },
+      "port_ato_flow_rate": {
+        "name": "Port {port} débit osmolateur"
       }
     },
     "select": {
@@ -1370,6 +1397,33 @@
       },
       "probe_uid": {
         "name": "UID de {probe}"
+      },
+      "port_ato_status": {
+        "name": "Port {port} état osmolateur",
+        "state": {
+          "ok": "OK",
+          "port_malfunction": "Défaut du port",
+          "stalled": "Pompe bloquée",
+          "empty": "Réservoir vide",
+          "missing_pump": "Pompe absente",
+          "timeout": "Délai de remplissage dépassé",
+          "leak": "Fuite"
+        }
+      },
+      "port_ato_today_volume": {
+        "name": "Port {port} volume osmolateur du jour"
+      },
+      "port_ato_volume_left": {
+        "name": "Port {port} volume osmolateur restant"
+      },
+      "port_ato_last_pump_on_cause": {
+        "name": "Port {port} cause du dernier remplissage",
+        "state": {
+          "none": "Aucune",
+          "manual": "Manuel",
+          "ec_sensor_s1": "Capteur de niveau 1",
+          "ec_sensor_s2": "Capteur de niveau 2"
+        }
       }
     },
     "switch": {
@@ -1543,6 +1597,18 @@
       },
       "leak_detector_enabled": {
         "name": "Détecteur de fuite"
+      },
+      "port_ato_auto_fill": {
+        "name": "Port {port} remplissage automatique"
+      },
+      "port_ato_volume_monitor": {
+        "name": "Port {port} suivi du réservoir"
+      },
+      "port_ato_notify": {
+        "name": "Port {port} notifications osmolateur"
+      },
+      "port_ato_temp_log": {
+        "name": "Port {port} journal de température osmolateur"
       }
     },
     "text": {
@@ -1610,7 +1676,9 @@
       "wifi_change_failed_reset": "Impossible de redémarrer l'équipement après l'envoi des nouvelles informations Wi-Fi.",
       "wifi_change_failed_rediscover": "L'équipement a redémarré mais n'a pas été retrouvé sur le réseau. Vérifiez qu'il a rejoint {ssid} et reconfigurez son IP manuellement si nécessaire.",
       "wifi_change_failed_unknown": "Erreur inattendue lors du changement de réseau Wi-Fi.",
-      "no_probes": "Ce hub n'a aucune sonde à supprimer."
+      "no_probes": "Ce hub n'a aucune sonde à supprimer.",
+      "no_ato_probe": "Ce hub n'a pas de sonde ATO : ajoutez-en une d'abord.",
+      "no_free_port": "Ce hub n'a plus de port 12V libre pour le module osmolateur."
     },
     "error": {
       "auth_failed": "Erreur d'authentification, vérifiez vos informations d'identification",
@@ -1619,7 +1687,8 @@
       "wifi_no_ssid": "Sélectionnez un réseau avant de valider.",
       "wifi_bad_cidr": "CIDR IPv4 invalide (exemple attendu : 10.0.0.0/24).",
       "wifi_manual_not_found": "Équipement introuvable sur ce sous-réseau. Essayez un autre CIDR, ou laissez le champ vide pour abandonner.",
-      "no_probe_detected": "Aucune nouvelle sonde du type sélectionné n'a été détectée. Mettez-la en appairage et réessayez."
+      "no_probe_detected": "Aucune nouvelle sonde du type sélectionné n'a été détectée. Mettez-la en appairage et réessayez.",
+      "ato_install_failed": "Le hub a refusé d'installer le module osmolateur. Vérifiez que le port est libre et la sonde ATO branchée."
     },
     "progress": {
       "applying": "Envoi des nouvelles informations d'identification Wi-Fi et localisation de l'équipement sur le réseau..."
@@ -1637,7 +1706,8 @@
           "wifi_scan": "Changer de réseau Wi-Fi",
           "add_probe": "Ajouter une sonde",
           "del_probe": "Supprimer une sonde",
-          "change_probe": "Remplacer une sonde"
+          "change_probe": "Remplacer une sonde",
+          "install_ato": "Installer le module osmolateur"
         },
         "title": "Configuration"
       },
@@ -1695,6 +1765,19 @@
       "del_probe_confirm": {
         "title": "Confirmer la suppression",
         "description": "Ceci supprime définitivement la ou les sondes sélectionnées et toutes leurs entités et leur historique : {probes}.\n\nValidez pour continuer, ou fermez cette fenêtre pour annuler."
+      },
+      "install_ato": {
+        "title": "Installer le module osmolateur",
+        "description": "Installe le kit osmolateur Red Sea sur un port 12V. Ajoutez d'abord sa sonde ATO (Ajouter une sonde). Le tuyau va de la pompe au bac ; la hauteur est celle dont il monte au-dessus de la pompe.",
+        "data": {
+          "ato_port": "Port 12V",
+          "ato_probe": "Sonde ATO",
+          "ato_volume": "Volume du réservoir (L)",
+          "ato_hose_length": "Longueur du tuyau (cm)",
+          "ato_hose_height": "Hauteur du tuyau (cm)",
+          "ato_auto_fill": "Remplissage automatique",
+          "ato_volume_monitor": "Suivi du réservoir"
+        }
       }
     }
   },

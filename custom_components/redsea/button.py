@@ -464,6 +464,37 @@ ATO_BUTTONS: tuple[ReefBeatButtonEntityDescription, ...] = (
 )
 
 
+def _ato_port_buttons(port: int) -> tuple[ReefBeatButtonEntityDescription, ...]:
+    """Buttons of the ATO module on a hub port."""
+    placeholders = {"port": str(port + 1)}
+    return (
+        ReefBeatButtonEntityDescription(
+            key=f"port_{port}_ato_resume",
+            translation_key="port_ato_resume",
+            translation_placeholders=placeholders,
+            press_fn=lambda d: cast(ReefControlCoordinator, d).async_ato_resume(),
+            available_fn=lambda d: (
+                cast(ReefControlCoordinator, d).ato_status(port) not in (None, "ok")
+            ),
+            icon="mdi:play-circle-outline",
+        ),
+        ReefBeatButtonEntityDescription(
+            key=f"port_{port}_ato_manual_pump",
+            translation_key="port_ato_manual_pump",
+            translation_placeholders=placeholders,
+            press_fn=lambda d: cast(ReefControlCoordinator, d).async_ato_manual_pump(),
+            icon="mdi:water-plus",
+        ),
+        ReefBeatButtonEntityDescription(
+            key=f"port_{port}_ato_stop",
+            translation_key="port_ato_stop",
+            translation_placeholders=placeholders,
+            press_fn=lambda d: cast(ReefControlCoordinator, d).async_ato_stop(),
+            icon="mdi:stop-circle-outline",
+        ),
+    )
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -559,6 +590,14 @@ async def async_setup_entry(
         _add_described_entities(
             entities, device, ReefBeatButtonEntity, tuple(control_delete_buttons)
         )
+
+        # The ATO module (Red Sea ATO kit) on the port of type "ato": clear
+        # a fault (only while the port reports one), fill now, stop the pump
+        for port_idx in range(device.port_count):
+            if device.ato_is_port(port_idx):
+                _add_described_entities(
+                    entities, device, ReefBeatButtonEntity, _ato_port_buttons(port_idx)
+                )
 
         # Sensor -> socket bindings held by the hub. `/subscription-info`
         # lists them as `external` (sockets of the paired power center) and

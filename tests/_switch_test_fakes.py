@@ -196,6 +196,10 @@ class FakeControlCoordinator(FakeCoordinator):
     installed_ports: set[int] = field(default_factory=lambda: {0, 1})
     deleted_ports: list[int] = field(default_factory=list)
 
+    def ato_is_port(self, number: int) -> bool:
+        # No ATO module on this fake hub
+        return False
+
     def port_is_installed(self, number: int) -> bool:
         return number in self.installed_ports
 

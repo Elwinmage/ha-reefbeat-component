@@ -53,6 +53,13 @@ class _FakePowerDevice(_FakeCoordinator):
 class _FakeControlDevice(_FakeCoordinator):
     port_count: int = 2
 
+    def ato_is_port(self, number: int) -> bool:
+        # No ATO module on this fake hub
+        return False
+
+    def ato_port_value(self, number: int, field_name: str) -> Any:
+        return None
+
 
 def _neutralise_other_coordinators(monkeypatch: pytest.MonkeyPatch) -> None:
     """Replace every branch we don't want to hit with a placeholder type."""

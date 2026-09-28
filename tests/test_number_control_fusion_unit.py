@@ -60,6 +60,10 @@ class _FakeCtl:
     def temperature_source_count(self) -> int:
         return self.src_count
 
+    def ato_is_port(self, number: int) -> bool:
+        # No ATO module on this fake hub
+        return False
+
     def probe_is_connected(self, ptype: str, uid: str) -> bool:
         return self.connected
 

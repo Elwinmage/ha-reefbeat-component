@@ -43,6 +43,13 @@ from .const import (
     CLOUD_SCAN_INTERVAL,
     CLOUD_SERVER_ADDR,
     CONFIG_FLOW_ADD_TYPE,
+    CONFIG_FLOW_ATO_AUTO_FILL,
+    CONFIG_FLOW_ATO_HOSE_HEIGHT,
+    CONFIG_FLOW_ATO_HOSE_LENGTH,
+    CONFIG_FLOW_ATO_PORT,
+    CONFIG_FLOW_ATO_PROBE,
+    CONFIG_FLOW_ATO_VOLUME,
+    CONFIG_FLOW_ATO_VOLUME_MONITOR,
     CONFIG_FLOW_CLOUD_PASSWORD,
     CONFIG_FLOW_CLOUD_USERNAME,
     CONFIG_FLOW_CONFIG_TYPE,
@@ -79,6 +86,7 @@ from .const import (
     OPTIONS_MENU_ADD_PROBE,
     OPTIONS_MENU_CHANGE_PROBE,
     OPTIONS_MENU_DEL_PROBE,
+    OPTIONS_MENU_INSTALL_ATO,
     OPTIONS_MENU_SETTINGS,
     OPTIONS_MENU_WIFI,
     POWER_SCAN_INTERVAL,
@@ -611,6 +619,15 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     OPTIONS_MENU_CHANGE_PROBE,
                     OPTIONS_MENU_DEL_PROBE,
                 ]
+                # The ATO kit needs an ATO probe, and no module installed yet
+                coordinator = self._control_coordinator()
+                if (
+                    coordinator is not None
+                    and coordinator.ato_port_number() is None
+                    and coordinator.ato_probes()
+                    and coordinator.ato_free_ports()
+                ):
+                    menu.append(OPTIONS_MENU_INSTALL_ATO)
             return self.async_show_menu(
                 step_id="init",
                 menu_options=menu,
@@ -962,6 +979,80 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             step_id="change_probe",
             data_schema=vol.Schema(
                 {vol.Required(CONFIG_FLOW_OLD_PROBE): vol.In(options)}
+            ),
+            errors=errors,
+        )
+
+    async def async_step_install_ato(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Install the Red Sea ATO kit on a 12V port, as the app's wizard.
+
+        The ATO probe is installed first (Add a probe); here the port it
+        drives is picked, with the reservoir volume and the hose from the
+        pump to the tank. On success the entry is reloaded so the module's
+        entities appear.
+        """
+        errors: dict[str, str] = {}
+        coordinator = self._control_coordinator()
+        if coordinator is None:
+            return self.async_abort(reason="no_ato_probe")
+        probes = coordinator.ato_probes()
+        ports = coordinator.ato_free_ports()
+        if not probes:
+            return self.async_abort(reason="no_ato_probe")
+        if not ports:
+            return self.async_abort(reason="no_free_port")
+
+        if user_input is not None:
+            try:
+                ok = await coordinator.async_install_ato_port(
+                    int(user_input[CONFIG_FLOW_ATO_PORT]),
+                    str(user_input[CONFIG_FLOW_ATO_PROBE]),
+                    float(user_input[CONFIG_FLOW_ATO_VOLUME]) * 1000,
+                    float(user_input[CONFIG_FLOW_ATO_HOSE_LENGTH]),
+                    float(user_input[CONFIG_FLOW_ATO_HOSE_HEIGHT]),
+                    auto_fill=bool(user_input[CONFIG_FLOW_ATO_AUTO_FILL]),
+                    volume_monitor=bool(user_input[CONFIG_FLOW_ATO_VOLUME_MONITOR]),
+                )
+            except Exception:
+                _LOGGER.exception("ATO module install failed")
+                ok = False
+            if ok:
+                res = self.async_create_entry(
+                    title="", data=dict(self._config_entry.options)
+                )
+                self.hass.config_entries.async_schedule_reload(res["handler"])
+                return res
+            errors["base"] = "ato_install_failed"
+
+        port_options = {str(n): f"{n + 1}" for n in ports}
+        probe_options = {p["uid"]: f"{p['name']} ({p['uid']})" for p in probes}
+        return self.async_show_form(
+            step_id="install_ato",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONFIG_FLOW_ATO_PORT, default=next(iter(port_options))
+                    ): vol.In(port_options),
+                    vol.Required(
+                        CONFIG_FLOW_ATO_PROBE, default=next(iter(probe_options))
+                    ): vol.In(probe_options),
+                    # Litres, as the app asks (sent in mL)
+                    vol.Required(CONFIG_FLOW_ATO_VOLUME, default=20): vol.All(
+                        vol.Coerce(float), vol.Range(min=0, max=500)
+                    ),
+                    # Centimetres: the app offers 0.5 to 5 m, and 0 or 0.4 to
+                    # 2.5 m of height above the pump
+                    vol.Required(CONFIG_FLOW_ATO_HOSE_LENGTH, default=100): vol.All(
+                        vol.Coerce(float), vol.Range(min=50, max=500)
+                    ),
+                    vol.Required(CONFIG_FLOW_ATO_HOSE_HEIGHT, default=0): vol.All(
+                        vol.Coerce(float), vol.Range(min=0, max=250)
+                    ),
+                    vol.Required(CONFIG_FLOW_ATO_AUTO_FILL, default=True): bool,
+                    vol.Required(CONFIG_FLOW_ATO_VOLUME_MONITOR, default=True): bool,
+                }
             ),
             errors=errors,
         )

@@ -794,6 +794,12 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
+        # The ATO module (Red Sea ATO kit) on the port of type "ato": its
+        # settings, read from /ato/configuration and written there
+        for port_idx in range(device.port_count):
+            if device.ato_is_port(port_idx):
+                entities.extend(_ato_port_switches(device, port_idx))
+
         # Per-probe maintenance switch: while ON, that probe is temporarily
         # excluded from temperature fusion/coherence/anomaly so cleaning or
         # recalibrating it does not raise a false alarm. One switch per
@@ -1719,6 +1725,70 @@ def _temperature_capable_probes(device: ReefBeatCoordinator) -> list[dict[str, A
         and p.get("uid")
         and str(p.get("type", "")).lower() in _TEMP_CAPABLE_TYPES
     ]
+
+
+# (key suffix, /ato/configuration field, icon on, icon off, category)
+_ATO_SWITCHES: tuple[tuple[str, str, str, str, EntityCategory | None], ...] = (
+    # Fill automatically when the level drops; off, only manual fills
+    ("auto_fill", "auto_fill", "mdi:water-sync", "mdi:water-off", None),
+    # Follow the reservoir volume (the app's "reservoir volume monitor")
+    (
+        "volume_monitor",
+        "rvm_enabled",
+        "mdi:storage-tank",
+        "mdi:storage-tank-outline",
+        EntityCategory.CONFIG,
+    ),
+    ("notify", "notify", "mdi:bell-ring", "mdi:bell-off", EntityCategory.CONFIG),
+    # Log the temperature of the module's ATO probe
+    (
+        "temp_log",
+        "temp_log_enabled",
+        "mdi:thermometer-lines",
+        "mdi:thermometer-off",
+        EntityCategory.CONFIG,
+    ),
+)
+
+
+def _ato_port_switches(
+    device: ReefControlCoordinator, port: int
+) -> list[ReefControlProbeConfigSwitchEntity]:
+    """Switches of the ATO module on a hub port."""
+    switches: list[ReefControlProbeConfigSwitchEntity] = []
+    for suffix, field_name, icon, icon_off, category in _ATO_SWITCHES:
+
+        def read(f: str = field_name) -> bool | None:
+            value = device.ato_config_value(f)
+            if value is None:
+                # Not read yet: the dashboard carries some of them too
+                value = device.ato_port_value(port, f)
+            return value if isinstance(value, bool) else None
+
+        async def write(on: bool, f: str = field_name) -> None:
+            await device.async_set_ato_config({f: on})
+
+        switches.append(
+            ReefControlProbeConfigSwitchEntity(
+                device,
+                ReefBeatSwitchEntityDescription(
+                    key=f"port_{port}_ato_{suffix}",
+                    translation_key={
+                        "auto_fill": "port_ato_auto_fill",
+                        "volume_monitor": "port_ato_volume_monitor",
+                        "notify": "port_ato_notify",
+                        "temp_log": "port_ato_temp_log",
+                    }.get(suffix, "port_ato_auto_fill"),
+                    translation_placeholders={"port": str(port + 1)},
+                    icon=icon,
+                    icon_off=icon_off,
+                    entity_category=category,
+                ),
+                write_fn=write,
+                read_fn=read,
+            )
+        )
+    return switches
 
 
 # REEFCONTROL — per-probe temperature-maintenance toggle

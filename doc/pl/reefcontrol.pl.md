@@ -89,8 +89,15 @@ Te ustawienia nie są udostępniane jako osobne encje — przy kilku portach i g
 
 Czujnik `port_N_mode` zawiera jednak wszystko, czego automatyzacja potrzebuje do odczytu aktywnej konfiguracji: `config` (cały wpis portu, łącznie z `power_on_percent`), `schedule` (odczytywany z huba, dopóki port jest w trybie harmonogramu) i `sensor_config` (reguła sondy), z `sensor_source: control`.
 
-> [!NOTE]
-> Port sterujący pompą ATO na podstawie sondy ATO pozostaje typu `other`: łączy je kreator zestawu ATO w aplikacji ReefBeat. Hub nie udostępnia poleceń ATO z RSATO+ (ręczne napełnianie, automatyczne napełnianie, pozostała objętość…).
+## Moduł ATO (zestaw ATO Red Sea)
+Zestaw ATO Red Sea — pompa na porcie 12V i sonda ATO — instaluje się tak jak kreator aplikacji, z menu **Opcje** integracji:
+
+1. **Dodaj sondę** typu `ato` (nazywa się `ATO Temp. <uid>`, od jej temperatury, jak w aplikacji).
+2. **Zainstaluj moduł ATO**: wybierz wolny port 12V, sondę ATO, objętość zbiornika (L), długość i wysokość węża (cm, od pompy do akwarium; wysokość to, jak wysoko wznosi się nad pompą), automatyczną dolewkę i monitorowanie zbiornika.
+
+Port staje się typu `ato` i otrzymuje encje modułu: stan (`OK` lub zgłoszona awaria: brak pompy, pompa zablokowana, pusty zbiornik, przekroczony czas dolewki, wyciek, awaria portu), awaria i pompa (czujniki binarne), objętość dziś / pozostała (mL), przyczyna ostatniej dolewki, przełączniki automatycznej dolewki, monitorowania zbiornika, powiadomień i dziennika temperatury, liczby dla pozostałej objętości zbiornika, długości/wysokości węża (cm) i przepływu (0,2 do 4 L/min, 0 = domyślny), oraz przyciski wznowienia (tylko przy awarii), ręcznej dolewki i zatrzymania.
+
+Odinstalowanie portu (w Home Assistant, na karcie lub w aplikacji ReefBeat) usuwa moduł i od razu jego encje. Moduł zainstalowany w aplikacji ReefBeat pojawia się po automatycznym przeładowaniu.
 
 ## Zadania konserwacyjne
 | Zadanie | Sondy | Domyślnie | Zakres |
