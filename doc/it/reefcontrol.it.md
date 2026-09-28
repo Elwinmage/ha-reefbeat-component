@@ -97,7 +97,7 @@ Il kit ATO Red Sea — una pompa su una porta 12V e una sonda ATO — si install
 
 La porta diventa di tipo `ato` e riceve le entità del modulo: stato (`OK` o il guasto segnalato: pompa assente, pompa bloccata, serbatoio vuoto, tempo di rabbocco superato, perdita, guasto della porta), guasto e pompa (sensori binari), volume di oggi / residuo (mL), causa dell'ultimo rabbocco, interruttori per rabbocco automatico, monitoraggio serbatoio, notifiche e registro temperatura, numeri per il volume residuo del serbatoio, lunghezza/altezza del tubo (cm) e portata (da 0,2 a 4 L/min, 0 = predefinita), e pulsanti per riprendere (solo in caso di guasto), rabboccare manualmente e fermare.
 
-Disinstallare la porta rimuove il modulo; ricarica l'integrazione per eliminarne le entità.
+Disinstallare la porta (da Home Assistant, dalla card o dall'app ReefBeat) rimuove il modulo e subito le sue entità. Un modulo installato dall'app ReefBeat compare dopo un ricaricamento automatico.
 
 ## Attività di manutenzione
 | Attività | Sonde | Predefinito | Intervallo |

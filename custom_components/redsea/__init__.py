@@ -224,6 +224,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         with suppress(Exception):
             _purge_orphan_probe_entities(hass, entry, coordinator)
 
+    # The ATO module's entities of a port uninstalled while Home Assistant
+    # was stopped: they are no longer built, drop them (only once the hub's
+    # ports are known, so a failed read never purges).
+    if isinstance(coordinator, ReefControlCoordinator):
+        with suppress(Exception):
+            ports = coordinator.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.ports",
+                is_None_possible=True,
+            )
+            if isinstance(ports, list):
+                coordinator.purge_ato_entities(keep_port=coordinator.ato_port_number())
+
     # Entities this version no longer builds would linger as "no longer
     # provided" — drop them.
     if isinstance(coordinator, (ReefControlCoordinator, ReefPowerCoordinator)):

@@ -32,6 +32,7 @@ from typing import Any, cast
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -70,6 +71,7 @@ from .const import (
     WAVES_LIBRARY,
 )
 from .maintenance import CALIBRATION_TASKS, MaintenanceStore, probe_sub_id
+from .probe_entities import ato_port_entity_port
 from .reefbeat import (
     ReefATOAPI,
     ReefBeatAPI,
@@ -1948,7 +1950,11 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
 
     # -- Calibration reminders follow the hub --------------------------------
     async def _async_update_data(self) -> dict[str, Any]:
-        """Fetch, then date the calibration reminders from the hub."""
+        """Fetch, then date the calibration reminders from the hub.
+
+        Also follows the ATO module: its entities go when its port is
+        uninstalled (see ``_track_ato_module``).
+        """
         data = await super()._async_update_data()
         try:
             await self._sync_calibration_maintenance()
@@ -1956,6 +1962,10 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
             _LOGGER.debug(
                 "%s: calibration reminder sync failed", self._title, exc_info=True
             )
+        try:
+            self._track_ato_module()
+        except Exception:  # never let this break a refresh
+            _LOGGER.debug("%s: ATO module tracking failed", self._title, exc_info=True)
         return data
 
     async def _sync_calibration_maintenance(self) -> None:
@@ -2121,7 +2131,9 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         """
         api = cast(ReefControlAPI, self.my_api)
         await api.delete_port(number)
-        # The API already reset the port in the cache (optimistic)
+        # The API already reset the port in the cache (optimistic): an ATO
+        # module on it is gone, and its entities with it
+        self._track_ato_module()
         self.async_update_listeners()
 
         for other in range(self.port_count):
@@ -2289,9 +2301,63 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
             volume_monitor=volume_monitor,
             port_count=self.port_count,
         )
+        ok = bool(result and result.get("ok"))
+        if ok:
+            # The caller reloads the entry: no second reload from tracking
+            self._ato_port_seen = self.ato_port_number()
         self.async_update_listeners()
         await self.async_request_refresh(config=True)
-        return bool(result and result.get("ok"))
+        return ok
+
+    # Port the ATO module was last seen on (None: no module); unset until
+    # the hub's ports were first read.
+    _ato_port_seen: int | None
+    _ATO_UNSEEN = -1
+
+    def purge_ato_entities(self, keep_port: int | None = None) -> int:
+        """Remove the ATO module's entities of every port but ``keep_port``.
+
+        Removing a registry entry removes the live entity with it, so the
+        module's entities go at once, without a reload. Returns how many
+        were removed.
+        """
+        registry = er.async_get(self._hass)
+        prefix = f"{self.serial}_"
+        removed = 0
+        for ent in list(
+            er.async_entries_for_config_entry(registry, self._entry.entry_id)
+        ):
+            if not ent.unique_id.startswith(prefix):
+                continue
+            port = ato_port_entity_port(ent.unique_id[len(prefix) :])
+            if port is not None and port != keep_port:
+                _LOGGER.info("Removing ATO module entity %s", ent.entity_id)
+                registry.async_remove(ent.entity_id)
+                removed += 1
+        return removed
+
+    def _track_ato_module(self) -> None:
+        """Follow the ATO module across ports, whoever installs or removes it.
+
+        Its port uninstalled (from Home Assistant, the card or the ReefBeat
+        app), the module's entities are removed. A module appearing is set
+        up by a reload, its entities being built at setup. Nothing happens
+        until the hub's ports are known, so a failed read never purges.
+        """
+        ports = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.ports", is_None_possible=True
+        )
+        if not isinstance(ports, list):
+            return
+        current = self.ato_port_number()
+        previous = getattr(self, "_ato_port_seen", self._ATO_UNSEEN)
+        self._ato_port_seen = current
+        if previous == self._ATO_UNSEEN or previous == current:
+            return
+        if previous is not None:
+            self.purge_ato_entities(keep_port=current)
+        if current is not None:
+            self._hass.config_entries.async_schedule_reload(self._entry.entry_id)
 
     async def _after_ato_write(self) -> None:
         # The API already mirrored the write in the cache (optimistic)

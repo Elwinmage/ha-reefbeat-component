@@ -111,7 +111,7 @@ The port then becomes of type `ato` and gets the module's entities:
 | `Port N ATO resume` | button | clears a fault (available only while there is one) |
 | `Port N ATO manual fill` / `stop` | button | from the app's API, not captured yet |
 
-Uninstalling the port (`Uninstall port N`) removes the module; reload the integration to drop its entities.
+Uninstalling the port (`Uninstall port N`, the card or the ReefBeat app) removes the module and its entities at once. A module installed from the ReefBeat app appears after an automatic reload.
 
 ## Maintenance tasks
 | Task | Probes | Default | Range |

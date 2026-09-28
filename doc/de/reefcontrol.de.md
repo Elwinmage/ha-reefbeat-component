@@ -97,7 +97,7 @@ Das Red Sea ATO-Kit — eine Pumpe an einem 12V-Port und eine ATO-Sonde — wird
 
 Der Port wird dann vom Typ `ato` und erhält die Entitäten des Moduls: Status (`OK` oder die gemeldete Störung: Pumpe fehlt, blockiert, Behälter leer, Füllzeit überschritten, Leck, Portstörung), Störung und Pumpe (Binärsensoren), Volumen heute / Restvolumen (mL), Ursache der letzten Füllung, Schalter für automatisches Nachfüllen, Behälterüberwachung, Benachrichtigungen und Temperaturprotokoll, Zahlen für Restvolumen im Behälter, Schlauchlänge/-höhe (cm) und Durchfluss (0,2 bis 4 L/min, 0 = Standard der Pumpe), und Tasten zum Fortsetzen (nur bei einer Störung), manuellen Befüllen und Stoppen.
 
-Die Deinstallation des Ports entfernt das Modul; laden Sie die Integration neu, um seine Entitäten zu entfernen.
+Die Deinstallation des Ports (in Home Assistant, der Karte oder der ReefBeat-App) entfernt das Modul und sofort seine Entitäten. Ein in der ReefBeat-App installiertes Modul erscheint nach einem automatischen Neuladen.
 
 ## Wartungsaufgaben
 | Aufgabe | Sonden | Standard | Bereich |

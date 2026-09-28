@@ -25,6 +25,19 @@ from typing import Any, cast
 
 _TRAILING_INT = re.compile(r"_(\d+)$")
 
+# unique_id keys (after ``{serial}_``) of the ATO module's entities on a hub
+# port: ``port_{n}_ato_…`` and the few keyed after the dashboard field.
+_ATO_PORT_KEY = re.compile(
+    r"^port_(\d+)_(?:ato_[a-z_]+|today_volume|volume_left|last_pump_on_cause"
+    r"|is_pump_on)$"
+)
+
+
+def ato_port_entity_port(key: str) -> int | None:
+    """Port (0-based) an ATO module entity belongs to, None for another key."""
+    match = _ATO_PORT_KEY.match(key)
+    return int(match.group(1)) if match else None
+
 
 def sanitise_uid(uid: str) -> str:
     """Lower-case alphanumerics of a uid, as used in entity keys."""

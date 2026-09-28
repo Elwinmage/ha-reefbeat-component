@@ -97,7 +97,7 @@ O kit ATO Red Sea — uma bomba numa porta de 12V e uma sonda ATO — instala-se
 
 A porta passa a ser do tipo `ato` e recebe as entidades do módulo: estado (`OK` ou a falha indicada: bomba ausente, bomba bloqueada, reservatório vazio, tempo de enchimento excedido, fuga, falha da porta), falha e bomba (sensores binários), volume de hoje / restante (mL), causa do último enchimento, interruptores de enchimento automático, monitorização do reservatório, notificações e registo de temperatura, números para o volume restante do reservatório, comprimento/altura do tubo (cm) e caudal (0,2 a 4 L/min, 0 = predefinido), e botões para retomar (apenas com uma falha), encher manualmente e parar.
 
-Desinstalar a porta remove o módulo; recarregue a integração para eliminar as suas entidades.
+Desinstalar a porta (no Home Assistant, no cartão ou na aplicação ReefBeat) remove o módulo e elimina de imediato as suas entidades. Um módulo instalado a partir da aplicação ReefBeat aparece após um recarregamento automático.
 
 ## Tarefas de manutenção
 | Tarefa | Sondas | Predefinição | Intervalo |

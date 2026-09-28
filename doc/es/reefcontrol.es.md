@@ -97,7 +97,7 @@ El kit ATO de Red Sea — una bomba en un puerto de 12V y una sonda ATO — se i
 
 El puerto pasa a ser de tipo `ato` y recibe las entidades del módulo: estado (`OK` o el fallo indicado: falta la bomba, bomba bloqueada, depósito vacío, tiempo de llenado excedido, fuga, fallo del puerto), fallo y bomba (sensores binarios), volumen de hoy / restante (mL), causa del último llenado, interruptores de llenado automático, seguimiento del depósito, notificaciones y registro de temperatura, números para el volumen restante del depósito, la longitud/altura del tubo (cm) y el caudal (0,2 a 4 L/min, 0 = por defecto), y botones para reanudar (solo con un fallo), llenar manualmente y detener.
 
-Desinstalar el puerto retira el módulo; recargue la integración para eliminar sus entidades.
+Desinstalar el puerto (desde Home Assistant, la tarjeta o la aplicación ReefBeat) retira el módulo y elimina de inmediato sus entidades. Un módulo instalado desde la aplicación ReefBeat aparece tras una recarga automática.
 
 ## Tareas de mantenimiento
 | Tarea | Sondas | Por defecto | Rango |

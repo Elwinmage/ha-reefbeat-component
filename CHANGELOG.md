@@ -94,6 +94,11 @@
      `port_N_ato_manual_pump` and `port_N_ato_stop` (from the app's code).
    - The `port_N_state` of the module's port follows its pump (`on` /
      `standby`): the hub reports no `state` for it.
+   - Uninstalling the module's port removes its entities (from the
+     registry, at once): from Home Assistant, the card or the ReefBeat app
+     (seen on the next poll), or while Home Assistant was stopped (at
+     setup). A module installed outside the options flow reloads the entry
+     so its entities are built.
    - An ATO probe added from Home Assistant is named `ATO Temp. <uid>`, as
      the app does (`Temp. osmolateur 24E` in French).
  - Leak probes tell where the water comes from. `/dashboard` only has the

@@ -97,7 +97,7 @@ Zestaw ATO Red Sea — pompa na porcie 12V i sonda ATO — instaluje się tak ja
 
 Port staje się typu `ato` i otrzymuje encje modułu: stan (`OK` lub zgłoszona awaria: brak pompy, pompa zablokowana, pusty zbiornik, przekroczony czas dolewki, wyciek, awaria portu), awaria i pompa (czujniki binarne), objętość dziś / pozostała (mL), przyczyna ostatniej dolewki, przełączniki automatycznej dolewki, monitorowania zbiornika, powiadomień i dziennika temperatury, liczby dla pozostałej objętości zbiornika, długości/wysokości węża (cm) i przepływu (0,2 do 4 L/min, 0 = domyślny), oraz przyciski wznowienia (tylko przy awarii), ręcznej dolewki i zatrzymania.
 
-Odinstalowanie portu usuwa moduł; przeładuj integrację, aby usunąć jego encje.
+Odinstalowanie portu (w Home Assistant, na karcie lub w aplikacji ReefBeat) usuwa moduł i od razu jego encje. Moduł zainstalowany w aplikacji ReefBeat pojawia się po automatycznym przeładowaniu.
 
 ## Zadania konserwacyjne
 | Zadanie | Sondy | Domyślnie | Zakres |

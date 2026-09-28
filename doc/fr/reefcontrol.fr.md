@@ -111,7 +111,7 @@ Le port devient alors de type `ato` et reçoit les entités du module :
 | `Port N reprise osmolateur` | bouton | efface un défaut (disponible seulement s'il y en a un) |
 | `Port N remplissage manuel` / `arrêt osmolateur` | bouton | d'après l'API de l'application, pas encore capturés |
 
-Désinstaller le port (`Désinstaller le port N`) retire le module ; rechargez l'intégration pour supprimer ses entités.
+Désinstaller le port (`Désinstaller le port N`, la carte ou l'application ReefBeat) retire le module et supprime aussitôt ses entités. Un module installé depuis l'application ReefBeat apparaît après un rechargement automatique.
 
 ## Tâches de maintenance
 | Tâche | Sondes | Par défaut | Plage |
