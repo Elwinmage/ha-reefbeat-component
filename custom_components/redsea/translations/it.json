@@ -13,6 +13,7 @@
       "user": {
         "data": {
           "add_type": "Scegli il metodo di aggiunta",
+          "cloud_server": "Server cloud (indirizzo del simulatore)",
           "disable_supplements": "Disabilita integratori",
           "hw_model": "Modello hardware",
           "ip_address": "IP o indirizzo di sottorete (es: 10.0.1.0/255.255.255.0)",
@@ -578,6 +579,15 @@
       },
       "danger_debounce_seconds": {
         "name": "Debounce pericolo"
+      },
+      "weather_min_intensity": {
+        "name": "Intensità minima meteo"
+      },
+      "weather_max_intensity": {
+        "name": "Intensità massima meteo"
+      },
+      "weather_refresh_days": {
+        "name": "Aggiornamento meteo (giorni)"
       }
     },
     "select": {
@@ -642,6 +652,22 @@
           "ec": "Conducibilità (mS/cm)",
           "ppt": "Salinità (ppt)",
           "sg": "Densità (SG)"
+        }
+      },
+      "weather_period": {
+        "name": "Periodo meteo",
+        "state": {
+          "next_week": "Prossima settimana (previsioni)",
+          "last_week": "Settimana scorsa (misurata)"
+        }
+      },
+      "weather_anchor": {
+        "name": "Giornata meteo sull'acquario",
+        "state": {
+          "place": "Ora del luogo",
+          "sunrise": "Allineata all'alba",
+          "sunset": "Allineata al tramonto",
+          "both": "Estesa tra alba e tramonto"
         }
       }
     },
@@ -1382,6 +1408,13 @@
       },
       "probe_uid": {
         "name": "UID di {probe}"
+      },
+      "weather_program": {
+        "name": "Programma meteo",
+        "state": {
+          "ok": "OK",
+          "error": "Errore"
+        }
       }
     },
     "switch": {
@@ -1555,6 +1588,12 @@
       },
       "leak_detector_enabled": {
         "name": "Rilevatore di perdite"
+      },
+      "weather_sync": {
+        "name": "Modalità meteo GPS"
+      },
+      "weather_clouds": {
+        "name": "Nuvole meteo"
       }
     },
     "text": {
@@ -1602,11 +1641,20 @@
       },
       "temperature_probe_name": {
         "name": "Nome della sonda di temperatura"
+      },
+      "weather_location": {
+        "name": "Luogo meteo"
       }
     },
     "time": {
       "schedule_time": {
         "name": "Ora della programmazione"
+      },
+      "weather_sunrise": {
+        "name": "Alba meteo"
+      },
+      "weather_sunset": {
+        "name": "Tramonto meteo"
       }
     },
     "update": {
@@ -1796,6 +1844,102 @@
         "points": {
           "name": "Punti",
           "description": "Elenco di punti, ciascuno (kelvin, intensity) o (white, blue)."
+        }
+      }
+    },
+    "led_library": {
+      "name": "Elenca la libreria ReefLED",
+      "description": "Programmi luce della libreria cloud dell'acquario della ReefLED.",
+      "fields": {
+        "device_id": {
+          "name": "ID dispositivo",
+          "description": "La voce di configurazione della ReefLED (o LED virtuale)."
+        }
+      }
+    },
+    "led_library_save": {
+      "name": "Salva un programma ReefLED nella libreria",
+      "description": "Aggiunge un programma luce alla libreria cloud della ReefLED, o ne modifica uno.",
+      "fields": {
+        "device_id": {
+          "name": "ID dispositivo",
+          "description": "La voce di configurazione della ReefLED (o LED virtuale)."
+        },
+        "name": {
+          "name": "Nome",
+          "description": "Nome del programma nella libreria."
+        },
+        "program": {
+          "name": "Programma",
+          "description": "Programma giornaliero nel formato della lampada, sulla linea temporale di un solo giorno."
+        },
+        "clouds": {
+          "name": "Nuvole",
+          "description": "Nuvole del programma (from, to, intensity), se presenti."
+        },
+        "uid": {
+          "name": "ID programma",
+          "description": "Il programma della libreria da modificare; vuoto per aggiungerne uno nuovo. I programmi Red Sea non possono essere modificati."
+        }
+      }
+    },
+    "led_library_delete": {
+      "name": "Elimina un programma della libreria ReefLED",
+      "description": "Elimina un programma dell'utente dalla libreria cloud della ReefLED.",
+      "fields": {
+        "device_id": {
+          "name": "ID dispositivo",
+          "description": "La voce di configurazione della ReefLED (o LED virtuale)."
+        },
+        "uid": {
+          "name": "ID programma",
+          "description": "Il programma da eliminare (non un programma Red Sea)."
+        }
+      }
+    },
+    "led_weather_apply": {
+      "name": "Aggiorna il meteo ReefLED",
+      "description": "Recupera di nuovo il meteo e invia la settimana a una ReefLED in modalità meteo GPS.",
+      "fields": {
+        "device_id": {
+          "name": "ID dispositivo",
+          "description": "La voce di configurazione della ReefLED (o LED virtuale)."
+        }
+      }
+    },
+    "led_weather_preview": {
+      "name": "Anteprima della settimana meteo",
+      "description": "Genera la settimana che il meteo creerebbe ora e la restituisce con la settimana propria della lampada, senza scrivere nulla.",
+      "fields": {
+        "device_id": {
+          "name": "ID dispositivo",
+          "description": "La voce di configurazione della ReefLED (o LED virtuale)."
+        },
+        "settings": {
+          "name": "Impostazioni",
+          "description": "Impostazioni meteo in modifica, sopra quelle salvate."
+        }
+      }
+    },
+    "led_weather_save": {
+      "name": "Salva il programma meteo",
+      "description": "Salva le impostazioni e la modalità meteo e scrive la lampada una sola volta: la settimana meteo o il ritorno della propria settimana.",
+      "fields": {
+        "device_id": {
+          "name": "ID dispositivo",
+          "description": "La voce di configurazione della ReefLED (o LED virtuale)."
+        },
+        "settings": {
+          "name": "Impostazioni",
+          "description": "Impostazioni meteo in modifica, sopra quelle salvate."
+        },
+        "enabled": {
+          "name": "Modalità meteo",
+          "description": "Se la lampada segue il meteo."
+        },
+        "wait": {
+          "name": "Attendere la lampada",
+          "description": "Rispondere una volta scritta la lampada (di norma la settimana viene salvata e mostrata, poi scritta in background)."
         }
       }
     }

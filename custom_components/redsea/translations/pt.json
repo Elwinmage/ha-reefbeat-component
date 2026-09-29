@@ -13,6 +13,7 @@
       "user": {
         "data": {
           "add_type": "Escolha o método de adição",
+          "cloud_server": "Servidor na nuvem (endereço do simulador)",
           "disable_supplements": "Desativar suplementos",
           "hw_model": "Modelo de hardware",
           "ip_address": "IP ou endereço de sub-rede (ex: 10.0.1.0/255.255.255.0)",
@@ -578,6 +579,15 @@
       },
       "danger_debounce_seconds": {
         "name": "Debounce de perigo"
+      },
+      "weather_min_intensity": {
+        "name": "Intensidade mínima meteorológica"
+      },
+      "weather_max_intensity": {
+        "name": "Intensidade máxima meteorológica"
+      },
+      "weather_refresh_days": {
+        "name": "Atualização do tempo (dias)"
       }
     },
     "select": {
@@ -642,6 +652,22 @@
           "ec": "Condutividade (mS/cm)",
           "ppt": "Salinidade (ppt)",
           "sg": "Densidade (SG)"
+        }
+      },
+      "weather_period": {
+        "name": "Período meteorológico",
+        "state": {
+          "next_week": "Próxima semana (previsão)",
+          "last_week": "Semana passada (medida)"
+        }
+      },
+      "weather_anchor": {
+        "name": "Dia meteorológico no aquário",
+        "state": {
+          "place": "Hora do local",
+          "sunrise": "Alinhado ao nascer do sol",
+          "sunset": "Alinhado ao pôr do sol",
+          "both": "Esticado entre nascer e pôr do sol"
         }
       }
     },
@@ -1382,6 +1408,13 @@
       },
       "probe_uid": {
         "name": "UID de {probe}"
+      },
+      "weather_program": {
+        "name": "Programa meteorológico",
+        "state": {
+          "ok": "OK",
+          "error": "Erro"
+        }
       }
     },
     "switch": {
@@ -1555,6 +1588,12 @@
       },
       "leak_detector_enabled": {
         "name": "Detetor de fugas"
+      },
+      "weather_sync": {
+        "name": "Modo tempo GPS"
+      },
+      "weather_clouds": {
+        "name": "Nuvens do tempo"
       }
     },
     "text": {
@@ -1602,11 +1641,20 @@
       },
       "temperature_probe_name": {
         "name": "Nome da sonda de temperatura"
+      },
+      "weather_location": {
+        "name": "Local meteorológico"
       }
     },
     "time": {
       "schedule_time": {
         "name": "Hora do agendamento"
+      },
+      "weather_sunrise": {
+        "name": "Nascer do sol meteorológico"
+      },
+      "weather_sunset": {
+        "name": "Pôr do sol meteorológico"
       }
     },
     "update": {
@@ -1796,6 +1844,102 @@
         "points": {
           "name": "Pontos",
           "description": "Lista de pontos, cada um (kelvin, intensity) ou (white, blue)."
+        }
+      }
+    },
+    "led_library": {
+      "name": "Listar a biblioteca ReefLED",
+      "description": "Programas de luz da biblioteca na nuvem do aquário da ReefLED.",
+      "fields": {
+        "device_id": {
+          "name": "ID do dispositivo",
+          "description": "A entrada de configuração da ReefLED (ou LED virtual)."
+        }
+      }
+    },
+    "led_library_save": {
+      "name": "Guardar um programa ReefLED na biblioteca",
+      "description": "Adiciona um programa de luz à biblioteca na nuvem da ReefLED, ou altera um.",
+      "fields": {
+        "device_id": {
+          "name": "ID do dispositivo",
+          "description": "A entrada de configuração da ReefLED (ou LED virtual)."
+        },
+        "name": {
+          "name": "Nome",
+          "description": "Nome do programa na biblioteca."
+        },
+        "program": {
+          "name": "Programa",
+          "description": "Programa diário no formato da lâmpada, na linha temporal de um único dia."
+        },
+        "clouds": {
+          "name": "Nuvens",
+          "description": "Nuvens do programa (from, to, intensity), se existirem."
+        },
+        "uid": {
+          "name": "ID do programa",
+          "description": "O programa da biblioteca a alterar; vazio para adicionar um novo. Os programas Red Sea não podem ser alterados."
+        }
+      }
+    },
+    "led_library_delete": {
+      "name": "Eliminar um programa da biblioteca ReefLED",
+      "description": "Elimina um programa do utilizador da biblioteca na nuvem da ReefLED.",
+      "fields": {
+        "device_id": {
+          "name": "ID do dispositivo",
+          "description": "A entrada de configuração da ReefLED (ou LED virtual)."
+        },
+        "uid": {
+          "name": "ID do programa",
+          "description": "O programa a eliminar (não um programa Red Sea)."
+        }
+      }
+    },
+    "led_weather_apply": {
+      "name": "Atualizar o tempo ReefLED",
+      "description": "Obtém novamente o tempo e envia a semana a uma ReefLED em modo tempo GPS.",
+      "fields": {
+        "device_id": {
+          "name": "ID do dispositivo",
+          "description": "A entrada de configuração da ReefLED (ou LED virtual)."
+        }
+      }
+    },
+    "led_weather_preview": {
+      "name": "Pré-visualização da semana do tempo",
+      "description": "Gera a semana que o tempo faria agora e devolve-a com a semana própria da luminária, sem escrever nada.",
+      "fields": {
+        "device_id": {
+          "name": "ID do dispositivo",
+          "description": "A entrada de configuração da ReefLED (ou LED virtual)."
+        },
+        "settings": {
+          "name": "Definições",
+          "description": "Definições do tempo em edição, sobre as guardadas."
+        }
+      }
+    },
+    "led_weather_save": {
+      "name": "Guardar o programa do tempo",
+      "description": "Guarda as definições e o modo do tempo e escreve a luminária uma só vez: a semana do tempo ou o regresso da sua própria semana.",
+      "fields": {
+        "device_id": {
+          "name": "ID do dispositivo",
+          "description": "A entrada de configuração da ReefLED (ou LED virtual)."
+        },
+        "settings": {
+          "name": "Definições",
+          "description": "Definições do tempo em edição, sobre as guardadas."
+        },
+        "enabled": {
+          "name": "Modo tempo",
+          "description": "Se a luminária segue o tempo."
+        },
+        "wait": {
+          "name": "Esperar pela luminária",
+          "description": "Responder depois de escrita a luminária (por omissão a semana é guardada e mostrada, e depois escrita em segundo plano)."
         }
       }
     }

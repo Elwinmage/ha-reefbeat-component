@@ -68,6 +68,49 @@ Also note that if compensation is enabled, the intensity factor can exceed 100% 
 
 ***
 
+### Weather program
+The lamp can follow the weather of a place: in **GPS weather mode** its week
+is built from the weather of the next seven days (forecast) or of the seven
+days that have just passed (measured weather), from
+[Open-Meteo](https://open-meteo.com) (free, no key). There is nothing to
+validate: turning the mode on keeps the lamp's own programs aside and sends
+the weather week at once; the weather is then fetched again every few days
+(3 to 15, your choice) and whenever a setting changes (30 s after the last
+change). Turning the mode off writes the lamp's own programs back.
+
+| Entity | Role |
+| ------ | ---- |
+| `switch` GPS weather mode | GPS weather, or the lamp's standard programs |
+| `select` Weather period | Next week (forecast) or last week (measured) |
+| `number` Weather refresh (days) | Days between two weather fetches, 3 to 15 |
+| `text` Weather location | `lat, lon`, a `geo:` URI or a Google Maps / OpenStreetMap / Apple Maps link; empty for the Home Assistant home |
+| `select` Weather day on the tank | Place's clock, anchored on the sunrise, on the sunset, or stretched between both |
+| `time` Weather sunrise / sunset | Tank times used by the anchors |
+| `number` Weather minimum / maximum intensity | Guard rails of the intensity |
+| `switch` Weather clouds | Set the lamp's clouds on the cloudy hours |
+| `sensor` Weather program | Result of the last fetch (status, place, and each day's sun, sunshine, cloud cover and top intensity) |
+
+How a day is built:
+- **Times** — from the place's sunrise to its sunset, on the place's clock
+  (a reef in Fiji rises at 06:00 on the lamp too), or anchored on the tank:
+  *sunrise* (the place's day starts at the chosen time), *sunset* (it ends
+  at the chosen time), or *both* (the place's day is stretched between the
+  two times).
+- **Intensity** — follows the sun actually received (hourly shortwave
+  radiation, 1000 W/m² being full sun), between the minimum and the maximum;
+  up to 8 points a day.
+- **Colour** — the one of the lamp's standard program at the same moment of
+  its day: its white/blue balance on a G1, its colour temperature on a G2.
+- **Clouds** — on the hours with at least 40 % cloud cover: Low, Medium or
+  High from their mean cover; removed on a clear day.
+- **Moon** — keeps its place after the sunset.
+
+The program is named *Weather* on the lamp. A virtual LED writes each of its
+lamps, in its own format. In weather mode, the `redsea.led_weather_apply`
+service fetches the weather again at once (from an automation, say).
+
+***
+
 ### Maintenance tasks
 | Task | Default | Range |
 | ---- | ------- | ----- |

@@ -228,3 +228,127 @@ led_convert:
       example: '[{"kelvin": 15000, "intensity": 80}, {"white": 50, "blue": 100}]'
       selector:
         object:
+
+# Light programs of the cloud library of a ReefLED's aquarium (used by the
+# card's program editor).
+led_library:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefLED (or virtual LED).
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+
+# Add a light program to the cloud library of a ReefLED, or update one.
+led_library_save:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefLED (or virtual LED).
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    name:
+      name: Name
+      description: Name of the program in the library.
+      required: true
+      example: prog-202609281930
+      selector:
+        text:
+    program:
+      name: Program
+      description: >-
+        Day program in the lamp's format, on a single day's timeline: white,
+        blue and moon channels (G1) or color and moon (G2).
+      required: true
+      selector:
+        object:
+    clouds:
+      name: Clouds
+      description: Clouds of the program (from, to, intensity), if any.
+      required: false
+      selector:
+        object:
+    uid:
+      name: Program ID
+      description: >-
+        The library program to update; leave empty to add a new one. The Red
+        Sea programs cannot be updated.
+      required: false
+      selector:
+        text:
+
+# Delete one of the user's programs from the cloud library of a ReefLED.
+led_library_delete:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefLED (or virtual LED).
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    uid:
+      name: Program ID
+      description: The library program to delete (not a Red Sea one).
+      required: true
+      selector:
+        text:
+
+# Fetch the weather again and send the week to a ReefLED in GPS weather mode.
+led_weather_apply:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefLED (or virtual LED).
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+
+led_weather_preview:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefLED (or virtual LED).
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    settings:
+      name: Settings
+      description: Weather settings being edited (period, anchor, location, sunrise, sunset, min_intensity, max_intensity, clouds, refresh_days), over the stored ones.
+      required: false
+      selector:
+        object:
+
+led_weather_save:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefLED (or virtual LED).
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    settings:
+      name: Settings
+      description: Weather settings being edited (period, anchor, location, sunrise, sunset, min_intensity, max_intensity, clouds, refresh_days), over the stored ones.
+      required: false
+      selector:
+        object:
+    enabled:
+      name: Weather mode
+      description: Whether the lamp follows the weather.
+      required: true
+      selector:
+        boolean:
+    wait:
+      name: Wait for the lamp
+      description: Answer once the lamp is written (by default the week is saved and shown, then written in the background).
+      required: false
+      selector:
+        boolean:

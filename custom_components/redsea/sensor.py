@@ -108,6 +108,7 @@ from .coordinator import (
     ReefWaveCoordinator,
 )
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
+from .led_weather_entities import weather_entities
 from .probe_entities import probe_state_attributes
 
 _LOGGER = logging.getLogger(__name__)
@@ -2586,6 +2587,9 @@ async def async_setup_entry(
             for description in cloud_descs
             if description.exists_fn(device)
         )
+
+    # ReefLED week program following the weather
+    entities.extend(weather_entities(device, "sensor"))
 
     async_add_entities(entities, True)
 

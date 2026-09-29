@@ -218,6 +218,19 @@ class ReefBeatAPI:
             self, "_secure", False
         )
 
+    def _is_firmware_verdict(self, status: int, result: Any) -> bool:
+        """Whether a local device refused the request itself.
+
+        A firmware answering a 500 with ``{"success": false, "message": ...}``
+        (a ReefLED: "Cloud period is outside the preset [rise:set] interval")
+        judged the payload: sending it again only gives the same answer, and
+        the device tends to reset the following connections.
+        """
+        if status < 500 or getattr(self, "_secure", False):
+            return False
+        body = (result or {}).get("json")
+        return isinstance(body, dict) and body.get("success") is False
+
     def _build_result(
         self,
         *,
@@ -819,9 +832,13 @@ class ReefBeatAPI:
                 # Hard failures that should not be retried. Other 4xx keep
                 # the historical retry behaviour; a local 503 is a firmware
                 # refusal (see _is_definitive_failure).
-                if status in (400, 404) or (
-                    status == self._LOCAL_REFUSAL_STATUS
-                    and self._is_definitive_failure(status)
+                if (
+                    status in (400, 404)
+                    or (
+                        status == self._LOCAL_REFUSAL_STATUS
+                        and self._is_definitive_failure(status)
+                    )
+                    or self._is_firmware_verdict(status, last_result)
                 ):
                     error_count = HTTP_MAX_RETRY
 

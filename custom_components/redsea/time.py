@@ -30,6 +30,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import DOMAIN
 from .coordinator import ReefMatCoordinator
 from .entity import ReefBeatRestoreEntity, RestoreSpec
+from .led_weather_entities import weather_entities
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -87,6 +88,11 @@ async def async_setup_entry(
         )
 
         async_add_entities(entities, True)
+
+    # ReefLED week program following the weather
+    weather = weather_entities(device, "time")
+    if weather:
+        async_add_entities(weather, True)
 
 
 # -----------------------------------------------------------------------------

@@ -13,6 +13,7 @@
       "user": {
         "data": {
           "add_type": "Wybierz metodę dodawania",
+          "cloud_server": "Serwer chmury (adres symulatora)",
           "disable_supplements": "Wyłącz suplementy",
           "hw_model": "Model sprzętu",
           "ip_address": "Adres IP lub podsieci (np.: 10.0.1.0/255.255.255.0)",
@@ -578,6 +579,15 @@
       },
       "danger_debounce_seconds": {
         "name": "Debounce zagrożenia"
+      },
+      "weather_min_intensity": {
+        "name": "Minimalna intensywność pogody"
+      },
+      "weather_max_intensity": {
+        "name": "Maksymalna intensywność pogody"
+      },
+      "weather_refresh_days": {
+        "name": "Odświeżanie pogody (dni)"
       }
     },
     "select": {
@@ -642,6 +652,22 @@
           "ec": "Przewodność (mS/cm)",
           "ppt": "Zasolenie (ppt)",
           "sg": "Gęstość (SG)"
+        }
+      },
+      "weather_period": {
+        "name": "Okres pogody",
+        "state": {
+          "next_week": "Następny tydzień (prognoza)",
+          "last_week": "Poprzedni tydzień (zmierzony)"
+        }
+      },
+      "weather_anchor": {
+        "name": "Dzień pogodowy w akwarium",
+        "state": {
+          "place": "Czas miejsca",
+          "sunrise": "Wyrównany do wschodu",
+          "sunset": "Wyrównany do zachodu",
+          "both": "Rozciągnięty między wschodem a zachodem"
         }
       }
     },
@@ -1382,6 +1408,13 @@
       },
       "probe_uid": {
         "name": "UID {probe}"
+      },
+      "weather_program": {
+        "name": "Program pogodowy",
+        "state": {
+          "ok": "OK",
+          "error": "Błąd"
+        }
       }
     },
     "switch": {
@@ -1555,6 +1588,12 @@
       },
       "leak_detector_enabled": {
         "name": "Czujnik wycieku"
+      },
+      "weather_sync": {
+        "name": "Tryb pogody GPS"
+      },
+      "weather_clouds": {
+        "name": "Chmury pogodowe"
       }
     },
     "text": {
@@ -1602,11 +1641,20 @@
       },
       "temperature_probe_name": {
         "name": "Nazwa sondy temperatury"
+      },
+      "weather_location": {
+        "name": "Lokalizacja pogody"
       }
     },
     "time": {
       "schedule_time": {
         "name": "Godzina harmonogramu"
+      },
+      "weather_sunrise": {
+        "name": "Wschód pogody"
+      },
+      "weather_sunset": {
+        "name": "Zachód pogody"
       }
     },
     "update": {
@@ -1796,6 +1844,102 @@
         "points": {
           "name": "Punkty",
           "description": "Lista punktów, każdy (kelvin, intensity) lub (white, blue)."
+        }
+      }
+    },
+    "led_library": {
+      "name": "Wyświetl bibliotekę ReefLED",
+      "description": "Programy świetlne z biblioteki chmurowej akwarium lampy ReefLED.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji lampy ReefLED (lub wirtualnej LED)."
+        }
+      }
+    },
+    "led_library_save": {
+      "name": "Zapisz program ReefLED w bibliotece",
+      "description": "Dodaje program świetlny do biblioteki chmurowej lampy ReefLED lub zmienia istniejący.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji lampy ReefLED (lub wirtualnej LED)."
+        },
+        "name": {
+          "name": "Nazwa",
+          "description": "Nazwa programu w bibliotece."
+        },
+        "program": {
+          "name": "Program",
+          "description": "Program dzienny w formacie lampy, na osi czasu jednego dnia."
+        },
+        "clouds": {
+          "name": "Chmury",
+          "description": "Chmury programu (from, to, intensity), jeśli są."
+        },
+        "uid": {
+          "name": "ID programu",
+          "description": "Program z biblioteki do zmiany; puste, aby dodać nowy. Programów Red Sea nie można zmieniać."
+        }
+      }
+    },
+    "led_library_delete": {
+      "name": "Usuń program z biblioteki ReefLED",
+      "description": "Usuwa program użytkownika z biblioteki chmurowej lampy ReefLED.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji lampy ReefLED (lub wirtualnej LED)."
+        },
+        "uid": {
+          "name": "ID programu",
+          "description": "Program do usunięcia (nie program Red Sea)."
+        }
+      }
+    },
+    "led_weather_apply": {
+      "name": "Odśwież pogodę ReefLED",
+      "description": "Ponownie pobiera pogodę i wysyła tydzień do lampy ReefLED w trybie pogody GPS.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji lampy ReefLED (lub wirtualnej LED)."
+        }
+      }
+    },
+    "led_weather_preview": {
+      "name": "Podgląd tygodnia pogody",
+      "description": "Tworzy tydzień, jaki dałaby teraz pogoda, i zwraca go z własnym tygodniem lampy, niczego nie zapisując.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji lampy ReefLED (lub wirtualnej LED)."
+        },
+        "settings": {
+          "name": "Ustawienia",
+          "description": "Edytowane ustawienia pogody, ponad zapisanymi."
+        }
+      }
+    },
+    "led_weather_save": {
+      "name": "Zapisz program pogody",
+      "description": "Zapisuje ustawienia i tryb pogody oraz zapisuje lampę jeden raz: tydzień pogody lub powrót jej własnego tygodnia.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji lampy ReefLED (lub wirtualnej LED)."
+        },
+        "settings": {
+          "name": "Ustawienia",
+          "description": "Edytowane ustawienia pogody, ponad zapisanymi."
+        },
+        "enabled": {
+          "name": "Tryb pogody",
+          "description": "Czy lampa podąża za pogodą."
+        },
+        "wait": {
+          "name": "Czekaj na lampę",
+          "description": "Odpowiedz po zapisaniu lampy (domyślnie tydzień jest zapisywany i pokazywany, a potem zapisywany w tle)."
         }
       }
     }

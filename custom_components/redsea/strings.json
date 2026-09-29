@@ -13,6 +13,7 @@
       "user": {
         "data": {
           "add_type": "Choose your adding method",
+          "cloud_server": "Cloud server (simulator address)",
           "disable_supplements": "Disable Supplements",
           "hw_model": "Hardware Model",
           "ip_address": "IP or subnet Addr. (ex:10.0.1.0/255.255.255.0)",
@@ -578,6 +579,15 @@
       },
       "danger_debounce_seconds": {
         "name": "Danger debounce"
+      },
+      "weather_min_intensity": {
+        "name": "Weather minimum intensity"
+      },
+      "weather_max_intensity": {
+        "name": "Weather maximum intensity"
+      },
+      "weather_refresh_days": {
+        "name": "Weather refresh (days)"
       }
     },
     "select": {
@@ -642,6 +652,22 @@
           "ec": "Conductivity (mS/cm)",
           "ppt": "Salinity (ppt)",
           "sg": "Specific gravity"
+        }
+      },
+      "weather_period": {
+        "name": "Weather period",
+        "state": {
+          "next_week": "Next week (forecast)",
+          "last_week": "Last week (measured)"
+        }
+      },
+      "weather_anchor": {
+        "name": "Weather day on the tank",
+        "state": {
+          "place": "Place's clock",
+          "sunrise": "Anchored on sunrise",
+          "sunset": "Anchored on sunset",
+          "both": "Stretched between sunrise and sunset"
         }
       }
     },
@@ -1390,6 +1416,13 @@
       },
       "probe_uid": {
         "name": "{probe} uid"
+      },
+      "weather_program": {
+        "name": "Weather program",
+        "state": {
+          "ok": "OK",
+          "error": "Error"
+        }
       }
     },
     "switch": {
@@ -1563,6 +1596,12 @@
       },
       "leak_detector_enabled": {
         "name": "Leak detector"
+      },
+      "weather_sync": {
+        "name": "GPS weather mode"
+      },
+      "weather_clouds": {
+        "name": "Weather clouds"
       }
     },
     "text": {
@@ -1610,11 +1649,20 @@
       },
       "temperature_probe_name": {
         "name": "Temperature probe name"
+      },
+      "weather_location": {
+        "name": "Weather location"
       }
     },
     "time": {
       "schedule_time": {
         "name": "Schedule Time"
+      },
+      "weather_sunrise": {
+        "name": "Weather sunrise"
+      },
+      "weather_sunset": {
+        "name": "Weather sunset"
       }
     },
     "update": {
@@ -1804,6 +1852,102 @@
         "points": {
           "name": "Points",
           "description": "List of points, each either (kelvin, intensity) or (white, blue)."
+        }
+      }
+    },
+    "led_library": {
+      "name": "List ReefLED library programs",
+      "description": "Light programs of the cloud library of the ReefLED's aquarium.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefLED (or virtual LED)."
+        }
+      }
+    },
+    "led_library_save": {
+      "name": "Save a ReefLED program to the library",
+      "description": "Add a light program to the cloud library of the ReefLED, or update one.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefLED (or virtual LED)."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Name of the program in the library."
+        },
+        "program": {
+          "name": "Program",
+          "description": "Day program in the lamp's format, on a single day's timeline."
+        },
+        "clouds": {
+          "name": "Clouds",
+          "description": "Clouds of the program (from, to, intensity), if any."
+        },
+        "uid": {
+          "name": "Program ID",
+          "description": "The library program to update; leave empty to add a new one. The Red Sea programs cannot be updated."
+        }
+      }
+    },
+    "led_library_delete": {
+      "name": "Delete a ReefLED library program",
+      "description": "Delete one of the user's programs from the cloud library of the ReefLED.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefLED (or virtual LED)."
+        },
+        "uid": {
+          "name": "Program ID",
+          "description": "The library program to delete (not a Red Sea one)."
+        }
+      }
+    },
+    "led_weather_apply": {
+      "name": "Refresh the ReefLED weather",
+      "description": "Fetch the weather again and send the week to a ReefLED in GPS weather mode.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefLED (or virtual LED)."
+        }
+      }
+    },
+    "led_weather_preview": {
+      "name": "Preview the weather week",
+      "description": "Generates the week the weather would make now, and returns it with the lamp's own week, without writing anything.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefLED (or virtual LED)."
+        },
+        "settings": {
+          "name": "Settings",
+          "description": "Weather settings being edited, over the stored ones."
+        }
+      }
+    },
+    "led_weather_save": {
+      "name": "Save the weather program",
+      "description": "Saves the weather settings and mode, and writes the lamp once: the weather week, or the lamp's own week back.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefLED (or virtual LED)."
+        },
+        "settings": {
+          "name": "Settings",
+          "description": "Weather settings being edited, over the stored ones."
+        },
+        "enabled": {
+          "name": "Weather mode",
+          "description": "Whether the lamp follows the weather."
+        },
+        "wait": {
+          "name": "Wait for the lamp",
+          "description": "Answer once the lamp is written (by default the week is saved and shown, then written in the background)."
         }
       }
     }

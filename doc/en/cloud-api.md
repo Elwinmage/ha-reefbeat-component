@@ -23,6 +23,18 @@ Shortcuts, wave parameters and LED parameters are sorted by aquarium.
 >[!TIP]
 > You can disable fetching the supplements list in the Cloud API device configuration.
 >    <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_config.png" alt="Image">
+
+>[!TIP]
+> **Simulator.** To use the simulated account of a
+> [reefbeat-devices-simulator](https://github.com/Elwinmage/reefbeat-devices-simulator)
+> (its lamps and their light programs library, without touching your real
+> account), create the local flag file (git-ignored, never commit it):
+> ```bash
+> cp custom_components/redsea/simulator_enabled.example custom_components/redsea/.simulator_enabled
+> ```
+> Restart Home Assistant: the account form then also asks for the **cloud
+> server** (`cloud.reef-beat.com` by default). Give the simulator's address
+> (its `CLOUD` device, e.g. `192.168.0.251`); any credentials are accepted.
 ***
 
 ---

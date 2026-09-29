@@ -13,6 +13,7 @@
       "user": {
         "data": {
           "add_type": "Kies je toevoegmethode",
+          "cloud_server": "Cloudserver (adres van de simulator)",
           "disable_supplements": "Supplementen uitschakelen",
           "hw_model": "Hardware Model",
           "ip_address": "IP of subnet adres (bijv: 10.0.1.0/255.255.255.0)",
@@ -578,6 +579,15 @@
       },
       "danger_debounce_seconds": {
         "name": "Ontdender gevaar"
+      },
+      "weather_min_intensity": {
+        "name": "Minimale weerintensiteit"
+      },
+      "weather_max_intensity": {
+        "name": "Maximale weerintensiteit"
+      },
+      "weather_refresh_days": {
+        "name": "Weer vernieuwen (dagen)"
       }
     },
     "select": {
@@ -642,6 +652,22 @@
           "ec": "Geleidbaarheid (mS/cm)",
           "ppt": "Saliniteit (ppt)",
           "sg": "Dichtheid (SG)"
+        }
+      },
+      "weather_period": {
+        "name": "Weerperiode",
+        "state": {
+          "next_week": "Volgende week (voorspelling)",
+          "last_week": "Vorige week (gemeten)"
+        }
+      },
+      "weather_anchor": {
+        "name": "Weerdag in het aquarium",
+        "state": {
+          "place": "Tijd van de plaats",
+          "sunrise": "Uitgelijnd op zonsopgang",
+          "sunset": "Uitgelijnd op zonsondergang",
+          "both": "Uitgerekt tussen op- en ondergang"
         }
       }
     },
@@ -1390,6 +1416,13 @@
       },
       "probe_uid": {
         "name": "UID van {probe}"
+      },
+      "weather_program": {
+        "name": "Weerprogramma",
+        "state": {
+          "ok": "OK",
+          "error": "Fout"
+        }
       }
     },
     "switch": {
@@ -1563,6 +1596,12 @@
       },
       "leak_detector_enabled": {
         "name": "Lekdetector"
+      },
+      "weather_sync": {
+        "name": "GPS-weermodus"
+      },
+      "weather_clouds": {
+        "name": "Weerwolken"
       }
     },
     "text": {
@@ -1610,11 +1649,20 @@
       },
       "temperature_probe_name": {
         "name": "Naam van de temperatuursonde"
+      },
+      "weather_location": {
+        "name": "Weerlocatie"
       }
     },
     "time": {
       "schedule_time": {
         "name": "Schema tijd"
+      },
+      "weather_sunrise": {
+        "name": "Weer zonsopgang"
+      },
+      "weather_sunset": {
+        "name": "Weer zonsondergang"
       }
     },
     "update": {
@@ -1804,6 +1852,102 @@
         "points": {
           "name": "Punten",
           "description": "Lijst met punten, elk (kelvin, intensity) of (white, blue)."
+        }
+      }
+    },
+    "led_library": {
+      "name": "ReefLED-bibliotheek weergeven",
+      "description": "Lichtprogramma's uit de cloudbibliotheek van het aquarium van de ReefLED.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefLED (of virtuele LED)."
+        }
+      }
+    },
+    "led_library_save": {
+      "name": "ReefLED-programma in de bibliotheek opslaan",
+      "description": "Voegt een lichtprogramma toe aan de cloudbibliotheek van de ReefLED, of wijzigt er een.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefLED (of virtuele LED)."
+        },
+        "name": {
+          "name": "Naam",
+          "description": "Naam van het programma in de bibliotheek."
+        },
+        "program": {
+          "name": "Programma",
+          "description": "Dagprogramma in het formaat van de lamp, op de tijdlijn van één dag."
+        },
+        "clouds": {
+          "name": "Wolken",
+          "description": "Wolken van het programma (from, to, intensity), indien aanwezig."
+        },
+        "uid": {
+          "name": "Programma-ID",
+          "description": "Het bibliotheekprogramma om te wijzigen; leeg laten om een nieuw toe te voegen. Red Sea-programma's kunnen niet worden gewijzigd."
+        }
+      }
+    },
+    "led_library_delete": {
+      "name": "ReefLED-bibliotheekprogramma verwijderen",
+      "description": "Verwijdert een programma van de gebruiker uit de cloudbibliotheek van de ReefLED.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefLED (of virtuele LED)."
+        },
+        "uid": {
+          "name": "Programma-ID",
+          "description": "Het te verwijderen programma (geen Red Sea-programma)."
+        }
+      }
+    },
+    "led_weather_apply": {
+      "name": "ReefLED-weer vernieuwen",
+      "description": "Haalt het weer opnieuw op en stuurt de week naar een ReefLED in GPS-weermodus.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefLED (of virtuele LED)."
+        }
+      }
+    },
+    "led_weather_preview": {
+      "name": "Voorbeeld van de weerweek",
+      "description": "Maakt de week die het weer nu zou geven en geeft die terug met de eigen week van de lamp, zonder iets te schrijven.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefLED (of virtuele LED)."
+        },
+        "settings": {
+          "name": "Instellingen",
+          "description": "Weerinstellingen in bewerking, boven de opgeslagen."
+        }
+      }
+    },
+    "led_weather_save": {
+      "name": "Weerprogramma opslaan",
+      "description": "Slaat de weerinstellingen en -modus op en schrijft de lamp één keer: de weerweek of de eigen week terug.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefLED (of virtuele LED)."
+        },
+        "settings": {
+          "name": "Instellingen",
+          "description": "Weerinstellingen in bewerking, boven de opgeslagen."
+        },
+        "enabled": {
+          "name": "Weermodus",
+          "description": "Of de lamp het weer volgt."
+        },
+        "wait": {
+          "name": "Wachten op de lamp",
+          "description": "Antwoorden zodra de lamp is geschreven (standaard wordt de week opgeslagen en getoond, en daarna op de achtergrond geschreven)."
         }
       }
     }

@@ -61,6 +61,11 @@ from .const import (
     HW_WAVE_IDS,
     LED_BLUE_INTERNAL_NAME,
     LED_WHITE_INTERNAL_NAME,
+    LIGHTS_DEFAULT_UID_PREFIX,
+    LIGHTS_G1_DEFAULT_NAMES,
+    LIGHTS_G2_DEFAULTS,
+    LIGHTS_G2_LIBRARY,
+    LIGHTS_LIBRARY,
     LINKED_LED,
     PROBE_REFRESH_DELAY,
     REFRESH_DEVICE_DELAY,
@@ -525,6 +530,196 @@ class ReefLedCoordinator(ReefBeatCloudLinkedCoordinator):
         """Return True if the underlying LED API is using G1 protocol."""
         return bool(getattr(self.my_api, "_g1", False))
 
+    # Cloud light library
+    def library_link(self) -> tuple[ReefBeatCloudCoordinator, str] | None:
+        """Cloud account and aquarium this lamp's programs are kept under.
+
+        The ReefBeat app keeps light programs in a per-aquarium library: the
+        lamp's aquarium is found in the account's device list, by hwid.
+        """
+        cloud = self._cloud_link
+        if cloud is None:
+            return None
+        aquarium = cloud.get_data(
+            "$.sources[?(@.name=='/device')].data[?(@.hwid=='"
+            + str(self.model_id)
+            + "')].aquarium_uid",
+            True,
+        )
+        if not isinstance(aquarium, str) or not aquarium:
+            return None
+        return cloud, aquarium
+
+    def library_g2(self) -> bool:
+        """Whether the programs are G2 ones (color/moon), in the G2 library."""
+        return not self.is_g1
+
+    def weather_targets(self) -> list[ReefLedCoordinator]:
+        """Lamps a weather program is written to: this one."""
+        return [self]
+
+    def _library_entries(
+        self, cloud: ReefBeatCloudCoordinator, source: str
+    ) -> list[Any]:
+        """Entries of a cloud library source (a single one comes unwrapped)."""
+        entries = cloud.get_data("$.sources[?(@.name=='" + source + "')].data", True)
+        if isinstance(entries, dict):
+            entries = [entries]
+        if not isinstance(entries, list):
+            return []
+        return [e for e in cast(list[Any], entries) if isinstance(e, dict)]
+
+    def light_library(self) -> list[dict[str, Any]] | None:
+        """Light programs the lamp can use, None when not linked.
+
+        As in the ReefBeat app, G1 programs are kept per aquarium in
+        `/reef-lights/library` ({uid, name, program: {white, blue, moon},
+        clouds}); G2 programs in the user's `/v2/reef-lights/library`
+        ({id, name, color, moon, clouds}), plus the Red Sea programs built
+        into the app. All are given in one shape: {uid, name, program,
+        clouds, default}; a default (Red Sea) program cannot be edited nor
+        deleted.
+        """
+        link = self.library_link()
+        if link is None:
+            return None
+        cloud, aquarium = link
+        if self.library_g2():
+            defaults = [
+                {
+                    "uid": LIGHTS_DEFAULT_UID_PREFIX + prog["name"],
+                    "name": prog["name"],
+                    "program": {"color": prog["color"], "moon": prog["moon"]},
+                    "clouds": None,
+                    "default": True,
+                }
+                for prog in LIGHTS_G2_DEFAULTS
+            ]
+            return defaults + [
+                {
+                    "uid": entry.get("id"),
+                    "name": entry.get("name"),
+                    "program": {
+                        key: entry[key] for key in ("color", "moon") if key in entry
+                    },
+                    "clouds": entry.get("clouds"),
+                    "default": False,
+                }
+                for entry in self._library_entries(cloud, LIGHTS_G2_LIBRARY)
+            ]
+        return [
+            {
+                "uid": entry.get("uid"),
+                "name": entry.get("name"),
+                "program": entry.get("program"),
+                "clouds": entry.get("clouds"),
+                "default": entry.get("name") in LIGHTS_G1_DEFAULT_NAMES,
+            }
+            for entry in self._library_entries(cloud, LIGHTS_LIBRARY)
+            if entry.get("aquarium_uid") == aquarium
+        ]
+
+    def _library_payload(
+        self,
+        name: str,
+        program: dict[str, Any],
+        clouds: dict[str, Any] | None,
+        aquarium: str | None,
+    ) -> dict[str, Any]:
+        """Body of a library program, as the ReefBeat app sends it.
+
+        - G1: {aquarium_uid (creation only), name, program, clouds?}
+          (LedsProgram.putOrPost)
+        - G2: {name, color, moon, clouds?} (LedG2Program.PutOrPost)
+        """
+        payload: dict[str, Any]
+        if self.library_g2():
+            payload = {"name": name}
+            payload.update(
+                {key: program[key] for key in ("color", "moon") if key in program}
+            )
+        else:
+            payload = {"name": name, "program": program}
+            if aquarium is not None:
+                payload = {"aquarium_uid": aquarium, **payload}
+        if clouds:
+            payload["clouds"] = clouds
+        return payload
+
+    def _library_source(self) -> str:
+        """Cloud source of the lamp's library."""
+        return LIGHTS_G2_LIBRARY if self.library_g2() else LIGHTS_LIBRARY
+
+    def library_program(self, uid: str) -> dict[str, Any] | None:
+        """A program of the lamp's library, by uid."""
+        for entry in self.light_library() or []:
+            if entry.get("uid") == uid:
+                return entry
+        return None
+
+    async def save_light_program(
+        self,
+        name: str,
+        program: dict[str, Any],
+        clouds: dict[str, Any] | None,
+        uid: str | None = None,
+    ) -> str | None:
+        """Add a program to the lamp's library, or update one of its own.
+
+        The program is on a single day's timeline (no weekday offset), in the
+        lamp's own format: white/blue/moon (G1) or color/moon (G2). As the
+        ReefBeat app: POST to create, PUT <library>/<uid> to update; the Red
+        Sea programs cannot be updated.
+        @param uid: the program to update, None to create one
+        @return the uid of the program, None when not linked, when the
+                program cannot be updated, or when the new one is not found
+        """
+        link = self.library_link()
+        if link is None:
+            return None
+        cloud, aquarium = link
+        source = self._library_source()
+        path = source.split("?")[0]
+        if uid is not None:
+            entry = self.library_program(uid)
+            if entry is None or entry.get("default"):
+                return None
+            payload = self._library_payload(name, program, clouds, None)
+            _LOGGER.debug("PUT light program %s to %s: %s", uid, path, payload)
+            await cloud.send_cmd(f"{path}/{uid}", payload, "put")
+            await cloud.fetch_config(source)
+            return uid
+        payload = self._library_payload(name, program, clouds, aquarium)
+        _LOGGER.debug("POST light program to %s: %s", path, payload)
+        await cloud.send_cmd(path, payload, "post")
+        # Read the library again: the new entry and its uid
+        await cloud.fetch_config(source)
+        for entry in reversed(self.light_library() or []):
+            if entry.get("name") == name and not entry.get("default"):
+                return cast(str | None, entry.get("uid"))
+        return None
+
+    async def delete_light_program(self, uid: str) -> bool:
+        """Delete one of the user's programs from the lamp's library.
+
+        As the ReefBeat app: DELETE <library>/<uid>. The Red Sea programs
+        cannot be deleted.
+        @return whether the program was deleted
+        """
+        link = self.library_link()
+        if link is None:
+            return False
+        cloud, _aquarium = link
+        entry = self.library_program(uid)
+        if entry is None or entry.get("default"):
+            return False
+        source = self._library_source()
+        path = source.split("?")[0]
+        _LOGGER.debug("DELETE light program %s from %s", uid, path)
+        await cloud.send_cmd(f"{path}/{uid}", {}, "delete")
+        await cloud.fetch_config(source)
+        return True
+
 
 class ReefLedG2Coordinator(ReefLedCoordinator):
     """Coordinator for ReefLED G2 devices (uses G2 write semantics)."""
@@ -779,6 +974,23 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
     ) -> None:
         for led in self._linked:
             await led.async_request_refresh(source, config, wait)
+
+    def library_g2(self) -> bool:
+        """A group with a G2 is driven as a G2: it uses the G2 library."""
+        return not self.only_g1
+
+    def weather_targets(self) -> list[ReefLedCoordinator]:
+        """A weather program goes to each lamp of the group."""
+        return list(self._linked)
+
+    def library_link(self) -> tuple[ReefBeatCloudCoordinator, str] | None:
+        """Library of the first linked lamp bound to a cloud account."""
+        for led in self._linked:
+            link = getattr(led, "library_link", None)
+            res = link() if callable(link) else None
+            if res is not None:
+                return cast(tuple[ReefBeatCloudCoordinator, str], res)
+        return None
 
     @property
     def device_info(self) -> DeviceInfo:

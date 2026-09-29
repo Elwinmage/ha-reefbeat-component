@@ -73,6 +73,7 @@ from .coordinator import (
     ReefWaveCoordinator,
 )
 from .entity import MaintenanceLabelMixin, ReefRoleMixin
+from .led_weather_entities import weather_entities
 from .maintenance import (
     PROBE_SCOPES,
     MaintenanceStore,
@@ -1364,6 +1365,9 @@ async def async_setup_entry(
     if isinstance(device, ReefControlCoordinator):
         tag_probe_entities(device, entities)
         tag_port_entities(device, entities)
+
+    # ReefLED week program following the weather
+    entities.extend(weather_entities(device, "number"))
 
     async_add_entities(entities, update_before_add=True)
 

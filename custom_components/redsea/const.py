@@ -10,7 +10,7 @@ This module contains:
 
 from __future__ import annotations
 
-from typing import Final, TypedDict
+from typing import Any, Final, TypedDict
 
 # -----------------------------------------------------------------------------
 # Platforms
@@ -72,6 +72,9 @@ ADD_TYPES: Final[tuple[str, ...]] = (
 # CLOUD
 CONFIG_FLOW_CLOUD_USERNAME: Final[str] = "username"
 CONFIG_FLOW_CLOUD_PASSWORD: Final[str] = "password"
+# Cloud server, asked only with the local .simulator_enabled flag file: a
+# simulator answering the same API over HTTPS
+CONFIG_FLOW_CLOUD_SERVER: Final[str] = "cloud_server"
 CONFIG_FLOW_DISABLE_SUPPLEMENT: Final[str] = "disable_supplements"
 CLOUD_SCAN_INTERVAL: Final[int] = 600
 CLOUD_DEVICE_TYPE: Final[str] = "Smartphone App"
@@ -550,6 +553,86 @@ PORT_SOCKET_STATES: Final[tuple[str, ...]] = (
 # -----------------------------------------------------------------------------
 
 LIGHTS_LIBRARY: Final[str] = "/reef-lights/library?include=all"
+# G2 programs live in their own, per-user library (ReefBeat app: E1.g2/w5)
+LIGHTS_G2_LIBRARY: Final[str] = "/v2/reef-lights/library"
+
+# Red Sea programs of the ReefBeat app, which cannot be edited nor deleted.
+# G1: they are stored in the cloud library, known by name (LedProgramType and
+# LedsProgram.updateIsDefaultFromName in the app).
+LIGHTS_G1_DEFAULT_NAMES: Final[frozenset[str]] = frozenset(
+    {"12K", "15K", "18K", "20K", "23K", "RS Accelerated Growth"}
+)
+
+
+def _g2_color(rise: int, set_: int, points: list[tuple[int, int, int]]) -> Any:
+    """G2 colour channel: points as (absolute minute, intensity, kelvin)."""
+    return {
+        "rise": rise,
+        "set": set_,
+        "points": [
+            {"t": m - rise, "i1": i, "i2": i, "k1": k, "k2": k} for m, i, k in points
+        ],
+    }
+
+
+def _g2_moon(rise: int, set_: int, points: list[tuple[int, int]]) -> Any:
+    """G2 moon channel: points as (absolute minute, intensity)."""
+    return {
+        "rise": rise,
+        "set": set_,
+        "points": [{"t": m - rise, "i": i} for m, i in points],
+    }
+
+
+# G2: built into the app, not stored in the cloud (LedG2Program.defaultPrograms)
+LIGHTS_G2_DEFAULTS: Final[list[dict[str, Any]]] = [
+    {
+        "name": "15K",
+        "color": _g2_color(480, 1140, [(540, 100, 15000), (1080, 100, 15000)]),
+        "moon": _g2_moon(1140, 1320, [(1215, 10), (1245, 10)]),
+    },
+    {
+        "name": "23K",
+        "color": _g2_color(480, 1140, [(540, 100, 23000), (1080, 100, 23000)]),
+        "moon": _g2_moon(1140, 1320, [(1215, 10), (1245, 10)]),
+    },
+    {
+        "name": "Shallow Reef",
+        "color": _g2_color(
+            480,
+            1200,
+            [
+                (540, 50, 11000),
+                (600, 100, 12000),
+                (660, 100, 15000),
+                (960, 100, 15000),
+                (1020, 100, 12000),
+                (1080, 100, 11000),
+                (1140, 50, 10000),
+            ],
+        ),
+        "moon": _g2_moon(1200, 1380, [(1275, 10), (1305, 10)]),
+    },
+    {
+        "name": "Deep Reef",
+        "color": _g2_color(
+            480,
+            1200,
+            [
+                (540, 50, 16000),
+                (600, 100, 17000),
+                (660, 100, 18000),
+                (720, 100, 20000),
+                (900, 100, 20000),
+                (960, 100, 21000),
+                (1080, 100, 23000),
+            ],
+        ),
+        "moon": _g2_moon(1200, 1380, [(1275, 10), (1305, 10)]),
+    },
+]
+# Uid prefix of the built-in G2 programs (they have no cloud uid)
+LIGHTS_DEFAULT_UID_PREFIX: Final[str] = "default:"
 WAVES_LIBRARY: Final[str] = "/reef-wave/library"
 SUPPLEMENTS_LIBRARY: Final[str] = "/reef-dosing/supplement"
 

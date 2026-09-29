@@ -112,6 +112,18 @@ async def test_validate_cloud_input_status_handling(
     monkeypatch.setattr(cf, "async_get_clientsession", lambda _hass: _Session(200))
     assert await validate_cloud_input(hass, "u", "p") is True
 
+    # Another server (a simulator): its own token endpoint
+    urls: list[str] = []
+
+    class _Recording(_Session):
+        def post(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+            urls.append(args[0])
+            return super().post(*args, **kwargs)
+
+    monkeypatch.setattr(cf, "async_get_clientsession", lambda _hass: _Recording(200))
+    assert await validate_cloud_input(hass, "u", "p", "192.0.2.251") is True
+    assert urls == ["https://192.0.2.251/oauth/token"]
+
     monkeypatch.setattr(cf, "async_get_clientsession", lambda _hass: _Session(401))
     assert await validate_cloud_input(hass, "u", "p") is False
 
@@ -480,7 +492,9 @@ async def test_options_flow_cloud_invalid_credentials_shows_error(
 
     import custom_components.redsea.config_flow as cf
 
-    async def _invalid(hass: HomeAssistant, username: str, password: str) -> bool:
+    async def _invalid(
+        hass: HomeAssistant, username: str, password: str, server: str = ""
+    ) -> bool:
         return False
 
     monkeypatch.setattr(cf, "validate_cloud_input", cast(Any, _invalid))
@@ -530,7 +544,9 @@ async def test_options_flow_cloud_valid_credentials_schedules_reload(
 
     import custom_components.redsea.config_flow as cf
 
-    async def _valid(hass: HomeAssistant, username: str, password: str) -> bool:
+    async def _valid(
+        hass: HomeAssistant, username: str, password: str, server: str = ""
+    ) -> bool:
         return True
 
     monkeypatch.setattr(cf, "validate_cloud_input", cast(Any, _valid))
@@ -588,7 +604,9 @@ async def test_config_flow_cloud_invalid_shows_error(
 ) -> None:
     from custom_components.redsea import config_flow as cf
 
-    async def _bad(hass: HomeAssistant, username: str, password: str) -> bool:
+    async def _bad(
+        hass: HomeAssistant, username: str, password: str, server: str = ""
+    ) -> bool:
         return False
 
     monkeypatch.setattr(cf, "validate_cloud_input", cast(Any, _bad))
@@ -624,7 +642,9 @@ async def test_config_flow_cloud_creates_entry(
     """Cloud config flow should create an entry when creds validate."""
     from custom_components.redsea import config_flow as cf
 
-    async def _ok(hass: HomeAssistant, username: str, password: str) -> bool:
+    async def _ok(
+        hass: HomeAssistant, username: str, password: str, server: str = ""
+    ) -> bool:
         return True
 
     monkeypatch.setattr(cf, "validate_cloud_input", cast(Any, _ok))
@@ -822,3 +842,80 @@ async def test_options_flow_virtual_led_builds_leds_schema_and_links_enabled_led
     # Entry should get the linked LED mapping with only the enabled one.
     linked = cast(dict[str, Any], entry.data[LINKED_LED])
     assert len(linked) == 1
+
+
+async def test_config_flow_cloud_server_with_simulator_flag(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch, tmp_path: Any
+) -> None:
+    """With the local flag file the cloud server can be a simulator's."""
+    from custom_components.redsea import config_flow as cf
+    from custom_components.redsea.const import CONFIG_FLOW_CLOUD_SERVER
+
+    servers: list[str] = []
+
+    async def _check(
+        hass: HomeAssistant, username: str, password: str, server: str = ""
+    ) -> bool:
+        servers.append(server)
+        return password == "pw"
+
+    monkeypatch.setattr(cf, "validate_cloud_input", cast(Any, _check))
+    flag = tmp_path / ".simulator_enabled"
+    flag.write_text("")
+    monkeypatch.setattr(cf, "_SIM_FLAG", flag)
+    flow = cast(Any, hass.config_entries.flow)
+
+    result = await flow.async_init(DOMAIN, context={"source": "user"})
+    result2 = await flow.async_configure(
+        result["flow_id"], user_input={CONFIG_FLOW_ADD_TYPE: ADD_CLOUD_API}
+    )
+    fields = [str(key) for key in result2["data_schema"].schema]
+    assert CONFIG_FLOW_CLOUD_SERVER in fields
+
+    # Refused: the form comes back with the server typed
+    result3 = await flow.async_configure(
+        result2["flow_id"],
+        user_input={
+            CONFIG_FLOW_CLOUD_USERNAME: "sim@example.com",
+            CONFIG_FLOW_CLOUD_PASSWORD: "bad",
+            CONFIG_FLOW_CLOUD_SERVER: " 192.0.2.251 ",
+        },
+    )
+    assert result3["errors"] == {"base": "auth_failed"}
+    defaults = {str(key): key.default() for key in result3["data_schema"].schema}
+    assert defaults[CONFIG_FLOW_CLOUD_SERVER] == "192.0.2.251"
+
+    result4 = await flow.async_configure(
+        result3["flow_id"],
+        user_input={
+            CONFIG_FLOW_CLOUD_USERNAME: "sim@example.com",
+            CONFIG_FLOW_CLOUD_PASSWORD: "pw",
+            CONFIG_FLOW_CLOUD_SERVER: "192.0.2.251",
+        },
+    )
+    assert result4["type"] == FlowResultType.CREATE_ENTRY
+    assert servers == ["192.0.2.251", "192.0.2.251"]
+    assert result4["data"][CONFIG_FLOW_IP_ADDRESS] == "192.0.2.251"
+    assert CONFIG_FLOW_CLOUD_SERVER not in result4["data"]
+    entry = cast(Any, result4["result"])
+    await hass.async_block_till_done()
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+
+
+async def test_config_flow_cloud_server_hidden_by_default(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch, tmp_path: Any
+) -> None:
+    """Without the flag file, even in advanced mode: the real cloud only."""
+    from custom_components.redsea import config_flow as cf
+
+    monkeypatch.setattr(cf, "_SIM_FLAG", tmp_path / ".simulator_enabled")
+    flow = cast(Any, hass.config_entries.flow)
+    result = await flow.async_init(
+        DOMAIN, context={"source": "user", "show_advanced_options": True}
+    )
+    result2 = await flow.async_configure(
+        result["flow_id"], user_input={CONFIG_FLOW_ADD_TYPE: ADD_CLOUD_API}
+    )
+    fields = [str(key) for key in result2["data_schema"].schema]
+    assert fields == [CONFIG_FLOW_CLOUD_USERNAME, CONFIG_FLOW_CLOUD_PASSWORD]

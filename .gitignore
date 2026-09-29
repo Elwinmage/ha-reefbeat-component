@@ -172,3 +172,6 @@ cython_debug/
 .ruff_cache/
 .private/
 *.tar*
+
+# Local flag enabling the simulator's cloud server (dev machines only)
+custom_components/redsea/.simulator_enabled

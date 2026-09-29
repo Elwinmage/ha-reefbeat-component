@@ -14,7 +14,7 @@ import logging
 import re
 from contextlib import suppress
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.components.frontend import add_extra_js_url
 
@@ -38,7 +38,9 @@ from homeassistant.core import (
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.event import async_call_later, async_track_time_change
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.util import dt as dt_util
 from homeassistant.util.json import JsonValueType
 
 from .const import (
@@ -72,6 +74,15 @@ from .coordinator import (
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
+)
+from .led_weather import (
+    WEATHER_SETTLE_SECONDS,
+    WEATHER_SHOW_SECONDS,
+    WeatherStore,
+    preview_weather,
+    publish_weather,
+    run_weather,
+    save_weather,
 )
 from .maintenance import MaintenanceStore, register_led_tasks
 from .reefbeat.cloud import InvalidAuth
@@ -208,6 +219,62 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Attach to the coordinator so platforms find it without going through
     # hass.data again; also keeps the lifecycle tied to the entry.
     coordinator.maintenance = maintenance_store  # type: ignore[attr-defined]
+
+    # ReefLED: settings of the week program following the weather of a place
+    if isinstance(coordinator, ReefLedCoordinator):
+        weather_store = WeatherStore(hass, entry.entry_id)
+        await weather_store.async_load()
+        coordinator.weather = weather_store  # type: ignore[attr-defined]
+
+        @callback
+        def _weather_tick(_now: Any) -> None:
+            """Every night, fetch the weather again when it is due."""
+            if weather_store.due(dt_util.now().date()):
+                hass.async_create_task(run_weather(hass, coordinator))
+
+        entry.async_on_unload(
+            async_track_time_change(hass, _weather_tick, hour=0, minute=10, second=0)
+        )
+
+        # A changed setting shows its new week at once, and sends it once
+        # the user is done (the settings are often changed one after the
+        # other)
+        pending: dict[str, Any] = {}
+
+        @callback
+        def _weather_show(_now: Any) -> None:
+            pending.pop("show", None)
+            hass.async_create_task(publish_weather(hass, coordinator))
+
+        @callback
+        def _weather_now(_now: Any) -> None:
+            pending.pop("cancel", None)
+            hass.async_create_task(run_weather(hass, coordinator))
+
+        def _cancel(key: str) -> None:
+            cancel = pending.pop(key, None)
+            if cancel is not None:
+                cancel()
+
+        @callback
+        def _weather_changed(_key: str) -> None:
+            _cancel("show")
+            _cancel("cancel")
+            pending["show"] = async_call_later(
+                hass, WEATHER_SHOW_SECONDS, _weather_show
+            )
+            pending["cancel"] = async_call_later(
+                hass, WEATHER_SETTLE_SECONDS, _weather_now
+            )
+
+        weather_store.on_settings_change = _weather_changed
+
+        @callback
+        def _weather_unload() -> None:
+            _cancel("show")
+            _cancel("cancel")
+
+        entry.async_on_unload(_weather_unload)
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
@@ -828,6 +895,153 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 {key: raw.get(key) for key in ("kelvin", "intensity", "white", "blue")}
             )
         return {"points": result}
+
+    async def handle_led_library(call: ServiceCall) -> ServiceResponse:
+        """List the cloud light programs of a ReefLED's aquarium.
+
+        The card's program editor offers them when the lamp is linked to a
+        ReefBeat cloud account (a virtual LED uses its first linked lamp).
+        """
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        programs = device.light_library()
+        if programs is None:
+            return {"linked": False, "programs": []}
+        return {"linked": True, "programs": cast(list[JsonValueType], programs)}
+
+    async def handle_led_library_save(call: ServiceCall) -> ServiceResponse:
+        """Add a light program to a ReefLED's cloud library, or update one.
+
+        With a `uid`, the user's program is updated (a Red Sea program cannot
+        be); without, a new one is added.
+        """
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        name = call.data.get("name")
+        program = call.data.get("program")
+        clouds = call.data.get("clouds")
+        if not isinstance(name, str) or not name.strip():
+            return {"error": "name is required"}
+        if not isinstance(program, dict):
+            return {"error": "program must be an object"}
+        if device.library_link() is None:
+            return {"error": "Not linked to a ReefBeat cloud account"}
+        uid = call.data.get("uid")
+        if uid is not None and not isinstance(uid, str):
+            return {"error": "uid must be a string"}
+        if uid is not None:
+            entry = device.library_program(uid)
+            if entry is None:
+                return {"error": "Program not found"}
+            if entry.get("default"):
+                return {"error": "Red Sea programs cannot be edited"}
+        saved = await device.save_light_program(
+            name.strip(),
+            cast(dict[str, Any], program),
+            cast(dict[str, Any], clouds) if isinstance(clouds, dict) else None,
+            uid,
+        )
+        return {"uid": saved}
+
+    async def handle_led_library_delete(call: ServiceCall) -> ServiceResponse:
+        """Delete one of the user's programs from a ReefLED's cloud library."""
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        if device.library_link() is None:
+            return {"error": "Not linked to a ReefBeat cloud account"}
+        uid = call.data.get("uid")
+        if not isinstance(uid, str) or not uid:
+            return {"error": "uid is required"}
+        entry = device.library_program(uid)
+        if entry is None:
+            return {"error": "Program not found"}
+        if entry.get("default"):
+            return {"error": "Red Sea programs cannot be deleted"}
+        return {"deleted": await device.delete_light_program(uid)}
+
+    async def handle_led_weather_apply(call: ServiceCall) -> ServiceResponse:
+        """Fetch the weather again and send the week now (weather mode only)."""
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        return cast(dict[str, JsonValueType], await run_weather(hass, device))
+
+    hass.services.async_register(
+        DOMAIN,
+        "led_weather_apply",
+        handle_led_weather_apply,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    async def handle_led_weather_preview(call: ServiceCall) -> ServiceResponse:
+        """The week the weather would make, and the lamp's own: nothing is
+        written (the card's editor shows it before its Save)."""
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        settings = call.data.get("settings")
+        return cast(
+            dict[str, JsonValueType],
+            await preview_weather(
+                hass,
+                device,
+                settings=settings if isinstance(settings, dict) else None,
+            ),
+        )
+
+    hass.services.async_register(
+        DOMAIN,
+        "led_weather_preview",
+        handle_led_weather_preview,
+        supports_response=SupportsResponse.ONLY,
+    )
+
+    async def handle_led_weather_save(call: ServiceCall) -> ServiceResponse:
+        """Save the weather settings and mode, and write the lamp once."""
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        settings = call.data.get("settings")
+        return cast(
+            dict[str, JsonValueType],
+            await save_weather(
+                hass,
+                device,
+                settings if isinstance(settings, dict) else None,
+                bool(call.data.get("enabled")),
+                bool(call.data.get("wait")),
+            ),
+        )
+
+    hass.services.async_register(
+        DOMAIN,
+        "led_weather_save",
+        handle_led_weather_save,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    _LOGGER.debug("Registering services redsea.led_library(_save)")
+    hass.services.async_register(
+        DOMAIN,
+        "led_library",
+        handle_led_library,
+        supports_response=SupportsResponse.ONLY,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "led_library_save",
+        handle_led_library_save,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "led_library_delete",
+        handle_led_library_delete,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
 
     _LOGGER.debug("Registering service redsea.led_convert")
     hass.services.async_register(

@@ -486,3 +486,38 @@ def test_virtual_led_linked_leds_describes_each_lamp(hass: HomeAssistant) -> Non
     assert desc.value_fn(vled) == 2
     assert desc.attributes_fn is not None
     assert len(desc.attributes_fn(vled)["leds"]) == 2
+
+
+def test_virtual_led_library_link_uses_first_linked_cloud(
+    hass: HomeAssistant,
+) -> None:
+    """A virtual LED keeps its programs in its first cloud-linked lamp's library."""
+    hass.state = "STARTING"  # type: ignore[assignment]
+    entry = _make_entry(
+        title="VLED",
+        ip="192.0.2.10",
+        hw_model="RSLED50",
+        linked=["0 LED1-RSLED160 (id1)"],
+    )
+    vled = coord.ReefVirtualLedCoordinator(hass, cast(Any, entry))
+
+    class _Unlinked:
+        def library_link(self) -> Any:
+            return None
+
+    class _Linked:
+        def library_link(self) -> Any:
+            return ("cloud", "aq")
+
+    vled._linked = []  # type: ignore[attr-defined]
+    assert vled.library_link() is None
+    # Only G1 lamps: the aquarium library; a G2 among them: the G2 one
+    vled._only_g1 = True  # type: ignore[attr-defined]
+    assert vled.library_g2() is False
+    vled._only_g1 = False  # type: ignore[attr-defined]
+    assert vled.library_g2() is True
+    vled._linked = [object(), _Unlinked(), _Linked()]  # type: ignore[attr-defined]
+    assert vled.library_link() == ("cloud", "aq")
+    # A weather program goes to each lamp of the group
+    assert vled.weather_targets() == vled._linked  # type: ignore[attr-defined]
+    assert vled.weather_targets() is not vled._linked  # type: ignore[attr-defined]

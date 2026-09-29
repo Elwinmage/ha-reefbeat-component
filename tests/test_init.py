@@ -605,3 +605,297 @@ async def test_led_convert_service_handler(
     for device_id in ("g2", "unknown"):
         resp2 = await handler(SimpleNamespace(data={"device_id": device_id}))
         assert resp2 == {"error": "Not a G1 ReefLED"}
+
+
+@pytest.mark.asyncio
+async def test_led_library_service_handlers(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """redsea.led_library lists and redsea.led_library_save adds programs."""
+    import custom_components.redsea as redsea_init
+
+    handlers: dict[str, Any] = {}
+
+    def _async_register(
+        self: Any,
+        domain: str,
+        service: str,
+        service_func: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        handlers[f"{domain}.{service}"] = service_func
+
+    monkeypatch.setattr(
+        type(hass.services), "async_register", _async_register, raising=True
+    )
+    assert await redsea_init.async_setup(hass, {}) is True
+    listing = handlers[f"{redsea_init.DOMAIN}.led_library"]
+    saving = handlers[f"{redsea_init.DOMAIN}.led_library_save"]
+
+    saved: list[tuple[str, Any, Any]] = []
+    updated: list[str | None] = []
+    deleted: list[str] = []
+
+    class _Led(redsea_init.ReefLedCoordinator):
+        def __init__(self, linked: bool) -> None:  # no HA setup needed
+            self._linked_to_cloud = linked
+
+        def library_link(self) -> Any:
+            return ("cloud", "aq") if self._linked_to_cloud else None
+
+        def light_library(self) -> Any:
+            if not self._linked_to_cloud:
+                return None
+            return [
+                {"uid": "u1", "name": "Perso", "default": False},
+                {"uid": "rs", "name": "23K", "default": True},
+            ]
+
+        async def save_light_program(
+            self, name: str, program: Any, clouds: Any, uid: str | None = None
+        ) -> str | None:
+            saved.append((name, program, clouds))
+            updated.append(uid)
+            return uid or "new-uid"
+
+        async def delete_light_program(self, uid: str) -> bool:
+            deleted.append(uid)
+            return True
+
+    hass.data.setdefault(redsea_init.DOMAIN, {})
+    hass.data[redsea_init.DOMAIN]["linked"] = _Led(True)
+    hass.data[redsea_init.DOMAIN]["alone"] = _Led(False)
+
+    def call(data: dict[str, Any]) -> Any:
+        return SimpleNamespace(data=data)
+
+    assert await listing(call({"device_id": "linked"})) == {
+        "linked": True,
+        "programs": [
+            {"uid": "u1", "name": "Perso", "default": False},
+            {"uid": "rs", "name": "23K", "default": True},
+        ],
+    }
+    assert await listing(call({"device_id": "alone"})) == {
+        "linked": False,
+        "programs": [],
+    }
+    assert await listing(call({"device_id": "nope"})) == {"error": "Not a ReefLED"}
+
+    prog = {"white": {"rise": 600, "set": 1200, "points": []}}
+    assert await saving(
+        call({"device_id": "linked", "name": " prog-1 ", "program": prog})
+    ) == {"uid": "new-uid"}
+    assert saved[-1] == ("prog-1", prog, None)
+    clouds = {"from": 700, "to": 800, "intensity": "Low"}
+    await saving(
+        call({"device_id": "linked", "name": "p", "program": prog, "clouds": clouds})
+    )
+    assert saved[-1] == ("p", prog, clouds)
+
+    for data, error in (
+        ({"device_id": "nope"}, "Not a ReefLED"),
+        ({"device_id": "linked", "name": " ", "program": prog}, "name is required"),
+        (
+            {"device_id": "linked", "name": "p", "program": []},
+            "program must be an object",
+        ),
+        (
+            {"device_id": "alone", "name": "p", "program": prog},
+            "Not linked to a ReefBeat cloud account",
+        ),
+    ):
+        assert await saving(call(data)) == {"error": error}
+    assert len(saved) == 2
+
+    # Update one of the user's programs; not a Red Sea one
+    assert await saving(
+        call({"device_id": "linked", "name": "P2", "program": prog, "uid": "u1"})
+    ) == {"uid": "u1"}
+    assert updated[-1] == "u1"
+    for uid, error in (
+        (12, "uid must be a string"),
+        ("zz", "Program not found"),
+        ("rs", "Red Sea programs cannot be edited"),
+    ):
+        assert await saving(
+            call({"device_id": "linked", "name": "p", "program": prog, "uid": uid})
+        ) == {"error": error}
+    assert len(saved) == 3
+
+    deleting = handlers[f"{redsea_init.DOMAIN}.led_library_delete"]
+    assert await deleting(call({"device_id": "linked", "uid": "u1"})) == {
+        "deleted": True
+    }
+    assert deleted == ["u1"]
+    for data, error in (
+        ({"device_id": "nope"}, "Not a ReefLED"),
+        ({"device_id": "alone", "uid": "u1"}, "Not linked to a ReefBeat cloud account"),
+        ({"device_id": "linked"}, "uid is required"),
+        ({"device_id": "linked", "uid": "zz"}, "Program not found"),
+        ({"device_id": "linked", "uid": "rs"}, "Red Sea programs cannot be deleted"),
+    ):
+        assert await deleting(call(data)) == {"error": error}
+    assert deleted == ["u1"]
+
+
+@pytest.mark.asyncio
+async def test_led_weather_setup_nightly_run_and_service(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A ReefLED gets its weather store, a nightly run and a service."""
+    import custom_components.redsea as integration
+
+    class _Led(integration.ReefLedCoordinator):
+        def __init__(self) -> None:  # no HA setup needed
+            pass
+
+        async def async_setup(self) -> None:
+            return None
+
+    led = _Led()
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={"ip_address": "1.2.3.4", "hw_model": "RSLED160"}
+    )
+    entry.add_to_hass(hass)
+    monkeypatch.setattr(integration, "_build_coordinator", lambda _h, _e: led)
+    monkeypatch.setattr(hass.config_entries, "async_forward_entry_setups", AsyncMock())
+    ticks: list[Any] = []
+
+    def _track(_hass: Any, action: Any, **when: Any) -> Any:
+        ticks.append((action, when))
+        return lambda: None
+
+    monkeypatch.setattr(integration, "async_track_time_change", _track)
+    runs: list[Any] = []
+
+    async def _run(_hass: Any, device: Any) -> Any:
+        runs.append(device)
+        return {"status": "ok"}
+
+    monkeypatch.setattr(integration, "run_weather", _run)
+    shows: list[Any] = []
+
+    async def _show(_hass: Any, device: Any) -> Any:
+        shows.append(device)
+        return {"status": "ok"}
+
+    monkeypatch.setattr(integration, "publish_weather", _show)
+
+    later: list[Any] = []
+
+    def _call_later(_hass: Any, delay: float, action: Any) -> Any:
+        cancelled: list[bool] = []
+        later.append((delay, action, cancelled))
+        return lambda: cancelled.append(True)
+
+    monkeypatch.setattr(integration, "async_call_later", _call_later)
+
+    assert await integration.async_setup_entry(hass, cast(Any, entry)) is True
+    store = led.weather  # type: ignore[attr-defined]
+    assert isinstance(store, integration.WeatherStore)
+    action, when = ticks[0]
+    assert when == {"hour": 0, "minute": 10, "second": 0}
+    # Nothing in standard mode
+    action(None)
+    await hass.async_block_till_done()
+    assert runs == []
+    # Weather mode, never fetched: due
+    await store.async_set_mode(True, {})
+    action(None)
+    await hass.async_block_till_done()
+    assert runs == [led]
+    # Fetched today: not due before refresh_days
+    store.last_success = integration.dt_util.now().date().isoformat()
+    action(None)
+    await hass.async_block_till_done()
+    assert runs == [led]
+
+    # Changed settings: the new week shown at once, sent once they settle
+    await store.async_set("location", "1, 2")
+    await store.async_set("max_intensity", 80)
+    assert [d for d, _, _ in later] == [1, 30, 1, 30]
+    assert later[0][2] == [True] and later[1][2] == [True]  # put off
+    later[2][1](None)
+    await hass.async_block_till_done()
+    assert shows == [led]
+    assert runs == [led]
+    later[3][1](None)
+    await hass.async_block_till_done()
+    assert runs == [led, led]
+    # A change pending at unload is dropped
+    await store.async_set("min_intensity", 5)
+    assert later[4][2] == [] and later[5][2] == []
+    await entry._async_process_on_unload(hass)  # pyright: ignore[reportAttributeAccessIssue]
+    assert later[4][2] == [True] and later[5][2] == [True]
+
+    # The service
+    handlers: dict[str, Any] = {}
+
+    def _async_register(
+        self: Any, domain: str, service: str, func: Any, *a: Any, **k: Any
+    ) -> None:
+        handlers[service] = func
+
+    monkeypatch.setattr(type(hass.services), "async_register", _async_register)
+    assert await integration.async_setup(hass, {}) is True
+    apply = handlers["led_weather_apply"]
+    assert await apply(SimpleNamespace(data={"device_id": entry.entry_id})) == {
+        "status": "ok"
+    }
+    assert await apply(SimpleNamespace(data={"device_id": "nope"})) == {
+        "error": "Not a ReefLED"
+    }
+
+    # The preview writes nothing: its own function
+    async def _preview(hass: Any, dev: Any, settings: Any = None) -> Any:
+        return {"status": "ok", "days": [], "standard": {}}
+
+    monkeypatch.setattr(integration, "preview_weather", _preview)
+    preview = handlers["led_weather_preview"]
+    assert (await preview(SimpleNamespace(data={"device_id": entry.entry_id})))[
+        "standard"
+    ] == {}
+    assert await preview(SimpleNamespace(data={"device_id": "nope"})) == {
+        "error": "Not a ReefLED"
+    }
+    seen: list[Any] = []
+
+    async def _preview2(hass: Any, dev: Any, settings: Any = None) -> Any:
+        seen.append(settings)
+        return {}
+
+    monkeypatch.setattr(integration, "preview_weather", _preview2)
+    await preview(
+        SimpleNamespace(
+            data={"device_id": entry.entry_id, "settings": {"anchor": "both"}}
+        )
+    )
+    await preview(SimpleNamespace(data={"device_id": entry.entry_id, "settings": "x"}))
+    assert seen == [{"anchor": "both"}, None]
+
+    saved: list[Any] = []
+
+    async def _save(
+        hass: Any, dev: Any, settings: Any, enabled: bool, wait: bool
+    ) -> Any:
+        saved.append((settings, enabled, wait))
+        return {"status": "ok"}
+
+    monkeypatch.setattr(integration, "save_weather", _save)
+    save = handlers["led_weather_save"]
+    await save(
+        SimpleNamespace(
+            data={
+                "device_id": entry.entry_id,
+                "settings": {"period": "last_week"},
+                "enabled": True,
+            }
+        )
+    )
+    await save(SimpleNamespace(data={"device_id": entry.entry_id}))
+    assert saved == [({"period": "last_week"}, True, False), (None, False, False)]
+    assert await save(SimpleNamespace(data={"device_id": "nope"})) == {
+        "error": "Not a ReefLED"
+    }

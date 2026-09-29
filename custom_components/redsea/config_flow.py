@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import ipaddress
 import logging
+import pathlib
 from asyncio import timeout
 from functools import partial
 from time import time
@@ -44,6 +45,7 @@ from .const import (
     CLOUD_SERVER_ADDR,
     CONFIG_FLOW_ADD_TYPE,
     CONFIG_FLOW_CLOUD_PASSWORD,
+    CONFIG_FLOW_CLOUD_SERVER,
     CONFIG_FLOW_CLOUD_USERNAME,
     CONFIG_FLOW_CONFIG_TYPE,
     CONFIG_FLOW_DISABLE_SUPPLEMENT,
@@ -102,15 +104,29 @@ from .wifi import (
 
 _LOGGER = logging.getLogger(__name__)
 
+# Local file that lets the cloud account form ask for its server, to point it
+# at a reefbeat-devices-simulator: create it to enable, delete it to
+# disable. Git-ignored, never shipped (see simulator_enabled.example).
+_SIM_FLAG = pathlib.Path(__file__).parent / ".simulator_enabled"
+
+
+def _simulator_enabled() -> bool:
+    """Return True if the local .simulator_enabled flag file exists."""
+    return _SIM_FLAG.exists()
+
 
 # Helpers
 async def validate_cloud_input(
-    hass: HomeAssistant, username: str, password: str
+    hass: HomeAssistant,
+    username: str,
+    password: str,
+    server: str = CLOUD_SERVER_ADDR,
 ) -> bool:
     """Validate ReefBeat cloud credentials.
 
     Notes:
-        Uses OAuth password grant against CLOUD_SERVER_ADDR.
+        Uses OAuth password grant against the cloud server (CLOUD_SERVER_ADDR
+        unless a simulator's was given, see _simulator_enabled).
     """
     _LOGGER.debug("Validating cloud credentials for user '%s'", username)
 
@@ -129,7 +145,7 @@ async def validate_cloud_input(
     try:
         async with timeout(10):
             async with session.post(
-                f"https://{CLOUD_SERVER_ADDR}/oauth/token",
+                f"https://{server}/oauth/token",
                 data=payload,
                 headers=headers,
                 ssl=False,
@@ -227,6 +243,31 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         _LOGGER.error("Could not get UUID for %s; falling back to IP as unique_id", ip)
         return ip
 
+    def _cloud_schema(self, values: dict[str, Any]) -> vol.Schema:
+        """Form of a cloud account, filled with what was typed.
+
+        With the local .simulator_enabled flag file only, the cloud server
+        can be changed (a simulator answering the ReefBeat API over HTTPS).
+        """
+        fields: dict[Any, Any] = {
+            vol.Required(
+                CONFIG_FLOW_CLOUD_USERNAME,
+                default=values.get(CONFIG_FLOW_CLOUD_USERNAME, vol.UNDEFINED),
+            ): str,
+            vol.Required(
+                CONFIG_FLOW_CLOUD_PASSWORD,
+                default=values.get(CONFIG_FLOW_CLOUD_PASSWORD, vol.UNDEFINED),
+            ): str,
+        }
+        if _simulator_enabled():
+            fields[
+                vol.Optional(
+                    CONFIG_FLOW_CLOUD_SERVER,
+                    default=values.get(CONFIG_FLOW_CLOUD_SERVER, CLOUD_SERVER_ADDR),
+                )
+            ] = str
+        return vol.Schema(fields)
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
@@ -254,12 +295,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.info("Adding ReefBeat Cloud account")
                 return self.async_show_form(
                     step_id="user",
-                    data_schema=vol.Schema(
-                        {
-                            vol.Required(CONFIG_FLOW_CLOUD_USERNAME): str,
-                            vol.Required(CONFIG_FLOW_CLOUD_PASSWORD): str,
-                        }
-                    ),
+                    data_schema=self._cloud_schema({}),
                 )
 
             if add_type == ADD_LOCAL_DETECT:
@@ -285,32 +321,30 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # CLOUD
         if CONFIG_FLOW_CLOUD_USERNAME in user_input:
+            server = CLOUD_SERVER_ADDR
+            typed = str(user_input.pop(CONFIG_FLOW_CLOUD_SERVER, "") or "").strip()
+            if typed and _simulator_enabled():
+                server = typed
             valid = await validate_cloud_input(
                 self.hass,
                 str(user_input[CONFIG_FLOW_CLOUD_USERNAME]),
                 str(user_input[CONFIG_FLOW_CLOUD_PASSWORD]),
+                server,
             )
             if not valid:
                 errors = {"base": "auth_failed"}
-                schema = vol.Schema(
-                    {
-                        vol.Required(
-                            CONFIG_FLOW_CLOUD_USERNAME,
-                            default=user_input[CONFIG_FLOW_CLOUD_USERNAME],
-                        ): str,
-                        vol.Required(
-                            CONFIG_FLOW_CLOUD_PASSWORD,
-                            default=user_input[CONFIG_FLOW_CLOUD_PASSWORD],
-                        ): str,
-                    }
-                )
                 return self.async_show_form(
-                    step_id="user", data_schema=schema, errors=errors
+                    step_id="user",
+                    data_schema=self._cloud_schema(
+                        {**user_input, CONFIG_FLOW_CLOUD_SERVER: server}
+                    ),
+                    errors=errors,
                 )
 
             user_input[CONFIG_FLOW_SCAN_INTERVAL] = get_scan_interval(CLOUD_DEVICE_TYPE)
             user_input[CONFIG_FLOW_CONFIG_TYPE] = False
-            user_input[CONFIG_FLOW_IP_ADDRESS] = CLOUD_SERVER_ADDR
+            # The account's API is on the server its token came from
+            user_input[CONFIG_FLOW_IP_ADDRESS] = server
             user_input[CONFIG_FLOW_HW_MODEL] = CLOUD_DEVICE_TYPE
             user_input[CONFIG_FLOW_DISABLE_SUPPLEMENT] = True
 
@@ -641,6 +675,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     self.hass,
                     str(user_input[CONFIG_FLOW_CLOUD_USERNAME]),
                     str(user_input[CONFIG_FLOW_CLOUD_PASSWORD]),
+                    str(user_input[CONFIG_FLOW_IP_ADDRESS] or CLOUD_SERVER_ADDR),
                 )
                 if not valid:
                     errors = {"base": "auth_failed"}

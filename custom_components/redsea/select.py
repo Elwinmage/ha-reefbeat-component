@@ -48,6 +48,7 @@ from .coordinator import (
 )
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
 from .i18n import translate, translate_list
+from .led_weather_entities import weather_entities
 from .probe_entities import probe_display_name, tag_probe_entities
 from .reefbeat import fusion
 from .supplements_list import SUPPLEMENTS as SUPPLEMENTS_LIST
@@ -335,6 +336,9 @@ async def async_setup_entry(
     # with the probe they belong to, for the card.
     if isinstance(device, ReefControlCoordinator):
         tag_probe_entities(device, entities)
+
+    # ReefLED week program following the weather
+    entities.extend(weather_entities(device, "select"))
 
     async_add_entities(entities, True)
 

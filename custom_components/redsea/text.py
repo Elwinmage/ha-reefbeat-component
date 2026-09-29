@@ -35,6 +35,7 @@ from .coordinator import (
     ReefRunCoordinator,
 )
 from .entity import ReefBeatRestoreEntity, RestoreSpec
+from .led_weather_entities import weather_entities
 from .probe_entities import tag_port_entities
 
 _LOGGER = logging.getLogger(__name__)
@@ -259,6 +260,9 @@ async def async_setup_entry(
     # Both ports share their translation keys: tag each entity with its port
     if isinstance(device, ReefControlCoordinator):
         tag_port_entities(device, entities)
+
+    # ReefLED week program following the weather
+    entities.extend(weather_entities(device, "text"))
 
     async_add_entities(entities, True)
 

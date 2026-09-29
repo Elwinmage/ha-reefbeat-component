@@ -69,6 +69,52 @@ N'oubliez pas non plus que, si vous activez le mode compensation, le facteur d'i
 
 ***
 
+### Programme météo
+La rampe peut suivre la météo d'un lieu : en **mode météo GPS**, sa semaine
+est construite à partir de la météo des sept jours à venir (prévisions) ou
+des sept jours passés (météo mesurée), fournie par
+[Open-Meteo](https://open-meteo.com) (gratuit, sans clé). Rien à valider :
+activer le mode met de côté les programmations de la rampe et envoie tout de
+suite la semaine météo ; la météo est ensuite récupérée à nouveau tous les
+quelques jours (de 3 à 15, à votre choix) et à chaque changement de réglage
+(30 s après le dernier). Désactiver le mode réécrit les programmations de la
+rampe.
+
+| Entité | Rôle |
+| ------ | ---- |
+| `switch` Mode météo GPS | Météo GPS, ou programmations standard de la rampe |
+| `select` Période météo | Semaine à venir (prévisions) ou passée (mesurée) |
+| `number` Fréquence de la météo (jours) | Jours entre deux récupérations, de 3 à 15 |
+| `text` Lieu météo | `lat, lon`, une URI `geo:` ou un lien Google Maps / OpenStreetMap / Apple Plans ; vide pour le domicile de Home Assistant |
+| `select` Journée météo sur le bac | Heure du lieu, calée sur le lever, sur le coucher, ou étirée entre les deux |
+| `time` Lever / coucher météo | Heures du bac utilisées par ces calages |
+| `number` Intensité minimale / maximale météo | Garde-fous de l'intensité |
+| `switch` Nuages météo | Règle les nuages de la rampe sur les heures nuageuses |
+| `sensor` Programme météo | Résultat de la dernière récupération (état, lieu, et pour chaque jour soleil, ensoleillement, couverture nuageuse et intensité maximale) |
+
+Construction d'une journée :
+- **Horaires** — du lever au coucher du lieu, à l'heure du lieu (un récif
+  des Fidji se lève aussi à 6h00 sur la rampe), ou calés sur le bac :
+  *lever* (la journée du lieu commence à l'heure choisie), *coucher* (elle
+  finit à l'heure choisie), ou *les deux* (la journée du lieu est étirée
+  entre les deux heures).
+- **Intensité** — suit le soleil réellement reçu (rayonnement solaire
+  horaire, 1000 W/m² valant plein soleil), entre le minimum et le maximum ;
+  jusqu'à 8 points par jour.
+- **Couleur** — celle de la programmation standard de la rampe au même
+  moment de sa journée : son équilibre blanc/bleu sur une G1, sa
+  température de couleur sur une G2.
+- **Nuages** — sur les heures couvertes à 40 % au moins : Low, Medium ou
+  High selon leur couverture moyenne ; supprimés un jour dégagé.
+- **Lune** — garde sa place après le coucher.
+
+La programmation s'appelle *Weather* sur la rampe. Une LED virtuelle écrit
+chacune de ses rampes, dans son propre format. En mode météo, le service
+`redsea.led_weather_apply` récupère à nouveau la météo tout de suite (depuis
+une automatisation, par exemple).
+
+***
+
 ### Tâches de maintenance
 | Tâche | Défaut | Plage |
 | ----- | ------ | ----- |
