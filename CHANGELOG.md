@@ -2,6 +2,79 @@
 
 ## MODIFICATIONS
 
+### RSWAVE
+
+- The `wave_type` sensor carries the whole day program in a `schedule`
+  attribute (the intervals of `/auto`, an empty list when unknown), so
+  ha-reef-card draws the day without its own request.
+- Wave library and day program services, for the card's editors:
+  - `redsea.wave_library`: waves of the pump's aquarium (cloud library) with
+    its own intensities, the loaded pumps using each wave, the pump's group;
+    without a cloud account, the waves of its own program;
+  - `redsea.wave_library_save`: create (POST `/reef-wave/library`) or update
+    (PUT `/reef-wave/library/<uid>`) a wave; the shape is shared, the
+    intensities are the pump's (a new wave gives them to the whole group);
+    the programs using an updated wave are posted again; Red Sea waves and
+    taken names are refused;
+  - `redsea.wave_library_delete`: DELETE `/reef-wave/library/<uid>`, refused
+    for a Red Sea wave or a wave a loaded pump's program uses;
+  - `redsea.wave_program_save`: POST `/reef-wave/schedule/<hwid>` for each
+    pump of the group (same slots, each pump's intensities), or the local
+    `/auto` handshake without a cloud account.
+- A ReefWave group (grouped ReefWaves of the aquarium, cloud device list)
+  refuses a write when one of its pumps is not loaded or not answering, as
+  the ReefBeat app does (`wave_group_member_unavailable`); all refusals are
+  translated Home Assistant errors.
+- `redsea.wave_preview` / `redsea.wave_preview_stop`: run a wave on the pump
+  for 1 to 10 min (local `/preview`), then back to its program.
+- `redsea.wave_pump_set`: this pump's direction and intensities in the
+  current wave, as the app lets each pump of a group run it its own way:
+  its pump_settings of the wave (even a Red Sea one, shape untouched) and the
+  direction of its current slot; the other pumps are left as they are.
+- ReefWave groups, as in the ReefBeat app (all the grouped ReefWaves of an
+  aquarium form one group, cloud only):
+  - new switch `wave_grouped`: POST `/device/<hwid>/group` or `/ungroup`; a
+    pump joining goes last (POST `/device/manage`); unavailable without a
+    cloud account;
+  - `redsea.wave_group_order`: order of the pumps of the group (POST
+    `/device/manage`, `group_index`), every pump listed once;
+  - `redsea.wave_group_set` (`grouped`: true / false): group or ungroup a
+    pump, as the switch, for the card's program editor; `redsea.wave_library`
+    also answers `grouped` (None without a cloud account);
+  - every loaded ReefWave is refreshed after a change of group.
+- New `linked_waves` sensor: number of pumps in the ReefWave group, with the
+  list in its `waves` attribute (hwid, name, model, entry_id, available).
+- New `redsea:wave-uniform`, `wave-random`, `wave-regular`, `wave-step`,
+  `wave-surface` and `wave-none` icons: the wave type pictograms of the app.
+
+### RSWAVE GPS weather
+
+- New GPS weather mode for the ReefWaves (`wave_weather.py`): every day, the
+  hourly water speed of a place (Open-Meteo: wind at 10 m, or ocean current
+  velocity from the marine API, the wind standing in where the sea model
+  gives none) sets the speeds of the pumps, between the user's slowest /
+  fastest speed by day (place's sunrise to sunset) and by night; a speed of
+  the place at the scale (km/h, 40 for the wind, 2 for the current by
+  default) gives the fastest one. Each pump has its offset (percent of the
+  speed). The waves of the program are kept: the pump's own program (base)
+  is cut into hours, each with the weather's forward intensity, the reverse
+  one keeping its share. Following hours of the same wave whose speeds stay
+  within the tolerance (5 points by default, setting `tolerance`) make one
+  interval at their mean speed (weighted by length): a calm night is one
+  slot, not eight. Written to the pump
+  (local `/auto`), at once, every night at 00:10 and a minute after start
+  when today's is missing; the base is written back when turned off.
+- A program saved from the editor (cloud or local) or a change of the
+  current wave while in weather mode becomes the new base: the weather
+  program follows it (after the cloud push for a cloud program).
+- New switch `wave_weather` (whole group), with the last day in its
+  attributes (status, error, source, fallback, sunrise, sunset, offset,
+  speeds).
+- New services `redsea.wave_weather_preview` (today's speeds of each pump
+  of the group, nothing written) and `redsea.wave_weather_save` (shared
+  settings for the group, offsets per pump, mode); `redsea.wave_library`
+  also answers `weather` (settings, base while on, last day).
+
 ### VIRTUAL LED (groups)
  - A virtual LED is now a group, as the "grouped" LEDs of the ReefBeat app:
    a shared value set on one of its lamps (manual channels, kelvin /

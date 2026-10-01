@@ -1426,6 +1426,9 @@
           "ok": "OK",
           "error": "Error"
         }
+      },
+      "linked_waves": {
+        "name": "ReefWave vinculadas"
       }
     },
     "switch": {
@@ -1608,6 +1611,12 @@
       },
       "staggered_sunrise": {
         "name": "Amanecer escalonado"
+      },
+      "wave_grouped": {
+        "name": "Agrupada con el acuario"
+      },
+      "wave_weather": {
+        "name": "Meteo GPS"
       }
     },
     "text": {
@@ -1981,6 +1990,188 @@
           "description": "Responder una vez escrita la lámpara (por defecto la semana se guarda y se muestra, y luego se escribe en segundo plano)."
         }
       }
+    },
+    "wave_library": {
+      "name": "Biblioteca de olas ReefWave",
+      "description": "Olas que puede usar una ReefWave (biblioteca en la nube de su acuario, con sus intensidades), las bombas que las usan y su grupo.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        }
+      }
+    },
+    "wave_library_save": {
+      "name": "Guardar una ola ReefWave en la biblioteca",
+      "description": "Añade una ola a la biblioteca en la nube del acuario de la ReefWave, o actualiza una (no una de Red Sea).",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "name": {
+          "name": "Nombre",
+          "description": "Nombre de la ola, único en la biblioteca."
+        },
+        "settings": {
+          "name": "Ajustes",
+          "description": "type, frt, rrt, pd, sn (según el tipo), fti, rti, sync."
+        },
+        "uid": {
+          "name": "ID de la ola",
+          "description": "La ola a actualizar; vacío para añadir una nueva."
+        }
+      }
+    },
+    "wave_library_delete": {
+      "name": "Eliminar una ola ReefWave de la biblioteca",
+      "description": "Elimina una ola del usuario de la biblioteca en la nube (ni de Red Sea ni usada por un programa).",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "uid": {
+          "name": "ID de la ola",
+          "description": "La ola a eliminar."
+        }
+      }
+    },
+    "wave_program_save": {
+      "name": "Guardar el programa diario de una ReefWave",
+      "description": "Escribe el programa diario de una ReefWave (de todo su grupo), a través de la nube si está vinculada.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "slots": {
+          "name": "Franjas",
+          "description": "Lista de (st, wave_uid, direction); la primera empieza en 0."
+        }
+      }
+    },
+    "wave_preview": {
+      "name": "Previsualizar una ola ReefWave",
+      "description": "Hace funcionar una ola en la bomba un rato y luego vuelve a su programa.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "settings": {
+          "name": "Ajustes",
+          "description": "type, frt, rrt, pd, sn (según el tipo), fti, rti."
+        },
+        "direction": {
+          "name": "Dirección",
+          "description": "fw, rw o alt."
+        },
+        "duration": {
+          "name": "Duración",
+          "description": "Duración de la vista previa, en ms (60000 a 600000)."
+        }
+      }
+    },
+    "wave_preview_stop": {
+      "name": "Detener la vista previa de una ReefWave",
+      "description": "La bomba vuelve a su programa.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        }
+      }
+    },
+    "wave_pump_set": {
+      "name": "Ajustar una ReefWave en la ola actual",
+      "description": "Dirección e intensidades de esta bomba en la ola actual; las demás bombas del grupo no cambian.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "direction": {
+          "name": "Dirección",
+          "description": "fw, rw o alt."
+        },
+        "fti": {
+          "name": "Intensidad de avance",
+          "description": "Intensidad de avance de esta bomba, en %."
+        },
+        "rti": {
+          "name": "Intensidad de retroceso",
+          "description": "Intensidad de retroceso de esta bomba, en %."
+        }
+      }
+    },
+    "wave_group_order": {
+      "name": "Ordenar un grupo ReefWave",
+      "description": "Orden de las bombas del grupo ReefWave (nube).",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de una ReefWave del grupo."
+        },
+        "hwids": {
+          "name": "Bombas",
+          "description": "Identificadores de hardware de todas las bombas del grupo, en el nuevo orden."
+        }
+      }
+    },
+    "wave_group_set": {
+      "name": "Agrupar o desagrupar una ReefWave",
+      "description": "Agrupa la ReefWave con las demás ReefWave de su acuario, o la desagrupa (nube).",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "grouped": {
+          "name": "Agrupada",
+          "description": "Activado para agrupar la bomba, desactivado para desagruparla."
+        }
+      }
+    },
+    "wave_weather_preview": {
+      "name": "Vista previa de la meteo GPS de las ReefWave",
+      "description": "Velocidades de hoy que la meteo de un lugar daría a las bombas de un grupo ReefWave (no se escribe nada).",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "settings": {
+          "name": "Ajustes",
+          "description": "Ajustes en edición (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
+        },
+        "offsets": {
+          "name": "Desfases",
+          "description": "Desfase de cada bomba del grupo (porcentaje), por id de hardware."
+        }
+      }
+    },
+    "wave_weather_save": {
+      "name": "Guardar la meteo GPS de las ReefWave",
+      "description": "Guarda la meteo GPS de un grupo ReefWave y escribe sus bombas: el programa meteo, o su propio programa restablecido.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "settings": {
+          "name": "Ajustes",
+          "description": "Ajustes compartidos por el grupo (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
+        },
+        "offsets": {
+          "name": "Desfases",
+          "description": "Desfase de cada bomba del grupo (porcentaje), por id de hardware."
+        },
+        "enabled": {
+          "name": "Activada",
+          "description": "Verdadero para el modo meteo, falso para devolver a las bombas su propio programa."
+        }
+      }
     }
   },
   "exceptions": {
@@ -1989,6 +2180,54 @@
     },
     "group_channel_unavailable": {
       "message": "{group} contiene lámparas G1 y G2: el blanco y el azul no se pueden ajustar en todo el grupo. Use la temperatura de color y la intensidad."
+    },
+    "wave_group_member_unavailable": {
+      "message": "{group}: acción rechazada, estas ReefWave no están disponibles: {members}. No se ha enviado nada, el grupo sigue sincronizado."
+    },
+    "wave_cloud_required": {
+      "message": "{pump} no está vinculada a una cuenta en la nube ReefBeat: la biblioteca de olas no se puede editar."
+    },
+    "wave_not_a_wave": {
+      "message": "Este dispositivo no es una ReefWave."
+    },
+    "wave_not_found": {
+      "message": "La ola {uid} no está en la biblioteca."
+    },
+    "wave_default_readonly": {
+      "message": "{name} es una ola de Red Sea: no se puede modificar ni eliminar. Guárdala como una ola nueva."
+    },
+    "wave_in_use": {
+      "message": "{name} se usa en el programa de: {pumps}. Quítala primero de esos programas."
+    },
+    "wave_name_required": {
+      "message": "Una ola necesita un nombre."
+    },
+    "wave_name_taken": {
+      "message": "Ya existe una ola llamada {name} en la biblioteca."
+    },
+    "wave_bad_type": {
+      "message": "Tipo de ola desconocido: {type}."
+    },
+    "wave_bad_value": {
+      "message": "Valor no válido para {field}."
+    },
+    "wave_program_empty": {
+      "message": "Un programa necesita al menos una franja."
+    },
+    "wave_program_bad_slot": {
+      "message": "Una franja del programa no es válida (inicio, ola o dirección)."
+    },
+    "wave_program_midnight": {
+      "message": "El programa debe empezar a las 00:00."
+    },
+    "wave_program_same_start": {
+      "message": "Dos franjas empiezan a la misma hora."
+    },
+    "wave_preview_no_wave": {
+      "message": "«Sin ola» no se puede previsualizar."
+    },
+    "wave_group_bad_order": {
+      "message": "El nuevo orden debe incluir una vez cada bomba del grupo."
     }
   },
   "issues": {

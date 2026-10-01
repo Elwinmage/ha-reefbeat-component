@@ -1434,6 +1434,9 @@
           "ok": "OK",
           "error": "Error"
         }
+      },
+      "linked_waves": {
+        "name": "Linked ReefWaves"
       }
     },
     "switch": {
@@ -1616,6 +1619,12 @@
       },
       "staggered_sunrise": {
         "name": "Staggered sunrise"
+      },
+      "wave_grouped": {
+        "name": "Grouped with the aquarium"
+      },
+      "wave_weather": {
+        "name": "GPS weather"
       }
     },
     "text": {
@@ -1989,6 +1998,188 @@
           "description": "Answer once the lamp is written (by default the week is saved and shown, then written in the background)."
         }
       }
+    },
+    "wave_library": {
+      "name": "ReefWave wave library",
+      "description": "Waves a ReefWave can use (cloud library of its aquarium, with its intensities), the pumps using them and its group.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefWave."
+        }
+      }
+    },
+    "wave_library_save": {
+      "name": "Save a ReefWave wave to the library",
+      "description": "Add a wave to the cloud library of the ReefWave's aquarium, or update one (not a Red Sea one).",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefWave."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Name of the wave, unique in the library."
+        },
+        "settings": {
+          "name": "Settings",
+          "description": "type, frt, rrt, pd, sn (as the type uses them), fti, rti, sync."
+        },
+        "uid": {
+          "name": "Wave ID",
+          "description": "The wave to update; leave empty to add a new one."
+        }
+      }
+    },
+    "wave_library_delete": {
+      "name": "Delete a ReefWave wave from the library",
+      "description": "Delete one of the user's waves from the cloud library (not a Red Sea one, nor one a program uses).",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefWave."
+        },
+        "uid": {
+          "name": "Wave ID",
+          "description": "The wave to delete."
+        }
+      }
+    },
+    "wave_program_save": {
+      "name": "Save a ReefWave day program",
+      "description": "Write the day program of a ReefWave (of its whole group), through the cloud when linked.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefWave."
+        },
+        "slots": {
+          "name": "Slots",
+          "description": "List of (st, wave_uid, direction); the first one starts at 0."
+        }
+      }
+    },
+    "wave_preview": {
+      "name": "Preview a ReefWave wave",
+      "description": "Run a wave on the pump for a while, then go back to its program.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefWave."
+        },
+        "settings": {
+          "name": "Settings",
+          "description": "type, frt, rrt, pd, sn (as the type uses them), fti, rti."
+        },
+        "direction": {
+          "name": "Direction",
+          "description": "fw, rw or alt."
+        },
+        "duration": {
+          "name": "Duration",
+          "description": "Duration of the preview, in ms (60000 to 600000)."
+        }
+      }
+    },
+    "wave_preview_stop": {
+      "name": "Stop a ReefWave preview",
+      "description": "The pump goes back to its program.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefWave."
+        }
+      }
+    },
+    "wave_pump_set": {
+      "name": "Set a ReefWave in the current wave",
+      "description": "Direction and intensities of this pump in the current wave; the other pumps of the group are left as they are.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefWave."
+        },
+        "direction": {
+          "name": "Direction",
+          "description": "fw, rw or alt."
+        },
+        "fti": {
+          "name": "Forward intensity",
+          "description": "Forward intensity of this pump, in %."
+        },
+        "rti": {
+          "name": "Reverse intensity",
+          "description": "Reverse intensity of this pump, in %."
+        }
+      }
+    },
+    "wave_group_order": {
+      "name": "Order a ReefWave group",
+      "description": "Order of the pumps of the ReefWave group (cloud).",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of a ReefWave of the group."
+        },
+        "hwids": {
+          "name": "Pumps",
+          "description": "Hardware ids of every pump of the group, in the new order."
+        }
+      }
+    },
+    "wave_group_set": {
+      "name": "Group or ungroup a ReefWave",
+      "description": "Group the ReefWave with the other ReefWaves of its aquarium, or ungroup it (cloud).",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefWave."
+        },
+        "grouped": {
+          "name": "Grouped",
+          "description": "On to group the pump, off to ungroup it."
+        }
+      }
+    },
+    "wave_weather_preview": {
+      "name": "Preview the GPS weather of ReefWaves",
+      "description": "Today's speeds the weather of a place would give the pumps of a ReefWave group (nothing is written).",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefWave."
+        },
+        "settings": {
+          "name": "Settings",
+          "description": "Settings being edited (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
+        },
+        "offsets": {
+          "name": "Offsets",
+          "description": "Offset of each pump of the group (percent), by hardware id."
+        }
+      }
+    },
+    "wave_weather_save": {
+      "name": "Save the GPS weather of ReefWaves",
+      "description": "Saves the GPS weather of a ReefWave group and writes its pumps: the weather program, or their own program back.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefWave."
+        },
+        "settings": {
+          "name": "Settings",
+          "description": "Settings shared by the group (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
+        },
+        "offsets": {
+          "name": "Offsets",
+          "description": "Offset of each pump of the group (percent), by hardware id."
+        },
+        "enabled": {
+          "name": "Enabled",
+          "description": "True for the weather mode, false to give the pumps their own program back."
+        }
+      }
     }
   },
   "exceptions": {
@@ -1997,6 +2188,54 @@
     },
     "group_channel_unavailable": {
       "message": "{group} holds G1 and G2 lamps: white and blue cannot be set on the whole group. Use the colour temperature and intensity."
+    },
+    "wave_group_member_unavailable": {
+      "message": "{group}: action refused, these ReefWaves are not available: {members}. Nothing was sent, so the group stays in sync."
+    },
+    "wave_cloud_required": {
+      "message": "{pump} is not linked to a ReefBeat cloud account: the wave library cannot be edited."
+    },
+    "wave_not_a_wave": {
+      "message": "This device is not a ReefWave."
+    },
+    "wave_not_found": {
+      "message": "Wave {uid} is not in the library."
+    },
+    "wave_default_readonly": {
+      "message": "{name} is a Red Sea wave: it cannot be changed nor deleted. Save it as a new wave instead."
+    },
+    "wave_in_use": {
+      "message": "{name} is used by the program of: {pumps}. Remove it from these programs first."
+    },
+    "wave_name_required": {
+      "message": "A wave needs a name."
+    },
+    "wave_name_taken": {
+      "message": "A wave named {name} already exists in the library."
+    },
+    "wave_bad_type": {
+      "message": "Unknown wave type: {type}."
+    },
+    "wave_bad_value": {
+      "message": "Invalid value for {field}."
+    },
+    "wave_program_empty": {
+      "message": "A program needs at least one slot."
+    },
+    "wave_program_bad_slot": {
+      "message": "A slot of the program is invalid (start, wave or direction)."
+    },
+    "wave_program_midnight": {
+      "message": "The program must start at 00:00."
+    },
+    "wave_program_same_start": {
+      "message": "Two slots start at the same time."
+    },
+    "wave_preview_no_wave": {
+      "message": "\"No wave\" cannot be previewed."
+    },
+    "wave_group_bad_order": {
+      "message": "The new order must list every pump of the group once."
     }
   },
   "issues": {

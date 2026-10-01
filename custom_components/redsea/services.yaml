@@ -352,3 +352,243 @@ led_weather_save:
       required: false
       selector:
         boolean:
+
+# Waves a ReefWave can use, the pumps using them and its group.
+wave_library:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefWave.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+
+# Add a wave to the cloud library of a ReefWave's aquarium, or update one.
+wave_library_save:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefWave.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    name:
+      name: Name
+      description: Name of the wave, unique in the library.
+      required: true
+      example: Storm
+      selector:
+        text:
+    settings:
+      name: Settings
+      description: type, frt, rrt, pd, sn (as the type uses them), fti, rti, sync.
+      required: true
+      selector:
+        object:
+    uid:
+      name: Wave ID
+      description: The wave to update; leave empty to add a new one.
+      required: false
+      selector:
+        text:
+
+# Delete one of the user's waves from the cloud library.
+wave_library_delete:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefWave.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    uid:
+      name: Wave ID
+      description: The wave to delete.
+      required: true
+      selector:
+        text:
+
+# Write the day program of a ReefWave (of its whole group).
+wave_program_save:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefWave.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    slots:
+      name: Slots
+      description: List of (st, wave_uid, direction); the first one starts at 0.
+      required: true
+      selector:
+        object:
+
+# Run a wave on a ReefWave for a while (preview).
+wave_preview:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefWave.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    settings:
+      name: Settings
+      description: type, frt, rrt, pd, sn (as the type uses them), fti, rti.
+      required: true
+      selector:
+        object:
+    direction:
+      name: Direction
+      description: fw, rw or alt.
+      required: true
+      selector:
+        select:
+          options: ["fw", "rw", "alt"]
+    duration:
+      name: Duration
+      description: Duration of the preview, in ms (60000 to 600000).
+      required: false
+      default: 300000
+      selector:
+        number:
+          min: 60000
+          max: 600000
+          step: 60000
+
+# Stop the preview of a ReefWave.
+wave_preview_stop:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefWave.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+
+# Set this pump's direction and intensities in the current wave.
+wave_pump_set:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefWave.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    direction:
+      name: Direction
+      description: fw, rw or alt.
+      required: true
+      selector:
+        select:
+          options: ["fw", "rw", "alt"]
+    fti:
+      name: Forward intensity
+      description: Forward intensity of this pump, in %.
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 100
+    rti:
+      name: Reverse intensity
+      description: Reverse intensity of this pump, in %.
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 100
+
+# Order the pumps of a ReefWave's group.
+wave_group_order:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of a ReefWave of the group.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    hwids:
+      name: Pumps
+      description: Hardware ids of every pump of the group, in the new order.
+      required: true
+      selector:
+        object:
+
+# Group a ReefWave with its aquarium's other ReefWaves, or ungroup it.
+wave_group_set:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefWave.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    grouped:
+      name: Grouped
+      description: True to group the pump with the other ReefWaves of its aquarium, false to ungroup it.
+      required: true
+      selector:
+        boolean:
+
+# Today's speeds the GPS weather would give the pumps of a ReefWave group.
+wave_weather_preview:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefWave.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    settings:
+      name: Settings
+      description: Settings being edited (location, source, scale, day_min, day_max, night_min, night_max, tolerance).
+      required: false
+      selector:
+        object:
+    offsets:
+      name: Offsets
+      description: Offset of each pump of the group (percent), by hardware id.
+      required: false
+      selector:
+        object:
+
+# Save the GPS weather of a ReefWave group and write its pumps.
+wave_weather_save:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefWave.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    settings:
+      name: Settings
+      description: Settings shared by the group (location, source, scale, day_min, day_max, night_min, night_max, tolerance).
+      required: false
+      selector:
+        object:
+    offsets:
+      name: Offsets
+      description: Offset of each pump of the group (percent), by hardware id.
+      required: false
+      selector:
+        object:
+    enabled:
+      name: Enabled
+      description: True for the weather mode, false to give the pumps their own program back.
+      required: true
+      selector:
+        boolean:

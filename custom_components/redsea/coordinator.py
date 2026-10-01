@@ -36,6 +36,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util.event_type import EventType
 
@@ -81,6 +82,8 @@ from .const import (
     SIGNAL_GROUP_MEMBER_GONE,
     SIGNAL_GROUP_MEMBER_READY,
     VIRTUAL_LED,
+    WAVE_DIRECTIONS,
+    WAVE_SCHEDULE_PATH,
     WAVES_LIBRARY,
 )
 from .groups import (
@@ -122,6 +125,20 @@ from .reefbeat import (
     fusion,
     parse,
 )
+from .wave_library import (
+    WaveLibraryError,
+    check_name,
+    check_settings,
+    check_slots,
+    library_payload,
+    library_wave,
+    merge_pump_settings,
+    program_waves,
+    pump_settings_of,
+    schedule_intervals,
+    uses_wave,
+)
+from .wave_weather import apply_wave_weather, base_changed, store_of
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -2007,6 +2024,8 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
         """Initialize the ReefWave coordinator and its API."""
         super().__init__(hass, entry)
         self.my_api = ReefWaveAPI(self._ip, self._live_config_update, self._session)
+        # GPS weather settings (WaveWeatherStore), attached at setup
+        self.wave_weather: Any = None
 
     async def set_wave(self) -> None:
         """Apply the current preview wave into the active schedule."""
@@ -2251,6 +2270,599 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
 
         await self.my_api.http_send("/auto/complete", payload)
         await self.my_api.http_send("/auto/apply", payload)
+
+    # -- Wave library and day program (program editor of the card) ----------
+
+    def wave_link(self) -> tuple[ReefBeatCloudCoordinator, str] | None:
+        """Cloud account and aquarium this pump's waves are kept under.
+
+        As in the ReefBeat app, waves live in a per-aquarium library: the
+        pump's aquarium is found in the account's device list, by hwid.
+        """
+        cloud = self._cloud_link
+        if cloud is None:
+            return None
+        aquarium = cloud.get_data(
+            "$.sources[?(@.name=='/device')].data[?(@.hwid=='"
+            + str(self.model_id)
+            + "')].aquarium_uid",
+            True,
+        )
+        if not isinstance(aquarium, str) or not aquarium:
+            return None
+        return cloud, aquarium
+
+    def _cloud_devices(self, cloud: ReefBeatCloudCoordinator) -> list[dict[str, Any]]:
+        """Devices of the cloud account (a single one comes unwrapped)."""
+        devices = cloud.get_data("$.sources[?(@.name=='/device')].data", True)
+        if isinstance(devices, dict):
+            devices = [devices]
+        if not isinstance(devices, list):
+            return []
+        return [d for d in cast(list[Any], devices) if isinstance(d, dict)]
+
+    def _library_entries(
+        self, cloud: ReefBeatCloudCoordinator, aquarium: str
+    ) -> list[dict[str, Any]]:
+        """Raw waves of the aquarium's library."""
+        entries = cloud.get_data(
+            "$.sources[?(@.name=='" + WAVES_LIBRARY + "')].data", True
+        )
+        if isinstance(entries, dict):
+            entries = [entries]
+        if not isinstance(entries, list):
+            return []
+        return [
+            e
+            for e in cast(list[Any], entries)
+            if isinstance(e, dict) and e.get("aquarium_uid") == aquarium
+        ]
+
+    def wave_group(self) -> list[dict[str, Any]]:
+        """Pumps sharing this pump's program: its group, or itself alone.
+
+        A ReefWave group of the app is the aquarium's grouped ReefWaves
+        (cloud device list), in group order. Each is {hwid, name,
+        in_service, coordinator}: the loaded coordinator, None when the pump
+        is not loaded in Home Assistant.
+        """
+        own = {"hwid": self.model_id, "name": self.title, "in_service": True}
+        members: list[dict[str, Any]] = []
+        link = self.wave_link()
+        if link is not None:
+            cloud, aquarium = link
+            devices = self._cloud_devices(cloud)
+            mine = next((d for d in devices if d.get("hwid") == self.model_id), {})
+            if mine.get("grouped") is True:
+                members = sorted(
+                    (
+                        d
+                        for d in devices
+                        if d.get("aquarium_uid") == aquarium
+                        and d.get("type") == "reef-wave"
+                        and d.get("grouped") is True
+                    ),
+                    key=lambda d: int(d.get("group_index") or 0),
+                )
+        if not members:
+            members = [own]
+        loaded = {
+            c.model_id: c
+            for c in self._hass.data.get(DOMAIN, {}).values()
+            if isinstance(c, ReefWaveCoordinator)
+        }
+        loaded[self.model_id] = self
+        return [
+            {
+                "hwid": str(m.get("hwid")),
+                "name": str(
+                    getattr(loaded.get(str(m.get("hwid"))), "title", None)
+                    or m.get("name")
+                    or m.get("hwid")
+                ),
+                "in_service": m.get("in_service", True) is not False,
+                "coordinator": loaded.get(str(m.get("hwid"))),
+            }
+            for m in members
+        ]
+
+    def linked_waves(self) -> list[dict[str, Any]]:
+        """Pumps of this pump's group, for the card's list (empty alone).
+
+        [{hwid, name, model, entry_id, available}], in group order: the card
+        shows them and opens the card of the one tapped.
+        """
+        group = self.wave_group()
+        if len(group) < 2:
+            return []
+        out: list[dict[str, Any]] = []
+        for member in group:
+            pump = member["coordinator"]
+            out.append(
+                {
+                    "hwid": member["hwid"],
+                    "name": member["name"],
+                    "model": getattr(pump, "model", None),
+                    "entry_id": pump._entry.entry_id if pump is not None else None,
+                    "available": pump is not None
+                    and bool(getattr(pump, "last_update_success", True)),
+                }
+            )
+        return out
+
+    # -- Grouping (as the ReefBeat app: the aquarium's grouped ReefWaves) ----
+
+    def wave_grouped(self) -> bool | None:
+        """Whether this pump is grouped in the app, None without cloud."""
+        link = self.wave_link()
+        if link is None:
+            return None
+        mine = next(
+            (d for d in self._cloud_devices(link[0]) if d.get("hwid") == self.model_id),
+            {},
+        )
+        return mine.get("grouped") is True
+
+    def _notify_waves(self) -> None:
+        """Refresh the entities of every loaded ReefWave (groups changed)."""
+        for pump in self._hass.data.get(DOMAIN, {}).values():
+            if isinstance(pump, ReefWaveCoordinator):
+                pump.async_update_listeners()
+
+    def _manage_entry(
+        self, devices: list[dict[str, Any]], hwid: str, grouped: bool, index: int
+    ) -> dict[str, Any]:
+        """One device of a POST /device/manage, as the app sends it."""
+        device = next((d for d in devices if d.get("hwid") == hwid), {})
+        return {
+            "hwid": hwid,
+            "name": device.get("name", ""),
+            "in_service": device.get("in_service", True),
+            "grouped": grouped,
+            "group_index": index,
+        }
+
+    async def set_wave_grouped(self, grouped: bool) -> None:
+        """Group this pump with the aquarium's other ReefWaves, or ungroup it.
+
+        As the ReefBeat app: POST /device/<hwid>/group or /ungroup. A pump
+        joining the group goes last; the order is then written with POST
+        /device/manage. The cloud device list is read again and every
+        ReefWave refreshed (their group changed).
+        """
+        cloud, aquarium = self._require_link()
+        devices = self._cloud_devices(cloud)
+        # The aquarium's group as it stands, in order, this pump left out
+        others = [
+            str(d.get("hwid"))
+            for d in sorted(
+                (
+                    d
+                    for d in devices
+                    if d.get("aquarium_uid") == aquarium
+                    and d.get("type") == "reef-wave"
+                    and d.get("grouped") is True
+                    and d.get("hwid") != self.model_id
+                ),
+                key=lambda d: int(d.get("group_index") or 0),
+            )
+        ]
+        action = "group" if grouped else "ungroup"
+        _LOGGER.debug("%s: %s in the ReefBeat cloud", self.title, action)
+        await cloud.send_cmd(f"/device/{self.model_id}/{action}", {}, "post")
+        if grouped:
+            manage = [
+                self._manage_entry(devices, hwid, True, index)
+                for index, hwid in enumerate([*others, self.model_id])
+            ]
+            await cloud.send_cmd("/device/manage", manage, "post")
+        await cloud.fetch_config("/device")
+        self._notify_waves()
+
+    async def set_wave_group_order(self, hwids: Any) -> None:
+        """Order the pumps of this pump's group (POST /device/manage)."""
+        cloud, _aquarium = self._require_link()
+        members = [m["hwid"] for m in self.wave_group()]
+        if (
+            not isinstance(hwids, list)
+            or len(members) < 2
+            or sorted(str(h) for h in hwids) != sorted(members)
+        ):
+            raise group_error("wave_group_bad_order")
+        devices = self._cloud_devices(cloud)
+        manage = [
+            self._manage_entry(devices, str(hwid), True, index)
+            for index, hwid in enumerate(hwids)
+        ]
+        await cloud.send_cmd("/device/manage", manage, "post")
+        await cloud.fetch_config("/device")
+        self._notify_waves()
+
+    def unavailable_wave_members(self) -> list[str]:
+        """Pumps of the group blocking a write, as the ReefBeat app does.
+
+        A pump not loaded or not answering blocks; a pump out of service
+        does not.
+        """
+        names: list[str] = []
+        for member in self.wave_group():
+            if not member["in_service"]:
+                continue
+            pump = member["coordinator"]
+            if pump is None or not getattr(pump, "last_update_success", True):
+                names.append(member["name"])
+        return names
+
+    def _check_group_ready(self) -> None:
+        """Refuse a write when a pump of the group is missing.
+
+        A group half-written would leave its pumps out of sync: nothing is
+        sent, and the user is told which pumps are missing.
+        """
+        names = self.unavailable_wave_members()
+        if names:
+            raise group_error(
+                "wave_group_member_unavailable",
+                group=self.title,
+                members=", ".join(names),
+            )
+
+    def wave_library(self) -> list[dict[str, Any]] | None:
+        """Waves this pump can use, with its own intensities.
+
+        None when the pump is not linked to a cloud account: the program
+        editor then only offers the waves of the pump's own program.
+        """
+        link = self.wave_link()
+        if link is None:
+            return None
+        cloud, aquarium = link
+        return [
+            library_wave(entry, self.model_id)
+            for entry in self._library_entries(cloud, aquarium)
+        ]
+
+    def program_intervals(self) -> list[dict[str, Any]]:
+        """Intervals of this pump's day program, as last read."""
+        intervals = self.get_data(WAVE_SCHEDULE_PATH, True)
+        return (
+            cast(list[dict[str, Any]], intervals) if isinstance(intervals, list) else []
+        )
+
+    def wave_usage(self) -> dict[str, list[str]]:
+        """Pumps using each wave, by uid, among the loaded ReefWaves."""
+        usage: dict[str, list[str]] = {}
+        pumps = [
+            c
+            for c in self._hass.data.get(DOMAIN, {}).values()
+            if isinstance(c, ReefWaveCoordinator)
+        ]
+        if self not in pumps:
+            pumps.append(self)
+        for pump in pumps:
+            for uid in {
+                i.get("wave_uid")
+                for i in pump.program_intervals()
+                if isinstance(i.get("wave_uid"), str)
+            }:
+                usage.setdefault(cast(str, uid), []).append(pump.title)
+        return usage
+
+    def _require_link(self) -> tuple[ReefBeatCloudCoordinator, str]:
+        """The cloud link, or a translated refusal."""
+        link = self.wave_link()
+        if link is None:
+            raise group_error("wave_cloud_required", pump=self.title)
+        return link
+
+    @staticmethod
+    def _refusal(err: WaveLibraryError) -> HomeAssistantError:
+        """A translated error from a refused edit."""
+        return group_error(err.key, **err.placeholders)
+
+    async def save_wave(
+        self, name: str, settings: dict[str, Any], uid: str | None = None
+    ) -> str | None:
+        """Add a wave to the aquarium's library, or update one.
+
+        As the ReefBeat app: POST /reef-wave/library to create, PUT
+        /reef-wave/library/<uid> to update; a Red Sea (default) wave cannot
+        be updated. The shape is shared by every pump; the intensities are
+        this pump's, and a new wave gives them to the whole group. Pumps
+        using an updated wave get their program written again, so their
+        intervals copy its new shape.
+        @param uid: the wave to update, None to create one
+        @return the uid of the wave
+        """
+        cloud, aquarium = self._require_link()
+        entries = self._library_entries(cloud, aquarium)
+        try:
+            clean = check_name(name, entries, uid)
+            checked = check_settings(settings)
+        except WaveLibraryError as err:
+            raise self._refusal(err) from err
+        group = self.wave_group()
+        self._check_group_ready()
+        hwids = [m["hwid"] for m in group]
+        if uid is None:
+            payload = library_payload(
+                clean,
+                checked["shape"],
+                merge_pump_settings([], hwids, checked["pump"]),
+                aquarium,
+            )
+            _LOGGER.debug("POST wave: %s", payload)
+            await cloud.send_cmd(WAVES_LIBRARY, payload, "post")
+            await cloud.fetch_config(WAVES_LIBRARY)
+            for entry in reversed(self._library_entries(cloud, aquarium)):
+                if entry.get("name") == clean and entry.get("default") is not True:
+                    return cast(str | None, entry.get("uid"))
+            return None
+        entry = next((e for e in entries if e.get("uid") == uid), None)
+        if entry is None:
+            raise group_error("wave_not_found", uid=uid)
+        if entry.get("default") is True:
+            raise group_error("wave_default_readonly", name=str(entry.get("name")))
+        existing = entry.get("pump_settings") or []
+        # This pump's intensities; a member without any gets the same ones
+        have = {s.get("hwid") for s in existing if isinstance(s, dict)}
+        targets = [self.model_id] + [h for h in hwids if h not in have]
+        payload = library_payload(
+            clean,
+            checked["shape"],
+            merge_pump_settings(existing, targets, checked["pump"]),
+        )
+        _LOGGER.debug("PUT wave %s: %s", uid, payload)
+        await cloud.send_cmd(f"{WAVES_LIBRARY}/{uid}", payload, "put")
+        await cloud.fetch_config(WAVES_LIBRARY)
+        # Programs copy the wave: write again those that use it
+        for member in group:
+            pump = member["coordinator"]
+            if pump is not None and uses_wave(pump.program_intervals(), uid):
+                slots = [
+                    {
+                        "st": int(i.get("st", 0)),
+                        "wave_uid": i.get("wave_uid"),
+                        "direction": i.get("direction", "fw"),
+                    }
+                    for i in pump.program_intervals()
+                ]
+                await pump._post_program(cloud, aquarium, slots)
+        return uid
+
+    async def delete_wave(self, uid: str) -> bool:
+        """Delete one of the user's waves from the aquarium's library.
+
+        As the ReefBeat app: DELETE /reef-wave/library/<uid>. A Red Sea wave
+        cannot be deleted, nor a wave a loaded pump's program uses.
+        """
+        cloud, aquarium = self._require_link()
+        entry = next(
+            (e for e in self._library_entries(cloud, aquarium) if e.get("uid") == uid),
+            None,
+        )
+        if entry is None:
+            raise group_error("wave_not_found", uid=uid)
+        if entry.get("default") is True:
+            raise group_error("wave_default_readonly", name=str(entry.get("name")))
+        users = self.wave_usage().get(uid, [])
+        if users:
+            raise group_error(
+                "wave_in_use", name=str(entry.get("name")), pumps=", ".join(users)
+            )
+        _LOGGER.debug("DELETE wave %s", uid)
+        await cloud.send_cmd(f"{WAVES_LIBRARY}/{uid}", {}, "delete")
+        await cloud.fetch_config(WAVES_LIBRARY)
+        return True
+
+    async def _post_program(
+        self,
+        cloud: ReefBeatCloudCoordinator,
+        aquarium: str,
+        slots: list[dict[str, Any]],
+    ) -> None:
+        """Post this pump's program to the cloud, then read the pump back."""
+        waves = {
+            str(entry.get("uid")): library_wave(entry, self.model_id)
+            for entry in self._library_entries(cloud, aquarium)
+        }
+        try:
+            intervals = schedule_intervals(slots, waves)
+        except WaveLibraryError as err:
+            raise self._refusal(err) from err
+        _LOGGER.debug("POST program of %s: %s", self.title, intervals)
+        await cloud.send_cmd(
+            "/reef-wave/schedule/" + self.model_id, {"intervals": intervals}, "post"
+        )
+        await self.fetch_config()
+        await self._weather_follow(intervals)
+
+    # Seconds left to the cloud to push a new program to the pump, before
+    # the weather program made from it is written over it
+    WEATHER_AFTER_CLOUD_S = 30
+
+    async def _weather_follow(self, intervals: list[dict[str, Any]]) -> None:
+        """A program posted to the cloud, in weather mode: it becomes the
+        base of the weather program, written once the cloud has pushed it."""
+        store = store_of(self)
+        if store is None or not store.settings.enabled:
+            return
+        store.base = [dict(i) for i in intervals]
+        await store.async_save()
+
+        @callback
+        def _apply(_now: Any) -> None:
+            self._hass.async_create_task(apply_wave_weather(self._hass, self))
+
+        async_call_later(self._hass, self.WEATHER_AFTER_CLOUD_S, _apply)
+
+    # -- Preview and per-pump settings of the current wave -------------------
+
+    PREVIEW_PATH = "$.sources[?(@.name=='/preview')].data."
+
+    async def start_preview(
+        self, settings: dict[str, Any], direction: str, duration: int
+    ) -> None:
+        """Run a wave on this pump for a while, as the app's preview.
+
+        The local /preview source is filled with the wave (type, shape,
+        intensities, direction) and the duration (ms), then posted to the
+        pump, which runs it and goes back to its program afterwards.
+        """
+        try:
+            checked = check_settings(settings)
+        except WaveLibraryError as err:
+            raise self._refusal(err) from err
+        if checked["shape"]["type"] == "nw":
+            raise group_error("wave_preview_no_wave")
+        if direction not in WAVE_DIRECTIONS:
+            raise group_error("wave_program_bad_slot")
+        values = {
+            **checked["shape"],
+            "fti": checked["pump"]["fti"],
+            "rti": checked["pump"]["rti"],
+            "direction": direction,
+            "duration": max(60000, min(600000, int(duration))),
+        }
+        for key, value in values.items():
+            self.set_data(self.PREVIEW_PATH + key, value)
+        await self.push_values("/preview", "post")
+        await self.async_request_refresh()
+
+    async def stop_preview(self) -> None:
+        """Stop a running preview: the pump goes back to its program."""
+        await self.delete("/preview")
+        await self.async_request_refresh()
+
+    def current_slot(self, intervals: list[dict[str, Any]] | None = None) -> int:
+        """Index of the slot of a program running now (-1: none).
+
+        @param intervals: the program (this pump's by default)
+        """
+        if intervals is None:
+            intervals = self.program_intervals()
+        if not intervals:
+            return -1
+        now = datetime.now()
+        minute = now.hour * 60 + now.minute
+        index = 0
+        for pos, interval in enumerate(intervals[1:], start=1):
+            if int(interval.get("st", 0)) < minute:
+                index = pos
+            else:
+                break
+        return index
+
+    async def set_current_pump(self, direction: str, fti: Any, rti: Any) -> None:
+        """Change this pump's direction and intensities in the current wave.
+
+        As in the app, a single pump of a group can run the current wave its
+        own way: its intensities go to its own settings of the wave (library,
+        even a Red Sea wave: only its pump_settings change), its direction
+        to its own program. The other pumps are left as they are.
+        """
+        if direction not in WAVE_DIRECTIONS:
+            raise group_error("wave_program_bad_slot")
+        try:
+            pump = check_settings({"type": "nw", "fti": fti, "rti": rti})["pump"]
+        except WaveLibraryError as err:
+            raise self._refusal(err) from err
+        # In weather mode, the pump's own program (the base) is the one changed
+        weather = store_of(self)
+        own = (
+            weather.base
+            if weather is not None and weather.settings.enabled
+            else self.program_intervals()
+        )
+        index = self.current_slot(own)
+        if index < 0:
+            raise group_error("wave_program_empty")
+        intervals = [dict(i) for i in own]
+        current = intervals[index]
+        uid = str(current.get("wave_uid", ""))
+        link = self.wave_link()
+        if link is None:
+            current.update(
+                {"direction": direction, "fti": pump["fti"], "rti": pump["rti"]}
+            )
+            if not await base_changed(self._hass, self, intervals):
+                await self._write_local(intervals)
+            return
+        cloud, aquarium = link
+        entry = next(
+            (e for e in self._library_entries(cloud, aquarium) if e.get("uid") == uid),
+            None,
+        )
+        if entry is None:
+            raise group_error("wave_not_found", uid=uid)
+        mine = pump_settings_of(entry, self.model_id) or {}
+        settings = {**pump, "sync": mine.get("sync", pump["sync"])}
+        payload = {
+            k: v
+            for k, v in entry.items()
+            if k not in ("uid", "aquarium_uid", "pump_settings")
+        }
+        payload["pump_settings"] = merge_pump_settings(
+            entry.get("pump_settings") or [], [self.model_id], settings
+        )
+        _LOGGER.debug("PUT pump settings of %s in wave %s", self.title, uid)
+        await cloud.send_cmd(f"{WAVES_LIBRARY}/{uid}", payload, "put")
+        await cloud.fetch_config(WAVES_LIBRARY)
+        slots = [
+            {
+                "st": int(i.get("st", 0)),
+                "wave_uid": i.get("wave_uid"),
+                "direction": direction if pos == index else i.get("direction", "fw"),
+            }
+            for pos, i in enumerate(intervals)
+        ]
+        await self._post_program(cloud, aquarium, slots)
+
+    async def _write_local(self, intervals: list[dict[str, Any]]) -> None:
+        """Write a program to the pump itself (/auto handshake)."""
+        for interval in intervals:
+            interval.pop("start", None)
+        payload = {"uid": str(uuid.uuid4())}
+        await self.my_api.http_send("/auto/init", payload)
+        for interval in intervals:
+            await self.my_api.http_send("/auto", {"intervals": [interval]})
+        await self.my_api.http_send("/auto/complete", payload)
+        await self.my_api.http_send("/auto/apply", payload)
+        await self.fetch_config()
+
+    async def save_program(self, slots: Any) -> None:
+        """Write the day program of this pump (of its group).
+
+        With a cloud account (the usual case), the program goes through the
+        cloud, which pushes it to the pump: written locally only, it would be
+        overwritten by the cloud at the next reboot. Each pump of the group
+        gets the same slots, with its own intensities; a pump of the group
+        missing refuses the whole write.
+
+        Without a cloud account, the program is written to the pump itself
+        (local /auto handshake), with the waves of its current program.
+        """
+        try:
+            checked = check_slots(slots)
+        except WaveLibraryError as err:
+            raise self._refusal(err) from err
+        link = self.wave_link()
+        if link is None:
+            waves = {w["uid"]: w for w in program_waves(self.program_intervals())}
+            try:
+                intervals = schedule_intervals(checked, waves)
+            except WaveLibraryError as err:
+                raise self._refusal(err) from err
+            if not await base_changed(self._hass, self, intervals):
+                await self._write_local(intervals)
+            return
+        cloud, aquarium = link
+        group = self.wave_group()
+        self._check_group_ready()
+        for member in group:
+            pump = member["coordinator"]
+            if pump is not None and member["in_service"]:
+                await pump._post_program(cloud, aquarium, checked)
 
     def get_current_value(self, value_basename: str, value_name: str) -> Any:
         """Return the current schedule segment value for a named key.

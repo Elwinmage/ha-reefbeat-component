@@ -260,6 +260,9 @@ class ReefWaveSensorEntityDescription(SensorEntityDescription):
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_basename: str = WAVE_SCHEDULE_PATH
     value_name: str = ""
+    # Optional computed attributes merged into extra_state_attributes on
+    # every update (see ReefBeatSensorEntity._update_val).
+    attributes_fn: Callable[[ReefBeatCoordinator], dict[str, Any]] | None = None
 
 
 DescriptionT = (
@@ -717,6 +720,19 @@ LED_SCHEDULES: tuple[ReefLedScheduleSensorEntityDescription, ...] = tuple(
 # Wave / ATO descriptions
 # -----------------------------------------------------------------------------
 
+
+def _wave_schedule_attributes(device: ReefBeatCoordinator) -> dict[str, Any]:
+    """Expose the whole day program of a ReefWave.
+
+    The card draws the day from it: every interval of the /auto source, with
+    its start minute (`st`) and its wave settings. An absent or malformed
+    program is reported as an empty list rather than None, so the attribute
+    keeps the same type whatever the device answered.
+    """
+    intervals = device.get_data(WAVE_SCHEDULE_PATH, True)
+    return {"schedule": intervals if isinstance(intervals, list) else []}
+
+
 WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
     ReefWaveSensorEntityDescription(
         key="wave_type",
@@ -725,6 +741,8 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.ENUM,
         options=WAVE_TYPES,
         icon="mdi:wave",
+        # The day program rides along with the current wave type
+        attributes_fn=_wave_schedule_attributes,
     ),
     ReefWaveSensorEntityDescription(
         key="wave_name",
@@ -775,6 +793,19 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
         translation_key="wave_step",
         value_name="sn",
         icon="mdi:stairs",
+    ),
+)
+
+WAVE_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
+    # Pumps of the ReefWave group (cloud), for the card's list
+    ReefBeatSensorEntityDescription(
+        key="linked_waves",
+        translation_key="linked_waves",
+        value_fn=lambda device: len(cast(ReefWaveCoordinator, device).linked_waves()),
+        attributes_fn=lambda device: {
+            "waves": cast(ReefWaveCoordinator, device).linked_waves()
+        },
+        icon="mdi:waves",
     ),
 )
 
@@ -1950,6 +1981,11 @@ async def async_setup_entry(
         entities.extend(
             ReefWaveSensorEntity(device, description)
             for description in WAVE_SCHEDULE_SENSORS
+            if description.exists_fn(device)
+        )
+        entities.extend(
+            ReefBeatSensorEntity(device, description)
+            for description in WAVE_SENSORS
             if description.exists_fn(device)
         )
     elif isinstance(device, ReefDoseCoordinator):

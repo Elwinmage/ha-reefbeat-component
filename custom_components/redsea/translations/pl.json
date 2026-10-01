@@ -1426,6 +1426,9 @@
           "ok": "OK",
           "error": "Błąd"
         }
+      },
+      "linked_waves": {
+        "name": "Połączone ReefWave"
       }
     },
     "switch": {
@@ -1608,6 +1611,12 @@
       },
       "staggered_sunrise": {
         "name": "Przesunięty wschód słońca"
+      },
+      "wave_grouped": {
+        "name": "Zgrupowana z akwarium"
+      },
+      "wave_weather": {
+        "name": "Pogoda GPS"
       }
     },
     "text": {
@@ -1981,6 +1990,188 @@
           "description": "Odpowiedz po zapisaniu lampy (domyślnie tydzień jest zapisywany i pokazywany, a potem zapisywany w tle)."
         }
       }
+    },
+    "wave_library": {
+      "name": "Biblioteka fal ReefWave",
+      "description": "Fale, których może używać ReefWave (biblioteka w chmurze jej akwarium, z jej intensywnościami), pompy, które ich używają, i jej grupa.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji ReefWave."
+        }
+      }
+    },
+    "wave_library_save": {
+      "name": "Zapisz falę ReefWave w bibliotece",
+      "description": "Dodaje falę do biblioteki w chmurze akwarium ReefWave lub aktualizuje istniejącą (nie falę Red Sea).",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji ReefWave."
+        },
+        "name": {
+          "name": "Nazwa",
+          "description": "Nazwa fali, unikalna w bibliotece."
+        },
+        "settings": {
+          "name": "Ustawienia",
+          "description": "type, frt, rrt, pd, sn (zależnie od typu), fti, rti, sync."
+        },
+        "uid": {
+          "name": "ID fali",
+          "description": "Fala do aktualizacji; puste, aby dodać nową."
+        }
+      }
+    },
+    "wave_library_delete": {
+      "name": "Usuń falę ReefWave z biblioteki",
+      "description": "Usuwa falę użytkownika z biblioteki w chmurze (ani falę Red Sea, ani używaną przez program).",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji ReefWave."
+        },
+        "uid": {
+          "name": "ID fali",
+          "description": "Fala do usunięcia."
+        }
+      }
+    },
+    "wave_program_save": {
+      "name": "Zapisz program dzienny ReefWave",
+      "description": "Zapisuje program dzienny ReefWave (całej jej grupy), przez chmurę, gdy jest połączona.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji ReefWave."
+        },
+        "slots": {
+          "name": "Przedziały",
+          "description": "Lista (st, wave_uid, direction); pierwszy zaczyna się od 0."
+        }
+      }
+    },
+    "wave_preview": {
+      "name": "Podgląd fali ReefWave",
+      "description": "Uruchamia falę na pompie na pewien czas, a potem wraca do jej programu.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji ReefWave."
+        },
+        "settings": {
+          "name": "Ustawienia",
+          "description": "type, frt, rrt, pd, sn (zależnie od typu), fti, rti."
+        },
+        "direction": {
+          "name": "Kierunek",
+          "description": "fw, rw lub alt."
+        },
+        "duration": {
+          "name": "Czas",
+          "description": "Czas podglądu w ms (od 60000 do 600000)."
+        }
+      }
+    },
+    "wave_preview_stop": {
+      "name": "Zatrzymaj podgląd ReefWave",
+      "description": "Pompa wraca do swojego programu.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji ReefWave."
+        }
+      }
+    },
+    "wave_pump_set": {
+      "name": "Ustaw ReefWave w bieżącej fali",
+      "description": "Kierunek i intensywności tej pompy w bieżącej fali; pozostałe pompy grupy się nie zmieniają.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji ReefWave."
+        },
+        "direction": {
+          "name": "Kierunek",
+          "description": "fw, rw lub alt."
+        },
+        "fti": {
+          "name": "Intensywność do przodu",
+          "description": "Intensywność do przodu tej pompy, w %."
+        },
+        "rti": {
+          "name": "Intensywność do tyłu",
+          "description": "Intensywność do tyłu tej pompy, w %."
+        }
+      }
+    },
+    "wave_group_order": {
+      "name": "Uporządkuj grupę ReefWave",
+      "description": "Kolejność pomp grupy ReefWave (chmura).",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji ReefWave z grupy."
+        },
+        "hwids": {
+          "name": "Pompy",
+          "description": "Identyfikatory sprzętowe wszystkich pomp grupy w nowej kolejności."
+        }
+      }
+    },
+    "wave_group_set": {
+      "name": "Grupuj lub rozgrupuj ReefWave",
+      "description": "Grupuje ReefWave z innymi ReefWave akwarium lub ją rozgrupowuje (chmura).",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji ReefWave."
+        },
+        "grouped": {
+          "name": "Zgrupowana",
+          "description": "Włączone, aby zgrupować pompę, wyłączone, aby ją rozgrupować."
+        }
+      }
+    },
+    "wave_weather_preview": {
+      "name": "Podgląd pogody GPS ReefWave",
+      "description": "Dzisiejsze prędkości, jakie pogoda danego miejsca nadałaby pompom grupy ReefWave (nic nie jest zapisywane).",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji ReefWave."
+        },
+        "settings": {
+          "name": "Ustawienia",
+          "description": "Edytowane ustawienia (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
+        },
+        "offsets": {
+          "name": "Przesunięcia",
+          "description": "Przesunięcie każdej pompy grupy (procent), według id sprzętu."
+        }
+      }
+    },
+    "wave_weather_save": {
+      "name": "Zapisz pogodę GPS ReefWave",
+      "description": "Zapisuje pogodę GPS grupy ReefWave i zapisuje jej pompy: program pogodowy lub przywrócony ich własny program.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji ReefWave."
+        },
+        "settings": {
+          "name": "Ustawienia",
+          "description": "Ustawienia wspólne dla grupy (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
+        },
+        "offsets": {
+          "name": "Przesunięcia",
+          "description": "Przesunięcie każdej pompy grupy (procent), według id sprzętu."
+        },
+        "enabled": {
+          "name": "Włączona",
+          "description": "Prawda dla trybu pogody, fałsz, aby przywrócić pompom ich własny program."
+        }
+      }
     }
   },
   "exceptions": {
@@ -1989,6 +2180,54 @@
     },
     "group_channel_unavailable": {
       "message": "{group} zawiera lampy G1 i G2: bieli i niebieskiego nie można ustawić dla całej grupy. Użyj temperatury barwowej i intensywności."
+    },
+    "wave_group_member_unavailable": {
+      "message": "{group}: akcja odrzucona, te ReefWave są niedostępne: {members}. Nic nie wysłano, grupa pozostaje zsynchronizowana."
+    },
+    "wave_cloud_required": {
+      "message": "{pump} nie jest połączona z kontem chmury ReefBeat: biblioteki fal nie można edytować."
+    },
+    "wave_not_a_wave": {
+      "message": "To urządzenie nie jest ReefWave."
+    },
+    "wave_not_found": {
+      "message": "Fali {uid} nie ma w bibliotece."
+    },
+    "wave_default_readonly": {
+      "message": "{name} to fala Red Sea: nie można jej zmienić ani usunąć. Zapisz ją jako nową falę."
+    },
+    "wave_in_use": {
+      "message": "{name} jest używana w programie: {pumps}. Najpierw usuń ją z tych programów."
+    },
+    "wave_name_required": {
+      "message": "Fala musi mieć nazwę."
+    },
+    "wave_name_taken": {
+      "message": "Fala o nazwie {name} już istnieje w bibliotece."
+    },
+    "wave_bad_type": {
+      "message": "Nieznany typ fali: {type}."
+    },
+    "wave_bad_value": {
+      "message": "Nieprawidłowa wartość dla {field}."
+    },
+    "wave_program_empty": {
+      "message": "Program musi mieć co najmniej jeden przedział."
+    },
+    "wave_program_bad_slot": {
+      "message": "Przedział programu jest nieprawidłowy (początek, fala lub kierunek)."
+    },
+    "wave_program_midnight": {
+      "message": "Program musi zaczynać się o 00:00."
+    },
+    "wave_program_same_start": {
+      "message": "Dwa przedziały zaczynają się o tej samej godzinie."
+    },
+    "wave_preview_no_wave": {
+      "message": "„Brak fali” nie może być podglądana."
+    },
+    "wave_group_bad_order": {
+      "message": "Nowa kolejność musi zawierać każdą pompę grupy dokładnie raz."
     }
   },
   "issues": {

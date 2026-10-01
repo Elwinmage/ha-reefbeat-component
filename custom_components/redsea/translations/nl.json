@@ -1434,6 +1434,9 @@
           "ok": "OK",
           "error": "Fout"
         }
+      },
+      "linked_waves": {
+        "name": "Gekoppelde ReefWaves"
       }
     },
     "switch": {
@@ -1616,6 +1619,12 @@
       },
       "staggered_sunrise": {
         "name": "Verschoven zonsopgang"
+      },
+      "wave_grouped": {
+        "name": "Gegroepeerd met het aquarium"
+      },
+      "wave_weather": {
+        "name": "GPS-weer"
       }
     },
     "text": {
@@ -1989,6 +1998,188 @@
           "description": "Antwoorden zodra de lamp is geschreven (standaard wordt de week opgeslagen en getoond, en daarna op de achtergrond geschreven)."
         }
       }
+    },
+    "wave_library": {
+      "name": "ReefWave-golvenbibliotheek",
+      "description": "Golven die een ReefWave kan gebruiken (cloudbibliotheek van zijn aquarium, met zijn intensiteiten), de pompen die ze gebruiken en zijn groep.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        }
+      }
+    },
+    "wave_library_save": {
+      "name": "ReefWave-golf in de bibliotheek opslaan",
+      "description": "Voegt een golf toe aan de cloudbibliotheek van het aquarium van de ReefWave, of werkt er een bij (geen Red Sea-golf).",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "name": {
+          "name": "Naam",
+          "description": "Naam van de golf, uniek in de bibliotheek."
+        },
+        "settings": {
+          "name": "Instellingen",
+          "description": "type, frt, rrt, pd, sn (volgens het type), fti, rti, sync."
+        },
+        "uid": {
+          "name": "Golf-ID",
+          "description": "De bij te werken golf; leeg laten om een nieuwe toe te voegen."
+        }
+      }
+    },
+    "wave_library_delete": {
+      "name": "ReefWave-golf uit de bibliotheek verwijderen",
+      "description": "Verwijdert een golf van de gebruiker uit de cloudbibliotheek (geen Red Sea-golf en geen golf die een programma gebruikt).",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "uid": {
+          "name": "Golf-ID",
+          "description": "De te verwijderen golf."
+        }
+      }
+    },
+    "wave_program_save": {
+      "name": "Dagprogramma van een ReefWave opslaan",
+      "description": "Schrijft het dagprogramma van een ReefWave (van zijn hele groep), via de cloud indien gekoppeld.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "slots": {
+          "name": "Tijdvakken",
+          "description": "Lijst van (st, wave_uid, direction); het eerste begint op 0."
+        }
+      }
+    },
+    "wave_preview": {
+      "name": "ReefWave-golf voorvertonen",
+      "description": "Laat een golf een tijdje op de pomp draaien en keert daarna terug naar het programma.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "settings": {
+          "name": "Instellingen",
+          "description": "type, frt, rrt, pd, sn (volgens het type), fti, rti."
+        },
+        "direction": {
+          "name": "Richting",
+          "description": "fw, rw of alt."
+        },
+        "duration": {
+          "name": "Duur",
+          "description": "Duur van de voorvertoning, in ms (60000 tot 600000)."
+        }
+      }
+    },
+    "wave_preview_stop": {
+      "name": "ReefWave-voorvertoning stoppen",
+      "description": "De pomp keert terug naar het programma.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        }
+      }
+    },
+    "wave_pump_set": {
+      "name": "ReefWave instellen in de huidige golf",
+      "description": "Richting en intensiteiten van deze pomp in de huidige golf; de andere pompen van de groep blijven ongewijzigd.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "direction": {
+          "name": "Richting",
+          "description": "fw, rw of alt."
+        },
+        "fti": {
+          "name": "Voorwaartse intensiteit",
+          "description": "Voorwaartse intensiteit van deze pomp, in %."
+        },
+        "rti": {
+          "name": "Achterwaartse intensiteit",
+          "description": "Achterwaartse intensiteit van deze pomp, in %."
+        }
+      }
+    },
+    "wave_group_order": {
+      "name": "ReefWave-groep ordenen",
+      "description": "Volgorde van de pompen van de ReefWave-groep (cloud).",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van een ReefWave van de groep."
+        },
+        "hwids": {
+          "name": "Pompen",
+          "description": "Hardware-id's van alle pompen van de groep, in de nieuwe volgorde."
+        }
+      }
+    },
+    "wave_group_set": {
+      "name": "ReefWave groeperen of degroeperen",
+      "description": "Groepeert de ReefWave met de andere ReefWaves van het aquarium, of heft de groepering op (cloud).",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "grouped": {
+          "name": "Gegroepeerd",
+          "description": "Aan om de pomp te groeperen, uit om de groepering op te heffen."
+        }
+      }
+    },
+    "wave_weather_preview": {
+      "name": "Voorbeeld van het GPS-weer van ReefWaves",
+      "description": "Snelheden van vandaag die het weer van een plaats aan de pompen van een ReefWave-groep zou geven (er wordt niets geschreven).",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "settings": {
+          "name": "Instellingen",
+          "description": "Instellingen in bewerking (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
+        },
+        "offsets": {
+          "name": "Afwijkingen",
+          "description": "Afwijking van elke pomp van de groep (procent), per hardware-id."
+        }
+      }
+    },
+    "wave_weather_save": {
+      "name": "GPS-weer van ReefWaves opslaan",
+      "description": "Slaat het GPS-weer van een ReefWave-groep op en schrijft de pompen: het weerprogramma, of hun eigen programma terug.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "settings": {
+          "name": "Instellingen",
+          "description": "Door de groep gedeelde instellingen (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
+        },
+        "offsets": {
+          "name": "Afwijkingen",
+          "description": "Afwijking van elke pomp van de groep (procent), per hardware-id."
+        },
+        "enabled": {
+          "name": "Ingeschakeld",
+          "description": "Waar voor de weermodus, onwaar om de pompen hun eigen programma terug te geven."
+        }
+      }
     }
   },
   "exceptions": {
@@ -1997,6 +2188,54 @@
     },
     "group_channel_unavailable": {
       "message": "{group} bevat G1- en G2-lampen: wit en blauw kunnen niet voor de hele groep worden ingesteld. Gebruik kleurtemperatuur en intensiteit."
+    },
+    "wave_group_member_unavailable": {
+      "message": "{group}: actie geweigerd, deze ReefWaves zijn niet beschikbaar: {members}. Er is niets verzonden, de groep blijft gesynchroniseerd."
+    },
+    "wave_cloud_required": {
+      "message": "{pump} is niet gekoppeld aan een ReefBeat-cloudaccount: de golvenbibliotheek kan niet worden bewerkt."
+    },
+    "wave_not_a_wave": {
+      "message": "Dit apparaat is geen ReefWave."
+    },
+    "wave_not_found": {
+      "message": "Golf {uid} staat niet in de bibliotheek."
+    },
+    "wave_default_readonly": {
+      "message": "{name} is een Red Sea-golf: die kan niet worden gewijzigd of verwijderd. Sla hem op als nieuwe golf."
+    },
+    "wave_in_use": {
+      "message": "{name} wordt gebruikt door het programma van: {pumps}. Verwijder hem eerst uit die programma's."
+    },
+    "wave_name_required": {
+      "message": "Een golf heeft een naam nodig."
+    },
+    "wave_name_taken": {
+      "message": "Er bestaat al een golf met de naam {name} in de bibliotheek."
+    },
+    "wave_bad_type": {
+      "message": "Onbekend golftype: {type}."
+    },
+    "wave_bad_value": {
+      "message": "Ongeldige waarde voor {field}."
+    },
+    "wave_program_empty": {
+      "message": "Een programma heeft minstens één tijdvak nodig."
+    },
+    "wave_program_bad_slot": {
+      "message": "Een tijdvak van het programma is ongeldig (begin, golf of richting)."
+    },
+    "wave_program_midnight": {
+      "message": "Het programma moet om 00:00 beginnen."
+    },
+    "wave_program_same_start": {
+      "message": "Twee tijdvakken beginnen op hetzelfde tijdstip."
+    },
+    "wave_preview_no_wave": {
+      "message": "\"Geen golf\" kan niet worden voorvertoond."
+    },
+    "wave_group_bad_order": {
+      "message": "De nieuwe volgorde moet elke pomp van de groep één keer bevatten."
     }
   },
   "issues": {

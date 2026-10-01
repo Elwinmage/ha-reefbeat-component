@@ -71,6 +71,7 @@ from .coordinator import (
     ReefPowerCoordinator,
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
+    ReefWaveCoordinator,
 )
 from .entity import (
     MaintenanceLabelMixin,
@@ -88,6 +89,7 @@ from .maintenance import (
     tasks_for,
 )
 from .probe_entities import probe_display_name, tag_port_entities, tag_probe_entities
+from .wave_group_entities import WaveGroupSwitchEntity, WaveWeatherSwitchEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -339,6 +341,20 @@ COMMON_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
     ),
 )
 
+# ReefWave: grouped with the aquarium's other ReefWaves (cloud)
+WAVE_GROUP_SWITCH = SwitchEntityDescription(
+    key="wave_grouped",
+    translation_key="wave_grouped",
+    icon="mdi:link-variant",
+    entity_category=EntityCategory.CONFIG,
+)
+
+WAVE_WEATHER_SWITCH = SwitchEntityDescription(
+    key="wave_weather",
+    translation_key="wave_weather",
+    icon="mdi:map-marker-radius",
+)
+
 LED_SWITCHES: tuple[ReefLedSwitchEntityDescription, ...] = (
     ReefLedSwitchEntityDescription(
         key="sw_acclimation_enabled",
@@ -535,6 +551,9 @@ async def async_setup_entry(
             for description in LED_SWITCHES
             if description.exists_fn(led_device)
         )
+    elif isinstance(device, ReefWaveCoordinator):
+        entities.append(WaveGroupSwitchEntity(device, WAVE_GROUP_SWITCH))
+        entities.append(WaveWeatherSwitchEntity(device, WAVE_WEATHER_SWITCH))
     elif isinstance(device, ReefBeatCloudCoordinator):
         cloud_descs: list[ReefCloudSwitchEntityDescription] = []
         for aquarium in device.get_data("$.sources[?(@.name=='/aquarium')].data"):
