@@ -1614,9 +1614,6 @@
       },
       "wave_grouped": {
         "name": "Mit dem Aquarium gruppiert"
-      },
-      "wave_weather": {
-        "name": "GPS-Wetter"
       }
     },
     "text": {
@@ -2130,46 +2127,6 @@
         "grouped": {
           "name": "Gruppiert",
           "description": "Ein, um die Pumpe zu gruppieren, aus, um die Gruppierung aufzuheben."
-        }
-      }
-    },
-    "wave_weather_preview": {
-      "name": "Vorschau des GPS-Wetters der ReefWaves",
-      "description": "Heutige Geschwindigkeiten, die das Wetter eines Ortes den Pumpen einer ReefWave-Gruppe geben würde (nichts wird geschrieben).",
-      "fields": {
-        "device_id": {
-          "name": "Geräte-ID",
-          "description": "Der Konfigurationseintrag der ReefWave."
-        },
-        "settings": {
-          "name": "Einstellungen",
-          "description": "Bearbeitete Einstellungen (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Versätze",
-          "description": "Versatz jeder Pumpe der Gruppe (Prozent), nach Hardware-ID."
-        }
-      }
-    },
-    "wave_weather_save": {
-      "name": "GPS-Wetter der ReefWaves speichern",
-      "description": "Speichert das GPS-Wetter einer ReefWave-Gruppe und schreibt ihre Pumpen: das Wetterprogramm oder ihr eigenes Programm zurück.",
-      "fields": {
-        "device_id": {
-          "name": "Geräte-ID",
-          "description": "Der Konfigurationseintrag der ReefWave."
-        },
-        "settings": {
-          "name": "Einstellungen",
-          "description": "Von der Gruppe geteilte Einstellungen (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Versätze",
-          "description": "Versatz jeder Pumpe der Gruppe (Prozent), nach Hardware-ID."
-        },
-        "enabled": {
-          "name": "Aktiviert",
-          "description": "Wahr für den Wettermodus, falsch, um den Pumpen ihr eigenes Programm zurückzugeben."
         }
       }
     }

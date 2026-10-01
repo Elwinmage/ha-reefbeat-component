@@ -1014,8 +1014,6 @@ async def test_wave_editor_service_handlers(
 
     hass.data.setdefault(redsea_init.DOMAIN, {})
     hass.data[redsea_init.DOMAIN]["linked"] = _Wave(True)
-    wave_store = redsea_init.WaveWeatherStore(hass, "wave-linked")
-    hass.data[redsea_init.DOMAIN]["linked"].wave_weather = wave_store
     hass.data[redsea_init.DOMAIN]["alone"] = _Wave(False)
 
     def call(data: dict[str, Any]) -> Any:
@@ -1033,16 +1031,8 @@ async def test_wave_editor_service_handlers(
     ]
     alone = await listing(call({"device_id": "alone"}))
     assert linked["grouped"] is True
-    assert linked["weather"]["settings"]["enabled"] is False
-    assert linked["weather"]["base"] == []
     assert alone["linked"] is False
     assert alone["grouped"] is None
-    assert alone["weather"] == {}
-    # In weather mode, the editor edits the pump's own program (the base)
-    wave_store.settings.enabled = True
-    wave_store.base = [{"st": 0}]
-    linked = await listing(call({"device_id": "linked"}))
-    assert linked["weather"]["base"] == [{"st": 0}]
     assert [w["uid"] for w in alone["waves"]] == ["p"]
 
     with pytest.raises(HomeAssistantError) as err:
@@ -1110,98 +1100,3 @@ async def test_wave_editor_service_handlers(
         "grouped": False
     }
     assert calls[-1] == ("grouped", False)
-
-    weather_calls: list[Any] = []
-
-    async def _preview(*args: Any) -> Any:
-        weather_calls.append(("preview", args[2:]))
-        return {"status": "ok"}
-
-    async def _save_weather(*args: Any) -> Any:
-        weather_calls.append(("save", args[2:]))
-        return {"status": "ok"}
-
-    monkeypatch.setattr(redsea_init, "preview_wave_weather", _preview)
-    monkeypatch.setattr(redsea_init, "save_wave_weather", _save_weather)
-    preview_w = handlers[f"{redsea_init.DOMAIN}.wave_weather_preview"]
-    save_w = handlers[f"{redsea_init.DOMAIN}.wave_weather_save"]
-    data = {
-        "device_id": "linked",
-        "settings": {"day_max": 90},
-        "offsets": {"hw2": -10},
-        "enabled": True,
-    }
-    assert await preview_w(call(data)) == {"status": "ok"}
-    assert await save_w(call(data)) == {"status": "ok"}
-    await preview_w(call({"device_id": "linked", "settings": "x", "offsets": 1}))
-    await save_w(call({"device_id": "linked", "enabled": "yes"}))
-    assert weather_calls == [
-        ("preview", ({"day_max": 90}, {"hw2": -10})),
-        ("save", ({"day_max": 90}, {"hw2": -10}, True)),
-        ("preview", (None, None)),
-        ("save", (None, None, False)),
-    ]
-
-
-@pytest.mark.asyncio
-async def test_wave_weather_setup_and_daily_run(
-    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """A ReefWave gets its weather store, a daily run and one after start."""
-    import custom_components.redsea as integration
-
-    class _Wave(integration.ReefWaveCoordinator):
-        def __init__(self) -> None:  # no HA setup needed
-            pass
-
-        async def async_setup(self) -> None:
-            return None
-
-    wave = _Wave()
-    entry = MockConfigEntry(
-        domain=DOMAIN, data={"ip_address": "1.2.3.4", "hw_model": "RSWAVE45"}
-    )
-    entry.add_to_hass(hass)
-    monkeypatch.setattr(integration, "_build_coordinator", lambda _h, _e: wave)
-    monkeypatch.setattr(hass.config_entries, "async_forward_entry_setups", AsyncMock())
-    ticks: list[Any] = []
-
-    def _track(_hass: Any, action: Any, **when: Any) -> Any:
-        ticks.append((action, when))
-        return lambda: None
-
-    monkeypatch.setattr(integration, "async_track_time_change", _track)
-    later: list[Any] = []
-
-    def _call_later(_hass: Any, delay: float, action: Any) -> Any:
-        later.append((delay, action))
-        return lambda: None
-
-    monkeypatch.setattr(integration, "async_call_later", _call_later)
-    runs: list[Any] = []
-
-    async def _apply(_hass: Any, device: Any) -> Any:
-        runs.append(device)
-        return {"status": "ok"}
-
-    monkeypatch.setattr(integration, "apply_wave_weather", _apply)
-
-    assert await integration.async_setup_entry(hass, cast(Any, entry)) is True
-    store = wave.wave_weather
-    assert isinstance(store, integration.WaveWeatherStore)
-    action, when = ticks[0]
-    assert when == {"hour": 0, "minute": 10, "second": 0}
-    assert later[0][0] == integration.WAVE_WEATHER_START_S
-    # Off: nothing
-    action(None)
-    await hass.async_block_till_done()
-    assert runs == []
-    # On, not written today: written (nightly, or after the start)
-    store.settings.enabled = True
-    later[0][1](None)
-    await hass.async_block_till_done()
-    assert runs == [wave]
-    store.last_success = integration.dt_util.now().date().isoformat()
-    action(None)
-    await hass.async_block_till_done()
-    assert runs == [wave]

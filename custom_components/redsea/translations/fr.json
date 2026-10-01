@@ -1614,9 +1614,6 @@
       },
       "wave_grouped": {
         "name": "Groupée avec l'aquarium"
-      },
-      "wave_weather": {
-        "name": "Météo GPS"
       }
     },
     "text": {
@@ -2130,46 +2127,6 @@
         "grouped": {
           "name": "Groupée",
           "description": "Activé pour grouper la pompe, désactivé pour la dégrouper."
-        }
-      }
-    },
-    "wave_weather_preview": {
-      "name": "Aperçu de la météo GPS des ReefWave",
-      "description": "Vitesses du jour que la météo d'un lieu donnerait aux pompes d'un groupe ReefWave (rien n'est écrit).",
-      "fields": {
-        "device_id": {
-          "name": "ID de l'appareil",
-          "description": "L'entrée de configuration de la ReefWave."
-        },
-        "settings": {
-          "name": "Réglages",
-          "description": "Réglages en cours d'édition (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Décalages",
-          "description": "Décalage de chaque pompe du groupe (pourcentage), par identifiant matériel."
-        }
-      }
-    },
-    "wave_weather_save": {
-      "name": "Enregistrer la météo GPS des ReefWave",
-      "description": "Enregistre la météo GPS d'un groupe ReefWave et écrit ses pompes : le programme météo, ou leur propre programme rétabli.",
-      "fields": {
-        "device_id": {
-          "name": "ID de l'appareil",
-          "description": "L'entrée de configuration de la ReefWave."
-        },
-        "settings": {
-          "name": "Réglages",
-          "description": "Réglages partagés par le groupe (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Décalages",
-          "description": "Décalage de chaque pompe du groupe (pourcentage), par identifiant matériel."
-        },
-        "enabled": {
-          "name": "Activée",
-          "description": "Vrai pour le mode météo, faux pour rendre aux pompes leur propre programme."
         }
       }
     }

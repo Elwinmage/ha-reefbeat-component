@@ -1614,9 +1614,6 @@
       },
       "wave_grouped": {
         "name": "Zgrupowana z akwarium"
-      },
-      "wave_weather": {
-        "name": "Pogoda GPS"
       }
     },
     "text": {
@@ -2130,46 +2127,6 @@
         "grouped": {
           "name": "Zgrupowana",
           "description": "Włączone, aby zgrupować pompę, wyłączone, aby ją rozgrupować."
-        }
-      }
-    },
-    "wave_weather_preview": {
-      "name": "Podgląd pogody GPS ReefWave",
-      "description": "Dzisiejsze prędkości, jakie pogoda danego miejsca nadałaby pompom grupy ReefWave (nic nie jest zapisywane).",
-      "fields": {
-        "device_id": {
-          "name": "ID urządzenia",
-          "description": "Wpis konfiguracji ReefWave."
-        },
-        "settings": {
-          "name": "Ustawienia",
-          "description": "Edytowane ustawienia (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Przesunięcia",
-          "description": "Przesunięcie każdej pompy grupy (procent), według id sprzętu."
-        }
-      }
-    },
-    "wave_weather_save": {
-      "name": "Zapisz pogodę GPS ReefWave",
-      "description": "Zapisuje pogodę GPS grupy ReefWave i zapisuje jej pompy: program pogodowy lub przywrócony ich własny program.",
-      "fields": {
-        "device_id": {
-          "name": "ID urządzenia",
-          "description": "Wpis konfiguracji ReefWave."
-        },
-        "settings": {
-          "name": "Ustawienia",
-          "description": "Ustawienia wspólne dla grupy (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Przesunięcia",
-          "description": "Przesunięcie każdej pompy grupy (procent), według id sprzętu."
-        },
-        "enabled": {
-          "name": "Włączona",
-          "description": "Prawda dla trybu pogody, fałsz, aby przywrócić pompom ich własny program."
         }
       }
     }

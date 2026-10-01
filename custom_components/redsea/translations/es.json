@@ -1614,9 +1614,6 @@
       },
       "wave_grouped": {
         "name": "Agrupada con el acuario"
-      },
-      "wave_weather": {
-        "name": "Meteo GPS"
       }
     },
     "text": {
@@ -2130,46 +2127,6 @@
         "grouped": {
           "name": "Agrupada",
           "description": "Activado para agrupar la bomba, desactivado para desagruparla."
-        }
-      }
-    },
-    "wave_weather_preview": {
-      "name": "Vista previa de la meteo GPS de las ReefWave",
-      "description": "Velocidades de hoy que la meteo de un lugar daría a las bombas de un grupo ReefWave (no se escribe nada).",
-      "fields": {
-        "device_id": {
-          "name": "ID del dispositivo",
-          "description": "La entrada de configuración de la ReefWave."
-        },
-        "settings": {
-          "name": "Ajustes",
-          "description": "Ajustes en edición (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Desfases",
-          "description": "Desfase de cada bomba del grupo (porcentaje), por id de hardware."
-        }
-      }
-    },
-    "wave_weather_save": {
-      "name": "Guardar la meteo GPS de las ReefWave",
-      "description": "Guarda la meteo GPS de un grupo ReefWave y escribe sus bombas: el programa meteo, o su propio programa restablecido.",
-      "fields": {
-        "device_id": {
-          "name": "ID del dispositivo",
-          "description": "La entrada de configuración de la ReefWave."
-        },
-        "settings": {
-          "name": "Ajustes",
-          "description": "Ajustes compartidos por el grupo (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Desfases",
-          "description": "Desfase de cada bomba del grupo (porcentaje), por id de hardware."
-        },
-        "enabled": {
-          "name": "Activada",
-          "description": "Verdadero para el modo meteo, falso para devolver a las bombas su propio programa."
         }
       }
     }

@@ -1622,9 +1622,6 @@
       },
       "wave_grouped": {
         "name": "Gegroepeerd met het aquarium"
-      },
-      "wave_weather": {
-        "name": "GPS-weer"
       }
     },
     "text": {
@@ -2138,46 +2135,6 @@
         "grouped": {
           "name": "Gegroepeerd",
           "description": "Aan om de pomp te groeperen, uit om de groepering op te heffen."
-        }
-      }
-    },
-    "wave_weather_preview": {
-      "name": "Voorbeeld van het GPS-weer van ReefWaves",
-      "description": "Snelheden van vandaag die het weer van een plaats aan de pompen van een ReefWave-groep zou geven (er wordt niets geschreven).",
-      "fields": {
-        "device_id": {
-          "name": "Apparaat-ID",
-          "description": "De configuratie-invoer van de ReefWave."
-        },
-        "settings": {
-          "name": "Instellingen",
-          "description": "Instellingen in bewerking (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Afwijkingen",
-          "description": "Afwijking van elke pomp van de groep (procent), per hardware-id."
-        }
-      }
-    },
-    "wave_weather_save": {
-      "name": "GPS-weer van ReefWaves opslaan",
-      "description": "Slaat het GPS-weer van een ReefWave-groep op en schrijft de pompen: het weerprogramma, of hun eigen programma terug.",
-      "fields": {
-        "device_id": {
-          "name": "Apparaat-ID",
-          "description": "De configuratie-invoer van de ReefWave."
-        },
-        "settings": {
-          "name": "Instellingen",
-          "description": "Door de groep gedeelde instellingen (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Afwijkingen",
-          "description": "Afwijking van elke pomp van de groep (procent), per hardware-id."
-        },
-        "enabled": {
-          "name": "Ingeschakeld",
-          "description": "Waar voor de weermodus, onwaar om de pompen hun eigen programma terug te geven."
         }
       }
     }

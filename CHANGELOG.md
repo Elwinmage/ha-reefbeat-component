@@ -47,34 +47,6 @@
 - New `redsea:wave-uniform`, `wave-random`, `wave-regular`, `wave-step`,
   `wave-surface` and `wave-none` icons: the wave type pictograms of the app.
 
-### RSWAVE GPS weather
-
-- New GPS weather mode for the ReefWaves (`wave_weather.py`): every day, the
-  hourly water speed of a place (Open-Meteo: wind at 10 m, or ocean current
-  velocity from the marine API, the wind standing in where the sea model
-  gives none) sets the speeds of the pumps, between the user's slowest /
-  fastest speed by day (place's sunrise to sunset) and by night; a speed of
-  the place at the scale (km/h, 40 for the wind, 2 for the current by
-  default) gives the fastest one. Each pump has its offset (percent of the
-  speed). The waves of the program are kept: the pump's own program (base)
-  is cut into hours, each with the weather's forward intensity, the reverse
-  one keeping its share. Following hours of the same wave whose speeds stay
-  within the tolerance (5 points by default, setting `tolerance`) make one
-  interval at their mean speed (weighted by length): a calm night is one
-  slot, not eight. Written to the pump
-  (local `/auto`), at once, every night at 00:10 and a minute after start
-  when today's is missing; the base is written back when turned off.
-- A program saved from the editor (cloud or local) or a change of the
-  current wave while in weather mode becomes the new base: the weather
-  program follows it (after the cloud push for a cloud program).
-- New switch `wave_weather` (whole group), with the last day in its
-  attributes (status, error, source, fallback, sunrise, sunset, offset,
-  speeds).
-- New services `redsea.wave_weather_preview` (today's speeds of each pump
-  of the group, nothing written) and `redsea.wave_weather_save` (shared
-  settings for the group, offsets per pump, mode); `redsea.wave_library`
-  also answers `weather` (settings, base while on, last day).
-
 ### VIRTUAL LED (groups)
  - `linked_leds` sensor: each lamp of the `leds` attribute also gives its
    sunrise `offset` (minutes, staggered sunrise; None for a lamp without

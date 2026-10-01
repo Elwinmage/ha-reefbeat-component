@@ -36,7 +36,6 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util.event_type import EventType
 
@@ -138,7 +137,6 @@ from .wave_library import (
     schedule_intervals,
     uses_wave,
 )
-from .wave_weather import apply_wave_weather, base_changed, store_of
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -2030,8 +2028,6 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
         """Initialize the ReefWave coordinator and its API."""
         super().__init__(hass, entry)
         self.my_api = ReefWaveAPI(self._ip, self._live_config_update, self._session)
-        # GPS weather settings (WaveWeatherStore), attached at setup
-        self.wave_weather: Any = None
 
     async def set_wave(self) -> None:
         """Apply the current preview wave into the active schedule."""
@@ -2681,26 +2677,6 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
             "/reef-wave/schedule/" + self.model_id, {"intervals": intervals}, "post"
         )
         await self.fetch_config()
-        await self._weather_follow(intervals)
-
-    # Seconds left to the cloud to push a new program to the pump, before
-    # the weather program made from it is written over it
-    WEATHER_AFTER_CLOUD_S = 30
-
-    async def _weather_follow(self, intervals: list[dict[str, Any]]) -> None:
-        """A program posted to the cloud, in weather mode: it becomes the
-        base of the weather program, written once the cloud has pushed it."""
-        store = store_of(self)
-        if store is None or not store.settings.enabled:
-            return
-        store.base = [dict(i) for i in intervals]
-        await store.async_save()
-
-        @callback
-        def _apply(_now: Any) -> None:
-            self._hass.async_create_task(apply_wave_weather(self._hass, self))
-
-        async_call_later(self._hass, self.WEATHER_AFTER_CLOUD_S, _apply)
 
     # -- Preview and per-pump settings of the current wave -------------------
 
@@ -2773,13 +2749,7 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
             pump = check_settings({"type": "nw", "fti": fti, "rti": rti})["pump"]
         except WaveLibraryError as err:
             raise self._refusal(err) from err
-        # In weather mode, the pump's own program (the base) is the one changed
-        weather = store_of(self)
-        own = (
-            weather.base
-            if weather is not None and weather.settings.enabled
-            else self.program_intervals()
-        )
+        own = self.program_intervals()
         index = self.current_slot(own)
         if index < 0:
             raise group_error("wave_program_empty")
@@ -2791,8 +2761,7 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
             current.update(
                 {"direction": direction, "fti": pump["fti"], "rti": pump["rti"]}
             )
-            if not await base_changed(self._hass, self, intervals):
-                await self._write_local(intervals)
+            await self._write_local(intervals)
             return
         cloud, aquarium = link
         entry = next(
@@ -2859,8 +2828,7 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
                 intervals = schedule_intervals(checked, waves)
             except WaveLibraryError as err:
                 raise self._refusal(err) from err
-            if not await base_changed(self._hass, self, intervals):
-                await self._write_local(intervals)
+            await self._write_local(intervals)
             return
         cloud, aquarium = link
         group = self.wave_group()

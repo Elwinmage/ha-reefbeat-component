@@ -1614,9 +1614,6 @@
       },
       "wave_grouped": {
         "name": "Agrupada com o aquário"
-      },
-      "wave_weather": {
-        "name": "Meteo GPS"
       }
     },
     "text": {
@@ -2130,46 +2127,6 @@
         "grouped": {
           "name": "Agrupada",
           "description": "Ativado para agrupar a bomba, desativado para desagrupar."
-        }
-      }
-    },
-    "wave_weather_preview": {
-      "name": "Pré-visualizar a meteo GPS das ReefWave",
-      "description": "Velocidades de hoje que a meteo de um local daria às bombas de um grupo ReefWave (nada é escrito).",
-      "fields": {
-        "device_id": {
-          "name": "ID do dispositivo",
-          "description": "A entrada de configuração da ReefWave."
-        },
-        "settings": {
-          "name": "Definições",
-          "description": "Definições em edição (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Desvios",
-          "description": "Desvio de cada bomba do grupo (percentagem), por id de hardware."
-        }
-      }
-    },
-    "wave_weather_save": {
-      "name": "Guardar a meteo GPS das ReefWave",
-      "description": "Guarda a meteo GPS de um grupo ReefWave e escreve as suas bombas: o programa meteo, ou o seu próprio programa reposto.",
-      "fields": {
-        "device_id": {
-          "name": "ID do dispositivo",
-          "description": "A entrada de configuração da ReefWave."
-        },
-        "settings": {
-          "name": "Definições",
-          "description": "Definições partilhadas pelo grupo (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Desvios",
-          "description": "Desvio de cada bomba do grupo (percentagem), por id de hardware."
-        },
-        "enabled": {
-          "name": "Ativada",
-          "description": "Verdadeiro para o modo meteo, falso para devolver às bombas o seu próprio programa."
         }
       }
     }

@@ -1622,9 +1622,6 @@
       },
       "wave_grouped": {
         "name": "Grouped with the aquarium"
-      },
-      "wave_weather": {
-        "name": "GPS weather"
       }
     },
     "text": {
@@ -2138,46 +2135,6 @@
         "grouped": {
           "name": "Grouped",
           "description": "On to group the pump, off to ungroup it."
-        }
-      }
-    },
-    "wave_weather_preview": {
-      "name": "Preview the GPS weather of ReefWaves",
-      "description": "Today's speeds the weather of a place would give the pumps of a ReefWave group (nothing is written).",
-      "fields": {
-        "device_id": {
-          "name": "Device ID",
-          "description": "The config entry of the ReefWave."
-        },
-        "settings": {
-          "name": "Settings",
-          "description": "Settings being edited (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Offsets",
-          "description": "Offset of each pump of the group (percent), by hardware id."
-        }
-      }
-    },
-    "wave_weather_save": {
-      "name": "Save the GPS weather of ReefWaves",
-      "description": "Saves the GPS weather of a ReefWave group and writes its pumps: the weather program, or their own program back.",
-      "fields": {
-        "device_id": {
-          "name": "Device ID",
-          "description": "The config entry of the ReefWave."
-        },
-        "settings": {
-          "name": "Settings",
-          "description": "Settings shared by the group (location, source, scale, day_min, day_max, night_min, night_max, tolerance)."
-        },
-        "offsets": {
-          "name": "Offsets",
-          "description": "Offset of each pump of the group (percent), by hardware id."
-        },
-        "enabled": {
-          "name": "Enabled",
-          "description": "True for the weather mode, false to give the pumps their own program back."
         }
       }
     }

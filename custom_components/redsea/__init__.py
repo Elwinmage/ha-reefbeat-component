@@ -94,18 +94,8 @@ from .maintenance import MaintenanceStore, register_led_tasks
 from .reefbeat.cloud import InvalidAuth
 from .reefbeat.control import ReefControlAPI
 from .wave_library import program_waves
-from .wave_weather import (
-    WaveWeatherStore,
-    apply_wave_weather,
-    preview_wave_weather,
-    save_wave_weather,
-)
 
 _LOGGER = logging.getLogger(__name__)
-
-# Seconds after the setup before a missed weather program of a ReefWave is
-# written (the pump and its group are then read)
-WAVE_WEATHER_START_S = 60
 
 
 _HEAD_NAME_RE = re.compile(r"^(?P<prefix>.+)_head_(?P<head>\d+)$")
@@ -298,27 +288,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _cancel("cancel")
 
         entry.async_on_unload(_weather_unload)
-
-    # ReefWave: speeds following the weather of a place (GPS mode)
-    if isinstance(coordinator, ReefWaveCoordinator):
-        wave_store = WaveWeatherStore(hass, entry.entry_id)
-        await wave_store.async_load()
-        coordinator.wave_weather = wave_store
-
-        @callback
-        def _wave_weather_tick(_now: Any) -> None:
-            """Write the day's weather program once a day (and at start)."""
-            if wave_store.due(dt_util.now().date()):
-                hass.async_create_task(apply_wave_weather(hass, coordinator))
-
-        entry.async_on_unload(
-            async_track_time_change(
-                hass, _wave_weather_tick, hour=0, minute=10, second=0
-            )
-        )
-        entry.async_on_unload(
-            async_call_later(hass, WAVE_WEATHER_START_S, _wave_weather_tick)
-        )
 
     # Group (virtual LED): staggered sunrise and offsets written to the lamps
     if isinstance(coordinator, ReefVirtualLedCoordinator):
@@ -1133,18 +1102,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             raise group_error("wave_not_a_wave")
         return device
 
-    def _wave_weather_state(device: ReefWaveCoordinator) -> dict[str, Any]:
-        """GPS weather of a pump, for the program editor: its settings, its
-        own program while in weather mode (the one edited), the last day."""
-        store = getattr(device, "wave_weather", None)
-        if not isinstance(store, WaveWeatherStore):
-            return {}
-        return {
-            "settings": store.settings.as_dict(),
-            "base": store.base if store.settings.enabled else [],
-            "result": store.result,
-        }
-
     async def handle_wave_library(call: ServiceCall) -> ServiceResponse:
         """Waves a ReefWave can use, the pumps using them, and its group.
 
@@ -1174,7 +1131,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             "group": cast(list[JsonValueType], group),
             # Grouped in the app: True / False, None without a cloud account
             "grouped": device.wave_grouped(),
-            "weather": cast(dict[str, JsonValueType], _wave_weather_state(device)),
         }
 
     async def handle_wave_library_save(call: ServiceCall) -> ServiceResponse:
@@ -1237,43 +1193,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         await device.set_wave_grouped(grouped)
         return {"grouped": grouped}
 
-    async def handle_wave_weather_preview(call: ServiceCall) -> ServiceResponse:
-        """Today's speeds the weather would give the pumps of a group."""
-        settings = call.data.get("settings")
-        offsets = call.data.get("offsets")
-        return cast(
-            dict[str, JsonValueType],
-            await preview_wave_weather(
-                hass,
-                _wave(call),
-                settings if isinstance(settings, dict) else None,
-                offsets if isinstance(offsets, dict) else None,
-            ),
-        )
-
-    async def handle_wave_weather_save(call: ServiceCall) -> ServiceResponse:
-        """Save the GPS weather of a group and write its pumps."""
-        settings = call.data.get("settings")
-        offsets = call.data.get("offsets")
-        return cast(
-            dict[str, JsonValueType],
-            await save_wave_weather(
-                hass,
-                _wave(call),
-                settings if isinstance(settings, dict) else None,
-                offsets if isinstance(offsets, dict) else None,
-                call.data.get("enabled") is True,
-            ),
-        )
-
     _LOGGER.debug("Registering services redsea.wave_*")
-    for service, handler in (
-        ("wave_library", handle_wave_library),
-        ("wave_weather_preview", handle_wave_weather_preview),
-    ):
-        hass.services.async_register(
-            DOMAIN, service, handler, supports_response=SupportsResponse.ONLY
-        )
+    hass.services.async_register(
+        DOMAIN,
+        "wave_library",
+        handle_wave_library,
+        supports_response=SupportsResponse.ONLY,
+    )
     for service, handler in (
         ("wave_library_save", handle_wave_library_save),
         ("wave_library_delete", handle_wave_library_delete),
@@ -1283,7 +1209,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         ("wave_pump_set", handle_wave_pump_set),
         ("wave_group_order", handle_wave_group_order),
         ("wave_group_set", handle_wave_group_set),
-        ("wave_weather_save", handle_wave_weather_save),
     ):
         hass.services.async_register(
             DOMAIN, service, handler, supports_response=SupportsResponse.OPTIONAL

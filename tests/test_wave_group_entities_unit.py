@@ -20,7 +20,6 @@ class _Pump:
         self.set_wave_grouped = AsyncMock()
         self.listeners: list[Any] = []
         self.removed = False
-        self.wave_weather: Any = None
 
     def wave_grouped(self) -> bool | None:
         return self.grouped
@@ -59,48 +58,3 @@ async def test_switch_reads_and_writes_the_group() -> None:
     assert pump.removed is True
     # Twice is harmless
     await sw.async_will_remove_from_hass()
-
-
-@pytest.mark.asyncio
-async def test_weather_switch(hass: Any, monkeypatch: pytest.MonkeyPatch) -> None:
-    import custom_components.redsea.wave_group_entities as E
-    from custom_components.redsea.switch import WAVE_WEATHER_SWITCH
-    from custom_components.redsea.wave_weather import WaveWeatherStore
-
-    saved: list[Any] = []
-
-    async def _save(_hass: Any, pump: Any, settings: Any, offsets: Any, on: bool):
-        saved.append((pump, settings, offsets, on))
-        return {}
-
-    monkeypatch.setattr(E, "save_wave_weather", _save)
-    pump = _Pump(True)
-    sw = E.WaveWeatherSwitchEntity(pump, WAVE_WEATHER_SWITCH)
-    assert sw.unique_id == "SER_wave_weather"
-    # No store (yet): off, no attributes, no listener
-    assert sw.is_on is False and sw.extra_state_attributes is None
-    sw.hass = hass
-    await sw.async_added_to_hass()
-    await sw.async_will_remove_from_hass()
-
-    store = WaveWeatherStore(hass, "sw")
-    pump.wave_weather = store
-    assert sw.extra_state_attributes is None
-    store.settings.enabled = True
-    store.result = {"status": "ok", "speeds": [1], "hours": [], "sunrise": "06:00"}
-    assert sw.is_on is True
-    assert sw.extra_state_attributes == {
-        "status": "ok",
-        "sunrise": "06:00",
-        "speeds": [1],
-    }
-    await sw.async_turn_on()
-    await sw.async_turn_off()
-    assert saved == [(pump, None, None, True), (pump, None, None, False)]
-    sw.async_write_ha_state = MagicMock()  # type: ignore[method-assign]
-    await sw.async_added_to_hass()
-    await store.async_save()
-    sw.async_write_ha_state.assert_called_once()
-    await sw.async_will_remove_from_hass()
-    await store.async_save()
-    sw.async_write_ha_state.assert_called_once()
