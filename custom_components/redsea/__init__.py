@@ -38,12 +38,14 @@ from homeassistant.core import (
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later, async_track_time_change
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
 from homeassistant.util.json import JsonValueType
 
 from .const import (
+    CONF_GROUP_MEMBERS,
     CONFIG_FLOW_CLOUD_USERNAME,
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_IP_ADDRESS,
@@ -57,8 +59,11 @@ from .const import (
     HW_POWER_IDS,
     HW_RUN_IDS,
     HW_WAVE_IDS,
+    LINKED_LED,
     PLATFORMS,
     REFRESH_DEVICE_DELAY,
+    SIGNAL_GROUP_MEMBER_GONE,
+    SIGNAL_GROUP_MEMBER_READY,
     VIRTUAL_LED,
 )
 from .coordinator import (
@@ -75,6 +80,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
+from .groups import GroupStore, members_from_legacy
 from .led_weather import (
     WEATHER_SETTLE_SECONDS,
     WEATHER_SHOW_SECONDS,
@@ -228,7 +234,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         @callback
         def _weather_tick(_now: Any) -> None:
-            """Every night, fetch the weather again when it is due."""
+            """Every night, fetch the weather again when it is due.
+
+            A lamp of a group uses its group's weather program (see
+            ReefLedCoordinator.weather): the group runs it for all its lamps.
+            """
+            if coordinator.weather is not weather_store:
+                return
             if weather_store.due(dt_util.now().date()):
                 hass.async_create_task(run_weather(hass, coordinator))
 
@@ -276,6 +288,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         entry.async_on_unload(_weather_unload)
 
+    # Group (virtual LED): staggered sunrise and offsets written to the lamps
+    if isinstance(coordinator, ReefVirtualLedCoordinator):
+        group_store = GroupStore(hass, entry.entry_id)
+        await group_store.async_load()
+        coordinator.group_store = group_store
+
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
     # Before the platforms build their entities, so a leak probe keeps its
@@ -285,6 +303,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _migrate_leak_unique_ids(hass, entry, coordinator)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Presence: the group this device belongs to (if any) follows it now
+    async_dispatcher_send(hass, SIGNAL_GROUP_MEMBER_READY, entry.entry_id)
+    # A group whose members or order changed writes its offsets again
+    if isinstance(coordinator, ReefVirtualLedCoordinator):
+        coordinator.async_reconcile_staggered()
 
     # After a probe is removed (via the options flow, which reloads the entry),
     # its entities are no longer rebuilt but linger in the registry — drop them.
@@ -303,6 +327,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await _migrate_head_device_names(hass, entry)
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
+    return True
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Migrate a config entry to the current version.
+
+    1.1 -> 1.2: a virtual LED keeps its members as an ordered list of entry
+    ids (CONF_GROUP_MEMBERS) instead of the "linked" mapping, whose keys
+    embedded the model and the title of each LED.
+    """
+    if entry.version > 1:
+        # Written by a newer version of the integration: cannot be read
+        return False
+    if entry.minor_version < 2:
+        data = dict(entry.data)
+        if LINKED_LED in data:
+            data[CONF_GROUP_MEMBERS] = members_from_legacy(data.pop(LINKED_LED) or {})
+            _LOGGER.info(
+                "Migrated %s to an ordered group of %d LEDs",
+                entry.title,
+                len(data[CONF_GROUP_MEMBERS]),
+            )
+        hass.config_entries.async_update_entry(entry, data=data, minor_version=2)
     return True
 
 
@@ -486,6 +533,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         return False
 
     coordinator = hass.data[DOMAIN].pop(entry.entry_id, None)
+    # Presence: the group this device belongs to (if any) lets it go
+    async_dispatcher_send(hass, SIGNAL_GROUP_MEMBER_GONE, entry.entry_id)
     if coordinator is not None:
         # Cancel the DataUpdateCoordinator's internal Debouncer timer.
         # Try async_shutdown() first (HA 2024.x+), then fall back to

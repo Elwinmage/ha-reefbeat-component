@@ -22,6 +22,7 @@ from custom_components.redsea.const import (
     CLOUD_DEVICE_TYPE,
     CLOUD_SCAN_INTERVAL,
     CLOUD_SERVER_ADDR,
+    CONF_GROUP_MEMBERS,
     CONFIG_FLOW_ADD_TYPE,
     CONFIG_FLOW_CLOUD_PASSWORD,
     CONFIG_FLOW_CLOUD_USERNAME,
@@ -41,7 +42,6 @@ from custom_components.redsea.const import (
     HW_POWER_IDS,
     HW_RUN_IDS,
     LED_SCAN_INTERVAL,
-    LINKED_LED,
     MAT_SCAN_INTERVAL,
     POWER_SCAN_INTERVAL,
     RUN_SCAN_INTERVAL,
@@ -776,28 +776,27 @@ async def test_options_flow_missing_hw_model_falls_back_to_generic_schema(
     assert CONFIG_FLOW_CONFIG_TYPE in " ".join(schema_keys)
 
 
-@pytest.mark.asyncio
-async def test_options_flow_virtual_led_builds_leds_schema_and_links_enabled_leds(
-    hass: HomeAssistant,
-) -> None:
-    """Cover virtual LED options schema creation (iterating hass.data) + linking update."""
+class ReefLedCoordinator:
+    """Stand-in for a loaded G1 lamp (the options flow matches the type name)."""
 
+    def __init__(self, serial: str, model: str) -> None:
+        self.serial = serial
+        self.model = model
+
+
+class ReefLedG2Coordinator(ReefLedCoordinator):
+    """Stand-in for a loaded G2 lamp."""
+
+
+class _OtherGroup:
+    """Stand-in for another loaded group (a coordinator with member_ids)."""
+
+    def __init__(self, members: list[str]) -> None:
+        self.member_ids = members
+
+
+def _virtual_entry(hass: HomeAssistant, members: list[str]) -> Any:
     from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-    # Populate hass.data with fake LED coordinators whose type names match.
-    class ReefLedCoordinator:
-        def __init__(self, serial: str, model: str) -> None:
-            self.serial = serial
-            self.model = model
-
-    class ReefLedG2Coordinator:
-        def __init__(self, serial: str, model: str) -> None:
-            self.serial = serial
-            self.model = model
-
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN]["dev1"] = ReefLedCoordinator("S1", "RSLED50")
-    hass.data[DOMAIN]["dev2"] = ReefLedG2Coordinator("S2", "RSLED60")
 
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -806,42 +805,98 @@ async def test_options_flow_virtual_led_builds_leds_schema_and_links_enabled_led
             CONFIG_FLOW_IP_ADDRESS: VIRTUAL_LED,
             CONFIG_FLOW_HW_MODEL: VIRTUAL_LED,
             CONFIG_FLOW_SCAN_INTERVAL: VIRTUAL_LED_SCAN_INTERVAL,
-            LINKED_LED: {},
+            CONF_GROUP_MEMBERS: members,
         },
         unique_id="vled-uid",
+        minor_version=2,
     )
     entry.add_to_hass(hass)
+    return entry
+
+
+def _options(result: dict[str, Any]) -> dict[str, str]:
+    """value -> label of the (single) select field of a group step."""
+    field = next(iter(result["data_schema"].schema.values()))
+    return {o["value"]: o["label"] for o in field.config["options"]}
+
+
+@pytest.mark.asyncio
+async def test_options_flow_virtual_led_chooses_and_orders_members(
+    hass: HomeAssistant,
+) -> None:
+    """Choose the LEDs of a group, then order them: the order is kept."""
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN]["dev1"] = ReefLedCoordinator("S1", "RSLED50")
+    hass.data[DOMAIN]["dev2"] = ReefLedG2Coordinator("S2", "RSLED60")
+    hass.data[DOMAIN]["dev3"] = ReefLedCoordinator("S3", "RSLED90")
+    # dev4 is in another group: not offered
+    hass.data[DOMAIN]["dev4"] = ReefLedCoordinator("S4", "RSLED90")
+    hass.data[DOMAIN]["other"] = _OtherGroup(["dev4"])
+    # A current member not loaded is still offered (with its entry title)
+    offline = MockConfigEntry(domain=DOMAIN, title="Offline LED", data={})
+    offline.add_to_hass(hass)
+    entry = _virtual_entry(hass, ["dev3", offline.entry_id, "gone"])
+    # Our own coordinator is loaded too: it must not exclude its members
+    hass.data[DOMAIN][entry.entry_id] = _OtherGroup(["dev3"])
 
     result = cast(
         dict[str, Any], await hass.config_entries.options.async_init(entry.entry_id)
     )
     assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "group_members"
+    labels = _options(result)
+    assert labels["dev1"] == "S1 (RSLED50)"
+    assert labels["dev2"] == "S2 (RSLED60)"
+    assert "dev4" not in labels
+    assert labels[offline.entry_id] == "Offline LED (?)"
+    assert labels["gone"] == "gone (?)"
 
-    # Extract the keys from the schema; should include our LED devices.
-    schema = result["data_schema"]
-    schema_keys = list(schema.schema.keys())
-    assert any("LED-RSLED50" in str(k) for k in schema_keys)
-    assert any("LED-RSLED60" in str(k) for k in schema_keys)
+    # Fewer than two LEDs: refused
+    result = cast(
+        dict[str, Any],
+        await hass.config_entries.options.async_configure(
+            result["flow_id"], user_input={CONF_GROUP_MEMBERS: ["dev1"]}
+        ),
+    )
+    assert result["errors"] == {"base": "group_min_members"}
 
-    # Configure linking: enable only the first.
-    led1_key = next(k for k in schema_keys if "LED-RSLED50" in str(k))
-    led2_key = next(k for k in schema_keys if "LED-RSLED60" in str(k))
+    # Kept members keep their order, new ones come last
+    result = cast(
+        dict[str, Any],
+        await hass.config_entries.options.async_configure(
+            result["flow_id"], user_input={CONF_GROUP_MEMBERS: ["dev1", "dev3"]}
+        ),
+    )
+    assert result["step_id"] == "group_order"
+    keys = [str(k) for k in result["data_schema"].schema]
+    assert keys == ["position_1", "position_2"]
+    defaults = [k.default() for k in result["data_schema"].schema]
+    assert defaults == ["dev3", "dev1"]
 
-    result2 = cast(
+    # The same LED twice: refused, the form shows the order given
+    result = cast(
         dict[str, Any],
         await hass.config_entries.options.async_configure(
             result["flow_id"],
-            user_input={
-                str(led1_key): True,
-                str(led2_key): False,
-            },
+            user_input={"position_1": "dev1", "position_2": "dev1"},
         ),
     )
-    assert result2["type"] == FlowResultType.CREATE_ENTRY
+    assert result["errors"] == {"base": "group_duplicate_position"}
+    defaults = [k.default() for k in result["data_schema"].schema]
+    assert defaults == ["dev1", "dev1"]
 
-    # Entry should get the linked LED mapping with only the enabled one.
-    linked = cast(dict[str, Any], entry.data[LINKED_LED])
-    assert len(linked) == 1
+    result = cast(
+        dict[str, Any],
+        await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={"position_1": "dev1", "position_2": "dev3"},
+        ),
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.data[CONF_GROUP_MEMBERS] == ["dev1", "dev3"]
+    assert entry.data[CONFIG_FLOW_HW_MODEL] == VIRTUAL_LED
 
 
 async def test_config_flow_cloud_server_with_simulator_flag(
@@ -919,3 +974,208 @@ async def test_config_flow_cloud_server_hidden_by_default(
     )
     fields = [str(key) for key in result2["data_schema"].schema]
     assert fields == [CONFIG_FLOW_CLOUD_USERNAME, CONFIG_FLOW_CLOUD_PASSWORD]
+
+
+class ReefBeatCloudCoordinator:
+    """Stand-in for a loaded cloud account (matched by its type name)."""
+
+    def __init__(self, devices: list[dict[str, Any]]) -> None:
+        self.devices = devices
+
+    def get_data(self, _name: str, _none: bool = False) -> Any:
+        return self.devices
+
+
+@pytest.mark.asyncio
+async def test_options_flow_new_group_starts_with_the_app_group(
+    hass: HomeAssistant,
+) -> None:
+    """A new virtual LED proposes the lamps grouped in the ReefBeat app."""
+    hass.data.setdefault(DOMAIN, {})
+    for n in (1, 2, 3):
+        led = ReefLedCoordinator(f"S{n}", "RSLED160")
+        led.model_id = f"h{n}"  # type: ignore[attr-defined]
+        hass.data[DOMAIN][f"dev{n}"] = led
+
+    def device(hwid: str, grouped: bool, index: int = 0) -> dict[str, Any]:
+        return {
+            "hwid": hwid,
+            "model": "RSLED160",
+            "aquarium_uid": "aq",
+            "grouped": grouped,
+            "group_index": index,
+        }
+
+    hass.data[DOMAIN]["cloud"] = ReefBeatCloudCoordinator(
+        [
+            device("h1", True, 1),
+            device("h3", True, 0),
+            device("h2", False),
+            device("unknown", True),
+        ]
+    )
+    # Another account with a group of one lamp: not enough for a group
+    hass.data[DOMAIN]["cloud2"] = ReefBeatCloudCoordinator([device("h2", True)])
+    entry = _virtual_entry(hass, [])
+    result = cast(
+        dict[str, Any], await hass.config_entries.options.async_init(entry.entry_id)
+    )
+    field = next(iter(result["data_schema"].schema))
+    assert field.default() == ["dev3", "dev1"]
+    result = cast(
+        dict[str, Any],
+        await hass.config_entries.options.async_configure(
+            result["flow_id"], user_input={CONF_GROUP_MEMBERS: ["dev1", "dev3"]}
+        ),
+    )
+    # In the app's order
+    assert [k.default() for k in result["data_schema"].schema] == ["dev3", "dev1"]
+
+    # Nothing grouped in the app: nothing proposed
+    hass.data[DOMAIN]["cloud"] = ReefBeatCloudCoordinator(None)  # type: ignore[arg-type]
+    del hass.data[DOMAIN]["cloud2"]
+    result = cast(
+        dict[str, Any], await hass.config_entries.options.async_init(entry.entry_id)
+    )
+    assert next(iter(result["data_schema"].schema)).default() == []
+
+
+class _AppGroups:
+    """Stand-in for a loaded cloud account listing the groups of the app."""
+
+    def __init__(self, groups: dict[tuple[str, str], list[str]]) -> None:
+        self.groups = groups
+
+    def app_groups(self) -> dict[tuple[str, str], list[str]]:
+        return self.groups
+
+
+def _discovery(members: list[str], **extra: Any) -> dict[str, Any]:
+    return {
+        "aquarium_uid": "aq",
+        "aquarium": "Reef",
+        "model": "RSLED160",
+        CONF_GROUP_MEMBERS: members,
+        **extra,
+    }
+
+
+@pytest.mark.asyncio
+async def test_discovered_group_creates_its_virtual_led(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A group of the ReefBeat app is proposed; confirmed, its virtual LED
+    is made of the lamps the cloud lists then (in the app's order)."""
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    import custom_components.redsea as integration
+
+    async def _setup(*_a: Any) -> bool:
+        return True
+
+    monkeypatch.setattr(integration, "async_setup_entry", _setup)
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN]["dev1"] = ReefLedCoordinator("S1", "RSLED160")
+    MockConfigEntry(domain=DOMAIN, title="Lamp 2", entry_id="dev2").add_to_hass(hass)
+
+    flow = cast(Any, hass.config_entries.flow)
+    result = cast(
+        dict[str, Any],
+        await flow.async_init(
+            DOMAIN,
+            context={"source": "integration_discovery"},
+            data=_discovery(["dev1", "dev2", "gone"]),
+        ),
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "discovery_confirm"
+    placeholders = result["description_placeholders"]
+    assert placeholders["model"] == "RSLED160"
+    assert placeholders["aquarium"] == "Reef"
+    # Loaded lamp, lamp not loaded (its entry title), unknown lamp
+    assert placeholders["leds"] == "1. S1 (RSLED160)\n2. Lamp 2\n3. gone"
+    progress = flow.async_progress()
+    assert progress[0]["context"]["title_placeholders"] == {
+        "name": f"{VIRTUAL_LED} RSLED160 × 3"
+    }
+    # The same group again: already proposed
+    again = cast(
+        dict[str, Any],
+        await flow.async_init(
+            DOMAIN,
+            context={"source": "integration_discovery"},
+            data=_discovery(["dev1", "dev2"]),
+        ),
+    )
+    assert again["type"] == FlowResultType.ABORT
+
+    # The cloud now lists the group in another order
+    hass.data[DOMAIN]["cloud"] = _AppGroups({("aq", "RSLED160"): ["dev2", "dev1"]})
+    hass.data[DOMAIN]["other"] = _AppGroups({})
+    done = cast(
+        dict[str, Any], await flow.async_configure(result["flow_id"], user_input={})
+    )
+    assert done["type"] == FlowResultType.CREATE_ENTRY
+    assert done["title"].startswith(f"{VIRTUAL_LED}-")
+    assert done["data"] == {
+        CONFIG_FLOW_IP_ADDRESS: done["title"],
+        CONFIG_FLOW_HW_MODEL: VIRTUAL_LED,
+        CONFIG_FLOW_SCAN_INTERVAL: VIRTUAL_LED_SCAN_INTERVAL,
+        CONF_GROUP_MEMBERS: ["dev2", "dev1"],
+    }
+    # Its virtual LED exists: not proposed again
+    result = cast(
+        dict[str, Any],
+        await flow.async_init(
+            DOMAIN,
+            context={"source": "integration_discovery"},
+            data=_discovery(["dev1", "dev2"]),
+        ),
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "info",
+    [
+        _discovery(["dev1"]),
+        _discovery("dev1"),  # type: ignore[arg-type]
+        _discovery(["dev1", "dev2"], model=""),
+        _discovery(["dev1", "dev2"], aquarium_uid=None),
+    ],
+)
+async def test_discovered_group_unusable(
+    hass: HomeAssistant, info: dict[str, Any]
+) -> None:
+    result = cast(
+        dict[str, Any],
+        await cast(Any, hass.config_entries.flow).async_init(
+            DOMAIN, context={"source": "integration_discovery"}, data=info
+        ),
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "cannot_create"
+
+
+@pytest.mark.asyncio
+async def test_discovered_group_taken_meanwhile(hass: HomeAssistant) -> None:
+    """A lamp of the group went in a virtual LED made meanwhile, or the
+    group lost its lamps: nothing is created."""
+    hass.data.setdefault(DOMAIN, {})
+    flow = cast(Any, hass.config_entries.flow)
+    result = cast(
+        dict[str, Any],
+        await flow.async_init(
+            DOMAIN,
+            context={"source": "integration_discovery"},
+            data=_discovery(["dev1", "dev2"]),
+        ),
+    )
+    _virtual_entry(hass, ["dev2", "dev9"])
+    done = cast(
+        dict[str, Any], await flow.async_configure(result["flow_id"], user_input={})
+    )
+    assert done["type"] == FlowResultType.ABORT
+    assert done["reason"] == "group_already_driven"

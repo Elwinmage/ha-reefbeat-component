@@ -25,6 +25,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.selector import (
+    SelectOptionDict,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
 from .auto_detect import (
     ReefBeatInfo,
@@ -43,6 +49,8 @@ from .const import (
     CLOUD_DEVICE_TYPE,
     CLOUD_SCAN_INTERVAL,
     CLOUD_SERVER_ADDR,
+    CONF_GROUP_MEMBERS,
+    CONF_GROUP_POSITION,
     CONFIG_FLOW_ADD_TYPE,
     CONFIG_FLOW_CLOUD_PASSWORD,
     CONFIG_FLOW_CLOUD_SERVER,
@@ -64,6 +72,7 @@ from .const import (
     CONTROL_SCAN_INTERVAL,
     DOMAIN,
     DOSE_SCAN_INTERVAL,
+    GROUP_MIN_MEMBERS,
     HTTP_DELAY_BETWEEN_RETRY,
     HTTP_MAX_RETRY,
     HW_ATO_IDS,
@@ -76,7 +85,6 @@ from .const import (
     HW_RUN_IDS,
     LED_SCAN_INTERVAL,
     LEDS_INTENSITY_COMPENSATION,
-    LINKED_LED,
     MAT_SCAN_INTERVAL,
     OPTIONS_MENU_ADD_PROBE,
     OPTIONS_MENU_CHANGE_PROBE,
@@ -93,6 +101,7 @@ from .const import (
     WIFI_REDISCOVER_INTERVAL,
     WIFI_REDISCOVER_MAX_ATTEMPTS,
 )
+from .groups import cloud_groups, discovery_unique_id
 from .reefbeat import parse
 from .wifi import (
     connect_wifi,
@@ -226,6 +235,8 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """ReefBeat config flow."""
 
     VERSION = 1
+    # 1.2: virtual LED members kept as an ordered list (CONF_GROUP_MEMBERS)
+    MINOR_VERSION = 2
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     async def _unique_id(self, user_input: dict[str, Any]) -> str:
@@ -242,6 +253,94 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         _LOGGER.error("Could not get UUID for %s; falling back to IP as unique_id", ip)
         return ip
+
+    # Discovered groups of the ReefBeat app (see ReefBeatCloudCoordinator)
+    _discovered: dict[str, Any]
+
+    def _discovered_members(self) -> list[str]:
+        """Lamps of the discovered group, read again from the cloud accounts
+        (a lamp loaded since the proposal joins it); the proposal's when
+        no account lists the group anymore."""
+        key = (
+            str(self._discovered.get("aquarium_uid")),
+            str(self._discovered.get("model")),
+        )
+        for cloud in self.hass.data.get(DOMAIN, {}).values():
+            app_groups = getattr(cloud, "app_groups", None)
+            if callable(app_groups):
+                groups = cast(dict[tuple[str, str], list[str]], app_groups())
+                members = groups.get(key)
+                if members:
+                    return list(members)
+        return [str(m) for m in self._discovered.get(CONF_GROUP_MEMBERS, [])]
+
+    def _lamp_label(self, entry_id: str) -> str:
+        """A lamp as shown to the user: serial (model), else its entry title."""
+        led = self.hass.data.get(DOMAIN, {}).get(entry_id)
+        if led is not None:
+            return f"{led.serial} ({led.model})"
+        entry = self.hass.config_entries.async_get_entry(entry_id)
+        return entry.title if entry is not None else entry_id
+
+    async def async_step_integration_discovery(
+        self, discovery_info: dict[str, Any]
+    ) -> config_entries.ConfigFlowResult:
+        """A group of the ReefBeat app no virtual LED drives: propose one."""
+        members = discovery_info.get(CONF_GROUP_MEMBERS)
+        model = discovery_info.get("model")
+        aquarium_uid = discovery_info.get("aquarium_uid")
+        if (
+            not isinstance(members, list)
+            or len(members) < GROUP_MIN_MEMBERS
+            or not model
+            or not aquarium_uid
+        ):
+            return self.async_abort(reason="cannot_create")
+        await self.async_set_unique_id(
+            discovery_unique_id(str(aquarium_uid), str(model))
+        )
+        self._abort_if_unique_id_configured()
+        self._discovered = dict(discovery_info)
+        self.context["title_placeholders"] = {
+            "name": f"{VIRTUAL_LED} {model} × {len(members)}"
+        }
+        return await self.async_step_discovery_confirm()
+
+    async def async_step_discovery_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Show the lamps of the group, create its virtual LED on confirm."""
+        members = self._discovered_members()
+        if user_input is not None:
+            taken = {
+                str(member)
+                for entry in self.hass.config_entries.async_entries(DOMAIN)
+                for member in entry.data.get(CONF_GROUP_MEMBERS, []) or []
+            }
+            if len(members) < GROUP_MIN_MEMBERS or taken.intersection(members):
+                return self.async_abort(reason="group_already_driven")
+            title = f"{VIRTUAL_LED}-{int(time())}"
+            return self.async_create_entry(
+                title=title,
+                data={
+                    CONFIG_FLOW_IP_ADDRESS: title,
+                    CONFIG_FLOW_HW_MODEL: VIRTUAL_LED,
+                    CONFIG_FLOW_SCAN_INTERVAL: VIRTUAL_LED_SCAN_INTERVAL,
+                    CONF_GROUP_MEMBERS: members,
+                },
+            )
+        self._set_confirm_only()
+        return self.async_show_form(
+            step_id="discovery_confirm",
+            description_placeholders={
+                "model": str(self._discovered.get("model")),
+                "aquarium": str(self._discovered.get("aquarium")),
+                "leds": "\n".join(
+                    f"{pos + 1}. {self._lamp_label(entry_id)}"
+                    for pos, entry_id in enumerate(members)
+                ),
+            },
+        )
 
     def _cloud_schema(self, values: dict[str, Any]) -> vol.Schema:
         """Form of a cloud account, filled with what was typed.
@@ -568,11 +667,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     Structure:
         - init: dispatcher. For a plain local device (LED/DOSE/ATO/RUN/MAT/
           POWER/CONTROL/WAVE) it presents a menu offering either the classic
-          settings form or a Wi-Fi provisioning flow. Cloud accounts and
-          virtual LED entries skip the menu and go straight to their
-          dedicated form to preserve their existing UX.
+          settings form or a Wi-Fi provisioning flow. Cloud accounts skip
+          the menu and go straight to their settings form; virtual LED
+          entries go straight to their group steps.
         - settings: classic form (scan_interval, live_config_update, and
-          optional intensity_compensation / cloud credentials / linked-LEDs).
+          optional intensity_compensation / cloud credentials).
+        - group_members / group_order: the LEDs of a virtual LED, then their
+          order (the group order of the ReefBeat app).
         - wifi_scan: scans the device's visible Wi-Fi networks, lets the
           user pick one and enter its password.
         - wifi_apply: runs connect → reset → rediscover as a background task
@@ -604,6 +705,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         # around so the manual-subnet step can show the user which CIDRs
         # were tried in vain, avoiding pointless re-scans.
         self._wifi_manual_candidates: list[str] = []
+        # Group (virtual LED): members chosen, waiting to be ordered
+        self._new_group_members: list[str] = []
 
     # ------------------------------------------------------------------
     # Dispatcher
@@ -625,8 +728,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         kind = self._entry_kind()
 
         if kind == "virtual":
-            # Virtual LEDs only expose a linking form — no menu, no Wi-Fi.
-            return await self.async_step_settings(user_input)
+            # Virtual LEDs only choose and order their LEDs — no menu, no Wi-Fi.
+            return await self.async_step_group_members()
 
         if kind == "cloud":
             # Cloud accounts have no local IP — no Wi-Fi provisioning either.
@@ -732,94 +835,66 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 )
                 return self.async_create_entry(data=data)
 
-            # Virtual LED linking options
-            leds: dict[str, bool] = {}
-            for led_key, enabled in user_input.items():
-                if enabled:
-                    leds[led_key] = True
-
-            data = {
-                CONFIG_FLOW_IP_ADDRESS: self._config_entry.data[CONFIG_FLOW_IP_ADDRESS],
-                CONFIG_FLOW_HW_MODEL: VIRTUAL_LED,
-                CONFIG_FLOW_SCAN_INTERVAL: VIRTUAL_LED_SCAN_INTERVAL,
-                LINKED_LED: leds,
-            }
-            self.hass.config_entries.async_update_entry(
-                self._config_entry, data=data, options=self._config_entry.options
-            )
-            return self.async_create_entry(data=data)
-
         errors: dict[str, str] = {}
         options_schema: vol.Schema | None = None
 
-        if not self._config_entry.title.startswith(VIRTUAL_LED + "-"):
-            hw_model: str | None = None
+        hw_model: str | None = None
+        res = []
+        try:
+            hw_model = cast(str, self._config_entry.data[CONFIG_FLOW_HW_MODEL])
+            query = parse('$[?(@.name=="' + hw_model + '")]')
+            res = query.find(LEDS_INTENSITY_COMPENSATION)
+        except Exception:
+            hw_model = None
             res = []
-            try:
-                hw_model = cast(str, self._config_entry.data[CONFIG_FLOW_HW_MODEL])
-                query = parse('$[?(@.name=="' + hw_model + '")]')
-                res = query.find(LEDS_INTENSITY_COMPENSATION)
-            except Exception:
-                hw_model = None
-                res = []
 
-            if len(res) > 0:
-                options_schema = vol.Schema(
-                    {
-                        vol.Required(
+        if len(res) > 0:
+            options_schema = vol.Schema(
+                {
+                    vol.Required(
+                        CONFIG_FLOW_SCAN_INTERVAL,
+                        default=get_scan_interval_safe(hw_model),
+                    ): int,
+                    vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
+                    vol.Required(
+                        CONFIG_FLOW_INTENSITY_COMPENSATION, default=False
+                    ): bool,
+                }
+            )
+        elif hw_model == CLOUD_DEVICE_TYPE:
+            options_schema = vol.Schema(
+                {
+                    vol.Required(
+                        CONFIG_FLOW_CLOUD_USERNAME,
+                        default=self._config_entry.data[CONFIG_FLOW_CLOUD_USERNAME],
+                    ): str,
+                    vol.Required(
+                        CONFIG_FLOW_CLOUD_PASSWORD,
+                        default=self._config_entry.data[CONFIG_FLOW_CLOUD_PASSWORD],
+                    ): str,
+                    vol.Required(
+                        CONFIG_FLOW_SCAN_INTERVAL,
+                        default=self._config_entry.data.get(
                             CONFIG_FLOW_SCAN_INTERVAL,
-                            default=get_scan_interval_safe(hw_model),
-                        ): int,
-                        vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
-                        vol.Required(
-                            CONFIG_FLOW_INTENSITY_COMPENSATION, default=False
-                        ): bool,
-                    }
-                )
-            elif hw_model == CLOUD_DEVICE_TYPE:
-                options_schema = vol.Schema(
-                    {
-                        vol.Required(
-                            CONFIG_FLOW_CLOUD_USERNAME,
-                            default=self._config_entry.data[CONFIG_FLOW_CLOUD_USERNAME],
-                        ): str,
-                        vol.Required(
-                            CONFIG_FLOW_CLOUD_PASSWORD,
-                            default=self._config_entry.data[CONFIG_FLOW_CLOUD_PASSWORD],
-                        ): str,
-                        vol.Required(
-                            CONFIG_FLOW_SCAN_INTERVAL,
-                            default=self._config_entry.data.get(
-                                CONFIG_FLOW_SCAN_INTERVAL,
-                                get_scan_interval_safe(hw_model),
-                            ),
-                        ): int,
-                        vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
-                        vol.Required(
-                            CONFIG_FLOW_DISABLE_SUPPLEMENT, default=True
-                        ): bool,
-                    }
-                )
-            else:
-                options_schema = vol.Schema(
-                    {
-                        vol.Required(
-                            CONFIG_FLOW_SCAN_INTERVAL,
-                            default=get_scan_interval_safe(hw_model),
-                        ): int,
-                        vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
-                    }
-                )
+                            get_scan_interval_safe(hw_model),
+                        ),
+                    ): int,
+                    vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
+                    vol.Required(CONFIG_FLOW_DISABLE_SUPPLEMENT, default=True): bool,
+                }
+            )
         else:
-            leds_schema: dict[Any, Any] = {}
-            for dev_id in self.hass.data.get(DOMAIN, {}):
-                led = self.hass.data[DOMAIN][dev_id]
-                if type(led).__name__ in ("ReefLedCoordinator", "ReefLedG2Coordinator"):
-                    key = f"LED-{led.model}-: {led.serial} ({dev_id})"
-                    leds_schema[vol.Required(key)] = bool
-            options_schema = vol.Schema(leds_schema)
+            options_schema = vol.Schema(
+                {
+                    vol.Required(
+                        CONFIG_FLOW_SCAN_INTERVAL,
+                        default=get_scan_interval_safe(hw_model),
+                    ): int,
+                    vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
+                }
+            )
 
-        # We render the same form under two step ids: "init" for cloud/virtual
+        # We render the same form under two step ids: "init" for cloud
         # entries that skip the menu (preserving their long-standing UX and
         # translation strings), and "settings" for local devices coming from
         # the menu (so both branches can coexist in strings.json).
@@ -831,6 +906,163 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 options_schema, self._config_entry.options
             ),
             errors=errors,
+        )
+
+    # ------------------------------------------------------------------
+    # Group steps (virtual LED): choose the LEDs, then their order
+    # ------------------------------------------------------------------
+
+    def _group_members(self) -> list[str]:
+        """Current members of the group entry, in the group order."""
+        return [str(e) for e in self._config_entry.data.get(CONF_GROUP_MEMBERS, [])]
+
+    def _group_candidates(self) -> dict[str, str]:
+        """LEDs that can be members of this group: entry id -> label.
+
+        Loaded ReefLEDs not already in another group, plus the current
+        members even when not loaded (so an offline lamp is not dropped by
+        saving the form).
+        """
+        loaded = self.hass.data.get(DOMAIN, {})
+        taken: set[str] = set()
+        for entry_id, coordinator in loaded.items():
+            if entry_id == self._config_entry.entry_id:
+                continue
+            members = getattr(coordinator, "member_ids", None)
+            if isinstance(members, list):
+                taken.update(str(m) for m in members)
+
+        candidates: dict[str, str] = {}
+        for entry_id, led in loaded.items():
+            if entry_id in taken:
+                continue
+            if type(led).__name__ in ("ReefLedCoordinator", "ReefLedG2Coordinator"):
+                candidates[entry_id] = f"{led.serial} ({led.model})"
+        for entry_id in self._group_members():
+            if entry_id not in candidates:
+                entry = self.hass.config_entries.async_get_entry(entry_id)
+                title = entry.title if entry is not None else entry_id
+                candidates[entry_id] = f"{title} (?)"
+        return candidates
+
+    def _cloud_grouped(self, candidates: dict[str, str]) -> list[str]:
+        """Lamps already grouped in the ReefBeat app, in its order.
+
+        Read from the loaded cloud accounts: the first group (lamps of one
+        model in one aquarium) of at least two of the candidates.
+        """
+        loaded = self.hass.data.get(DOMAIN, {})
+        entry_of = {
+            str(getattr(loaded[entry_id], "model_id", "")): entry_id
+            for entry_id in candidates
+            if entry_id in loaded
+        }
+        for cloud in loaded.values():
+            if type(cloud).__name__ != "ReefBeatCloudCoordinator":
+                continue
+            devices = cloud.get_data("$.sources[?(@.name=='/device')].data", True)
+            groups = list(cloud_groups(devices, entry_of).values())
+            if groups:
+                return groups[0]
+        return []
+
+    async def async_step_group_members(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Choose the LEDs of the group (at least two).
+
+        A new group starts with the lamps grouped in the ReefBeat app (in its
+        order), when a cloud account lists some.
+        """
+        candidates = self._group_candidates()
+        current = [
+            e for e in self._group_members() if e in candidates
+        ] or self._cloud_grouped(candidates)
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            selected = [
+                str(e)
+                for e in user_input.get(CONF_GROUP_MEMBERS, [])
+                if e in candidates
+            ]
+            if len(selected) < GROUP_MIN_MEMBERS:
+                errors["base"] = "group_min_members"
+            else:
+                # Keep the order of the members kept, new ones at the end
+                self._new_group_members = [e for e in current if e in selected] + [
+                    e for e in selected if e not in current
+                ]
+                return await self.async_step_group_order()
+
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_GROUP_MEMBERS, default=current): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[
+                            SelectOptionDict(value=entry_id, label=label)
+                            for entry_id, label in candidates.items()
+                        ],
+                        multiple=True,
+                        mode=SelectSelectorMode.LIST,
+                    )
+                )
+            }
+        )
+        return self.async_show_form(
+            step_id="group_members", data_schema=schema, errors=errors
+        )
+
+    async def async_step_group_order(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Order the LEDs of the group: one LED per position.
+
+        The order is the group order of the ReefBeat app (group_index): the
+        staggered sunrise starts with the first LED.
+        """
+        members = self._new_group_members
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            ordered = [
+                str(user_input.get(f"{CONF_GROUP_POSITION}{pos + 1}"))
+                for pos in range(len(members))
+            ]
+            if sorted(ordered) != sorted(members):
+                errors["base"] = "group_duplicate_position"
+                members = ordered
+            else:
+                data = {
+                    CONFIG_FLOW_IP_ADDRESS: self._config_entry.data[
+                        CONFIG_FLOW_IP_ADDRESS
+                    ],
+                    CONFIG_FLOW_HW_MODEL: VIRTUAL_LED,
+                    CONFIG_FLOW_SCAN_INTERVAL: VIRTUAL_LED_SCAN_INTERVAL,
+                    CONF_GROUP_MEMBERS: ordered,
+                }
+                self.hass.config_entries.async_update_entry(
+                    self._config_entry, data=data, options=self._config_entry.options
+                )
+                return self.async_create_entry(data=data)
+
+        candidates = self._group_candidates()
+        options = [
+            SelectOptionDict(value=entry_id, label=candidates.get(entry_id, entry_id))
+            for entry_id in self._new_group_members
+        ]
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    f"{CONF_GROUP_POSITION}{pos + 1}", default=entry_id
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=options, mode=SelectSelectorMode.DROPDOWN
+                    )
+                )
+                for pos, entry_id in enumerate(members)
+            }
+        )
+        return self.async_show_form(
+            step_id="group_order", data_schema=schema, errors=errors
         )
 
     # ------------------------------------------------------------------

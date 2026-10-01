@@ -12,6 +12,7 @@ from ..const import (
     LED_KELVIN_INTERNAL_NAME,
     LED_MANUAL_DURATION_INTERNAL_NAME,
     LED_MOON_INTERNAL_NAME,
+    LED_OFFSET_SOURCE,
     LED_WHITE_INTERNAL_NAME,
     LEDS_CONV,
     LEDS_INTENSITY_COMPENSATION,
@@ -149,6 +150,7 @@ class ReefLedAPI(ReefBeatAPI):
 
         - If `/dashboard` is missing, treat it as RSLED90 and use `/` for device-info.
         - If `/preset_name` exists as a single endpoint, use it; otherwise use per-day endpoints.
+        - If `/offset` exists (staggered sunrise), read it.
         Always ensures required sources for manual, acclimation, schedules, and clouds exist.
         """
         # RSLED90 patch: /dashboard not available -> use "/" as device-info
@@ -168,6 +170,10 @@ class ReefLedAPI(ReefBeatAPI):
             self._preset_name_is_single = False
             for day in range(1, 8):
                 self.add_source(f"/preset_name/{day}", "config", "")
+
+        # Staggered sunrise offset (minutes): not on every firmware
+        if await self._probe_path(LED_OFFSET_SOURCE) == 200:
+            self.add_source(LED_OFFSET_SOURCE, "config", "")
 
         # Additional required sources
         self.add_source("/manual", "data", "")

@@ -16,7 +16,8 @@ set from the card, a dashboard or an automation:
 - time    weather_sunset
 - sensor  weather_program        result of the last generation
 
-They read and write the lamp's WeatherStore, not the lamp itself.
+They read and write the lamp's WeatherStore, not the lamp itself. The lamps
+of a group share their group's store: set on one lamp, it is set for all.
 """
 
 from __future__ import annotations
@@ -33,8 +34,10 @@ from homeassistant.components.text import TextEntity
 from homeassistant.components.time import TimeEntity
 from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTime
 from homeassistant.core import callback
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import Entity
 
+from .const import SIGNAL_GROUP_MEMBER_GONE, SIGNAL_GROUP_MEMBER_READY
 from .led_weather import (
     ANCHORS,
     PERIODS,
@@ -66,6 +69,7 @@ class WeatherSettingEntity(Entity):
         # Stable role for the card and blueprints (see ReefRoleMixin)
         self._attr_extra_state_attributes = {"reef_role": key}
         self._unsub: Callable[[], None] | None = None
+        self._subscribed: WeatherStore | None = None
 
     @property
     def _store(self) -> WeatherStore:
@@ -79,12 +83,32 @@ class WeatherSettingEntity(Entity):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
+        self._subscribe()
+        # A lamp shows its group's weather program while grouped: follow the
+        # store when a group (or the lamp) is loaded or unloaded.
+        for signal in (SIGNAL_GROUP_MEMBER_READY, SIGNAL_GROUP_MEMBER_GONE):
+            self.async_on_remove(
+                async_dispatcher_connect(self.hass, signal, self._follow_store)
+            )
 
-        @callback
-        def _changed() -> None:
-            self.async_write_ha_state()
+    @callback
+    def _changed(self) -> None:
+        self.async_write_ha_state()
 
-        self._unsub = self._store.async_add_listener(_changed)
+    @callback
+    def _subscribe(self) -> None:
+        self._subscribed = self._store
+        self._unsub = self._subscribed.async_add_listener(self._changed)
+
+    @callback
+    def _follow_store(self, _entry_id: str) -> None:
+        """Listen to the store the lamp now uses, if it changed."""
+        if self._store is self._subscribed:
+            return
+        if self._unsub is not None:
+            self._unsub()
+        self._subscribe()
+        self.async_write_ha_state()
 
     async def async_will_remove_from_hass(self) -> None:
         if self._unsub is not None:
@@ -211,6 +235,8 @@ class WeatherSensor(WeatherSettingEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any] | None:  # pyright: ignore[reportIncompatibleVariableOverride]
         return {
             **{k: v for k, v in self._store.result.items() if k != "status"},
+            # A week being written to the lamps: {done, total} days
+            "writing": self._store.writing,
             "reef_role": self._key,
         }
 

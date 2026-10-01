@@ -648,8 +648,14 @@ async def test_weather_entities(
     assert sensor.native_value == "ok"
     assert sensor.extra_state_attributes == {
         "days": [1],
+        "writing": None,
         "reef_role": "weather_program",
     }
+    # A week being written: its progress (not saved)
+    store.set_writing(2, 7)
+    assert sensor.extra_state_attributes["writing"] == {"done": 2, "total": 7}
+    store.set_writing(None)
+    assert sensor.extra_state_attributes["writing"] is None
 
 
 # -----------------------------------------------------------------------------
@@ -1094,3 +1100,162 @@ async def test_write_failing_is_told(hass: HomeAssistant) -> None:
     )
     assert result["status"] == "error" and "lamp gone" in result["error"]
     assert store.result == result
+
+
+async def test_weather_entity_follows_the_group_store(hass: HomeAssistant) -> None:
+    """A lamp joining (or leaving) a group shows its group's weather program."""
+    from homeassistant.helpers.dispatcher import async_dispatcher_send
+
+    from custom_components.redsea.const import (
+        SIGNAL_GROUP_MEMBER_GONE,
+        SIGNAL_GROUP_MEMBER_READY,
+    )
+
+    own = W.WeatherStore(hass, "w-own")
+    group = W.WeatherStore(hass, "w-group")
+    device = _Coordinator(own)
+    (clouds,) = [
+        e for e in E.weather_entities(device, "switch") if e._key == "weather_clouds"
+    ]
+    clouds.hass = hass
+    writes: list[int] = []
+    clouds.async_write_ha_state = lambda: writes.append(1)  # type: ignore[method-assign]
+    await clouds.async_added_to_hass()
+
+    # Another device loaded, the lamp's store unchanged: nothing to follow
+    async_dispatcher_send(hass, SIGNAL_GROUP_MEMBER_READY, "other")
+    await hass.async_block_till_done()
+    assert writes == []
+
+    # The lamp's group loaded: its store is followed
+    device.weather = group
+    async_dispatcher_send(hass, SIGNAL_GROUP_MEMBER_READY, "group")
+    await hass.async_block_till_done()
+    assert writes == [1]
+    await own.async_set("clouds", False)
+    assert writes == [1]
+    await group.async_set("clouds", False)
+    assert writes == [1, 1]
+    assert clouds.is_on is False
+
+    # The group unloaded: back to the lamp's own
+    device.weather = own
+    async_dispatcher_send(hass, SIGNAL_GROUP_MEMBER_GONE, "group")
+    await hass.async_block_till_done()
+    await group.async_set("clouds", True)
+    assert writes == [1, 1, 1]
+    await clouds.async_will_remove_from_hass()
+    # Already unsubscribed: following a store again is harmless
+    clouds._unsub = None
+    device.weather = group
+    clouds._follow_store("group")
+
+
+# -----------------------------------------------------------------------------
+# Colours chosen by the user, pacing and progress of the writing
+# -----------------------------------------------------------------------------
+
+
+def test_colour_profiles() -> None:
+    assert W.parse_colors(None) == {}
+    assert W.parse_colors(
+        {3: [{"at": 1.5, "k": 30000}, {"at": -1, "k": "9000"}], "4": []}
+    ) == {"3": [{"at": 0.0, "k": 9000}, {"at": 1.0, "k": W.KELVIN_MAX}]}
+    for bad in ([], {"8": []}, {"1": {}}, {"1": [{"at": 0}]}, {"1": [{"k": 1}]}):
+        with pytest.raises((ValueError, KeyError, TypeError)):
+            W.parse_colors(bad)
+    settings = W.WeatherSettings()
+    settings.set("colors", {"2": [{"at": 0.5, "k": 12000}]})
+    assert W.WeatherSettings.from_dict(settings.as_dict()).colors == {
+        "2": [{"at": 0.5, "k": 12000}]
+    }
+    with pytest.raises(ValueError):
+        settings.set("colors", "red")
+
+    profile = [
+        {"at": 0.2, "k": 10000},
+        {"at": 0.2, "k": 11000},
+        {"at": 0.6, "k": 20000},
+    ]
+    assert W.profile_kelvin(profile, 0.0) == 10000
+    assert W.profile_kelvin(profile, 0.4) == 15500
+    assert W.profile_kelvin(profile, 1.0) == 20000
+    # Two colours at the same moment: the first one
+    assert W.profile_kelvin([{"at": 0.0, "k": 9000}, {"at": 0.0, "k": 12000}], 0.0) == (
+        9000
+    )
+
+
+def test_build_day_with_the_user_colours() -> None:
+    weekday = str(_weather().day.isoweekday())
+    colors = {weekday: [{"at": 0.0, "k": 9000}, {"at": 1.0, "k": 21000}]}
+    s = W.WeatherSettings(colors=colors)
+    program, _clouds, _summary = W.build_day(_weather(), G2_PROGRAM, s, True)
+    kelvins = [p["k1"] for p in program["color"]["points"]]
+    assert kelvins == sorted(kelvins) and 9000 < kelvins[0] < kelvins[-1] < 21000
+    # G1: the lamp's own conversion of each colour
+    program, _clouds, _summary = W.build_day(
+        _weather(), G1_PROGRAM, s, False, lambda k: (1.0, 0.5)
+    )
+    for w, b in zip(program["white"]["points"], program["blue"]["points"]):
+        assert abs(w["i"] / 2 - b["i"]) <= 1
+    # Without a conversion: the colours of the lamp's program (half white)
+    program, _clouds, _summary = W.build_day(_weather(), G1_PROGRAM, s, False)
+    for w, b in zip(program["white"]["points"], program["blue"]["points"]):
+        assert abs(w["i"] - b["i"] / 2) <= 1
+    # Another weekday: its own colours kept
+    other = W.WeatherSettings(colors={"8" if weekday == "7" else "7": []})
+    assert (
+        W.build_day(_weather(), G2_PROGRAM, other, True)[0]
+        == W.build_day(_weather(), G2_PROGRAM, W.WeatherSettings(), True)[0]
+    )
+
+
+def test_white_blue_of_a_lamp() -> None:
+    def lamp(answer: Any) -> Any:
+        def convert(kelvin: int, intensity: int) -> Any:
+            if isinstance(answer, Exception):
+                raise answer
+            return answer
+
+        return SimpleNamespace(my_api=SimpleNamespace(kelvin_to_white_and_blue=convert))
+
+    assert W.white_blue_of(lamp({"white": 50, "blue": 100}))(12000) == (0.5, 1.0)
+    assert W.white_blue_of(lamp({"white": 0, "blue": 0}))(12000) == (1.0, 1.0)
+    assert W.white_blue_of(lamp(RuntimeError("no table")))(12000) == (1.0, 1.0)
+
+
+@pytest.mark.asyncio
+async def test_writing_is_paced_and_its_progress_shown(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pauses: list[float] = []
+
+    async def _sleep(delay: float) -> None:
+        pauses.append(delay)
+
+    monkeypatch.setattr(W, "WRITE_DELAY_S", 2.0)
+    monkeypatch.setattr(W.asyncio, "sleep", _sleep)
+    store = W.WeatherStore(hass, "progress")
+    seen: list[Any] = []
+    store.async_add_listener(lambda: seen.append(store.writing))
+    led = _Led(True, {})
+    led.answers = False
+    day = {"white": {"rise": 1, "set": 2}}
+    await W._write_week(store, [(led, [(1, day, None), (2, day, None)], False)], {})
+    # /auto/1, /auto/2 and /auto/apply, each followed by the pause
+    assert pauses == [2.0, 2.0, 2.0]
+    progress = [w for w in seen if w is not None]
+    assert progress == [
+        {"done": 0, "total": 2},
+        {"done": 1, "total": 2},
+        {"done": 2, "total": 2},
+    ]
+    assert store.writing is None
+
+    # The lamp's own week written back: the same
+    seen.clear()
+    week = {"1": {"auto": day, "clouds": None, "name": None}}
+    await W._restore_all(_Device(led), {W.lamp_key(led): week}, store)
+    assert [w for w in seen if w is not None][-1] == {"done": 1, "total": 1}
+    assert store.writing is None

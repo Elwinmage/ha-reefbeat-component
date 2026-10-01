@@ -331,9 +331,14 @@ if os.path.exists(weather_file):
                         for e in stmt.value.elts
                         if isinstance(e, (ast.Name, ast.Constant))
                     ]
-    with open(weather_file) as f:
-        weather_tree = ast.parse(f.read())
-    for node in ast.walk(weather_tree):
+    # The group entities (group_entities.py, virtual LED) are built the same way
+    builder_trees = []
+    for builder_file in (weather_file, os.path.join(base_path, "group_entities.py")):
+        if os.path.exists(builder_file):
+            with open(builder_file) as f:
+                builder_trees.append(ast.parse(f.read()))
+    builder_nodes = [node for tree in builder_trees for node in ast.walk(tree)]
+    for node in builder_nodes:
         if not isinstance(node, ast.Dict):
             continue
         for k, v in zip(node.keys, node.values, strict=False):

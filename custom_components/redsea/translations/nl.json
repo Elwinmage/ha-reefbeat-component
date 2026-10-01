@@ -2,13 +2,14 @@
   "config": {
     "abort": {
       "already_configured": "Apparaat al geconfigureerd",
-      "cannot_create": "Kan ReefBeat-apparaat niet aanmaken met de opgegeven parameters"
+      "cannot_create": "Kan ReefBeat-apparaat niet aanmaken met de opgegeven parameters",
+      "group_already_driven": "Deze lampen worden al door een virtuele LED aangestuurd"
     },
     "error": {
       "auth_failed": "Authenticatie mislukt, controleer je gegevens",
       "nothing_detected": "Geen apparaat gedetecteerd"
     },
-    "flow_title": "ReefBeat configuratie",
+    "flow_title": "{name}",
     "step": {
       "user": {
         "data": {
@@ -29,6 +30,10 @@
         },
         "description": "Alle op het netwerk gevonden apparaten zijn vooraf aangevinkt. Vink apparaten uit die u niet wilt toevoegen en bevestig — alle overige apparaten worden in één keer toegevoegd.",
         "title": "Gedetecteerde apparaten toevoegen"
+      },
+      "discovery_confirm": {
+        "title": "Groep van de ReefBeat-app",
+        "description": "De ReefBeat-app groepeert deze {model}-lampen in het aquarium {aquarium}:\n\n{leds}\n\nEen virtuele LED maken die ze samen aanstuurt, in deze volgorde?"
       }
     }
   },
@@ -588,6 +593,12 @@
       },
       "weather_refresh_days": {
         "name": "Weer vernieuwen (dagen)"
+      },
+      "sunrise_offset": {
+        "name": "Verschuiving zonsopgang"
+      },
+      "staggered_delay": {
+        "name": "Vertraging verschoven zonsopgang"
       }
     },
     "select": {
@@ -1602,6 +1613,9 @@
       },
       "weather_clouds": {
         "name": "Weerwolken"
+      },
+      "staggered_sunrise": {
+        "name": "Verschoven zonsopgang"
       }
     },
     "text": {
@@ -1687,7 +1701,9 @@
       "wifi_no_ssid": "Kies een netwerk voordat je verzendt.",
       "wifi_bad_cidr": "Geen geldige IPv4-CIDR (verwacht bv. 10.0.0.0/24).",
       "wifi_manual_not_found": "Apparaat niet gevonden op dat subnet. Probeer een andere CIDR of laat het veld leeg om op te geven.",
-      "no_probe_detected": "Geen nieuwe sonde van het gekozen type gedetecteerd. Zet hem in koppelmodus en probeer opnieuw."
+      "no_probe_detected": "Geen nieuwe sonde van het gekozen type gedetecteerd. Zet hem in koppelmodus en probeer opnieuw.",
+      "group_min_members": "Kies minstens twee LED's.",
+      "group_duplicate_position": "Elke LED moet precies één positie krijgen."
     },
     "progress": {
       "applying": "Nieuwe Wi-Fi-inloggegevens toepassen en het apparaat op het netwerk lokaliseren..."
@@ -1763,6 +1779,29 @@
       "del_probe_confirm": {
         "title": "Verwijderen bevestigen",
         "description": "Dit verwijdert de gekozen sonde(s) en al hun entiteiten en geschiedenis permanent: {probes}.\n\nBevestig om door te gaan, of sluit dit venster om te annuleren."
+      },
+      "group_members": {
+        "title": "LED's van de groep",
+        "description": "Kies de ReefLED's die deze virtuele LED samen aanstuurt (minstens twee). Een LED kan maar in één groep zitten.",
+        "data": {
+          "members": "LED's"
+        }
+      },
+      "group_order": {
+        "title": "Volgorde van de LED's",
+        "description": "Volgorde van de LED's in de groep, zoals in de ReefBeat-app: de verschoven zonsopgang begint met de eerste.",
+        "data": {
+          "position_1": "Positie 1",
+          "position_2": "Positie 2",
+          "position_3": "Positie 3",
+          "position_4": "Positie 4",
+          "position_5": "Positie 5",
+          "position_6": "Positie 6",
+          "position_7": "Positie 7",
+          "position_8": "Positie 8",
+          "position_9": "Positie 9",
+          "position_10": "Positie 10"
+        }
       }
     }
   },
@@ -1948,6 +1987,62 @@
         "wait": {
           "name": "Wachten op de lamp",
           "description": "Antwoorden zodra de lamp is geschreven (standaard wordt de week opgeslagen en getoond, en daarna op de achtergrond geschreven)."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "group_member_unavailable": {
+      "message": "{group}: actie geweigerd, deze LED's zijn niet beschikbaar: {members}. Er is niets verzonden, de groep blijft synchroon."
+    },
+    "group_channel_unavailable": {
+      "message": "{group} bevat G1- en G2-lampen: wit en blauw kunnen niet voor de hele groep worden ingesteld. Gebruik kleurtemperatuur en intensiteit."
+    }
+  },
+  "issues": {
+    "group_no_cloud": {
+      "title": "{group}: geen ReefBeat-cloudaccount",
+      "fix_flow": {
+        "step": {
+          "keep_local": {
+            "title": "Groep alleen in Home Assistant houden",
+            "description": "De LED's van {group} zouden ook in de ReefBeat-app gegroepeerd kunnen worden, maar er is geen ReefBeat-cloudaccount ingesteld dat ze vermeldt. Zonder dat bestaat de groep alleen in Home Assistant: de app ziet haar niet en kan haar LED's afzonderlijk aansturen.\n\nOm de groep met de app te delen, voeg je ReefBeat-cloudaccount toe (Instellingen > Apparaten en diensten > Integratie toevoegen > Red Sea > Cloud API): dit probleem verdwijnt dan vanzelf. Of houd de groep alleen in Home Assistant.\n\nDe groep wordt niet naar de ReefBeat-cloud geschreven. Je kunt het cloudaccount later nog toevoegen."
+          }
+        },
+        "abort": {
+          "group_not_loaded": "De groep is niet geladen: probeer het opnieuw zodra ze dat is."
+        }
+      }
+    },
+    "group_mixed_models": {
+      "title": "{group}: LED's gegroepeerd in de ReefBeat-app",
+      "fix_flow": {
+        "step": {
+          "ungroup": {
+            "title": "Groepering opheffen in de ReefBeat-app",
+            "description": "{group} bevat LED's van meerdere modellen, die de ReefBeat-app niet samen kan groeperen: de app groepeert alleen LED's van één model. Deze LED's zijn nog gegroepeerd in de app, die ze los van de andere zou aansturen: {leds}.\n\nHef hun groepering op in de ReefBeat-app: de groep bestaat dan alleen in Home Assistant (haar volgorde is globaal).\n\nDe groepering van deze LED's wordt opgeheven in de ReefBeat-cloud (de app toont ze apart). Home Assistant blijft ze samen aansturen."
+          }
+        },
+        "abort": {
+          "group_not_loaded": "De groep is niet geladen: probeer het opnieuw zodra ze dat is."
+        }
+      }
+    },
+    "group_conflict": {
+      "title": "{group}: gewijzigd in Home Assistant en in de ReefBeat-app",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Welke groep behouden?",
+            "description": "De LED's, hun volgorde of de verschoven zonsopgang van {group} zijn sinds de laatste synchronisatie zowel in Home Assistant als in de ReefBeat-app gewijzigd. Kies de groep die behouden blijft.",
+            "menu_options": {
+              "keep_home_assistant": "Die van Home Assistant (naar de ReefBeat-cloud geschreven)",
+              "keep_reefbeat": "Die van de ReefBeat-app (overgenomen door Home Assistant)"
+            }
+          }
+        },
+        "abort": {
+          "group_not_loaded": "De groep is niet geladen: probeer het opnieuw zodra ze dat is."
         }
       }
     }

@@ -52,6 +52,8 @@ from .const import (
     LED_MANUAL_DURATION_INTERNAL_NAME,
     LED_MOON_DAY_INTERNAL_NAME,
     LED_MOONPHASE_ENABLED_INTERNAL_NAME,
+    LED_OFFSET_INTERNAL_NAME,
+    LED_OFFSET_MAX,
     MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
     MAT_MIN_ROLL_DIAMETER,
     MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
@@ -73,6 +75,7 @@ from .coordinator import (
     ReefWaveCoordinator,
 )
 from .entity import MaintenanceLabelMixin, ReefRoleMixin
+from .group_entities import group_entities
 from .led_weather_entities import weather_entities
 from .maintenance import (
     PROBE_SCOPES,
@@ -419,6 +422,23 @@ LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
         post_specific="/timer",
         icon="mdi:clock-start",
         entity_category=EntityCategory.CONFIG,
+    ),
+    # Minutes the lamp's day starts late (staggered sunrise). A lamp's own
+    # value: the virtual LED sets it on each lamp from its own settings.
+    ReefLedNumberEntityDescription(
+        key="sunrise_offset",
+        translation_key="sunrise_offset",
+        native_max_value=LED_OFFSET_MAX,
+        native_min_value=0,
+        native_step=1,
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        value_name=LED_OFFSET_INTERNAL_NAME,
+        icon="mdi:weather-sunset-up",
+        entity_category=EntityCategory.CONFIG,
+        exists_fn=lambda device: (
+            not isinstance(device, ReefVirtualLedCoordinator)
+            and bool(getattr(device, "supports_offset", False))
+        ),
     ),
 )
 
@@ -1368,6 +1388,8 @@ async def async_setup_entry(
 
     # ReefLED week program following the weather
     entities.extend(weather_entities(device, "number"))
+    # Group (virtual LED) settings: staggered sunrise delay
+    entities.extend(group_entities(device, "number"))
 
     async_add_entities(entities, update_before_add=True)
 

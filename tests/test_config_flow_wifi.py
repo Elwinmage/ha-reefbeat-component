@@ -28,6 +28,7 @@ import custom_components.redsea.config_flow as cf
 from custom_components.redsea.const import (
     CLOUD_DEVICE_TYPE,
     CLOUD_SERVER_ADDR,
+    CONF_GROUP_MEMBERS,
     CONFIG_FLOW_CLOUD_PASSWORD,
     CONFIG_FLOW_CLOUD_USERNAME,
     CONFIG_FLOW_CONFIG_TYPE,
@@ -39,7 +40,6 @@ from custom_components.redsea.const import (
     CONFIG_FLOW_WIFI_RESCAN,
     CONFIG_FLOW_WIFI_SSID,
     DOMAIN,
-    LINKED_LED,
     VIRTUAL_LED,
     VIRTUAL_LED_SCAN_INTERVAL,
 )
@@ -182,7 +182,7 @@ async def test_options_flow_virtual_led_skips_menu(hass: HomeAssistant) -> None:
             CONFIG_FLOW_IP_ADDRESS: VIRTUAL_LED,
             CONFIG_FLOW_HW_MODEL: VIRTUAL_LED,
             CONFIG_FLOW_SCAN_INTERVAL: VIRTUAL_LED_SCAN_INTERVAL,
-            LINKED_LED: {},
+            CONF_GROUP_MEMBERS: [],
         },
         unique_id="vled-uid",
     )

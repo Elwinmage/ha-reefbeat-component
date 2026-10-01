@@ -28,6 +28,7 @@ Everything that depends on the weather is pure (and tested) here.
 
 from __future__ import annotations
 
+import asyncio
 import itertools
 import logging
 import re
@@ -95,6 +96,14 @@ CLOUD_LEVELS: list[tuple[float, str, int, int]] = [
     (101.0, "High", 6, 4),
 ]
 
+# Seconds between two requests written to a lamp: a ReefLED takes time to
+# handle a command, and answers late (or not at all) to one sent too soon
+WRITE_DELAY_S = 2.0
+
+# Colour temperatures a colour profile may hold (see WeatherSettings.colors)
+KELVIN_MIN = 8000
+KELVIN_MAX = 23000
+
 STORAGE_VERSION = 1
 STORAGE_KEY_TPL = "redsea.led_weather.{entry_id}"
 
@@ -121,6 +130,10 @@ class WeatherSettings:
     clouds: bool = True
     # Days between two weather fetches
     refresh_days: int = REFRESH_DAYS_DEFAULT
+    # Colour of the weather days chosen by the user, per weekday ("1".."7"):
+    # [{"at": moment of the day 0..1 (rise..set), "k": colour temperature}].
+    # A weekday without one takes the colour of the lamp's own program.
+    colors: dict[str, list[dict[str, float]]] = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> WeatherSettings:
@@ -162,12 +175,54 @@ class WeatherSettings:
             setattr(self, key, str(value)[:5])
         elif key == "location":
             self.location = str(value or "").strip()
+        elif key == "colors":
+            self.colors = parse_colors(value)
         else:
             raise ValueError(f"unknown setting {key}")
 
     def as_dict(self) -> dict[str, Any]:
         """Stored form."""
         return asdict(self)
+
+
+def parse_colors(value: Any) -> dict[str, list[dict[str, float]]]:
+    """Colour profiles of the weather days, checked (see WeatherSettings).
+
+    @raise ValueError: not {weekday: [{at, k}]}
+    """
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise ValueError("colors must be {weekday: [{at, k}]}")
+    out: dict[str, list[dict[str, float]]] = {}
+    for day, points in value.items():
+        if str(day) not in {str(n) for n in range(1, 8)} or not isinstance(
+            points, list
+        ):
+            raise ValueError("colors must be {weekday: [{at, k}]}")
+        profile = [
+            {
+                "at": max(0.0, min(1.0, float(p["at"]))),
+                "k": max(KELVIN_MIN, min(KELVIN_MAX, round(float(p["k"])))),
+            }
+            for p in points
+        ]
+        if profile:
+            out[str(day)] = sorted(profile, key=lambda p: p["at"])
+    return out
+
+
+def profile_kelvin(profile: list[dict[str, float]], share: float) -> int:
+    """Colour temperature of a colour profile at a moment of the day."""
+    if share <= profile[0]["at"]:
+        return int(profile[0]["k"])
+    for a, b in itertools.pairwise(profile):
+        # A pair at the same moment is never met here: the first check, or
+        # the pair before it, holds that moment
+        if a["at"] <= share <= b["at"] and b["at"] > a["at"]:
+            ratio = (share - a["at"]) / (b["at"] - a["at"])
+            return round(a["k"] + (b["k"] - a["k"]) * ratio)
+    return int(profile[-1]["k"])
 
 
 class WeatherStore:
@@ -188,6 +243,8 @@ class WeatherStore:
         # Told of a changed setting (not the mode, not the frequency): the
         # week is then generated again
         self.on_settings_change: Callable[[str], None] | None = None
+        # A week being written to the lamps: {"done": days, "total": days}
+        self.writing: dict[str, int] | None = None
         self._listeners: list[Callable[[], None]] = []
 
     async def async_load(self) -> None:
@@ -262,6 +319,13 @@ class WeatherStore:
         """Keep the summary of a generation."""
         self.result = result
         await self._async_save()
+
+    @callback
+    def set_writing(self, done: int | None, total: int = 0) -> None:
+        """Progress of a week being written (None once written); not saved."""
+        self.writing = None if done is None else {"done": done, "total": total}
+        for listener in list(self._listeners):
+            listener()
 
     @callback
     def async_add_listener(self, listener: Callable[[], None]) -> Callable[[], None]:
@@ -608,11 +672,15 @@ def build_day(
     current: dict[str, Any] | None,
     settings: WeatherSettings,
     g2: bool,
+    to_white_blue: Callable[[int], tuple[float, float]] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any]]:
     """Program of a day from its weather, in the lamp's format.
 
     @param current: the lamp's program of that weekday on the day's own
                     timeline (its colours and its moon are kept), or None
+    @param to_white_blue: white and blue shares of a colour temperature on
+                    this lamp (G1), used by a colour chosen by the user
+                    (settings.colors) in place of the program's
     @return the program (day timeline: white/blue/moon or color/moon), the
             clouds (or None) and a summary of the day
     """
@@ -631,18 +699,26 @@ def build_day(
         level = intensity_of(_hourly_at(weather.radiation, m), settings)
         levels.append((round(share * span), level, share))
 
+    profile = settings.colors.get(str(weather.day.isoweekday()))
     program: dict[str, Any] = {}
     if g2:
         points: list[dict[str, int]] = []
         for t, level, share in levels:
-            kelvin = kelvin_at(current, share)
+            kelvin = (
+                profile_kelvin(profile, share) if profile else kelvin_at(current, share)
+            )
             points.append(
                 {"t": t, "i1": level, "i2": level, "k1": kelvin, "k2": kelvin}
             )
         program["color"] = {"rise": rise, "set": set_, "points": points}
         old_window = _window(current.get("color"))
     else:
-        balance = [white_blue_balance(current, share) for _, _, share in levels]
+        if profile and to_white_blue is not None:
+            balance = [
+                to_white_blue(profile_kelvin(profile, share)) for _, _, share in levels
+            ]
+        else:
+            balance = [white_blue_balance(current, share) for _, _, share in levels]
         for key, n in (("white", 0), ("blue", 1)):
             program[key] = {
                 "rise": rise,
@@ -806,9 +882,17 @@ def _mirror(led: Any, result: Any, path: str, data: Any) -> None:
     led.my_api.set_data(query, data)
 
 
+async def _paced(api: Any, path: str, payload: Any, method: str = "post") -> Any:
+    """Send a request to a lamp, then leave it WRITE_DELAY_S to handle it."""
+    res = await api.http_send(path, payload, method)
+    await asyncio.sleep(WRITE_DELAY_S)
+    return res
+
+
 async def _send_days(
     led: Any,
     days: list[tuple[int, str | None, dict[str, Any], dict[str, Any] | None]],
+    progress: Callable[[], None] | None = None,
 ) -> None:
     """Write days to a lamp: names, programs with their clouds, then apply.
 
@@ -821,35 +905,40 @@ async def _send_days(
     500), so a new program with a shorter day could never be written. Each
     G1 day is therefore cleared of its clouds first, then gets its program,
     then its new clouds. An endpoint the lamp does not answer is left out
-    (see supports()).
+    (see supports()). The requests are paced (WRITE_DELAY_S), and
+    ``progress`` told after each day.
     """
     api = led.my_api
     g2 = not led.is_g1
     for weekday, name, _body, _clouds in days:
         if name and supports(led, f"/preset_name/{weekday}"):
-            res = await api.http_send(f"/preset_name/{weekday}", {"name": name}, "post")
+            res = await _paced(api, f"/preset_name/{weekday}", {"name": name})
             _mirror(led, res, f"/preset_name/{weekday}", {"name": name})
     for weekday, _name, body, clouds in days:
         own_clouds = not g2 and supports(led, f"/clouds/{weekday}")
         held = led.get_data(f"$.sources[?(@.name=='/clouds/{weekday}')].data", True)
         if own_clouds and _is_clouds(held):
-            res = await api.http_send(f"/clouds/{weekday}", {}, "delete")
+            res = await _paced(api, f"/clouds/{weekday}", {}, "delete")
             _mirror(led, res, f"/clouds/{weekday}", {})
-        res = await api.http_send(f"/auto/{weekday}", body, "post")
+        res = await _paced(api, f"/auto/{weekday}", body)
         _mirror(led, res, f"/auto/{weekday}", body)
         if own_clouds and _is_clouds(clouds):
-            res = await api.http_send(f"/clouds/{weekday}", clouds, "post")
+            res = await _paced(api, f"/clouds/{weekday}", clouds)
             _mirror(led, res, f"/clouds/{weekday}", clouds)
         # Day by day: the entities (and the card) follow the writing
         update = getattr(led, "async_update_listeners", None)
         if callable(update):
             update()
-    await api.http_send("/auto/apply", {}, "post")
+        if progress is not None:
+            progress()
+    await _paced(api, "/auto/apply", {})
     # Read the new programs back, for the entities and the card
     await led.async_request_refresh(config=True)
 
 
-async def restore_lamp(led: Any, week: dict[str, Any]) -> None:
+async def restore_lamp(
+    led: Any, week: dict[str, Any], progress: Callable[[], None] | None = None
+) -> None:
     """Write a lamp's standard week back (see _send_days)."""
     g2 = not led.is_g1
     days: list[tuple[int, str | None, dict[str, Any], dict[str, Any] | None]] = []
@@ -871,7 +960,7 @@ async def restore_lamp(led: Any, week: dict[str, Any]) -> None:
                 None if g2 or not _is_clouds(clouds) else clouds,
             )
         )
-    await _send_days(led, days)
+    await _send_days(led, days, progress)
 
 
 async def generate_week(
@@ -915,7 +1004,11 @@ async def generate_week(
         for weather in days:
             weekday = weather.day.isoweekday()
             program, clouds, summary = build_day(
-                weather, standard_program(store, led, weekday), settings, g2
+                weather,
+                standard_program(store, led, weekday),
+                settings,
+                g2,
+                None if g2 else white_blue_of(led),
             )
             plans.append((weekday, program, clouds))
             if led is device.weather_targets()[0]:
@@ -923,6 +1016,22 @@ async def generate_week(
         writes.append((led, plans, g2))
     result.update({"status": "ok", "days": summaries})
     return writes
+
+
+def white_blue_of(led: Any) -> Callable[[int], tuple[float, float]]:
+    """White and blue shares (the brighter at 1) of a colour on a G1 lamp,
+    from its own conversion table."""
+
+    def convert(kelvin: int) -> tuple[float, float]:
+        try:
+            wb = led.my_api.kelvin_to_white_and_blue(kelvin, 100)
+            white, blue = float(wb["white"]), float(wb["blue"])
+        except Exception:  # no table: equal channels
+            return 1.0, 1.0
+        top = max(white, blue)
+        return (white / top, blue / top) if top > 0 else (1.0, 1.0)
+
+    return convert
 
 
 def _result_head(store: WeatherStore, now_iso: str) -> dict[str, Any]:
@@ -983,15 +1092,33 @@ async def _write_week(
     writes: list[tuple[Any, list[Any], bool]],
     result: dict[str, Any],
 ) -> dict[str, Any]:
-    """Write a generated week to the lamps, then keep it as sent."""
+    """Write a generated week to the lamps, then keep it as sent.
+
+    The progress (days written) is shown while it lasts (store.writing).
+    """
+    progress = _progress(store, sum(len(plans) for _, plans, _ in writes))
     try:
         for led, plans, g2 in writes:
-            await _write(led, plans, g2)
+            await _write(led, plans, g2, progress)
         result["sent"] = True
     except Exception as err:  # the lamp
         _failed(result, err)
+    finally:
+        store.set_writing(None)
     await store.async_set_result(result)
     return result
+
+
+def _progress(store: WeatherStore, total: int) -> Callable[[], None]:
+    """Count the days written, told to the store (see WeatherStore.writing)."""
+    done = [0]
+    store.set_writing(0, total)
+
+    def advance() -> None:
+        done[0] += 1
+        store.set_writing(done[0], total)
+
+    return advance
 
 
 async def publish_weather(
@@ -1116,7 +1243,7 @@ async def save_weather(
     if store.settings.enabled:
         backup = dict(store.backup)
         await store.async_set_mode(False, {})
-        restore = _restore_all(device, backup)
+        restore = _restore_all(device, backup, store)
         if background is not None:
             background(restore)
         else:
@@ -1124,12 +1251,23 @@ async def save_weather(
     return {"status": "ok", "enabled": False}
 
 
-async def _restore_all(device: Any, backup: dict[str, Any]) -> None:
-    """Write each lamp's own week back (see restore_lamp)."""
-    for led in device.weather_targets():
-        week = backup.get(lamp_key(led))
-        if isinstance(week, dict):
-            await restore_lamp(led, week)
+async def _restore_all(
+    device: Any, backup: dict[str, Any], store: WeatherStore | None = None
+) -> None:
+    """Write each lamp's own week back (see restore_lamp), the progress
+    shown by the store when given."""
+    weeks = [
+        (led, week)
+        for led in device.weather_targets()
+        if isinstance(week := backup.get(lamp_key(led)), dict)
+    ]
+    progress = _progress(store, sum(len(week) for _, week in weeks)) if store else None
+    try:
+        for led, week in weeks:
+            await restore_lamp(led, week, progress)
+    finally:
+        if store is not None:
+            store.set_writing(None)
 
 
 def _open_meteo(hass: HomeAssistant) -> Callable[[str, dict[str, str]], Any]:
@@ -1150,6 +1288,7 @@ async def _write(
     led: Any,
     plans: list[tuple[int, dict[str, Any], dict[str, Any] | None]],
     g2: bool,
+    progress: Callable[[], None] | None = None,
 ) -> None:
     """Send the weather week to a lamp (see _send_days), named as the app
     names programs: a G1 one with a stamp, a G2 one bare."""
@@ -1165,6 +1304,7 @@ async def _write(
             )
             for weekday, program, clouds in plans
         ],
+        progress,
     )
 
 
@@ -1195,5 +1335,5 @@ async def set_weather_mode(hass: HomeAssistant, device: Any, enabled: bool) -> N
         await store.async_set_mode(True, backup)
         await run_weather(hass, device)
         return
-    await _restore_all(device, store.backup)
+    await _restore_all(device, store.backup, store)
     await store.async_set_mode(False, {})

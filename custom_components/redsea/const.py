@@ -297,8 +297,64 @@ EVENT_WB_LIGHT_UPDATED: Final[str] = "Kelvin_wb_updated"
 # -----------------------------------------------------------------------------
 
 VIRTUAL_LED_MAX_WAITING_TIME: Final[int] = 15
+# Legacy (config entry minor version 1) storage of the linked LEDs: a dict
+# keyed by "LED-<model>-: <title> (<entry_id>)". Migrated to CONF_GROUP_MEMBERS.
 LINKED_LED: Final[str] = "linked"
 VIRTUAL_LED_SCAN_INTERVAL: Final[int] = 10  # seconds
+
+# -----------------------------------------------------------------------------
+# Device groups (virtual LED, later virtual wave)
+# -----------------------------------------------------------------------------
+
+# Ordered list of the config entry ids of the group members. The order is
+# the group order (staggered sunrise position, like group_index in the app).
+CONF_GROUP_MEMBERS: Final[str] = "members"
+# Options flow: one field per position when ordering the members
+CONF_GROUP_POSITION: Final[str] = "position_"
+GROUP_MIN_MEMBERS: Final[int] = 2
+
+# Dispatcher signals: a device entry is loaded / unloaded (arg: entry_id)
+SIGNAL_GROUP_MEMBER_READY: Final[str] = f"{DOMAIN}_group_member_ready"
+SIGNAL_GROUP_MEMBER_GONE: Final[str] = f"{DOMAIN}_group_member_gone"
+
+# LED sources a group drives as a whole: a write to one of them on a member
+# is applied to every member. Anything else (name, Wi-Fi, cloud, firmware,
+# identify, reset...) stays on the member it was made on.
+LED_GROUP_SOURCES: Final[tuple[str, ...]] = (
+    "/manual",
+    "/mode",
+    "/timer",
+    "/acclimation",
+    "/moonphase",
+    "/auto",
+    "/preset_name",
+    "/clouds",
+)
+# Local (not yet pushed) LED values a group shares, "$.local.<key>..."
+LED_GROUP_LOCAL_KEYS: Final[tuple[str, ...]] = (
+    "manual_trick",
+    "manual_duration",
+    "acclimation",
+    "moonphase",
+)
+# Staggered sunrise: each lamp of a group starts its day `delay` minutes after
+# the previous one (GET/POST /offset {"offset": minutes}, POST replaces it).
+# The app offers 1..15 minutes, 10 by default; offset = delay * position.
+LED_OFFSET_SOURCE: Final[str] = "/offset"
+LED_OFFSET_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/offset')].data.offset"
+)
+LED_OFFSET_MAX: Final[int] = 240  # minutes
+STAGGERED_DELAY_MIN: Final[int] = 1
+STAGGERED_DELAY_MAX: Final[int] = 15
+STAGGERED_DELAY_DEFAULT: Final[int] = 10
+# Persistent state of a group (staggered sunrise, offsets written)
+GROUP_STORE_VERSION: Final[int] = 1
+GROUP_STORE_KEY_TPL: Final[str] = DOMAIN + ".group.{entry_id}"
+# Kelvin/intensity: G1 keeps them locally, G2 in /manual
+LED_G1_KI_PATH: Final[str] = "$.local.manual_trick"
+LED_G2_KI_PATH: Final[str] = "$.sources[?(@.name=='/manual')].data"
+LED_KI_KEYS: Final[tuple[str, ...]] = ("kelvin", "intensity")
 
 # -----------------------------------------------------------------------------
 # REEFMAT

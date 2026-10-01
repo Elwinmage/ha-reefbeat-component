@@ -152,6 +152,8 @@ async def test_apply_runtime_source_patches_rsled90_and_preset_name_variants(
     assert "/manual" in source_names
     assert "/acclimation" in source_names
     assert "/moonphase" in source_names
+    # The lamp answers /offset: its staggered sunrise offset is read
+    assert "/offset" in source_names
 
 
 @pytest.mark.asyncio
@@ -216,6 +218,24 @@ async def test_apply_runtime_source_patches_preset_name_per_day(
     assert "/" not in source_names
     for day in range(1, 8):
         assert f"/preset_name/{day}" in source_names
+
+
+@pytest.mark.asyncio
+async def test_apply_runtime_source_patches_without_offset(
+    monkeypatch: Any,
+) -> None:
+    """A firmware without /offset (no staggered sunrise): not read."""
+    api = _make_led_api(hw=VIRTUAL_LED)
+
+    async def _fake_probe(path: str) -> int:
+        return 404 if path == "/offset" else 200
+
+    monkeypatch.setattr(api, "_probe_path", _fake_probe)
+    await api._apply_runtime_source_patches()
+    source_names = [
+        s.get("name") for s in cast(list[dict[str, Any]], api.data["sources"])
+    ]
+    assert "/offset" not in source_names
 
 
 def test_update_acclimation_copies_fields_when_present() -> None:

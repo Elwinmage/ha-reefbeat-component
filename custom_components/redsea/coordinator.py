@@ -29,15 +29,18 @@ from datetime import datetime, timedelta, timezone
 from time import time
 from typing import Any, cast
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import SOURCE_INTEGRATION_DISCOVERY, ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util.event_type import EventType
 
 from .const import (
+    CONF_GROUP_MEMBERS,
     CONFIG_FLOW_CLOUD_PASSWORD,
     CONFIG_FLOW_CLOUD_USERNAME,
     CONFIG_FLOW_CONFIG_TYPE,
@@ -48,6 +51,7 @@ from .const import (
     CONFIG_FLOW_SCAN_INTERVAL,
     DEVICE_MANUFACTURER,
     DOMAIN,
+    GROUP_MIN_MEMBERS,
     HTTP_DELAY_BETWEEN_RETRY,
     HTTP_MAX_RETRY,
     HW_ATO_IDS,
@@ -60,19 +64,48 @@ from .const import (
     HW_RUN_IDS,
     HW_WAVE_IDS,
     LED_BLUE_INTERNAL_NAME,
+    LED_MODE_INTERNAL_NAME,
+    LED_MODES,
+    LED_OFFSET_INTERNAL_NAME,
+    LED_OFFSET_SOURCE,
     LED_WHITE_INTERNAL_NAME,
     LIGHTS_DEFAULT_UID_PREFIX,
     LIGHTS_G1_DEFAULT_NAMES,
     LIGHTS_G2_DEFAULTS,
     LIGHTS_G2_LIBRARY,
     LIGHTS_LIBRARY,
-    LINKED_LED,
     PROBE_REFRESH_DELAY,
     REFRESH_DEVICE_DELAY,
     SCAN_INTERVAL,
     SCHEDULE_REFRESH_DELAY,
+    SIGNAL_GROUP_MEMBER_GONE,
+    SIGNAL_GROUP_MEMBER_READY,
     VIRTUAL_LED,
     WAVES_LIBRARY,
+)
+from .groups import (
+    ISSUE_CONFLICT,
+    ISSUE_MIXED,
+    ISSUE_NO_CLOUD,
+    SYNC_ADOPT,
+    SYNC_CONFLICT,
+    SYNC_PUSH,
+    GroupState,
+    GroupStore,
+    cloud_group_name,
+    cloud_group_state,
+    cloud_groups,
+    discovery_unique_id,
+    find_group,
+    group_dispatch,
+    group_error,
+    in_group_dispatch,
+    led_group_path,
+    led_path_is_shared,
+    led_source_is_shared,
+    set_issue,
+    staggered_offsets,
+    sync_action,
 )
 from .maintenance import CALIBRATION_TASKS, MaintenanceStore, probe_sub_id
 from .reefbeat import (
@@ -497,6 +530,9 @@ class ReefLedCoordinator(ReefBeatCloudLinkedCoordinator):
             self._hw,
             intensity_compensation,
         )
+        # Weather program settings of the lamp (a WeatherStore, attached at
+        # setup); see the `weather` property for a lamp of a group
+        self._weather: Any = None
         _LOGGER.info(
             "%s intensity compensation: %s", self._title, intensity_compensation
         )
@@ -505,7 +541,40 @@ class ReefLedCoordinator(ReefBeatCloudLinkedCoordinator):
         """Ask the API to force a light status recalculation."""
         self.my_api.force_status_update(state)
 
+    # -- Group routing ------------------------------------------------------
+    # A lamp of a group behaves as in the ReefBeat app: a shared value set on
+    # it (manual channels, mode, programs, acclimation...) is set on every
+    # lamp of the group. The group itself writes to its lamps inside
+    # group_dispatch(), where no routing happens.
+
+    def led_group(self) -> ReefVirtualLedCoordinator | None:
+        """The group of this lamp; None when alone or written by its group."""
+        if in_group_dispatch():
+            return None
+        return cast(
+            "ReefVirtualLedCoordinator | None",
+            find_group(self._hass, self._entry.entry_id),
+        )
+
     def set_data(self, name: str, value: Any) -> None:
+        """Write data, on the whole group when the value is shared by it."""
+        group = self.led_group()
+        if group is not None and led_path_is_shared(name):
+            group.route_set_data(name, value)
+            return
+        self._set_data_local(name, value)
+
+    async def push_values(
+        self, source: str = "/configuration", method: str = "put"
+    ) -> None:
+        """Push a source, to the whole group when it is shared by it."""
+        group = self.led_group()
+        if group is not None and led_source_is_shared(source):
+            await group.push_values(source, method)
+            return
+        await super().push_values(source, method)
+
+    def _set_data_local(self, name: str, value: Any) -> None:
         """Write data and update derived LED channels for G1 payloads."""
         super().set_data(name, value)
         if name in (LED_WHITE_INTERNAL_NAME, LED_BLUE_INTERNAL_NAME):
@@ -522,8 +591,46 @@ class ReefLedCoordinator(ReefBeatCloudLinkedCoordinator):
         return self.my_api.daily_prog  # type: ignore[attr-defined]
 
     async def post_specific(self, source: str) -> None:
-        """POST to a LED-specific endpoint."""
+        """POST to a LED-specific endpoint, on the whole group when shared."""
+        group = self.led_group()
+        if group is not None and led_source_is_shared(source):
+            await group.post_specific(source)
+            return
         await self.my_api.post_specific(source)
+
+    # -- Weather program -----------------------------------------------------
+    # The lamps of a group share one weather program: the one of the group.
+    # Turned on (or set) on any lamp of the group, it is on (and set) for
+    # all of them, and each lamp gets its own weather week.
+
+    @property
+    def weather(self) -> Any:
+        """Weather settings of the lamp: its group's when it is grouped."""
+        group = self.led_group()
+        if group is not None and group._weather is not None:
+            return group._weather
+        return self._weather
+
+    @weather.setter
+    def weather(self, store: Any) -> None:
+        """Attach the lamp's own weather settings."""
+        self._weather = store
+
+    # -- Staggered sunrise offset --------------------------------------------
+
+    @property
+    def supports_offset(self) -> bool:
+        """Whether the lamp has the /offset endpoint (staggered sunrise)."""
+        return self.get_data(LED_OFFSET_INTERNAL_NAME, True) is not None
+
+    async def set_offset(self, minutes: int) -> None:
+        """Start the lamp's day `minutes` later (POST /offset replaces it)."""
+        if not self.supports_offset:
+            _LOGGER.warning("%s has no /offset: offset not set", self._title)
+            return
+        self._set_data_local(LED_OFFSET_INTERNAL_NAME, int(minutes))
+        await self.push_values(LED_OFFSET_SOURCE, "post")
+        self.async_update_listeners()
 
     @property
     def is_g1(self) -> bool:
@@ -554,8 +661,16 @@ class ReefLedCoordinator(ReefBeatCloudLinkedCoordinator):
         """Whether the programs are G2 ones (color/moon), in the G2 library."""
         return not self.is_g1
 
+    def linked_leds(self) -> list[dict[str, Any]]:
+        """The lamps of the lamp's group, in order (see the virtual LED's)."""
+        group = self.led_group()
+        return group.linked_leds() if group is not None else []
+
     def weather_targets(self) -> list[ReefLedCoordinator]:
-        """Lamps a weather program is written to: this one."""
+        """Lamps a weather program is written to: this one, or its group's."""
+        group = self.led_group()
+        if group is not None:
+            return group.weather_targets()
         return [self]
 
     def _library_entries(
@@ -724,84 +839,268 @@ class ReefLedCoordinator(ReefBeatCloudLinkedCoordinator):
 class ReefLedG2Coordinator(ReefLedCoordinator):
     """Coordinator for ReefLED G2 devices (uses G2 write semantics)."""
 
-    def set_data(self, name: str, value: Any) -> None:
+    def _set_data_local(self, name: str, value: Any) -> None:
         """Write directly via API without G1-derived field updates."""
         self.my_api.set_data(name, value)
 
 
 # Virtual LED
 class ReefVirtualLedCoordinator(ReefLedCoordinator):
-    """Virtual LED that aggregates multiple physical ReefLEDs into one entity.
+    """Group of physical ReefLEDs, driven as one lamp (the app's "grouped" LEDs).
 
-    The virtual LED can represent an aquarium with multiple ReefLED devices.
-    Read operations are aggregated; write operations are broadcast to all linked LEDs.
+    The members are the config entries listed, in order, in
+    ``entry.data[CONF_GROUP_MEMBERS]``. Reads are aggregated; writes are
+    applied to every member, and only when all of them are there (as in the
+    ReefBeat app). A write made on a member, when shared by the group, is
+    routed here (see ReefLedCoordinator.led_group).
     """
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
-        """Initialize the virtual LED and discover linked devices."""
+        """Initialize the group and resolve the members already loaded."""
+        # Loaded member coordinators, in the group order, and their entry ids
         self._linked: list[Any] = []
-        # Config entry of each linked LED, in the same order as _linked
         self._linked_entries: list[str] = []
-        self._only_g1: bool = True
-        if LINKED_LED not in entry.data:
-            _LOGGER.error(
-                "You have no LED setup, please add at minimum two real LEDs before configuring a virtual LED "
-            )
-            super().__init__(hass, entry)
-            return
-
-        for led in entry.data.get(LINKED_LED, {}):
-            if str(led).split("-")[1] in HW_G2_LED_IDS:
-                _LOGGER.debug("G2 light detected")
-                self._only_g1 = False
-                break
+        # Staggered sunrise and offsets written (a GroupStore, attached at setup)
+        self.group_store: GroupStore | None = None
+        # Last group the cloud refused (not sent again until it changes)
+        self._push_failed: GroupState | None = None
+        # Members taken from the cloud: the group is being set up again
+        self._reloading = False
+        # Every member of the group, loaded or not, in the group order
+        self.member_ids: list[str] = [
+            str(eid) for eid in entry.data.get(CONF_GROUP_MEMBERS, [])
+        ]
+        # Only G1 lamps: white/blue channels can be set on the whole group
+        self._only_g1: bool = not any(
+            self._member_hw_model(hass, eid) in HW_G2_LED_IDS for eid in self.member_ids
+        )
 
         super().__init__(hass, entry)
 
-        if str(self._hass.state) == "RUNNING":
-            self._link_leds()
-        else:
-            self._listen(EVENT_HOMEASSISTANT_STARTED, self._link_leds)
+        if len(self.member_ids) < GROUP_MIN_MEMBERS:
+            _LOGGER.error(
+                "%s: link at least %d LEDs to this virtual LED (configure it)",
+                self._title,
+                GROUP_MIN_MEMBERS,
+            )
+
+        # Presence of the members: re-resolve them whenever one is loaded or
+        # unloaded (a member reloaded on its own gets a new coordinator).
+        for signal in (SIGNAL_GROUP_MEMBER_READY, SIGNAL_GROUP_MEMBER_GONE):
+            self._unsubs.append(
+                async_dispatcher_connect(hass, signal, self._handle_member_signal)
+            )
+        self._link_leds()
+
+    @staticmethod
+    def _member_hw_model(hass: HomeAssistant, entry_id: str) -> str | None:
+        """Hardware model of a member, from its config entry."""
+        member_entry = hass.config_entries.async_get_entry(entry_id)
+        if member_entry is None:
+            return None
+        return cast(str | None, member_entry.data.get(CONFIG_FLOW_HW_MODEL))
 
     async def async_setup(self) -> None:
         """Public entry-point for one-time initialization."""
 
     @callback
-    def _link_leds(self, event: Any | None = None) -> None:
-        """Resolve linked LED coordinators from entry data."""
-        if LINKED_LED not in self._entry.data:
-            _LOGGER.error("%s has no led linked, please configure them", self._title)
+    def _handle_member_signal(self, entry_id: str) -> None:
+        """A device entry was loaded or unloaded: follow it if it is a member."""
+        if entry_id not in self.member_ids:
             return
+        self._link_leds()
+        # The group and its lamps (their list of the group) are shown again
+        self._notify_members()
+        self.async_reconcile_staggered()
 
-        _LOGGER.info("Linking leds to %s", self._title)
+    @callback
+    def _link_leds(self) -> None:
+        """Resolve the loaded member coordinators, in the group order."""
+        loaded = self._hass.data.get(DOMAIN, {})
         self._linked = []
         self._linked_entries = []
-        for led in self._entry.data[LINKED_LED]:
-            name = str(led).split(" ")[1]
-            entry_id = str(led).split("(")[1][:-1]
-            self._linked.append(self._hass.data[DOMAIN][entry_id])
+        for entry_id in self.member_ids:
+            led = loaded.get(entry_id)
+            if led is None:
+                continue
+            self._linked.append(led)
             self._linked_entries.append(entry_id)
-            _LOGGER.info(" - %s", name)
+        _LOGGER.debug(
+            "%s linked to %d/%d LEDs: %s",
+            self._title,
+            len(self._linked),
+            len(self.member_ids),
+            [getattr(led, "title", "?") for led in self._linked],
+        )
 
-        if len(self._linked) == 0:
-            _LOGGER.error("%s has no led linked, please configure them", self._title)
-        elif len(self._linked) == 1:
-            _LOGGER.error(
-                "%s has only one led linked (%s), please configure one more",
-                self._title,
-                getattr(
-                    self._linked[0],
-                    "title",
-                    getattr(self._linked[0], "_title", "unknown"),
-                ),
+    # -- Members: presence, service, what blocks a group write ---------------
+
+    def _cloud_of(self, hwid: str) -> tuple[ReefBeatCloudCoordinator, dict] | None:
+        """The loaded cloud account listing a device, with its entry there."""
+        for coordinator in self._hass.data.get(DOMAIN, {}).values():
+            if not isinstance(coordinator, ReefBeatCloudCoordinator):
+                continue
+            device = coordinator.get_data(
+                "$.sources[?(@.name=='/device')].data[?(@.hwid=='" + hwid + "')]",
+                True,
             )
+            if isinstance(device, dict):
+                return coordinator, device
+        return None
+
+    def in_service(self, led: Any) -> bool:
+        """Whether a lamp takes part in the group (the app's in_service).
+
+        A lamp put out of service in the ReefBeat app is left out of the
+        group's writes and checks, as the app does.
+        """
+        cloud = self._cloud_of(str(getattr(led, "model_id", "")))
+        return cloud is None or cloud[1].get("in_service", True) is not False
+
+    def _targets(self) -> list[Any]:
+        """Loaded lamps of the group taking part in its writes."""
+        return [led for led in self._linked if self.in_service(led)]
+
+    def unavailable_members(self) -> list[str]:
+        """Lamps blocking a group write, with the reason when it is known.
+
+        As the ReefBeat app: a lamp not loaded or not answering, or in a mode
+        the group cannot drive (off, or held by a shortcut: emergency,
+        maintenance...). A lamp out of service does not block.
+        """
+        loaded = self._hass.data.get(DOMAIN, {})
+        names: list[str] = []
+        for entry_id in self.member_ids:
+            led = loaded.get(entry_id)
+            if led is None:
+                member_entry = self._hass.config_entries.async_get_entry(entry_id)
+                names.append(member_entry.title if member_entry else entry_id)
+                continue
+            if not self.in_service(led):
+                continue
+            title = str(getattr(led, "title", entry_id))
+            if not getattr(led, "last_update_success", True):
+                names.append(title)
+                continue
+            mode = led.get_data(LED_MODE_INTERNAL_NAME, True)
+            if mode is not None and mode not in LED_MODES:
+                names.append(f"{title} ({mode})")
+        return names
+
+    def _check_ready(self) -> None:
+        """Refuse a write when a member is missing, as the ReefBeat app does.
+
+        A group half-applied would leave its lamps out of sync: nothing is
+        sent, and the user is told which lamps are missing.
+        """
+        names = self.unavailable_members()
+        if names:
+            raise group_error(
+                "group_member_unavailable",
+                group=self._title,
+                members=", ".join(names),
+            )
+
+    def _notify_members(self) -> None:
+        """Refresh the entities of the members after a group write."""
+        for led in self._targets():
+            update = getattr(led, "async_update_listeners", None)
+            if callable(update):
+                update()
+        self.async_update_listeners()
+
+    def route_set_data(self, name: str, value: Any) -> None:
+        """Set a shared value made on a member, on the whole group."""
+        path = led_group_path(name, self._only_g1)
+        if path is None:
+            raise group_error("group_channel_unavailable", group=self._title)
+        self.set_data(path, value)
+
+    # -- Staggered sunrise ----------------------------------------------------
+
+    def staggered_offsets(self) -> dict[str, int]:
+        """Offset each member should hold (entry id -> minutes)."""
+        store = self.group_store
+        if store is None:
+            return {}
+        loaded = self._hass.data.get(DOMAIN, {})
+        members = [
+            entry_id
+            for entry_id in self.member_ids
+            if entry_id not in loaded or self.in_service(loaded[entry_id])
+        ]
+        return staggered_offsets(members, store.staggered, store.delay)
+
+    def offsets_pending(self) -> bool:
+        """Whether the lamps may not hold the offsets of the group.
+
+        A group that never had its staggered sunrise turned on leaves the
+        lamps' offsets alone (they may have been set by the ReefBeat app).
+        """
+        store = self.group_store
+        if store is None or (not store.applied and not store.staggered):
+            return False
+        return store.applied != self.staggered_offsets()
+
+    async def async_apply_staggered(self) -> None:
+        """Write the offset of each lamp, once all of them are there.
+
+        A lamp that left the group gets its offset back to 0.
+        """
+        store = self.group_store
+        if store is None:
+            return
+        self._check_ready()
+        targets = self.staggered_offsets()
+        loaded = self._hass.data.get(DOMAIN, {})
+        for entry_id, offset in store.applied.items():
+            former = loaded.get(entry_id)
+            if entry_id not in targets and offset and former is not None:
+                await former.set_offset(0)
+        for entry_id, offset in targets.items():
+            await loaded[entry_id].set_offset(offset)
+        store.applied = targets
+        await store.async_save()
+        self._notify_members()
+
+    async def async_set_staggered(
+        self, staggered: bool | None = None, delay: Any | None = None
+    ) -> None:
+        """Change the staggered sunrise and write it to the lamps.
+
+        Refused (nothing changed) when a lamp of the group is missing.
+        """
+        if self.group_store is None:
+            return
+        self._check_ready()
+        await self.group_store.async_set(staggered, delay)
+        await self.async_apply_staggered()
+
+    @callback
+    def async_reconcile_staggered(self) -> None:
+        """Write the offsets again when the lamps may no longer hold them.
+
+        Done once all the lamps are there: after a change of the members or
+        of their order, or when a missing lamp comes back.
+        """
+        if self.offsets_pending() and not self.unavailable_members():
+            self._hass.async_create_task(self._async_apply_quietly())
+
+    async def _async_apply_quietly(self) -> None:
+        try:
+            await self.async_apply_staggered()
+        except HomeAssistantError as err:
+            _LOGGER.warning("%s: staggered sunrise not written: %s", self._title, err)
 
     def force_status_update(self, state: bool = False) -> None:
         """Virtual device does not force status on a single hardware light."""
         return
 
     async def _async_update_data(self) -> dict[str, Any]:
-        """Aggregate data updates from all linked LED coordinators."""
+        """Aggregate data updates from all linked LED coordinators.
+
+        Then check the group against the cloud (see _async_group_checks).
+        """
         data: dict[str, Any] = {}
         for led in self._linked:
             try:
@@ -812,7 +1111,289 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
                 _LOGGER.exception(
                     "Error updating linked LED for virtual %s", self._title
                 )
+        try:
+            await self._async_group_checks()
+        except Exception:
+            _LOGGER.exception("%s: group checks failed", self._title)
         return data
+
+    # -- Cloud: round trip and Repairs ----------------------------------------
+
+    def _issue(
+        self, kind: str, active: bool, placeholders: dict[str, str] | None = None
+    ) -> None:
+        set_issue(
+            self._hass,
+            kind,
+            self._entry.entry_id,
+            active,
+            {"group": self._title, **(placeholders or {})},
+        )
+
+    def cloud_context(self) -> tuple[ReefBeatCloudCoordinator, str, str] | None:
+        """(cloud account, aquarium uid, model) of a group the cloud can hold.
+
+        As in the ReefBeat app: the lamps of one model, all in one aquarium
+        of one account. None otherwise (the group is then local only).
+        """
+        if not self._linked or len(self._linked) != len(self.member_ids):
+            return None
+        if len({str(getattr(led, "model", "")) for led in self._linked}) != 1:
+            return None
+        clouds = [self._cloud_of(str(led.model_id)) for led in self._linked]
+        if any(c is None for c in clouds):
+            return None
+        found = cast(list[tuple[ReefBeatCloudCoordinator, dict]], clouds)
+        accounts = {id(cloud) for cloud, _ in found}
+        aquariums = {device.get("aquarium_uid") for _, device in found}
+        if len(accounts) != 1 or len(aquariums) != 1:
+            return None
+        return found[0][0], str(aquariums.pop()), str(self._linked[0].model)
+
+    def local_state(self) -> GroupState:
+        """The group as Home Assistant holds it."""
+        store = cast(GroupStore, self.group_store)
+        return GroupState(
+            tuple(str(led.model_id) for led in self._linked),
+            store.staggered,
+            store.delay,
+        )
+
+    def _known_lamps(self) -> dict[str, str]:
+        """hwid -> entry id of the lamps Home Assistant has."""
+        return {
+            str(led.model_id): entry_id
+            for entry_id, led in self._hass.data.get(DOMAIN, {}).items()
+            if isinstance(led, ReefLedCoordinator)
+            and not isinstance(led, ReefVirtualLedCoordinator)
+        }
+
+    @staticmethod
+    def _cloud_aquarium(
+        cloud: ReefBeatCloudCoordinator, aquarium_uid: str
+    ) -> dict[str, Any] | None:
+        """An aquarium of the cloud account."""
+        aquariums = cloud.get_data("$.sources[?(@.name=='/aquarium')].data", True)
+        return next(
+            (
+                a
+                for a in (aquariums if isinstance(aquariums, list) else [])
+                if isinstance(a, dict) and a.get("uid") == aquarium_uid
+            ),
+            None,
+        )
+
+    def cloud_state(
+        self, cloud: ReefBeatCloudCoordinator, aquarium_uid: str, model: str
+    ) -> GroupState:
+        """The group as the cloud holds it (lamps HA knows only)."""
+        devices = cloud.get_data("$.sources[?(@.name=='/device')].data", True)
+        return cloud_group_state(
+            devices,
+            self._cloud_aquarium(cloud, aquarium_uid),
+            aquarium_uid,
+            model,
+            set(self._known_lamps()),
+        )
+
+    async def _async_group_checks(self) -> None:
+        """Keep the group and the cloud together, raise the Repairs issues.
+
+        - a group of several models cannot be held by the cloud: its lamps
+          must not stay grouped in the ReefBeat app (issue, fixed by
+          ungrouping them there);
+        - a group the cloud could hold, without a cloud account listing its
+          lamps: issue (add the account, or keep the group local);
+        - otherwise the group is synchronized both ways (see _async_sync).
+        """
+        store = self.group_store
+        if store is None or not self._linked or self._reloading:
+            return
+        if len(self._linked) != len(self.member_ids):
+            return  # a lamp still missing: nothing sure to say
+        if len({str(getattr(led, "model", "")) for led in self._linked}) > 1:
+            self._issue(ISSUE_NO_CLOUD, False)
+            self._issue(ISSUE_CONFLICT, False)
+            grouped = [
+                led.title
+                for led in self._linked
+                if (c := self._cloud_of(str(led.model_id))) and c[1].get("grouped")
+            ]
+            self._issue(ISSUE_MIXED, bool(grouped), {"leds": ", ".join(grouped)})
+            return
+        self._issue(ISSUE_MIXED, False)
+        context = self.cloud_context()
+        if context is None or store.local_only:
+            self._issue(ISSUE_NO_CLOUD, context is None and not store.local_only)
+            self._issue(ISSUE_CONFLICT, False)
+            return
+        self._issue(ISSUE_NO_CLOUD, False)
+        await self._async_sync(*context)
+
+    async def _async_sync(
+        self, cloud: ReefBeatCloudCoordinator, aquarium_uid: str, model: str
+    ) -> None:
+        """Bring Home Assistant and the cloud together (see sync_action)."""
+        store = cast(GroupStore, self.group_store)
+        local = self.local_state()
+        remote = self.cloud_state(cloud, aquarium_uid, model)
+        snapshot = GroupState.from_dict(store.snapshot)
+        action = sync_action(local, remote, snapshot)
+        if action == SYNC_CONFLICT:
+            self._issue(ISSUE_CONFLICT, True)
+            return
+        self._issue(ISSUE_CONFLICT, False)
+        if action == SYNC_PUSH:
+            await self._async_push(cloud, aquarium_uid, model, local, snapshot, remote)
+        elif action == SYNC_ADOPT:
+            await self._async_adopt(remote)
+        elif snapshot != local:
+            store.snapshot = local.as_dict()
+            await store.async_save()
+
+    async def _async_push(
+        self,
+        cloud: ReefBeatCloudCoordinator,
+        aquarium_uid: str,
+        model: str,
+        local: GroupState,
+        *former: GroupState | None,
+    ) -> None:
+        """Write the group to the cloud, as the ReefBeat app does.
+
+        POST /device/manage (grouped, group_index; the lamps that left get
+        grouped false), the staggered sunrise of the model, the offset of
+        each lamp; then the cloud is read again.
+        """
+        store = cast(GroupStore, self.group_store)
+        if local == self._push_failed:
+            return  # already refused: tried again once something changes
+        devices = cloud.get_data("$.sources[?(@.name=='/device')].data", True)
+        by_hwid = {
+            str(d.get("hwid")): d
+            for d in (devices if isinstance(devices, list) else [])
+            if isinstance(d, dict)
+        }
+        left = {
+            hwid
+            for state in former
+            if state is not None
+            for hwid in state.members
+            if hwid not in local.members
+        }
+        manage = [
+            {
+                "hwid": hwid,
+                "name": by_hwid.get(hwid, {}).get("name", ""),
+                "in_service": by_hwid.get(hwid, {}).get("in_service", True),
+                "grouped": hwid in local.members,
+                "group_index": local.members.index(hwid)
+                if hwid in local.members
+                else 0,
+            }
+            for hwid in [*local.members, *sorted(left)]
+        ]
+        results = [await cloud.send_cmd("/device/manage", manage, "post")]
+        results.append(
+            await cloud.send_cmd(
+                f"/aquarium/{aquarium_uid}/group/"
+                + cloud_group_name(self._cloud_aquarium(cloud, aquarium_uid), model),
+                {
+                    "properties": {
+                        "staggered": local.staggered,
+                        "staggered_delay": local.delay,
+                    }
+                },
+                "put",
+            )
+        )
+        offsets = self.staggered_offsets()
+        for entry_id, led in zip(self._linked_entries, self._linked, strict=False):
+            if entry_id in offsets:
+                results.append(
+                    await cloud.send_cmd(
+                        f"/device/{led.model_id}", {"offset": offsets[entry_id]}, "put"
+                    )
+                )
+        if not all(_accepted(r) for r in results):
+            _LOGGER.warning("%s: the cloud refused the group", self._title)
+            self._push_failed = local
+            return
+        self._push_failed = None
+        await cloud.fetch_config("/device")
+        cloud.my_api.quick_refresh = "/aquarium"
+        await cloud.my_api.fetch_data()
+        store.snapshot = local.as_dict()
+        await store.async_save()
+        _LOGGER.info("%s: group written to the cloud", self._title)
+
+    async def _async_adopt(self, remote: GroupState) -> None:
+        """Take the group as the ReefBeat app left it.
+
+        The lamps or their order changed: the group is set up again with them
+        (its offsets are then written); only the staggered sunrise changed:
+        the offsets are written.
+        """
+        store = cast(GroupStore, self.group_store)
+        known = self._known_lamps()
+        members = [known[hwid] for hwid in remote.members if hwid in known]
+        store.staggered = remote.staggered
+        store.delay = remote.delay
+        store.snapshot = remote.as_dict()
+        await store.async_save()
+        _LOGGER.info("%s: group taken from the ReefBeat app", self._title)
+        if members != self.member_ids:
+            # The group is set up again with them: nothing more to check here
+            self._reloading = True
+            self._hass.config_entries.async_update_entry(
+                self._entry, data={**self._entry.data, CONF_GROUP_MEMBERS: members}
+            )
+            return
+        self.async_reconcile_staggered()
+
+    # -- Repairs fixes ------------------------------------------------------------
+
+    async def async_keep_local(self) -> None:
+        """No cloud for this group: kept in Home Assistant only."""
+        store = cast(GroupStore, self.group_store)
+        store.local_only = True
+        await store.async_save()
+        self._issue(ISSUE_NO_CLOUD, False)
+
+    async def async_ungroup_in_cloud(self) -> None:
+        """Ungroup the lamps of this (multi-model) group in the ReefBeat app."""
+        by_cloud: dict[int, tuple[ReefBeatCloudCoordinator, list[dict]]] = {}
+        for led in self._linked:
+            found = self._cloud_of(str(led.model_id))
+            if found is None or not found[1].get("grouped"):
+                continue
+            cloud, device = found
+            by_cloud.setdefault(id(cloud), (cloud, []))[1].append(
+                {
+                    "hwid": str(led.model_id),
+                    "name": device.get("name", ""),
+                    "in_service": device.get("in_service", True),
+                    "grouped": False,
+                    "group_index": 0,
+                }
+            )
+        for cloud, manage in by_cloud.values():
+            await cloud.send_cmd("/device/manage", manage, "post")
+            await cloud.fetch_config("/device")
+        self._issue(ISSUE_MIXED, False)
+
+    async def async_resolve_conflict(self, keep_home_assistant: bool) -> None:
+        """Settle a conflict: Home Assistant's group, or the ReefBeat app's."""
+        context = self.cloud_context()
+        if context is None or self.group_store is None:
+            return
+        remote = self.cloud_state(*context)
+        if keep_home_assistant:
+            self._push_failed = None
+            await self._async_push(*context, self.local_state(), remote)
+        else:
+            await self._async_adopt(remote)
+        self._issue(ISSUE_CONFLICT, False)
 
     def get_data(
         self, name: str, is_None_possible: bool = False, cached: bool = True
@@ -918,24 +1499,28 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
     def set_data(self, name: str, value: Any) -> None:
         """Broadcast set data to all linked LEDs (resolving G1/G2 path when provided)."""
         names = name.split(" ")
-        for led in self._linked:
-            _LOGGER.debug("Setting DATA for virtual led %s", names)
-            if len(names) > 1:
-                v_name = names[1].split(".")[-1]
-                is_g1 = bool(
-                    getattr(led, "is_g1", bool(getattr(led.my_api, "_g1", False)))
-                )
-                name_to_set = names[0] + "." + v_name if is_g1 else names[1]
-            else:
-                name_to_set = name
-            led.set_data(name_to_set, value)
+        with group_dispatch():
+            for led in self._targets():
+                _LOGGER.debug("Setting DATA for virtual led %s", names)
+                if len(names) > 1:
+                    v_name = names[1].split(".")[-1]
+                    is_g1 = bool(
+                        getattr(led, "is_g1", bool(getattr(led.my_api, "_g1", False)))
+                    )
+                    name_to_set = names[0] + "." + v_name if is_g1 else names[1]
+                else:
+                    name_to_set = name
+                led.set_data(name_to_set, value)
 
     async def push_values(
         self, source: str = "/configuration", method: str = "post"
     ) -> None:
-        """Broadcast push to all linked LEDs."""
-        for led in self._linked:
-            await led.push_values(source, method)
+        """Broadcast push to all linked LEDs, once all of them are there."""
+        self._check_ready()
+        with group_dispatch():
+            for led in self._targets():
+                await led.push_values(source, method)
+        self._notify_members()
 
     def data_exist(self, name: str) -> bool:
         """Return True if any linked device has the named data."""
@@ -947,14 +1532,18 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         return False
 
     async def press(self, action: str) -> None:
-        """Broadcast press to all linked LEDs."""
-        for led in self._linked:
-            await led.press(action)
+        """Broadcast press to all linked LEDs, once all of them are there."""
+        self._check_ready()
+        with group_dispatch():
+            for led in self._targets():
+                await led.press(action)
 
     async def delete(self, source: str) -> None:
-        """Broadcast delete to all linked LEDs."""
-        for led in self._linked:
-            await led.delete(source)
+        """Broadcast delete to all linked LEDs, once all of them are there."""
+        self._check_ready()
+        with group_dispatch():
+            for led in self._targets():
+                await led.delete(source)
 
     async def fetch_config(self, config_path: str | None = None) -> None:
         """Fetch config from all linked LEDs."""
@@ -962,9 +1551,12 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
             await led.my_api.fetch_config(config_path)
 
     async def post_specific(self, source: str) -> None:
-        """POST to LED-specific endpoint on all linked LEDs."""
-        for led in self._linked:
-            await led.post_specific(source)
+        """POST to LED-specific endpoint on all linked LEDs, once all are there."""
+        self._check_ready()
+        with group_dispatch():
+            for led in self._targets():
+                await led.post_specific(source)
+        self._notify_members()
 
     async def async_request_refresh(
         self,
@@ -980,8 +1572,8 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
         return not self.only_g1
 
     def weather_targets(self) -> list[ReefLedCoordinator]:
-        """A weather program goes to each lamp of the group."""
-        return list(self._linked)
+        """A weather program goes to each lamp of the group (in service)."""
+        return self._targets()
 
     def library_link(self) -> tuple[ReefBeatCloudCoordinator, str] | None:
         """Library of the first linked lamp bound to a cloud account."""
@@ -2565,6 +3157,9 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
         # Whether the linked devices were told this account is available: only
         # then is there anything to withdraw on unload.
         self._announced = False
+        # Groups of the ReefBeat app already proposed as a virtual LED
+        # (discovery unique ids), while they still need one
+        self._proposed: set[str] = set()
 
     async def _async_setup(self) -> None:
         """Connect and fetch initial cloud data; start link request listener."""
@@ -2579,6 +3174,76 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
     async def async_setup(self) -> None:
         """Public entry-point for one-time initialization."""
         await self._async_setup()
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch the account, then propose its groups Home Assistant lacks."""
+        data = await super()._async_update_data()
+        self._propose_groups()
+        return data
+
+    # Discovery of the groups of the ReefBeat app
+    def app_groups(self) -> dict[tuple[str, str], list[str]]:
+        """Groups of LEDs of the account Home Assistant could drive.
+
+        By (aquarium uid, model): the entry ids of the loaded lamps of the
+        group, in the app's order.
+        """
+        known = {
+            str(led.model_id): entry_id
+            for entry_id, led in self._hass.data.get(DOMAIN, {}).items()
+            if isinstance(led, ReefLedCoordinator)
+            and not isinstance(led, ReefVirtualLedCoordinator)
+        }
+        devices = self.get_data("$.sources[?(@.name=='/device')].data", True)
+        return cloud_groups(devices, known)
+
+    def _aquarium_name(self, aquarium_uid: str) -> str:
+        """Name of an aquarium of the account (its uid when unnamed)."""
+        aquarium = ReefVirtualLedCoordinator._cloud_aquarium(self, aquarium_uid)
+        name = aquarium.get("name") if aquarium else None
+        return str(name) if name else aquarium_uid
+
+    @callback
+    def _propose_groups(self) -> None:
+        """Propose a virtual LED for each group of the app none drives yet.
+
+        A group none of whose lamps is already in a virtual LED (of any
+        config entry, loaded or not) is proposed once, as a discovered
+        device; once a virtual LED takes it, it can be proposed again if
+        that virtual LED goes away. An ignored proposal stays ignored (the
+        flow aborts on its unique id).
+        """
+        taken = {
+            str(member)
+            for entry in self._hass.config_entries.async_entries(DOMAIN)
+            for member in entry.data.get(CONF_GROUP_MEMBERS, []) or []
+        }
+        wanted: set[str] = set()
+        for (aquarium_uid, model), members in self.app_groups().items():
+            if taken.intersection(members):
+                continue
+            key = discovery_unique_id(aquarium_uid, model)
+            wanted.add(key)
+            if key in self._proposed:
+                continue
+            _LOGGER.info(
+                "Group of %s %s found in the ReefBeat app: proposing a virtual LED",
+                len(members),
+                model,
+            )
+            self._hass.async_create_task(
+                self._hass.config_entries.flow.async_init(
+                    DOMAIN,
+                    context={"source": SOURCE_INTEGRATION_DISCOVERY},
+                    data={
+                        "aquarium_uid": aquarium_uid,
+                        "aquarium": self._aquarium_name(aquarium_uid),
+                        "model": model,
+                        CONF_GROUP_MEMBERS: members,
+                    },
+                )
+            )
+        self._proposed = wanted
 
     # Wave library helpers
     def get_no_wave(self, device: Any) -> dict[str, Any] | None:

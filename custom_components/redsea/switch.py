@@ -78,6 +78,7 @@ from .entity import (
     ReefRoleMixin,
     RestoreSpec,
 )
+from .group_entities import group_entities
 from .led_weather_entities import weather_entities
 from .maintenance import (
     PROBE_SCOPES,
@@ -957,6 +958,8 @@ async def async_setup_entry(
 
     # ReefLED week program following the weather
     entities.extend(weather_entities(device, "switch"))
+    # Group (virtual LED) settings: staggered sunrise
+    entities.extend(group_entities(device, "switch"))
 
     async_add_entities(entities, True)
 

@@ -759,6 +759,9 @@ async def test_led_weather_setup_nightly_run_and_service(
         domain=DOMAIN, data={"ip_address": "1.2.3.4", "hw_model": "RSLED160"}
     )
     entry.add_to_hass(hass)
+    # What a lamp needs to find its group (none here)
+    led._hass = hass  # type: ignore[attr-defined]
+    led._entry = entry  # type: ignore[attr-defined]
     monkeypatch.setattr(integration, "_build_coordinator", lambda _h, _e: led)
     monkeypatch.setattr(hass.config_entries, "async_forward_entry_setups", AsyncMock())
     ticks: list[Any] = []
@@ -811,6 +814,17 @@ async def test_led_weather_setup_nightly_run_and_service(
     action(None)
     await hass.async_block_till_done()
     assert runs == [led]
+    # A lamp of a group: its group runs the weather (the lamp's own store,
+    # even due, is left)
+    store.last_success = None
+    hass.data[DOMAIN]["group"] = SimpleNamespace(
+        member_ids=[entry.entry_id], _weather=object()
+    )
+    action(None)
+    await hass.async_block_till_done()
+    assert runs == [led]
+    del hass.data[DOMAIN]["group"]
+    store.last_success = integration.dt_util.now().date().isoformat()
 
     # Changed settings: the new week shown at once, sent once they settle
     await store.async_set("location", "1, 2")

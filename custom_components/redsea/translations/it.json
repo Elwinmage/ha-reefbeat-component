@@ -2,13 +2,14 @@
   "config": {
     "abort": {
       "already_configured": "Dispositivo già configurato",
-      "cannot_create": "Impossibile creare il dispositivo ReefBeat con i parametri specificati"
+      "cannot_create": "Impossibile creare il dispositivo ReefBeat con i parametri specificati",
+      "group_already_driven": "Queste lampade sono già comandate da un LED virtuale"
     },
     "error": {
       "auth_failed": "Autenticazione fallita, verificare le credenziali",
       "nothing_detected": "Nessun dispositivo rilevato"
     },
-    "flow_title": "Configurazione ReefBeat",
+    "flow_title": "{name}",
     "step": {
       "user": {
         "data": {
@@ -29,6 +30,10 @@
         },
         "description": "Tutti i dispositivi trovati sulla rete sono preselezionati. Deseleziona quelli che non vuoi aggiungere e conferma — tutti i dispositivi rimanenti saranno aggiunti in una sola volta.",
         "title": "Aggiungi dispositivi rilevati"
+      },
+      "discovery_confirm": {
+        "title": "Gruppo dell'app ReefBeat",
+        "description": "L'app ReefBeat raggruppa queste lampade {model} nell'acquario {aquarium}:\n\n{leds}\n\nCreare un LED virtuale che le comandi insieme, in quest'ordine?"
       }
     }
   },
@@ -588,6 +593,12 @@
       },
       "weather_refresh_days": {
         "name": "Aggiornamento meteo (giorni)"
+      },
+      "sunrise_offset": {
+        "name": "Sfasamento dell'alba"
+      },
+      "staggered_delay": {
+        "name": "Ritardo dell'alba sfalsata"
       }
     },
     "select": {
@@ -1594,6 +1605,9 @@
       },
       "weather_clouds": {
         "name": "Nuvole meteo"
+      },
+      "staggered_sunrise": {
+        "name": "Alba sfalsata"
       }
     },
     "text": {
@@ -1679,7 +1693,9 @@
       "wifi_no_ssid": "Seleziona una rete prima di inviare.",
       "wifi_bad_cidr": "CIDR IPv4 non valido (atteso ad esempio 10.0.0.0/24).",
       "wifi_manual_not_found": "Dispositivo non trovato su questa sottorete. Prova un altro CIDR oppure lascia il campo vuoto per rinunciare.",
-      "no_probe_detected": "Nessuna nuova sonda del tipo selezionato rilevata. Mettila in abbinamento e riprova."
+      "no_probe_detected": "Nessuna nuova sonda del tipo selezionato rilevata. Mettila in abbinamento e riprova.",
+      "group_min_members": "Scegli almeno due LED.",
+      "group_duplicate_position": "Ogni LED deve avere una sola posizione."
     },
     "progress": {
       "applying": "Applicazione delle nuove credenziali Wi-Fi e ricerca del dispositivo sulla rete..."
@@ -1755,6 +1771,29 @@
       "del_probe_confirm": {
         "title": "Conferma rimozione",
         "description": "Questo rimuove definitivamente la/e sonda/e selezionata/e e tutte le loro entità e lo storico: {probes}.\n\nConferma per continuare, o chiudi la finestra per annullare."
+      },
+      "group_members": {
+        "title": "LED del gruppo",
+        "description": "Scegli i ReefLED comandati insieme da questo LED virtuale (almeno due). Un LED può appartenere a un solo gruppo.",
+        "data": {
+          "members": "LED"
+        }
+      },
+      "group_order": {
+        "title": "Ordine dei LED",
+        "description": "Ordine dei LED nel gruppo, come nell'app ReefBeat: l'alba sfalsata inizia dal primo.",
+        "data": {
+          "position_1": "Posizione 1",
+          "position_2": "Posizione 2",
+          "position_3": "Posizione 3",
+          "position_4": "Posizione 4",
+          "position_5": "Posizione 5",
+          "position_6": "Posizione 6",
+          "position_7": "Posizione 7",
+          "position_8": "Posizione 8",
+          "position_9": "Posizione 9",
+          "position_10": "Posizione 10"
+        }
       }
     }
   },
@@ -1940,6 +1979,62 @@
         "wait": {
           "name": "Attendere la lampada",
           "description": "Rispondere una volta scritta la lampada (di norma la settimana viene salvata e mostrata, poi scritta in background)."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "group_member_unavailable": {
+      "message": "{group}: azione rifiutata, questi LED non sono disponibili: {members}. Non è stato inviato nulla, il gruppo resta sincronizzato."
+    },
+    "group_channel_unavailable": {
+      "message": "{group} contiene lampade G1 e G2: bianco e blu non possono essere impostati su tutto il gruppo. Usa la temperatura di colore e l'intensità."
+    }
+  },
+  "issues": {
+    "group_no_cloud": {
+      "title": "{group}: nessun account cloud ReefBeat",
+      "fix_flow": {
+        "step": {
+          "keep_local": {
+            "title": "Mantieni il gruppo solo in Home Assistant",
+            "description": "I LED di {group} potrebbero essere raggruppati anche nell'app ReefBeat, ma non è configurato alcun account cloud ReefBeat che li elenchi. Senza di esso il gruppo esiste solo in Home Assistant: l'app non lo vede e può comandare i suoi LED separatamente.\n\nPer condividere il gruppo con l'app, aggiungi il tuo account cloud ReefBeat (Impostazioni > Dispositivi e servizi > Aggiungi integrazione > Red Sea > Cloud API): questo problema scomparirà da solo. Oppure mantieni il gruppo solo in Home Assistant.\n\nIl gruppo non verrà scritto nel cloud ReefBeat. Potrai comunque aggiungere l'account cloud in seguito."
+          }
+        },
+        "abort": {
+          "group_not_loaded": "Il gruppo non è caricato: riprova quando lo sarà."
+        }
+      }
+    },
+    "group_mixed_models": {
+      "title": "{group}: LED raggruppati nell'app ReefBeat",
+      "fix_flow": {
+        "step": {
+          "ungroup": {
+            "title": "Separa il gruppo nell'app ReefBeat",
+            "description": "{group} contiene LED di più modelli, che l'app ReefBeat non sa raggruppare insieme: l'app raggruppa solo LED dello stesso modello. Questi LED sono ancora raggruppati nell'app, che li comanderebbe separatamente dagli altri: {leds}.\n\nSepara il gruppo nell'app ReefBeat: il gruppo esisterà allora solo in Home Assistant (il suo ordine è globale).\n\nQuesti LED verranno separati nel cloud ReefBeat (l'app li mostra separatamente). Home Assistant continua a comandarli insieme."
+          }
+        },
+        "abort": {
+          "group_not_loaded": "Il gruppo non è caricato: riprova quando lo sarà."
+        }
+      }
+    },
+    "group_conflict": {
+      "title": "{group}: modificato in Home Assistant e nell'app ReefBeat",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Quale gruppo mantenere?",
+            "description": "I LED, il loro ordine o l'alba sfalsata di {group} sono cambiati sia in Home Assistant sia nell'app ReefBeat dall'ultima sincronizzazione. Scegli il gruppo da mantenere.",
+            "menu_options": {
+              "keep_home_assistant": "Quello di Home Assistant (scritto nel cloud ReefBeat)",
+              "keep_reefbeat": "Quello dell'app ReefBeat (ripreso da Home Assistant)"
+            }
+          }
+        },
+        "abort": {
+          "group_not_loaded": "Il gruppo non è caricato: riprova quando lo sarà."
         }
       }
     }

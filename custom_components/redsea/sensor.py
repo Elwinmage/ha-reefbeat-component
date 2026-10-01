@@ -574,16 +574,15 @@ LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
     ),
 )
 
-# Virtual LED: the lamps it drives, for the card (list, links, program writes)
+# The lamps of a group, in its order, for the card (list, links, program
+# writes): on the virtual LED, and on each of its lamps (none when alone)
 VIRTUAL_LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
     ReefBeatSensorEntityDescription(
         key="linked_leds",
         translation_key="linked_leds",
-        value_fn=lambda device: len(
-            cast(ReefVirtualLedCoordinator, device).linked_leds()
-        ),
+        value_fn=lambda device: len(cast(ReefLedCoordinator, device).linked_leds()),
         attributes_fn=lambda device: {
-            "leds": cast(ReefVirtualLedCoordinator, device).linked_leds()
+            "leds": cast(ReefLedCoordinator, device).linked_leds()
         },
         icon="mdi:lightbulb-group",
     ),
@@ -1928,7 +1927,7 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
-    if isinstance(device, ReefVirtualLedCoordinator):
+    if isinstance(device, ReefLedCoordinator):
         entities.extend(
             ReefBeatSensorEntity(device, description)
             for description in VIRTUAL_LED_SENSORS

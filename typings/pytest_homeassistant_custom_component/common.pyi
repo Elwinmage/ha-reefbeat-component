@@ -12,6 +12,7 @@ class MockConfigEntry:
     options: MutableMapping[str, Any]
     unique_id: str | None
     version: int
+    minor_version: int
 
     def __init__(
         self,
@@ -22,6 +23,8 @@ class MockConfigEntry:
         options: Mapping[str, Any] | None = ...,
         unique_id: str | None = ...,
         version: int = ...,
+        minor_version: int = ...,
         source: str | None = ...,
+        entry_id: str | None = ...,
     ) -> None: ...
     def add_to_hass(self, hass: HomeAssistant) -> None: ...
