@@ -76,6 +76,9 @@
   also answers `weather` (settings, base while on, last day).
 
 ### VIRTUAL LED (groups)
+ - `linked_leds` sensor: each lamp of the `leds` attribute also gives its
+   sunrise `offset` (minutes, staggered sunrise; None for a lamp without
+   `/offset`), shown by the card under the lamp's name.
  - A virtual LED is now a group, as the "grouped" LEDs of the ReefBeat app:
    a shared value set on one of its lamps (manual channels, kelvin /
    intensity, mode, timer, programs, acclimation, moon phase) is applied to

@@ -460,6 +460,8 @@ def test_virtual_led_linked_leds_describes_each_lamp(hass: HomeAssistant) -> Non
     hass.data.setdefault(DOMAIN, {})
     led1 = _LinkedLed(title="LED1", is_g1=True, model_id="hw1", model="RSLED160")
     led2 = _LinkedLed(title="LED2", is_g1=False, model_id="hw2", model="RSLED170")
+    # LED2 has /offset: its staggered sunrise is listed
+    led2.get_map[coord.LED_OFFSET_INTERNAL_NAME] = 10.0
     hass.data[DOMAIN]["id1"] = led1
     hass.data[DOMAIN]["id2"] = led2
 
@@ -478,6 +480,7 @@ def test_virtual_led_linked_leds_describes_each_lamp(hass: HomeAssistant) -> Non
             "name": "LED1",
             "model": "RSLED160",
             "g2": False,
+            "offset": None,
             "entry_id": "id1",
         },
         {
@@ -485,9 +488,13 @@ def test_virtual_led_linked_leds_describes_each_lamp(hass: HomeAssistant) -> Non
             "name": "LED2",
             "model": "RSLED170",
             "g2": True,
+            "offset": 10,
             "entry_id": "id2",
         },
     ]
+    # A value that is not a number (a flag) is no offset
+    led2.get_map[coord.LED_OFFSET_INTERNAL_NAME] = True
+    assert vled.linked_leds()[1]["offset"] is None
     # A lamp linked without its entry (defensive): no entry id
     vled._linked_entries = []  # type: ignore[attr-defined]
     assert vled.linked_leds()[0]["entry_id"] is None

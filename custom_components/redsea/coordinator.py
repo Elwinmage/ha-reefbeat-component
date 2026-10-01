@@ -1621,17 +1621,23 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
 
         The card lists them (with a link to each device) and writes the
         programs to each of them: it needs their hardware id (the device
-        registry identifier), name, model, generation and config entry.
+        registry identifier), name, model, generation and config entry, and
+        its sunrise offset (minutes, staggered sunrise; None for a lamp
+        without /offset).
         """
         res: list[dict[str, Any]] = []
         for n, led in enumerate(self._linked):
             is_g1 = bool(getattr(led, "is_g1", bool(getattr(led.my_api, "_g1", False))))
+            offset = led.get_data(LED_OFFSET_INTERNAL_NAME, True)
             res.append(
                 {
                     "hwid": led.model_id,
                     "name": led.title,
                     "model": led.model,
                     "g2": not is_g1,
+                    "offset": int(offset)
+                    if isinstance(offset, (int, float)) and not isinstance(offset, bool)
+                    else None,
                     "entry_id": self._linked_entries[n]
                     if n < len(self._linked_entries)
                     else None,
