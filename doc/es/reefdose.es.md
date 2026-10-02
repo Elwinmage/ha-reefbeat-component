@@ -12,20 +12,20 @@
 - Calibración (Por favor lea [esto](#calibración-y-cebado))
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_devices.png" alt="Image">
+<img src="../img/rsdose_devices.png" alt="Image">
 </p>
 
 ### Principal
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_main_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_main_diag.png" alt="Image">
+<img src="../img/rsdose_main_conf.png" alt="Image">
+<img src="../img/rsdose_main_diag.png" alt="Image">
 </p>
 
 ### Cabezas
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_diag.png" alt="Image">
+<img src="../img/rsdose_ctrl.png" alt="Image">
+<img src="../img/rsdose_sensors.png" alt="Image">
+<img src="../img/rsdose_diag.png" alt="Image">
 </p>
 
 #### Calibración y cebado
@@ -51,7 +51,7 @@
 > ⚠️ ¡El cebado siempre debe ir seguido de una calibración (pasos 1 a 5)!⚠️
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/calibration.png" alt="Image">
+  <img src="../img/calibration.png" alt="Image">
 </p>
 
 ### Tareas de mantenimiento

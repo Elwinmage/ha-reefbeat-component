@@ -12,8 +12,8 @@ aplicação ReefBeat: as suas lâmpadas são controladas como uma só.
 - Pode usar tanto Kelvin/Intensidade como Branco e Azul se tiver apenas lâmpadas G1.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/virtual_led_config_1.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/virtual_led_config_2.png" alt="Image">
+<img src="../img/virtual_led_config_1.png" alt="Image">
+<img src="../img/virtual_led_config_2.png" alt="Image">
 </p>
 
 ## O que o grupo partilha

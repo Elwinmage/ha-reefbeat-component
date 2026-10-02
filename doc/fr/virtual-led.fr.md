@@ -13,8 +13,8 @@ de l'application ReefBeat : ses rampes se pilotent comme une seule.
 - Vous pouvez utiliser à la fois les Kelvin/Intensité et Blanc&Bleu si vous n'avez que des G1.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/virtual_led_config_1.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/virtual_led_config_2.png" alt="Image">
+<img src="../img/virtual_led_config_1.png" alt="Image">
+<img src="../img/virtual_led_config_2.png" alt="Image">
 </p>
 
 ## Ce que partage le groupe

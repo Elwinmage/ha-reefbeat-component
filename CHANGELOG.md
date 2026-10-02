@@ -392,8 +392,8 @@ Because the device id creation changed to be compliant with HA standards, RSDOSE
 
 ### New icons for your HomeAssistant
 
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/doc/img/icons_feeding_maintenance.png"/>
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/doc/img/icons_devices.png"/>
+<img src="doc/img/icons_feeding_maintenance.png"/>
+<img src="doc/img/icons_devices.png"/>
 
 ## MODIFICATIONS
 

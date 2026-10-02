@@ -11,19 +11,19 @@
 - Odczyt nazwy i wartości programów (with cloud support). Only for G1 LEDs.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_G1_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_diag.png" alt="Image">
+<img src="../img/rsled_G1_ctrl.png" alt="Image">
+<img src="../img/rsled_diag.png" alt="Image">
 </p>
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_G1_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_conf.png" alt="Image">
+<img src="../img/rsled_G1_sensors.png" alt="Image">
+<img src="../img/rsled_conf.png" alt="Image">
 </p>
 
 ***
 
 Obsługa temperatury barwowej lamp LED G1 uwzględnia specyfikę każdego z trzech modeli.
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/leds_specs.png" alt="Image">
+<img src="../img/leds_specs.png" alt="Image">
 </p>
 
 ***
@@ -35,7 +35,7 @@ Obsługa temperatury barwowej lamp LED G1 uwzględnia specyfikę każdego z trze
 Ponieważ lampy LED G2 zapewniają stałą intensywność w całym zakresie barw, w środku widma nie wykorzystują pełnej mocy. Przy 8 000K kanał biały pracuje na 100 %, a niebieski na 0 % (odwrotnie przy 23 000K). Przy 14 000K i intensywności 100 % moc kanałów białego i niebieskiego w lampach G2 wynosi około 85 %.
 Oto krzywa strat dla G2.
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/intensity_factor.png" alt="Image">
+<img src="../img/intensity_factor.png" alt="Image">
 </p>
 
 #### Temperatura barwowa
@@ -50,14 +50,14 @@ Ta kompensacja zapewnia to samo [PAR](https://en.wikipedia.org/wiki/Photosynthet
 > Ponieważ Red Sea nie publikuje wartości PAR poniżej 12 000K, kompensacja jest dostępna tylko w zakresie 12 000 do 23 000K. Jeśli masz lampę G1 i miernik PAR, możesz [skontaktować się ze mną](https://github.com/Elwinmage/ha-reefbeat-component/discussions/), aby dodać kompensację w pełnym zakresie (9 000 do 23 000K).
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/intensity_compensation.png" alt="Image">
+<img src="../img/intensity_compensation.png" alt="Image">
 </p>
 
 Innymi słowy, bez kompensacji intensywność x % przy 9 000K nie daje tego samego PAR co przy 23 000K lub 15 000K.
 
 Oto krzywe mocy:
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/PAR_curves.png" alt="Image">
+<img src="../img/PAR_curves.png" alt="Image">
 </p>
 
 Jeśli chcesz wykorzystać pełną moc lampy, wyłącz kompensację intensywności (domyślnie).

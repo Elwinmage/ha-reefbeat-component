@@ -5,7 +5,7 @@
 > Os dispositivos ReefWave são diferentes dos outros dispositivos ReefBeat. São os únicos que dependem da nuvem ReefBeat.<br/>
 > Quando abre a aplicação ReefBeat, o estado de todos os dispositivos é consultado e os dados da aplicação são obtidos a partir do estado do dispositivo.<br/>
 > Com o ReefWave é o contrário: não há ponto de controlo local (como pode ver na aplicação ReefBeat, não é possível adicionar um ReefWave a um aquário desligado).<br/>
-> <center><img width="20%" src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/reefbeat_rswave.jpg" alt="Image"></center><br />
+> <center><img width="20%" src="../img/reefbeat_rswave.jpg" alt="Image"></center><br />
 > As ondas são guardadas na biblioteca do utilizador na nuvem. Quando altera um valor de uma onda, este é alterado na biblioteca da nuvem e aplicado ao novo agendamento.<br/>
 > Então não há modo local? Não é tão simples. Existe uma API local oculta para controlar o ReefWave, mas a aplicação ReefBeat não deteta as alterações. Assim, o dispositivo e o Home Assistant por um lado, e a aplicação ReefBeat por outro, ficam dessincronizados. O dispositivo e o Home Assistant estarão sempre sincronizados.<br/>
 > Agora que sabe, faça a sua escolha!
@@ -53,25 +53,25 @@ Para os modos Nuvem e Híbrido tem de associar a sua conta na nuvem ReefBeat.
 Primeiro crie um dispositivo ["Cloud API"](../../README.md#add-cloud-api) com as suas credenciais, e está feito!
 O sensor "Ligado à conta" mostrará o nome da sua conta ReefBeat assim que a ligação for estabelecida.
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_linked.png" alt="Image">
+<img src="../img/rswave_linked.png" alt="Image">
 </p>
 
 ## Alterar valores atuais
 Para carregar os valores atuais da onda nos campos de pré-visualização, use o botão "Pré-vis. a partir do atual".
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_set_preview.png" alt="Image">
+<img src="../img/rswave_set_preview.png" alt="Image">
 </p>
 Para alterar os valores atuais da onda, defina os valores de pré-visualização e use o botão "Guardar pré-visualização".
 
 O comportamento é o mesmo da aplicação ReefBeat. Todas as ondas com o mesmo ID no agendamento atual serão atualizadas.
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_save_preview.png" alt="Image">
+<img src="../img/rswave_save_preview.png" alt="Image">
 </p>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_diag.png" alt="Image">
+<img src="../img/rswave_conf.png" alt="Image">
+<img src="../img/rswave_sensors.png" alt="Image">
+<img src="../img/rswave_diag.png" alt="Image">
 </p>
 
 ## Grupos

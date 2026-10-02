@@ -5,7 +5,7 @@
 L'RSPOWER (Power Center) è un dispositivo autonomo con un proprio indirizzo IP, esposto separatamente in Home Assistant.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
+<img src="../img/rspower_devices.png" alt="Image">
 </p>
 
 - 6 o 8 prese controllabili a seconda del modello (RSPOWER6 / RSPOWER8)
@@ -16,9 +16,9 @@ L'RSPOWER (Power Center) è un dispositivo autonomo con un proprio indirizzo IP,
 - Le scritture vengono mostrate subito (aggiornamento ottimistico), poi confermate rileggendo il dispositivo
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
+<img src="../img/rspower_ctrl.png" alt="Image">
+<img src="../img/rspower_conf.png" alt="Image">
+<img src="../img/rspower_diag.png" alt="Image">
 </p>
 
 > [!NOTE]

@@ -10,9 +10,9 @@
 > Per un rotolo nuovo completo, imposta il "diametro del rotolo" al minimo (4,0 cm). La dimensione verrà adattata in base alla tua versione di RSMAT. Per un rotolo parzialmente usato, inserisci il valore in cm.
 - Due parametri nascosti: modello e posizione, se hai bisogno di riconfigurare il tuo RSMAT
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_ctr.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_diag.png" alt="Image">
+<img src="../img/rsmat_ctr.png" alt="Image">
+<img src="../img/rsmat_sensors.png" alt="Image">
+<img src="../img/rsmat_diag.png" alt="Image">
 </p>
 
 ### Attività di manutenzione

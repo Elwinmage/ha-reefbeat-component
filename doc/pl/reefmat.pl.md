@@ -10,9 +10,9 @@
 > Dla nowej, pełnej rolki ustaw „Średnica rolki" na minimum (4,0 cm). Rozmiar zostanie dopasowany do wersji RSMAT. Dla częściowo zużytej rolki wpisz wartość w cm.
 - Dwa ukryte parametry: model i pozycja, jeśli musisz ponownie skonfigurować RSMAT
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_ctr.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_diag.png" alt="Image">
+<img src="../img/rsmat_ctr.png" alt="Image">
+<img src="../img/rsmat_sensors.png" alt="Image">
+<img src="../img/rsmat_diag.png" alt="Image">
 </p>
 
 ### Zadania konserwacyjne

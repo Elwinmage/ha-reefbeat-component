@@ -11,7 +11,7 @@
 
 [![Ruff Status](https://github.com/Elwinmage/ha-reefbeat-component/actions/workflows/main.yml/badge.svg)](https://github.com/Elwinmage/ha-reefbeat-component/actions/workflows/main.yml)
 [![HA & HACS Validation](https://github.com/Elwinmage/ha-reefbeat-component/actions/workflows/hass_and_hacs.yml/badge.svg)](https://github.com/Elwinmage/ha-reefbeat-component/actions/workflows/hass_and_hacs.yml)
-[![Coverage](https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/badges/coverage.svg)](https://app.codecov.io/gh/Elwinmage/ha-reefbeat-component)
+[![Coverage](badges/coverage.svg)](https://app.codecov.io/gh/Elwinmage/ha-reefbeat-component)
 [![GH-code-size](https://img.shields.io/github/languages/code-size/Elwinmage/ha-reefbeat-component.svg?color=red&style=flat-square)](https://github.com/Elwinmage/ha-reefbeat-component)
 
 [![GitHub Clones](https://img.shields.io/badge/dynamic/json?color=success&label=clones&query=count&url=https://gist.githubusercontent.com/Elwinmage/cd478ead8334b09d3d4f7dc0041981cb/raw/clone.json&logo=github)](https://github.com/MShawon/github-clone-count-badge)
@@ -105,7 +105,7 @@ All of them are documented together on the [ReefTech project page](https://elwin
 <tr>
 <td><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/en/reefato.md#reefato">ReefATO+</a></td>
 <td colspan="2">RSATO+</td><td>✅ </td>
-<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSATO+.png"/></td>
+<td width="200px"><img src="doc/img/RSATO+.png"/></td>
 <td align="center">–</td>
 <td>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsato,all label:enhancement" style="text-decoration:none">📆</a>
@@ -115,7 +115,7 @@ All of them are documented together on the [ReefTech project page](https://elwin
 <tr>
 <td rowspan="2"><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/en/reefcontrol.md#reefcontrol">ReefControl</a></td>
 <td colspan="2">RSCONTROLPRO</td><td>✅</td>
-<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROLPRO.png"/></td>
+<td width="200px"><img src="doc/img/RSCONTROLPRO.png"/></td>
 <td align="center" rowspan="2">–</td>
 <td rowspan="2">
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rscontrol,all label:enhancement" style="text-decoration:none">📆</a>
@@ -124,12 +124,12 @@ All of them are documented together on the [ReefTech project page](https://elwin
 </tr>
 <tr>
 <td colspan="2">RSCONTROLLITE</td><td>🧪</td>
-<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSCONTROLLITE.png"/></td>
+<td width="200px"><img src="doc/img/RSCONTROLLITE.png"/></td>
 </tr>
 <tr>
 <td rowspan="2"><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/en/reefcontrol-power.md#reefcontrol-power">ReefControl-Power</a></td>
 <td colspan="2">RSPOWER6</td><td>✅</td>
-<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSPOWER6.png"/></td>
+<td width="200px"><img src="doc/img/RSPOWER6.png"/></td>
 <td align="center" rowspan="2">–</td>
 <td rowspan="2">
   <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rspower,all label:enhancement" style="text-decoration:none">📆</a>
@@ -138,13 +138,13 @@ All of them are documented together on the [ReefTech project page](https://elwin
 </tr>
 <tr>
 <td colspan="2">RSPOWER8</td><td>🧪</td>
-<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSPOWER8.png"/></td>
+<td width="200px"><img src="doc/img/RSPOWER8.png"/></td>
 </tr>
 <tr>
 <td rowspan="2"><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/en/reefdose.md#reefdose">ReefDose</a></td>
 <td colspan="2">RSDOSE2</td>
 <td>✅</td>
-<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSDOSE2.png"/></td>
+<td width="200px"><img src="doc/img/RSDOSE2.png"/></td>
 <td align="center" rowspan="2">–</td>
 <td rowspan="2">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsdose,all label:enhancement" style="text-decoration:none">📆</a>
@@ -153,14 +153,14 @@ All of them are documented together on the [ReefTech project page](https://elwin
 </tr>
 <tr>
 <td colspan="2">RSDOSE4</td><td>✅ </td>
-<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSDOSE4.png"/></td>
+<td width="200px"><img src="doc/img/RSDOSE4.png"/></td>
 </tr>
 <tr>
 <td rowspan="6"> <a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/en/reefled.md#reefled">ReefLed</a></td>
 <td rowspan="3">G1</td>
 <td>RSLED50</td>
 <td>✅</td>
-<td rowspan="3" width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_g1.png"/></td>
+<td rowspan="3" width="200px"><img src="doc/img/rsled_g1.png"/></td>
 <td align="center" rowspan="6">–</td>
 <td rowspan="6">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsled,all label:enhancement" style="text-decoration:none">📆</a>
@@ -178,7 +178,7 @@ All of them are documented together on the [ReefTech project page](https://elwin
 <td rowspan="3">G2</td>
 <td>RSLED60</td>
 <td>✅</td>
-<td rowspan="3" width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_g2.png"/></td>
+<td rowspan="3" width="200px"><img src="doc/img/rsled_g2.png"/></td>
 </tr>
 <tr>
 <td>RSLED115</td><td>✅ </td>
@@ -190,7 +190,7 @@ All of them are documented together on the [ReefTech project page](https://elwin
 <td rowspan="3"><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/en/reefmat.md#reefmat">ReefMat</a></td>
 <td colspan="2">RSMAT250</td>
 <td>✅</td>
-<td rowspan="3" width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSMAT.png"/></td>
+<td rowspan="3" width="200px"><img src="doc/img/RSMAT.png"/></td>
 <td align="center" rowspan="3">–</td>
 <td rowspan="3">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsmat,all label:enhancement" style="text-decoration:none">📆</a>
@@ -206,7 +206,7 @@ All of them are documented together on the [ReefTech project page](https://elwin
 <tr>
 <td><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/en/reefrun.md#reefrun">ReefRun & DC Skimmer</a></td>
 <td colspan="2">RSRUN</td><td>✅</td>
-<td width="200px"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSRUN.png"/></td>
+<td width="200px"><img src="doc/img/RSRUN.png"/></td>
 <td align="center">✅</td>
 <td>
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsrun,all label:enhancement" style="text-decoration:none">📆</a>
@@ -217,7 +217,7 @@ All of them are documented together on the [ReefTech project page](https://elwin
 <td rowspan="2"><a href="https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/en/reefwave.md#reefwave">ReefWave (*)</a></td>
 <td colspan="2">RSWAVE25</td>
 <td>✅</td>
-<td width="200px" rowspan="2"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/RSWAVE.png"/></td>
+<td width="200px" rowspan="2"><img src="doc/img/RSWAVE.png"/></td>
 <td align="center" rowspan="2">✅</td>
 <td rowspan="2">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rswave,all label:enhancement" style="text-decoration:none">📆</a>
@@ -259,7 +259,7 @@ For the companion card ha-reef-card offering advanced and ergonomic features, cl
 Or search for "redsea" or "reefbeat" in HACS.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/hacs_search.png" alt="Image">
+<img src="doc/img/hacs_search.png" alt="Image">
 </p>
 
 # Common functions
@@ -267,13 +267,13 @@ Or search for "redsea" or "reefbeat" in HACS.
 # Icons
 This integration provides custom icons accessible via "redsea:icon-name":
 
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/redsea-icons.png"/>
+<img src="doc/img/redsea-icons.png"/>
 
 ## Add device
 When adding a new device you have 4 choices:
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/add_devices_main.png" alt="Image">
+<img src="doc/img/add_devices_main.png" alt="Image">
 </p>
 
 ### Add Cloud API
@@ -285,20 +285,20 @@ When adding a new device you have 4 choices:
 - Get LED library
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/add_devices_cloud_api.png" alt="Image">
+<img src="doc/img/add_devices_cloud_api.png" alt="Image">
 </p>
 
 ### Auto detect on private network
 If not on the same network, read [this](#my-device-is-not-detected) and use ["Manual Mode"](https://github.com/Elwinmage/ha-reefbeat-component/#manual-mode).
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/auto_detect.png" alt="Image">
+<img src="doc/img/auto_detect.png" alt="Image">
 </p>
 
 ### Manual Mode
 You can enter your device IP address or the network address for auto-detection.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/add_devices_manual.png" alt="Image">
+<img src="doc/img/add_devices_manual.png" alt="Image">
 </p>
 
 ## Device Config
@@ -306,7 +306,7 @@ You can enter your device IP address or the network address for auto-detection.
 Right-click a device (or open its options from the integration page) to reach its configuration. The first screen lets you change how the integration talks to the device.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/configure_device_1.png" alt="Image">
+<img src="doc/img/configure_device_1.png" alt="Image">
 </p>
 
 ### Set scan interval for device
@@ -314,7 +314,7 @@ Right-click a device (or open its options from the integration page) to reach it
 Set how often (in seconds) the integration polls the device for new data.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/configure_device_2.png" alt="Image">
+<img src="doc/img/configure_device_2.png" alt="Image">
 </p>
 
 ### Change WiFi network
@@ -324,13 +324,13 @@ You can move a device to another WiFi network directly from Home Assistant, with
 From the device configuration menu, choose **Change WiFi network**. The integration asks the device to scan for nearby networks and shows them in a drop-down, sorted by signal strength. The network the device is currently connected to is pre-selected, so if you only need to update the password you can leave the selection as-is.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/device_cfg.png" alt="Image">
+<img src="doc/img/device_cfg.png" alt="Image">
 </p>
 
 Pick the target network, enter its password, and submit. The integration sends the new credentials to the device, reboots it, and then automatically looks for it again on the network to update its IP address.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/wifi_choice.png" alt="Image">
+<img src="doc/img/wifi_choice.png" alt="Image">
 </p>
 
 > [!NOTE]
@@ -340,8 +340,8 @@ Pick the target network, enter its password, and submit. The integration sends t
 
 > [!NOTE]
 > It is possible to choose whether to enable live_update_config or not. In this mode (old default), configuration data is continuously retrieved along with normal data. For RSDOSE or RSLED, these large HTTP requests can take a long time (7–9 seconds). Sometimes the device does not respond to the request, so a retry function has been implemented. When live_update_config is disabled, configuration data is only retrieved at startup and when requested via the "Fetch Configuration" button. This new mode is activated by default. You can change it in the device configuration. <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/configure_device_live_update_config.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/fetch_config_button.png" alt="Image">
+<img src="doc/img/configure_device_live_update_config.png" alt="Image">
+<img src="doc/img/fetch_config_button.png" alt="Image">
 </p>
 
 > [!NOTE]
@@ -353,8 +353,8 @@ You can be notified and update your device when a new firmware version is availa
 > The "Cloud API" is only needed to get the version number of the new release and compare it to the installed version. To update your firmware, the Cloud API is not strictly required.
 > If you do not use the "Cloud API" (switch disabled or no Cloud API device installed), you will not be alerted when a new version is available, but you can still use the hidden "Force Firmware Update" button. If a new version is available, it will be installed.
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/firmware_update_1.png" alt="Image">
-  <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/firmware_update_2.png" alt="Image">
+  <img src="doc/img/firmware_update_1.png" alt="Image">
+  <img src="doc/img/firmware_update_2.png" alt="Image">
 </p>
 
 
@@ -366,7 +366,7 @@ You can be notified and update your device when a new firmware version is availa
 - You can also use [Manual Mode](https://github.com/Elwinmage/ha-reefbeat-component/#manual-mode).
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/subnetwork.png" alt="Image">
+<img src="doc/img/subnetwork.png" alt="Image">
 </p>
 
 ## Some data are updated correctly but others are not

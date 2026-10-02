@@ -71,7 +71,7 @@ Glocke zum Stummschalten und einem eingebetteten Schieberegler zum Ändern des
 Intervalls.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/maintenance_task.png" alt="Wartungsaufgaben in ha-reef-card">
+<img src="../img/maintenance_task.png" alt="Wartungsaufgaben in ha-reef-card">
 </p>
 
 ## Benachrichtigungen: das Alarm-Blueprint

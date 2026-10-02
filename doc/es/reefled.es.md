@@ -11,19 +11,19 @@
 - Obtener nombre y valor de los programas (with cloud support). Only for G1 LEDs.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_G1_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_diag.png" alt="Image">
+<img src="../img/rsled_G1_ctrl.png" alt="Image">
+<img src="../img/rsled_diag.png" alt="Image">
 </p>
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_G1_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsled_conf.png" alt="Image">
+<img src="../img/rsled_G1_sensors.png" alt="Image">
+<img src="../img/rsled_conf.png" alt="Image">
 </p>
 
 ***
 
 La compatibilidad con la temperatura de color de los LED G1 tiene en cuenta las particularidades de cada uno de los tres modelos.
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/leds_specs.png" alt="Image">
+<img src="../img/leds_specs.png" alt="Image">
 </p>
 
 ***
@@ -35,7 +35,7 @@ La compatibilidad con la temperatura de color de los LED G1 tiene en cuenta las 
 Como los LED G2 garantizan una intensidad constante en todo el rango de colores, sus LED no aprovechan toda su capacidad en el centro del espectro. A 8.000K, el canal blanco está al 100 % y el azul al 0 % (al revés a 23.000K). A 14.000K con un 100 % de intensidad en las luces G2, la potencia de los canales blanco y azul es de aproximadamente un 85 %.
 Esta es la curva de pérdida de los G2.
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/intensity_factor.png" alt="Image">
+<img src="../img/intensity_factor.png" alt="Image">
 </p>
 
 #### Temperatura de Color
@@ -50,14 +50,14 @@ Esta compensación garantiza el mismo [PAR](https://en.wikipedia.org/wiki/Photos
 > Como Red Sea no publica valores de PAR por debajo de 12.000K, la compensación solo está disponible en el rango de 12.000 a 23.000K. Si tiene un LED G1 y un medidor de PAR, puede [contactarme](https://github.com/Elwinmage/ha-reefbeat-component/discussions/) para añadir la compensación en todo el rango (9.000 a 23.000K).
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/intensity_compensation.png" alt="Image">
+<img src="../img/intensity_compensation.png" alt="Image">
 </p>
 
 Dicho de otro modo, sin compensación, una intensidad del x % a 9.000K no proporciona el mismo PAR que a 23.000K o a 15.000K.
 
 Estas son las curvas de potencia:
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/PAR_curves.png" alt="Image">
+<img src="../img/PAR_curves.png" alt="Image">
 </p>
 
 Si quiere usar toda la potencia de su LED, desactive la compensación de intensidad (por defecto).

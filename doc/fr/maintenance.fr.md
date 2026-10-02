@@ -70,7 +70,7 @@ avec un bouton pour marquer la tâche comme faite, une cloche pour la mettre en
 sourdine et un curseur en ligne pour changer son intervalle.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/maintenance_task.png" alt="Tâches de maintenance dans ha-reef-card">
+<img src="../img/maintenance_task.png" alt="Tâches de maintenance dans ha-reef-card">
 </p>
 
 ## Notifications : le blueprint d'alertes

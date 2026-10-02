@@ -7,26 +7,26 @@
 - Modification possible du modèle d'écrémeur
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_devices.png" alt="Image">
+<img src="../img/rsrun_devices.png" alt="Image">
 </p>
 
 ### Principal
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_ctrl.png" alt="Image">
+<img src="../img/rsrun_main_sensors.png" alt="Image">
+<img src="../img/rsrun_main_ctrl.png" alt="Image">
 </p>
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_main_diag.png" alt="Image">
+<img src="../img/rsrun_main_conf.png" alt="Image">
+<img src="../img/rsrun_main_diag.png" alt="Image">
 </p>
 
 ### Pompes
-<p align="center"><img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_conf.png" alt="Image">
+<p align="center"><img src="../img/rsrun_ctrl.png" alt="Image">
+<img src="../img/rsrun_conf.png" alt="Image">
 </p>
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsrun_diag.png" alt="Image">
+<img src="../img/rsrun_sensors.png" alt="Image">
+<img src="../img/rsrun_diag.png" alt="Image">
 </p>
 
 ### Tâches de maintenance

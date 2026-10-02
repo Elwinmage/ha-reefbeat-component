@@ -67,7 +67,7 @@ sortable by equipment or by due date, with a button to mark a task as done, a
 bell to mute it and an inline slider to change its interval.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/maintenance_task.png" alt="Maintenance tasks in ha-reef-card">
+<img src="../img/maintenance_task.png" alt="Maintenance tasks in ha-reef-card">
 </p>
 
 ## Notifications: the alert blueprint

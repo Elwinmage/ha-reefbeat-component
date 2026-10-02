@@ -12,8 +12,8 @@ ReefBeat app: its lamps are driven as one.
 - You can use both Kelvin/Intensity and White & Blue if you have only G1 lights.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/virtual_led_config_1.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/virtual_led_config_2.png" alt="Image">
+<img src="../img/virtual_led_config_1.png" alt="Image">
+<img src="../img/virtual_led_config_2.png" alt="Image">
 </p>
 
 ## What the group shares

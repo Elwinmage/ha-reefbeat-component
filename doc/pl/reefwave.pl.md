@@ -5,7 +5,7 @@
 > Urządzenia ReefWave różnią się od pozostałych urządzeń ReefBeat. Są jedynymi urządzeniami podporządkowanymi chmurze ReefBeat.<br/>
 > Po uruchomieniu aplikacji ReefBeat odpytywany jest stan wszystkich urządzeń, a dane aplikacji są pobierane ze stanu urządzenia.<br/>
 > W przypadku ReefWave jest odwrotnie: nie ma lokalnego punktu sterowania (jak widać w aplikacji ReefBeat, nie można dodać ReefWave do akwarium odłączonego od sieci).<br/>
-> <center><img width="20%" src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/reefbeat_rswave.jpg" alt="Image"></center><br />
+> <center><img width="20%" src="../img/reefbeat_rswave.jpg" alt="Image"></center><br />
 > Fale są przechowywane w bibliotece użytkownika w chmurze. Gdy zmieniasz wartość fali, zmienia się ona w bibliotece w chmurze i jest stosowana w nowym harmonogramie.<br/>
 > Czyli nie ma trybu lokalnego? To nie takie proste. Istnieje ukryte lokalne API do sterowania ReefWave, ale aplikacja ReefBeat nie wykryje zmian. W efekcie urządzenie i Home Assistant z jednej strony oraz aplikacja ReefBeat z drugiej przestaną być zsynchronizowane. Urządzenie i Home Assistant zawsze będą zsynchronizowane.<br/>
 > Teraz już wiesz — wybieraj!
@@ -53,25 +53,25 @@ W trybach Chmura i Hybrydowym musisz połączyć swoje konto w chmurze ReefBeat.
 Najpierw utwórz urządzenie [„Cloud API"](../../README.md#add-cloud-api) ze swoimi danymi logowania — i gotowe!
 Czujnik „Połączono z kontem" pokaże nazwę Twojego konta ReefBeat po nawiązaniu połączenia.
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_linked.png" alt="Image">
+<img src="../img/rswave_linked.png" alt="Image">
 </p>
 
 ## Zmiana bieżących wartości
 Aby wczytać aktualne wartości fali do pól podglądu, użyj przycisku „Podgląd z bieżącego".
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_set_preview.png" alt="Image">
+<img src="../img/rswave_set_preview.png" alt="Image">
 </p>
 Aby zmienić aktualne wartości fali, ustaw wartości podglądu i użyj przycisku „Zapisz podgląd".
 
 Działa to tak samo jak w aplikacji ReefBeat. Wszystkie fale o tym samym ID w bieżącym harmonogramie zostaną zaktualizowane.
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_save_preview.png" alt="Image">
+<img src="../img/rswave_save_preview.png" alt="Image">
 </p>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_diag.png" alt="Image">
+<img src="../img/rswave_conf.png" alt="Image">
+<img src="../img/rswave_sensors.png" alt="Image">
+<img src="../img/rswave_diag.png" alt="Image">
 </p>
 
 ## Grupy

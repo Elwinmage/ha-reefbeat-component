@@ -10,9 +10,9 @@
 > For a new full roll, please set "roll diameter" to the minimum (4.0 cm). The size will be adjusted according to your RSMAT version. For a partially used roll, enter the value in cm.
 - Two hidden parameters: model and position, if you need to reconfigure your RSMAT
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_ctr.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsmat_diag.png" alt="Image">
+<img src="../img/rsmat_ctr.png" alt="Image">
+<img src="../img/rsmat_sensors.png" alt="Image">
+<img src="../img/rsmat_diag.png" alt="Image">
 </p>
 
 ### Maintenance tasks
