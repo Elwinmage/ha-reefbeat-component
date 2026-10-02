@@ -76,9 +76,9 @@ des sept jours passés (météo mesurée), fournie par
 [Open-Meteo](https://open-meteo.com) (gratuit, sans clé). Rien à valider :
 activer le mode met de côté les programmations de la rampe et envoie tout de
 suite la semaine météo ; la météo est ensuite récupérée à nouveau tous les
-quelques jours (de 3 à 15, à votre choix) et à chaque changement de réglage
-(30 s après le dernier). Désactiver le mode réécrit les programmations de la
-rampe.
+quelques jours (de 3 à 15, à votre choix ; vérifié une fois par jour, à
+00:10) et à chaque changement de réglage (30 s après le dernier). Désactiver
+le mode réécrit les programmations de la rampe.
 
 | Entité | Rôle |
 | ------ | ---- |
@@ -87,10 +87,10 @@ rampe.
 | `number` Fréquence de la météo (jours) | Jours entre deux récupérations, de 3 à 15 |
 | `text` Lieu météo | `lat, lon`, une URI `geo:` ou un lien Google Maps / OpenStreetMap / Apple Plans ; vide pour le domicile de Home Assistant |
 | `select` Journée météo sur le bac | Heure du lieu, calée sur le lever, sur le coucher, ou étirée entre les deux |
-| `time` Lever / coucher météo | Heures du bac utilisées par ces calages |
-| `number` Intensité minimale / maximale météo | Garde-fous de l'intensité |
+| `time` Lever météo / Coucher météo | Heures du bac utilisées par ces calages |
+| `number` Intensité minimale météo / Intensité maximale météo | Garde-fous de l'intensité |
 | `switch` Nuages météo | Règle les nuages de la rampe sur les heures nuageuses |
-| `sensor` Programme météo | Résultat de la dernière récupération (état, lieu, et pour chaque jour soleil, ensoleillement, couverture nuageuse et intensité maximale) |
+| `sensor` Programme météo | Résultat de la dernière récupération (état, lieu, et pour chaque jour soleil, ensoleillement, couverture nuageuse et intensité maximale) ; `writing` (`{done, total}` jours) pendant l'envoi d'une semaine à la rampe |
 
 Construction d'une journée :
 - **Horaires** — du lever au coucher du lieu, à l'heure du lieu (un récif
@@ -103,15 +103,57 @@ Construction d'une journée :
   jusqu'à 8 points par jour.
 - **Couleur** — celle de la programmation standard de la rampe au même
   moment de sa journée : son équilibre blanc/bleu sur une G1, sa
-  température de couleur sur une G2.
+  température de couleur sur une G2. Vous pouvez choisir vos propres
+  couleurs à la place, par jour de la semaine (réglage `colors` :
+  `{jour: [{at, k}]}`, `at` allant du lever, 0, au coucher, 1, `k` la
+  température de couleur de 8 000 à 23 000 K) ; une G1 les convertit avec la
+  table de son modèle. Ce réglage n'a pas d'entité : il se fait depuis
+  l'éditeur de programmation de ha-reef-card, ou avec
+  `redsea.led_weather_save`.
 - **Nuages** — sur les heures couvertes à 40 % au moins : Low, Medium ou
   High selon leur couverture moyenne ; supprimés un jour dégagé.
 - **Lune** — garde sa place après le coucher.
 
-La programmation s'appelle *Weather* sur la rampe. Une LED virtuelle écrit
-chacune de ses rampes, dans son propre format. En mode météo, le service
-`redsea.led_weather_apply` récupère à nouveau la météo tout de suite (depuis
-une automatisation, par exemple).
+La programmation s'appelle *Weather* sur la rampe. Les requêtes écrites
+dans une rampe sont espacées (de 2 s) : une ReefLED répond tard, voire pas
+du tout, à une commande envoyée trop tôt ; l'écriture d'une semaine prend
+donc un peu de temps.
+
+Les rampes d'un groupe ([LED virtuelle](virtual-led.fr.md#led-virtuelle)) partagent un seul
+programme météo : activé ou réglé sur l'une d'elles, il l'est pour toutes.
+Chaque rampe reçoit sa propre semaine météo, dans son format, et la
+vérification quotidienne est faite une seule fois, par le groupe.
+
+| Service | Rôle |
+| ------- | ---- |
+| `redsea.led_weather_apply` | Récupère à nouveau la météo et envoie la semaine tout de suite (mode météo uniquement), depuis une automatisation par exemple |
+| `redsea.led_weather_preview` | La semaine que feraient des réglages, et celle de la rampe : rien n'est écrit |
+| `redsea.led_weather_save` | Enregistre d'un coup des réglages et le mode (`enabled`), puis écrit la semaine (en arrière-plan, ou avant de répondre avec `wait`) |
+
+***
+
+### Décalage du lever de soleil
+Chaque ReefLED répondant à `/offset` (testé au démarrage) reçoit un `number`
+Décalage du lever de soleil (minutes) : la rampe joue toute sa
+programmation avec ce retard. Dans un groupe, le
+[lever de soleil décalé](virtual-led.fr.md#led-virtuelle) de la LED virtuelle le règle pour
+chaque rampe.
+
+***
+
+### Bibliothèque cloud
+Avec un compte cloud ReefBeat ([API Cloud](README.fr.md#ajout-de-lapi-cloud)), les programmations
+de la bibliothèque de l'application ReefBeat peuvent être lues et écrites,
+comme le fait l'éditeur de programmation de ha-reef-card. Les
+programmations G1 sont conservées par aquarium, les G2 par compte ; celles
+de Red Sea ne peuvent être ni modifiées ni supprimées.
+
+| Service | Rôle |
+| ------- | ---- |
+| `redsea.led_library` | Liste les programmations utilisables par la rampe (`linked: false` sans compte cloud) |
+| `redsea.led_library_save` | Ajoute une programmation (`name`, `program`, `clouds`), ou met à jour l'une des vôtres (`uid`) |
+| `redsea.led_library_delete` | Supprime l'une de vos programmations (`uid`) |
+| `redsea.led_convert` | Convertit des points G1 entre blanc/bleu et kelvin/intensité, avec la table du modèle et la compensation d'intensité |
 
 ***
 

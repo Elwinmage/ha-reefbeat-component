@@ -74,6 +74,54 @@ O comportamento é o mesmo da aplicação ReefBeat. Todas as ondas com o mesmo I
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_diag.png" alt="Image">
 </p>
 
+## Grupos
+Como na aplicação ReefBeat, todas as ReefWave agrupadas de um aquário formam
+um só grupo (apenas com uma conta na nuvem).
+
+| Entidade | Função |
+| -------- | ------ |
+| `switch` Agrupada com o aquário | Agrupa a bomba com as outras ReefWave do seu aquário, ou desagrupa-a; uma bomba que se junta fica em último lugar. Indisponível sem conta na nuvem |
+| `sensor` ReefWave ligadas | Número de bombas do grupo, a sua lista no atributo `waves` (`hwid`, `name`, `model`, `entry_id`, `available`) |
+
+Um programa é escrito em todas as bombas do grupo: os mesmos intervalos,
+cada bomba com as suas próprias intensidades. Como na aplicação, uma escrita
+é recusada quando uma bomba do grupo não está carregada ou não responde:
+nada é enviado, pelo que o grupo se mantém sincronizado. Todas as ReefWave
+carregadas são atualizadas após uma mudança de grupo.
+
+## Programa do dia
+O `sensor` Tipo de onda transporta todo o programa do dia no
+atributo `schedule`: a lista dos seus intervalos, cada um começa em `st`
+(minuto do dia) e dura até ao seguinte, com `wave_uid`, `name`, `type`,
+`direction`, `frt`, `rrt`, `fti`, `rti`, `sn`, `pd` e `sync`. O
+ha-reef-card desenha o dia a partir dele.
+
+## Serviços
+Estes serviços gerem a biblioteca de ondas e o programa do dia, como faz a
+aplicação ReefBeat; os editores do ha-reef-card usam-nos. `device_id` é a
+entrada de configuração da ReefWave.
+
+| Serviço | Função |
+| ------- | ------ |
+| `redsea.wave_library` | Ondas do aquário da bomba, com as intensidades desta bomba, as bombas que usam cada onda e o grupo da bomba. Sem conta na nuvem: as ondas do seu próprio programa |
+| `redsea.wave_library_save` | Cria uma onda, ou atualiza uma (`uid`). A forma é partilhada, as intensidades são as da bomba; os programas que usam uma onda atualizada são escritos de novo. As ondas Red Sea e os nomes já usados são recusados |
+| `redsea.wave_library_delete` | Elimina uma das suas ondas; recusado para uma onda Red Sea, ou uma onda usada por um programa |
+| `redsea.wave_program_save` | Escreve o programa do dia (`slots`: `st`, `wave_uid`, `direction`; o primeiro começa em 0) em todas as bombas do grupo; na própria bomba sem conta na nuvem |
+| `redsea.wave_preview` | Executa uma onda na bomba durante 1 a 10 min, e depois volta ao seu programa |
+| `redsea.wave_preview_stop` | Para a pré-visualização |
+| `redsea.wave_pump_set` | Direção e intensidades desta bomba na onda atual (mesmo uma Red Sea); as outras bombas do grupo não são alteradas |
+| `redsea.wave_group_set` | Agrupa ou desagrupa uma bomba (`grouped`), como o interruptor |
+| `redsea.wave_group_order` | Ordem das bombas do grupo (`hwids`, cada bomba indicada uma vez) |
+
+A biblioteca precisa de uma conta na nuvem ReefBeat: sem ela,
+`wave_library_save` e `wave_library_delete` são recusados. Todas as recusas
+são erros traduzidos do Home Assistant.
+
+## Ícones
+Os pictogramas de tipo de onda da aplicação estão disponíveis como
+`redsea:wave-uniform`, `redsea:wave-random`, `redsea:wave-regular`,
+`redsea:wave-step`, `redsea:wave-surface` e `redsea:wave-none`.
+
 ### Tarefas de manutenção
 | Tarefa | Por omissão | Intervalo |
 | ------ | ----------- | --------- |

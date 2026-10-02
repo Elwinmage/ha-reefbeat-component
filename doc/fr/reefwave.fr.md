@@ -74,6 +74,54 @@ Le fonctionnement est identique à celui de l'application mobile ReefBeat. Toute
 <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rswave_diag.png" alt="Image">
 </p>
 
+## Groupes
+Comme dans l'application ReefBeat, toutes les ReefWave groupées d'un
+aquarium forment un seul groupe (avec un compte cloud uniquement).
+
+| Entité | Rôle |
+| ------ | ---- |
+| `switch` Groupée avec l'aquarium | Groupe la pompe avec les autres ReefWave de son aquarium, ou la dégroupe ; une pompe qui rejoint le groupe passe en dernier. Indisponible sans compte cloud |
+| `sensor` ReefWave liées | Nombre de pompes du groupe, leur liste dans l'attribut `waves` (`hwid`, `name`, `model`, `entry_id`, `available`) |
+
+Un programme est écrit sur toutes les pompes du groupe : mêmes créneaux,
+chaque pompe avec ses propres intensités. Comme dans l'application, une
+écriture est refusée quand une pompe du groupe n'est pas chargée ou ne
+répond pas : rien n'est envoyé, le groupe reste donc synchronisé. Toutes les
+ReefWave chargées sont rafraîchies après un changement de groupe.
+
+## Programme de la journée
+Le `sensor` Type de vagues porte tout le programme de la journée
+dans son attribut `schedule` : la liste de ses intervalles, chacun
+commençant à `st` (minute de la journée) et durant jusqu'au suivant, avec
+`wave_uid`, `name`, `type`, `direction`, `frt`, `rrt`, `fti`, `rti`, `sn`,
+`pd` et `sync`. ha-reef-card s'en sert pour dessiner la journée.
+
+## Services
+Ces services pilotent la bibliothèque de vagues et le programme de la
+journée, comme le fait l'application ReefBeat ; les éditeurs de ha-reef-card
+les utilisent. `device_id` est l'entrée de configuration de la ReefWave.
+
+| Service | Rôle |
+| ------- | ---- |
+| `redsea.wave_library` | Vagues de l'aquarium de la pompe, avec les intensités de cette pompe, les pompes utilisant chaque vague et le groupe de la pompe. Sans compte cloud : les vagues de son propre programme |
+| `redsea.wave_library_save` | Crée une vague, ou en met une à jour (`uid`). La forme est partagée, les intensités sont celles de la pompe ; les programmes utilisant une vague mise à jour sont réécrits. Les vagues Red Sea et les noms déjà pris sont refusés |
+| `redsea.wave_library_delete` | Supprime l'une de vos vagues ; refusé pour une vague Red Sea, ou une vague utilisée par un programme |
+| `redsea.wave_program_save` | Écrit le programme de la journée (`slots` : `st`, `wave_uid`, `direction` ; le premier commence à 0) sur toutes les pompes du groupe ; sur la pompe elle-même sans compte cloud |
+| `redsea.wave_preview` | Fait tourner une vague sur la pompe pendant 1 à 10 min, puis retour à son programme |
+| `redsea.wave_preview_stop` | Arrête la prévisualisation |
+| `redsea.wave_pump_set` | Direction et intensités de cette pompe dans la vague en cours (même une vague Red Sea) ; les autres pompes du groupe ne sont pas touchées |
+| `redsea.wave_group_set` | Groupe ou dégroupe une pompe (`grouped`), comme l'interrupteur |
+| `redsea.wave_group_order` | Ordre des pompes du groupe (`hwids`, chaque pompe citée une fois) |
+
+La bibliothèque nécessite un compte cloud ReefBeat : sans lui,
+`wave_library_save` et `wave_library_delete` sont refusés. Tous les refus
+sont des erreurs Home Assistant traduites.
+
+## Icônes
+Les pictogrammes de type de vague de l'application sont disponibles sous
+`redsea:wave-uniform`, `redsea:wave-random`, `redsea:wave-regular`,
+`redsea:wave-step`, `redsea:wave-surface` et `redsea:wave-none`.
+
 ### Tâches de maintenance
 | Tâche | Défaut | Plage |
 | ----- | ------ | ----- |

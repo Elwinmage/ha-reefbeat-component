@@ -68,6 +68,93 @@ Tenga en cuenta también que, con la compensación activada, el factor de intens
 
 ***
 
+### Programa meteorológico
+La lámpara puede seguir el tiempo de un lugar: en **modo meteorológico GPS**,
+su semana se construye a partir del tiempo de los próximos siete días
+(previsión) o de los siete días pasados (tiempo medido), proporcionado por
+[Open-Meteo](https://open-meteo.com) (gratuito, sin clave). No hay nada que
+validar: al activar el modo se apartan los programas propios de la lámpara y
+se envía de inmediato la semana meteorológica; después el tiempo se vuelve a
+consultar cada pocos días (de 3 a 15, a su elección; se comprueba una vez al
+día, a las 00:10) y cada vez que cambia un ajuste (30 s después del último
+cambio). Al desactivar el modo se vuelven a escribir los programas propios
+de la lámpara.
+
+| Entidad | Función |
+| ------- | ------- |
+| `switch` Modo tiempo GPS | Tiempo GPS, o los programas estándar de la lámpara |
+| `select` Periodo meteorológico | Semana próxima (previsión) o pasada (medida) |
+| `number` Actualización del tiempo (días) | Días entre dos consultas del tiempo, de 3 a 15 |
+| `text` Lugar meteorológico | `lat, lon`, una URI `geo:` o un enlace de Google Maps / OpenStreetMap / Apple Maps; vacío para el hogar de Home Assistant |
+| `select` Día meteorológico en el acuario | Hora del lugar, anclada al amanecer, al atardecer, o estirada entre ambos |
+| `time` Amanecer meteorológico / Atardecer meteorológico | Horas del acuario usadas por esos anclajes |
+| `number` Intensidad mínima meteorológica / Intensidad máxima meteorológica | Límites de la intensidad |
+| `switch` Nubes del tiempo | Ajusta las nubes de la lámpara en las horas nubladas |
+| `sensor` Programa meteorológico | Resultado de la última consulta (estado, lugar y, para cada día, sol, horas de sol, nubosidad e intensidad máxima); `writing` (`{done, total}` días) mientras se envía una semana a la lámpara |
+
+Cómo se construye un día:
+- **Horarios** — del amanecer al atardecer del lugar, con la hora del lugar
+  (un arrecife de Fiyi también amanece a las 06:00 en la lámpara), o
+  anclados al acuario: *amanecer* (el día del lugar empieza a la hora
+  elegida), *atardecer* (termina a la hora elegida) o *ambos* (el día del
+  lugar se estira entre las dos horas).
+- **Intensidad** — sigue el sol realmente recibido (radiación solar horaria,
+  1000 W/m² equivalen a pleno sol), entre el mínimo y el máximo; hasta 8
+  puntos por día.
+- **Color** — el del programa estándar de la lámpara en el mismo momento de
+  su día: su equilibrio blanco/azul en una G1, su temperatura de color en
+  una G2. Puede elegir sus propios colores en su lugar, por día de la semana
+  (ajuste `colors`: `{día: [{at, k}]}`, `at` del amanecer, 0, al atardecer,
+  1, `k` la temperatura de color de 8.000 a 23.000 K); una G1 los convierte
+  con la tabla de su modelo. Este ajuste no tiene entidad: se define desde
+  el editor de programas de ha-reef-card, o con `redsea.led_weather_save`.
+- **Nubes** — en las horas con al menos un 40 % de nubosidad: Low, Medium o
+  High según su nubosidad media; se eliminan en un día despejado.
+- **Luna** — conserva su lugar después del atardecer.
+
+El programa se llama *Weather* en la lámpara. Las peticiones escritas en
+una lámpara se espacian (2 s): una ReefLED responde tarde, o no responde, a
+una orden enviada demasiado pronto; por eso escribir una semana lleva un
+poco de tiempo.
+
+Las lámparas de un grupo ([LED virtual](virtual-led.es.md#led-virtual)) comparten un único
+programa meteorológico: activado o ajustado en cualquiera de ellas, lo está
+para todas. Cada lámpara recibe su propia semana meteorológica, en su
+formato, y la comprobación diaria se hace una sola vez, por el grupo.
+
+| Servicio | Función |
+| -------- | ------- |
+| `redsea.led_weather_apply` | Vuelve a consultar el tiempo y envía la semana de inmediato (solo en modo meteorológico), desde una automatización por ejemplo |
+| `redsea.led_weather_preview` | La semana que darían unos ajustes, y la propia de la lámpara: no se escribe nada |
+| `redsea.led_weather_save` | Guarda de una vez los ajustes y el modo (`enabled`), y luego escribe la semana (en segundo plano, o antes de responder con `wait`) |
+
+***
+
+### Desfase del amanecer
+Cada ReefLED que responde a `/offset` (comprobado al arrancar) recibe un
+`number` Desfase del amanecer (minutos): la lámpara reproduce todo su
+programa con ese retraso. En un grupo, el
+[amanecer escalonado](virtual-led.es.md#led-virtual) del LED virtual lo ajusta para cada
+lámpara.
+
+***
+
+### Biblioteca en la nube
+Con una cuenta en la nube de ReefBeat ([API Cloud](README.es.md#añadir-la-api-cloud)), los
+programas de luz de la biblioteca de la aplicación ReefBeat se pueden leer y
+escribir, como hace el editor de programas de ha-reef-card. Los programas G1
+se guardan por acuario, los G2 por cuenta; los de Red Sea no se pueden
+modificar ni eliminar.
+
+| Servicio | Función |
+| -------- | ------- |
+| `redsea.led_library` | Lista los programas que puede usar la lámpara (`linked: false` sin cuenta en la nube) |
+| `redsea.led_library_save` | Añade un programa (`name`, `program`, `clouds`), o actualiza uno de los suyos (`uid`) |
+| `redsea.led_library_delete` | Elimina uno de sus programas (`uid`) |
+| `redsea.led_convert` | Convierte puntos G1 entre blanco/azul y kelvin/intensidad, con la tabla del modelo y la compensación de intensidad |
+
+***
+
 ### Tareas de mantenimiento
 | Tarea | Por defecto | Rango |
 | ----- | ----------- | ----- |
