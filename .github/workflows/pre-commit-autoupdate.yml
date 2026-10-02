@@ -27,9 +27,13 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pre-commit
 
+
       - name: Autoupdate hooks
-        run: |
-          pre-commit autoupdate
+        env:
+          GIT_CONFIG_COUNT: 1
+          GIT_CONFIG_KEY_0: url.https://x-access-token:${{ secrets.HOOKS_REPO_TOKEN }}@github.com/Elwinmage/create_ha_project.insteadOf
+          GIT_CONFIG_VALUE_0: https://github.com/Elwinmage/create_ha_project
+        run: pre-commit autoupdate
 
       - name: Create PR
         uses: peter-evans/create-pull-request@v8
