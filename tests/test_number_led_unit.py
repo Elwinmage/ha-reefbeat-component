@@ -43,8 +43,38 @@ async def test_led_async_set_native_value_post_specific_and_fallback(hass: Any) 
     ent1.hass = hass
     ent1.async_write_ha_state = lambda: None  # type: ignore[assignment]
 
+    read_back: list[Any] = []
+
+    async def _refresh(source: str | None = None, **_k: Any) -> None:
+        read_back.append(source)
+
+    led1.async_request_refresh = _refresh  # type: ignore[method-assign]
+    expected: list[tuple[str, bool]] = []
+    led1.expect_settings = lambda source, enabled: expected.append(  # type: ignore[attr-defined]
+        (source, enabled)
+    )
     await ent1.async_set_native_value(2)
     assert led1.posted == ["/acclimation"]
+    # Shown at once (optimistic)
+    assert expected == [("/acclimation", True)]
+    del led1.expect_settings  # type: ignore[attr-defined]
+    # A config source: read back, a plain refresh would leave it stale
+    assert read_back == ["/acclimation"]
+
+    # In a group: read back on each of its lamps
+    group = FakeLedPostSpecific(hass=hass)
+    group_read: list[Any] = []
+
+    async def _group_refresh(source: str | None = None, **_k: Any) -> None:
+        group_read.append(source)
+
+    group.async_request_refresh = _group_refresh  # type: ignore[method-assign]
+    led1.led_group = lambda: group  # type: ignore[attr-defined]
+    await ent1.async_set_native_value(3)
+    assert (read_back, group_read) == (["/acclimation"], ["/acclimation"])
+    led1.led_group = lambda: None  # type: ignore[attr-defined]
+    await ent1.async_set_native_value(4)
+    assert read_back == ["/acclimation", "/acclimation"]
 
     # post_specific not supported -> fallback to push_values(post)
     led2 = FakeCoordinator(hass=hass)

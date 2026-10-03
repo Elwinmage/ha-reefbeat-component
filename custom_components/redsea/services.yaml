@@ -298,6 +298,30 @@ led_library_delete:
       selector:
         text:
 
+# Rename one of the user's programs: in the cloud library, and on every day
+# named after it of the lamp and of the lamps of its group.
+led_library_rename:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the ReefLED (or virtual LED).
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    uid:
+      name: Program ID
+      description: The library program to rename (not a Red Sea one).
+      required: true
+      selector:
+        text:
+    name:
+      name: Name
+      description: The new name of the program.
+      required: true
+      selector:
+        text:
+
 # Fetch the weather again and send the week to a ReefLED in GPS weather mode.
 led_weather_apply:
   fields:

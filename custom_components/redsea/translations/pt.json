@@ -2129,6 +2129,24 @@
           "description": "Ativado para agrupar a bomba, desativado para desagrupar."
         }
       }
+    },
+    "led_library_rename": {
+      "name": "Renomear um programa da biblioteca ReefLED",
+      "description": "Renomeia um programa do utilizador: na biblioteca na nuvem e em cada dia com o seu nome, na lâmpada e nas lâmpadas do seu grupo.",
+      "fields": {
+        "device_id": {
+          "name": "ID do dispositivo",
+          "description": "A entrada de configuração da ReefLED (ou LED virtual)."
+        },
+        "uid": {
+          "name": "ID do programa",
+          "description": "O programa da biblioteca a renomear (não um da Red Sea)."
+        },
+        "name": {
+          "name": "Nome",
+          "description": "O novo nome do programa."
+        }
+      }
     }
   },
   "exceptions": {

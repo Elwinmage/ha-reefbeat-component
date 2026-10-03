@@ -2129,6 +2129,24 @@
           "description": "Attivo per raggruppare la pompa, disattivo per separarla."
         }
       }
+    },
+    "led_library_rename": {
+      "name": "Rinomina un programma della libreria ReefLED",
+      "description": "Rinomina un programma dell'utente: nella libreria cloud e in ogni giorno che ne porta il nome, sulla lampada e sulle lampade del suo gruppo.",
+      "fields": {
+        "device_id": {
+          "name": "ID dispositivo",
+          "description": "La voce di configurazione della ReefLED (o LED virtuale)."
+        },
+        "uid": {
+          "name": "ID programma",
+          "description": "Il programma della libreria da rinominare (non uno Red Sea)."
+        },
+        "name": {
+          "name": "Nome",
+          "description": "Il nuovo nome del programma."
+        }
+      }
     }
   },
   "exceptions": {

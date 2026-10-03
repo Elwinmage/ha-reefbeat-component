@@ -330,6 +330,9 @@ LED_GROUP_SOURCES: Final[tuple[str, ...]] = (
     "/preset_name",
     "/clouds",
 )
+# Settings written through their own endpoint, kept in a "config" source: read
+# back after a write (a plain refresh only reads the "data" sources)
+LED_SETTINGS_SOURCES: Final[tuple[str, ...]] = ("/acclimation", "/moonphase")
 # Local (not yet pushed) LED values a group shares, "$.local.<key>..."
 LED_GROUP_LOCAL_KEYS: Final[tuple[str, ...]] = (
     "manual_trick",

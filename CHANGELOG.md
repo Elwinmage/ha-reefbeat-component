@@ -105,6 +105,60 @@
    in "Discovered"), with its lamps in the app's order. Proposed again if
    its virtual LED is deleted; "Ignore" keeps it ignored.
 
+### REEFLED acclimation and moon phase
+ - Changing the acclimation duration or start intensity, or the moon day,
+   now reads `/acclimation` (or `/moonphase`) back from the lamp, on each
+   lamp of a group: these are "config" sources, a plain refresh left the
+   sensors (remaining days, current factor, moon day...) as they were and
+   took the number back to its former value.
+ - Optimistic: turning the acclimation or the moon phase on or off, or
+   changing their settings, shows at once what the lamp makes of it
+   (acclimation: days left = duration, current factor = start factor, or
+   stopped; moon: today's moon day, its intensity, days to the full and new
+   moon), on each lamp of a group; the lamp is then read back.
+ - In a group, turning the acclimation or the moon phase off on one lamp
+   (`DELETE`) now turns it off on every lamp of the group, as turning it on
+   already did.
+
+### REEFLED G1 colour and intensity
+ - The colour temperature and intensity set on a G1 are kept as set while
+   the lamp reports the white/blue levels they give. Derived back from
+   these whole levels, the intensity drifted down by one each time the
+   colour was changed with the intensity compensation on (50, 49, 48...),
+   and the colour temperature moved (10000 K read back as 9960 K).
+
+### REEFLED library: renaming a program
+ - New service `redsea.led_library_rename` (`uid`, `name`): renames one of
+   the user's programs in the cloud library, its curves kept, then every
+   day of the week named after it on the lamp and on each lamp of its
+   group (a G1 day with the app's stamp, a G2 one bare), paced, with the
+   progress shown as for a week being written. A Red Sea program, or a
+   name already used, is refused.
+
+### REEFLED weather program in the ReefBeat library
+ - The weather week is kept in the ReefBeat library as programs of the
+   user, one per weekday ("GPS 1" Monday ... "GPS 7" Sunday), added once
+   then updated each time the week is written to the lamps (every
+   `refresh_days`, on a changed setting, or when the lamp lost it). Each
+   day of the lamp is named after its program, as the app names library
+   programs, so the app shows the lamp playing programs it knows. They are
+   removed when the weather mode is turned off. A lamp linked to no cloud
+   account only gets its week. The programs were named "Weather" and were
+   not in the library; lamps holding them are written again once.
+
+### REEFLED weather program kept on the lamp
+ - A lamp in weather mode that no longer holds the weather week (reset,
+   restarted from its own programs, programmed from the ReefBeat app: seen
+   from the name of its programs) is written the week again, a minute
+   after it is set up and at the nightly run. It was left playing its own
+   program under a weather mode shown as on.
+
+### REEFLED G2 manual levels
+ - A G2 is now written its colour temperature, intensity and moon only
+   (`POST /manual` and `/timer`), as the ReefBeat app does: its white and
+   blue levels are computed by the lamp and read only. The whole `/manual`
+   was sent back as read, white and blue included.
+
 ### REEFLED weather program
  - The requests written to a lamp are paced (2 s, `WRITE_DELAY_S`): a
    ReefLED answers late, or not at all, to a command sent too soon. The

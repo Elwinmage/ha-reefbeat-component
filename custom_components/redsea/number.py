@@ -54,6 +54,7 @@ from .const import (
     LED_MOONPHASE_ENABLED_INTERNAL_NAME,
     LED_OFFSET_INTERNAL_NAME,
     LED_OFFSET_MAX,
+    LED_SETTINGS_SOURCES,
     MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
     MAT_MIN_ROLL_DIAMETER,
     MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
@@ -1607,7 +1608,22 @@ class ReefLedNumberEntity(ReefBeatNumberEntity):
         else:
             await self._device.push_values(self._source, "post")
 
-        await self._device.async_request_refresh()
+        # Read back what the lamp made of it: the acclimation and the moon
+        # phase are "config" sources, a plain refresh leaves them as they
+        # were (and the value just set would be taken back from them). A
+        # setting shared by a group is read back on each of its lamps.
+        source = self._led_description.post_specific
+        if source in LED_SETTINGS_SOURCES:
+            # Shown at once (optimistic), the lamp being read back after
+            expect = getattr(self._device, "expect_settings", None)
+            if callable(expect):
+                expect(source, True)
+        if source not in LED_SETTINGS_SOURCES:
+            await self._device.async_request_refresh()
+            return
+        group = getattr(self._device, "led_group", None)
+        target: Any = (group() if callable(group) else None) or self._device
+        await target.async_request_refresh(source=source)
 
 
 # REEFDOSE

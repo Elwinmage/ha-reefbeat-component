@@ -75,7 +75,7 @@ MIN_DAY = 60
 DEFAULT_KELVIN = 15000
 
 # Name of the generated program on the lamp
-PROGRAM_NAME = "Weather"
+PROGRAM_NAME = "GPS"
 
 # Days between two weather fetches (the user's choice, within these bounds)
 REFRESH_DAYS_MIN = 3
@@ -84,6 +84,9 @@ REFRESH_DAYS_DEFAULT = 7
 # Seconds after the last changed setting before the week is sent again (the
 # settings are often changed one after the other)
 WEATHER_SETTLE_SECONDS = 30
+# After a lamp is set up: time left to its group and its sources to be there
+# before checking that it still holds the weather week
+WEATHER_CHECK_SECONDS = 60
 # A changed setting shows its week at once (after this pause, for the
 # settings changed in a row), the lamp is written once they settle
 WEATHER_SHOW_SECONDS = 1
@@ -864,6 +867,28 @@ def supports(led: Any, path: str) -> bool:
     return data is not None and data != ""
 
 
+def weather_lost(device: Any, store: WeatherStore) -> bool:
+    """Whether a lamp in weather mode no longer holds the weather week.
+
+    A lamp reset, restarted from its factory programs, or given another
+    program in the ReefBeat app plays that program while Home Assistant
+    still shows the weather mode: seen from the name of its programs (the
+    weather ones are named PROGRAM_NAME), on the lamps reporting them. Not
+    while the week is being written.
+    """
+    if not store.settings.enabled or store.writing is not None:
+        return False
+    for led in device.weather_targets():
+        for weekday in range(1, 8):
+            path = f"/preset_name/{weekday}"
+            if not supports(led, path):
+                continue
+            name = led.get_data(f"$.sources[?(@.name=='{path}')].data.name", True)
+            if not str(name or "").startswith(PROGRAM_NAME):
+                return True
+    return False
+
+
 def _is_clouds(clouds: Any) -> bool:
     return isinstance(clouds, dict) and "from" in clouds and "to" in clouds
 
@@ -1106,6 +1131,8 @@ async def _write_week(
     finally:
         store.set_writing(None)
     await store.async_set_result(result)
+    if result.get("sent"):
+        await sync_library(writes)
     return result
 
 
@@ -1268,6 +1295,7 @@ async def _restore_all(
     finally:
         if store is not None:
             store.set_writing(None)
+    await forget_library(list(device.weather_targets()))
 
 
 def _open_meteo(hass: HomeAssistant) -> Callable[[str, dict[str, str]], Any]:
@@ -1284,21 +1312,166 @@ def _open_meteo(hass: HomeAssistant) -> Callable[[str, dict[str, str]], Any]:
     return fetch
 
 
+# Stamp (ms) the ReefBeat app adds to the name of a G1 library program
+_NAME_STAMP = re.compile(r"-\d{13}$")
+
+
+def program_label(name: Any) -> str:
+    """Name of a program as the user gave it: without the app's stamp."""
+    return _NAME_STAMP.sub("", str(name or ""))
+
+
+async def rename_program(device: Any, uid: str, name: str) -> dict[str, Any]:
+    """Rename one of the user's library programs, on the lamps too.
+
+    The library entry keeps its curves and gets its new name; then every
+    day of the week named after it is renamed on the lamp, and on each lamp
+    of its group (named as the app names library programs: a G1 day with a
+    stamp, a G2 one bare). The requests are paced, the progress shown as
+    for a week being written (the store's ``writing``).
+    @return {uid, renamed: days renamed on the lamps}, or {error}
+    """
+    entry = device.library_program(uid)
+    if entry is None:
+        return {"error": "Program not found"}
+    if entry.get("default"):
+        return {"error": "Red Sea programs cannot be renamed"}
+    old = str(entry.get("name") or "")
+    if any(
+        other.get("name") == name and other.get("uid") != uid
+        for other in device.light_library() or []
+    ):
+        return {"error": "Name already used"}
+    await device.save_light_program(name, entry["program"], entry.get("clouds"), uid)
+    days = [
+        (led, weekday)
+        for led in device.weather_targets()
+        for weekday in range(1, 8)
+        if supports(led, f"/preset_name/{weekday}")
+        and program_label(
+            led.get_data(
+                f"$.sources[?(@.name=='/preset_name/{weekday}')].data.name", True
+            )
+        )
+        == old
+    ]
+    store = getattr(device, "weather", None)
+    progress = (
+        _progress(store, len(days))
+        if isinstance(store, WeatherStore) and days
+        else None
+    )
+    stamp = int(time.time() * 1000)
+    try:
+        for led, weekday in days:
+            path = f"/preset_name/{weekday}"
+            body = {"name": f"{name}-{stamp}" if led.is_g1 else name}
+            _mirror(led, await _paced(led.my_api, path, body), path, body)
+            led.async_update_listeners()
+            if progress is not None:
+                progress()
+    finally:
+        if progress is not None and isinstance(store, WeatherStore):
+            store.set_writing(None)
+    return {"uid": uid, "renamed": len(days)}
+
+
+def day_name(weekday: int) -> str:
+    """Name of the weather program of a weekday: "GPS 1" (Monday) to "GPS 7".
+
+    The same on the lamp and in the ReefBeat library, so the app finds the
+    program a day plays; numbered as the lamp numbers its days, whatever
+    the language.
+    """
+    return f"{PROGRAM_NAME} {weekday}"
+
+
+def _library_key(led: Any) -> tuple[Any, ...] | None:
+    """Library the programs of a lamp are kept in, None when it is linked
+    to no cloud account: per aquarium for a G1, per account for a G2."""
+    link = getattr(led, "library_link", None)
+    found: Any = link() if callable(link) else None
+    if found is None:
+        return None
+    cloud, aquarium = found
+    return (id(cloud), "g2") if not led.is_g1 else (id(cloud), aquarium)
+
+
+def _own_programs(led: Any) -> dict[str, Any]:
+    """uid of the weather programs the lamp's library holds, by name."""
+    return {
+        str(entry.get("name")): entry.get("uid")
+        for entry in led.light_library() or []
+        if not entry.get("default")
+        and str(entry.get("name")).startswith(f"{PROGRAM_NAME} ")
+    }
+
+
+async def sync_library(writes: list[tuple[Any, list[Any], bool]]) -> None:
+    """Keep the weather week in the ReefBeat library, as programs of the
+    user: one per weekday (day_name), added once then updated each time the
+    week is written to the lamps.
+
+    The ReefBeat app then shows the lamp playing programs it knows, instead
+    of programs out of sync with its library. A library is written once
+    (lamps of one aquarium share theirs); a lamp linked to no cloud account
+    is left with its week only. A failure is logged: the lamps hold the
+    week anyway.
+    """
+    done: set[tuple[Any, ...]] = set()
+    for led, plans, g2 in writes:
+        key = _library_key(led)
+        if key is None or key in done:
+            continue
+        done.add(key)
+        try:
+            own = _own_programs(led)
+            for weekday, program, clouds in plans:
+                name = day_name(weekday)
+                await led.save_light_program(
+                    name,
+                    device_program(program, 1, None, g2),
+                    {k: clouds[k] for k in ("from", "to", "intensity") if k in clouds}
+                    if clouds
+                    else None,
+                    own.get(name),
+                )
+        except Exception as err:  # the cloud
+            _LOGGER.warning("Weather programs not kept in the library: %s", err)
+
+
+async def forget_library(leds: list[Any]) -> None:
+    """Remove the weather programs from the ReefBeat library (the weather
+    mode turned off): the lamps play their own week again."""
+    done: set[tuple[Any, ...]] = set()
+    for led in leds:
+        key = _library_key(led)
+        if key is None or key in done:
+            continue
+        done.add(key)
+        try:
+            for uid in _own_programs(led).values():
+                await led.delete_light_program(uid)
+        except Exception as err:  # the cloud
+            _LOGGER.warning("Weather programs not removed from the library: %s", err)
+
+
 async def _write(
     led: Any,
     plans: list[tuple[int, dict[str, Any], dict[str, Any] | None]],
     g2: bool,
     progress: Callable[[], None] | None = None,
 ) -> None:
-    """Send the weather week to a lamp (see _send_days), named as the app
-    names programs: a G1 one with a stamp, a G2 one bare."""
-    name = PROGRAM_NAME if g2 else f"{PROGRAM_NAME}-{int(time.time() * 1000)}"
+    """Send the weather week to a lamp (see _send_days), each day named
+    after its program of the library (see day_name) as the app names
+    programs: a G1 one with a stamp, a G2 one bare."""
+    stamp = int(time.time() * 1000)
     await _send_days(
         led,
         [
             (
                 weekday,
-                name,
+                day_name(weekday) if g2 else f"{day_name(weekday)}-{stamp}",
                 device_program(program, weekday, clouds, g2),
                 None if g2 or not clouds else device_clouds(clouds, weekday),
             )

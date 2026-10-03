@@ -66,6 +66,12 @@ def _make_interpolator(xs_in: list[float], ys_in: list[float]):
 # =============================================================================
 
 
+# Moon cycle of the lamps: 28 days, new moon on day 1, full moon on day 14
+MOON_CYCLE = 28
+MOON_NEW_DAY = 1
+MOON_FULL_DAY = 14
+
+
 class ReefLedAPI(ReefBeatAPI):
     """ReefLED API wrapper (G1/G2, RSLED90 patch, kelvin/intensity conversion)."""
 
@@ -193,6 +199,46 @@ class ReefLedAPI(ReefBeatAPI):
         for var in ("duration", "start_intensity_factor"):
             if var in accli:
                 self.data["local"]["acclimation"][var] = accli[var]
+
+    def expect_settings(self, source: str, enabled: bool) -> None:
+        """Show at once what the lamp makes of an acclimation or moon phase
+        written to it (optimistic update), until it is read back.
+
+        - /acclimation: started from today (its days left are its duration,
+          its factor the start one), or stopped;
+        - /moonphase: on, today being the moon day set (a cycle of 28 days,
+          new moon on day 1, full moon on day 14), or off.
+        """
+        data = self.get_data(
+            "$.sources[?(@.name=='" + source + "')].data", is_None_possible=True
+        )
+        if not isinstance(data, dict):
+            return
+        data = cast(dict[str, Any], data)
+        data["enabled"] = enabled
+        local = self.data["local"]
+        if source == "/acclimation":
+            if not enabled:
+                data.update(
+                    started_on="never", remaining_days=0, current_intensity_factor=100
+                )
+                return
+            for var in ("duration", "start_intensity_factor"):
+                data[var] = local["acclimation"].get(var, data.get(var))
+            data["remaining_days"] = data["duration"]
+            data["current_intensity_factor"] = data["start_intensity_factor"]
+        elif source == "/moonphase" and enabled:
+            day = int(local["moonphase"].get("moon_day") or 0)
+            if not 1 <= day <= MOON_CYCLE:
+                return
+            data["todays_moon_day"] = day
+            data["intensity"] = round(
+                100
+                * (day if day <= MOON_FULL_DAY else MOON_CYCLE - day)
+                / MOON_FULL_DAY
+            )
+            data["next_full_moon"] = (MOON_FULL_DAY - day) % MOON_CYCLE
+            data["next_new_moon"] = (MOON_NEW_DAY - day) % MOON_CYCLE
 
     async def get_initial_data(self) -> dict[str, Any]:
         """Fetch initial device data and initialize conversion functions.
@@ -456,6 +502,19 @@ class ReefLedAPI(ReefBeatAPI):
         if "white" not in data or "blue" not in data:
             return
 
+        # The colour and intensity last set give these very levels: kept as
+        # they are. Derived back from whole white/blue levels they would
+        # drift (an intensity of 50 read back as 49, then 48... each time
+        # the colour is changed, with the intensity compensation).
+        trick = self.data["local"]["manual_trick"]
+        kelvin, intensity = trick.get("kelvin"), trick.get("intensity")
+        if isinstance(kelvin, (int, float)) and isinstance(intensity, (int, float)):
+            expected = self.kelvin_to_white_and_blue(kelvin, int(intensity))
+            if (expected["white"], expected["blue"]) == (data["white"], data["blue"]):
+                data["kelvin"] = kelvin
+                data["intensity"] = intensity
+                return
+
         new_data = self.white_and_blue_to_kelvin(data["white"], data["blue"])
         _LOGGER.debug("reefbeat.update_light_wb %s => %s", data, new_data)
 
@@ -541,16 +600,31 @@ class ReefLedAPI(ReefBeatAPI):
             _LOGGER.error("push_values: no payload found for source=%s", source)
             return
 
-        if self._rsled90_patch and source == "/manual":
-            # RSLED90 expects only wb+moon keys
-            payload = {
-                "white": int(payload["white"]),
-                "blue": int(payload["blue"]),
-                "moon": int(payload["moon"]),
-            }
+        if source == "/manual":
+            payload = self._manual_payload(cast(dict[str, Any], payload))
 
         _LOGGER.debug("PUSH VALUE: %s", payload)
         await self._http_send(self._base_url + source, payload, method)
+
+    def _manual_payload(self, manual: dict[str, Any]) -> dict[str, Any]:
+        """What a lamp takes of its /manual levels (POST /manual or /timer).
+
+        - a G2 is driven by its colour temperature and intensity (and moon),
+          as the ReefBeat app writes it: its white and blue levels are
+          computed by the lamp, read only (sent, they were written as they
+          were known, 0 once the colour was changed);
+        - a RSLED90 only takes white, blue and moon;
+        - another G1 takes its levels as read.
+        """
+        if self._rsled90_patch:
+            return {key: int(manual.get(key) or 0) for key in ("white", "blue", "moon")}
+        if not self._g1:
+            return {
+                key: int(manual.get(key) or 0)
+                for key in ("kelvin", "intensity", "moon")
+                if key in manual
+            }
+        return manual
 
     async def post_specific(self, source: str) -> None:
         """Post special-case endpoints that require custom payload building (e.g. /timer)."""
@@ -562,12 +636,7 @@ class ReefLedAPI(ReefBeatAPI):
                 return
             payload = cast(dict[str, Any], payload)
 
-            if self._rsled90_patch:
-                payload = {
-                    "white": int(payload.get("white", 0)),
-                    "blue": int(payload.get("blue", 0)),
-                    "moon": int(payload.get("moon", 0)),
-                }
+            payload = self._manual_payload(payload)
 
             duration = (
                 self.get_data(LED_MANUAL_DURATION_INTERNAL_NAME, is_None_possible=True)

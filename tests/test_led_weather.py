@@ -429,14 +429,16 @@ async def test_apply_weather_writes_the_week(hass: HomeAssistant) -> None:
     assert paths[:7] == [f"/preset_name/{d}" for d in (3, 4, 5, 6, 7, 1, 2)]
     assert paths[7:9] == ["/auto/3", "/clouds/3"]
     assert paths[-1] == "/auto/apply"
-    assert g1.my_api.sent[0][1]["name"].startswith("Weather-")
+    # Each day named after its program of the library, with a stamp
+    assert g1.my_api.sent[0][1]["name"].startswith("GPS 3-")
+    assert g1.my_api.sent[6][1]["name"].startswith("GPS 2-")
     auto3 = g1.my_api.sent[7][1]
     assert auto3["white"]["rise"] == 360 + 2 * 1440
     assert auto3["moon"]["rise"] == 1080 + 30 + 2 * 1440
     assert g1.refreshed == 1
 
     # G2: bare name, no /clouds, clouds in the program
-    assert g2.my_api.sent[0][1] == {"name": "Weather"}
+    assert g2.my_api.sent[0][1] == {"name": "GPS 3"}
     assert not any(p.startswith("/clouds") for p, _, _ in g2.my_api.sent)
     auto = next(x for x in g2.my_api.sent if x[0] == "/auto/3")[1]
     assert auto["clouds"]["intensity"] == "Medium"
@@ -1259,3 +1261,203 @@ async def test_writing_is_paced_and_its_progress_shown(
     await W._restore_all(_Device(led), {W.lamp_key(led): week}, store)
     assert [w for w in seen if w is not None][-1] == {"done": 1, "total": 1}
     assert store.writing is None
+
+
+@pytest.mark.asyncio
+async def test_weather_lost_when_a_lamp_no_longer_holds_the_week(
+    hass: HomeAssistant,
+) -> None:
+    """A lamp in weather mode playing another program (reset, restarted,
+    programmed from the app) is seen from the name of its programs."""
+
+    class _Named(_Led):
+        def __init__(self, names: dict[int, Any]) -> None:
+            super().__init__(True, {})
+            self.names = names
+
+        def get_data(self, path: str, _none: bool = False) -> Any:
+            day = int(path.split("/preset_name/")[1][0])
+            if day not in self.names:
+                return ""  # no such endpoint
+            name = self.names[day]
+            return name if path.endswith(".data.name") else {"name": name}
+
+    weather = {d: f"{W.day_name(d)}-1745049836266" for d in range(1, 8)}
+    store = W.WeatherStore(hass, "lost")
+    held = _Device(_Named(weather), _Named({d: W.day_name(d) for d in range(1, 8)}))
+    own = _Device(_Named(weather), _Named({**weather, 3: "Perso-1745049718480"}))
+    # Not in weather mode: nothing to hold
+    assert W.weather_lost(own, store) is False
+    await store.async_set_mode(True, {})
+    assert W.weather_lost(held, store) is False
+    assert W.weather_lost(own, store) is True
+    assert W.weather_lost(_Device(_Named({1: None})), store) is True
+    # A lamp without per-day names cannot tell; no lamp there yet
+    assert W.weather_lost(_Device(_Named({})), store) is False
+    assert W.weather_lost(_Device(), store) is False
+    # Being written: not yet
+    store.set_writing(0, 7)
+    assert W.weather_lost(own, store) is False
+
+
+class _Library(_Led):
+    """A lamp linked to a cloud account, with its library of programs."""
+
+    def __init__(self, g1: bool, cloud: Any, aquarium: str, entries: list[Any]) -> None:
+        super().__init__(g1, {})
+        self.cloud, self.aquarium, self.entries = cloud, aquarium, entries
+        self.saved: list[Any] = []
+        self.deleted: list[Any] = []
+        self.fail = False
+
+    def library_link(self) -> Any:
+        return (self.cloud, self.aquarium) if self.cloud else None
+
+    def light_library(self) -> Any:
+        return self.entries
+
+    async def save_light_program(
+        self, name: str, program: Any, clouds: Any, uid: Any = None
+    ) -> Any:
+        if self.fail:
+            raise RuntimeError("cloud down")
+        self.saved.append((name, program, clouds, uid))
+        return uid or "new"
+
+    async def delete_light_program(self, uid: str) -> bool:
+        if self.fail:
+            raise RuntimeError("cloud down")
+        self.deleted.append(uid)
+        return True
+
+
+@pytest.mark.asyncio
+async def test_weather_week_is_kept_in_the_reefbeat_library(
+    hass: HomeAssistant, caplog: pytest.LogCaptureFixture
+) -> None:
+    """The week is kept in the library as programs of the user, one per
+    weekday, so the ReefBeat app knows the programs the lamp plays."""
+    cloud = object()
+    entries = [
+        {"uid": "red", "name": "GPS 9", "default": True},
+        {"uid": "u3", "name": "GPS 3", "default": False},
+        {"uid": "mine", "name": "Perso", "default": False},
+    ]
+    g1 = _Library(True, cloud, "aq1", entries)
+    twin = _Library(True, cloud, "aq1", entries)  # same aquarium: same library
+    other = _Library(True, cloud, "aq2", [])
+    g2 = _Library(False, cloud, "aq1", [])
+    alone = _Library(True, None, "", [])  # linked to no account
+    clouds = {"from": 600, "to": 700, "intensity": "Low", "cloud_duration": 3}
+    plans = [(3, {**G1_PROGRAM}, clouds), (4, {**G1_PROGRAM}, None)]
+    g2_plans = [(3, {"color": {"rise": 360, "set": 1080, "points": []}}, clouds)]
+    await W.sync_library(
+        [
+            (g1, plans, False),
+            (twin, plans, False),
+            (other, plans[:1], False),
+            (g2, g2_plans, True),
+            (alone, plans, False),
+        ]
+    )
+    # Updated when the library has it, added otherwise; on the day's own
+    # timeline, the clouds as the library keeps them
+    assert [(n, u) for n, _, _, u in g1.saved] == [("GPS 3", "u3"), ("GPS 4", None)]
+    assert g1.saved[0][1]["white"]["rise"] == G1_PROGRAM["white"]["rise"]
+    assert g1.saved[0][2] == {"from": 600, "to": 700, "intensity": "Low"}
+    assert g1.saved[1][2] is None
+    assert twin.saved == [] and alone.saved == []
+    assert [(n, u) for n, _, _, u in other.saved] == [("GPS 3", None)]
+    # A G2 has its own library; its clouds are told apart from its program
+    assert g2.saved[0][0] == "GPS 3" and "clouds" not in g2.saved[0][1]
+
+    # The mode turned off: the weather programs are removed, nothing else
+    await W.forget_library([g1, twin, other, g2, alone])
+    assert (g1.deleted, twin.deleted, other.deleted) == (["u3"], [], [])
+
+    # The cloud failing does not fail the weather
+    g1.fail = True
+    await W.sync_library([(g1, plans, False)])
+    await W.forget_library([g1])
+    assert "not kept in the library" in caplog.text
+    assert "not removed from the library" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_rename_program_in_the_library_and_on_the_lamps(
+    hass: HomeAssistant,
+) -> None:
+    """A library program renamed keeps its curves; every day named after it
+    is renamed on the lamp and on the lamps of its group."""
+
+    class _Lamp(_Library):
+        def __init__(self, g1: bool, names: dict[int, Any], entries: list[Any]) -> None:
+            super().__init__(g1, object(), "aq", entries)
+            self.names = names
+            self.told = 0
+
+        def get_data(self, path: str, _none: bool = False) -> Any:
+            day = int(path.split("/preset_name/")[1][0])
+            if day not in self.names:
+                return ""
+            name = self.names[day]
+            return name if path.endswith(".data.name") else {"name": name}
+
+        def async_update_listeners(self) -> None:
+            self.told += 1
+
+    assert W.program_label("Perso-1745049718480") == "Perso"
+    assert W.program_label("Perso-2") == "Perso-2"
+    assert W.program_label(None) == ""
+
+    program = {"white": {"rise": 600, "set": 1200, "points": []}}
+    entries = [
+        {"uid": "u1", "name": "Perso", "program": program, "clouds": None},
+        {"uid": "u2", "name": "Other", "program": program, "clouds": None},
+        {"uid": "rs", "name": "23K", "program": program, "default": True},
+    ]
+    g1 = _Lamp(True, {1: "Perso-1745049718480", 2: "Other-1", 3: "Perso"}, entries)
+    g2 = _Lamp(False, {1: "Perso", 5: "23K"}, entries)  # no /preset_name/2...
+    device = _Device(g1, g2)
+    device.library_program = lambda uid: next(  # type: ignore[attr-defined]
+        (e for e in entries if e["uid"] == uid), None
+    )
+    device.light_library = lambda: entries  # type: ignore[attr-defined]
+    saves: list[Any] = []
+
+    async def _save(name: str, prog: Any, clouds: Any, uid: Any) -> Any:
+        saves.append((name, prog, clouds, uid))
+        return uid
+
+    device.save_light_program = _save  # type: ignore[attr-defined]
+    store = W.WeatherStore(hass, "rename")
+    device.weather = store  # type: ignore[attr-defined]
+    progress: list[Any] = []
+    store.async_add_listener(lambda: progress.append(store.writing))
+
+    assert await W.rename_program(device, "zz", "x") == {"error": "Program not found"}
+    assert await W.rename_program(device, "rs", "x") == {
+        "error": "Red Sea programs cannot be renamed"
+    }
+    assert await W.rename_program(device, "u1", "Other") == {
+        "error": "Name already used"
+    }
+    assert saves == []
+
+    assert await W.rename_program(device, "u1", "Reef") == {"uid": "u1", "renamed": 3}
+    # The entry keeps its curves
+    assert saves == [("Reef", program, None, "u1")]
+    # A G1 day gets a stamp, a G2 one the bare name; the other days are left
+    sent = g1.my_api.sent
+    assert [p for p, _, _ in sent] == ["/preset_name/1", "/preset_name/3"]
+    assert all(body["name"].startswith("Reef-") for _, body, _ in sent)
+    assert g2.my_api.sent == [("/preset_name/1", {"name": "Reef"}, "post")]
+    assert (g1.told, g2.told) == (2, 1)
+    # The progress is shown, then cleared
+    assert progress[0] == {"done": 0, "total": 3}
+    assert progress[-2:] == [{"done": 3, "total": 3}, None]
+
+    # Used by no day, same name kept, no weather store: the library only
+    del device.weather  # type: ignore[attr-defined]
+    assert await W.rename_program(device, "u2", "Other") == {"uid": "u2", "renamed": 0}
+    assert len(g1.my_api.sent) == 2

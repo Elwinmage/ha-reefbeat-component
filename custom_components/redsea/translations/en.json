@@ -2137,6 +2137,24 @@
           "description": "On to group the pump, off to ungroup it."
         }
       }
+    },
+    "led_library_rename": {
+      "name": "Rename a ReefLED library program",
+      "description": "Rename one of the user's programs: in the cloud library, and on every day named after it of the lamp and of the lamps of its group.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the ReefLED (or virtual LED)."
+        },
+        "uid": {
+          "name": "Program ID",
+          "description": "The library program to rename (not a Red Sea one)."
+        },
+        "name": {
+          "name": "Name",
+          "description": "The new name of the program."
+        }
+      }
     }
   },
   "exceptions": {

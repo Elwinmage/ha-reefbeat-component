@@ -739,6 +739,28 @@ async def test_led_library_service_handlers(
         assert await deleting(call(data)) == {"error": error}
     assert deleted == ["u1"]
 
+    # Rename: the library entry, and the days of the lamps named after it
+    renamed: list[Any] = []
+
+    async def _rename(device: Any, uid: str, name: str) -> Any:
+        renamed.append((device, uid, name))
+        return {"uid": uid, "renamed": 3}
+
+    monkeypatch.setattr(redsea_init, "rename_program", _rename)
+    renaming = handlers[f"{redsea_init.DOMAIN}.led_library_rename"]
+    assert await renaming(
+        call({"device_id": "linked", "uid": "u1", "name": " Reef "})
+    ) == {"uid": "u1", "renamed": 3}
+    assert renamed == [(hass.data[redsea_init.DOMAIN]["linked"], "u1", "Reef")]
+    for data, error in (
+        ({"device_id": "nope"}, "Not a ReefLED"),
+        ({"device_id": "alone", "uid": "u1"}, "Not linked to a ReefBeat cloud account"),
+        ({"device_id": "linked", "name": "x"}, "uid is required"),
+        ({"device_id": "linked", "uid": "u1", "name": " "}, "name is required"),
+    ):
+        assert await renaming(call(data)) == {"error": error}
+    assert len(renamed) == 1
+
 
 @pytest.mark.asyncio
 async def test_led_weather_setup_nightly_run_and_service(
@@ -795,9 +817,37 @@ async def test_led_weather_setup_nightly_run_and_service(
 
     monkeypatch.setattr(integration, "async_call_later", _call_later)
 
+    lost: list[bool] = [False]
+    monkeypatch.setattr(integration, "weather_lost", lambda _d, _s: lost[0])
+
     assert await integration.async_setup_entry(hass, cast(Any, entry)) is True
     store = led.weather  # type: ignore[attr-defined]
     assert isinstance(store, integration.WeatherStore)
+    # Once set up, the lamp is checked: it must still hold the weather week
+    delay, check, check_cancelled = later.pop(0)
+    assert delay == integration.WEATHER_CHECK_SECONDS
+    check(None)
+    await hass.async_block_till_done()
+    assert runs == []
+    lost[0] = True
+    check(None)
+    await hass.async_block_till_done()
+    assert runs == [led]
+    # Not for a lamp of a group (its group checks)
+    hass.data[DOMAIN]["group"] = SimpleNamespace(
+        member_ids=[entry.entry_id], _weather=object()
+    )
+    check(None)
+    await hass.async_block_till_done()
+    assert runs == [led]
+    del hass.data[DOMAIN]["group"]
+    # The nightly run writes it again too, even when not due
+    action, when = ticks[0]
+    action(None)
+    await hass.async_block_till_done()
+    assert runs == [led, led]
+    runs.clear()
+    lost[0] = False
     action, when = ticks[0]
     assert when == {"hour": 0, "minute": 10, "second": 0}
     # Nothing in standard mode
@@ -843,6 +893,7 @@ async def test_led_weather_setup_nightly_run_and_service(
     assert later[4][2] == [] and later[5][2] == []
     await entry._async_process_on_unload(hass)  # pyright: ignore[reportAttributeAccessIssue]
     assert later[4][2] == [True] and later[5][2] == [True]
+    assert check_cancelled == [True]
 
     # The service
     handlers: dict[str, Any] = {}

@@ -93,3 +93,27 @@ async def test_switch_async_setup_entry_led_adds_led_and_common(
 
     assert any(isinstance(e, ReefLedSwitchEntity) for e in entities)
     assert any(isinstance(e, ReefBeatSwitchEntity) for e in entities)
+
+
+@pytest.mark.asyncio
+async def test_led_switch_shows_the_setting_at_once(hass: Any) -> None:
+    """Acclimation / moon phase: what the lamp makes of it is shown at once."""
+    device = FakeCoordinator()
+    expected: list[tuple[str, bool]] = []
+    device.expect_settings = lambda source, enabled: expected.append(  # type: ignore[attr-defined]
+        (source, enabled)
+    )
+    desc = ReefLedSwitchEntityDescription(
+        key="sw",
+        translation_key="sw",
+        value_name="$.sources[?(@.name=='/acclimation')].data.enabled",
+        icon="mdi:fish",
+        method="post",
+    )
+    entity = ReefLedSwitchEntity(cast(Any, device), desc)
+    entity.hass = hass
+    entity.async_write_ha_state = lambda: None  # type: ignore[assignment]
+
+    await entity.async_turn_on()
+    await entity.async_turn_off()
+    assert expected == [("/acclimation", True), ("/acclimation", False)]

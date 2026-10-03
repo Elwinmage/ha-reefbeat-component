@@ -359,12 +359,12 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
         if ATTR_BRIGHTNESS in kwargs:
             ha_value = int(kwargs[ATTR_BRIGHTNESS])
         else:
+            # The level is kept: the lamp's (in %), as a brightness (0-255)
             if self.entity_description.key == "kelvin_intensity":
-                ha_value = int(
-                    self._device.get_data(value_name + ".intensity", True) or 0
-                )
+                level = self._device.get_data(value_name + ".intensity", True)
             else:
-                ha_value = int(self._device.get_data(value_name, True) or 0)
+                level = self._device.get_data(value_name, True)
+            ha_value = round(float(level or 0) / LED_CONVERSION_COEF)
 
         self._attr_brightness = ha_value
         self._attr_is_on = True
@@ -381,6 +381,10 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
             self.hass.bus.fire(EVENT_WB_LIGHT_UPDATED, {})
         self.async_write_ha_state()
         await self._device.push_values("/manual", "post")
+        # A G2 computes its white and blue levels from the colour and the
+        # intensity it was given: read them back (a G1's are derived here)
+        if not self._device.is_g1:
+            await self._device.async_request_refresh(source="/manual")
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light off."""

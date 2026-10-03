@@ -2129,6 +2129,24 @@
           "description": "Włączone, aby zgrupować pompę, wyłączone, aby ją rozgrupować."
         }
       }
+    },
+    "led_library_rename": {
+      "name": "Zmień nazwę programu biblioteki ReefLED",
+      "description": "Zmienia nazwę programu użytkownika: w bibliotece w chmurze i w każdym dniu noszącym jego nazwę, na lampie i na lampach jej grupy.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji ReefLED (lub wirtualnego LED)."
+        },
+        "uid": {
+          "name": "ID programu",
+          "description": "Program biblioteki do zmiany nazwy (nie program Red Sea)."
+        },
+        "name": {
+          "name": "Nazwa",
+          "description": "Nowa nazwa programu."
+        }
+      }
     }
   },
   "exceptions": {

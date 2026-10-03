@@ -509,7 +509,10 @@ async def test_light_turn_on_without_brightness_reads_from_device_for_kelvin_and
 
     dev_k.get_data_map[desc_k.value_name + ".intensity"] = 7
     await ent_k.async_turn_on(**{ATTR_COLOR_TEMP_KELVIN: 9000})
-    assert ent_k.brightness == 7
+    # The intensity is kept: 7 % as a brightness (it was shown as 7/255)
+    assert ent_k.brightness == 18
+    # A G2 computes its white and blue: read back
+    assert dev_k.quick_refreshed == ["/manual"]
 
     # White: reads value_name
     dev_w = _FakeLedCoordinator(is_g1=True)
@@ -524,7 +527,9 @@ async def test_light_turn_on_without_brightness_reads_from_device_for_kelvin_and
 
     dev_w.get_data_map[desc_w.value_name] = 9
     await ent_w.async_turn_on()
-    assert ent_w.brightness == 9
+    assert ent_w.brightness == 23
+    # A G1's levels are derived by the integration: nothing to read back
+    assert dev_w.quick_refreshed == []
 
 
 @pytest.mark.asyncio

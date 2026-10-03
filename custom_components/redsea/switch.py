@@ -1290,7 +1290,15 @@ class ReefLedSwitchEntity(ReefBeatSwitchEntity):
         if self._source:
             pusher = cast(_HasPushValuesBySource, self._device)
             await pusher.post_specific(self._source)
+            self._expect(True)
             await pusher.async_request_refresh(source=self._source)
+
+    def _expect(self, enabled: bool) -> None:
+        """Show at once what the lamp (each lamp of its group) makes of the
+        acclimation or moon phase turned on or off (optimistic update)."""
+        expect = getattr(self._device, "expect_settings", None)
+        if callable(expect) and self._source:
+            expect(self._source, enabled)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         self._attr_is_on = False
@@ -1302,6 +1310,7 @@ class ReefLedSwitchEntity(ReefBeatSwitchEntity):
         if self._source:
             pusher = cast(_HasPushValuesBySource, self._device)
             await pusher.delete(self._source)
+            self._expect(False)
             await pusher.async_request_refresh(source=self._source)
 
 

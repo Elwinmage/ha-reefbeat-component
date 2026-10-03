@@ -2129,6 +2129,24 @@
           "description": "Ein, um die Pumpe zu gruppieren, aus, um die Gruppierung aufzuheben."
         }
       }
+    },
+    "led_library_rename": {
+      "name": "Ein ReefLED-Bibliotheksprogramm umbenennen",
+      "description": "Benennt ein Programm des Benutzers um: in der Cloud-Bibliothek und an jedem Tag, der seinen Namen trägt, auf der Leuchte und den Leuchten ihrer Gruppe.",
+      "fields": {
+        "device_id": {
+          "name": "Geräte-ID",
+          "description": "Der Konfigurationseintrag der ReefLED (oder virtuellen LED)."
+        },
+        "uid": {
+          "name": "Programm-ID",
+          "description": "Das umzubenennende Bibliotheksprogramm (kein Red-Sea-Programm)."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Der neue Name des Programms."
+        }
+      }
     }
   },
   "exceptions": {

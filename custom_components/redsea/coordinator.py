@@ -613,6 +613,31 @@ class ReefLedCoordinator(ReefBeatCloudLinkedCoordinator):
             return
         await self.my_api.post_specific(source)
 
+    async def delete(self, source: str) -> None:
+        """DELETE a source, on the whole group when it is shared by it
+        (the acclimation or the moon phase turned off on one of its lamps)."""
+        group = self.led_group()
+        if group is not None and led_source_is_shared(source):
+            await group.delete(source)
+            return
+        await super().delete(source)
+
+    def _settings_lamps(self) -> list[ReefLedCoordinator]:
+        """Lamps a shared setting written here went to: its group's, or itself."""
+        group = self.led_group()
+        return list(group._linked) if group is not None else [self]
+
+    @callback
+    def expect_settings(self, source: str, enabled: bool) -> None:
+        """Show at once the acclimation or moon phase just written, on every
+        lamp it went to (optimistic update): see ReefLedAPI.expect_settings."""
+        group = self.led_group()
+        for lamp in self._settings_lamps():
+            cast(Any, lamp.my_api).expect_settings(source, enabled)
+            lamp.async_update_listeners()
+        if group is not None:
+            group.async_update_listeners()
+
     # -- Weather program -----------------------------------------------------
     # The lamps of a group share one weather program: the one of the group.
     # Turned on (or set) on any lamp of the group, it is on (and set) for
@@ -1581,6 +1606,15 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
     ) -> None:
         for led in self._linked:
             await led.async_request_refresh(source, config, wait)
+
+    def _settings_lamps(self) -> list[ReefLedCoordinator]:
+        """A setting written on the group went to each of its lamps."""
+        return list(self._linked)
+
+    @callback
+    def expect_settings(self, source: str, enabled: bool) -> None:
+        super().expect_settings(source, enabled)
+        self.async_update_listeners()
 
     def library_g2(self) -> bool:
         """A group with a G2 is driven as a G2: it uses the G2 library."""

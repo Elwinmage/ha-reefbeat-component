@@ -2137,6 +2137,24 @@
           "description": "Aan om de pomp te groeperen, uit om de groepering op te heffen."
         }
       }
+    },
+    "led_library_rename": {
+      "name": "Een ReefLED-bibliotheekprogramma hernoemen",
+      "description": "Hernoemt een programma van de gebruiker: in de cloudbibliotheek en op elke dag die zijn naam draagt, op de lamp en op de lampen van zijn groep.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-entry van de ReefLED (of virtuele LED)."
+        },
+        "uid": {
+          "name": "Programma-ID",
+          "description": "Het te hernoemen bibliotheekprogramma (geen Red Sea-programma)."
+        },
+        "name": {
+          "name": "Naam",
+          "description": "De nieuwe naam van het programma."
+        }
+      }
     }
   },
   "exceptions": {

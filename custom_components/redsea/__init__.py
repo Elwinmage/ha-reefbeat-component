@@ -82,13 +82,16 @@ from .coordinator import (
 )
 from .groups import GroupStore, group_error, members_from_legacy
 from .led_weather import (
+    WEATHER_CHECK_SECONDS,
     WEATHER_SETTLE_SECONDS,
     WEATHER_SHOW_SECONDS,
     WeatherStore,
     preview_weather,
     publish_weather,
+    rename_program,
     run_weather,
     save_weather,
+    weather_lost,
 )
 from .maintenance import MaintenanceStore, register_led_tasks
 from .reefbeat.cloud import InvalidAuth
@@ -242,11 +245,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             """
             if coordinator.weather is not weather_store:
                 return
-            if weather_store.due(dt_util.now().date()):
+            if weather_store.due(dt_util.now().date()) or weather_lost(
+                coordinator, weather_store
+            ):
                 hass.async_create_task(run_weather(hass, coordinator))
 
         entry.async_on_unload(
             async_track_time_change(hass, _weather_tick, hour=0, minute=10, second=0)
+        )
+
+        @callback
+        def _weather_check(_now: Any) -> None:
+            """Once set up: a lamp in weather mode that no longer holds the
+            weather week (reset, restarted, programmed from the app) gets
+            it again, instead of playing its own under a weather mode."""
+            if coordinator.weather is weather_store and weather_lost(
+                coordinator, weather_store
+            ):
+                hass.async_create_task(run_weather(hass, coordinator))
+
+        entry.async_on_unload(
+            async_call_later(hass, WEATHER_CHECK_SECONDS, _weather_check)
         )
 
         # A changed setting shows its new week at once, and sends it once
@@ -1012,6 +1031,24 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             return {"error": "Red Sea programs cannot be deleted"}
         return {"deleted": await device.delete_light_program(uid)}
 
+    async def handle_led_library_rename(call: ServiceCall) -> ServiceResponse:
+        """Rename one of the user's programs: in the library, and on every
+        day named after it of the lamp and of the lamps of its group."""
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        if device.library_link() is None:
+            return {"error": "Not linked to a ReefBeat cloud account"}
+        uid = call.data.get("uid")
+        if not isinstance(uid, str) or not uid:
+            return {"error": "uid is required"}
+        name = call.data.get("name")
+        if not isinstance(name, str) or not name.strip():
+            return {"error": "name is required"}
+        return cast(
+            dict[str, JsonValueType], await rename_program(device, uid, name.strip())
+        )
+
     async def handle_led_weather_apply(call: ServiceCall) -> ServiceResponse:
         """Fetch the weather again and send the week now (weather mode only)."""
         device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
@@ -1090,6 +1127,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         DOMAIN,
         "led_library_delete",
         handle_led_library_delete,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        "led_library_rename",
+        handle_led_library_rename,
         supports_response=SupportsResponse.OPTIONAL,
     )
 

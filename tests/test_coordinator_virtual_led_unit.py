@@ -562,6 +562,7 @@ class _RecApi:
         self.posts: list[str] = []
         self.presses: list[str] = []
         self.deletes: list[str] = []
+        self.expected: list[tuple[str, bool]] = []
 
     def set_data(self, name: str, value: Any) -> None:
         self.sets.append((name, value))
@@ -586,6 +587,9 @@ class _RecApi:
 
     async def delete(self, source: str) -> None:
         self.deletes.append(source)
+
+    def expect_settings(self, source: str, enabled: bool) -> None:
+        self.expected.append((source, enabled))
 
     def update_light_wb(self) -> None:
         return None
@@ -1425,3 +1429,37 @@ async def test_cloud_proposes_the_groups_of_the_app(
     await hass.async_block_till_done()
     assert len(started) == 2
     assert started[1][2]["aquarium"] == AQ
+
+
+async def test_settings_turned_off_and_shown_on_the_whole_group(
+    hass: HomeAssistant,
+) -> None:
+    """The acclimation (or the moon phase) is shared: turned off on a lamp,
+    it is on each lamp of its group, and what they make of a write is shown
+    at once on all of them (optimistic update)."""
+    alone = _member(hass, "ALONE")
+    await alone.delete("/acclimation")
+    alone.expect_settings("/acclimation", False)
+    api = cast(_RecApi, alone.my_api)
+    assert (api.deletes, api.expected) == (
+        ["/acclimation"],
+        [("/acclimation", False)],
+    )
+
+    vled, leds = await _grouped(hass, 2)
+    apis = [cast(_RecApi, led.my_api) for led in leds]
+    await leds[1].delete("/acclimation")
+    assert [a.deletes for a in apis] == [["/acclimation"], ["/acclimation"]]
+    # Not shared: on the lamp only
+    await leds[1].delete("/firmware")
+    assert [a.deletes[1:] for a in apis] == [[], ["/firmware"]]
+
+    told: list[str] = []
+    for lamp in (*leds, vled):
+        lamp.async_add_listener(lambda name=lamp.title: told.append(name))
+    leds[0].expect_settings("/moonphase", True)
+    assert [a.expected for a in apis] == [[("/moonphase", True)]] * 2
+    assert sorted(told) == sorted([leds[0].title, leds[1].title, vled.title])
+    # Written on the group itself
+    vled.expect_settings("/acclimation", True)
+    assert [a.expected[-1] for a in apis] == [("/acclimation", True)] * 2
