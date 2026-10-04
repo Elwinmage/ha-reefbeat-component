@@ -43,6 +43,14 @@ A socket driven by a schedule or a probe can be switched off by hand: its mode t
 
 The device automatically leaves its initial "setup" state as soon as the first socket is configured, mirroring the ReefBeat app — no manual action needed.
 
+## Maintenance tasks
+| Task | Default | Range |
+| ---- | ------- | ----- |
+| Visual inspection | 1 month | 1 – 3 months |
+| Remove dust and salt deposits | 3 months | 2 – 4 months |
+
+Red Sea publishes no upkeep schedule for the power center: these two tasks follow general reef-keeping practice for mains equipment near salt water. Unplug the power center before dusting it or removing salt deposits, and use a dry cloth. See the [Maintenance](maintenance.md#maintenance) section.
+
 ---
 
 [← Back to the main page](../../README.md)

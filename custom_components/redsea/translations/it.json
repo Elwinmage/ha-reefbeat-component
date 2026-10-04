@@ -230,6 +230,12 @@
       "maint_mat_carbon_replace": {
         "name": "Sostituire il carbone attivo"
       },
+      "maint_power_dust_clean": {
+        "name": "Rimuovere polvere e depositi di sale"
+      },
+      "maint_power_visual_check": {
+        "name": "Ispezione visiva"
+      },
       "maint_run_pump_motor": {
         "name": "Pulire motore e rotore"
       },
@@ -443,6 +449,12 @@
       },
       "maint_mat_carbon_replace_interval_weeks": {
         "name": "Sostituire il carbone attivo (settimane)"
+      },
+      "maint_power_dust_clean_interval_months": {
+        "name": "Rimuovere polvere e depositi di sale (mesi)"
+      },
+      "maint_power_visual_check_interval_months": {
+        "name": "Ispezione visiva (mesi)"
       },
       "maint_run_pump_motor_interval_months": {
         "name": "Pulire motore e rotore (mesi)"
@@ -1494,6 +1506,12 @@
       },
       "maint_mat_carbon_replace_notify": {
         "name": "Sostituire il carbone attivo (notifiche)"
+      },
+      "maint_power_dust_clean_notify": {
+        "name": "Rimuovere polvere e depositi di sale (notifiche)"
+      },
+      "maint_power_visual_check_notify": {
+        "name": "Ispezione visiva (notifiche)"
       },
       "maint_run_pump_motor_notify": {
         "name": "Pulire motore e rotore (notifiche)"

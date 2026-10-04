@@ -43,6 +43,14 @@ Una presa pilotata da un programma o da una sonda può essere spenta a mano: la 
 
 Il dispositivo esce automaticamente dallo stato iniziale «setup» non appena viene configurata la prima presa, come fa l'app ReefBeat — nessuna azione manuale necessaria.
 
+## Attività di manutenzione
+| Attività | Predefinito | Intervallo |
+| -------- | ----------- | ---------- |
+| Ispezione visiva | 1 mese | 1 – 3 mesi |
+| Rimuovere polvere e depositi di sale | 3 mesi | 2 – 4 mesi |
+
+Red Sea non pubblica alcun calendario di manutenzione per il Power Center: queste due attività seguono la prassi comune in acquariofilia marina per le apparecchiature elettriche vicine all'acqua salata. Scollega il Power Center prima di spolverarlo o di rimuovere i depositi di sale, e usa un panno asciutto. Vedi la sezione [Manutenzione](maintenance.it.md#manutenzione).
+
 ---
 
 [← Torna alla pagina principale](README.it.md)

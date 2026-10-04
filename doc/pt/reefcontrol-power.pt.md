@@ -43,6 +43,14 @@ Uma tomada controlada por um programa ou por uma sonda pode ser desligada à mã
 
 O aparelho sai automaticamente do seu estado inicial «setup» assim que a primeira tomada é configurada, tal como a aplicação ReefBeat — não é necessária qualquer ação manual.
 
+## Tarefas de manutenção
+| Tarefa | Por omissão | Intervalo |
+| ------ | ----------- | --------- |
+| Inspeção visual | 1 mês | 1 – 3 meses |
+| Remover o pó e os depósitos de sal | 3 meses | 2 – 4 meses |
+
+A Red Sea não publica qualquer calendário de manutenção para o Power Center: estas duas tarefas seguem a prática habitual em aquariofilia de recife para equipamento elétrico perto de água salgada. Desligue o Power Center da corrente antes de lhe tirar o pó ou os depósitos de sal, e use um pano seco. Ver a secção [Manutenção](maintenance.pt.md#manutenção).
+
 ---
 
 [← Voltar à página principal](README.pt.md)

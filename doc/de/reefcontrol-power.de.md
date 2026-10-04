@@ -43,6 +43,14 @@ Eine per Zeitplan oder Sonde gesteuerte Steckdose kann von Hand ausgeschaltet we
 
 Das Gerät verlässt seinen anfänglichen „setup“-Zustand automatisch, sobald die erste Steckdose konfiguriert ist, wie in der ReefBeat-App — keine manuelle Aktion nötig.
 
+## Wartungsaufgaben
+| Aufgabe | Standard | Bereich |
+| ------- | -------- | ------- |
+| Sichtprüfung | 1 Monat | 1 – 3 Monate |
+| Staub und Salzablagerungen entfernen | 3 Monate | 2 – 4 Monate |
+
+Red Sea veröffentlicht keinen Wartungsplan für das Power Center: Diese beiden Aufgaben folgen der üblichen Praxis in der Riffaquaristik für Netzgeräte in der Nähe von Salzwasser. Trennen Sie das Power Center vom Netz, bevor Sie es entstauben oder Salzablagerungen entfernen, und verwenden Sie ein trockenes Tuch. Siehe den Abschnitt [Wartung](maintenance.de.md#wartung).
+
 ---
 
 [← Zurück zur Hauptseite](README.de.md)

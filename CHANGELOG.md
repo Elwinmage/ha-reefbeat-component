@@ -170,6 +170,10 @@
    table).
 
 ### RSPOWER
+ - Two maintenance tasks, the first ones of the power center: *Visual
+   inspection* (1 month by default, 1 to 3 months) and *Remove dust and salt
+   deposits* (3 months by default, 2 to 4 months). Red Sea publishes no
+   upkeep schedule for it: they follow general reef-keeping practice.
  - Calibration against a reference temperature (number
    `temperature_calibration`) replaces the `temperature_offset` number, as
    on the RSCONTROL probes (see there). `temperature_offset` is purged from

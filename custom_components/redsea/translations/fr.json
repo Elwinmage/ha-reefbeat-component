@@ -229,6 +229,12 @@
       "maint_mat_carbon_replace": {
         "name": "Remplacer le charbon actif"
       },
+      "maint_power_dust_clean": {
+        "name": "Dépoussiérer et retirer les dépôts de sel"
+      },
+      "maint_power_visual_check": {
+        "name": "Inspection visuelle"
+      },
       "maint_run_pump_motor": {
         "name": "Nettoyer le moteur et le rotor"
       },
@@ -442,6 +448,12 @@
       },
       "maint_mat_carbon_replace_interval_weeks": {
         "name": "Remplacer le charbon actif (semaines)"
+      },
+      "maint_power_dust_clean_interval_months": {
+        "name": "Dépoussiérer et retirer les dépôts de sel (mois)"
+      },
+      "maint_power_visual_check_interval_months": {
+        "name": "Inspection visuelle (mois)"
       },
       "maint_run_pump_motor_interval_months": {
         "name": "Nettoyer le moteur et le rotor (mois)"
@@ -1494,6 +1506,12 @@
       },
       "maint_mat_carbon_replace_notify": {
         "name": "Remplacer le charbon actif (notifications)"
+      },
+      "maint_power_dust_clean_notify": {
+        "name": "Dépoussiérer et retirer les dépôts de sel (notifications)"
+      },
+      "maint_power_visual_check_notify": {
+        "name": "Inspection visuelle (notifications)"
       },
       "maint_run_pump_motor_notify": {
         "name": "Nettoyer le moteur et le rotor (notifications)"

@@ -230,6 +230,12 @@
       "maint_mat_carbon_replace": {
         "name": "Aktivkohle ersetzen"
       },
+      "maint_power_dust_clean": {
+        "name": "Staub und Salzablagerungen entfernen"
+      },
+      "maint_power_visual_check": {
+        "name": "Sichtprüfung"
+      },
       "maint_run_pump_motor": {
         "name": "Motor und Rotor reinigen"
       },
@@ -443,6 +449,12 @@
       },
       "maint_mat_carbon_replace_interval_weeks": {
         "name": "Aktivkohle ersetzen (Wochen)"
+      },
+      "maint_power_dust_clean_interval_months": {
+        "name": "Staub und Salzablagerungen entfernen (Monate)"
+      },
+      "maint_power_visual_check_interval_months": {
+        "name": "Sichtprüfung (Monate)"
       },
       "maint_run_pump_motor_interval_months": {
         "name": "Motor und Rotor reinigen (Monate)"
@@ -1494,6 +1506,12 @@
       },
       "maint_mat_carbon_replace_notify": {
         "name": "Aktivkohle ersetzen (Benachrichtigungen)"
+      },
+      "maint_power_dust_clean_notify": {
+        "name": "Staub und Salzablagerungen entfernen (Benachrichtigungen)"
+      },
+      "maint_power_visual_check_notify": {
+        "name": "Sichtprüfung (Benachrichtigungen)"
       },
       "maint_run_pump_motor_notify": {
         "name": "Motor und Rotor reinigen (Benachrichtigungen)"

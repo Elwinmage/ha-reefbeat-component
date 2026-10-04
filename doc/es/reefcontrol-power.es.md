@@ -43,6 +43,14 @@ Una toma controlada por un programa o una sonda puede apagarse a mano: su modo i
 
 El dispositivo sale automáticamente de su estado inicial «setup» en cuanto se configura la primera toma, igual que la aplicación ReefBeat — no hace falta ninguna acción manual.
 
+## Tareas de mantenimiento
+| Tarea | Por defecto | Rango |
+| ----- | ----------- | ----- |
+| Inspección visual | 1 mes | 1 – 3 meses |
+| Quitar el polvo y los depósitos de sal | 3 meses | 2 – 4 meses |
+
+Red Sea no publica ningún calendario de mantenimiento para el Power Center: estas dos tareas siguen la práctica habitual en acuariofilia de arrecife para equipos eléctricos cercanos al agua salada. Desenchufa el Power Center antes de quitarle el polvo o los depósitos de sal, y usa un paño seco. Consulta la sección [Mantenimiento](maintenance.es.md#mantenimiento).
+
 ---
 
 [← Volver a la página principal](README.es.md)

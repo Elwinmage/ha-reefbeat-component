@@ -230,6 +230,12 @@
       "maint_mat_carbon_replace": {
         "name": "Sustituir el carbón activado"
       },
+      "maint_power_dust_clean": {
+        "name": "Quitar el polvo y los depósitos de sal"
+      },
+      "maint_power_visual_check": {
+        "name": "Inspección visual"
+      },
       "maint_run_pump_motor": {
         "name": "Limpiar motor y rotor"
       },
@@ -443,6 +449,12 @@
       },
       "maint_mat_carbon_replace_interval_weeks": {
         "name": "Sustituir el carbón activado (semanas)"
+      },
+      "maint_power_dust_clean_interval_months": {
+        "name": "Quitar el polvo y los depósitos de sal (meses)"
+      },
+      "maint_power_visual_check_interval_months": {
+        "name": "Inspección visual (meses)"
       },
       "maint_run_pump_motor_interval_months": {
         "name": "Limpiar motor y rotor (meses)"
@@ -1494,6 +1506,12 @@
       },
       "maint_mat_carbon_replace_notify": {
         "name": "Sustituir el carbón activado (notificaciones)"
+      },
+      "maint_power_dust_clean_notify": {
+        "name": "Quitar el polvo y los depósitos de sal (notificaciones)"
+      },
+      "maint_power_visual_check_notify": {
+        "name": "Inspección visual (notificaciones)"
       },
       "maint_run_pump_motor_notify": {
         "name": "Limpiar motor y rotor (notificaciones)"

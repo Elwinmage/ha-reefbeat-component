@@ -230,6 +230,12 @@
       "maint_mat_carbon_replace": {
         "name": "Wymienić węgiel aktywny"
       },
+      "maint_power_dust_clean": {
+        "name": "Usunąć kurz i osady soli"
+      },
+      "maint_power_visual_check": {
+        "name": "Kontrola wzrokowa"
+      },
       "maint_run_pump_motor": {
         "name": "Wyczyścić silnik i wirnik"
       },
@@ -443,6 +449,12 @@
       },
       "maint_mat_carbon_replace_interval_weeks": {
         "name": "Wymienić węgiel aktywny (tygodnie)"
+      },
+      "maint_power_dust_clean_interval_months": {
+        "name": "Usunąć kurz i osady soli (miesiące)"
+      },
+      "maint_power_visual_check_interval_months": {
+        "name": "Kontrola wzrokowa (miesiące)"
       },
       "maint_run_pump_motor_interval_months": {
         "name": "Wyczyścić silnik i wirnik (miesiące)"
@@ -1494,6 +1506,12 @@
       },
       "maint_mat_carbon_replace_notify": {
         "name": "Wymienić węgiel aktywny (powiadomienia)"
+      },
+      "maint_power_dust_clean_notify": {
+        "name": "Usunąć kurz i osady soli (powiadomienia)"
+      },
+      "maint_power_visual_check_notify": {
+        "name": "Kontrola wzrokowa (powiadomienia)"
       },
       "maint_run_pump_motor_notify": {
         "name": "Wyczyścić silnik i wirnik (powiadomienia)"

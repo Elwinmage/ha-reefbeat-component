@@ -43,6 +43,14 @@ Gniazdo sterowane harmonogramem lub sondą można ręcznie wyłączyć: jego try
 
 Urządzenie automatycznie opuszcza początkowy stan „setup”, gdy tylko zostanie skonfigurowane pierwsze gniazdo, tak jak w aplikacji ReefBeat — nie jest potrzebna żadna ręczna czynność.
 
+## Zadania konserwacyjne
+| Zadanie | Domyślnie | Zakres |
+| ------- | --------- | ------ |
+| Kontrola wzrokowa | 1 miesiąc | 1 – 3 miesiące |
+| Usunąć kurz i osady soli | 3 miesiące | 2 – 4 miesiące |
+
+Red Sea nie publikuje harmonogramu konserwacji Power Center: te dwa zadania wynikają z ogólnej praktyki akwarystyki rafowej dla urządzeń sieciowych w pobliżu słonej wody. Przed odkurzaniem lub usuwaniem osadów soli odłącz Power Center od zasilania i użyj suchej ściereczki. Zobacz sekcję [Konserwacja](maintenance.pl.md#konserwacja).
+
 ---
 
 [← Powrót do strony głównej](README.pl.md)

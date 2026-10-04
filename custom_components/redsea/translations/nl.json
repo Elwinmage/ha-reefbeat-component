@@ -230,6 +230,12 @@
       "maint_mat_carbon_replace": {
         "name": "Actieve kool vervangen"
       },
+      "maint_power_dust_clean": {
+        "name": "Stof en zoutafzetting verwijderen"
+      },
+      "maint_power_visual_check": {
+        "name": "Visuele inspectie"
+      },
       "maint_run_pump_motor": {
         "name": "Motor en rotor reinigen"
       },
@@ -443,6 +449,12 @@
       },
       "maint_mat_carbon_replace_interval_weeks": {
         "name": "Actieve kool vervangen (weken)"
+      },
+      "maint_power_dust_clean_interval_months": {
+        "name": "Stof en zoutafzetting verwijderen (maanden)"
+      },
+      "maint_power_visual_check_interval_months": {
+        "name": "Visuele inspectie (maanden)"
       },
       "maint_run_pump_motor_interval_months": {
         "name": "Motor en rotor reinigen (maanden)"
@@ -1502,6 +1514,12 @@
       },
       "maint_mat_carbon_replace_notify": {
         "name": "Actieve kool vervangen (meldingen)"
+      },
+      "maint_power_dust_clean_notify": {
+        "name": "Stof en zoutafzetting verwijderen (meldingen)"
+      },
+      "maint_power_visual_check_notify": {
+        "name": "Visuele inspectie (meldingen)"
       },
       "maint_run_pump_motor_notify": {
         "name": "Motor en rotor reinigen (meldingen)"

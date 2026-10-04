@@ -43,6 +43,14 @@ Une prise pilotée par un programme ou une sonde peut être forcée à l'arrêt 
 
 Le device quitte automatiquement son état initial « setup » dès que la première prise est configurée, comme le fait l'application ReefBeat — aucune action manuelle nécessaire.
 
+## Tâches de maintenance
+| Tâche | Défaut | Plage |
+| ----- | ------ | ----- |
+| Inspection visuelle | 1 mois | 1 – 3 mois |
+| Dépoussiérer et retirer les dépôts de sel | 3 mois | 2 – 4 mois |
+
+Red Sea ne publie aucun calendrier d'entretien pour le Power Center : ces deux tâches reprennent les usages courants en aquariophilie récifale pour du matériel secteur proche de l'eau salée. Débranchez le Power Center avant de le dépoussiérer ou de retirer les dépôts de sel, et utilisez un chiffon sec. Voir la section [Maintenance](maintenance.fr.md#maintenance).
+
 ---
 
 [← Retour à la page principale](README.fr.md)

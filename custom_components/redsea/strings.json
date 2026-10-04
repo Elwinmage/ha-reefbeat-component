@@ -230,6 +230,12 @@
       "maint_mat_carbon_replace": {
         "name": "Replace activated carbon"
       },
+      "maint_power_dust_clean": {
+        "name": "Remove dust and salt deposits"
+      },
+      "maint_power_visual_check": {
+        "name": "Visual inspection"
+      },
       "maint_run_pump_motor": {
         "name": "Clean motor and rotor"
       },
@@ -443,6 +449,12 @@
       },
       "maint_mat_carbon_replace_interval_weeks": {
         "name": "Replace activated carbon (weeks)"
+      },
+      "maint_power_dust_clean_interval_months": {
+        "name": "Remove dust and salt deposits (months)"
+      },
+      "maint_power_visual_check_interval_months": {
+        "name": "Visual inspection (months)"
       },
       "maint_run_pump_motor_interval_months": {
         "name": "Clean motor and rotor (months)"
@@ -1502,6 +1514,12 @@
       },
       "maint_mat_carbon_replace_notify": {
         "name": "Replace activated carbon (notifications)"
+      },
+      "maint_power_dust_clean_notify": {
+        "name": "Remove dust and salt deposits (notifications)"
+      },
+      "maint_power_visual_check_notify": {
+        "name": "Visual inspection (notifications)"
       },
       "maint_run_pump_motor_notify": {
         "name": "Clean motor and rotor (notifications)"
