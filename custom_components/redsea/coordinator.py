@@ -1469,7 +1469,8 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
                 return self.get_data_str(name)
             case "NoneType":
                 return None
-            case "dict":
+            case "dict" | "list":
+                # A whole source (a program, the list of the names...)
                 return data
             case _:
                 _LOGGER.warning(

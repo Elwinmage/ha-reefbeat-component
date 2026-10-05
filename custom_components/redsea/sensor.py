@@ -716,6 +716,38 @@ LED_SCHEDULES: tuple[ReefLedScheduleSensorEntityDescription, ...] = tuple(
     _led_schedules
 )
 
+# A group (virtual LED) reads its week from its first lamp, which may be
+# loaded after it: one sensor per day whatever is there yet, the name read
+# whichever way that lamp reports it (see ReefLedScheduleSensorEntity).
+VIRTUAL_LED_SCHEDULES: tuple[ReefLedScheduleSensorEntityDescription, ...] = tuple(
+    ReefLedScheduleSensorEntityDescription(
+        key="auto_" + str(auto_id),
+        translation_key="auto_" + str(auto_id),
+        id_name=auto_id,
+        icon="mdi:calendar",
+    )
+    for auto_id in range(1, 8)
+)
+
+
+def _schedule_name(device: ReefBeatCoordinator, day: int) -> Any:
+    """Name of the program of a weekday, from the one list of names or from
+    the per-day ones (depending on the firmware); None when unknown."""
+    names = device.get_data("$.sources[?(@.name=='/preset_name')].data", True)
+    if isinstance(names, list):
+        return next(
+            (
+                entry.get("name")
+                for entry in names
+                if isinstance(entry, dict) and str(entry.get("day")) == str(day)
+            ),
+            None,
+        )
+    return device.get_data(
+        f"$.sources[?(@.name=='/preset_name/{day}')].data.name", True
+    )
+
+
 # -----------------------------------------------------------------------------
 # Wave / ATO descriptions
 # -----------------------------------------------------------------------------
@@ -2529,7 +2561,12 @@ async def async_setup_entry(
         )
 
     # Schedule sensors (LED coordinators)
-    if isinstance(device, (ReefLedCoordinator, ReefVirtualLedCoordinator)):
+    if isinstance(device, ReefVirtualLedCoordinator):
+        entities.extend(
+            ReefLedScheduleSensorEntity(device, description)
+            for description in VIRTUAL_LED_SCHEDULES
+        )
+    elif isinstance(device, ReefLedCoordinator):
         led_device = cast(ReefLedCoordinator, device)
         entities.extend(
             ReefLedScheduleSensorEntity(device, description)
@@ -2819,9 +2856,24 @@ class ReefLedScheduleSensorEntity(ReefBeatSensorEntity):
         self._attr_available = True
         desc = cast(ReefLedScheduleSensorEntityDescription, self._description)
 
+        id_name = desc.id_name
+        if not desc.value_name:
+            # A group: nothing to read before its first lamp is loaded
+            self._attr_native_value = _schedule_name(self._device, id_name)
+            prog_data = self._device.get_data(
+                f"$.sources[?(@.name=='/auto/{id_name}')].data", True
+            )
+            cloud_data = self._device.get_data(
+                f"$.sources[?(@.name=='/clouds/{id_name}')].data", True
+            )
+            self._attr_extra_state_attributes = {
+                "data": prog_data,
+                "clouds": cloud_data,
+            }
+            return
+
         self._attr_native_value = self._device.get_data(desc.value_name)
 
-        id_name = desc.id_name
         prog_data = self._device.get_data(
             f"$.sources[?(@.name=='/auto/{id_name}')].data"
         )

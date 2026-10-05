@@ -317,7 +317,7 @@ def test_virtual_led_get_data_unknown_type_logs_warning(
 
     vled = coord.ReefVirtualLedCoordinator(hass, cast(Any, entry))
     vled._linked = [  # type: ignore[attr-defined]
-        _LinkedLed(title="A", is_g1=True, get_map={"$.u": [1, 2]})
+        _LinkedLed(title="A", is_g1=True, get_map={"$.u": (1, 2), "$.names": [1, 2]})
     ]
 
     seen: list[str] = []
@@ -327,7 +327,10 @@ def test_virtual_led_get_data_unknown_type_logs_warning(
 
     monkeypatch.setattr(coord._LOGGER, "warning", _warn, raising=True)
 
-    assert vled.get_data("$.u") == [1, 2]
+    # A whole source (a program, the list of the names) is given as it is
+    assert vled.get_data("$.names") == [1, 2]
+    assert seen == []
+    assert vled.get_data("$.u") == (1, 2)
     assert any("Not implemented" in s for s in seen)
 
 

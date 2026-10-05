@@ -1300,6 +1300,86 @@ async def test_weather_lost_when_a_lamp_no_longer_holds_the_week(
     assert W.weather_lost(own, store) is False
 
 
+@pytest.mark.asyncio
+async def test_names_of_a_lamp_reporting_them_as_one_list(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A firmware answering GET /preset_name with [{day, name}] has no
+    per-day name source: its days are still named, by /preset_name/<day>,
+    so the lamp (and the ReefBeat app) shows the program it plays."""
+    monkeypatch.setattr(W, "WRITE_DELAY_S", 0)
+
+    class _ListApi(_Api):
+        _preset_name_is_single = True
+
+        def __init__(self) -> None:
+            super().__init__()
+            self.names: Any = [{"day": d, "name": "Perso"} for d in range(1, 8)]
+            self.ok = True
+
+        async def http_send(self, path: str, payload: Any, method: str) -> Any:
+            await super().http_send(path, payload, method)
+            return {"ok": self.ok}
+
+        def set_data(self, query: str, data: Any) -> None:
+            assert query == "$.sources[?(@.name=='/preset_name')].data"
+            self.names = data
+
+    class _ListLed(_Led):
+        def __init__(self) -> None:
+            super().__init__(True, {})
+            self.my_api = _ListApi()
+
+        def get_data(self, path: str, _none: bool = False) -> Any:
+            if "'/preset_name')" in path:
+                return self.my_api.names
+            return None  # no per-day name, no clouds
+
+    led = _ListLed()
+    assert W.has_name(led, 2) is True
+    assert W.has_name(led, 8) is False
+    assert W.held_name(led, 2) == "Perso"
+    assert W.held_name(led, 8) is None
+    assert W.backup_lamp(led)["2"]["name"] == "Perso"
+
+    program = {"white": {"rise": 600, "set": 1200, "points": []}}
+    await W._write(led, [(2, program, None)], False)
+    sent = led.my_api.sent
+    assert sent[0][0] == "/preset_name/2"
+    assert sent[0][1]["name"].startswith("GPS 2-")
+    assert [p for p, _, _ in sent[1:]] == ["/auto/2", "/auto/apply"]
+    # Shown at once, the other days untouched
+    assert W.held_name(led, 2).startswith("GPS 2-")
+    assert W.held_name(led, 1) == "Perso"
+
+    # A week kept aside without its names gets them before they are replaced
+    kept = SimpleNamespace(
+        backup={
+            W.lamp_key(led): {
+                "1": {"auto": {}, "name": None},
+                "2": {"auto": {}, "name": None},
+                "3": {"auto": {}, "name": "Mine"},
+            }
+        }
+    )
+    W._keep_names(kept, led)  # type: ignore[arg-type]
+    week = kept.backup[W.lamp_key(led)]
+    assert week["1"]["name"] == "Perso"
+    assert week["2"]["name"] is None  # a weather name is not the lamp's own
+    assert week["3"]["name"] == "Mine"
+    W._keep_names(SimpleNamespace(backup={}), led)  # type: ignore[arg-type]
+
+    # A name the lamp refused is not shown
+    led.my_api.ok = False
+    await W._send_days(led, [(1, "Other", {}, None)])
+    assert W.held_name(led, 1) == "Perso"
+
+    # The list not read yet: no name to write
+    led.my_api.names = ""
+    assert W.has_name(led, 1) is False
+    assert W.held_name(led, 1) is None
+
+
 class _Library(_Led):
     """A lamp linked to a cloud account, with its library of programs."""
 

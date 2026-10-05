@@ -76,6 +76,8 @@ DEFAULT_KELVIN = 15000
 
 # Name of the generated program on the lamp
 PROGRAM_NAME = "GPS"
+# Program names of a lamp: per day (/preset_name/<day>), or one list
+PRESET_NAMES = "/preset_name"
 
 # Days between two weather fetches (the user's choice, within these bounds)
 REFRESH_DAYS_MIN = 3
@@ -838,9 +840,7 @@ def backup_lamp(led: Any) -> dict[str, Any]:
             "clouds": led.get_data(
                 f"$.sources[?(@.name=='/clouds/{weekday}')].data", True
             ),
-            "name": led.get_data(
-                f"$.sources[?(@.name=='/preset_name/{weekday}')].data.name", True
-            ),
+            "name": held_name(led, weekday),
         }
     return week
 
@@ -862,9 +862,47 @@ def supports(led: Any, path: str) -> bool:
 
     Some lamps (RSLED90, older firmwares, simulators) have no per-day
     /preset_name/<day> or /clouds/<day>: writing them only gives a 404.
+    For the names, see has_name(): some lamps report them as one list.
     """
     data = led.get_data(f"$.sources[?(@.name=='{path}')].data", True)
     return data is not None and data != ""
+
+
+def _single_names(led: Any) -> bool:
+    """Whether the lamp reports its program names as one list.
+
+    Such a firmware answers GET /preset_name with [{day, name}], so the
+    per-day /preset_name/<day> sources are not read (see supports()); it
+    still takes POST /preset_name/<day>, as the ReefBeat app writes them.
+    """
+    api = getattr(led, "my_api", None)
+    return getattr(api, "_preset_name_is_single", False) is True
+
+
+def _names(led: Any) -> list[Any]:
+    """The [{day, name}] list of a lamp reporting its names as one list."""
+    data = led.get_data(f"$.sources[?(@.name=='{PRESET_NAMES}')].data", True)
+    return data if isinstance(data, list) else []
+
+
+def _is_day(entry: Any, weekday: int) -> bool:
+    return isinstance(entry, dict) and str(entry.get("day")) == str(weekday)
+
+
+def has_name(led: Any, weekday: int) -> bool:
+    """Whether a lamp holds a program name for a weekday (see supports())."""
+    if _single_names(led):
+        return any(_is_day(entry, weekday) for entry in _names(led))
+    return supports(led, f"{PRESET_NAMES}/{weekday}")
+
+
+def held_name(led: Any, weekday: int) -> Any:
+    """Name of the program a lamp holds for a weekday, None when unknown."""
+    if _single_names(led):
+        return next((e.get("name") for e in _names(led) if _is_day(e, weekday)), None)
+    return led.get_data(
+        f"$.sources[?(@.name=='{PRESET_NAMES}/{weekday}')].data.name", True
+    )
 
 
 def weather_lost(device: Any, store: WeatherStore) -> bool:
@@ -880,11 +918,9 @@ def weather_lost(device: Any, store: WeatherStore) -> bool:
         return False
     for led in device.weather_targets():
         for weekday in range(1, 8):
-            path = f"/preset_name/{weekday}"
-            if not supports(led, path):
+            if not has_name(led, weekday):
                 continue
-            name = led.get_data(f"$.sources[?(@.name=='{path}')].data.name", True)
-            if not str(name or "").startswith(PROGRAM_NAME):
+            if not str(held_name(led, weekday) or "").startswith(PROGRAM_NAME):
                 return True
     return False
 
@@ -905,6 +941,19 @@ def _mirror(led: Any, result: Any, path: str, data: Any) -> None:
     if led.get_data(query, True) is None:
         return
     led.my_api.set_data(query, data)
+
+
+def _mirror_name(led: Any, result: Any, weekday: int, name: str) -> None:
+    """_mirror() for the name of a day, whichever way the lamp reports it."""
+    if not _single_names(led):
+        _mirror(led, result, f"{PRESET_NAMES}/{weekday}", {"name": name})
+        return
+    if not (isinstance(result, dict) and result.get("ok")):
+        return
+    led.my_api.set_data(
+        f"$.sources[?(@.name=='{PRESET_NAMES}')].data",
+        [{**e, "name": name} if _is_day(e, weekday) else e for e in _names(led)],
+    )
 
 
 async def _paced(api: Any, path: str, payload: Any, method: str = "post") -> Any:
@@ -936,9 +985,9 @@ async def _send_days(
     api = led.my_api
     g2 = not led.is_g1
     for weekday, name, _body, _clouds in days:
-        if name and supports(led, f"/preset_name/{weekday}"):
-            res = await _paced(api, f"/preset_name/{weekday}", {"name": name})
-            _mirror(led, res, f"/preset_name/{weekday}", {"name": name})
+        if name and has_name(led, weekday):
+            res = await _paced(api, f"{PRESET_NAMES}/{weekday}", {"name": name})
+            _mirror_name(led, res, weekday, name)
     for weekday, _name, body, clouds in days:
         own_clouds = not g2 and supports(led, f"/clouds/{weekday}")
         held = led.get_data(f"$.sources[?(@.name=='/clouds/{weekday}')].data", True)
@@ -1112,6 +1161,26 @@ async def apply_weather(
     return await _write_week(store, writes, result)
 
 
+def _keep_names(store: WeatherStore, led: Any) -> None:
+    """Complete the standard week kept aside with the names it lacks.
+
+    A week kept before the names of a lamp could be read (see has_name())
+    holds none: the lamp still has its own then, kept here before the
+    weather ones replace them, so leaving the weather mode gives them back.
+    Saved with the store, once the week is written.
+    """
+    week = store.backup.get(lamp_key(led))
+    if not isinstance(week, dict):
+        return
+    for weekday in range(1, 8):
+        day = week.get(str(weekday))
+        if not isinstance(day, dict) or day.get("name"):
+            continue
+        name = held_name(led, weekday)
+        if isinstance(name, str) and name and not name.startswith(PROGRAM_NAME):
+            day["name"] = name
+
+
 async def _write_week(
     store: WeatherStore,
     writes: list[tuple[Any, list[Any], bool]],
@@ -1124,6 +1193,7 @@ async def _write_week(
     progress = _progress(store, sum(len(plans) for _, plans, _ in writes))
     try:
         for led, plans, g2 in writes:
+            _keep_names(store, led)
             await _write(led, plans, g2, progress)
         result["sent"] = True
     except Exception as err:  # the lamp
@@ -1347,13 +1417,7 @@ async def rename_program(device: Any, uid: str, name: str) -> dict[str, Any]:
         (led, weekday)
         for led in device.weather_targets()
         for weekday in range(1, 8)
-        if supports(led, f"/preset_name/{weekday}")
-        and program_label(
-            led.get_data(
-                f"$.sources[?(@.name=='/preset_name/{weekday}')].data.name", True
-            )
-        )
-        == old
+        if has_name(led, weekday) and program_label(held_name(led, weekday)) == old
     ]
     store = getattr(device, "weather", None)
     progress = (
@@ -1364,9 +1428,11 @@ async def rename_program(device: Any, uid: str, name: str) -> dict[str, Any]:
     stamp = int(time.time() * 1000)
     try:
         for led, weekday in days:
-            path = f"/preset_name/{weekday}"
+            path = f"{PRESET_NAMES}/{weekday}"
             body = {"name": f"{name}-{stamp}" if led.is_g1 else name}
-            _mirror(led, await _paced(led.my_api, path, body), path, body)
+            _mirror_name(
+                led, await _paced(led.my_api, path, body), weekday, body["name"]
+            )
             led.async_update_listeners()
             if progress is not None:
                 progress()
