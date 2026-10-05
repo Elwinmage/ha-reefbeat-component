@@ -10,6 +10,9 @@
       "nothing_detected": "Nessun dispositivo rilevato"
     },
     "flow_title": "{name}",
+    "progress": {
+      "scanning": "Scansione in corso: {subnet} (rete {current} di {total})…\n\nDispositivi trovati finora: {found}"
+    },
     "step": {
       "user": {
         "data": {

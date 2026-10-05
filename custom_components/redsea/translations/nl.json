@@ -10,6 +10,9 @@
       "nothing_detected": "Geen apparaat gedetecteerd"
     },
     "flow_title": "{name}",
+    "progress": {
+      "scanning": "Bezig met scannen: {subnet} (netwerk {current} van {total})…\n\nTot nu toe gevonden apparaten: {found}"
+    },
     "step": {
       "user": {
         "data": {

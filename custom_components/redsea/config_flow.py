@@ -38,6 +38,7 @@ from .auto_detect import (
     get_unique_id,
     is_reefbeat,
     is_valid_cidr,
+    list_scan_targets,
     list_scannable_subnets,
 )
 from .const import (
@@ -375,6 +376,11 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Step 1: choose add type
         if user_input is None:
+            if self._scan_nothing:
+                # Home Assistant re-invokes the step without input when the
+                # scan progress dialog gives way to this form: show it again
+                # (manual address + error) instead of the add-type choice.
+                return self._show_nothing_detected()
             return self.async_show_form(
                 step_id="user",
                 data_schema=vol.Schema(
@@ -385,6 +391,8 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     }
                 ),
             )
+
+        self._scan_nothing = False
 
         # Step 2: branch by add type selection
         if CONFIG_FLOW_ADD_TYPE in user_input:
@@ -541,10 +549,148 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Create the options flow."""
         return OptionsFlowHandler(config_entry)
 
+    # Local scan state (see async_step_scan)
+    _scan_subnetwork: str | None = None
+    _scan_targets: list[str] | None = None
+    _scan_index: int = 0
+    _scan_task: asyncio.Task[list[ReefBeatInfo]] | None = None
+    _scan_found: list[ReefBeatInfo] | None = None
+    _scan_last_percent: int = -1
+    # The last scan found no new device: the manual address form is showing
+    _scan_nothing: bool = False
+
+    def _show_nothing_detected(self) -> config_entries.ConfigFlowResult:
+        """Manual address form shown when a scan found no new device."""
+        return self.async_show_form(
+            step_id="user",
+            data_schema=vol.Schema({vol.Required(CONFIG_FLOW_IP_ADDRESS): str}),
+            errors={"base": "nothing_detected"},
+        )
+
     async def auto_detect(
         self, subnetwork: str | None
     ) -> config_entries.ConfigFlowResult:
         """Auto-detect ReefBeat devices and present a bulk selection list.
+
+        The scan itself runs in :meth:`async_step_scan`, one subnet after the
+        other, behind a progress dialog naming the subnet being scanned. Its
+        outcome is shown by :meth:`async_step_scan_result`.
+        """
+        self._scan_subnetwork = subnetwork
+        self._scan_targets = None
+        self._scan_index = 0
+        self._scan_task = None
+        self._scan_found = []
+        self._scan_last_percent = -1
+        self._scan_nothing = False
+        return await self.async_step_scan()
+
+    @callback
+    def _scan_report(self, index: int, done: int, total: int) -> None:
+        """Push the overall scan progress (0..1) to the frontend."""
+        targets = self._scan_targets or []
+        if not targets or index != self._scan_index:
+            # Late report of a subnet already left behind.
+            return
+        inner = (done / total) if total else 1.0
+        fraction = min(1.0, (index + inner) / len(targets))
+        percent = int(fraction * 100)
+        if percent == self._scan_last_percent:
+            return
+        self._scan_last_percent = percent
+        # Not available on older Home Assistant versions: the dialog then
+        # only shows the spinner and the subnet being scanned.
+        update = getattr(self, "async_update_progress", None)
+        if callable(update):
+            update(fraction)
+
+    async def _scan_one(self, index: int, cidr: str) -> list[ReefBeatInfo]:
+        """Scan one subnet in the executor, reporting progress on the way."""
+        loop = self.hass.loop
+
+        def _progress(done: int, total: int) -> None:
+            # Called from the executor thread.
+            loop.call_soon_threadsafe(self._scan_report, index, done, total)
+
+        return await self.hass.async_add_executor_job(
+            partial(get_reefbeats, subnetwork=cidr, progress_cb=_progress)
+        )
+
+    async def async_step_scan(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Scan the subnets one by one, showing which one is in progress.
+
+        Each subnet is its own progress task: when it ends Home Assistant
+        calls this step again, which collects the devices and either starts
+        the next subnet (the dialog text then names it) or moves on to
+        :meth:`async_step_scan_result`.
+        """
+        found = self._scan_found = self._scan_found or []
+
+        shown_progress = self._scan_task is not None
+
+        targets = self._scan_targets
+        if targets is None:
+            try:
+                targets = await self.hass.async_add_executor_job(
+                    list_scan_targets, self._scan_subnetwork
+                )
+            except Exception:
+                _LOGGER.exception("auto_detect: cannot list the subnets to scan")
+                targets = []
+            self._scan_targets = targets
+            _LOGGER.info("Subnets to scan: %s", targets)
+
+        if self._scan_task is not None:
+            if not self._scan_task.done():
+                return self._show_scan_progress()
+            # Subnet finished: keep its devices, a failure only skips it.
+            cidr = targets[self._scan_index]
+            if self._scan_task.cancelled():
+                _LOGGER.warning("auto_detect: scan of %s cancelled", cidr)
+            elif (exc := self._scan_task.exception()) is not None:
+                _LOGGER.error("auto_detect: scan of %s failed", cidr, exc_info=exc)
+            else:
+                known = {d.get("ip") for d in found}
+                for device in self._scan_task.result():
+                    if device.get("ip") not in known:
+                        known.add(device.get("ip"))
+                        found.append(device)
+            self._scan_task = None
+            self._scan_index += 1
+
+        if self._scan_index < len(targets):
+            index = self._scan_index
+            self._scan_task = self.hass.async_create_task(
+                self._scan_one(index, targets[index])
+            )
+            return self._show_scan_progress()
+
+        if shown_progress:
+            return self.async_show_progress_done(next_step_id="scan_result")
+        # Nothing to scan: no progress dialog was opened, answer directly.
+        return await self.async_step_scan_result()
+
+    def _show_scan_progress(self) -> config_entries.ConfigFlowResult:
+        """Progress dialog of the subnet being scanned."""
+        targets = self._scan_targets or []
+        return self.async_show_progress(
+            step_id="scan",
+            progress_action="scanning",
+            progress_task=self._scan_task,
+            description_placeholders={
+                "subnet": targets[self._scan_index],
+                "current": str(self._scan_index + 1),
+                "total": str(len(targets)),
+                "found": str(len(self._scan_found or [])),
+            },
+        )
+
+    async def async_step_scan_result(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Present the scanned devices as a bulk selection list.
 
         The form is a multi-select with every discovered device pre-checked, so
         the user can hit Submit once to add them all. Individual boxes can be
@@ -553,21 +699,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         flow per extra device and finalises the current flow with the first
         selected device.
         """
-
-        try:
-            detected_devices: list[
-                ReefBeatInfo
-            ] = await self.hass.async_add_executor_job(
-                partial(get_reefbeats, subnetwork=subnetwork)
-            )
-        except Exception:
-            _LOGGER.exception("auto_detect: get_reefbeats failed")
-            # Fall through to the manual IP form with a generic error
-            return self.async_show_form(
-                step_id="user",
-                data_schema=vol.Schema({vol.Required(CONFIG_FLOW_IP_ADDRESS): str}),
-                errors={"base": "nothing_detected"},
-            )
+        detected_devices: list[ReefBeatInfo] = list(self._scan_found or [])
         # No need for deepcopy; we only remove items from the "available" view.
         available_devices: list[ReefBeatInfo] = list(detected_devices)
 
@@ -585,16 +717,12 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         _LOGGER.info("Available devices: %s", available_devices)
 
         available_devices_s = list(map(_device_to_string, available_devices))
-        # available_devices_s += [VIRTUAL_LED]
 
         # No device detected reask for IP or subnetwork
         if len(available_devices_s) == 0:
-            errors = {"base": "nothing_detected"}
-            return self.async_show_form(
-                step_id="user",
-                data_schema=vol.Schema({vol.Required(CONFIG_FLOW_IP_ADDRESS): str}),
-                errors=errors,
-            )
+            self._scan_nothing = True
+            return self._show_nothing_detected()
+        self._scan_nothing = False
         # Propose detected devices as a multi-select. cv.multi_select needs a
         # {key: label} mapping; we re-use the encoded string as both because
         # the async_step_user parser already knows how to split it back.
@@ -625,7 +753,11 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         user path — so the create/validate/dedup logic lives in one place.
         """
         if not user_input:
-            # Empty submission — bounce back to the picker.
+            # No input: Home Assistant re-invokes the step this way when the
+            # scan progress dialog gives way to the picker. Show the picker
+            # again from the scan just done; scan only if there was none.
+            if self._scan_targets is not None and self._scan_task is None:
+                return await self.async_step_scan_result()
             return await self.auto_detect(None)
 
         selected: list[str] = list(user_input.get(CONFIG_FLOW_IP_ADDRESS) or [])

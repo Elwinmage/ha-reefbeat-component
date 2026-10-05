@@ -10,6 +10,9 @@
       "nothing_detected": "No device detected"
     },
     "flow_title": "{name}",
+    "progress": {
+      "scanning": "Scanning {subnet} (network {current} of {total})…\n\nDevices found so far: {found}"
+    },
     "step": {
       "user": {
         "data": {

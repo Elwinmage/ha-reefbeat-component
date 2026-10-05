@@ -10,6 +10,9 @@
       "nothing_detected": "Kein Gerät erkannt"
     },
     "flow_title": "{name}",
+    "progress": {
+      "scanning": "Scan läuft: {subnet} (Netzwerk {current} von {total})…\n\nBisher gefundene Geräte: {found}"
+    },
     "step": {
       "user": {
         "data": {

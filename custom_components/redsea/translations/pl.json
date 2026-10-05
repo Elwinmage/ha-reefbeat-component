@@ -10,6 +10,9 @@
       "nothing_detected": "Nie wykryto żadnego urządzenia"
     },
     "flow_title": "{name}",
+    "progress": {
+      "scanning": "Skanowanie {subnet} (sieć {current} z {total})…\n\nZnalezione dotąd urządzenia: {found}"
+    },
     "step": {
       "user": {
         "data": {

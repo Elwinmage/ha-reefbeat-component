@@ -10,6 +10,9 @@
       "nothing_detected": "Aucun périphérique détecté à "
     },
     "flow_title": "{name}",
+    "progress": {
+      "scanning": "Scan en cours : {subnet} (réseau {current} sur {total})…\n\nAppareils trouvés pour l'instant : {found}"
+    },
     "step": {
       "user": {
         "data": {

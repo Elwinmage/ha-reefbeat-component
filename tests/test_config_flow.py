@@ -49,6 +49,7 @@ from custom_components.redsea.const import (
     VIRTUAL_LED,
     VIRTUAL_LED_SCAN_INTERVAL,
 )
+from tests._scan_test_helpers import drive_scan_to_end
 
 
 def test_scan_interval_helpers() -> None:
@@ -281,10 +282,11 @@ async def test_add_local_detect_calls_auto_detect_and_filters_existing(
         },
     ]
 
-    def _get_rb(*, subnetwork: str | None = None):  # type: ignore[no-untyped-def]
+    def _get_rb(**_kwargs: Any):  # type: ignore[no-untyped-def]
         return devices
 
     monkeypatch.setattr(cf, "get_reefbeats", _get_rb)
+    monkeypatch.setattr(cf, "list_scan_targets", lambda _s=None: ["192.0.2.0/24"])
 
     flow = cast(Any, hass.config_entries.flow)
     result = cast(
@@ -299,6 +301,7 @@ async def test_add_local_detect_calls_auto_detect_and_filters_existing(
             user_input={CONFIG_FLOW_ADD_TYPE: ADD_LOCAL_DETECT},
         ),
     )
+    result2 = await drive_scan_to_end(hass, result2)
 
     assert result2["type"] == FlowResultType.FORM
     # Should include VIRTUAL_LED and exclude already-configured device
@@ -313,10 +316,11 @@ async def test_auto_detect_get_reefbeats_exception_shows_form(
     """Cover the except branch: when get_reefbeats raises, show the manual IP form."""
     import custom_components.redsea.config_flow as cf
 
-    def _get_rb_raises(*, subnetwork: str | None = None) -> None:  # type: ignore[return]
+    def _get_rb_raises(**_kwargs: Any) -> None:  # type: ignore[return]
         raise RuntimeError("network failure")
 
     monkeypatch.setattr(cf, "get_reefbeats", _get_rb_raises)
+    monkeypatch.setattr(cf, "list_scan_targets", lambda _s=None: ["192.0.2.0/24"])
 
     flow = cast(Any, hass.config_entries.flow)
     result = cast(
@@ -331,6 +335,7 @@ async def test_auto_detect_get_reefbeats_exception_shows_form(
             user_input={CONFIG_FLOW_ADD_TYPE: ADD_LOCAL_DETECT},
         ),
     )
+    result2 = await drive_scan_to_end(hass, result2)
 
     # Exception path must return a form (not crash HA) with nothing_detected error
     assert result2["type"] == FlowResultType.FORM
@@ -398,10 +403,11 @@ async def test_cidr_routes_to_auto_detect(
 ) -> None:
     import custom_components.redsea.config_flow as cf
 
-    def _get_rb(*, subnetwork: str | None = None):  # type: ignore[no-untyped-def]
+    def _get_rb(**_kwargs: Any):  # type: ignore[no-untyped-def]
         return []
 
     monkeypatch.setattr(cf, "get_reefbeats", _get_rb)
+    monkeypatch.setattr(cf, "list_scan_targets", lambda _s=None: ["192.0.2.0/24"])
 
     flow = cast(Any, hass.config_entries.flow)
     result = cast(
@@ -423,7 +429,9 @@ async def test_cidr_routes_to_auto_detect(
             user_input={CONFIG_FLOW_IP_ADDRESS: "192.0.2.0/24"},
         ),
     )
+    result3 = await drive_scan_to_end(hass, result3)
     assert result3["type"] == FlowResultType.FORM
+    assert result3.get("errors", {}).get("base") == "nothing_detected"
 
 
 @pytest.mark.asyncio
