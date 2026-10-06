@@ -5,7 +5,10 @@ from dataclasses import dataclass, field
 from typing import Any, cast
 
 import pytest
-from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_COLOR_TEMP_KELVIN
+from homeassistant.components.light import (
+    ATTR_BRIGHTNESS,  # pyright: ignore[reportPrivateImportUsage]
+    ATTR_COLOR_TEMP_KELVIN,  # pyright: ignore[reportPrivateImportUsage]
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo

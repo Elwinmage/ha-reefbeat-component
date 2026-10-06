@@ -17,9 +17,8 @@ import pathlib
 from asyncio import timeout
 from functools import partial
 from time import time
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
-import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
@@ -31,6 +30,17 @@ from homeassistant.helpers.selector import (
     SelectSelectorConfig,
     SelectSelectorMode,
 )
+
+# Home Assistant validates with probatio, voluptuous being only an alias of it
+# at runtime (2026.9), and types its flow helpers with probatio schemas since
+# 2026.10. Older versions only have voluptuous.
+if TYPE_CHECKING:
+    import probatio as vol
+else:
+    try:
+        import probatio as vol
+    except ImportError:  # pragma: no cover - depends on the installed HA version
+        import voluptuous as vol
 
 from .auto_detect import (
     ReefBeatInfo,
@@ -591,12 +601,35 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         targets = self._scan_targets or []
         if not targets or index != self._scan_index:
             # Late report of a subnet already left behind.
+            _LOGGER.debug(
+                "auto_detect: progress of subnet %d (%d/%d) dropped,"
+                " subnet %d in progress (%d subnets)",
+                index,
+                done,
+                total,
+                self._scan_index,
+                len(targets),
+            )
             return
         inner = (done / total) if total else 1.0
         fraction = min(1.0, (index + inner) / len(targets))
         percent = int(fraction * 100)
         if percent == self._scan_last_percent:
+            _LOGGER.debug(
+                "auto_detect: progress of subnet %d (%d/%d) unchanged: %d%%",
+                index,
+                done,
+                total,
+                percent,
+            )
             return
+        _LOGGER.debug(
+            "auto_detect: progress of subnet %d (%d/%d): %d%%",
+            index,
+            done,
+            total,
+            percent,
+        )
         self._scan_last_percent = percent
         # Not available on older Home Assistant versions: the dialog then
         # only shows the spinner and the subnet being scanned.

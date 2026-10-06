@@ -16,9 +16,11 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, cast
 
+# Home Assistant 2026.10 only exports them from .const, where older versions
+# do not define them: imported from the package, which all of them provide
 from homeassistant.components.light import (
-    ATTR_BRIGHTNESS,
-    ATTR_COLOR_TEMP_KELVIN,
+    ATTR_BRIGHTNESS,  # pyright: ignore[reportPrivateImportUsage]
+    ATTR_COLOR_TEMP_KELVIN,  # pyright: ignore[reportPrivateImportUsage]
     LightEntity,
     LightEntityDescription,
 )

@@ -150,7 +150,7 @@ async def test_ato_tank_volume_keeps_restored_value(
 
 def test_ato_local_key_is_seeded() -> None:
     """`jsonpath.update()` cannot create a missing key, so it must pre-exist."""
-    from jsonpath_ng.ext import parse
+    from jsonpath_ng.ext.parser import parse
 
     seeded = {"local": {"use_cloud_api": None, "tank_volume": None}}
     parse(ATO_TANK_VOLUME_INTERNAL_NAME).update(seeded, 120.0)

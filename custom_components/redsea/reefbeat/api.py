@@ -18,7 +18,7 @@ from functools import lru_cache
 from typing import Any, Protocol, TypedDict, cast
 
 import aiohttp
-from jsonpath_ng.ext import parse as _parse  # type: ignore
+from jsonpath_ng.ext.parser import parse as _parse
 
 from ..const import (
     DEFAULT_TIMEOUT,

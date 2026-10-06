@@ -15,8 +15,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant import data_entry_flow
-from homeassistant.components.repairs import RepairsFlow
+from homeassistant.components.repairs import RepairsFlow, RepairsFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 
@@ -52,7 +51,7 @@ class GroupRepairFlow(RepairsFlow):
 
     async def async_step_init(
         self, user_input: dict[str, str] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> RepairsFlowResult:
         if self._group() is None:
             return self.async_abort(reason="group_not_loaded")
         if self._kind == ISSUE_CONFLICT:
@@ -66,7 +65,7 @@ class GroupRepairFlow(RepairsFlow):
             step_id=step, description_placeholders=self._placeholders()
         )
 
-    async def _confirmed(self) -> data_entry_flow.FlowResult:
+    async def _confirmed(self) -> RepairsFlowResult:
         group = self._group()
         if group is None:
             return self.async_abort(reason="group_not_loaded")
@@ -75,17 +74,17 @@ class GroupRepairFlow(RepairsFlow):
 
     async def async_step_keep_local(
         self, user_input: dict[str, str] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> RepairsFlowResult:
         """Keep the group in Home Assistant only."""
         return await self._confirmed()
 
     async def async_step_ungroup(
         self, user_input: dict[str, str] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> RepairsFlowResult:
         """Ungroup the lamps in the ReefBeat app."""
         return await self._confirmed()
 
-    async def _resolve(self, keep_home_assistant: bool) -> data_entry_flow.FlowResult:
+    async def _resolve(self, keep_home_assistant: bool) -> RepairsFlowResult:
         group = self._group()
         if group is None:
             return self.async_abort(reason="group_not_loaded")
@@ -94,13 +93,13 @@ class GroupRepairFlow(RepairsFlow):
 
     async def async_step_keep_home_assistant(
         self, user_input: dict[str, str] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> RepairsFlowResult:
         """The group of Home Assistant is written to the cloud."""
         return await self._resolve(True)
 
     async def async_step_keep_reefbeat(
         self, user_input: dict[str, str] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> RepairsFlowResult:
         """The group of the ReefBeat app is taken."""
         return await self._resolve(False)
 

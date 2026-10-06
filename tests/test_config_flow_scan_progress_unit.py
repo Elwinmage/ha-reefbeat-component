@@ -6,6 +6,7 @@ found so far, and pushes an overall 0..1 progress to the frontend.
 
 from __future__ import annotations
 
+import logging
 from typing import Any, cast
 
 import pytest
@@ -44,9 +45,13 @@ async def _start_scan(hass: HomeAssistant) -> dict[str, Any]:
 
 @pytest.mark.asyncio
 async def test_scan_names_each_subnet_and_reports_progress(
-    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+    hass: HomeAssistant,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Each subnet gets its own progress dialog; the progress goes up to 1."""
+    # The progress reports, shown when the test fails
+    caplog.set_level(logging.DEBUG, logger=cf.__name__)
     by_subnet = {
         SUBNETS[0]: [_device("192.0.2.10", "A")],
         # The same address seen again from another subnet is kept once.
@@ -103,6 +108,11 @@ async def test_scan_names_each_subnet_and_reports_progress(
         "found": "1",
     }
 
+    # The second subnet's scan, and its reports, done before going on
+    if handler._scan_task is not None:
+        await handler._scan_task
+    await hass.async_block_till_done()
+
     final = cast(dict[str, Any], await flow.async_configure(result["flow_id"]))
     assert final["type"] == FlowResultType.FORM
     assert final["step_id"] == "select_devices"
@@ -111,7 +121,7 @@ async def test_scan_names_each_subnet_and_reports_progress(
 
     assert updates == sorted(updates)
     assert updates[0] == 0.0
-    assert 0.25 in updates and 0.5 in updates and 0.75 in updates
+    assert {0.25, 0.5, 0.75} <= set(updates), updates
     assert updates[-1] == 1.0
     # A report is only sent when the displayed percent changes.
     assert len(updates) == len(set(updates))

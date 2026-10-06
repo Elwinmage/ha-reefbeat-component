@@ -1529,10 +1529,19 @@ async def test_rename_program_in_the_library_and_on_the_lamps(
     assert saves == [("Reef", program, None, "u1")]
     # A G1 day gets a stamp, a G2 one the bare name; the other days are left
     sent = g1.my_api.sent
-    assert [p for p, _, _ in sent] == ["/preset_name/1", "/preset_name/3"]
-    assert all(body["name"].startswith("Reef-") for _, body, _ in sent)
-    assert g2.my_api.sent == [("/preset_name/1", {"name": "Reef"}, "post")]
+    assert [p for p, _, _ in sent] == [
+        "/preset_name/1",
+        "/preset_name/3",
+        "/auto/apply",
+    ]
+    assert all(body["name"].startswith("Reef-") for _, body, _ in sent[:2])
+    assert g2.my_api.sent == [
+        ("/preset_name/1", {"name": "Reef"}, "post"),
+        ("/auto/apply", {}, "post"),
+    ]
     assert (g1.told, g2.told) == (2, 1)
+    # Each lamp renamed runs its week again, then is read back
+    assert (g1.refreshed, g2.refreshed) == (1, 1)
     # The progress is shown, then cleared
     assert progress[0] == {"done": 0, "total": 3}
     assert progress[-2:] == [{"done": 3, "total": 3}, None]
@@ -1540,4 +1549,4 @@ async def test_rename_program_in_the_library_and_on_the_lamps(
     # Used by no day, same name kept, no weather store: the library only
     del device.weather  # type: ignore[attr-defined]
     assert await W.rename_program(device, "u2", "Other") == {"uid": "u2", "renamed": 0}
-    assert len(g1.my_api.sent) == 2
+    assert len(g1.my_api.sent) == 3

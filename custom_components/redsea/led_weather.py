@@ -1397,8 +1397,9 @@ async def rename_program(device: Any, uid: str, name: str) -> dict[str, Any]:
     The library entry keeps its curves and gets its new name; then every
     day of the week named after it is renamed on the lamp, and on each lamp
     of its group (named as the app names library programs: a G1 day with a
-    stamp, a G2 one bare). The requests are paced, the progress shown as
-    for a week being written (the store's ``writing``).
+    stamp, a G2 one bare), and each lamp renamed applies its week again.
+    The requests are paced, the progress shown as for a week being written
+    (the store's ``writing``).
     @return {uid, renamed: days renamed on the lamps}, or {error}
     """
     entry = device.library_program(uid)
@@ -1426,6 +1427,7 @@ async def rename_program(device: Any, uid: str, name: str) -> dict[str, Any]:
         else None
     )
     stamp = int(time.time() * 1000)
+    renamed: list[Any] = []
     try:
         for led, weekday in days:
             path = f"{PRESET_NAMES}/{weekday}"
@@ -1434,8 +1436,17 @@ async def rename_program(device: Any, uid: str, name: str) -> dict[str, Any]:
                 led, await _paced(led.my_api, path, body), weekday, body["name"]
             )
             led.async_update_listeners()
+            if led not in renamed:
+                renamed.append(led)
             if progress is not None:
                 progress()
+        # As after any write of its week (see _send_days): a lamp whose
+        # program names changed runs no program until applied again (its
+        # current_program "N/A", active_preset -2), and the ReefBeat app
+        # then stays stuck syncing it
+        for led in renamed:
+            await _paced(led.my_api, "/auto/apply", {})
+            await led.async_request_refresh(config=True)
     finally:
         if progress is not None and isinstance(store, WeatherStore):
             store.set_writing(None)
