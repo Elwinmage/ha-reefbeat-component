@@ -2201,6 +2201,12 @@
     "wave_name_taken": {
       "message": "Une vague nommée {name} existe déjà dans la bibliothèque."
     },
+    "wave_name_too_long": {
+      "message": "Le nom {name} est trop long : un nom de vague fait au plus {max} caractères."
+    },
+    "wave_replace_failed": {
+      "message": "La vague {name} n'a pas pu changer de type : le cloud ReefBeat l'a refusé. Rien n'a été modifié."
+    },
     "wave_bad_type": {
       "message": "Type de vague inconnu : {type}."
     },
@@ -2218,6 +2224,9 @@
     },
     "wave_program_same_start": {
       "message": "Deux créneaux commencent à la même heure."
+    },
+    "wave_program_too_short": {
+      "message": "Chaque créneau doit durer au moins {min} minutes : la pompe ignore un créneau plus court."
     },
     "wave_preview_no_wave": {
       "message": "« Pas de vague » ne peut pas être prévisualisée."

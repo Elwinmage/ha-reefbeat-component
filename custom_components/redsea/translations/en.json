@@ -2209,6 +2209,12 @@
     "wave_name_taken": {
       "message": "A wave named {name} already exists in the library."
     },
+    "wave_name_too_long": {
+      "message": "The name {name} is too long: a wave name has {max} characters at most."
+    },
+    "wave_replace_failed": {
+      "message": "The wave {name} could not be given its new type: the ReefBeat cloud refused it. Nothing was changed."
+    },
     "wave_bad_type": {
       "message": "Unknown wave type: {type}."
     },
@@ -2226,6 +2232,9 @@
     },
     "wave_program_same_start": {
       "message": "Two slots start at the same time."
+    },
+    "wave_program_too_short": {
+      "message": "Each slot must last {min} minutes at least: the pump leaves out a shorter one."
     },
     "wave_preview_no_wave": {
       "message": "\"No wave\" cannot be previewed."

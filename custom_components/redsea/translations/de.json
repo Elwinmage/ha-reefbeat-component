@@ -2201,6 +2201,12 @@
     "wave_name_taken": {
       "message": "Eine Welle namens {name} gibt es bereits in der Bibliothek."
     },
+    "wave_name_too_long": {
+      "message": "Der Name {name} ist zu lang: Ein Wellenname hat höchstens {max} Zeichen."
+    },
+    "wave_replace_failed": {
+      "message": "Die Welle {name} konnte ihren neuen Typ nicht erhalten: Die ReefBeat-Cloud hat ihn abgelehnt. Es wurde nichts geändert."
+    },
     "wave_bad_type": {
       "message": "Unbekannter Wellentyp: {type}."
     },
@@ -2218,6 +2224,9 @@
     },
     "wave_program_same_start": {
       "message": "Zwei Zeiträume beginnen zur gleichen Zeit."
+    },
+    "wave_program_too_short": {
+      "message": "Jeder Zeitraum muss mindestens {min} Minuten dauern: Die Pumpe lässt einen kürzeren aus."
     },
     "wave_preview_no_wave": {
       "message": "„Keine Welle“ kann nicht in der Vorschau gezeigt werden."

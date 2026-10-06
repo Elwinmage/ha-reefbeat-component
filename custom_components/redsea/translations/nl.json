@@ -2209,6 +2209,12 @@
     "wave_name_taken": {
       "message": "Er bestaat al een golf met de naam {name} in de bibliotheek."
     },
+    "wave_name_too_long": {
+      "message": "De naam {name} is te lang: een golfnaam heeft maximaal {max} tekens."
+    },
+    "wave_replace_failed": {
+      "message": "De golf {name} kon zijn nieuwe type niet krijgen: de ReefBeat-cloud heeft het geweigerd. Er is niets gewijzigd."
+    },
     "wave_bad_type": {
       "message": "Onbekend golftype: {type}."
     },
@@ -2226,6 +2232,9 @@
     },
     "wave_program_same_start": {
       "message": "Twee tijdvakken beginnen op hetzelfde tijdstip."
+    },
+    "wave_program_too_short": {
+      "message": "Elk tijdvak moet minstens {min} minuten duren: de pomp laat een korter tijdvak weg."
     },
     "wave_preview_no_wave": {
       "message": "\"Geen golf\" kan niet worden voorvertoond."

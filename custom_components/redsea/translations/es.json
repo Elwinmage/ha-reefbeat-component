@@ -2201,6 +2201,12 @@
     "wave_name_taken": {
       "message": "Ya existe una ola llamada {name} en la biblioteca."
     },
+    "wave_name_too_long": {
+      "message": "El nombre {name} es demasiado largo: el nombre de una ola tiene como máximo {max} caracteres."
+    },
+    "wave_replace_failed": {
+      "message": "La ola {name} no pudo cambiar de tipo: la nube de ReefBeat lo rechazó. No se ha cambiado nada."
+    },
     "wave_bad_type": {
       "message": "Tipo de ola desconocido: {type}."
     },
@@ -2218,6 +2224,9 @@
     },
     "wave_program_same_start": {
       "message": "Dos franjas empiezan a la misma hora."
+    },
+    "wave_program_too_short": {
+      "message": "Cada franja debe durar al menos {min} minutos: la bomba omite una franja más corta."
     },
     "wave_preview_no_wave": {
       "message": "«Sin ola» no se puede previsualizar."

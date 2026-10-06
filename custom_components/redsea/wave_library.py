@@ -40,6 +40,13 @@ DEFAULT_RTI = 50
 
 MINUTES_PER_DAY = 24 * 60
 
+# Longest wave name the cloud takes (a longer one is refused with a 400).
+WAVE_NAME_MAX = 15
+
+# Shortest slot of a program, in minutes: the cloud takes a shorter one, but
+# the pump silently leaves it out of the program it runs.
+WAVE_SLOT_MIN = 15
+
 
 class WaveLibraryError(ValueError):
     """A refused edit; `key` is the translation key of the message."""
@@ -160,11 +167,13 @@ def check_name(
     The new wave is found back by its name after its creation: two waves
     with the same name would make the program point at the wrong one.
     @param uid: the wave being renamed (its own name does not clash)
-    @raise WaveLibraryError on an empty or taken name
+    @raise WaveLibraryError on an empty, too long or taken name
     """
     if not isinstance(name, str) or not name.strip():
         raise WaveLibraryError("wave_name_required")
     clean = name.strip()
+    if len(clean) > WAVE_NAME_MAX:
+        raise WaveLibraryError("wave_name_too_long", name=clean, max=str(WAVE_NAME_MAX))
     for entry in library:
         if entry.get("uid") != uid and str(entry.get("name", "")).strip() == clean:
             raise WaveLibraryError("wave_name_taken", name=clean)
@@ -175,7 +184,8 @@ def check_slots(slots: Any) -> list[dict[str, Any]]:
     """Check the slots of a day program sent by the card.
 
     Each slot is {st, wave_uid, direction}. The program starts at midnight,
-    each start is a distinct minute of the day.
+    each slot lasts WAVE_SLOT_MIN minutes at least (the last one up to
+    midnight).
     @return the slots, sorted by start
     @raise WaveLibraryError on a malformed program
     """
@@ -203,6 +213,9 @@ def check_slots(slots: Any) -> list[dict[str, Any]]:
     starts = [s["st"] for s in clean]
     if len(set(starts)) != len(starts):
         raise WaveLibraryError("wave_program_same_start")
+    ends = [*starts[1:], MINUTES_PER_DAY]
+    if any(end - st < WAVE_SLOT_MIN for st, end in zip(starts, ends, strict=True)):
+        raise WaveLibraryError("wave_program_too_short", min=str(WAVE_SLOT_MIN))
     return clean
 
 

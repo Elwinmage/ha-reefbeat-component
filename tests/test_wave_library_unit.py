@@ -7,6 +7,8 @@ import pytest
 from custom_components.redsea.wave_library import (
     DEFAULT_FTI,
     DEFAULT_RTI,
+    WAVE_NAME_MAX,
+    WAVE_SLOT_MIN,
     WAVE_TYPE_FIELDS,
     WaveLibraryError,
     check_name,
@@ -160,6 +162,12 @@ def test_check_name() -> None:
         with pytest.raises(WaveLibraryError) as err:
             check_name(bad, lib)
         assert err.value.key == "wave_name_required"
+    # The cloud takes 15 characters at most
+    assert check_name(" " + "x" * WAVE_NAME_MAX + " ", lib) == "x" * 15
+    with pytest.raises(WaveLibraryError) as err:
+        check_name("x" * (WAVE_NAME_MAX + 1), lib)
+    assert err.value.key == "wave_name_too_long"
+    assert err.value.placeholders == {"name": "x" * 16, "max": "15"}
 
 
 def test_check_slots() -> None:
@@ -187,11 +195,35 @@ def test_check_slots() -> None:
             [{"st": 0, "wave_uid": "a"}, {"st": 0, "wave_uid": "b"}],
             "wave_program_same_start",
         ),
+        # The pump leaves out a slot shorter than WAVE_SLOT_MIN, the last one
+        # up to midnight included
+        (
+            [
+                {"st": 0, "wave_uid": "a"},
+                {"st": 1350, "wave_uid": "b"},
+                {"st": 1360, "wave_uid": "c"},
+            ],
+            "wave_program_too_short",
+        ),
+        (
+            [{"st": 0, "wave_uid": "a"}, {"st": 1426, "wave_uid": "b"}],
+            "wave_program_too_short",
+        ),
     ]
     for slots, key in cases:
         with pytest.raises(WaveLibraryError) as err:
             check_slots(slots)
         assert err.value.key == key
+    # Exactly WAVE_SLOT_MIN apart, and up to midnight: taken
+    edge = [
+        {"st": 0, "wave_uid": "a"},
+        {"st": 1410, "wave_uid": "b"},
+        {"st": 1425, "wave_uid": "c"},
+    ]
+    assert [s["st"] for s in check_slots(edge)] == [0, 1410, 1425]
+    with pytest.raises(WaveLibraryError) as err:
+        check_slots([{"st": 0, "wave_uid": "a"}, {"st": 10, "wave_uid": "b"}])
+    assert err.value.placeholders == {"min": str(WAVE_SLOT_MIN)}
 
 
 def test_schedule_intervals() -> None:

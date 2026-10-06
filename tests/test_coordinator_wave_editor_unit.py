@@ -77,6 +77,9 @@ class _Cloud:
     library: Any = field(default_factory=lambda: copy.deepcopy(LIBRARY))
     sent: list[tuple[str, Any, str]] = field(default_factory=list)
     fetched: list[str | None] = field(default_factory=list)
+    # Aquariums whose wave programs were pushed to the pumps (/sync), apart
+    # from the other writes
+    synced: list[str] = field(default_factory=list)
     # What the next POST of a wave creates (None: nothing appears)
     created_uid: str | None = "new-uid"
 
@@ -95,10 +98,32 @@ class _Cloud:
         raise AssertionError(name)
 
     async def send_cmd(self, action: str, payload: Any, method: str = "post") -> Any:
+        if action.startswith("/reef-wave/") and action.endswith("/sync"):
+            assert (payload, method) == ({}, "post")
+            self.synced.append(action.split("/")[2])
+            return None
         self.sent.append((action, copy.deepcopy(payload), method))
-        if action == WAVES_LIBRARY and method == "post" and self.created_uid:
+        if not action.startswith(WAVES_LIBRARY) or method == "delete":
+            return None
+        # As the cloud: a name has 15 characters at most (else a 400)
+        if not 1 <= len(str(payload.get("name", ""))) <= 15:
+            return {"ok": False, "status": 400}
+        if action == WAVES_LIBRARY:
+            # As the cloud: a name is unique in an aquarium (else a 409)
+            if not self.created_uid or any(
+                w.get("name") == payload.get("name")
+                and w.get("aquarium_uid") == payload.get("aquarium_uid")
+                for w in self.library
+            ):
+                return {"ok": False, "status": 409}
             self.library.append({**payload, "uid": self.created_uid})
-        return None
+            return {"ok": True, "status": 200}
+        # As the cloud: the type of a wave is kept by a PUT
+        uid = action.rsplit("/", 1)[1]
+        for w in self.library:
+            if w.get("uid") == uid:
+                w.update({k: v for k, v in payload.items() if k != "type"})
+        return {"ok": True, "status": 200}
 
     async def fetch_config(self, config_path: str | None = None) -> None:
         self.fetched.append(config_path)
@@ -363,6 +388,117 @@ async def test_update_wave_and_rewrite_programs(hass: HomeAssistant) -> None:
     assert hw3["direction"] == "rw"
 
 
+SURGE = {"type": "su", "pd": 3, "fti": 40, "rti": 60, "sync": True}
+
+
+@pytest.mark.asyncio
+async def test_update_wave_type_replaces_the_wave(hass: HomeAssistant) -> None:
+    """The cloud keeps the type of a wave, and a name is unique: the old wave
+    is renamed, a new one added under its name, the programs using the old
+    one pointed at it, then the old one is deleted."""
+    cloud = _Cloud(
+        devices=[
+            _device("hw1", True, 0),
+            _device("hw2", True, 1),
+            _device("hw3", True, 2),
+        ]
+    )
+    pump = _wave(hass, "hw1", cloud, PROGRAM)
+    _wave(hass, "hw2", cloud, [{"st": 0, "wave_uid": "rs-random"}])
+    _wave(hass, "hw3", cloud, [{"st": 0, "wave_uid": "night", "direction": "rw"}])
+    assert await pump.save_wave("nuit", dict(SURGE), "night") == "new-uid"
+
+    # The old wave first gets a name of its own, its shape and settings kept
+    action, payload, method = cloud.sent[0]
+    assert (action, method) == (WAVES_LIBRARY + "/night", "put")
+    assert payload["name"] == "~night"
+    assert payload["type"] == "re" and payload["frt"] == 10 and payload["rrt"] == 2
+    assert payload["pump_settings"] == LIBRARY[1]["pump_settings"]
+
+    action, payload, method = cloud.sent[1]
+    assert (action, method) == (WAVES_LIBRARY, "post")
+    assert payload["aquarium_uid"] == "aq" and payload["name"] == "nuit"
+    assert payload["type"] == "su" and payload["pd"] == 3
+    assert "frt" not in payload
+    ps = {s["hwid"]: s for s in payload["pump_settings"]}
+    assert ps["hw1"]["fti"] == 40 and ps["other"]["fti"] == 20
+
+    # The programs of hw1 and hw3 use the new wave, hw2's is left
+    posted = [(a, m) for a, _p, m in cloud.sent[2:4]]
+    assert posted == [
+        ("/reef-wave/schedule/hw1", "post"),
+        ("/reef-wave/schedule/hw3", "post"),
+    ]
+    hw1 = cloud.sent[2][1]["intervals"]
+    assert [i["wave_uid"] for i in hw1] == ["new-uid", "rs-random"]
+    assert hw1[0]["type"] == "su"
+    assert cloud.sent[3][1]["intervals"][0]["direction"] == "rw"
+    # Then the old wave goes
+    assert cloud.sent[4] == (WAVES_LIBRARY + "/night", {}, "delete")
+    assert len(cloud.sent) == 5
+    # Each program posted is pushed to the pumps
+    assert cloud.synced == ["aq", "aq"]
+
+
+@pytest.mark.asyncio
+async def test_update_wave_type_keeps_a_wave_still_used(
+    hass: HomeAssistant,
+) -> None:
+    """A loaded pump that cannot be given the new wave keeps the old one."""
+    cloud = _Cloud(devices=[_device("hw1", False)])
+    pump = _wave(hass, "hw1", cloud, PROGRAM)
+    _wave(hass, "hw9", None, [{"st": 0, "wave_uid": "night"}])
+    # A pump not registered in hass.data still counts itself
+    del hass.data[DOMAIN]["hw1"]
+    assert await pump.save_wave("nuit", dict(SURGE), "night") == "new-uid"
+    actions = [(a, m) for a, _p, m in cloud.sent]
+    assert actions == [
+        (WAVES_LIBRARY + "/night", "put"),
+        (WAVES_LIBRARY, "post"),
+        ("/reef-wave/schedule/hw1", "post"),
+    ]
+    # Kept under its new name
+    assert next(w for w in cloud.library if w["uid"] == "night")["name"] == "~night"
+
+    # The new wave cannot be added: the old one gets its name back
+    cloud = _Cloud(devices=[_device("hw1", False)], created_uid=None)
+    pump._cloud_link = cast(Any, cloud)
+    with pytest.raises(HomeAssistantError) as err:
+        await pump.save_wave("nuit", dict(SURGE), "night")
+    assert err.value.translation_key == "wave_replace_failed"
+    assert [(a, m) for a, _p, m in cloud.sent] == [
+        (WAVES_LIBRARY + "/night", "put"),
+        (WAVES_LIBRARY, "post"),
+        (WAVES_LIBRARY + "/night", "put"),
+    ]
+    assert cloud.sent[2][1]["name"] == "nuit"
+    assert next(w for w in cloud.library if w["uid"] == "night")["name"] == "nuit"
+
+    # The old wave cannot be renamed: nothing else is sent
+    cloud = _Cloud(devices=[_device("hw1", False)])
+    cloud.library[1]["uid"] = "a-uid-of-more-than-fifteen-characters"
+    pump._cloud_link = cast(Any, cloud)
+    real = cloud.send_cmd
+
+    async def refuse_put(action: str, payload: Any, method: str = "post") -> Any:
+        if method == "put":
+            cloud.sent.append((action, payload, method))
+            return {"ok": False, "status": 400}
+        return await real(action, payload, method)
+
+    cloud.send_cmd = refuse_put  # type: ignore[method-assign]
+    with pytest.raises(HomeAssistantError) as err:
+        await pump.save_wave(
+            "nuit", dict(SURGE), "a-uid-of-more-than-fifteen-characters"
+        )
+    assert err.value.translation_key == "wave_replace_failed"
+    assert [(a, m) for a, _p, m in cloud.sent] == [
+        (WAVES_LIBRARY + "/a-uid-of-more-than-fifteen-characters", "put")
+    ]
+    # The name kept within the cloud's limit
+    assert cloud.sent[0][1]["name"] == "~a-uid-of-more-"
+
+
 @pytest.mark.asyncio
 async def test_update_wave_refusals(hass: HomeAssistant) -> None:
     cloud = _Cloud(devices=[_device("hw1", False)])
@@ -427,6 +563,8 @@ async def test_save_program_through_the_cloud_for_the_group(
         "/reef-wave/schedule/hw1",
         "/reef-wave/schedule/hw2",
     ]
+    # The cloud pushes each program to the pumps, as the app has it do
+    assert cloud.synced == ["aq", "aq"]
     mine = cloud.sent[0][1]["intervals"]
     theirs = cloud.sent[1][1]["intervals"]
     assert [i["st"] for i in mine] == [0, 720]
@@ -585,6 +723,7 @@ async def test_set_current_pump_through_the_cloud(
     assert post[0] == "/reef-wave/schedule/hw1"
     assert [i["direction"] for i in post[1]["intervals"]] == ["fw", "rw"]
     assert len(cloud.sent) == 2
+    assert cloud.synced == ["aq"]
 
     # A wave the library lost
     cloud.library = []

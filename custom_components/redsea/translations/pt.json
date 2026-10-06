@@ -2201,6 +2201,12 @@
     "wave_name_taken": {
       "message": "Já existe uma onda chamada {name} na biblioteca."
     },
+    "wave_name_too_long": {
+      "message": "O nome {name} é demasiado longo: o nome de uma onda tem no máximo {max} caracteres."
+    },
+    "wave_replace_failed": {
+      "message": "A onda {name} não pôde mudar de tipo: a nuvem ReefBeat recusou. Nada foi alterado."
+    },
     "wave_bad_type": {
       "message": "Tipo de onda desconhecido: {type}."
     },
@@ -2218,6 +2224,9 @@
     },
     "wave_program_same_start": {
       "message": "Dois intervalos começam à mesma hora."
+    },
+    "wave_program_too_short": {
+      "message": "Cada intervalo deve durar pelo menos {min} minutos: a bomba ignora um intervalo mais curto."
     },
     "wave_preview_no_wave": {
       "message": "«Sem onda» não pode ser pré-visualizada."

@@ -2201,6 +2201,12 @@
     "wave_name_taken": {
       "message": "Fala o nazwie {name} już istnieje w bibliotece."
     },
+    "wave_name_too_long": {
+      "message": "Nazwa {name} jest za długa: nazwa fali ma najwyżej {max} znaków."
+    },
+    "wave_replace_failed": {
+      "message": "Fala {name} nie mogła zmienić typu: chmura ReefBeat odrzuciła zmianę. Nic nie zostało zmienione."
+    },
     "wave_bad_type": {
       "message": "Nieznany typ fali: {type}."
     },
@@ -2218,6 +2224,9 @@
     },
     "wave_program_same_start": {
       "message": "Dwa przedziały zaczynają się o tej samej godzinie."
+    },
+    "wave_program_too_short": {
+      "message": "Każdy przedział musi trwać co najmniej {min} minut: pompa pomija krótszy przedział."
     },
     "wave_preview_no_wave": {
       "message": "„Brak fali” nie może być podglądana."

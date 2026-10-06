@@ -2201,6 +2201,12 @@
     "wave_name_taken": {
       "message": "Esiste già un'onda chiamata {name} nella libreria."
     },
+    "wave_name_too_long": {
+      "message": "Il nome {name} è troppo lungo: il nome di un'onda ha al massimo {max} caratteri."
+    },
+    "wave_replace_failed": {
+      "message": "L'onda {name} non ha potuto cambiare tipo: il cloud ReefBeat l'ha rifiutato. Non è stato modificato nulla."
+    },
     "wave_bad_type": {
       "message": "Tipo di onda sconosciuto: {type}."
     },
@@ -2218,6 +2224,9 @@
     },
     "wave_program_same_start": {
       "message": "Due fasce iniziano alla stessa ora."
+    },
+    "wave_program_too_short": {
+      "message": "Ogni fascia deve durare almeno {min} minuti: la pompa ignora una fascia più corta."
     },
     "wave_preview_no_wave": {
       "message": "«Nessuna onda» non può essere visualizzata in anteprima."

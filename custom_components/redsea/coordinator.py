@@ -125,6 +125,8 @@ from .reefbeat import (
     parse,
 )
 from .wave_library import (
+    WAVE_NAME_MAX,
+    WAVE_TYPE_FIELDS,
     WaveLibraryError,
     check_name,
     check_settings,
@@ -139,6 +141,17 @@ from .wave_library import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def sync_waves(cloud: Any, aquarium: str) -> None:
+    """Have the cloud push the aquarium's wave programs to its pumps.
+
+    As the ReefBeat app ("SYNCING WAVES", ApiCloud): POST
+    /reef-wave/<aquarium uid>/sync with an empty body. Without it, a program
+    posted to the cloud may never reach the pump.
+    """
+    _LOGGER.debug("Sync waves of aquarium %s", aquarium)
+    await cloud.send_cmd(f"/reef-wave/{aquarium}/sync", {}, "post")
 
 
 def _accepted(result: Any) -> bool:
@@ -2265,6 +2278,7 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
             await self._cloud_link.send_cmd(
                 "/reef-wave/schedule/" + self.model_id, cur_schedule["schedule"], "post"
             )
+            await sync_waves(self._cloud_link, c_wave["aquarium_uid"])
 
             await self.fetch_config()
 
@@ -2644,11 +2658,12 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
         # This pump's intensities; a member without any gets the same ones
         have = {s.get("hwid") for s in existing if isinstance(s, dict)}
         targets = [self.model_id] + [h for h in hwids if h not in have]
-        payload = library_payload(
-            clean,
-            checked["shape"],
-            merge_pump_settings(existing, targets, checked["pump"]),
-        )
+        pump_settings = merge_pump_settings(existing, targets, checked["pump"])
+        if checked["shape"].get("type") != entry.get("type"):
+            return await self._replace_wave(
+                cloud, aquarium, entry, clean, checked["shape"], pump_settings
+            )
+        payload = library_payload(clean, checked["shape"], pump_settings)
         _LOGGER.debug("PUT wave %s: %s", uid, payload)
         await cloud.send_cmd(f"{WAVES_LIBRARY}/{uid}", payload, "put")
         await cloud.fetch_config(WAVES_LIBRARY)
@@ -2666,6 +2681,105 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
                 ]
                 await pump._post_program(cloud, aquarium, slots)
         return uid
+
+    async def _replace_wave(
+        self,
+        cloud: ReefBeatCloudCoordinator,
+        aquarium: str,
+        entry: dict[str, Any],
+        name: str,
+        shape: dict[str, Any],
+        pump_settings: list[dict[str, Any]],
+    ) -> str:
+        """Give a wave another type: the cloud keeps the type of a wave
+        (a PUT changing it answers success but leaves it as it was).
+
+        A new wave is added with the new type (as the schedule editor does,
+        see must_create above), the programs of the loaded pumps using the
+        old one are pointed at it, then the old one is deleted, unless a
+        loaded pump using it could not be given the new one.
+
+        The cloud refuses two waves of the same name in an aquarium (409):
+        the old one is first given a name of its own (from its uid, within
+        the WAVE_NAME_MAX characters the cloud takes), and gets its name
+        back when the new one cannot be added.
+        @param entry: the library entry of the old wave
+        @return the uid of the new wave
+        @raise HomeAssistantError (wave_replace_failed) when the cloud refuses
+               it, nothing being changed
+        """
+        # Read before the old wave is renamed (entry may be the cached one)
+        uid = str(entry.get("uid"))
+        old_name = str(entry.get("name"))
+        old_type = str(entry.get("type"))
+        old_shape: dict[str, Any] = {"type": old_type}
+        old_shape.update(
+            {k: entry[k] for k in WAVE_TYPE_FIELDS.get(old_type, ()) if k in entry}
+        )
+        old_settings = list(entry.get("pump_settings") or [])
+
+        async def rename_old(to: str) -> bool:
+            payload = library_payload(to, old_shape, old_settings)
+            _LOGGER.debug("PUT wave %s: %s", uid, payload)
+            return _accepted(
+                await cloud.send_cmd(f"{WAVES_LIBRARY}/{uid}", payload, "put")
+            )
+
+        if not await rename_old(f"~{uid}"[:WAVE_NAME_MAX]):
+            raise group_error("wave_replace_failed", name=old_name)
+        payload = library_payload(name, shape, pump_settings, aquarium)
+        _LOGGER.debug("POST wave %s replacing %s: %s", name, uid, payload)
+        await cloud.send_cmd(WAVES_LIBRARY, payload, "post")
+        await cloud.fetch_config(WAVES_LIBRARY)
+        new_uid = next(
+            (
+                cast(str, e.get("uid"))
+                for e in reversed(self._library_entries(cloud, aquarium))
+                if e.get("name") == name
+                and e.get("uid") != uid
+                and e.get("default") is not True
+            ),
+            None,
+        )
+        if new_uid is None:
+            _LOGGER.warning("Wave %s not found back after its creation", name)
+            await rename_old(old_name)
+            await cloud.fetch_config(WAVES_LIBRARY)
+            raise group_error("wave_replace_failed", name=old_name)
+        pumps = [
+            c
+            for c in self._hass.data.get(DOMAIN, {}).values()
+            if isinstance(c, ReefWaveCoordinator)
+        ]
+        if self not in pumps:
+            pumps.append(self)
+        # Pumps the new wave could not be given (no cloud link): they keep
+        # the old one, which stays in the library for them
+        kept: list[str] = []
+        for pump in pumps:
+            if not uses_wave(pump.program_intervals(), uid):
+                continue
+            if pump.wave_link() is None:
+                kept.append(pump.title)
+                continue
+            slots = [
+                {
+                    "st": int(i.get("st", 0)),
+                    "wave_uid": new_uid
+                    if i.get("wave_uid") == uid
+                    else i.get("wave_uid"),
+                    "direction": i.get("direction", "fw"),
+                }
+                for i in pump.program_intervals()
+            ]
+            await pump._post_program(cloud, aquarium, slots)
+        if kept:
+            _LOGGER.warning("Wave %s kept: still used by %s", uid, ", ".join(kept))
+        else:
+            _LOGGER.debug("DELETE wave %s, replaced by %s", uid, new_uid)
+            await cloud.send_cmd(f"{WAVES_LIBRARY}/{uid}", {}, "delete")
+            await cloud.fetch_config(WAVES_LIBRARY)
+        return new_uid
 
     async def delete_wave(self, uid: str) -> bool:
         """Delete one of the user's waves from the aquarium's library.
@@ -2698,7 +2812,8 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
         aquarium: str,
         slots: list[dict[str, Any]],
     ) -> None:
-        """Post this pump's program to the cloud, then read the pump back."""
+        """Post this pump's program to the cloud, have the cloud push it to
+        the aquarium's pumps (see sync_waves()), then read the pump back."""
         waves = {
             str(entry.get("uid")): library_wave(entry, self.model_id)
             for entry in self._library_entries(cloud, aquarium)
@@ -2711,6 +2826,7 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
         await cloud.send_cmd(
             "/reef-wave/schedule/" + self.model_id, {"intervals": intervals}, "post"
         )
+        await sync_waves(cloud, aquarium)
         await self.fetch_config()
 
     # -- Preview and per-pump settings of the current wave -------------------
