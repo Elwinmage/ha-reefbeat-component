@@ -21,6 +21,7 @@ Notes:
 from __future__ import annotations
 
 import asyncio
+import copy
 import logging
 import uuid
 from asyncio import timeout
@@ -36,6 +37,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util.event_type import EventType
 
@@ -2069,13 +2071,80 @@ class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
 
 
 # REEFWAVE
+def _same_program(read: Any, sent: list[dict[str, Any]]) -> bool:
+    """Whether a program read from the pump is the one sent (starts, waves,
+    directions and intensities)."""
+
+    def key(intervals: Any) -> list[tuple[Any, ...]]:
+        return [
+            (
+                int(i.get("st", 0)),
+                i.get("wave_uid"),
+                i.get("direction"),
+                float(i.get("fti") or 0),
+                float(i.get("rti") or 0),
+            )
+            for i in intervals
+            if isinstance(i, dict)
+        ]
+
+    return isinstance(read, list) and key(read) == key(sent)
+
+
 class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
     """Coordinator for ReefWave devices."""
+
+    # A program posted to the cloud reaches the pump once the cloud pushed it:
+    # read back this long after, and shown meanwhile (at most PENDING_S).
+    READBACK_S = 20
+    PENDING_S = 300
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the ReefWave coordinator and its API."""
         super().__init__(hass, entry)
         self.my_api = ReefWaveAPI(self._ip, self._live_config_update, self._session)
+        # Program posted, not run by the pump yet, and until when it is shown
+        self._pending_program: tuple[list[dict[str, Any]], float] | None = None
+        # Read back of the pump planned after a program posted
+        self._readback: CALLBACK_TYPE | None = None
+        self._unsubs.append(self._cancel_readback)
+
+    def _cancel_readback(self) -> None:
+        if self._readback is not None:
+            self._readback()
+            self._readback = None
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Read the pump; a program posted but not run yet stays shown."""
+        res = await super()._async_update_data()
+        self._keep_pending_program()
+        return res
+
+    def _keep_pending_program(self) -> None:
+        """Show the program posted until the pump runs it (or PENDING_S)."""
+        if self._pending_program is None:
+            return
+        intervals, until = self._pending_program
+        if time() > until or _same_program(self.program_intervals(), intervals):
+            self._pending_program = None
+            return
+        if isinstance(self.my_api.get_data(WAVE_SCHEDULE_PATH, True), list):
+            self.my_api.set_data(WAVE_SCHEDULE_PATH, copy.deepcopy(intervals))
+
+    def _expect_program(self, intervals: list[dict[str, Any]]) -> None:
+        """A program the cloud took: shown at once (optimistic), then read
+        back from the pump READBACK_S later."""
+        shown = [{k: v for k, v in i.items() if k != "start"} for i in intervals]
+        self._pending_program = (shown, time() + self.PENDING_S)
+        self._keep_pending_program()
+        self.async_update_listeners()
+
+        async def readback(_now: Any) -> None:
+            self._readback = None
+            await self.async_request_refresh(source="/auto", wait=0)
+
+        self._cancel_readback()
+        self._readback = async_call_later(self._hass, self.READBACK_S, readback)
 
     async def set_wave(self) -> None:
         """Apply the current preview wave into the active schedule."""
@@ -2823,11 +2892,13 @@ class ReefWaveCoordinator(ReefBeatCloudLinkedCoordinator):
         except WaveLibraryError as err:
             raise self._refusal(err) from err
         _LOGGER.debug("POST program of %s: %s", self.title, intervals)
-        await cloud.send_cmd(
+        res = await cloud.send_cmd(
             "/reef-wave/schedule/" + self.model_id, {"intervals": intervals}, "post"
         )
         await sync_waves(cloud, aquarium)
         await self.fetch_config()
+        if _accepted(res):
+            self._expect_program(intervals)
 
     # -- Preview and per-pump settings of the current wave -------------------
 

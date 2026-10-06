@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass, field
+from datetime import timedelta
 from types import SimpleNamespace
 from typing import Any, cast
 from unittest.mock import AsyncMock
@@ -11,7 +12,11 @@ from unittest.mock import AsyncMock
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 
 import custom_components.redsea.coordinator as coord
 from custom_components.redsea.const import (
@@ -103,6 +108,8 @@ class _Cloud:
             self.synced.append(action.split("/")[2])
             return None
         self.sent.append((action, copy.deepcopy(payload), method))
+        if action.startswith("/reef-wave/schedule/"):
+            return {"ok": True, "status": 200}
         if not action.startswith(WAVES_LIBRARY) or method == "delete":
             return None
         # As the cloud: a name has 15 characters at most (else a 400)
@@ -575,6 +582,102 @@ async def test_save_program_through_the_cloud_for_the_group(
     assert cast(_Api, other.my_api).fetched == [None]
     # Nothing on the local API
     assert cast(_Api, pump.my_api).http_calls == []
+
+
+@pytest.mark.asyncio
+async def test_program_posted_is_shown_until_the_pump_runs_it(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The pump gets a program once the cloud pushed it: it is shown at once
+    (optimistic), kept over the reads of the pump until it runs it, and the
+    pump read back READBACK_S later."""
+    cloud = _Cloud(devices=[_device("hw1", False)])
+    pump = _wave(hass, "hw1", cloud, copy.deepcopy(PROGRAM))
+    told: list[int] = []
+    pump.async_update_listeners = lambda: told.append(1)  # type: ignore[method-assign]
+    refreshed: list[tuple[Any, Any]] = []
+
+    async def _refresh(source: Any = None, config: bool = False, wait: Any = 2):
+        refreshed.append((source, wait))
+
+    pump.async_request_refresh = _refresh  # type: ignore[method-assign]
+    await pump.save_program(copy.deepcopy(SLOTS))
+    posted = cloud.sent[0][1]["intervals"]
+    shown = pump.program_intervals()
+    # Shown at once, as the pump will hold it
+    assert [i["st"] for i in shown] == [0, 720]
+    assert all("start" not in i for i in shown)
+    assert shown[0]["fti"] == posted[0]["fti"] and told
+
+    # The pump still runs its old program: the one posted stays shown
+    old = copy.deepcopy(PROGRAM)
+
+    async def _read(_self: Any) -> dict[str, Any]:
+        cast(_Api, pump.my_api).data[WAVE_SCHEDULE_PATH] = copy.deepcopy(old)
+        return {}
+
+    monkeypatch.setattr(
+        coord.ReefWaveCoordinator.__mro__[1], "_async_update_data", _read
+    )
+    await pump._async_update_data()
+    assert [i["st"] for i in pump.program_intervals()] == [0, 720]
+
+    # Read back READBACK_S later
+    assert refreshed == []
+    async_fire_time_changed(
+        hass, dt_util.utcnow() + timedelta(seconds=pump.READBACK_S + 1)
+    )
+    await hass.async_block_till_done()
+    assert refreshed == [("/auto", 0)]
+
+    # The pump runs it: nothing kept any more
+    old = copy.deepcopy(shown)
+    await pump._async_update_data()
+    assert pump._pending_program is None
+    old = copy.deepcopy(PROGRAM)
+    await pump._async_update_data()
+    assert pump.program_intervals()[1]["st"] == PROGRAM[1]["st"]
+
+    # Not run after PENDING_S: the pump's own program is shown again
+    await pump.save_program(copy.deepcopy(SLOTS))
+    assert pump._pending_program is not None
+    monkeypatch.setattr(coord, "time", lambda: 1e12)
+    await pump._async_update_data()
+    assert pump._pending_program is None
+    assert pump.program_intervals()[1]["st"] == PROGRAM[1]["st"]
+
+    # Without /auto data yet, nothing is written in it
+    pump._pending_program = (shown, 2e12)
+    cast(_Api, pump.my_api).data[WAVE_SCHEDULE_PATH] = None
+    pump._keep_pending_program()
+    assert pump.program_intervals() == []
+
+    # Unloaded: the read back planned is dropped
+    cast(_Api, pump.my_api).data[WAVE_SCHEDULE_PATH] = copy.deepcopy(PROGRAM)
+    await pump.save_program(copy.deepcopy(SLOTS))
+    assert pump._readback is not None
+    pump.unload()
+    assert pump._readback is None
+
+
+@pytest.mark.asyncio
+async def test_program_refused_by_the_cloud_is_not_shown(
+    hass: HomeAssistant,
+) -> None:
+    cloud = _Cloud(devices=[_device("hw1", False)])
+    pump = _wave(hass, "hw1", cloud, copy.deepcopy(PROGRAM))
+    real = cloud.send_cmd
+
+    async def refuse(action: str, payload: Any, method: str = "post") -> Any:
+        if action.startswith("/reef-wave/schedule/"):
+            cloud.sent.append((action, payload, method))
+            return {"ok": False, "status": 400}
+        return await real(action, payload, method)
+
+    cloud.send_cmd = refuse  # type: ignore[method-assign]
+    await pump.save_program(copy.deepcopy(SLOTS))
+    assert pump._pending_program is None and pump._readback is None
+    assert pump.program_intervals()[1]["st"] == PROGRAM[1]["st"]
 
 
 @pytest.mark.asyncio
