@@ -88,6 +88,40 @@ class ReefRunBinarySensorEntityDescription(
     pump: int = 0
 
 
+def _ato_port_binary_sensors(
+    port: int,
+) -> tuple[ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], ...]:
+    """Binary sensors of the ATO module on a hub port."""
+    placeholders = {"port": str(port + 1)}
+
+    def fault(device: ReefBeatCoordinator) -> bool | None:
+        status = cast(ReefControlCoordinator, device).ato_status(port)
+        return None if status is None else status != "ok"
+
+    return (
+        ReefBeatBinarySensorEntityDescription(
+            key=f"port_{port}_is_pump_on",
+            translation_key="port_ato_pump_on",
+            translation_placeholders=placeholders,
+            device_class=BinarySensorDeviceClass.RUNNING,
+            value_fn=lambda d: cast(ReefControlCoordinator, d).ato_port_value(
+                port, "is_pump_on"
+            ),
+            attributes_fn=lambda _d: {"port": port},
+            icon="mdi:pump",
+        ),
+        ReefBeatBinarySensorEntityDescription(
+            key=f"port_{port}_ato_fault",
+            translation_key="port_ato_fault",
+            translation_placeholders=placeholders,
+            device_class=BinarySensorDeviceClass.PROBLEM,
+            value_fn=fault,
+            attributes_fn=lambda _d: {"port": port},
+            icon="mdi:water-pump-off",
+        ),
+    )
+
+
 # Sensor descriptions
 COMMON_SENSORS: tuple[
     ReefBeatBinarySensorEntityDescription[ReefBeatCoordinator], ...
@@ -582,6 +616,15 @@ async def async_setup_entry(
             for description in CONTROL_SENSORS
             if description.exists_fn(device)
         )
+
+        # The ATO module (Red Sea ATO kit), on the port reporting type "ato":
+        # its pump running, and a fault the port reports as its mode
+        for port_idx in range(device.port_count):
+            if device.ato_is_port(port_idx):
+                entities.extend(
+                    ReefBeatBinarySensorEntity(device, description)
+                    for description in _ato_port_binary_sensors(port_idx)
+                )
 
         # Standalone ReefSense leak probes (`type == "leak"` in
         # /dashboard.probes). Their payload is minimal — confirmed on a real

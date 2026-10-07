@@ -143,6 +143,12 @@
       },
       "temperature_coherent": {
         "name": "Temperatuurcoherentie"
+      },
+      "port_ato_pump_on": {
+        "name": "Poort {port} ATO-pomp"
+      },
+      "port_ato_fault": {
+        "name": "Poort {port} ATO-storing"
       }
     },
     "button": {
@@ -373,6 +379,15 @@
       },
       "unpair_control": {
         "name": "Besturingshub ontkoppelen"
+      },
+      "port_ato_resume": {
+        "name": "Poort {port} ATO hervatten"
+      },
+      "port_ato_manual_pump": {
+        "name": "Poort {port} ATO handmatig vullen"
+      },
+      "port_ato_stop": {
+        "name": "Poort {port} ATO stoppen"
       }
     },
     "light": {
@@ -614,6 +629,17 @@
       },
       "staggered_delay": {
         "name": "Vertraging verschoven zonsopgang"
+      "port_ato_volume_left_set": {
+        "name": "Poort {port} ATO-restvolume reservoir"
+      },
+      "port_ato_hose_length": {
+        "name": "Poort {port} ATO-slanglengte"
+      },
+      "port_ato_hose_height": {
+        "name": "Poort {port} ATO-slanghoogte"
+      },
+      "port_ato_flow_rate": {
+        "name": "Poort {port} ATO-debiet"
       }
     },
     "select": {
@@ -1452,6 +1478,32 @@
       },
       "linked_waves": {
         "name": "Gekoppelde ReefWaves"
+      "port_ato_status": {
+        "name": "Poort {port} ATO-status",
+        "state": {
+          "ok": "OK",
+          "port_malfunction": "Poortstoring",
+          "stalled": "Pomp geblokkeerd",
+          "empty": "Reservoir leeg",
+          "missing_pump": "Pomp ontbreekt",
+          "timeout": "Vultijd overschreden",
+          "leak": "Lek"
+        }
+      },
+      "port_ato_today_volume": {
+        "name": "Poort {port} ATO-volume vandaag"
+      },
+      "port_ato_volume_left": {
+        "name": "Poort {port} ATO-restvolume"
+      },
+      "port_ato_last_pump_on_cause": {
+        "name": "Poort {port} ATO-oorzaak laatste vulling",
+        "state": {
+          "none": "Geen",
+          "manual": "Handmatig",
+          "ec_sensor_s1": "Niveausensor 1",
+          "ec_sensor_s2": "Niveausensor 2"
+        }
       }
     },
     "switch": {
@@ -1643,6 +1695,17 @@
       },
       "wave_grouped": {
         "name": "Gegroepeerd met het aquarium"
+      "port_ato_auto_fill": {
+        "name": "Poort {port} ATO automatisch bijvullen"
+      },
+      "port_ato_volume_monitor": {
+        "name": "Poort {port} ATO-reservoirbewaking"
+      },
+      "port_ato_notify": {
+        "name": "Poort {port} ATO-meldingen"
+      },
+      "port_ato_temp_log": {
+        "name": "Poort {port} ATO-temperatuurlog"
       }
     },
     "text": {
@@ -1719,7 +1782,9 @@
       "wifi_change_failed_reset": "Kan het apparaat niet herstarten na het versturen van de nieuwe Wi-Fi-inloggegevens.",
       "wifi_change_failed_rediscover": "Het apparaat is opnieuw opgestart maar niet gevonden op het netwerk. Controleer of het {ssid} heeft bereikt en configureer indien nodig het IP-adres opnieuw.",
       "wifi_change_failed_unknown": "Onverwachte fout bij het wijzigen van het Wi-Fi-netwerk.",
-      "no_probes": "Deze hub heeft geen sondes om te verwijderen."
+      "no_probes": "Deze hub heeft geen sondes om te verwijderen.",
+      "no_ato_probe": "Deze hub heeft geen ATO-sonde: voeg er eerst een toe.",
+      "no_free_port": "Deze hub heeft geen vrije 12V-poort voor de ATO-module."
     },
     "error": {
       "auth_failed": "Verificatie mislukt, controleer je gegevens",
@@ -1731,6 +1796,7 @@
       "no_probe_detected": "Geen nieuwe sonde van het gekozen type gedetecteerd. Zet hem in koppelmodus en probeer opnieuw.",
       "group_min_members": "Kies minstens twee LED's.",
       "group_duplicate_position": "Elke LED moet precies één positie krijgen."
+      "ato_install_failed": "De hub weigerde de ATO-module te installeren. Controleer of de poort vrij is en de ATO-sonde aangesloten."
     },
     "progress": {
       "applying": "Nieuwe Wi-Fi-inloggegevens toepassen en het apparaat op het netwerk lokaliseren..."
@@ -1748,7 +1814,8 @@
           "wifi_scan": "Wi-Fi-netwerk wijzigen",
           "add_probe": "Sonde toevoegen",
           "del_probe": "Sonde verwijderen",
-          "change_probe": "Sonde vervangen"
+          "change_probe": "Sonde vervangen",
+          "install_ato": "ATO-module installeren"
         },
         "title": "Configuratie"
       },
@@ -1828,6 +1895,17 @@
           "position_8": "Positie 8",
           "position_9": "Positie 9",
           "position_10": "Positie 10"
+      "install_ato": {
+        "title": "ATO-module installeren",
+        "description": "Installeert de Red Sea ATO-kit op een 12V-poort. Voeg eerst de ATO-sonde toe (Een sonde toevoegen). De slang loopt van de pomp naar de bak; de hoogte is hoeveel hij boven de pomp stijgt.",
+        "data": {
+          "ato_port": "12V-poort",
+          "ato_probe": "ATO-sonde",
+          "ato_volume": "Reservoirvolume (L)",
+          "ato_hose_length": "Slanglengte (cm)",
+          "ato_hose_height": "Slanghoogte (cm)",
+          "ato_auto_fill": "Automatisch bijvullen",
+          "ato_volume_monitor": "Reservoirbewaking"
         }
       }
     }

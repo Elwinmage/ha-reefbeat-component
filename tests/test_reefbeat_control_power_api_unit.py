@@ -646,7 +646,8 @@ async def test_install_probe_seeds_defaults_for_every_configurable_type() -> Non
         "/probe/config",
         [
             {
-                "name": "ATO",
+                # The app names it after its uid digits
+                "name": "ATO Temp. NEW",
                 "buzzer": False,
                 "notify": True,
                 "temp": {"ranges": [21, 23, 26, 28], "notify": True},

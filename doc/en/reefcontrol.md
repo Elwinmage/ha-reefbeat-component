@@ -89,8 +89,29 @@ These settings are not exposed as individual entities — with several ports and
 
 The `port_N_mode` sensor still carries everything an automation needs to read the active configuration: `config` (the whole port entry, `power_on_percent` included), `schedule` (read back from the hub while the port is in schedule mode) and `sensor_config` (the probe rule), with `sensor_source: control`.
 
-> [!NOTE]
-> A port driving an ATO pump from an ATO probe stays of type `other`: the ReefBeat app's ATO kit wizard is what links them. The hub does not expose the RSATO+ ATO controls (manual fill, auto-fill, volume left…).
+## ATO module (Red Sea ATO kit)
+The Red Sea ATO kit — a pump on a 12V port and an ATO probe — is installed the way the app's wizard does it, from the integration's **Options** menu:
+
+1. **Add a probe** of type `ato` (it is named `ATO Temp. <uid>`, after its temperature, as the app does).
+2. **Install the ATO module**: pick the free 12V port, the ATO probe, the reservoir volume (L), the hose length and height (cm, from the pump to the tank, the height being how far it rises above the pump), auto fill and reservoir monitoring.
+
+The port then becomes of type `ato` and gets the module's entities:
+
+| Entity | Type | What |
+| ------ | ---- | ---- |
+| `Port N ATO status` | sensor | `ok`, or the fault the port reports: pump missing, pump stalled, reservoir empty, fill timeout, leak, port malfunction |
+| `Port N ATO fault` | binary sensor | on while a fault stops the module |
+| `Port N ATO pump` | binary sensor | the pump is filling (the port's state follows it) |
+| `Port N ATO volume today` / `volume left` | sensor | mL |
+| `Port N ATO last fill cause` | sensor | manual, level sensor… (diagnostic) |
+| `Port N ATO auto fill`, `reservoir monitoring`, `notifications`, `temperature log` | switch | `PUT /ato/configuration` |
+| `Port N ATO reservoir volume left` | number | the volume left in the reservoir, set after refilling it (`POST /ato/update-volume`) |
+| `Port N ATO hose length` / `hose height` | number | cm |
+| `Port N ATO flow rate` | number | pump flow rate override, 0.2 to 4 L/min as in the app; 0 goes back to the pump's default |
+| `Port N ATO resume` | button | clears a fault (available only while there is one) |
+| `Port N ATO manual fill` / `stop` | button | from the app's API, not captured yet |
+
+Uninstalling the port (`Uninstall port N`, the card or the ReefBeat app) removes the module and its entities at once. A module installed from the ReefBeat app appears after an automatic reload.
 
 ## Maintenance tasks
 | Task | Probes | Default | Range |

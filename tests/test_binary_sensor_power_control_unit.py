@@ -58,6 +58,10 @@ class _FakeControlDevice(_FakeCoordinator):
     # Temperature-fusion surface used by the RSCONTROL branch of the platform
     # dispatchers. Defaults keep fusion inert (fewer than two sources) so these
     # setup-only tests see just the base control entities.
+    def ato_is_port(self, number: int) -> bool:
+        # No ATO module on this fake hub
+        return False
+
     def temperature_source_count(self) -> int:
         return 0
 

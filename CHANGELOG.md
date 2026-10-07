@@ -233,16 +233,45 @@
    per EC probe). Temperature probes still get no calibration reminder.
    Only the defaults change: an interval already set by the user is kept,
    so a pH or ORP interval chosen under the old ranges should be set again.
- - Removed the per-port ATO entities, which could never work on the hub:
-   buttons `ato_manual_pump`, `ato_stop`, `ato_resume`, number
-   `ato_volume_left`, switch `ato_auto_fill`, binary sensors
-   `port_check_sensor`, `port_is_advancing`, `port_is_pump_on`,
-   `port_leak_sensor` and sensors `port_last_fill_date`,
-   `port_last_pump_on_cause`, `port_today_volume`, `port_leak_status`. They
-   were built for a port of type `ato` and read RSATO+ fields the hub's
-   `/dashboard.ports` never carries, and wrote to `/ato/…` endpoints it does
-   not have: a port driven by an ATO probe stays of type `other`. Their
-   API helpers and translations are gone with them.
+ - ATO module (the Red Sea ATO kit: a pump on a 12V port and an ATO probe),
+   from a capture of the app installing it and its code. The per-port ATO
+   entities built so far read RSATO+ fields and are replaced: a port holding
+   the kit is of type `ato`, and its `/dashboard.ports` entry carries
+   `auto_fill`, `today_volume`, `volume_left`, `is_pump_on`,
+   `last_pump_on_cause` and `uid`, its `mode` reporting the module's faults
+   (`missing_pump`, `stalled`, `empty`, `timeout`, `leak`,
+   `port_malfunction`, as the app's `ControlPort.getAtoError` reads them).
+   - New options-flow step **Install the ATO module** (once an ATO probe is
+     installed and a port is free), following the app's wizard:
+     `POST /port/<n>/install {"uid", "type": "ato"}`,
+     `POST /ato/update-volume {"volume"}`, `PUT /ato/configuration
+     {"volume_left", "port_index", "hose": {"length", "height"}, "auto_fill",
+     "notify", "rvm_enabled"}`, then `PUT /ports/config` naming the port
+     `ATO Module` and handing it the hub's button.
+   - `/ato/configuration` is polled (as a config source) only while a module
+     is installed; its `PUT` answers the whole configuration, which replaces
+     the cached one at once.
+   - Entities of the module's port: sensors `port_N_ato_status` (`ok` or the
+     fault), `port_N_today_volume`, `port_N_volume_left`,
+     `port_N_last_pump_on_cause`; binary sensors `port_N_is_pump_on`,
+     `port_N_ato_fault`; switches `port_N_ato_auto_fill`,
+     `port_N_ato_volume_monitor` (`rvm_enabled`), `port_N_ato_notify`,
+     `port_N_ato_temp_log`; numbers `port_N_ato_volume_left`
+     (`POST /ato/update-volume`), `port_N_ato_hose_length` /
+     `port_N_ato_hose_height` (cm), `port_N_ato_flow_rate` (pump flow rate
+     override, `pump_override.flow_rate_override` in mL, 0.2 to 4 L/min as in
+     the app, 0 back to default: `-1`); buttons `port_N_ato_resume`
+     (`POST /ato/resume`, available only during a fault),
+     `port_N_ato_manual_pump` and `port_N_ato_stop` (from the app's code).
+   - The `port_N_state` of the module's port follows its pump (`on` /
+     `standby`): the hub reports no `state` for it.
+   - Uninstalling the module's port removes its entities (from the
+     registry, at once): from Home Assistant, the card or the ReefBeat app
+     (seen on the next poll), or while Home Assistant was stopped (at
+     setup). A module installed outside the options flow reloads the entry
+     so its entities are built.
+   - An ATO probe added from Home Assistant is named `ATO Temp. <uid>`, as
+     the app does (`Temp. osmolateur 24E` in French).
  - Leak probes tell where the water comes from. `/dashboard` only has the
    boolean `detected`; the origin is in the probe's own reading
    (`GET /probe?type=leak&uid=…` → `leak_status`: `dry`,

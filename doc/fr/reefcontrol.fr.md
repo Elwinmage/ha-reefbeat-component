@@ -89,8 +89,29 @@ Ces réglages ne sont pas exposés en entités individuelles — avec plusieurs 
 
 Le capteur `port_N_mode` porte tout de même ce dont une automatisation a besoin pour lire la configuration active : `config` (l'entrée complète du port, `power_on_percent` compris), `schedule` (relu sur le hub tant que le port est en mode programme) et `sensor_config` (la règle de sonde), avec `sensor_source: control`.
 
-> [!NOTE]
-> Un port qui pilote une pompe ATO depuis une sonde ATO reste de type `other` : c'est l'assistant du kit ATO de l'application ReefBeat qui les lie. Le hub n'expose pas les commandes ATO du RSATO+ (remplissage manuel, remplissage automatique, volume restant…).
+## Module osmolateur (kit ATO Red Sea)
+Le kit ATO Red Sea — une pompe sur un port 12V et une sonde ATO — s'installe comme le fait l'assistant de l'application, depuis le menu **Options** de l'intégration :
+
+1. **Ajouter une sonde** de type `ato` (elle est nommée `ATO Temp. <uid>`, d'après sa température, comme dans l'application).
+2. **Installer le module osmolateur** : choisissez le port 12V libre, la sonde ATO, le volume du réservoir (L), la longueur et la hauteur du tuyau (cm, de la pompe au bac, la hauteur étant celle dont il monte au-dessus de la pompe), le remplissage automatique et le suivi du réservoir.
+
+Le port devient alors de type `ato` et reçoit les entités du module :
+
+| Entité | Type | Rôle |
+| ------ | ---- | ---- |
+| `Port N état osmolateur` | capteur | `OK`, ou le défaut signalé par le port : pompe absente, pompe bloquée, réservoir vide, délai de remplissage dépassé, fuite, défaut du port |
+| `Port N défaut osmolateur` | capteur binaire | actif tant qu'un défaut arrête le module |
+| `Port N pompe osmolateur` | capteur binaire | la pompe remplit (l'état du port la suit) |
+| `Port N volume osmolateur du jour` / `restant` | capteur | mL |
+| `Port N cause du dernier remplissage` | capteur | manuel, capteur de niveau… (diagnostic) |
+| `Port N remplissage automatique`, `suivi du réservoir`, `notifications`, `journal de température` | interrupteur | `PUT /ato/configuration` |
+| `Port N volume restant du réservoir` | nombre | le volume restant, à saisir après avoir rempli le réservoir (`POST /ato/update-volume`) |
+| `Port N longueur` / `hauteur du tuyau osmolateur` | nombre | cm |
+| `Port N débit osmolateur` | nombre | débit forcé de la pompe, de 0,2 à 4 L/min comme dans l'application ; 0 revient au débit par défaut |
+| `Port N reprise osmolateur` | bouton | efface un défaut (disponible seulement s'il y en a un) |
+| `Port N remplissage manuel` / `arrêt osmolateur` | bouton | d'après l'API de l'application, pas encore capturés |
+
+Désinstaller le port (`Désinstaller le port N`, la carte ou l'application ReefBeat) retire le module et supprime aussitôt ses entités. Un module installé depuis l'application ReefBeat apparaît après un rechargement automatique.
 
 ## Tâches de maintenance
 | Tâche | Sondes | Par défaut | Plage |

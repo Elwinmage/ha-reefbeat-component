@@ -129,10 +129,19 @@ OPTIONS_MENU_WIFI: Final[str] = "wifi_scan"
 OPTIONS_MENU_ADD_PROBE: Final[str] = "add_probe"
 OPTIONS_MENU_DEL_PROBE: Final[str] = "del_probe"
 OPTIONS_MENU_CHANGE_PROBE: Final[str] = "change_probe"
+# Install the Red Sea ATO kit on a 12V port (the app's ATO module wizard)
+OPTIONS_MENU_INSTALL_ATO: Final[str] = "install_ato"
 # Probe types the RSCONTROL hub can install (matches the ReefBeat app).
 CONFIG_FLOW_PROBE_TYPE: Final[str] = "probe_type"
 CONFIG_FLOW_PROBES: Final[str] = "probes"
 CONFIG_FLOW_OLD_PROBE: Final[str] = "old_probe"
+CONFIG_FLOW_ATO_PORT: Final[str] = "ato_port"
+CONFIG_FLOW_ATO_PROBE: Final[str] = "ato_probe"
+CONFIG_FLOW_ATO_VOLUME: Final[str] = "ato_volume"
+CONFIG_FLOW_ATO_HOSE_LENGTH: Final[str] = "ato_hose_length"
+CONFIG_FLOW_ATO_HOSE_HEIGHT: Final[str] = "ato_hose_height"
+CONFIG_FLOW_ATO_AUTO_FILL: Final[str] = "ato_auto_fill"
+CONFIG_FLOW_ATO_VOLUME_MONITOR: Final[str] = "ato_volume_monitor"
 CONTROL_PROBE_TYPES: Final[tuple[str, ...]] = (
     "temperature",
     "ph",

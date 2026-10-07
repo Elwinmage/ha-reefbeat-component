@@ -34,6 +34,7 @@ from homeassistant.config_entries import SOURCE_INTEGRATION_DISCOVERY, ConfigEnt
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -114,6 +115,7 @@ from .groups import (
     sync_action,
 )
 from .maintenance import CALIBRATION_TASKS, MaintenanceStore, probe_sub_id
+from .probe_entities import ato_port_entity_port
 from .reefbeat import (
     ReefATOAPI,
     ReefBeatAPI,
@@ -3616,7 +3618,11 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
 
     # -- Calibration reminders follow the hub --------------------------------
     async def _async_update_data(self) -> dict[str, Any]:
-        """Fetch, then date the calibration reminders from the hub."""
+        """Fetch, then date the calibration reminders from the hub.
+
+        Also follows the ATO module: its entities go when its port is
+        uninstalled (see ``_track_ato_module``).
+        """
         data = await super()._async_update_data()
         try:
             await self._sync_calibration_maintenance()
@@ -3624,6 +3630,10 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
             _LOGGER.debug(
                 "%s: calibration reminder sync failed", self._title, exc_info=True
             )
+        try:
+            self._track_ato_module()
+        except Exception:  # never let this break a refresh
+            _LOGGER.debug("%s: ATO module tracking failed", self._title, exc_info=True)
         return data
 
     async def _sync_calibration_maintenance(self) -> None:
@@ -3789,7 +3799,9 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         """
         api = cast(ReefControlAPI, self.my_api)
         await api.delete_port(number)
-        # The API already reset the port in the cache (optimistic)
+        # The API already reset the port in the cache (optimistic): an ATO
+        # module on it is gone, and its entities with it
+        self._track_ato_module()
         self.async_update_listeners()
 
         for other in range(self.port_count):
@@ -3882,6 +3894,180 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
         """Leave setup mode (device switches to auto) and refresh."""
         await cast(ReefControlAPI, self.my_api).setup_finish()
         await self.async_request_refresh()
+
+    # -- ATO module (Red Sea ATO kit on a 12V port) ------------------------
+    def ato_port_number(self) -> int | None:
+        """0-based port the ATO module is on, None without one."""
+        return self.my_api.ato_port_number()
+
+    def ato_is_port(self, number: int) -> bool:
+        """Whether the ATO module is on this port."""
+        return self.ato_port_number() == number
+
+    def ato_config(self) -> dict[str, Any] | None:
+        """The module's cached ``/ato/configuration``."""
+        return self.my_api.ato_config()
+
+    def ato_config_value(self, *keys: str) -> Any:
+        """A field of ``/ato/configuration`` (nested keys), None when absent."""
+        value: Any = self.ato_config()
+        for key in keys:
+            if not isinstance(value, dict):
+                return None
+            value = cast(dict[str, Any], value).get(key)
+        return value
+
+    def ato_port_value(self, number: int, field: str) -> Any:
+        """A field of the ATO module's ``/dashboard`` port entry.
+
+        None when the port does not hold the module, so its entities show
+        unknown rather than another port's value.
+        """
+        if not self.ato_is_port(number):
+            return None
+        entry = self.my_api.dashboard_port(number) or {}
+        return entry.get(field)
+
+    def ato_status(self, number: int) -> str | None:
+        """``ok`` or the fault the ATO module's port reports (its mode)."""
+        mode = self.ato_port_value(number, "mode")
+        if mode is None:
+            return None
+        return mode if mode in ReefControlAPI.ATO_FAULT_MODES else "ok"
+
+    def ato_probes(self) -> list[dict[str, str]]:
+        """ATO probes of the hub, as ``{uid, name}`` (for the install form)."""
+        return [
+            {"uid": p["uid"], "name": p["name"]}
+            for p in self.list_probes()
+            if p.get("type") == "ato"
+        ]
+
+    def ato_free_ports(self) -> list[int]:
+        """Ports the ATO module can be installed on: those not installed."""
+        return [n for n in range(self.port_count) if not self.port_is_installed(n)]
+
+    async def async_install_ato_port(
+        self,
+        number: int,
+        uid: str,
+        volume_ml: float,
+        hose_length_cm: float,
+        hose_height_cm: float,
+        *,
+        auto_fill: bool = True,
+        volume_monitor: bool = True,
+    ) -> bool:
+        """Install the ATO module on a port; True when the hub accepted it."""
+        result = await self.my_api.install_ato_port(
+            number,
+            uid,
+            volume_ml,
+            hose_length_cm,
+            hose_height_cm,
+            auto_fill=auto_fill,
+            volume_monitor=volume_monitor,
+            port_count=self.port_count,
+        )
+        ok = bool(result and result.get("ok"))
+        if ok:
+            # The caller reloads the entry: no second reload from tracking
+            self._ato_port_seen = self.ato_port_number()
+        self.async_update_listeners()
+        await self.async_request_refresh(config=True)
+        return ok
+
+    # Port the ATO module was last seen on (None: no module); unset until
+    # the hub's ports were first read.
+    _ato_port_seen: int | None
+    _ATO_UNSEEN = -1
+
+    def purge_ato_entities(self, keep_port: int | None = None) -> int:
+        """Remove the ATO module's entities of every port but ``keep_port``.
+
+        Removing a registry entry removes the live entity with it, so the
+        module's entities go at once, without a reload. Returns how many
+        were removed.
+        """
+        registry = er.async_get(self._hass)
+        prefix = f"{self.serial}_"
+        removed = 0
+        for ent in list(
+            er.async_entries_for_config_entry(registry, self._entry.entry_id)
+        ):
+            if not ent.unique_id.startswith(prefix):
+                continue
+            port = ato_port_entity_port(ent.unique_id[len(prefix) :])
+            if port is not None and port != keep_port:
+                _LOGGER.info("Removing ATO module entity %s", ent.entity_id)
+                registry.async_remove(ent.entity_id)
+                removed += 1
+        return removed
+
+    def _track_ato_module(self) -> None:
+        """Follow the ATO module across ports, whoever installs or removes it.
+
+        Its port uninstalled (from Home Assistant, the card or the ReefBeat
+        app), the module's entities are removed. A module appearing is set
+        up by a reload, its entities being built at setup. Nothing happens
+        until the hub's ports are known, so a failed read never purges.
+        """
+        ports = self.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.ports", is_None_possible=True
+        )
+        if not isinstance(ports, list):
+            return
+        current = self.ato_port_number()
+        previous = getattr(self, "_ato_port_seen", self._ATO_UNSEEN)
+        self._ato_port_seen = current
+        if previous == self._ATO_UNSEEN or previous == current:
+            return
+        if previous is not None:
+            self.purge_ato_entities(keep_port=current)
+        if current is not None:
+            self._hass.config_entries.async_schedule_reload(self._entry.entry_id)
+
+    async def _after_ato_write(self) -> None:
+        # The API already mirrored the write in the cache (optimistic)
+        self.async_update_listeners()
+        await self.async_request_refresh()
+
+    async def async_set_ato_config(self, fields: dict[str, Any]) -> None:
+        """Change settings of the ATO module and refresh."""
+        await self.my_api.set_ato_config(fields)
+        await self._after_ato_write()
+
+    async def async_set_ato_hose(
+        self, length_cm: float | None = None, height_cm: float | None = None
+    ) -> None:
+        """Set the ATO hose length or height (cm) and refresh."""
+        await self.my_api.set_ato_hose(length_cm, height_cm)
+        await self._after_ato_write()
+
+    async def async_set_ato_flow_rate(self, liters_per_minute: float) -> None:
+        """Override the ATO pump flow rate (L/min, 0 = default) and refresh."""
+        await self.my_api.set_ato_flow_rate(liters_per_minute * 1000)
+        await self._after_ato_write()
+
+    async def async_update_ato_volume(self, volume_ml: float) -> None:
+        """Set the volume left in the ATO reservoir and refresh."""
+        await self.my_api.update_ato_volume(volume_ml)
+        await self._after_ato_write()
+
+    async def async_ato_resume(self) -> None:
+        """Clear a fault of the ATO module and refresh."""
+        await self.my_api.ato_resume()
+        await self._after_ato_write()
+
+    async def async_ato_manual_pump(self) -> None:
+        """Start a manual ATO fill and refresh."""
+        await self.my_api.ato_manual_pump()
+        await self._after_ato_write()
+
+    async def async_ato_stop(self) -> None:
+        """Stop the ATO pump and refresh."""
+        await self.my_api.ato_stop()
+        await self._after_ato_write()
 
     def set_connected_device(self, device: dict[str, Any] | None) -> None:
         """Set the hub's cached pairing and show it (optimistic update)."""

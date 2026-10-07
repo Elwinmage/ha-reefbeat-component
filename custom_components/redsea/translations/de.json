@@ -143,6 +143,12 @@
       },
       "temperature_coherent": {
         "name": "Temperaturkohärenz"
+      },
+      "port_ato_pump_on": {
+        "name": "Port {port} ATO-Pumpe"
+      },
+      "port_ato_fault": {
+        "name": "Port {port} ATO-Störung"
       }
     },
     "button": {
@@ -373,6 +379,15 @@
       },
       "unpair_control": {
         "name": "Steuerungs-Hub entkoppeln"
+      },
+      "port_ato_resume": {
+        "name": "Port {port} ATO fortsetzen"
+      },
+      "port_ato_manual_pump": {
+        "name": "Port {port} ATO manuell füllen"
+      },
+      "port_ato_stop": {
+        "name": "Port {port} ATO stoppen"
       }
     },
     "light": {
@@ -614,6 +629,17 @@
       },
       "staggered_delay": {
         "name": "Verzögerung des versetzten Sonnenaufgangs"
+      "port_ato_volume_left_set": {
+        "name": "Port {port} ATO-Restvolumen im Behälter"
+      },
+      "port_ato_hose_length": {
+        "name": "Port {port} ATO-Schlauchlänge"
+      },
+      "port_ato_hose_height": {
+        "name": "Port {port} ATO-Schlauchhöhe"
+      },
+      "port_ato_flow_rate": {
+        "name": "Port {port} ATO-Durchfluss"
       }
     },
     "select": {
@@ -1444,6 +1470,32 @@
       },
       "linked_waves": {
         "name": "Verknüpfte ReefWaves"
+      "port_ato_status": {
+        "name": "Port {port} ATO-Status",
+        "state": {
+          "ok": "OK",
+          "port_malfunction": "Portstörung",
+          "stalled": "Pumpe blockiert",
+          "empty": "Vorratsbehälter leer",
+          "missing_pump": "Pumpe fehlt",
+          "timeout": "Füllzeit überschritten",
+          "leak": "Leck"
+        }
+      },
+      "port_ato_today_volume": {
+        "name": "Port {port} ATO-Volumen heute"
+      },
+      "port_ato_volume_left": {
+        "name": "Port {port} ATO-Restvolumen"
+      },
+      "port_ato_last_pump_on_cause": {
+        "name": "Port {port} ATO-Ursache der letzten Füllung",
+        "state": {
+          "none": "Keine",
+          "manual": "Manuell",
+          "ec_sensor_s1": "Füllstandsensor 1",
+          "ec_sensor_s2": "Füllstandsensor 2"
+        }
       }
     },
     "switch": {
@@ -1635,6 +1687,17 @@
       },
       "wave_grouped": {
         "name": "Mit dem Aquarium gruppiert"
+      "port_ato_auto_fill": {
+        "name": "Port {port} ATO automatisch nachfüllen"
+      },
+      "port_ato_volume_monitor": {
+        "name": "Port {port} ATO-Behälterüberwachung"
+      },
+      "port_ato_notify": {
+        "name": "Port {port} ATO-Benachrichtigungen"
+      },
+      "port_ato_temp_log": {
+        "name": "Port {port} ATO-Temperaturprotokoll"
       }
     },
     "text": {
@@ -1711,7 +1774,9 @@
       "wifi_change_failed_reset": "Das Gerät konnte nach dem Senden der neuen WLAN-Zugangsdaten nicht neu gestartet werden.",
       "wifi_change_failed_rediscover": "Das Gerät wurde neu gestartet, konnte aber im Netzwerk nicht gefunden werden. Prüfen Sie, ob es {ssid} beigetreten ist, und konfigurieren Sie die IP bei Bedarf manuell neu.",
       "wifi_change_failed_unknown": "Unerwarteter Fehler beim Ändern des WLAN-Netzwerks.",
-      "no_probes": "Dieser Hub hat keine Sonden zum Entfernen."
+      "no_probes": "Dieser Hub hat keine Sonden zum Entfernen.",
+      "no_ato_probe": "Dieser Hub hat keine ATO-Sonde: fügen Sie zuerst eine hinzu.",
+      "no_free_port": "Dieser Hub hat keinen freien 12V-Port für das ATO-Modul."
     },
     "error": {
       "auth_failed": "Authentifizierung fehlgeschlagen, Anmeldedaten prüfen",
@@ -1723,6 +1788,7 @@
       "no_probe_detected": "Keine neue Sonde des gewählten Typs erkannt. In den Kopplungsmodus versetzen und erneut versuchen.",
       "group_min_members": "Wählen Sie mindestens zwei LEDs.",
       "group_duplicate_position": "Jede LED muss genau eine Position haben."
+      "ato_install_failed": "Der Hub hat die Installation des ATO-Moduls abgelehnt. Prüfen Sie, ob der Port frei und die ATO-Sonde angeschlossen ist."
     },
     "progress": {
       "applying": "Die neuen WLAN-Zugangsdaten werden gesendet und das Gerät im Netzwerk gesucht..."
@@ -1740,7 +1806,8 @@
           "wifi_scan": "WLAN-Netzwerk ändern",
           "add_probe": "Sonde hinzufügen",
           "del_probe": "Sonde entfernen",
-          "change_probe": "Sonde ersetzen"
+          "change_probe": "Sonde ersetzen",
+          "install_ato": "ATO-Modul installieren"
         },
         "title": "Konfiguration"
       },
@@ -1820,6 +1887,17 @@
           "position_8": "Position 8",
           "position_9": "Position 9",
           "position_10": "Position 10"
+      "install_ato": {
+        "title": "ATO-Modul installieren",
+        "description": "Installiert das Red Sea ATO-Kit an einem 12V-Port. Fügen Sie zuerst die ATO-Sonde hinzu (Sonde hinzufügen). Der Schlauch führt von der Pumpe zum Becken; die Höhe ist, wie weit er über die Pumpe steigt.",
+        "data": {
+          "ato_port": "12V-Port",
+          "ato_probe": "ATO-Sonde",
+          "ato_volume": "Behältervolumen (L)",
+          "ato_hose_length": "Schlauchlänge (cm)",
+          "ato_hose_height": "Schlauchhöhe (cm)",
+          "ato_auto_fill": "Automatisch nachfüllen",
+          "ato_volume_monitor": "Behälterüberwachung"
         }
       }
     }

@@ -143,6 +143,12 @@
       },
       "temperature_coherent": {
         "name": "Coerenza temperatura"
+      },
+      "port_ato_pump_on": {
+        "name": "Porta {port} pompa ATO"
+      },
+      "port_ato_fault": {
+        "name": "Porta {port} guasto ATO"
       }
     },
     "button": {
@@ -373,6 +379,15 @@
       },
       "unpair_control": {
         "name": "Disaccoppia hub di controllo"
+      },
+      "port_ato_resume": {
+        "name": "Porta {port} riprendi ATO"
+      },
+      "port_ato_manual_pump": {
+        "name": "Porta {port} rabbocco manuale"
+      },
+      "port_ato_stop": {
+        "name": "Porta {port} ferma ATO"
       }
     },
     "light": {
@@ -614,6 +629,17 @@
       },
       "staggered_delay": {
         "name": "Ritardo dell'alba sfalsata"
+      "port_ato_volume_left_set": {
+        "name": "Porta {port} volume residuo del serbatoio"
+      },
+      "port_ato_hose_length": {
+        "name": "Porta {port} lunghezza tubo ATO"
+      },
+      "port_ato_hose_height": {
+        "name": "Porta {port} altezza tubo ATO"
+      },
+      "port_ato_flow_rate": {
+        "name": "Porta {port} portata ATO"
       }
     },
     "select": {
@@ -1444,6 +1470,32 @@
       },
       "linked_waves": {
         "name": "ReefWave collegate"
+      "port_ato_status": {
+        "name": "Porta {port} stato ATO",
+        "state": {
+          "ok": "OK",
+          "port_malfunction": "Guasto della porta",
+          "stalled": "Pompa bloccata",
+          "empty": "Serbatoio vuoto",
+          "missing_pump": "Pompa assente",
+          "timeout": "Tempo di rabbocco superato",
+          "leak": "Perdita"
+        }
+      },
+      "port_ato_today_volume": {
+        "name": "Porta {port} volume ATO di oggi"
+      },
+      "port_ato_volume_left": {
+        "name": "Porta {port} volume ATO residuo"
+      },
+      "port_ato_last_pump_on_cause": {
+        "name": "Porta {port} causa dell'ultimo rabbocco",
+        "state": {
+          "none": "Nessuna",
+          "manual": "Manuale",
+          "ec_sensor_s1": "Sensore di livello 1",
+          "ec_sensor_s2": "Sensore di livello 2"
+        }
       }
     },
     "switch": {
@@ -1635,6 +1687,17 @@
       },
       "wave_grouped": {
         "name": "Raggruppata con l'acquario"
+      "port_ato_auto_fill": {
+        "name": "Porta {port} rabbocco automatico"
+      },
+      "port_ato_volume_monitor": {
+        "name": "Porta {port} monitoraggio serbatoio"
+      },
+      "port_ato_notify": {
+        "name": "Porta {port} notifiche ATO"
+      },
+      "port_ato_temp_log": {
+        "name": "Porta {port} registro temperatura ATO"
       }
     },
     "text": {
@@ -1711,7 +1774,9 @@
       "wifi_change_failed_reset": "Impossibile riavviare il dispositivo dopo l'invio delle nuove credenziali Wi-Fi.",
       "wifi_change_failed_rediscover": "Il dispositivo si è riavviato ma non è stato trovato sulla rete. Verificare che abbia raggiunto {ssid} e riconfigurare l'IP manualmente se necessario.",
       "wifi_change_failed_unknown": "Errore imprevisto durante il cambio di rete Wi-Fi.",
-      "no_probes": "Questo hub non ha sonde da rimuovere."
+      "no_probes": "Questo hub non ha sonde da rimuovere.",
+      "no_ato_probe": "Questo hub non ha una sonda ATO: aggiungine prima una.",
+      "no_free_port": "Questo hub non ha una porta 12V libera per il modulo ATO."
     },
     "error": {
       "auth_failed": "Autenticazione fallita, verifica le credenziali",
@@ -1723,6 +1788,7 @@
       "no_probe_detected": "Nessuna nuova sonda del tipo selezionato rilevata. Mettila in abbinamento e riprova.",
       "group_min_members": "Scegli almeno due LED.",
       "group_duplicate_position": "Ogni LED deve avere una sola posizione."
+      "ato_install_failed": "L'hub ha rifiutato di installare il modulo ATO. Verifica che la porta sia libera e la sonda ATO collegata."
     },
     "progress": {
       "applying": "Applicazione delle nuove credenziali Wi-Fi e ricerca del dispositivo sulla rete..."
@@ -1740,7 +1806,8 @@
           "wifi_scan": "Cambia rete Wi-Fi",
           "add_probe": "Aggiungi sonda",
           "del_probe": "Rimuovi sonda",
-          "change_probe": "Sostituisci una sonda"
+          "change_probe": "Sostituisci una sonda",
+          "install_ato": "Installa il modulo ATO"
         },
         "title": "Configurazione"
       },
@@ -1820,6 +1887,17 @@
           "position_8": "Posizione 8",
           "position_9": "Posizione 9",
           "position_10": "Posizione 10"
+      "install_ato": {
+        "title": "Installa il modulo ATO",
+        "description": "Installa il kit ATO Red Sea su una porta 12V. Aggiungi prima la sua sonda ATO (Aggiungi una sonda). Il tubo va dalla pompa alla vasca; l'altezza è quanto sale sopra la pompa.",
+        "data": {
+          "ato_port": "Porta 12V",
+          "ato_probe": "Sonda ATO",
+          "ato_volume": "Volume del serbatoio (L)",
+          "ato_hose_length": "Lunghezza del tubo (cm)",
+          "ato_hose_height": "Altezza del tubo (cm)",
+          "ato_auto_fill": "Rabbocco automatico",
+          "ato_volume_monitor": "Monitoraggio serbatoio"
         }
       }
     }

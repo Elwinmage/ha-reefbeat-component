@@ -46,7 +46,6 @@ repos:
         language: system
         types: [json]
 
-
       - id: hassfest
         name: hassfest
         # On appelle directement le fichier python par son chemin dans le conteneur
