@@ -628,6 +628,7 @@
       },
       "staggered_delay": {
         "name": "Délai du lever de soleil décalé"
+      },
       "port_ato_volume_left_set": {
         "name": "Port {port} volume restant du réservoir"
       },
@@ -1470,6 +1471,7 @@
       },
       "linked_waves": {
         "name": "ReefWave liées"
+      },
       "port_ato_status": {
         "name": "Port {port} état osmolateur",
         "state": {
@@ -1687,6 +1689,7 @@
       },
       "wave_grouped": {
         "name": "Groupée avec l'aquarium"
+      },
       "port_ato_auto_fill": {
         "name": "Port {port} remplissage automatique"
       },
@@ -1787,7 +1790,7 @@
       "wifi_manual_not_found": "Équipement introuvable sur ce sous-réseau. Essayez un autre CIDR, ou laissez le champ vide pour abandonner.",
       "no_probe_detected": "Aucune nouvelle sonde du type sélectionné n'a été détectée. Mettez-la en appairage et réessayez.",
       "group_min_members": "Choisissez au moins deux LED.",
-      "group_duplicate_position": "Chaque LED doit avoir une seule position."
+      "group_duplicate_position": "Chaque LED doit avoir une seule position.",
       "ato_install_failed": "Le hub a refusé d'installer le module osmolateur. Vérifiez que le port est libre et la sonde ATO branchée."
     },
     "progress": {
@@ -1887,6 +1890,8 @@
           "position_8": "Position 8",
           "position_9": "Position 9",
           "position_10": "Position 10"
+        }
+      },
       "install_ato": {
         "title": "Installer le module osmolateur",
         "description": "Installe le kit osmolateur Red Sea sur un port 12V. Ajoutez d'abord sa sonde ATO (Ajouter une sonde). Le tuyau va de la pompe au bac ; la hauteur est celle dont il monte au-dessus de la pompe.",

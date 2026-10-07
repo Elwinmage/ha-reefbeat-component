@@ -629,6 +629,7 @@
       },
       "staggered_delay": {
         "name": "Vertraging verschoven zonsopgang"
+      },
       "port_ato_volume_left_set": {
         "name": "Poort {port} ATO-restvolume reservoir"
       },
@@ -1478,6 +1479,7 @@
       },
       "linked_waves": {
         "name": "Gekoppelde ReefWaves"
+      },
       "port_ato_status": {
         "name": "Poort {port} ATO-status",
         "state": {
@@ -1695,6 +1697,7 @@
       },
       "wave_grouped": {
         "name": "Gegroepeerd met het aquarium"
+      },
       "port_ato_auto_fill": {
         "name": "Poort {port} ATO automatisch bijvullen"
       },
@@ -1795,7 +1798,7 @@
       "wifi_manual_not_found": "Apparaat niet gevonden op dat subnet. Probeer een andere CIDR of laat het veld leeg om op te geven.",
       "no_probe_detected": "Geen nieuwe sonde van het gekozen type gedetecteerd. Zet hem in koppelmodus en probeer opnieuw.",
       "group_min_members": "Kies minstens twee LED's.",
-      "group_duplicate_position": "Elke LED moet precies één positie krijgen."
+      "group_duplicate_position": "Elke LED moet precies één positie krijgen.",
       "ato_install_failed": "De hub weigerde de ATO-module te installeren. Controleer of de poort vrij is en de ATO-sonde aangesloten."
     },
     "progress": {
@@ -1895,6 +1898,8 @@
           "position_8": "Positie 8",
           "position_9": "Positie 9",
           "position_10": "Positie 10"
+        }
+      },
       "install_ato": {
         "title": "ATO-module installeren",
         "description": "Installeert de Red Sea ATO-kit op een 12V-poort. Voeg eerst de ATO-sonde toe (Een sonde toevoegen). De slang loopt van de pomp naar de bak; de hoogte is hoeveel hij boven de pomp stijgt.",

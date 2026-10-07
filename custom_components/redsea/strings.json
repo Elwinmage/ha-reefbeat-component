@@ -629,6 +629,7 @@
       },
       "staggered_delay": {
         "name": "Staggered sunrise delay"
+      },
       "port_ato_volume_left_set": {
         "name": "Port {port} ATO reservoir volume left"
       },
@@ -1478,6 +1479,7 @@
       },
       "linked_waves": {
         "name": "Linked ReefWaves"
+      },
       "port_ato_status": {
         "name": "Port {port} ATO status",
         "state": {
@@ -1695,6 +1697,7 @@
       },
       "wave_grouped": {
         "name": "Grouped with the aquarium"
+      },
       "port_ato_auto_fill": {
         "name": "Port {port} ATO auto fill"
       },
@@ -1795,7 +1798,7 @@
       "wifi_manual_not_found": "The device could not be found on that subnet. Try another CIDR, or leave the field empty to give up.",
       "no_probe_detected": "No new probe of the selected type was detected. Put it in pairing mode and try again.",
       "group_min_members": "Choose at least two LEDs.",
-      "group_duplicate_position": "Each LED must be given one position."
+      "group_duplicate_position": "Each LED must be given one position.",
       "ato_install_failed": "The hub refused to install the ATO module. Check that the port is free and the ATO probe connected."
     },
     "progress": {
@@ -1895,6 +1898,8 @@
           "position_8": "Position 8",
           "position_9": "Position 9",
           "position_10": "Position 10"
+        }
+      },
       "install_ato": {
         "title": "Install the ATO module",
         "description": "Installs the Red Sea ATO kit on a 12V port. Add its ATO probe first (Add a probe). The hose goes from the pump to the tank; the height is how far above the pump it rises.",

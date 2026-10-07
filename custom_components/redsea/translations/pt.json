@@ -629,6 +629,7 @@
       },
       "staggered_delay": {
         "name": "Atraso do nascer do sol escalonado"
+      },
       "port_ato_volume_left_set": {
         "name": "Porta {port} volume restante do reservatório"
       },
@@ -1470,6 +1471,7 @@
       },
       "linked_waves": {
         "name": "ReefWave ligadas"
+      },
       "port_ato_status": {
         "name": "Porta {port} estado do ATO",
         "state": {
@@ -1687,6 +1689,7 @@
       },
       "wave_grouped": {
         "name": "Agrupada com o aquário"
+      },
       "port_ato_auto_fill": {
         "name": "Porta {port} enchimento automático"
       },
@@ -1787,7 +1790,7 @@
       "wifi_manual_not_found": "Equipamento não encontrado nessa sub-rede. Tenta outro CIDR ou deixa o campo vazio para desistir.",
       "no_probe_detected": "Nenhuma sonda nova do tipo selecionado foi detetada. Coloque-a em emparelhamento e tente novamente.",
       "group_min_members": "Escolha pelo menos dois LEDs.",
-      "group_duplicate_position": "Cada LED deve ter uma única posição."
+      "group_duplicate_position": "Cada LED deve ter uma única posição.",
       "ato_install_failed": "O hub recusou instalar o módulo ATO. Verifique se a porta está livre e a sonda ATO ligada."
     },
     "progress": {
@@ -1887,6 +1890,8 @@
           "position_8": "Posição 8",
           "position_9": "Posição 9",
           "position_10": "Posição 10"
+        }
+      },
       "install_ato": {
         "title": "Instalar o módulo ATO",
         "description": "Instala o kit ATO Red Sea numa porta de 12V. Adicione primeiro a sua sonda ATO (Adicionar uma sonda). O tubo vai da bomba ao aquário; a altura é quanto sobe acima da bomba.",

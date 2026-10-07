@@ -629,6 +629,7 @@
       },
       "staggered_delay": {
         "name": "Opóźnienie przesuniętego wschodu słońca"
+      },
       "port_ato_volume_left_set": {
         "name": "Port {port} pozostała objętość zbiornika"
       },
@@ -1470,6 +1471,7 @@
       },
       "linked_waves": {
         "name": "Połączone ReefWave"
+      },
       "port_ato_status": {
         "name": "Port {port} stan ATO",
         "state": {
@@ -1687,6 +1689,7 @@
       },
       "wave_grouped": {
         "name": "Zgrupowana z akwarium"
+      },
       "port_ato_auto_fill": {
         "name": "Port {port} automatyczna dolewka"
       },
@@ -1787,7 +1790,7 @@
       "wifi_manual_not_found": "Nie znaleziono urządzenia w tej podsieci. Spróbuj innego CIDR lub zostaw pole puste, aby zrezygnować.",
       "no_probe_detected": "Nie wykryto nowej sondy wybranego typu. Przełącz ją w tryb parowania i spróbuj ponownie.",
       "group_min_members": "Wybierz co najmniej dwa LED-y.",
-      "group_duplicate_position": "Każdy LED musi mieć dokładnie jedną pozycję."
+      "group_duplicate_position": "Każdy LED musi mieć dokładnie jedną pozycję.",
       "ato_install_failed": "Hub odmówił instalacji modułu ATO. Sprawdź, czy port jest wolny, a sonda ATO podłączona."
     },
     "progress": {
@@ -1887,6 +1890,8 @@
           "position_8": "Pozycja 8",
           "position_9": "Pozycja 9",
           "position_10": "Pozycja 10"
+        }
+      },
       "install_ato": {
         "title": "Zainstaluj moduł ATO",
         "description": "Instaluje zestaw ATO Red Sea na porcie 12V. Najpierw dodaj jego sondę ATO (Dodaj sondę). Wąż biegnie od pompy do akwarium; wysokość to, jak wysoko wznosi się nad pompą.",

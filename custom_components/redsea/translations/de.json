@@ -629,6 +629,7 @@
       },
       "staggered_delay": {
         "name": "Verzögerung des versetzten Sonnenaufgangs"
+      },
       "port_ato_volume_left_set": {
         "name": "Port {port} ATO-Restvolumen im Behälter"
       },
@@ -1470,6 +1471,7 @@
       },
       "linked_waves": {
         "name": "Verknüpfte ReefWaves"
+      },
       "port_ato_status": {
         "name": "Port {port} ATO-Status",
         "state": {
@@ -1687,6 +1689,7 @@
       },
       "wave_grouped": {
         "name": "Mit dem Aquarium gruppiert"
+      },
       "port_ato_auto_fill": {
         "name": "Port {port} ATO automatisch nachfüllen"
       },
@@ -1787,7 +1790,7 @@
       "wifi_manual_not_found": "Gerät auf diesem Subnetz nicht gefunden. Versuchen Sie einen anderen CIDR oder lassen Sie das Feld leer, um aufzugeben.",
       "no_probe_detected": "Keine neue Sonde des gewählten Typs erkannt. In den Kopplungsmodus versetzen und erneut versuchen.",
       "group_min_members": "Wählen Sie mindestens zwei LEDs.",
-      "group_duplicate_position": "Jede LED muss genau eine Position haben."
+      "group_duplicate_position": "Jede LED muss genau eine Position haben.",
       "ato_install_failed": "Der Hub hat die Installation des ATO-Moduls abgelehnt. Prüfen Sie, ob der Port frei und die ATO-Sonde angeschlossen ist."
     },
     "progress": {
@@ -1887,6 +1890,8 @@
           "position_8": "Position 8",
           "position_9": "Position 9",
           "position_10": "Position 10"
+        }
+      },
       "install_ato": {
         "title": "ATO-Modul installieren",
         "description": "Installiert das Red Sea ATO-Kit an einem 12V-Port. Fügen Sie zuerst die ATO-Sonde hinzu (Sonde hinzufügen). Der Schlauch führt von der Pumpe zum Becken; die Höhe ist, wie weit er über die Pumpe steigt.",

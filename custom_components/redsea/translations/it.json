@@ -629,6 +629,7 @@
       },
       "staggered_delay": {
         "name": "Ritardo dell'alba sfalsata"
+      },
       "port_ato_volume_left_set": {
         "name": "Porta {port} volume residuo del serbatoio"
       },
@@ -1470,6 +1471,7 @@
       },
       "linked_waves": {
         "name": "ReefWave collegate"
+      },
       "port_ato_status": {
         "name": "Porta {port} stato ATO",
         "state": {
@@ -1687,6 +1689,7 @@
       },
       "wave_grouped": {
         "name": "Raggruppata con l'acquario"
+      },
       "port_ato_auto_fill": {
         "name": "Porta {port} rabbocco automatico"
       },
@@ -1787,7 +1790,7 @@
       "wifi_manual_not_found": "Dispositivo non trovato su questa sottorete. Prova un altro CIDR oppure lascia il campo vuoto per rinunciare.",
       "no_probe_detected": "Nessuna nuova sonda del tipo selezionato rilevata. Mettila in abbinamento e riprova.",
       "group_min_members": "Scegli almeno due LED.",
-      "group_duplicate_position": "Ogni LED deve avere una sola posizione."
+      "group_duplicate_position": "Ogni LED deve avere una sola posizione.",
       "ato_install_failed": "L'hub ha rifiutato di installare il modulo ATO. Verifica che la porta sia libera e la sonda ATO collegata."
     },
     "progress": {
@@ -1887,6 +1890,8 @@
           "position_8": "Posizione 8",
           "position_9": "Posizione 9",
           "position_10": "Posizione 10"
+        }
+      },
       "install_ato": {
         "title": "Installa il modulo ATO",
         "description": "Installa il kit ATO Red Sea su una porta 12V. Aggiungi prima la sua sonda ATO (Aggiungi una sonda). Il tubo va dalla pompa alla vasca; l'altezza è quanto sale sopra la pompa.",
