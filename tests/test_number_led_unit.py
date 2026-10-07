@@ -113,3 +113,26 @@ async def test_led_post_specific_none_uses_post_push(hass: Any) -> None:
 
     await ent.async_set_native_value(1)
     assert led.pushed and led.pushed[-1][0][1] == "post"
+
+
+@pytest.mark.asyncio
+async def test_led_own_value_shown_on_the_lamps_of_its_group(hass: Any) -> None:
+    """A lamp's own value (its sunrise offset) is listed by every lamp of its
+    group: they are all shown again."""
+    led = FakeCoordinator(hass=hass)
+    told: list[int] = []
+    group = type("G", (), {"_notify_members": lambda _self: told.append(1)})()
+    led.led_group = lambda: group  # type: ignore[attr-defined]
+    desc = ReefLedNumberEntityDescription(
+        key="sunrise_offset",
+        translation_key="sunrise_offset",
+        value_name="$.offset",
+        native_min_value=0,
+        native_max_value=60,
+        native_step=1,
+    )
+    ent = ReefLedNumberEntity(cast(Any, led), desc)
+    ent.hass = hass
+    ent.async_write_ha_state = lambda: None  # type: ignore[assignment]
+    await ent.async_set_native_value(10)
+    assert told == [1]

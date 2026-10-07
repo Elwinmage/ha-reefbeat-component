@@ -1618,11 +1618,16 @@ class ReefLedNumberEntity(ReefBeatNumberEntity):
             expect = getattr(self._device, "expect_settings", None)
             if callable(expect):
                 expect(source, True)
+        group = getattr(self._device, "led_group", None)
+        owner: Any = group() if callable(group) else None
         if source not in LED_SETTINGS_SOURCES:
             await self._device.async_request_refresh()
+            if owner is not None:
+                # The lamps of its group list its value (the sunrise offset
+                # of a staggered sunrise): shown again on each of them
+                owner._notify_members()
             return
-        group = getattr(self._device, "led_group", None)
-        target: Any = (group() if callable(group) else None) or self._device
+        target: Any = owner or self._device
         await target.async_request_refresh(source=source)
 
 
