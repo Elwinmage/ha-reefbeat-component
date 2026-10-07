@@ -23,6 +23,30 @@ To help us with translation, follow this [guide](https://github.com/Elwinmage/ha
 # Overview
 ***HomeAssistant RedSea Reefbeat devices Local Management (no cloud): ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun and ReefWave***
 
+<!-- generated:demo-videos:start -->
+
+## 🎬 Demo videos
+
+<table>
+<tr>
+<td><a href="https://www.youtube.com/watch?v=Qee5LH0T9wQ"><img src="https://img.youtube.com/vi/Qee5LH0T9wQ/0.jpg" alt="ReefDose demo" width="300"/></a><br/><em>ReefDose demo</em></td>
+<td><a href="https://www.youtube.com/watch?v=yyNyUSitb1E"><img src="https://img.youtube.com/vi/yyNyUSitb1E/0.jpg" alt="ReefMat demo" width="300"/></a><br/><em>ReefMat demo</em></td>
+</tr>
+<tr>
+<td><a href="https://www.youtube.com/watch?v=Xxv38OPqiGI"><img src="https://img.youtube.com/vi/Xxv38OPqiGI/0.jpg" alt="ReefRun demo" width="300"/></a><br/><em>ReefRun demo</em></td>
+<td><a href="https://www.youtube.com/watch?v=2R0DHp2eqT4"><img src="https://img.youtube.com/vi/2R0DHp2eqT4/0.jpg" alt="ReefATO+ demo" width="300"/></a><br/><em>ReefATO+ demo</em></td>
+</tr>
+<tr>
+<td><a href="https://www.youtube.com/watch?v=voFobfc7Slk"><img src="https://img.youtube.com/vi/voFobfc7Slk/0.jpg" alt="ReefControl & ReefControl-Power demo" width="300"/></a><br/><em>ReefControl & ReefControl-Power demo</em></td>
+<td><a href="https://www.youtube.com/watch?v=pA49z8QjTN4"><img src="https://img.youtube.com/vi/pA49z8QjTN4/0.jpg" alt="ReefLed demo" width="300"/></a><br/><em>ReefLed demo</em></td>
+</tr>
+<tr>
+<td><a href="https://www.youtube.com/watch?v=sYVeE0zV3eo"><img src="https://img.youtube.com/vi/sYVeE0zV3eo/0.jpg" alt="ReefWave demo" width="300"/></a><br/><em>ReefWave demo</em></td>
+</tr>
+</table>
+
+<!-- generated:demo-videos:end -->
+
 <!-- ecosystem:start -->
 
 ## Related projects
