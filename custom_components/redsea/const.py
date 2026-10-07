@@ -347,7 +347,7 @@ LED_OFFSET_SOURCE: Final[str] = "/offset"
 LED_OFFSET_INTERNAL_NAME: Final[JsonPath] = (
     "$.sources[?(@.name=='/offset')].data.offset"
 )
-LED_OFFSET_MAX: Final[int] = 240  # minutes
+LED_OFFSET_MAX: Final[int] = 120  # minutes
 STAGGERED_DELAY_MIN: Final[int] = 1
 STAGGERED_DELAY_MAX: Final[int] = 15
 STAGGERED_DELAY_DEFAULT: Final[int] = 10

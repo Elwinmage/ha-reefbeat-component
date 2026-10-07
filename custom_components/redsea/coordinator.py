@@ -66,6 +66,8 @@ from .const import (
     HW_RUN_IDS,
     HW_WAVE_IDS,
     LED_BLUE_INTERNAL_NAME,
+    LED_G2_KI_PATH,
+    LED_KI_KEYS,
     LED_MODE_INTERNAL_NAME,
     LED_MODES,
     LED_OFFSET_INTERNAL_NAME,
@@ -891,11 +893,36 @@ class ReefLedCoordinator(ReefBeatCloudLinkedCoordinator):
         return True
 
 
+def g2_kelvin(kelvin: Any) -> int:
+    """A colour temperature a G2 takes: 200 K steps under 10000 K, 500 K above.
+
+    A value set from a G1 of its group (100 K steps, as the slider moves)
+    is put on the G2's own scale.
+    """
+    k = max(8000, min(23000, round(float(kelvin))))
+    step = 200 if k < 10000 else 500
+    return int(round(k / step) * step)
+
+
 class ReefLedG2Coordinator(ReefLedCoordinator):
     """Coordinator for ReefLED G2 devices (uses G2 write semantics)."""
 
     def _set_data_local(self, name: str, value: Any) -> None:
-        """Write directly via API without G1-derived field updates."""
+        """Write directly via API without G1-derived field updates.
+
+        Its colour and intensity set by its group (from a G1 or the group
+        itself) are always written: put on the G2's scale, and added to its
+        manual levels when the lamp did not report them.
+        """
+        if in_group_dispatch():
+            key = name.rpartition(".")[2]
+            if name == f"{LED_G2_KI_PATH}.{key}" and key in LED_KI_KEYS:
+                if key == "kelvin":
+                    value = g2_kelvin(value)
+                manual = self.my_api.get_data(LED_G2_KI_PATH, True)
+                if isinstance(manual, dict) and key not in manual:
+                    manual[key] = value
+                    return
         self.my_api.set_data(name, value)
 
 
@@ -1554,7 +1581,9 @@ class ReefVirtualLedCoordinator(ReefLedCoordinator):
 
     def set_data(self, name: str, value: Any) -> None:
         """Broadcast set data to all linked LEDs (resolving G1/G2 path when provided)."""
-        names = name.split(" ")
+        # A colour or intensity given as a G1 or G2 path: set on each lamp
+        # at its own path
+        names = (led_group_path(name, True) or name).split(" ")
         with group_dispatch():
             for led in self._targets():
                 _LOGGER.debug("Setting DATA for virtual led %s", names)

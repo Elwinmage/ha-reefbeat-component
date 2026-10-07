@@ -733,6 +733,52 @@ async def test_group_applies_a_member_write_to_every_member(
     assert api2.sets[-1] == ("$.local.manual_trick.kelvin", 9000)
 
 
+async def test_mixed_group_kelvin_reaches_the_g2(hass: HomeAssistant) -> None:
+    """Colour and intensity set on a G1 reach the G2 of its group."""
+    g1 = _member(hass, "LED1")
+    g2 = _member(hass, "LED2", hw_model="RSLED60", g2=True)
+    _group(hass, [g1, g2])
+    api1, api2 = cast(_RecApi, g1.my_api), cast(_RecApi, g2.my_api)
+    g2_path = "$.sources[?(@.name=='/manual')].data"
+    manual: dict[str, Any] = {"moon": 0}
+    api2.values[g2_path] = manual
+
+    # Not reported by the G2: added to its manual levels, on its scale
+    g1.set_data("$.local.manual_trick.kelvin", 15100)
+    g1.set_data("$.local.manual_trick.intensity", 60)
+    assert api1.sets[-2:] == [
+        ("$.local.manual_trick.kelvin", 15100),
+        ("$.local.manual_trick.intensity", 60),
+    ]
+    assert manual == {"moon": 0, "kelvin": 15000, "intensity": 60}
+    assert api2.sets == []
+
+    # Reported: written, 200 K steps under 10000 K
+    manual["kelvin"] = 15000
+    g1.set_data("$.local.manual_trick.kelvin", 9850)
+    assert api2.sets == [(g2_path + ".kelvin", 9800)]
+    # Bounded to the G2's range
+    g1.set_data("$.local.manual_trick.kelvin", 30000)
+    assert api2.sets[-1] == (g2_path + ".kelvin", 23000)
+
+    # The G2's other values, or a G2 written on its own: as given
+    with coord.group_dispatch():
+        g2.set_data(g2_path + ".moon", 5)
+    api2.values[g2_path] = None
+    with coord.group_dispatch():
+        g2.set_data(g2_path + ".kelvin", 9850)
+    assert api2.sets[-2:] == [(g2_path + ".moon", 5), (g2_path + ".kelvin", 9800)]
+    g2._set_data_local(g2_path + ".kelvin", 15100)
+    assert api2.sets[-1] == (g2_path + ".kelvin", 15100)
+
+
+def test_g2_kelvin_scale() -> None:
+    assert coord.g2_kelvin(9850) == 9800
+    assert coord.g2_kelvin(10100) == 10000
+    assert coord.g2_kelvin(15300) == 15500
+    assert coord.g2_kelvin(5000) == 8000
+
+
 async def test_group_refuses_a_write_when_a_member_is_missing(
     hass: HomeAssistant,
 ) -> None:
@@ -1466,3 +1512,49 @@ async def test_settings_turned_off_and_shown_on_the_whole_group(
     # Written on the group itself
     vled.expect_settings("/acclimation", True)
     assert [a.expected[-1] for a in apis] == [("/acclimation", True)] * 2
+
+
+async def test_group_colour_light_reaches_g1_and_g2(hass: HomeAssistant) -> None:
+    """The group's colour light, moved alone, is posted to each of its lamps."""
+    from custom_components.redsea.light import VIRTUAL_LIGHTS, ReefLedLightEntity
+    from custom_components.redsea.reefbeat.led import ReefLedAPI
+
+    sent: dict[str, list[Any]] = {}
+
+    def _lamp(title: str, hw: str, g2: bool) -> Any:
+        led = _member(hass, title, hw_model=hw, g2=g2)
+        api = ReefLedAPI("192.0.2.20", False, cast(Any, object()), hw)
+        manual = {"white": 10, "blue": 20, "moon": 0}
+        if g2:
+            manual |= {"kelvin": 12000, "intensity": 30}
+        else:
+            api.data["local"]["manual_trick"] = {"kelvin": 12000, "intensity": 30}
+        api.add_source("/manual", "data", manual)
+        sent[title] = []
+
+        async def _send(_url: str, payload: Any, _method: str) -> Any:
+            sent[title].append(dict(payload))
+            return {"ok": True}
+
+        api._http_send = _send  # type: ignore[method-assign]
+        led.my_api = api
+        return led
+
+    g1 = _lamp("LED1", "RSLED160", False)
+    g2 = _lamp("LED2", "RSLED115", True)
+    vled = _group(hass, [g1, g2])
+    vled.async_request_refresh = _noop  # type: ignore[method-assign]
+    light = ReefLedLightEntity(vled, VIRTUAL_LIGHTS[0])
+    light.hass = hass
+    light.async_write_ha_state = lambda: None  # type: ignore[method-assign]
+
+    await light.async_turn_on(color_temp_kelvin=15000)
+    assert sent["LED2"][-1] == {"kelvin": 15000, "intensity": 30, "moon": 0}
+    # Set through the G1 path only (an older group light): each lamp at its
+    # own path all the same
+    vled.set_data("$.local.manual_trick.intensity", 50)
+    await vled.push_values("/manual", "post")
+    assert sent["LED2"][-1] == {"kelvin": 15000, "intensity": 50, "moon": 0}
+    await light.async_turn_on(brightness=200)
+    assert sent["LED2"][-1] == {"kelvin": 15000, "intensity": 78, "moon": 0}
+    assert len(sent["LED1"]) == 3

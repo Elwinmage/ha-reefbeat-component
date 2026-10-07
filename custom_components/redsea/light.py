@@ -145,7 +145,26 @@ async def async_setup_entry(
     device = hass.data[DOMAIN][config_entry.entry_id]
     entities: list[LightEntity] = []
 
-    if isinstance(device, ReefLedG2Coordinator):
+    # A group first: it is a ReefLedCoordinator too, whose G1 lights would
+    # drive its lamps through the G1 paths only
+    if isinstance(device, ReefVirtualLedCoordinator):
+        entities.extend(
+            ReefLedLightEntity(device, description)
+            for description in VIRTUAL_LIGHTS
+            if description.exists_fn(device)
+        )
+        if device.only_g1:
+            _LOGGER.info(
+                "G1 protocol activated for %s. White and Blue lights can be set.",
+                device.title,
+            )
+            entities.extend(
+                ReefLedLightEntity(device, description)
+                for description in LIGHTS
+                if description.exists_fn(device)
+            )
+
+    elif isinstance(device, ReefLedG2Coordinator):
         entities.extend(
             ReefLedLightEntity(device, description)
             for description in COMMON_LIGHTS
@@ -174,23 +193,6 @@ async def async_setup_entry(
             for description in COMMON_LIGHTS
             if description.exists_fn(device)
         )
-
-    elif isinstance(device, ReefVirtualLedCoordinator):
-        entities.extend(
-            ReefLedLightEntity(device, description)
-            for description in VIRTUAL_LIGHTS
-            if description.exists_fn(device)
-        )
-        if device.only_g1:
-            _LOGGER.info(
-                "G1 protocol activated for %s. White and Blue lights can be set.",
-                device.title,
-            )
-            entities.extend(
-                ReefLedLightEntity(device, description)
-                for description in LIGHTS
-                if description.exists_fn(device)
-            )
 
     async_add_entities(entities, update_before_add=True)
 
@@ -327,6 +329,15 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
 
         self._attr_is_on = (self._attr_brightness or 0) > 0
 
+    def _ki_level(self, value_name: str, key: str) -> Any:
+        """A level (kelvin or intensity) of the colour light, None if unknown.
+
+        Read from the whole {kelvin, intensity} payload: a group's is the
+        average of its lamps ("g1_path g2_path" path), not a value path.
+        """
+        data = self._device.get_data(value_name, True)
+        return data.get(key) if isinstance(data, dict) else None
+
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the light on."""
         _LOGGER.debug("ReefLED async_turn_on kwargs=%s", kwargs)
@@ -358,12 +369,13 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
             self._attr_color_temp_kelvin = kelvin
             self._device.set_data(value_name + ".kelvin", self._attr_color_temp_kelvin)
 
+        level: Any = None
         if ATTR_BRIGHTNESS in kwargs:
             ha_value = int(kwargs[ATTR_BRIGHTNESS])
         else:
             # The level is kept: the lamp's (in %), as a brightness (0-255)
             if self.entity_description.key == "kelvin_intensity":
-                level = self._device.get_data(value_name + ".intensity", True)
+                level = self._ki_level(value_name, "intensity")
             else:
                 level = self._device.get_data(value_name, True)
             ha_value = round(float(level or 0) / LED_CONVERSION_COEF)
@@ -372,11 +384,19 @@ class ReefLedLightEntity(ReefBeatRestoreEntity, LightEntity):  # type: ignore[re
         self._attr_is_on = True
 
         if self.entity_description.key == "kelvin_intensity":
-            if ATTR_BRIGHTNESS in kwargs:
+            # The intensity is written even when only the colour changes
+            # (when known): the lamps of a group then all take this lamp's
+            # levels
+            if ATTR_BRIGHTNESS in kwargs or level is not None:
                 self._device.set_data(
                     value_name + ".intensity",
                     round(ha_value * LED_CONVERSION_COEF),
                 )
+            if ATTR_COLOR_TEMP_KELVIN not in kwargs:
+                # Likewise its colour when only the intensity changes
+                kelvin = self._ki_level(value_name, "kelvin")
+                if kelvin is not None:
+                    self._device.set_data(value_name + ".kelvin", int(kelvin))
             self.hass.bus.fire(EVENT_KELVIN_LIGHT_UPDATED, {})
         else:
             self._device.set_data(value_name, round(ha_value * LED_CONVERSION_COEF))
