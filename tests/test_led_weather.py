@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import date, time
 from types import SimpleNamespace
 from typing import Any
@@ -397,6 +398,107 @@ def _week_payload(dates: list[date]) -> dict[str, Any]:
         hourly["shortwave_radiation"] += RADIATION
         hourly["cloud_cover"] += COVER
     return {"timezone": "Pacific/Fiji", "daily": daily, "hourly": hourly}
+
+
+def test_build_day_takes_the_colours_of_the_group() -> None:
+    """A lamp of a group takes the group's colours, not its own."""
+    s = W.WeatherSettings()
+    # A G2 takes the colours of the program given (the first lamp's)
+    program, _c, _s = W.build_day(
+        _weather(), G2_PROGRAM, s, True, colours={"color": {**G2_PROGRAM["color"]}}
+    )
+    own, _c, _s = W.build_day(_weather(), G2_PROGRAM, s, True)
+    assert program["color"]["points"] == own["color"]["points"]
+    # ... or those of kelvin_of (a group holding a G2)
+    program, _c, _s = W.build_day(
+        _weather(), G2_PROGRAM, s, True, kelvin_of=lambda _share: 20000
+    )
+    assert {p["k1"] for p in program["color"]["points"]} == {20000}
+    # A G1: its white/blue from kelvin_of, through its own table
+    program, _c, _s = W.build_day(
+        _weather(),
+        G1_PROGRAM,
+        s,
+        False,
+        lambda k: (1.0, 0.5) if k == 20000 else (0.0, 0.0),
+        kelvin_of=lambda _share: 20000,
+    )
+    w = [p["i"] for p in program["white"]["points"]]
+    b = [p["i"] for p in program["blue"]["points"]]
+    assert all(bb == round(ww * 0.5) or abs(bb - ww / 2) <= 1 for ww, bb in zip(w, b))
+    # A G1 of a group of G1 only: the white/blue of the colours given
+    blue_only = {
+        "white": {"rise": 600, "set": 1200, "points": [{"t": 120, "i": 0}]},
+        "blue": {"rise": 600, "set": 1200, "points": [{"t": 120, "i": 100}]},
+    }
+    program, _c, _s = W.build_day(_weather(), G1_PROGRAM, s, False, colours=blue_only)
+    assert {p["i"] for p in program["white"]["points"]} == {0}
+
+
+def test_group_kelvin() -> None:
+    """The colour of a group: its first lamp's."""
+    # A G2 first: its own colour temperatures
+    g2 = _Led(False, {})
+    assert W.group_kelvin(g2, G2_PROGRAM)(0.0) == W.kelvin_at(G2_PROGRAM, 0.0)
+    assert W.group_kelvin(g2, None)(0.5) == W.DEFAULT_KELVIN
+    # A G1 first: its white/blue balance through its own table
+    g1 = _Led(True, {})
+    seen: list[tuple[float, float]] = []
+
+    def convert(white: float, blue: float) -> dict[str, Any]:
+        seen.append((white, blue))
+        return {"kelvin": 18000.4}
+
+    g1.my_api.white_and_blue_to_kelvin = convert  # type: ignore[attr-defined]
+    assert W.group_kelvin(g1, G1_PROGRAM)(0.5) == 18000
+    assert seen == [(50.0, 100.0)]
+    # Without a table: the default colour
+    assert W.group_kelvin(_Led(True, {}), G1_PROGRAM)(0.5) == W.DEFAULT_KELVIN
+
+
+@pytest.mark.asyncio
+async def test_a_group_shares_the_colours_of_its_first_lamp(
+    hass: HomeAssistant,
+) -> None:
+    store = W.WeatherStore(hass, "group")
+    await store.async_set("location", "-17.7, 178.0")
+    today = date(2026, 9, 29)
+    dates = W.week_dates("next_week", today)
+
+    async def fetch(_url: str, _params: dict[str, str]) -> Any:
+        return _week_payload(dates)
+
+    # A G1 first, a G2 with colours of its own: the G2 takes the G1's
+    g1 = _Led(True, {3: {**G1_PROGRAM}})
+    g1.my_api.white_and_blue_to_kelvin = (  # type: ignore[attr-defined]
+        lambda _w, _b: {"kelvin": 20000}
+    )
+    g2 = _Led(False, {3: {**G2_PROGRAM}})
+    result: dict[str, Any] = {}
+    writes = await W.generate_week(hass, _Device(g1, g2), store, fetch, today, result)
+    g2_plans = {w: p for w, p, _c in writes[1][1]}
+    assert {p["k1"] for p in g2_plans[3]["color"]["points"]} == {20000}
+    # ... and its moon, at the same place after the sunset
+    g1_plans = {w: p for w, p, _c in writes[0][1]}
+    assert g2_plans[3]["moon"] == g1_plans[3]["moon"]
+    assert g2_plans[3]["moon"]["points"] == G1_PROGRAM["moon"]["points"]
+    # ... and its moon, at the same place after the sunset
+    g1_plans = {w: p for w, p, _c in writes[0][1]}
+    assert g2_plans[3]["moon"] == g1_plans[3]["moon"]
+    assert g2_plans[3]["moon"]["points"] == G1_PROGRAM["moon"]["points"]
+
+    # Only G1: the second takes the first's white/blue
+    blue_only = {
+        "white": {"rise": 600, "set": 1200, "points": [{"t": 120, "i": 0}]},
+        "blue": {"rise": 600, "set": 1200, "points": [{"t": 120, "i": 100}]},
+    }
+    first = _Led(True, {3: blue_only})
+    second = _Led(True, {3: {**G1_PROGRAM}})
+    writes = await W.generate_week(
+        hass, _Device(first, second), store, fetch, today, {}
+    )
+    second_plans = {w: p for w, p, _c in writes[1][1]}
+    assert {p["i"] for p in second_plans[3]["white"]["points"]} == {0}
 
 
 @pytest.mark.asyncio
@@ -1016,6 +1118,164 @@ async def test_preview_with_the_settings_being_edited(hass: HomeAssistant) -> No
     wrong = await W.preview_weather(hass, device, fetch, {"anchor": "noon"})
     assert wrong["status"] == "error" and "anchor" in wrong["error"]
     assert wrong["settings"]["anchor"] == "place"
+
+
+def test_group_week_converts_the_first_lamps_week() -> None:
+    """The week of a group's first lamp, in the format of each lamp."""
+    g1 = _Led(True, {})
+    g1.my_api.white_and_blue_to_kelvin = (  # type: ignore[attr-defined]
+        lambda _w, _b: {"kelvin": 18000}
+    )
+    g2 = _Led(False, {})
+    g1_week = {
+        "3": {
+            "auto": W.device_program({**G1_PROGRAM}, 3, None, False),
+            "clouds": {
+                "from": 2 * 1440 + 700,
+                "to": 2 * 1440 + 800,
+                "intensity": "Low",
+                "cloud_duration": 3,
+                "no_cloud_duration": 7,
+            },
+            "name": "Perso-1745049718480",
+        },
+        # A day without program: left out
+        "4": {"auto": None, "clouds": None, "name": None},
+    }
+    # Same generation: the week as it is
+    assert W.group_week(g1_week, g1, _Led(True, {})) is g1_week
+
+    # A G1's week for a G2: one intensity (the brighter channel) and colour
+    as_g2 = W.group_week(g1_week, g1, g2)
+    assert list(as_g2) == ["3"]
+    day = as_g2["3"]
+    color = day["auto"]["color"]
+    assert color["rise"] == 600 + 2 * 1440 and color["set"] == 1200 + 2 * 1440
+    assert color["points"] == [
+        {"t": 120, "i1": 100, "i2": 100, "k1": 18000, "k2": 18000}
+    ]
+    assert day["auto"]["moon"]["rise"] == G1_PROGRAM["moon"]["rise"] + 2 * 1440
+    assert day["clouds"] == g1_week["3"]["clouds"]
+    assert day["name"] == "Perso"  # a G2's bare name
+
+    # A G2's week for a G1: white and blue by the G1's own table
+    g1.my_api.kelvin_to_white_and_blue = (  # type: ignore[attr-defined]
+        lambda k, _i: (
+            {"white": 100, "blue": 50} if k == 14000 else {"white": 0, "blue": 100}
+        )
+    )
+    g2_week = {
+        "3": {
+            "auto": {
+                **W.device_program({**G2_PROGRAM}, 3, None, True),
+                "clouds": {"from": 3600, "to": 3700, "intensity": "Medium"},
+            },
+            "clouds": None,
+            "name": "Perso",
+        }
+    }
+    day = W.group_week(g2_week, g2, g1)["3"]
+    assert day["auto"]["white"]["points"] == [
+        {"t": 60, "i": 60},
+        {"t": 660, "i": 0},
+    ]
+    assert day["auto"]["blue"]["points"] == [
+        {"t": 60, "i": 30},
+        {"t": 660, "i": 50},
+    ]
+    assert day["auto"]["white"]["rise"] == 540 + 2 * 1440
+    assert "clouds" not in day["auto"]
+    # Its clouds apart, with the durations of their level
+    assert day["clouds"] == {
+        "from": 3600,
+        "to": 3700,
+        "intensity": "Medium",
+        "cloud_duration": 4,
+        "no_cloud_duration": 6,
+    }
+    assert re.fullmatch(r"Perso-\d{13}", day["name"])
+
+    # Odd data: points without time or level, no window, no clouds, no name
+    odd = {
+        "3": {
+            "auto": {
+                "color": {
+                    "rise": 2 * 1440 + 540,
+                    "set": 2 * 1440 + 1260,
+                    "points": [{"i1": 50}, "x", {"t": 30}],
+                }
+            },
+            "clouds": None,
+            "name": None,
+        }
+    }
+    day = W.group_week(odd, g2, g1)["3"]
+    assert day["auto"]["white"]["points"] == [{"t": 30, "i": 0}]
+    assert day["clouds"] is None and day["name"] is None
+    dark = {"3": {"auto": {"moon": {"rise": 100, "set": 200}}, "clouds": None}}
+    assert W.group_week(dark, g1, g2)["3"]["auto"] == {
+        "moon": {"rise": 100 + 2 * 1440, "set": 200 + 2 * 1440}
+    }
+    assert W.group_week(dark, g2, g1)["3"]["auto"] == {
+        "moon": {"rise": 100 + 2 * 1440, "set": 200 + 2 * 1440}
+    }
+    assert W._cloud_durations({"intensity": "Odd"}) == {"intensity": "Odd"}
+    # A G1 point past its sunset: left out
+    late = {
+        "white": {
+            "rise": 600,
+            "set": 700,
+            "points": [{"t": 50, "i": 40}, {"t": 200, "i": 9}],
+        },
+    }
+    week = {"3": {"auto": W.device_program(late, 3, None, False), "clouds": None}}
+    points = W.group_week(week, g1, g2)["3"]["auto"]["color"]["points"]
+    assert [p["t"] for p in points] == [50]
+
+
+@pytest.mark.asyncio
+async def test_a_group_gets_its_first_lamps_week_back(hass: HomeAssistant) -> None:
+    """Leaving the weather mode: every lamp of a group gets the first
+    lamp's week (its lamps share their programs), a lamp alone its own."""
+    g1 = _Led(True, {})
+    g1.serial = "g1"  # type: ignore[attr-defined]
+    g1.my_api.white_and_blue_to_kelvin = (  # type: ignore[attr-defined]
+        lambda _w, _b: {"kelvin": 18000}
+    )
+    g2 = _Led(False, {})
+    g2.serial = "g2"  # type: ignore[attr-defined]
+    backup = {
+        "g1": {
+            "3": {
+                "auto": W.device_program({**G1_PROGRAM}, 3, None, False),
+                "clouds": None,
+                "name": "Perso-1745049718480",
+            }
+        },
+        # The G2's own week, other: not written back
+        "g2": {
+            "3": {
+                "auto": W.device_program({**G2_PROGRAM}, 3, None, True),
+                "clouds": None,
+                "name": "Other",
+            }
+        },
+    }
+    monkey = W.WRITE_DELAY_S
+    W.WRITE_DELAY_S = 0
+    try:
+        await W._restore_all(_Device(g1, g2), backup)
+        sent = {p: body for p, body, _ in g2.my_api.sent}
+        assert sent["/preset_name/3"] == {"name": "Perso"}
+        assert {p["k1"] for p in sent["/auto/3"]["color"]["points"]} == {18000}
+        # Without the first lamp's week: each lamp its own
+        g2.my_api.sent.clear()
+        await W._restore_all(_Device(g1, g2), {"g2": backup["g2"]})
+        sent = {p: body for p, body, _ in g2.my_api.sent}
+        assert sent["/preset_name/3"] == {"name": "Other"}
+        await W._restore_all(_Device(), {})  # no lamp: nothing
+    finally:
+        W.WRITE_DELAY_S = monkey
 
 
 @pytest.mark.asyncio

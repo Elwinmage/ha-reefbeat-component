@@ -678,14 +678,23 @@ def build_day(
     settings: WeatherSettings,
     g2: bool,
     to_white_blue: Callable[[int], tuple[float, float]] | None = None,
+    colours: dict[str, Any] | None = None,
+    kelvin_of: Callable[[float], int] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any]]:
     """Program of a day from its weather, in the lamp's format.
 
     @param current: the lamp's program of that weekday on the day's own
-                    timeline (its colours and its moon are kept), or None
+                    timeline, or None
     @param to_white_blue: white and blue shares of a colour temperature on
                     this lamp (G1), used by a colour chosen by the user
-                    (settings.colors) in place of the program's
+                    (settings.colors), or by kelvin_of, in place of the
+                    program's
+    @param colours: program whose colours (when the user chose none) and
+                    moon the day takes: the first lamp's, shared by its
+                    group; the lamp's own (current) by default
+    @param kelvin_of: colour temperature at a moment of the day (0..1), for
+                    a group holding a G2: every lamp then takes the same
+                    colours, a G1 through to_white_blue
     @return the program (day timeline: white/blue/moon or color/moon), the
             clouds (or None) and a summary of the day
     """
@@ -705,25 +714,30 @@ def build_day(
         levels.append((round(share * span), level, share))
 
     profile = settings.colors.get(str(weather.day.isoweekday()))
+    source = colours if isinstance(colours, dict) else current
     program: dict[str, Any] = {}
     if g2:
         points: list[dict[str, int]] = []
         for t, level, share in levels:
-            kelvin = (
-                profile_kelvin(profile, share) if profile else kelvin_at(current, share)
-            )
+            if profile:
+                kelvin = profile_kelvin(profile, share)
+            elif kelvin_of is not None:
+                kelvin = kelvin_of(share)
+            else:
+                kelvin = kelvin_at(source, share)
             points.append(
                 {"t": t, "i1": level, "i2": level, "k1": kelvin, "k2": kelvin}
             )
         program["color"] = {"rise": rise, "set": set_, "points": points}
-        old_window = _window(current.get("color"))
     else:
         if profile and to_white_blue is not None:
             balance = [
                 to_white_blue(profile_kelvin(profile, share)) for _, _, share in levels
             ]
+        elif kelvin_of is not None and to_white_blue is not None:
+            balance = [to_white_blue(kelvin_of(share)) for _, _, share in levels]
         else:
-            balance = [white_blue_balance(current, share) for _, _, share in levels]
+            balance = [white_blue_balance(source, share) for _, _, share in levels]
         for key, n in (("white", 0), ("blue", 1)):
             program[key] = {
                 "rise": rise,
@@ -733,10 +747,11 @@ def build_day(
                     for k, (t, level, _) in enumerate(levels)
                 ],
             }
-        old_window = _window(current.get("white"), current.get("blue"))
 
-    # The moon keeps its place after the sunset
-    moon = current.get("moon")
+    # The moon of the colours' program (shared by a group), at its place
+    # after the sunset
+    old_window = _window(source.get("color"), source.get("white"), source.get("blue"))
+    moon = source.get("moon")
     if isinstance(moon, dict) and "rise" in moon and "set" in moon:
         shift = set_ - (old_window[1] if old_window else set_)
         program["moon"] = {
@@ -1037,6 +1052,114 @@ async def restore_lamp(
     await _send_days(led, days, progress)
 
 
+def _g2_of_g1(program: dict[str, Any], first: Any) -> dict[str, Any]:
+    """A G1 program (day timeline) as a G2 one: one intensity, the brighter
+    of white and blue, at the colour the first lamp's table gives them."""
+    out: dict[str, Any] = {}
+    window = _window(program.get("white"), program.get("blue"))
+    if window is not None:
+        rise, set_ = window
+        kelvin = group_kelvin(first, program)
+        moments = sorted(
+            {
+                float(ch["rise"]) + float(p["t"])
+                for key in ("white", "blue")
+                if isinstance(ch := program.get(key), dict)
+                for p in ch.get("points") or []
+                if isinstance(p, dict) and "t" in p
+            }
+        )
+        points: list[dict[str, int]] = []
+        for m in moments:
+            if not rise < m < set_:
+                continue
+            level = round(
+                max(
+                    channel_value(program.get("white"), m),
+                    channel_value(program.get("blue"), m),
+                )
+            )
+            k = kelvin((m - rise) / (set_ - rise))
+            points.append(
+                {"t": round(m - rise), "i1": level, "i2": level, "k1": k, "k2": k}
+            )
+        out["color"] = {"rise": round(rise), "set": round(set_), "points": points}
+    if isinstance(program.get("moon"), dict):
+        out["moon"] = program["moon"]
+    return out
+
+
+def _g1_of_g2(
+    program: dict[str, Any], to_white_blue: Callable[[int], tuple[float, float]]
+) -> dict[str, Any]:
+    """A G2 program (day timeline) as a G1 one: each point's intensity
+    shared between white and blue by the lamp's own table."""
+    out: dict[str, Any] = {}
+    color = program.get("color")
+    if isinstance(color, dict) and "rise" in color and "set" in color:
+        white: list[dict[str, Any]] = []
+        blue: list[dict[str, Any]] = []
+        for p in color.get("points") or []:
+            if not isinstance(p, dict) or "t" not in p:
+                continue
+            level = float(p.get("i1", p.get("i", 0)) or 0)
+            share_w, share_b = to_white_blue(
+                int(p.get("k1", p.get("k", DEFAULT_KELVIN)) or DEFAULT_KELVIN)
+            )
+            white.append({"t": p["t"], "i": round(level * share_w)})
+            blue.append({"t": p["t"], "i": round(level * share_b)})
+        for key, points in (("white", white), ("blue", blue)):
+            out[key] = {"rise": color["rise"], "set": color["set"], "points": points}
+    if isinstance(program.get("moon"), dict):
+        out["moon"] = program["moon"]
+    return out
+
+
+def _cloud_durations(clouds: dict[str, Any]) -> dict[str, Any]:
+    """G1 clouds (POST /clouds/<day>): with the durations of their level."""
+    for _limit, name, cloud, clear in CLOUD_LEVELS:
+        if name == clouds.get("intensity"):
+            return {**clouds, "cloud_duration": cloud, "no_cloud_duration": clear}
+    return dict(clouds)
+
+
+def group_week(week: dict[str, Any], first: Any, led: Any) -> dict[str, Any]:
+    """The week of a group's first lamp, for one of its lamps: as it is for a
+    lamp of the same generation, else converted (program, clouds, name as
+    the app names them: a G1's with a stamp, a G2's bare)."""
+    if bool(first.is_g1) == bool(led.is_g1):
+        return week
+    stamp = int(time.time() * 1000)
+    out: dict[str, Any] = {}
+    for weekday, day in week.items():
+        auto = day.get("auto")
+        if not isinstance(auto, dict):
+            continue
+        wd = int(weekday)
+        program = normalize_program(auto, wd) or {}
+        label = program_label(day.get("name")) or None
+        if led.is_g1:
+            converted = _g1_of_g2(program, white_blue_of(led))
+            clouds = auto.get("clouds")
+            out[weekday] = {
+                "auto": device_program(converted, wd, None, False),
+                "clouds": (
+                    _cloud_durations(clouds)
+                    if isinstance(clouds, dict) and _is_clouds(clouds)
+                    else None
+                ),
+                "name": f"{label}-{stamp}" if label else None,
+            }
+        else:
+            converted = _g2_of_g1(program, first)
+            out[weekday] = {
+                "auto": device_program(converted, wd, None, True),
+                "clouds": day.get("clouds"),
+                "name": label,
+            }
+    return out
+
+
 async def generate_week(
     hass: HomeAssistant,
     device: Any,
@@ -1072,24 +1195,53 @@ async def generate_week(
     )
     summaries: list[dict[str, Any]] = []
     writes: list[tuple[Any, list[Any], bool]] = []
-    for led in device.weather_targets():
+    # The colours of a group are its first lamp's, for all its lamps: in
+    # kelvin when it holds a G2, else (only G1) in white/blue
+    targets = device.weather_targets()
+    first = targets[0]
+    mixed = any(not led.is_g1 for led in targets)
+    for led in targets:
         g2 = not led.is_g1
         plans = []
         for weather in days:
             weekday = weather.day.isoweekday()
+            colours = standard_program(store, first, weekday)
             program, clouds, summary = build_day(
                 weather,
                 standard_program(store, led, weekday),
                 settings,
                 g2,
                 None if g2 else white_blue_of(led),
+                colours=colours,
+                kelvin_of=group_kelvin(first, colours) if mixed else None,
             )
             plans.append((weekday, program, clouds))
-            if led is device.weather_targets()[0]:
+            if led is first:
                 summaries.append(summary)
         writes.append((led, plans, g2))
     result.update({"status": "ok", "days": summaries})
     return writes
+
+
+def group_kelvin(first: Any, colours: dict[str, Any] | None) -> Callable[[float], int]:
+    """Colour temperature of a group at a moment of the day (0..1): its
+    first lamp's, read from its program (a G1's white/blue through its own
+    conversion table)."""
+    program = colours if isinstance(colours, dict) else {}
+    if not first.is_g1:
+        return lambda share: kelvin_at(program, share)
+
+    def convert(share: float) -> int:
+        white, blue = white_blue_balance(program, share)
+        try:
+            kelvin = first.my_api.white_and_blue_to_kelvin(white * 100, blue * 100)[
+                "kelvin"
+            ]
+            return round(float(kelvin))
+        except Exception:  # no table: the default colour
+            return DEFAULT_KELVIN
+
+    return convert
 
 
 def white_blue_of(led: Any) -> Callable[[int], tuple[float, float]]:
@@ -1351,12 +1503,23 @@ async def save_weather(
 async def _restore_all(
     device: Any, backup: dict[str, Any], store: WeatherStore | None = None
 ) -> None:
-    """Write each lamp's own week back (see restore_lamp), the progress
-    shown by the store when given."""
+    """Write the week kept aside back (see restore_lamp), the progress
+    shown by the store when given. A group gets its first lamp's week, each
+    lamp in its own format (see group_week): its lamps share their
+    programs; a lamp alone gets its own."""
+    targets = list(device.weather_targets())
+    source = backup.get(lamp_key(targets[0])) if targets else None
     weeks = [
         (led, week)
-        for led in device.weather_targets()
-        if isinstance(week := backup.get(lamp_key(led)), dict)
+        for led in targets
+        if isinstance(
+            week := (
+                group_week(source, targets[0], led)
+                if isinstance(source, dict)
+                else backup.get(lamp_key(led))
+            ),
+            dict,
+        )
     ]
     progress = _progress(store, sum(len(week) for _, week in weeks)) if store else None
     try:
