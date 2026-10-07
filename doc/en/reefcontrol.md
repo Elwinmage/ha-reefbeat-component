@@ -2,7 +2,7 @@
 
 # ReefControl:
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_devices.png" alt="Image">
+<img src="../img/rscontrol_devices.png" alt="Image">
 </p>
 
 The ReefControl hub (RSCONTROLPRO / RSCONTROLLITE) reads the ReefSense probes plugged into its extension boxes, drives its 12V DC ports (2 on the Pro, 1 on the Lite) and, once paired, the sockets of a [ReefControl-Power](reefcontrol-power.md#reefcontrol-power).
@@ -19,10 +19,10 @@ The ReefControl hub (RSCONTROLPRO / RSCONTROLLITE) reads the ReefSense probes pl
 - Writes are shown at once (optimistic update), then confirmed by reading the device back.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
+<img src="../img/rscontrol_sensors.png" alt="Image">
+<img src="../img/rscontrol_ctrl.png" alt="Image">
+<img src="../img/rscontrol_conf.png" alt="Image">
+<img src="../img/rscontrol_diag.png" alt="Image">
 </p>
 
 > [!TIP]
@@ -32,7 +32,7 @@ The ReefControl hub (RSCONTROLPRO / RSCONTROLLITE) reads the ReefSense probes pl
 BLE probes (pH, ORP, EC, ATO, leak, temperature) are managed from the integration's **Options** menu, mirroring the Red Sea app:
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_probe_management.png" alt="Image">
+<img src="../img/rscontrol_probe_management.png" alt="Image">
 </p>
 
 - **Add a probe**: put the probe in pairing mode, pick its type, then confirm to scan. The probe is set up the way the app does it: a leak probe, for example, is named `Leak <uid>` with its buzzer, leak detector and notifications on.

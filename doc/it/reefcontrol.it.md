@@ -2,7 +2,7 @@
 
 # ReefControl:
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_devices.png" alt="Image">
+<img src="../img/rscontrol_devices.png" alt="Image">
 </p>
 
 L'hub ReefControl (RSCONTROLPRO / RSCONTROLLITE) legge le sonde ReefSense collegate ai suoi box di estensione, gestisce le sue porte 12V DC (2 sul Pro, 1 sul Lite) e, una volta accoppiato, le prese di un [ReefControl-Power](reefcontrol-power.it.md#reefcontrol-power).
@@ -19,10 +19,10 @@ L'hub ReefControl (RSCONTROLPRO / RSCONTROLLITE) legge le sonde ReefSense colleg
 - Le scritture vengono mostrate subito (aggiornamento ottimistico), poi confermate rileggendo il dispositivo.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
+<img src="../img/rscontrol_sensors.png" alt="Image">
+<img src="../img/rscontrol_ctrl.png" alt="Image">
+<img src="../img/rscontrol_conf.png" alt="Image">
+<img src="../img/rscontrol_diag.png" alt="Image">
 </p>
 
 > [!TIP]
@@ -32,7 +32,7 @@ L'hub ReefControl (RSCONTROLPRO / RSCONTROLLITE) legge le sonde ReefSense colleg
 Le sonde BLE (pH, ORP, EC, ATO, perdita, temperatura) si gestiscono dal menu **Opzioni** dell'integrazione, come nell'app Red Sea:
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_probe_management.png" alt="Image">
+<img src="../img/rscontrol_probe_management.png" alt="Image">
 </p>
 
 - **Aggiungere una sonda**: mettete la sonda in modalità di accoppiamento, sceglietene il tipo e confermate per avviare la ricerca. La sonda viene configurata come fa l'app: una sonda di perdita, ad esempio, si chiama `Leak <uid>` con buzzer, rilevatore di perdite e notifiche attivi.

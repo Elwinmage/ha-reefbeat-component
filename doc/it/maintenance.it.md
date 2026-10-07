@@ -71,7 +71,7 @@ con un pulsante per segnare l'attività come eseguita, una campanella per
 silenziarla e un cursore in linea per cambiarne l'intervallo.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/maintenance_task.png" alt="Attività di manutenzione in ha-reef-card">
+<img src="../img/maintenance_task.png" alt="Attività di manutenzione in ha-reef-card">
 </p>
 
 ## Notifiche: il blueprint degli avvisi

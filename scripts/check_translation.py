@@ -301,6 +301,71 @@ if os.path.exists(maintenance_file):
     keys_in_code = sorted(set(keys_in_code))
 ## End maintenance patch
 
+# ---------------------------------------------------------------------------
+# ReefLED weather program (entities built in led_weather_entities.py)
+# ---------------------------------------------------------------------------
+# The weather entities of every platform are made by weather_entities(), from
+# a `builders` dict: {"<platform>": lambda: [WeatherX(device, "<key>", ...)]}.
+# Their translation_key is that second argument (set as
+# `_attr_translation_key` at runtime), and a select's options are the list
+# constant given after it (PERIODS, ANCHORS in led_weather.py).
+weather_file = os.path.join(base_path, "led_weather_entities.py")
+weather_consts_file = os.path.join(base_path, "led_weather.py")
+if os.path.exists(weather_file):
+    consts: dict[str, object] = {}
+    if os.path.exists(weather_consts_file):
+        with open(weather_consts_file) as f:
+            for stmt in ast.parse(f.read()).body:
+                if not (isinstance(stmt, ast.Assign) and len(stmt.targets) == 1):
+                    continue
+                target = stmt.targets[0]
+                if not isinstance(target, ast.Name):
+                    continue
+                if isinstance(stmt.value, ast.Constant) and isinstance(
+                    stmt.value.value, str
+                ):
+                    consts[target.id] = stmt.value.value
+                elif isinstance(stmt.value, ast.List):
+                    consts[target.id] = [
+                        consts.get(e.id) if isinstance(e, ast.Name) else e.value
+                        for e in stmt.value.elts
+                        if isinstance(e, (ast.Name, ast.Constant))
+                    ]
+    # The group entities (group_entities.py, virtual LED) are built the same way
+    builder_trees = []
+    for builder_file in (weather_file, os.path.join(base_path, "group_entities.py")):
+        if os.path.exists(builder_file):
+            with open(builder_file) as f:
+                builder_trees.append(ast.parse(f.read()))
+    builder_nodes = [node for tree in builder_trees for node in ast.walk(tree)]
+    for node in builder_nodes:
+        if not isinstance(node, ast.Dict):
+            continue
+        for k, v in zip(node.keys, node.values, strict=False):
+            if not (
+                isinstance(k, ast.Constant)
+                and k.value in entity_domains
+                and isinstance(v, ast.Lambda)
+                and isinstance(v.body, ast.List)
+            ):
+                continue
+            for call in v.body.elts:
+                if not (isinstance(call, ast.Call) and len(call.args) >= 2):
+                    continue
+                key_arg = call.args[1]
+                if not (
+                    isinstance(key_arg, ast.Constant) and isinstance(key_arg.value, str)
+                ):
+                    continue
+                full_key = f"{k.value}.{key_arg.value}"
+                keys_in_code.append(full_key)
+                if len(call.args) >= 4 and isinstance(call.args[3], ast.Name):
+                    opts = consts.get(call.args[3].id)
+                    if isinstance(opts, list):
+                        entity_options[full_key] = [str(o) for o in opts]
+    keys_in_code = sorted(set(keys_in_code))
+## End weather patch
+
 all_good: bool = True
 
 for lang in langs:

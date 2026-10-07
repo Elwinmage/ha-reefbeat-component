@@ -5,9 +5,9 @@
 - Relleno manual
 - Activar/desactivar el zumbador de alarma de fuga
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsato_diag.png" alt="Image">
+<img src="../img/rsato_sensors.png" alt="Image">
+<img src="../img/rsato_conf.png" alt="Image">
+<img src="../img/rsato_diag.png" alt="Image">
 </p>
 
 ### Tareas de mantenimiento

@@ -12,20 +12,20 @@
 - Kalibrierung (Bitte lesen Sie [dies](#kalibrierung-und-befüllen))
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_devices.png" alt="Image">
+<img src="../img/rsdose_devices.png" alt="Image">
 </p>
 
 ### Hauptgerät
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_main_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_main_diag.png" alt="Image">
+<img src="../img/rsdose_main_conf.png" alt="Image">
+<img src="../img/rsdose_main_diag.png" alt="Image">
 </p>
 
 ### Köpfe
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_diag.png" alt="Image">
+<img src="../img/rsdose_ctrl.png" alt="Image">
+<img src="../img/rsdose_sensors.png" alt="Image">
+<img src="../img/rsdose_diag.png" alt="Image">
 </p>
 
 #### Kalibrierung und Befüllen
@@ -51,7 +51,7 @@
 > ⚠️ Auf das Befüllen muss immer eine Kalibrierung folgen (Schritte 1 bis 5)!⚠️
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/calibration.png" alt="Image">
+  <img src="../img/calibration.png" alt="Image">
 </p>
 
 ### Wartungsaufgaben

@@ -338,6 +338,37 @@ TASKS: Final[dict[str, tuple[MaintenanceTask, ...]]] = {
 # upkeep are identical, only the number of 12V ports differs.
 TASKS["RSCONTROLLITE"] = TASKS["RSCONTROLPRO"]
 
+# RSPOWER6 and RSPOWER8 share one task list: same hardware, only the number
+# of sockets differs.
+#
+# Red Sea publishes no upkeep schedule for the power center. These two tasks
+# follow general reef-keeping practice for mains equipment near salt water
+# (salt creep and dust on sockets are a corrosion and tracking hazard), so
+# unlike the rest of the catalogue their ranges are not a manufacturer
+# recommendation widened by one unit.
+_RSPOWER_TASKS: tuple[MaintenanceTask, ...] = (
+    MaintenanceTask(
+        key="power_visual_check",
+        translation_key="maint_power_visual_check",
+        default_days=30,  # monthly; the range is 1-3 months
+        min_days=30,
+        max_days=90,
+        icon="mdi:eye-check",
+        unit="months",
+    ),
+    MaintenanceTask(
+        key="power_dust_clean",
+        translation_key="maint_power_dust_clean",
+        default_days=90,  # every 3 months (range 2-4 months)
+        min_days=60,
+        max_days=120,
+        icon="mdi:broom",
+        unit="months",
+    ),
+)
+TASKS["RSPOWER6"] = _RSPOWER_TASKS
+TASKS["RSPOWER8"] = _RSPOWER_TASKS
+
 # RSLED is added programmatically below to share the same tasks across all
 # RSLED hardware ids (G1, G2, virtual).
 _RSLED_TASKS: tuple[MaintenanceTask, ...] = (

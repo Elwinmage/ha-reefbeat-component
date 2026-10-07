@@ -52,6 +52,9 @@ from .const import (
     LED_MANUAL_DURATION_INTERNAL_NAME,
     LED_MOON_DAY_INTERNAL_NAME,
     LED_MOONPHASE_ENABLED_INTERNAL_NAME,
+    LED_OFFSET_INTERNAL_NAME,
+    LED_OFFSET_MAX,
+    LED_SETTINGS_SOURCES,
     MAT_CUSTOM_ADVANCE_VALUE_INTERNAL_NAME,
     MAT_MIN_ROLL_DIAMETER,
     MAT_STARTED_ROLL_DIAMETER_INTERNAL_NAME,
@@ -73,6 +76,8 @@ from .coordinator import (
     ReefWaveCoordinator,
 )
 from .entity import MaintenanceLabelMixin, ReefRoleMixin
+from .group_entities import group_entities
+from .led_weather_entities import weather_entities
 from .maintenance import (
     PROBE_SCOPES,
     MaintenanceStore,
@@ -418,6 +423,23 @@ LED_NUMBERS: tuple[ReefLedNumberEntityDescription, ...] = (
         post_specific="/timer",
         icon="mdi:clock-start",
         entity_category=EntityCategory.CONFIG,
+    ),
+    # Minutes the lamp's day starts late (staggered sunrise). A lamp's own
+    # value: the virtual LED sets it on each lamp from its own settings.
+    ReefLedNumberEntityDescription(
+        key="sunrise_offset",
+        translation_key="sunrise_offset",
+        native_max_value=LED_OFFSET_MAX,
+        native_min_value=0,
+        native_step=1,
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        value_name=LED_OFFSET_INTERNAL_NAME,
+        icon="mdi:weather-sunset-up",
+        entity_category=EntityCategory.CONFIG,
+        exists_fn=lambda device: (
+            not isinstance(device, ReefVirtualLedCoordinator)
+            and bool(getattr(device, "supports_offset", False))
+        ),
     ),
 )
 
@@ -1371,6 +1393,11 @@ async def async_setup_entry(
         tag_probe_entities(device, entities)
         tag_port_entities(device, entities)
 
+    # ReefLED week program following the weather
+    entities.extend(weather_entities(device, "number"))
+    # Group (virtual LED) settings: staggered sunrise delay
+    entities.extend(group_entities(device, "number"))
+
     async_add_entities(entities, update_before_add=True)
 
 
@@ -1587,7 +1614,27 @@ class ReefLedNumberEntity(ReefBeatNumberEntity):
         else:
             await self._device.push_values(self._source, "post")
 
-        await self._device.async_request_refresh()
+        # Read back what the lamp made of it: the acclimation and the moon
+        # phase are "config" sources, a plain refresh leaves them as they
+        # were (and the value just set would be taken back from them). A
+        # setting shared by a group is read back on each of its lamps.
+        source = self._led_description.post_specific
+        if source in LED_SETTINGS_SOURCES:
+            # Shown at once (optimistic), the lamp being read back after
+            expect = getattr(self._device, "expect_settings", None)
+            if callable(expect):
+                expect(source, True)
+        group = getattr(self._device, "led_group", None)
+        owner: Any = group() if callable(group) else None
+        if source not in LED_SETTINGS_SOURCES:
+            await self._device.async_request_refresh()
+            if owner is not None:
+                # The lamps of its group list its value (the sunrise offset
+                # of a staggered sunrise): shown again on each of them
+                owner._notify_members()
+            return
+        target: Any = owner or self._device
+        await target.async_request_refresh(source=source)
 
 
 # REEFDOSE

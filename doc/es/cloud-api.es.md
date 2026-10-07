@@ -12,17 +12,17 @@ La API Cloud le permite:
 
 Los accesos directos, parámetros de waves y LED están ordenados por acuario.
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_devices.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_supplements.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_led_and_waves.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_conf.png" alt="Image">
+<img src="../img/cloud_api_devices.png" alt="Image">
+<img src="../img/cloud_ctrl.png" alt="Image">
+<img src="../img/cloud_api_supplements.png" alt="Image">
+<img src="../img/cloud_api_sensors.png" alt="Image">
+<img src="../img/cloud_api_led_and_waves.png" alt="Image">
+<img src="../img/cloud_api_conf.png" alt="Image">
 </p>
 
 >[!TIP]
 > Puede desactivar la obtención de la lista de suplementos en la configuración del dispositivo API Cloud.
->    <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_config.png" alt="Image">
+>    <img src="../img/cloud_config.png" alt="Image">
 ***
 
 ---

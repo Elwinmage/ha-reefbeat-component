@@ -131,3 +131,34 @@ def test_probe_display_name_defensive_fallback_when_uid_absent_from_list() -> No
         {"type": "ato", "uid": "0xA2", "name": "ATO"},
     ]
     assert pe.probe_display_name(orphan, siblings) == "ATO"
+
+
+def test_ato_port_entity_port() -> None:
+    """Keys of the ATO module's entities give their (0-based) port."""
+    for key in (
+        "port_0_ato_status",
+        "port_0_ato_auto_fill",
+        "port_0_ato_hose_length",
+        "port_0_today_volume",
+        "port_0_volume_left",
+        "port_0_last_pump_on_cause",
+        "port_0_is_pump_on",
+    ):
+        assert pe.ato_port_entity_port(key) == 0, key
+    assert pe.ato_port_entity_port("port_1_ato_manual_pump") == 1
+    assert pe.ato_port_entity_port("port_12_ato_stop") == 12
+
+    # The port's own entities, and anything merely looking alike
+    for key in (
+        "port_1_name",
+        "port_1_on_off",
+        "port_1_ato",
+        "port_1_ato_",
+        "port_1_today_volume_total",
+        "xport_1_ato_status",
+        "port_x_ato_status",
+        "socket_1_ato_status",
+        "probe_ato_0xa70_value",
+        "",
+    ):
+        assert pe.ato_port_entity_port(key) is None, key

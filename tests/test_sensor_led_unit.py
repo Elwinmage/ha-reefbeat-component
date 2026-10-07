@@ -177,3 +177,99 @@ async def test_async_setup_entry_led_schedule_branch(
     assert any(
         isinstance(e, sensor_platform.ReefLedScheduleSensorEntity) for e in added
     )
+
+
+@pytest.mark.asyncio
+async def test_virtual_led_schedule_sensors_without_its_lamps(
+    monkeypatch: Any, hass: Any
+) -> None:
+    """A group set up before its lamps still gets its seven day sensors:
+    empty at first, then read from its first lamp, whichever way that lamp
+    reports its names."""
+
+    class _Virtual(_FakeCoordinator):
+        pass
+
+    monkeypatch.setattr(sensor_platform, "ReefVirtualLedCoordinator", _Virtual)
+    for name in (
+        "CLOUD_SENSORS",
+        "G2_LED_SENSORS",
+        "VIRTUAL_LED_SENSORS",
+        "LED_SENSORS",
+        "COMMON_SENSORS",
+        "USER_SENSORS",
+    ):
+        monkeypatch.setattr(sensor_platform, name, ())
+
+    entry = MockConfigEntry(domain=DOMAIN, data={"host": "1.2.3.4"})
+    entry.add_to_hass(hass)
+    device = _Virtual(hass=hass)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = device
+
+    added: list[Any] = []
+    await sensor_platform.async_setup_entry(
+        hass, cast(Any, entry), cast(Any, lambda new, _u=False: added.extend(new))
+    )
+    days = [
+        e for e in added if isinstance(e, sensor_platform.ReefLedScheduleSensorEntity)
+    ]
+    assert [e.entity_description.key for e in days] == [
+        f"auto_{d}" for d in range(1, 8)
+    ]
+
+    # No lamp yet
+    monday = days[0]
+    monday._update_val()
+    assert monday._attr_native_value is None
+    assert monday._attr_extra_state_attributes == {"data": None, "clouds": None}
+
+    # Its first lamp, reporting its names as one list
+    program = {"white": {"rise": 600, "set": 1200, "points": []}}
+    device.get_data_map["$.sources[?(@.name=='/preset_name')].data"] = [
+        {"day": 1, "name": "GPS 1-1791222222222"},
+        {"day": 2, "name": "Perso"},
+    ]
+    device.get_data_map["$.sources[?(@.name=='/auto/1')].data"] = program
+    monday._update_val()
+    assert monday._attr_native_value == "GPS 1-1791222222222"
+    assert monday._attr_extra_state_attributes == {"data": program, "clouds": None}
+    assert sensor_platform._schedule_name(cast(Any, device), 3) is None
+
+    # ... or per day
+    del device.get_data_map["$.sources[?(@.name=='/preset_name')].data"]
+    device.get_data_map["$.sources[?(@.name=='/preset_name/1')].data.name"] = "Reef"
+    monday._update_val()
+    assert monday._attr_native_value == "Reef"
+
+
+def test_led_acclimation_progress_sensors_read_acclimation_source() -> None:
+    """Remaining days and current factor come straight from /acclimation."""
+    device = _FakeCoordinator()
+    device.get_data_map["$.sources[?(@.name=='/acclimation')].data.remaining_days"] = 3
+    device.get_data_map[
+        "$.sources[?(@.name=='/acclimation')].data.current_intensity_factor"
+    ] = 35
+
+    descs = {d.key: d for d in sensor_platform.LED_SENSORS}
+    assert descs["acclimation_remaining_days"].value_fn(cast(Any, device)) == 3
+    assert (
+        descs["acclimation_current_intensity_factor"].value_fn(cast(Any, device)) == 35
+    )
+
+
+def test_led_current_program_sensor_reads_dashboard() -> None:
+    """Name, active preset and existence come from /dashboard."""
+    device = _FakeCoordinator()
+    base = "$.sources[?(@.name=='/dashboard')].data.current_program"
+    desc = {d.key: d for d in sensor_platform.LED_SENSORS}["current_program"]
+
+    # RSLED90 without /dashboard: no entity
+    assert desc.exists_fn(cast(Any, device)) is False
+
+    device.get_data_map[base] = {"active_preset": 5, "name": "test"}
+    device.get_data_map[base + ".name"] = "test"
+    device.get_data_map[base + ".active_preset"] = 5
+    assert desc.exists_fn(cast(Any, device)) is True
+    assert desc.value_fn(cast(Any, device)) == "test"
+    assert desc.attributes_fn is not None
+    assert desc.attributes_fn(cast(Any, device)) == {"active_preset": 5}

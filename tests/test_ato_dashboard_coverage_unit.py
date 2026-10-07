@@ -19,7 +19,7 @@ from typing import Any, cast
 
 import pytest
 from homeassistant.components.sensor import SensorDeviceClass
-from jsonpath_ng.ext import parse
+from jsonpath_ng.ext.parser import parse
 
 from custom_components.redsea.binary_sensor import ATO_SENSORS as ATO_BINARY_SENSORS
 from custom_components.redsea.sensor import (

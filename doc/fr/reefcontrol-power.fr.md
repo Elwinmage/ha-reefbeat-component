@@ -5,7 +5,7 @@
 Le RSPOWER (Power Center) est un appareil autonome avec sa propre adresse IP, exposé séparément dans Home Assistant.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
+<img src="../img/rspower_devices.png" alt="Image">
 </p>
 
 - 6 ou 8 prises contrôlables selon le modèle (RSPOWER6 / RSPOWER8)
@@ -16,9 +16,9 @@ Le RSPOWER (Power Center) est un appareil autonome avec sa propre adresse IP, ex
 - Les écritures s'affichent immédiatement (mise à jour optimiste), puis sont confirmées par une relecture de l'appareil
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
+<img src="../img/rspower_ctrl.png" alt="Image">
+<img src="../img/rspower_conf.png" alt="Image">
+<img src="../img/rspower_diag.png" alt="Image">
 </p>
 
 > [!NOTE]
@@ -42,6 +42,14 @@ Chaque prise expose une entité `sensor.socket_N_mode` pour les automatisations 
 Une prise pilotée par un programme ou une sonde peut être forcée à l'arrêt à la main : son mode indique alors `off`, tandis que le capteur **mode précédent** garde le mode automatique vers lequel elle reviendra.
 
 Le device quitte automatiquement son état initial « setup » dès que la première prise est configurée, comme le fait l'application ReefBeat — aucune action manuelle nécessaire.
+
+## Tâches de maintenance
+| Tâche | Défaut | Plage |
+| ----- | ------ | ----- |
+| Inspection visuelle | 1 mois | 1 – 3 mois |
+| Dépoussiérer et retirer les dépôts de sel | 3 mois | 2 – 4 mois |
+
+Red Sea ne publie aucun calendrier d'entretien pour le Power Center : ces deux tâches reprennent les usages courants en aquariophilie récifale pour du matériel secteur proche de l'eau salée. Débranchez le Power Center avant de le dépoussiérer ou de retirer les dépôts de sel, et utilisez un chiffon sec. Voir la section [Maintenance](maintenance.fr.md#maintenance).
 
 ---
 

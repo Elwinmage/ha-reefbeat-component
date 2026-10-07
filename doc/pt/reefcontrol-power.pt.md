@@ -5,7 +5,7 @@
 O RSPOWER (Power Center) é um aparelho autónomo com o seu próprio endereço IP, exposto separadamente no Home Assistant.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
+<img src="../img/rspower_devices.png" alt="Image">
 </p>
 
 - 6 ou 8 tomadas controláveis consoante o modelo (RSPOWER6 / RSPOWER8)
@@ -16,9 +16,9 @@ O RSPOWER (Power Center) é um aparelho autónomo com o seu próprio endereço I
 - As escritas aparecem de imediato (atualização otimista) e são depois confirmadas por uma nova leitura do aparelho
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
+<img src="../img/rspower_ctrl.png" alt="Image">
+<img src="../img/rspower_conf.png" alt="Image">
+<img src="../img/rspower_diag.png" alt="Image">
 </p>
 
 > [!NOTE]
@@ -42,6 +42,14 @@ Cada tomada expõe uma entidade `sensor.socket_N_mode` para as automações: o s
 Uma tomada controlada por um programa ou por uma sonda pode ser desligada à mão: o seu modo indica então `off`, enquanto o sensor **modo anterior** guarda o modo automático para o qual voltará.
 
 O aparelho sai automaticamente do seu estado inicial «setup» assim que a primeira tomada é configurada, tal como a aplicação ReefBeat — não é necessária qualquer ação manual.
+
+## Tarefas de manutenção
+| Tarefa | Por omissão | Intervalo |
+| ------ | ----------- | --------- |
+| Inspeção visual | 1 mês | 1 – 3 meses |
+| Remover o pó e os depósitos de sal | 3 meses | 2 – 4 meses |
+
+A Red Sea não publica qualquer calendário de manutenção para o Power Center: estas duas tarefas seguem a prática habitual em aquariofilia de recife para equipamento elétrico perto de água salgada. Desligue o Power Center da corrente antes de lhe tirar o pó ou os depósitos de sal, e use um pano seco. Ver a secção [Manutenção](maintenance.pt.md#manutenção).
 
 ---
 

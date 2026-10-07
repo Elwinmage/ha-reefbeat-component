@@ -2,7 +2,7 @@
 
 # ReefControl:
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_devices.png" alt="Image">
+<img src="../img/rscontrol_devices.png" alt="Image">
 </p>
 
 Hub ReefControl (RSCONTROLPRO / RSCONTROLLITE) odczytuje sondy ReefSense podłączone do jego skrzynek rozszerzeń, steruje swoimi portami 12V DC (2 w Pro, 1 w Lite), a po sparowaniu także gniazdami [ReefControl-Power](reefcontrol-power.pl.md#reefcontrol-power).
@@ -19,10 +19,10 @@ Hub ReefControl (RSCONTROLPRO / RSCONTROLLITE) odczytuje sondy ReefSense podłą
 - Zapisy są pokazywane natychmiast (aktualizacja optymistyczna), a następnie potwierdzane ponownym odczytem urządzenia.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
+<img src="../img/rscontrol_sensors.png" alt="Image">
+<img src="../img/rscontrol_ctrl.png" alt="Image">
+<img src="../img/rscontrol_conf.png" alt="Image">
+<img src="../img/rscontrol_diag.png" alt="Image">
 </p>
 
 > [!TIP]
@@ -32,7 +32,7 @@ Hub ReefControl (RSCONTROLPRO / RSCONTROLLITE) odczytuje sondy ReefSense podłą
 Sondami BLE (pH, ORP, EC, ATO, wyciek, temperatura) zarządza się z menu **Opcje** integracji, tak jak w aplikacji Red Sea:
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_probe_management.png" alt="Image">
+<img src="../img/rscontrol_probe_management.png" alt="Image">
 </p>
 
 - **Dodanie sondy**: przełącz sondę w tryb parowania, wybierz jej typ i potwierdź, aby rozpocząć wyszukiwanie. Sonda jest konfigurowana tak jak w aplikacji: sonda wycieku, na przykład, otrzymuje nazwę `Leak <uid>` z włączonym buzzerem, detektorem wycieku i powiadomieniami.

@@ -2,7 +2,178 @@
 
 ## MODIFICATIONS
 
+### RSWAVE
+
+- The `wave_type` sensor carries the whole day program in a `schedule`
+  attribute (the intervals of `/auto`, an empty list when unknown), so
+  ha-reef-card draws the day without its own request.
+- Wave library and day program services, for the card's editors:
+  - `redsea.wave_library`: waves of the pump's aquarium (cloud library) with
+    its own intensities, the loaded pumps using each wave, the pump's group;
+    without a cloud account, the waves of its own program;
+  - `redsea.wave_library_save`: create (POST `/reef-wave/library`) or update
+    (PUT `/reef-wave/library/<uid>`) a wave; the shape is shared, the
+    intensities are the pump's (a new wave gives them to the whole group);
+    the programs using an updated wave are posted again; Red Sea waves and
+    taken names are refused;
+  - `redsea.wave_library_delete`: DELETE `/reef-wave/library/<uid>`, refused
+    for a Red Sea wave or a wave a loaded pump's program uses;
+  - `redsea.wave_program_save`: POST `/reef-wave/schedule/<hwid>` for each
+    pump of the group (same slots, each pump's intensities), or the local
+    `/auto` handshake without a cloud account.
+- A ReefWave group (grouped ReefWaves of the aquarium, cloud device list)
+  refuses a write when one of its pumps is not loaded or not answering, as
+  the ReefBeat app does (`wave_group_member_unavailable`); all refusals are
+  translated Home Assistant errors.
+- `redsea.wave_preview` / `redsea.wave_preview_stop`: run a wave on the pump
+  for 1 to 10 min (local `/preview`), then back to its program.
+- `redsea.wave_pump_set`: this pump's direction and intensities in the
+  current wave, as the app lets each pump of a group run it its own way:
+  its pump_settings of the wave (even a Red Sea one, shape untouched) and the
+  direction of its current slot; the other pumps are left as they are.
+- ReefWave groups, as in the ReefBeat app (all the grouped ReefWaves of an
+  aquarium form one group, cloud only):
+  - new switch `wave_grouped`: POST `/device/<hwid>/group` or `/ungroup`; a
+    pump joining goes last (POST `/device/manage`); unavailable without a
+    cloud account;
+  - `redsea.wave_group_order`: order of the pumps of the group (POST
+    `/device/manage`, `group_index`), every pump listed once;
+  - `redsea.wave_group_set` (`grouped`: true / false): group or ungroup a
+    pump, as the switch, for the card's program editor; `redsea.wave_library`
+    also answers `grouped` (None without a cloud account);
+  - every loaded ReefWave is refreshed after a change of group.
+- New `linked_waves` sensor: number of pumps in the ReefWave group, with the
+  list in its `waves` attribute (hwid, name, model, entry_id, available).
+- New `redsea:wave-uniform`, `wave-random`, `wave-regular`, `wave-step`,
+  `wave-surface` and `wave-none` icons: the wave type pictograms of the app.
+
+### VIRTUAL LED (groups)
+ - `linked_leds` sensor: each lamp of the `leds` attribute also gives its
+   sunrise `offset` (minutes, staggered sunrise; None for a lamp without
+   `/offset`), shown by the card under the lamp's name.
+ - A virtual LED is now a group, as the "grouped" LEDs of the ReefBeat app:
+   a shared value set on one of its lamps (manual channels, kelvin /
+   intensity, mode, timer, programs, acclimation, moon phase) is applied to
+   every lamp of the group. Per-lamp settings (name, Wi-Fi, cloud,
+   firmware, identify, reset...) stay on the lamp.
+ - A group write is refused when a lamp of the group is not loaded or does
+   not answer (translated error naming the lamps): nothing is sent, the
+   lamps stay in sync, as the app does.
+ - White/blue cannot be set on a group holding a G2 lamp (translated
+   error): use kelvin / intensity.
+ - Members are kept as an ordered list of config entries
+   (`members`); the order is the group order of the app (staggered
+   sunrise, coming next). Options flow: choose the LEDs (a LED belongs to
+   one group at most), then their order.
+ - Config entry 1.2: the legacy `linked` mapping is migrated.
+ - Members announce themselves on load/unload (dispatcher signals): a lamp
+   reloaded on its own is no longer driven through a stale coordinator.
+ - Staggered sunrise, as the app: switch `staggered_sunrise` and number
+   `staggered_delay` (1-15 min, 10 by default) on the virtual LED; each lamp
+   starts its day `delay x position` minutes later (`POST /offset`, which
+   replaces the value). Written again when the members or their order
+   change, once all the lamps are there; a lamp leaving the group gets 0.
+   Kept in a per-group store (`redsea.group.<entry_id>`).
+ - New number `sunrise_offset` (minutes) on each ReefLED answering
+   `/offset` (probed at startup).
+ - Weather program: the lamps of a group share the group's one. Turned on
+   or set on any lamp of the group, it is on and set for all of them, and
+   each lamp gets its own weather week; the nightly run is done once, by
+   the group.
+ - What blocks a group write, as the app: a lamp not loaded, not answering,
+   or in a mode the group cannot drive (off, or held by a shortcut); a lamp
+   out of service in the app is left out of the writes, the checks and the
+   staggered sunrise.
+ - Round trip with the ReefBeat cloud (lamps of one model, one aquarium,
+   one account): the group, its order and its staggered sunrise are written
+   (`POST /device/manage`, `PUT /aquarium/<uid>/group/<model>`, the offsets
+   by `PUT /device/<hwid>`) or taken from the app, whichever changed since
+   they were last in sync; both changed is a conflict.
+ - Repairs: no cloud account for a group the app could hold (add it, or
+   keep the group local); a group of several models whose lamps are still
+   grouped in the app (ungroup them there); a conflict (keep Home
+   Assistant's group or the app's).
+ - Each lamp of a group has the `linked_leds` sensor too (its group's lamps,
+   in order), for the card.
+ - A new virtual LED starts with the lamps the ReefBeat app groups (options
+   flow, in the app's order); at its first synchronization the app's order
+   and staggered sunrise are taken. The cloud group of a model is named in
+   lower case, as the app does ("rsled160").
+ - Discovered devices: a group of the ReefBeat app (at least two lamps
+   loaded in Home Assistant, one model, one aquarium) that no virtual LED
+   drives is proposed as a new virtual LED (integration discovery, shown
+   in "Discovered"), with its lamps in the app's order. Proposed again if
+   its virtual LED is deleted; "Ignore" keeps it ignored.
+
+### REEFLED acclimation and moon phase
+ - Changing the acclimation duration or start intensity, or the moon day,
+   now reads `/acclimation` (or `/moonphase`) back from the lamp, on each
+   lamp of a group: these are "config" sources, a plain refresh left the
+   sensors (remaining days, current factor, moon day...) as they were and
+   took the number back to its former value.
+ - Optimistic: turning the acclimation or the moon phase on or off, or
+   changing their settings, shows at once what the lamp makes of it
+   (acclimation: days left = duration, current factor = start factor, or
+   stopped; moon: today's moon day, its intensity, days to the full and new
+   moon), on each lamp of a group; the lamp is then read back.
+ - In a group, turning the acclimation or the moon phase off on one lamp
+   (`DELETE`) now turns it off on every lamp of the group, as turning it on
+   already did.
+
+### REEFLED G1 colour and intensity
+ - The colour temperature and intensity set on a G1 are kept as set while
+   the lamp reports the white/blue levels they give. Derived back from
+   these whole levels, the intensity drifted down by one each time the
+   colour was changed with the intensity compensation on (50, 49, 48...),
+   and the colour temperature moved (10000 K read back as 9960 K).
+
+### REEFLED library: renaming a program
+ - New service `redsea.led_library_rename` (`uid`, `name`): renames one of
+   the user's programs in the cloud library, its curves kept, then every
+   day of the week named after it on the lamp and on each lamp of its
+   group (a G1 day with the app's stamp, a G2 one bare), paced, with the
+   progress shown as for a week being written. A Red Sea program, or a
+   name already used, is refused.
+
+### REEFLED weather program in the ReefBeat library
+ - The weather week is kept in the ReefBeat library as programs of the
+   user, one per weekday ("GPS 1" Monday ... "GPS 7" Sunday), added once
+   then updated each time the week is written to the lamps (every
+   `refresh_days`, on a changed setting, or when the lamp lost it). Each
+   day of the lamp is named after its program, as the app names library
+   programs, so the app shows the lamp playing programs it knows. They are
+   removed when the weather mode is turned off. A lamp linked to no cloud
+   account only gets its week. The programs were named "Weather" and were
+   not in the library; lamps holding them are written again once.
+
+### REEFLED weather program kept on the lamp
+ - A lamp in weather mode that no longer holds the weather week (reset,
+   restarted from its own programs, programmed from the ReefBeat app: seen
+   from the name of its programs) is written the week again, a minute
+   after it is set up and at the nightly run. It was left playing its own
+   program under a weather mode shown as on.
+
+### REEFLED G2 manual levels
+ - A G2 is now written its colour temperature, intensity and moon only
+   (`POST /manual` and `/timer`), as the ReefBeat app does: its white and
+   blue levels are computed by the lamp and read only. The whole `/manual`
+   was sent back as read, white and blue included.
+
+### REEFLED weather program
+ - The requests written to a lamp are paced (2 s, `WRITE_DELAY_S`): a
+   ReefLED answers late, or not at all, to a command sent too soon. The
+   progress of a week being written is on `weather_program` (`writing`:
+   `{done, total}` days).
+ - Colours chosen by the user for the weather days (setting `colors`,
+   `{weekday: [{at, k}]}`, `at` from the rise 0 to the set 1): they replace
+   the colours of the lamp's own program (a G1 converts them with its own
+   table).
+
 ### RSPOWER
+ - Two maintenance tasks, the first ones of the power center: *Visual
+   inspection* (1 month by default, 1 to 3 months) and *Remove dust and salt
+   deposits* (3 months by default, 2 to 4 months). Red Sea publishes no
+   upkeep schedule for it: they follow general reef-keeping practice.
  - Calibration against a reference temperature (number
    `temperature_calibration`) replaces the `temperature_offset` number, as
    on the RSCONTROL probes (see there). `temperature_offset` is purged from
@@ -308,8 +479,8 @@ Because the device id creation changed to be compliant with HA standards, RSDOSE
 
 ### New icons for your HomeAssistant
 
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/doc/img/icons_feeding_maintenance.png"/>
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/refs/heads/main/doc/img/icons_devices.png"/>
+<img src="doc/img/icons_feeding_maintenance.png"/>
+<img src="doc/img/icons_devices.png"/>
 
 ## MODIFICATIONS
 

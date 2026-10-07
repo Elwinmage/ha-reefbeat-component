@@ -12,17 +12,17 @@ L'API Cloud ti consente di:
 
 Le scorciatoie, i parametri delle onde e i parametri LED sono ordinati per acquario.
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_devices.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_supplements.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_led_and_waves.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_api_conf.png" alt="Image">
+<img src="../img/cloud_api_devices.png" alt="Image">
+<img src="../img/cloud_ctrl.png" alt="Image">
+<img src="../img/cloud_api_supplements.png" alt="Image">
+<img src="../img/cloud_api_sensors.png" alt="Image">
+<img src="../img/cloud_api_led_and_waves.png" alt="Image">
+<img src="../img/cloud_api_conf.png" alt="Image">
 </p>
 
 >[!TIP]
 > Puoi disabilitare il recupero dell'elenco dei supplementi nella configurazione del dispositivo Cloud API.
->    <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/cloud_config.png" alt="Image">
+>    <img src="../img/cloud_config.png" alt="Image">
 
 ***
 

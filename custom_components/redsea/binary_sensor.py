@@ -12,8 +12,10 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Any, Generic, TypeVar, cast
 
+# Home Assistant 2026.10 only exports it from .const, a module older versions
+# lack: imported from the package, which all of them provide
 from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
+    BinarySensorDeviceClass,  # pyright: ignore[reportPrivateImportUsage]
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )

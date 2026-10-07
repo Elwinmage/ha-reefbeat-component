@@ -70,7 +70,7 @@ un botón para marcar la tarea como hecha, una campana para silenciarla y un
 control deslizante en línea para cambiar su intervalo.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/maintenance_task.png" alt="Tareas de mantenimiento en ha-reef-card">
+<img src="../img/maintenance_task.png" alt="Tareas de mantenimiento en ha-reef-card">
 </p>
 
 ## Notificaciones: el blueprint de alertas

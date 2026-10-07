@@ -2,7 +2,7 @@
 
 # ReefControl:
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_devices.png" alt="Image">
+<img src="../img/rscontrol_devices.png" alt="Image">
 </p>
 
 Le hub ReefControl (RSCONTROLPRO / RSCONTROLLITE) lit les sondes ReefSense branchées sur ses boîtiers d'extension, pilote ses ports 12V DC (2 sur le Pro, 1 sur le Lite) et, une fois appairé, les prises d'un [ReefControl-Power](reefcontrol-power.fr.md#reefcontrol-power).
@@ -19,10 +19,10 @@ Le hub ReefControl (RSCONTROLPRO / RSCONTROLLITE) lit les sondes ReefSense branc
 - Les écritures s'affichent immédiatement (mise à jour optimiste), puis sont confirmées par une relecture de l'appareil.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
+<img src="../img/rscontrol_sensors.png" alt="Image">
+<img src="../img/rscontrol_ctrl.png" alt="Image">
+<img src="../img/rscontrol_conf.png" alt="Image">
+<img src="../img/rscontrol_diag.png" alt="Image">
 </p>
 
 > [!TIP]
@@ -32,7 +32,7 @@ Le hub ReefControl (RSCONTROLPRO / RSCONTROLLITE) lit les sondes ReefSense branc
 Les sondes BLE (pH, ORP, EC, ATO, fuite, température) se gèrent depuis le menu **Options** de l'intégration, à l'image de l'application Red Sea :
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_probe_management.png" alt="Image">
+<img src="../img/rscontrol_probe_management.png" alt="Image">
 </p>
 
 - **Ajouter une sonde** : mettez la sonde en appairage, choisissez son type, puis confirmez pour lancer la détection. La sonde est configurée comme le fait l'application : une sonde de fuite, par exemple, est nommée `Leak <uid>` avec son buzzer, son détecteur de fuite et ses notifications activés.

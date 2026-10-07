@@ -12,20 +12,20 @@
 - Calibration (Veuillez lire [ceci](#calibration-et-amorçage))
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_devices.png" alt="Image">
+<img src="../img/rsdose_devices.png" alt="Image">
 </p>
 
 ### Principal
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_main_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_main_diag.png" alt="Image">
+<img src="../img/rsdose_main_conf.png" alt="Image">
+<img src="../img/rsdose_main_diag.png" alt="Image">
 </p>
 
 ### Têtes
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rsdose_diag.png" alt="Image">
+<img src="../img/rsdose_ctrl.png" alt="Image">
+<img src="../img/rsdose_sensors.png" alt="Image">
+<img src="../img/rsdose_diag.png" alt="Image">
 </p>
 
 #### Calibration et amorçage
@@ -51,7 +51,7 @@
 > ⚠️ Un amorçage doit forcément être suivi d'une calibration (étapes 1 à 5)!⚠️
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/calibration.png" alt="Image">
+  <img src="../img/calibration.png" alt="Image">
 </p>
 
 ### Tâches de maintenance

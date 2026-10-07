@@ -526,3 +526,628 @@ async def test_get_control_subscriptions_service_handler(
         "external": [],
         "internal": [],
     }
+
+
+@pytest.mark.asyncio
+async def test_led_convert_service_handler(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """redsea.led_convert converts G1 points with the lamp's own API."""
+    import custom_components.redsea as redsea_init
+
+    handlers: dict[str, Any] = {}
+
+    def _async_register(
+        self: Any,
+        domain: str,
+        service: str,
+        service_func: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        handlers[f"{domain}.{service}"] = service_func
+
+    monkeypatch.setattr(
+        type(hass.services), "async_register", _async_register, raising=True
+    )
+    assert await redsea_init.async_setup(hass, {}) is True
+    handler = handlers[f"{redsea_init.DOMAIN}.led_convert"]
+
+    class _Api:
+        def kelvin_to_white_and_blue(self, kelvin: Any, intensity: int) -> Any:
+            return {
+                "kelvin": kelvin,
+                "intensity": intensity,
+                "white": 100,
+                "blue": 0,
+                "moon": 1,
+            }
+
+        def white_and_blue_to_kelvin(self, white: Any, blue: Any) -> Any:
+            return {"kelvin": 23000, "intensity": 100, "white": white, "blue": blue}
+
+    class _G1(redsea_init.ReefLedCoordinator):
+        def __init__(self) -> None:  # no HA setup needed
+            self.my_api = _Api()
+
+    class _G2(redsea_init.ReefLedG2Coordinator):
+        def __init__(self) -> None:
+            self.my_api = _Api()
+
+    hass.data.setdefault(redsea_init.DOMAIN, {})
+    hass.data[redsea_init.DOMAIN]["g1"] = _G1()
+    hass.data[redsea_init.DOMAIN]["g2"] = _G2()
+
+    resp = await handler(
+        SimpleNamespace(
+            data={
+                "device_id": "g1",
+                "points": [
+                    {"kelvin": 9000, "intensity": 50},
+                    {"kelvin": 12000},
+                    {"white": 10, "blue": 100},
+                    "junk",
+                ],
+            }
+        )
+    )
+    assert resp == {
+        "points": [
+            {"kelvin": 9000, "intensity": 50, "white": 100, "blue": 0},
+            {"kelvin": 12000, "intensity": 100, "white": 100, "blue": 0},
+            {"kelvin": 23000, "intensity": 100, "white": 10, "blue": 100},
+            {},
+        ]
+    }
+
+    bad = await handler(SimpleNamespace(data={"device_id": "g1", "points": "x"}))
+    assert bad == {"error": "points must be a list"}
+    for device_id in ("g2", "unknown"):
+        resp2 = await handler(SimpleNamespace(data={"device_id": device_id}))
+        assert resp2 == {"error": "Not a G1 ReefLED"}
+
+
+@pytest.mark.asyncio
+async def test_led_library_service_handlers(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """redsea.led_library lists and redsea.led_library_save adds programs."""
+    import custom_components.redsea as redsea_init
+
+    handlers: dict[str, Any] = {}
+
+    def _async_register(
+        self: Any,
+        domain: str,
+        service: str,
+        service_func: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        handlers[f"{domain}.{service}"] = service_func
+
+    monkeypatch.setattr(
+        type(hass.services), "async_register", _async_register, raising=True
+    )
+    assert await redsea_init.async_setup(hass, {}) is True
+    listing = handlers[f"{redsea_init.DOMAIN}.led_library"]
+    saving = handlers[f"{redsea_init.DOMAIN}.led_library_save"]
+
+    saved: list[tuple[str, Any, Any]] = []
+    updated: list[str | None] = []
+    deleted: list[str] = []
+
+    class _Led(redsea_init.ReefLedCoordinator):
+        def __init__(self, linked: bool) -> None:  # no HA setup needed
+            self._linked_to_cloud = linked
+
+        def library_link(self) -> Any:
+            return ("cloud", "aq") if self._linked_to_cloud else None
+
+        def light_library(self) -> Any:
+            if not self._linked_to_cloud:
+                return None
+            return [
+                {"uid": "u1", "name": "Perso", "default": False},
+                {"uid": "rs", "name": "23K", "default": True},
+            ]
+
+        async def save_light_program(
+            self, name: str, program: Any, clouds: Any, uid: str | None = None
+        ) -> str | None:
+            saved.append((name, program, clouds))
+            updated.append(uid)
+            return uid or "new-uid"
+
+        async def delete_light_program(self, uid: str) -> bool:
+            deleted.append(uid)
+            return True
+
+    hass.data.setdefault(redsea_init.DOMAIN, {})
+    hass.data[redsea_init.DOMAIN]["linked"] = _Led(True)
+    hass.data[redsea_init.DOMAIN]["alone"] = _Led(False)
+
+    def call(data: dict[str, Any]) -> Any:
+        return SimpleNamespace(data=data)
+
+    assert await listing(call({"device_id": "linked"})) == {
+        "linked": True,
+        "programs": [
+            {"uid": "u1", "name": "Perso", "default": False},
+            {"uid": "rs", "name": "23K", "default": True},
+        ],
+    }
+    assert await listing(call({"device_id": "alone"})) == {
+        "linked": False,
+        "programs": [],
+    }
+    assert await listing(call({"device_id": "nope"})) == {"error": "Not a ReefLED"}
+
+    prog = {"white": {"rise": 600, "set": 1200, "points": []}}
+    assert await saving(
+        call({"device_id": "linked", "name": " prog-1 ", "program": prog})
+    ) == {"uid": "new-uid"}
+    assert saved[-1] == ("prog-1", prog, None)
+    clouds = {"from": 700, "to": 800, "intensity": "Low"}
+    await saving(
+        call({"device_id": "linked", "name": "p", "program": prog, "clouds": clouds})
+    )
+    assert saved[-1] == ("p", prog, clouds)
+
+    for data, error in (
+        ({"device_id": "nope"}, "Not a ReefLED"),
+        ({"device_id": "linked", "name": " ", "program": prog}, "name is required"),
+        (
+            {"device_id": "linked", "name": "p", "program": []},
+            "program must be an object",
+        ),
+        (
+            {"device_id": "alone", "name": "p", "program": prog},
+            "Not linked to a ReefBeat cloud account",
+        ),
+    ):
+        assert await saving(call(data)) == {"error": error}
+    assert len(saved) == 2
+
+    # Update one of the user's programs; not a Red Sea one
+    assert await saving(
+        call({"device_id": "linked", "name": "P2", "program": prog, "uid": "u1"})
+    ) == {"uid": "u1"}
+    assert updated[-1] == "u1"
+    for uid, error in (
+        (12, "uid must be a string"),
+        ("zz", "Program not found"),
+        ("rs", "Red Sea programs cannot be edited"),
+    ):
+        assert await saving(
+            call({"device_id": "linked", "name": "p", "program": prog, "uid": uid})
+        ) == {"error": error}
+    assert len(saved) == 3
+
+    deleting = handlers[f"{redsea_init.DOMAIN}.led_library_delete"]
+    assert await deleting(call({"device_id": "linked", "uid": "u1"})) == {
+        "deleted": True
+    }
+    assert deleted == ["u1"]
+    for data, error in (
+        ({"device_id": "nope"}, "Not a ReefLED"),
+        ({"device_id": "alone", "uid": "u1"}, "Not linked to a ReefBeat cloud account"),
+        ({"device_id": "linked"}, "uid is required"),
+        ({"device_id": "linked", "uid": "zz"}, "Program not found"),
+        ({"device_id": "linked", "uid": "rs"}, "Red Sea programs cannot be deleted"),
+    ):
+        assert await deleting(call(data)) == {"error": error}
+    assert deleted == ["u1"]
+
+    # Rename: the library entry, and the days of the lamps named after it
+    renamed: list[Any] = []
+
+    async def _rename(device: Any, uid: str, name: str) -> Any:
+        renamed.append((device, uid, name))
+        return {"uid": uid, "renamed": 3}
+
+    monkeypatch.setattr(redsea_init, "rename_program", _rename)
+    renaming = handlers[f"{redsea_init.DOMAIN}.led_library_rename"]
+    assert await renaming(
+        call({"device_id": "linked", "uid": "u1", "name": " Reef "})
+    ) == {"uid": "u1", "renamed": 3}
+    assert renamed == [(hass.data[redsea_init.DOMAIN]["linked"], "u1", "Reef")]
+    for data, error in (
+        ({"device_id": "nope"}, "Not a ReefLED"),
+        ({"device_id": "alone", "uid": "u1"}, "Not linked to a ReefBeat cloud account"),
+        ({"device_id": "linked", "name": "x"}, "uid is required"),
+        ({"device_id": "linked", "uid": "u1", "name": " "}, "name is required"),
+    ):
+        assert await renaming(call(data)) == {"error": error}
+    assert len(renamed) == 1
+
+
+@pytest.mark.asyncio
+async def test_led_weather_setup_nightly_run_and_service(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A ReefLED gets its weather store, a nightly run and a service."""
+    import custom_components.redsea as integration
+
+    class _Led(integration.ReefLedCoordinator):
+        def __init__(self) -> None:  # no HA setup needed
+            pass
+
+        async def async_setup(self) -> None:
+            return None
+
+    led = _Led()
+    entry = MockConfigEntry(
+        domain=DOMAIN, data={"ip_address": "1.2.3.4", "hw_model": "RSLED160"}
+    )
+    entry.add_to_hass(hass)
+    # What a lamp needs to find its group (none here)
+    led._hass = hass  # type: ignore[attr-defined]
+    led._entry = entry  # type: ignore[attr-defined]
+    monkeypatch.setattr(integration, "_build_coordinator", lambda _h, _e: led)
+    monkeypatch.setattr(hass.config_entries, "async_forward_entry_setups", AsyncMock())
+    ticks: list[Any] = []
+
+    def _track(_hass: Any, action: Any, **when: Any) -> Any:
+        ticks.append((action, when))
+        return lambda: None
+
+    monkeypatch.setattr(integration, "async_track_time_change", _track)
+    runs: list[Any] = []
+
+    async def _run(_hass: Any, device: Any) -> Any:
+        runs.append(device)
+        return {"status": "ok"}
+
+    monkeypatch.setattr(integration, "run_weather", _run)
+    shows: list[Any] = []
+
+    async def _show(_hass: Any, device: Any) -> Any:
+        shows.append(device)
+        return {"status": "ok"}
+
+    monkeypatch.setattr(integration, "publish_weather", _show)
+
+    later: list[Any] = []
+
+    def _call_later(_hass: Any, delay: float, action: Any) -> Any:
+        cancelled: list[bool] = []
+        later.append((delay, action, cancelled))
+        return lambda: cancelled.append(True)
+
+    monkeypatch.setattr(integration, "async_call_later", _call_later)
+
+    lost: list[bool] = [False]
+    monkeypatch.setattr(integration, "weather_lost", lambda _d, _s: lost[0])
+
+    assert await integration.async_setup_entry(hass, cast(Any, entry)) is True
+    store = led.weather  # type: ignore[attr-defined]
+    assert isinstance(store, integration.WeatherStore)
+    # Once set up, the lamp is checked: it must still hold the weather week
+    delay, check, check_cancelled = later.pop(0)
+    assert delay == integration.WEATHER_CHECK_SECONDS
+    check(None)
+    await hass.async_block_till_done()
+    assert runs == []
+    lost[0] = True
+    check(None)
+    await hass.async_block_till_done()
+    assert runs == [led]
+    # Not for a lamp of a group (its group checks)
+    hass.data[DOMAIN]["group"] = SimpleNamespace(
+        member_ids=[entry.entry_id], _weather=object()
+    )
+    check(None)
+    await hass.async_block_till_done()
+    assert runs == [led]
+    del hass.data[DOMAIN]["group"]
+    # The nightly run writes it again too, even when not due
+    action, when = ticks[0]
+    action(None)
+    await hass.async_block_till_done()
+    assert runs == [led, led]
+    runs.clear()
+    lost[0] = False
+    action, when = ticks[0]
+    assert when == {"hour": 0, "minute": 10, "second": 0}
+    # Nothing in standard mode
+    action(None)
+    await hass.async_block_till_done()
+    assert runs == []
+    # Weather mode, never fetched: due
+    await store.async_set_mode(True, {})
+    action(None)
+    await hass.async_block_till_done()
+    assert runs == [led]
+    # Fetched today: not due before refresh_days
+    store.last_success = integration.dt_util.now().date().isoformat()
+    action(None)
+    await hass.async_block_till_done()
+    assert runs == [led]
+    # A lamp of a group: its group runs the weather (the lamp's own store,
+    # even due, is left)
+    store.last_success = None
+    hass.data[DOMAIN]["group"] = SimpleNamespace(
+        member_ids=[entry.entry_id], _weather=object()
+    )
+    action(None)
+    await hass.async_block_till_done()
+    assert runs == [led]
+    del hass.data[DOMAIN]["group"]
+    store.last_success = integration.dt_util.now().date().isoformat()
+
+    # Changed settings: the new week shown at once, sent once they settle
+    await store.async_set("location", "1, 2")
+    await store.async_set("max_intensity", 80)
+    assert [d for d, _, _ in later] == [1, 30, 1, 30]
+    assert later[0][2] == [True] and later[1][2] == [True]  # put off
+    later[2][1](None)
+    await hass.async_block_till_done()
+    assert shows == [led]
+    assert runs == [led]
+    later[3][1](None)
+    await hass.async_block_till_done()
+    assert runs == [led, led]
+    # A change pending at unload is dropped
+    await store.async_set("min_intensity", 5)
+    assert later[4][2] == [] and later[5][2] == []
+    await entry._async_process_on_unload(hass)  # pyright: ignore[reportAttributeAccessIssue]
+    assert later[4][2] == [True] and later[5][2] == [True]
+    assert check_cancelled == [True]
+
+    # The service
+    handlers: dict[str, Any] = {}
+
+    def _async_register(
+        self: Any, domain: str, service: str, func: Any, *a: Any, **k: Any
+    ) -> None:
+        handlers[service] = func
+
+    monkeypatch.setattr(type(hass.services), "async_register", _async_register)
+    assert await integration.async_setup(hass, {}) is True
+    apply = handlers["led_weather_apply"]
+    assert await apply(SimpleNamespace(data={"device_id": entry.entry_id})) == {
+        "status": "ok"
+    }
+    assert await apply(SimpleNamespace(data={"device_id": "nope"})) == {
+        "error": "Not a ReefLED"
+    }
+
+    # The preview writes nothing: its own function
+    async def _preview(hass: Any, dev: Any, settings: Any = None) -> Any:
+        return {"status": "ok", "days": [], "standard": {}}
+
+    monkeypatch.setattr(integration, "preview_weather", _preview)
+    preview = handlers["led_weather_preview"]
+    assert (await preview(SimpleNamespace(data={"device_id": entry.entry_id})))[
+        "standard"
+    ] == {}
+    assert await preview(SimpleNamespace(data={"device_id": "nope"})) == {
+        "error": "Not a ReefLED"
+    }
+    seen: list[Any] = []
+
+    async def _preview2(hass: Any, dev: Any, settings: Any = None) -> Any:
+        seen.append(settings)
+        return {}
+
+    monkeypatch.setattr(integration, "preview_weather", _preview2)
+    await preview(
+        SimpleNamespace(
+            data={"device_id": entry.entry_id, "settings": {"anchor": "both"}}
+        )
+    )
+    await preview(SimpleNamespace(data={"device_id": entry.entry_id, "settings": "x"}))
+    assert seen == [{"anchor": "both"}, None]
+
+    saved: list[Any] = []
+
+    async def _save(
+        hass: Any, dev: Any, settings: Any, enabled: bool, wait: bool
+    ) -> Any:
+        saved.append((settings, enabled, wait))
+        return {"status": "ok"}
+
+    monkeypatch.setattr(integration, "save_weather", _save)
+    save = handlers["led_weather_save"]
+    await save(
+        SimpleNamespace(
+            data={
+                "device_id": entry.entry_id,
+                "settings": {"period": "last_week"},
+                "enabled": True,
+            }
+        )
+    )
+    await save(SimpleNamespace(data={"device_id": entry.entry_id}))
+    assert saved == [({"period": "last_week"}, True, False), (None, False, False)]
+    assert await save(SimpleNamespace(data={"device_id": "nope"})) == {
+        "error": "Not a ReefLED"
+    }
+
+
+@pytest.mark.asyncio
+async def test_wave_editor_service_handlers(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """redsea.wave_* list the library and forward the edits to the pump."""
+    from homeassistant.exceptions import HomeAssistantError
+
+    import custom_components.redsea as redsea_init
+
+    handlers: dict[str, Any] = {}
+
+    def _async_register(
+        self: Any,
+        domain: str,
+        service: str,
+        service_func: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        handlers[f"{domain}.{service}"] = service_func
+
+    monkeypatch.setattr(
+        type(hass.services), "async_register", _async_register, raising=True
+    )
+    assert await redsea_init.async_setup(hass, {}) is True
+
+    calls: list[tuple[str, Any]] = []
+
+    class _Wave(redsea_init.ReefWaveCoordinator):
+        def __init__(self, linked: bool) -> None:  # no HA setup needed
+            self._linked_to_cloud = linked
+            self.last_update_success = True
+
+        @property
+        def model_id(self) -> str:
+            return "hw1"
+
+        @property
+        def title(self) -> str:
+            return "Pump"
+
+        def wave_library(self) -> Any:
+            return [{"uid": "w", "name": "W"}] if self._linked_to_cloud else None
+
+        def program_intervals(self) -> Any:
+            return [{"st": 0, "wave_uid": "p", "name": "P", "type": "re"}]
+
+        def wave_usage(self) -> Any:
+            return {"w": ["Pump"]}
+
+        def wave_group(self) -> Any:
+            return [
+                {
+                    "hwid": "hw1",
+                    "name": "Pump",
+                    "in_service": True,
+                    "coordinator": self,
+                },
+                {
+                    "hwid": "hw2",
+                    "name": "Other",
+                    "in_service": True,
+                    "coordinator": None,
+                },
+            ]
+
+        async def save_wave(self, name: str, settings: Any, uid: Any = None) -> Any:
+            calls.append(("save", (name, settings, uid)))
+            return uid or "new"
+
+        async def delete_wave(self, uid: str) -> bool:
+            calls.append(("delete", uid))
+            return True
+
+        async def save_program(self, slots: Any) -> None:
+            calls.append(("program", slots))
+
+        async def start_preview(
+            self, settings: Any, direction: str, duration: int
+        ) -> None:
+            calls.append(("preview", (settings, direction, duration)))
+
+        async def stop_preview(self) -> None:
+            calls.append(("stop", None))
+
+        async def set_current_pump(self, direction: str, fti: Any, rti: Any) -> None:
+            calls.append(("pump", (direction, fti, rti)))
+
+        async def set_wave_group_order(self, hwids: Any) -> None:
+            calls.append(("order", hwids))
+
+        def wave_grouped(self) -> bool | None:
+            return True if self._linked_to_cloud else None
+
+        async def set_wave_grouped(self, grouped: bool) -> None:
+            calls.append(("grouped", grouped))
+
+    hass.data.setdefault(redsea_init.DOMAIN, {})
+    hass.data[redsea_init.DOMAIN]["linked"] = _Wave(True)
+    hass.data[redsea_init.DOMAIN]["alone"] = _Wave(False)
+
+    def call(data: dict[str, Any]) -> Any:
+        return SimpleNamespace(data=data)
+
+    listing = handlers[f"{redsea_init.DOMAIN}.wave_library"]
+    linked = await listing(call({"device_id": "linked"}))
+    assert linked["linked"] is True
+    assert linked["hwid"] == "hw1"
+    assert linked["waves"] == [{"uid": "w", "name": "W"}]
+    assert linked["usage"] == {"w": ["Pump"]}
+    assert linked["group"] == [
+        {"hwid": "hw1", "name": "Pump", "in_service": True, "available": True},
+        {"hwid": "hw2", "name": "Other", "in_service": True, "available": False},
+    ]
+    alone = await listing(call({"device_id": "alone"}))
+    assert linked["grouped"] is True
+    assert alone["linked"] is False
+    assert alone["grouped"] is None
+    assert [w["uid"] for w in alone["waves"]] == ["p"]
+
+    with pytest.raises(HomeAssistantError) as err:
+        await listing(call({"device_id": "nope"}))
+    assert err.value.translation_key == "wave_not_a_wave"
+
+    save = handlers[f"{redsea_init.DOMAIN}.wave_library_save"]
+    settings = {"type": "re", "frt": 1}
+    assert await save(
+        call({"device_id": "linked", "name": "N", "settings": settings})
+    ) == {"uid": "new"}
+    assert calls[-1] == ("save", ("N", settings, None))
+    assert await save(
+        call({"device_id": "linked", "name": "N", "settings": "x", "uid": "w"})
+    ) == {"uid": "w"}
+    assert calls[-1] == ("save", ("N", {}, "w"))
+    await save(call({"device_id": "linked", "name": "N", "uid": ""}))
+    assert calls[-1] == ("save", ("N", {}, None))
+
+    delete = handlers[f"{redsea_init.DOMAIN}.wave_library_delete"]
+    assert await delete(call({"device_id": "linked", "uid": "w"})) == {"deleted": True}
+    assert calls[-1] == ("delete", "w")
+
+    program = handlers[f"{redsea_init.DOMAIN}.wave_program_save"]
+    slots = [{"st": 0, "wave_uid": "w", "direction": "fw"}]
+    assert await program(call({"device_id": "linked", "slots": slots})) == {
+        "saved": True
+    }
+    assert calls[-1] == ("program", slots)
+
+    preview = handlers[f"{redsea_init.DOMAIN}.wave_preview"]
+    data = {
+        "device_id": "linked",
+        "settings": {"type": "re"},
+        "direction": "rw",
+        "duration": 120000,
+    }
+    assert await preview(call(data)) == {"preview": True}
+    assert calls[-1] == ("preview", ({"type": "re"}, "rw", 120000))
+    await preview(call({"device_id": "linked", "settings": "x"}))
+    assert calls[-1] == ("preview", ({}, "fw", 300000))
+    stop = handlers[f"{redsea_init.DOMAIN}.wave_preview_stop"]
+    assert await stop(call({"device_id": "linked"})) == {"preview": False}
+    assert calls[-1] == ("stop", None)
+    pump_set = handlers[f"{redsea_init.DOMAIN}.wave_pump_set"]
+    assert await pump_set(
+        call({"device_id": "linked", "direction": "alt", "fti": 60, "rti": 30})
+    ) == {"saved": True}
+    assert calls[-1] == ("pump", ("alt", 60, 30))
+    await pump_set(call({"device_id": "linked"}))
+    assert calls[-1] == ("pump", ("", None, None))
+
+    order = handlers[f"{redsea_init.DOMAIN}.wave_group_order"]
+    assert await order(call({"device_id": "linked", "hwids": ["b", "a"]})) == {
+        "saved": True
+    }
+    assert calls[-1] == ("order", ["b", "a"])
+
+    group_set = handlers[f"{redsea_init.DOMAIN}.wave_group_set"]
+    assert await group_set(call({"device_id": "linked", "grouped": True})) == {
+        "grouped": True
+    }
+    assert calls[-1] == ("grouped", True)
+    assert await group_set(call({"device_id": "linked", "grouped": "x"})) == {
+        "grouped": False
+    }
+    assert calls[-1] == ("grouped", False)

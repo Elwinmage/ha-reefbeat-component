@@ -2,17 +2,22 @@
   "config": {
     "abort": {
       "already_configured": "Dispositivo ya configurado",
-      "cannot_create": "No se puede crear el dispositivo ReefBeat con los parámetros especificados"
+      "cannot_create": "No se puede crear el dispositivo ReefBeat con los parámetros especificados",
+      "group_already_driven": "Estas lámparas ya están controladas por un LED virtual"
     },
     "error": {
       "auth_failed": "Autenticación fallida, compruebe sus credenciales",
       "nothing_detected": "No se detectó ningún dispositivo"
     },
-    "flow_title": "Configuración de ReefBeat",
+    "flow_title": "{name}",
+    "progress": {
+      "scanning": "Escaneando {subnet} (red {current} de {total})…\n\nDispositivos encontrados hasta ahora: {found}"
+    },
     "step": {
       "user": {
         "data": {
           "add_type": "Elige tu método de adición",
+          "cloud_server": "Servidor en la nube (dirección del simulador)",
           "disable_supplements": "Desactivar suplementos",
           "hw_model": "Modelo de hardware",
           "ip_address": "IP o dirección de subred (ej: 10.0.1.0/255.255.255.0)",
@@ -28,6 +33,10 @@
         },
         "description": "Todos los dispositivos encontrados en la red están preseleccionados. Desmarque los que no desea añadir y confirme — todos los dispositivos restantes se añadirán a la vez.",
         "title": "Añadir dispositivos detectados"
+      },
+      "discovery_confirm": {
+        "title": "Grupo de la app ReefBeat",
+        "description": "La app ReefBeat agrupa estas lámparas {model} en el acuario {aquarium}:\n\n{leds}\n\n¿Crear un LED virtual que las controle juntas, en este orden?"
       }
     }
   },
@@ -229,6 +238,12 @@
       },
       "maint_mat_carbon_replace": {
         "name": "Sustituir el carbón activado"
+      },
+      "maint_power_dust_clean": {
+        "name": "Quitar el polvo y los depósitos de sal"
+      },
+      "maint_power_visual_check": {
+        "name": "Inspección visual"
       },
       "maint_run_pump_motor": {
         "name": "Limpiar motor y rotor"
@@ -453,6 +468,12 @@
       "maint_mat_carbon_replace_interval_weeks": {
         "name": "Sustituir el carbón activado (semanas)"
       },
+      "maint_power_dust_clean_interval_months": {
+        "name": "Quitar el polvo y los depósitos de sal (meses)"
+      },
+      "maint_power_visual_check_interval_months": {
+        "name": "Inspección visual (meses)"
+      },
       "maint_run_pump_motor_interval_months": {
         "name": "Limpiar motor y rotor (meses)"
       },
@@ -594,6 +615,21 @@
       "danger_debounce_seconds": {
         "name": "Antirrebote de peligro"
       },
+      "weather_min_intensity": {
+        "name": "Intensidad mínima meteorológica"
+      },
+      "weather_max_intensity": {
+        "name": "Intensidad máxima meteorológica"
+      },
+      "weather_refresh_days": {
+        "name": "Actualización del tiempo (días)"
+      },
+      "sunrise_offset": {
+        "name": "Desfase del amanecer"
+      },
+      "staggered_delay": {
+        "name": "Retraso del amanecer escalonado"
+      },
       "port_ato_volume_left_set": {
         "name": "Puerto {port} volumen restante del depósito"
       },
@@ -670,14 +706,42 @@
           "ppt": "Salinidad (ppt)",
           "sg": "Densidad (SG)"
         }
+      },
+      "weather_period": {
+        "name": "Periodo meteorológico",
+        "state": {
+          "next_week": "Próxima semana (previsión)",
+          "last_week": "Semana pasada (medida)"
+        }
+      },
+      "weather_anchor": {
+        "name": "Día meteorológico en el acuario",
+        "state": {
+          "place": "Hora del lugar",
+          "sunrise": "Anclado al amanecer",
+          "sunset": "Anclado al atardecer",
+          "both": "Estirado entre amanecer y atardecer"
+        }
       }
     },
     "sensor": {
+      "acclimation_current_intensity_factor": {
+        "name": "Factor de intensidad actual de aclimatación"
+      },
       "acclimation_duration": {
         "name": "Duración de aclimatación"
       },
+      "acclimation_remaining_days": {
+        "name": "Días de aclimatación restantes"
+      },
       "acclimation_start_intensity_factor": {
         "name": "Factor de intensidad inicial de aclimatación"
+      },
+      "current_program": {
+        "name": "Programa actual"
+      },
+      "linked_leds": {
+        "name": "LED vinculados"
       },
       "ato_sensor_code": {
         "name": "Código de la sonda de temperatura"
@@ -1398,6 +1462,16 @@
       "probe_uid": {
         "name": "UID de {probe}"
       },
+      "weather_program": {
+        "name": "Programa meteorológico",
+        "state": {
+          "ok": "OK",
+          "error": "Error"
+        }
+      },
+      "linked_waves": {
+        "name": "ReefWave vinculadas"
+      },
       "port_ato_status": {
         "name": "Puerto {port} estado del ATO",
         "state": {
@@ -1489,6 +1563,12 @@
       },
       "maint_mat_carbon_replace_notify": {
         "name": "Sustituir el carbón activado (notificaciones)"
+      },
+      "maint_power_dust_clean_notify": {
+        "name": "Quitar el polvo y los depósitos de sal (notificaciones)"
+      },
+      "maint_power_visual_check_notify": {
+        "name": "Inspección visual (notificaciones)"
       },
       "maint_run_pump_motor_notify": {
         "name": "Limpiar motor y rotor (notificaciones)"
@@ -1598,6 +1678,18 @@
       "leak_detector_enabled": {
         "name": "Detector de fugas"
       },
+      "weather_sync": {
+        "name": "Modo tiempo GPS"
+      },
+      "weather_clouds": {
+        "name": "Nubes del tiempo"
+      },
+      "staggered_sunrise": {
+        "name": "Amanecer escalonado"
+      },
+      "wave_grouped": {
+        "name": "Agrupada con el acuario"
+      },
       "port_ato_auto_fill": {
         "name": "Puerto {port} llenado automático"
       },
@@ -1656,11 +1748,20 @@
       },
       "temperature_probe_name": {
         "name": "Nombre de la sonda de temperatura"
+      },
+      "weather_location": {
+        "name": "Lugar meteorológico"
       }
     },
     "time": {
       "schedule_time": {
         "name": "Hora de programación"
+      },
+      "weather_sunrise": {
+        "name": "Amanecer meteorológico"
+      },
+      "weather_sunset": {
+        "name": "Atardecer meteorológico"
       }
     },
     "update": {
@@ -1688,6 +1789,8 @@
       "wifi_bad_cidr": "CIDR IPv4 no válido (se esperaba, por ejemplo, 10.0.0.0/24).",
       "wifi_manual_not_found": "No se encontró el dispositivo en esa subred. Prueba otro CIDR o deja el campo vacío para desistir.",
       "no_probe_detected": "No se detectó ninguna sonda nueva del tipo seleccionado. Póngala en emparejamiento e inténtelo de nuevo.",
+      "group_min_members": "Elija al menos dos LED.",
+      "group_duplicate_position": "Cada LED debe tener una sola posición.",
       "ato_install_failed": "El hub rechazó instalar el módulo ATO. Compruebe que el puerto está libre y la sonda ATO conectada."
     },
     "progress": {
@@ -1765,6 +1868,29 @@
       "del_probe_confirm": {
         "title": "Confirmar eliminación",
         "description": "Esto elimina permanentemente la(s) sonda(s) seleccionada(s) y todas sus entidades e historial: {probes}.\n\nConfirma para continuar, o cierra este diálogo para cancelar."
+      },
+      "group_members": {
+        "title": "LED del grupo",
+        "description": "Elija los ReefLED controlados juntos por este LED virtual (al menos dos). Un LED solo puede pertenecer a un grupo.",
+        "data": {
+          "members": "LED"
+        }
+      },
+      "group_order": {
+        "title": "Orden de los LED",
+        "description": "Orden de los LED en el grupo, como en la aplicación ReefBeat: el amanecer escalonado empieza por el primero.",
+        "data": {
+          "position_1": "Posición 1",
+          "position_2": "Posición 2",
+          "position_3": "Posición 3",
+          "position_4": "Posición 4",
+          "position_5": "Posición 5",
+          "position_6": "Posición 6",
+          "position_7": "Posición 7",
+          "position_8": "Posición 8",
+          "position_9": "Posición 9",
+          "position_10": "Posición 10"
+        }
       },
       "install_ato": {
         "title": "Instalar el módulo ATO",
@@ -1853,6 +1979,389 @@
         "solution_rated_temp": {
           "name": "Temperatura de referencia de la solución",
           "description": "Temperatura a la que se da el valor de la solución, en °C (solo pH)."
+        }
+      }
+    },
+    "led_convert": {
+      "name": "Convertir colores ReefLED",
+      "description": "Convierte puntos de una ReefLED G1 entre blanco/azul y kelvin/intensidad, con la tabla del modelo y la compensación de intensidad.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefLED G1."
+        },
+        "points": {
+          "name": "Puntos",
+          "description": "Lista de puntos, cada uno (kelvin, intensity) o (white, blue)."
+        }
+      }
+    },
+    "led_library": {
+      "name": "Listar la biblioteca ReefLED",
+      "description": "Programas de luz de la biblioteca en la nube del acuario de la ReefLED.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefLED (o LED virtual)."
+        }
+      }
+    },
+    "led_library_save": {
+      "name": "Guardar un programa ReefLED en la biblioteca",
+      "description": "Añade un programa de luz a la biblioteca en la nube de la ReefLED, o modifica uno.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefLED (o LED virtual)."
+        },
+        "name": {
+          "name": "Nombre",
+          "description": "Nombre del programa en la biblioteca."
+        },
+        "program": {
+          "name": "Programa",
+          "description": "Programa diario en el formato de la lámpara, en la línea de tiempo de un solo día."
+        },
+        "clouds": {
+          "name": "Nubes",
+          "description": "Nubes del programa (from, to, intensity), si las hay."
+        },
+        "uid": {
+          "name": "ID del programa",
+          "description": "El programa de la biblioteca que se modifica; vacío para añadir uno nuevo. Los programas de Red Sea no se pueden modificar."
+        }
+      }
+    },
+    "led_library_delete": {
+      "name": "Eliminar un programa de la biblioteca ReefLED",
+      "description": "Elimina un programa del usuario de la biblioteca en la nube de la ReefLED.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefLED (o LED virtual)."
+        },
+        "uid": {
+          "name": "ID del programa",
+          "description": "El programa que se elimina (no uno de Red Sea)."
+        }
+      }
+    },
+    "led_weather_apply": {
+      "name": "Actualizar el tiempo ReefLED",
+      "description": "Vuelve a obtener el tiempo y envía la semana a una ReefLED en modo tiempo GPS.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefLED (o LED virtual)."
+        }
+      }
+    },
+    "led_weather_preview": {
+      "name": "Vista previa de la semana del tiempo",
+      "description": "Genera la semana que haría el tiempo ahora y la devuelve con la semana propia de la lámpara, sin escribir nada.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefLED (o LED virtual)."
+        },
+        "settings": {
+          "name": "Ajustes",
+          "description": "Ajustes del tiempo en edición, sobre los guardados."
+        }
+      }
+    },
+    "led_weather_save": {
+      "name": "Guardar el programa del tiempo",
+      "description": "Guarda los ajustes y el modo del tiempo y escribe la lámpara una sola vez: la semana del tiempo o la vuelta de su propia semana.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefLED (o LED virtual)."
+        },
+        "settings": {
+          "name": "Ajustes",
+          "description": "Ajustes del tiempo en edición, sobre los guardados."
+        },
+        "enabled": {
+          "name": "Modo tiempo",
+          "description": "Si la lámpara sigue el tiempo."
+        },
+        "wait": {
+          "name": "Esperar a la lámpara",
+          "description": "Responder una vez escrita la lámpara (por defecto la semana se guarda y se muestra, y luego se escribe en segundo plano)."
+        }
+      }
+    },
+    "wave_library": {
+      "name": "Biblioteca de olas ReefWave",
+      "description": "Olas que puede usar una ReefWave (biblioteca en la nube de su acuario, con sus intensidades), las bombas que las usan y su grupo.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        }
+      }
+    },
+    "wave_library_save": {
+      "name": "Guardar una ola ReefWave en la biblioteca",
+      "description": "Añade una ola a la biblioteca en la nube del acuario de la ReefWave, o actualiza una (no una de Red Sea).",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "name": {
+          "name": "Nombre",
+          "description": "Nombre de la ola, único en la biblioteca."
+        },
+        "settings": {
+          "name": "Ajustes",
+          "description": "type, frt, rrt, pd, sn (según el tipo), fti, rti, sync."
+        },
+        "uid": {
+          "name": "ID de la ola",
+          "description": "La ola a actualizar; vacío para añadir una nueva."
+        }
+      }
+    },
+    "wave_library_delete": {
+      "name": "Eliminar una ola ReefWave de la biblioteca",
+      "description": "Elimina una ola del usuario de la biblioteca en la nube (ni de Red Sea ni usada por un programa).",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "uid": {
+          "name": "ID de la ola",
+          "description": "La ola a eliminar."
+        }
+      }
+    },
+    "wave_program_save": {
+      "name": "Guardar el programa diario de una ReefWave",
+      "description": "Escribe el programa diario de una ReefWave (de todo su grupo), a través de la nube si está vinculada.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "slots": {
+          "name": "Franjas",
+          "description": "Lista de (st, wave_uid, direction); la primera empieza en 0."
+        }
+      }
+    },
+    "wave_preview": {
+      "name": "Previsualizar una ola ReefWave",
+      "description": "Hace funcionar una ola en la bomba un rato y luego vuelve a su programa.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "settings": {
+          "name": "Ajustes",
+          "description": "type, frt, rrt, pd, sn (según el tipo), fti, rti."
+        },
+        "direction": {
+          "name": "Dirección",
+          "description": "fw, rw o alt."
+        },
+        "duration": {
+          "name": "Duración",
+          "description": "Duración de la vista previa, en ms (60000 a 600000)."
+        }
+      }
+    },
+    "wave_preview_stop": {
+      "name": "Detener la vista previa de una ReefWave",
+      "description": "La bomba vuelve a su programa.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        }
+      }
+    },
+    "wave_pump_set": {
+      "name": "Ajustar una ReefWave en la ola actual",
+      "description": "Dirección e intensidades de esta bomba en la ola actual; las demás bombas del grupo no cambian.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "direction": {
+          "name": "Dirección",
+          "description": "fw, rw o alt."
+        },
+        "fti": {
+          "name": "Intensidad de avance",
+          "description": "Intensidad de avance de esta bomba, en %."
+        },
+        "rti": {
+          "name": "Intensidad de retroceso",
+          "description": "Intensidad de retroceso de esta bomba, en %."
+        }
+      }
+    },
+    "wave_group_order": {
+      "name": "Ordenar un grupo ReefWave",
+      "description": "Orden de las bombas del grupo ReefWave (nube).",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de una ReefWave del grupo."
+        },
+        "hwids": {
+          "name": "Bombas",
+          "description": "Identificadores de hardware de todas las bombas del grupo, en el nuevo orden."
+        }
+      }
+    },
+    "wave_group_set": {
+      "name": "Agrupar o desagrupar una ReefWave",
+      "description": "Agrupa la ReefWave con las demás ReefWave de su acuario, o la desagrupa (nube).",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefWave."
+        },
+        "grouped": {
+          "name": "Agrupada",
+          "description": "Activado para agrupar la bomba, desactivado para desagruparla."
+        }
+      }
+    },
+    "led_library_rename": {
+      "name": "Renombrar un programa de la biblioteca ReefLED",
+      "description": "Renombra un programa del usuario: en la biblioteca en la nube y en cada día que lleva su nombre, en la lámpara y en las lámparas de su grupo.",
+      "fields": {
+        "device_id": {
+          "name": "ID del dispositivo",
+          "description": "La entrada de configuración de la ReefLED (o LED virtual)."
+        },
+        "uid": {
+          "name": "ID del programa",
+          "description": "El programa de la biblioteca que se va a renombrar (no uno de Red Sea)."
+        },
+        "name": {
+          "name": "Nombre",
+          "description": "El nuevo nombre del programa."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "group_member_unavailable": {
+      "message": "{group}: acción rechazada, estos LED no están disponibles: {members}. No se ha enviado nada, el grupo sigue sincronizado."
+    },
+    "group_channel_unavailable": {
+      "message": "{group} contiene lámparas G1 y G2: el blanco y el azul no se pueden ajustar en todo el grupo. Use la temperatura de color y la intensidad."
+    },
+    "wave_group_member_unavailable": {
+      "message": "{group}: acción rechazada, estas ReefWave no están disponibles: {members}. No se ha enviado nada, el grupo sigue sincronizado."
+    },
+    "wave_cloud_required": {
+      "message": "{pump} no está vinculada a una cuenta en la nube ReefBeat: la biblioteca de olas no se puede editar."
+    },
+    "wave_not_a_wave": {
+      "message": "Este dispositivo no es una ReefWave."
+    },
+    "wave_not_found": {
+      "message": "La ola {uid} no está en la biblioteca."
+    },
+    "wave_default_readonly": {
+      "message": "{name} es una ola de Red Sea: no se puede modificar ni eliminar. Guárdala como una ola nueva."
+    },
+    "wave_in_use": {
+      "message": "{name} se usa en el programa de: {pumps}. Quítala primero de esos programas."
+    },
+    "wave_name_required": {
+      "message": "Una ola necesita un nombre."
+    },
+    "wave_name_taken": {
+      "message": "Ya existe una ola llamada {name} en la biblioteca."
+    },
+    "wave_name_too_long": {
+      "message": "El nombre {name} es demasiado largo: el nombre de una ola tiene como máximo {max} caracteres."
+    },
+    "wave_replace_failed": {
+      "message": "La ola {name} no pudo cambiar de tipo: la nube de ReefBeat lo rechazó. No se ha cambiado nada."
+    },
+    "wave_bad_type": {
+      "message": "Tipo de ola desconocido: {type}."
+    },
+    "wave_bad_value": {
+      "message": "Valor no válido para {field}."
+    },
+    "wave_program_empty": {
+      "message": "Un programa necesita al menos una franja."
+    },
+    "wave_program_bad_slot": {
+      "message": "Una franja del programa no es válida (inicio, ola o dirección)."
+    },
+    "wave_program_midnight": {
+      "message": "El programa debe empezar a las 00:00."
+    },
+    "wave_program_same_start": {
+      "message": "Dos franjas empiezan a la misma hora."
+    },
+    "wave_program_too_short": {
+      "message": "Cada franja debe durar al menos {min} minutos: la bomba omite una franja más corta."
+    },
+    "wave_preview_no_wave": {
+      "message": "«Sin ola» no se puede previsualizar."
+    },
+    "wave_group_bad_order": {
+      "message": "El nuevo orden debe incluir una vez cada bomba del grupo."
+    }
+  },
+  "issues": {
+    "group_no_cloud": {
+      "title": "{group}: sin cuenta cloud de ReefBeat",
+      "fix_flow": {
+        "step": {
+          "keep_local": {
+            "title": "Mantener el grupo solo en Home Assistant",
+            "description": "Los LED de {group} también podrían agruparse en la aplicación ReefBeat, pero no hay configurada ninguna cuenta cloud de ReefBeat que los liste. Sin ella, el grupo solo existe en Home Assistant: la aplicación no lo ve y puede controlar sus LED por separado.\n\nPara compartir el grupo con la aplicación, añada su cuenta cloud de ReefBeat (Ajustes > Dispositivos y servicios > Añadir integración > Red Sea > Cloud API): este problema desaparecerá solo. O mantenga el grupo solo en Home Assistant.\n\nEl grupo no se escribirá en el cloud de ReefBeat. Aún podrá añadir la cuenta cloud más adelante."
+          }
+        },
+        "abort": {
+          "group_not_loaded": "El grupo no está cargado: inténtelo de nuevo cuando lo esté."
+        }
+      }
+    },
+    "group_mixed_models": {
+      "title": "{group}: LED agrupados en la aplicación ReefBeat",
+      "fix_flow": {
+        "step": {
+          "ungroup": {
+            "title": "Desagrupar en la aplicación ReefBeat",
+            "description": "{group} contiene LED de varios modelos, que la aplicación ReefBeat no puede agrupar juntos: la aplicación solo agrupa LED de un mismo modelo. Estos LED siguen agrupados en la aplicación, que los controlaría aparte de los demás: {leds}.\n\nDesagrúpelos en la aplicación ReefBeat: el grupo existirá entonces solo en Home Assistant (su orden es global).\n\nEstos LED se desagruparán en el cloud de ReefBeat (la aplicación los muestra por separado). Home Assistant sigue controlándolos juntos."
+          }
+        },
+        "abort": {
+          "group_not_loaded": "El grupo no está cargado: inténtelo de nuevo cuando lo esté."
+        }
+      }
+    },
+    "group_conflict": {
+      "title": "{group}: modificado en Home Assistant y en la aplicación ReefBeat",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "¿Qué grupo conservar?",
+            "description": "Los LED, su orden o el amanecer escalonado de {group} han cambiado tanto en Home Assistant como en la aplicación ReefBeat desde la última sincronización. Elija el grupo que se conserva.",
+            "menu_options": {
+              "keep_home_assistant": "El de Home Assistant (escrito en el cloud de ReefBeat)",
+              "keep_reefbeat": "El de la aplicación ReefBeat (adoptado por Home Assistant)"
+            }
+          }
+        },
+        "abort": {
+          "group_not_loaded": "El grupo no está cargado: inténtelo de nuevo cuando lo esté."
         }
       }
     }

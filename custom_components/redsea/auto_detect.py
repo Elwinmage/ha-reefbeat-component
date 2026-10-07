@@ -16,8 +16,8 @@ import json
 import socket
 import struct
 import xml.etree.ElementTree as ET
-from collections.abc import Iterable
-from concurrent.futures import ThreadPoolExecutor
+from collections.abc import Callable, Iterable
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TypedDict
 
 import requests
@@ -88,6 +88,17 @@ def get_local_ips(subnetwork: str | None = None) -> list[str]:
 
     # Fallback (no netifaces and no readable routing table): derive a single
     # /24 from the primary interface, as before.
+    fallback = _fallback_subnet()
+    if fallback is None:
+        return []
+    return list(_iter_ipv4s(fallback))
+
+
+def _fallback_subnet() -> str | None:
+    """Return the /24 around the primary interface address, or None.
+
+    Used when neither netifaces nor the routing table gave any subnet.
+    """
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.connect(("8.8.8.8", 80))
@@ -101,9 +112,37 @@ def get_local_ips(subnetwork: str | None = None) -> list[str]:
             "pass an explicit subnetwork CIDR to bypass this.",
             exc,
         )
-        return []
+        return None
 
-    return list(_iter_ipv4s(f"{local_ip}/{_DEFAULT_PREFIXLEN}"))
+    return f"{local_ip}/{_DEFAULT_PREFIXLEN}"
+
+
+def list_scan_targets(subnetwork: str | None = None) -> list[str]:
+    """Return the CIDRs a detection pass will walk, one entry per subnet.
+
+    Same selection as :func:`get_local_ips` (explicit CIDR, else every
+    scannable subnet, else the /24 of the primary interface), but kept as a
+    list of networks so a caller can scan them one by one and report which
+    one is in progress. CIDRs are normalised (``10.0.1.5/255.255.255.0`` ->
+    ``10.0.1.0/24``) so they can be shown to the user as-is.
+    """
+    if subnetwork:
+        candidates = [subnetwork]
+    else:
+        candidates = list_scannable_subnets()
+        if not candidates:
+            fallback = _fallback_subnet()
+            candidates = [fallback] if fallback else []
+
+    targets: list[str] = []
+    for cidr in candidates:
+        try:
+            normalised = str(ipaddress.ip_network(cidr.strip(), strict=False))
+        except (ValueError, TypeError):
+            normalised = cidr
+        if normalised not in targets:
+            targets.append(normalised)
+    return targets
 
 
 # =============================================================================
@@ -351,25 +390,49 @@ def is_reefbeat(ip: str) -> tuple[bool, str, str | None, str | None, str | None]
         return False, ip, None, None, None
 
 
-# APRÈS — utiliser ThreadPoolExecutor au lieu de multiprocessing.Pool
-
-
 def get_reefbeats(
-    subnetwork: str | None = None, nb_of_threads: int = 64
+    subnetwork: str | None = None,
+    nb_of_threads: int = 64,
+    progress_cb: Callable[[int, int], None] | None = None,
 ) -> list[ReefBeatInfo]:
     """Scan the network and return detected ReefBeat devices.
 
     Uses ThreadPoolExecutor instead of multiprocessing.Pool to avoid
     fork() issues when called from within a Home Assistant executor thread
     (forking from an asyncio process corrupts open sockets/event loops).
+
+    ``progress_cb(done, total)`` is called, from the calling thread, once
+    before the first probe and after each probed address. An exception raised
+    by the callback never interrupts the scan.
     """
     ips = get_local_ips(subnetwork)
+    total = len(ips)
 
+    def _report(done: int) -> None:
+        if progress_cb is None:
+            return
+        try:
+            progress_cb(done, total)
+        except Exception:
+            pass
+
+    _report(0)
+    results: list[tuple[bool, str, str | None, str | None, str | None]]
     if nb_of_threads <= 1:
-        results = [is_reefbeat(ip) for ip in ips]
+        results = []
+        for ip in ips:
+            results.append(is_reefbeat(ip))
+            _report(len(results))
     else:
+        # as_completed so the progress moves with every answer instead of
+        # waiting on the slowest address; results keep the address order.
+        by_index: dict[int, tuple[bool, str, str | None, str | None, str | None]] = {}
         with ThreadPoolExecutor(max_workers=nb_of_threads) as executor:
-            results = list(executor.map(is_reefbeat, ips))
+            futures = {executor.submit(is_reefbeat, ip): i for i, ip in enumerate(ips)}
+            for future in as_completed(futures):
+                by_index[futures[future]] = future.result()
+                _report(len(by_index))
+        results = [by_index[i] for i in range(total)]
 
     reefbeats: list[ReefBeatInfo] = []
     for status, ip, hw_model, friendly_name, uuid in results:

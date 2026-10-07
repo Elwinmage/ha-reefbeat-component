@@ -2,7 +2,7 @@
 
 # ReefControl:
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_devices.png" alt="Image">
+<img src="../img/rscontrol_devices.png" alt="Image">
 </p>
 
 O hub ReefControl (RSCONTROLPRO / RSCONTROLLITE) lê as sondas ReefSense ligadas às suas caixas de extensão, controla as suas portas 12V DC (2 no Pro, 1 no Lite) e, depois de emparelhado, as tomadas de um [ReefControl-Power](reefcontrol-power.pt.md#reefcontrol-power).
@@ -19,10 +19,10 @@ O hub ReefControl (RSCONTROLPRO / RSCONTROLLITE) lê as sondas ReefSense ligadas
 - As escritas aparecem de imediato (atualização otimista) e são depois confirmadas por uma nova leitura do aparelho.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
+<img src="../img/rscontrol_sensors.png" alt="Image">
+<img src="../img/rscontrol_ctrl.png" alt="Image">
+<img src="../img/rscontrol_conf.png" alt="Image">
+<img src="../img/rscontrol_diag.png" alt="Image">
 </p>
 
 > [!TIP]
@@ -32,7 +32,7 @@ O hub ReefControl (RSCONTROLPRO / RSCONTROLLITE) lê as sondas ReefSense ligadas
 As sondas BLE (pH, ORP, EC, ATO, fuga, temperatura) são geridas a partir do menu **Opções** da integração, tal como na aplicação Red Sea:
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_probe_management.png" alt="Image">
+<img src="../img/rscontrol_probe_management.png" alt="Image">
 </p>
 
 - **Adicionar uma sonda**: coloque a sonda em modo de emparelhamento, escolha o seu tipo e confirme para a procurar. A sonda é configurada como faz a aplicação: uma sonda de fuga, por exemplo, recebe o nome `Leak <uid>`, com buzzer, detetor de fugas e notificações ativados.

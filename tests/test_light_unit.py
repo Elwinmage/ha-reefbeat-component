@@ -5,7 +5,10 @@ from dataclasses import dataclass, field
 from typing import Any, cast
 
 import pytest
-from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_COLOR_TEMP_KELVIN
+from homeassistant.components.light import (
+    ATTR_BRIGHTNESS,  # pyright: ignore[reportPrivateImportUsage]
+    ATTR_COLOR_TEMP_KELVIN,  # pyright: ignore[reportPrivateImportUsage]
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -107,7 +110,8 @@ async def test_light_async_setup_entry_adds_entities_for_g2_and_virtual_only_g1(
     class ReefLedG2Coordinator(_FakeLedCoordinator):
         pass
 
-    class ReefVirtualLedCoordinator(_FakeLedCoordinator):
+    # As the real one: a group is a ReefLedCoordinator too
+    class ReefVirtualLedCoordinator(ReefLedCoordinator):
         pass
 
     monkeypatch.setattr(light_mod, "ReefLedCoordinator", ReefLedCoordinator)
@@ -152,6 +156,27 @@ async def test_light_async_setup_entry_adds_entities_for_g2_and_virtual_only_g1(
     await light_mod.async_setup_entry(hass, cast(ConfigEntry, entry_v), _add_v)
     assert len(added_v) == 4  # VIRTUAL_LIGHTS + LIGHTS
     assert any("G1 protocol activated" in r.message for r in caplog.records)
+    # Its colour light drives each lamp at its own path (G1 or G2)
+    kelvin = [e for e in added_v if e.entity_description.key == "kelvin_intensity"]
+    assert len(kelvin) == 1
+    assert " " in cast(Any, kelvin[0].entity_description).value_name
+
+    # A group holding a G2: no white/blue lights
+    entry_m = MockConfigEntry(domain=DOMAIN, title="mixed", data={}, unique_id="m")
+    entry_m.add_to_hass(hass)
+    hass.data[DOMAIN][entry_m.entry_id] = ReefVirtualLedCoordinator(
+        only_g1=False, title="Mixed"
+    )
+    added_m: list[Any] = []
+
+    def _add_m(new_entities: Iterable[Entity], update_before_add: bool = False) -> None:
+        added_m.extend(new_entities)
+
+    await light_mod.async_setup_entry(hass, cast(ConfigEntry, entry_m), _add_m)
+    assert sorted(e.entity_description.key for e in added_m) == [
+        "kelvin_intensity",
+        "moon",
+    ]
 
 
 @pytest.mark.asyncio
@@ -507,9 +532,12 @@ async def test_light_turn_on_without_brightness_reads_from_device_for_kelvin_and
     ent_k.hass = cast(Any, _FakeHass())
     ent_k.async_write_ha_state = lambda: None  # type: ignore[assignment]
 
-    dev_k.get_data_map[desc_k.value_name + ".intensity"] = 7
+    dev_k.get_data_map[desc_k.value_name] = {"intensity": 7}
     await ent_k.async_turn_on(**{ATTR_COLOR_TEMP_KELVIN: 9000})
-    assert ent_k.brightness == 7
+    # The intensity is kept: 7 % as a brightness (it was shown as 7/255)
+    assert ent_k.brightness == 18
+    # A G2 computes its white and blue: read back
+    assert dev_k.quick_refreshed == ["/manual"]
 
     # White: reads value_name
     dev_w = _FakeLedCoordinator(is_g1=True)
@@ -524,7 +552,80 @@ async def test_light_turn_on_without_brightness_reads_from_device_for_kelvin_and
 
     dev_w.get_data_map[desc_w.value_name] = 9
     await ent_w.async_turn_on()
-    assert ent_w.brightness == 9
+    assert ent_w.brightness == 23
+    # A G1's levels are derived by the integration: nothing to read back
+    assert dev_w.quick_refreshed == []
+
+
+@pytest.mark.asyncio
+async def test_light_turn_on_writes_both_levels_for_the_group() -> None:
+    """Colour or intensity alone: the other level is written as well."""
+    dev = _FakeLedCoordinator(is_g1=True)
+    desc = ReefLedLightEntityDescription(
+        key="kelvin_intensity",
+        translation_key="kelvin_intensity",
+        value_name="$.local.manual_trick",
+    )
+    ent = ReefLedLightEntity(cast(Any, dev), desc)
+    ent.hass = cast(Any, _FakeHass())
+    ent.async_write_ha_state = lambda: None  # type: ignore[assignment]
+
+    # Levels unknown: only the colour
+    await ent.async_turn_on(**{ATTR_COLOR_TEMP_KELVIN: 12000})
+    assert dev.set_calls == [("$.local.manual_trick.kelvin", 12000)]
+
+    # Colour alone: the known intensity too
+    dev.set_calls.clear()
+    dev.get_data_map["$.local.manual_trick"] = {"intensity": 40}
+    await ent.async_turn_on(**{ATTR_COLOR_TEMP_KELVIN: 14000})
+    assert dev.set_calls == [
+        ("$.local.manual_trick.kelvin", 14000),
+        ("$.local.manual_trick.intensity", 40),
+    ]
+
+    # Intensity alone: the known colour too
+    dev.set_calls.clear()
+    dev.get_data_map["$.local.manual_trick"] = {"kelvin": 14000}
+    await ent.async_turn_on(**{ATTR_BRIGHTNESS: 51})
+    assert dev.set_calls == [
+        ("$.local.manual_trick.intensity", 20),
+        ("$.local.manual_trick.kelvin", 14000),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_light_turn_on_from_the_group_reads_its_average_levels() -> None:
+    """A group's colour light: its levels are the {kelvin, intensity} of its
+    lamps (a "g1_path g2_path" path), never read as a value path."""
+    dev = _FakeLedCoordinator(is_g1=False)
+    desc = ReefLedLightEntityDescription(
+        key="kelvin_intensity",
+        translation_key="kelvin_intensity",
+        value_name="$.local.manual_trick $.sources[?(@.name=='/manual')].data",
+    )
+    ent = ReefLedLightEntity(cast(Any, dev), desc)
+    ent.hass = cast(Any, _FakeHass())
+    ent.async_write_ha_state = lambda: None  # type: ignore[assignment]
+    dev.get_data_map[desc.value_name] = {"kelvin": 12000.0, "intensity": 30.0}
+
+    await ent.async_turn_on(**{ATTR_COLOR_TEMP_KELVIN: 15000})
+    assert dev.set_calls == [
+        (desc.value_name + ".kelvin", 15000),
+        (desc.value_name + ".intensity", 30),
+    ]
+    dev.set_calls.clear()
+    await ent.async_turn_on(**{ATTR_BRIGHTNESS: 51})
+    assert dev.set_calls == [
+        (desc.value_name + ".intensity", 20),
+        (desc.value_name + ".kelvin", 12000),
+    ]
+    assert dev.pushed == [("/manual", "post"), ("/manual", "post")]
+
+    # Not a {kelvin, intensity} payload: levels unknown
+    dev.set_calls.clear()
+    dev.get_data_map[desc.value_name] = None
+    await ent.async_turn_on(**{ATTR_COLOR_TEMP_KELVIN: 15000})
+    assert dev.set_calls == [(desc.value_name + ".kelvin", 15000)]
 
 
 @pytest.mark.asyncio

@@ -66,7 +66,7 @@ czasu, sortowalny według sprzętu lub terminu, z przyciskiem oznaczenia zadania
 jako wykonanego, dzwonkiem do wyciszenia i suwakiem do zmiany interwału.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/maintenance_task.png" alt="Zadania konserwacyjne w ha-reef-card">
+<img src="../img/maintenance_task.png" alt="Zadania konserwacyjne w ha-reef-card">
 </p>
 
 ## Powiadomienia: blueprint alertów

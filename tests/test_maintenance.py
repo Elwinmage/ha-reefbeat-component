@@ -103,8 +103,23 @@ class TestTaskCatalogue:
             "RSWAVE25",
             "RSWAVE45",
             "RSMAT",
+            "RSPOWER6",
+            "RSPOWER8",
         ):
             assert maint.tasks_for(hw_id), f"no tasks for {hw_id}"
+
+    def test_power_centers_share_their_tasks(self) -> None:
+        # Same hardware, only the number of sockets differs.
+        assert maint.tasks_for("RSPOWER6") is maint.tasks_for("RSPOWER8")
+        tasks = {t.key: t for t in maint.tasks_for("RSPOWER6")}
+        assert set(tasks) == {"power_visual_check", "power_dust_clean"}
+        # Device-level tasks, tuned in months.
+        assert all(t.applies_to_sub is None for t in tasks.values())
+        assert all(t.unit == "months" for t in tasks.values())
+        check = tasks["power_visual_check"]
+        assert (check.min_days, check.default_days, check.max_days) == (30, 30, 90)
+        dust = tasks["power_dust_clean"]
+        assert (dust.min_days, dust.default_days, dust.max_days) == (60, 90, 120)
 
     def test_unknown_model_returns_empty_tuple(self) -> None:
         assert maint.tasks_for("UNKNOWN_HW") == ()
@@ -125,7 +140,10 @@ class TestTaskCatalogue:
     def test_intervals_are_within_bounds(self) -> None:
         for tasks in maint.TASKS.values():
             for t in tasks:
-                assert t.min_days < t.default_days < t.max_days, (
+                # The default may sit on a bound (a task whose shortest
+                # interval is also the recommended one), never outside.
+                assert t.min_days < t.max_days
+                assert t.min_days <= t.default_days <= t.max_days, (
                     f"interval bounds invalid for {t.key}: "
                     f"min={t.min_days} default={t.default_days} max={t.max_days}"
                 )

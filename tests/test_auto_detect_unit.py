@@ -447,6 +447,8 @@ def test_get_reefbeats_uses_thread_pool_when_threads_gt_1(
 
     monkeypatch.setattr(auto_detect, "get_local_ips", lambda _s=None: ["1.1.1.1"])
 
+    from concurrent.futures import Future
+
     captured_workers: list[int] = []
 
     class _FakeExecutor:
@@ -459,11 +461,11 @@ def test_get_reefbeats_uses_thread_pool_when_threads_gt_1(
         def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
             return None
 
-        def map(
-            self, fn: Any, items: list[str]
-        ) -> list[tuple[bool, str, str | None, str | None, str | None]]:
-            assert list(items) == ["1.1.1.1"]
-            return [(True, "1.1.1.1", "HW", "Name", "uuid")]
+        def submit(self, fn: Any, ip: str) -> Future[Any]:
+            assert ip == "1.1.1.1"
+            future: Future[Any] = Future()
+            future.set_result((True, "1.1.1.1", "HW", "Name", "uuid"))
+            return future
 
     monkeypatch.setattr(auto_detect, "ThreadPoolExecutor", _FakeExecutor)
 
@@ -474,3 +476,66 @@ def test_get_reefbeats_uses_thread_pool_when_threads_gt_1(
     assert devices == [
         {"ip": "1.1.1.1", "hw_model": "HW", "friendly_name": "Name", "uuid": "uuid"}
     ]
+
+
+def test_get_reefbeats_reports_progress(monkeypatch: pytest.MonkeyPatch) -> None:
+    """progress_cb gets (done, total) before the scan and after each address."""
+    from custom_components.redsea import auto_detect
+
+    ips = ["1.1.1.1", "2.2.2.2", "3.3.3.3"]
+    monkeypatch.setattr(auto_detect, "get_local_ips", lambda _s=None: ips)
+    monkeypatch.setattr(
+        auto_detect,
+        "is_reefbeat",
+        lambda ip: (ip != "2.2.2.2", ip, "HW", "Name", "uuid"),
+    )
+
+    for threads in (1, 8):
+        seen: list[tuple[int, int]] = []
+        devices = auto_detect.get_reefbeats(
+            nb_of_threads=threads,
+            progress_cb=lambda d, t, seen=seen: seen.append((d, t)),
+        )
+        assert seen == [(0, 3), (1, 3), (2, 3), (3, 3)]
+        # Address order is kept whatever the order of the answers.
+        assert [d.get("ip") for d in devices] == ["1.1.1.1", "3.3.3.3"]
+
+
+def test_get_reefbeats_survives_a_failing_progress_cb(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from custom_components.redsea import auto_detect
+
+    monkeypatch.setattr(auto_detect, "get_local_ips", lambda _s=None: ["1.1.1.1"])
+    monkeypatch.setattr(
+        auto_detect, "is_reefbeat", lambda ip: (True, ip, "HW", "Name", "uuid")
+    )
+
+    def _boom(_done: int, _total: int) -> None:
+        raise RuntimeError("listener gone")
+
+    assert len(auto_detect.get_reefbeats(nb_of_threads=1, progress_cb=_boom)) == 1
+
+
+def test_list_scan_targets(monkeypatch: pytest.MonkeyPatch) -> None:
+    from custom_components.redsea import auto_detect
+
+    # Explicit subnet: normalised, alone.
+    assert auto_detect.list_scan_targets("10.0.1.5/255.255.255.0") == ["10.0.1.0/24"]
+    # Unparsable text is passed through as-is.
+    assert auto_detect.list_scan_targets("nope") == ["nope"]
+
+    # No subnet given: every scannable one, without duplicates.
+    monkeypatch.setattr(
+        auto_detect,
+        "list_scannable_subnets",
+        lambda: ["192.168.0.0/24", "10.3.141.0/24", "192.168.0.0/24"],
+    )
+    assert auto_detect.list_scan_targets() == ["192.168.0.0/24", "10.3.141.0/24"]
+
+    # Nothing scannable: the /24 around the primary address, else nothing.
+    monkeypatch.setattr(auto_detect, "list_scannable_subnets", list)
+    monkeypatch.setattr(auto_detect, "_fallback_subnet", lambda: "192.168.7.42/24")
+    assert auto_detect.list_scan_targets() == ["192.168.7.0/24"]
+    monkeypatch.setattr(auto_detect, "_fallback_subnet", lambda: None)
+    assert auto_detect.list_scan_targets() == []

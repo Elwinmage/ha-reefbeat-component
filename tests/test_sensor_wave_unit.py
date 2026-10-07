@@ -176,3 +176,51 @@ async def test_async_setup_entry_wave_branch(monkeypatch: Any, hass: Any) -> Non
     )
 
     assert any(isinstance(e, sensor_platform.ReefWaveSensorEntity) for e in added)
+
+
+@dataclass
+class _FakeScheduleDevice:
+    data: Any = None
+
+    def get_data(self, name: str, is_None_possible: bool = False) -> Any:
+        assert name == sensor_platform.WAVE_SCHEDULE_PATH
+        assert is_None_possible is True
+        return self.data
+
+
+def test_wave_type_sensor_carries_the_day_program() -> None:
+    desc = next(
+        d for d in sensor_platform.WAVE_SCHEDULE_SENSORS if d.key == "wave_type"
+    )
+    assert desc.attributes_fn is not None
+
+    intervals = [
+        {"st": 0, "type": "nw", "name": "No Wave"},
+        {"st": 600, "type": "re", "fti": 60, "rti": 40, "direction": "alt"},
+    ]
+    attrs = desc.attributes_fn(cast(Any, _FakeScheduleDevice(intervals)))
+    assert attrs == {"schedule": intervals}
+
+
+@pytest.mark.parametrize("raw", [None, {}, "x"])
+def test_wave_day_program_defaults_to_empty_list(raw: Any) -> None:
+    desc = next(
+        d for d in sensor_platform.WAVE_SCHEDULE_SENSORS if d.key == "wave_type"
+    )
+    assert desc.attributes_fn is not None
+    assert desc.attributes_fn(cast(Any, _FakeScheduleDevice(raw))) == {"schedule": []}
+
+
+def test_other_wave_sensors_carry_no_program() -> None:
+    for desc in sensor_platform.WAVE_SCHEDULE_SENSORS:
+        if desc.key != "wave_type":
+            assert desc.attributes_fn is None
+
+
+def test_linked_waves_sensor() -> None:
+    desc = next(d for d in sensor_platform.WAVE_SENSORS if d.key == "linked_waves")
+    waves = [{"hwid": "a"}, {"hwid": "b"}]
+    device = SimpleNamespace(linked_waves=lambda: waves)
+    assert desc.value_fn(cast(Any, device)) == 2
+    assert desc.attributes_fn is not None
+    assert desc.attributes_fn(cast(Any, device)) == {"waves": waves}

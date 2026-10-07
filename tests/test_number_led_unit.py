@@ -43,8 +43,38 @@ async def test_led_async_set_native_value_post_specific_and_fallback(hass: Any) 
     ent1.hass = hass
     ent1.async_write_ha_state = lambda: None  # type: ignore[assignment]
 
+    read_back: list[Any] = []
+
+    async def _refresh(source: str | None = None, **_k: Any) -> None:
+        read_back.append(source)
+
+    led1.async_request_refresh = _refresh  # type: ignore[method-assign]
+    expected: list[tuple[str, bool]] = []
+    led1.expect_settings = lambda source, enabled: expected.append(  # type: ignore[attr-defined]
+        (source, enabled)
+    )
     await ent1.async_set_native_value(2)
     assert led1.posted == ["/acclimation"]
+    # Shown at once (optimistic)
+    assert expected == [("/acclimation", True)]
+    del led1.expect_settings  # type: ignore[attr-defined]
+    # A config source: read back, a plain refresh would leave it stale
+    assert read_back == ["/acclimation"]
+
+    # In a group: read back on each of its lamps
+    group = FakeLedPostSpecific(hass=hass)
+    group_read: list[Any] = []
+
+    async def _group_refresh(source: str | None = None, **_k: Any) -> None:
+        group_read.append(source)
+
+    group.async_request_refresh = _group_refresh  # type: ignore[method-assign]
+    led1.led_group = lambda: group  # type: ignore[attr-defined]
+    await ent1.async_set_native_value(3)
+    assert (read_back, group_read) == (["/acclimation"], ["/acclimation"])
+    led1.led_group = lambda: None  # type: ignore[attr-defined]
+    await ent1.async_set_native_value(4)
+    assert read_back == ["/acclimation", "/acclimation"]
 
     # post_specific not supported -> fallback to push_values(post)
     led2 = FakeCoordinator(hass=hass)
@@ -83,3 +113,26 @@ async def test_led_post_specific_none_uses_post_push(hass: Any) -> None:
 
     await ent.async_set_native_value(1)
     assert led.pushed and led.pushed[-1][0][1] == "post"
+
+
+@pytest.mark.asyncio
+async def test_led_own_value_shown_on_the_lamps_of_its_group(hass: Any) -> None:
+    """A lamp's own value (its sunrise offset) is listed by every lamp of its
+    group: they are all shown again."""
+    led = FakeCoordinator(hass=hass)
+    told: list[int] = []
+    group = type("G", (), {"_notify_members": lambda _self: told.append(1)})()
+    led.led_group = lambda: group  # type: ignore[attr-defined]
+    desc = ReefLedNumberEntityDescription(
+        key="sunrise_offset",
+        translation_key="sunrise_offset",
+        value_name="$.offset",
+        native_min_value=0,
+        native_max_value=60,
+        native_step=1,
+    )
+    ent = ReefLedNumberEntity(cast(Any, led), desc)
+    ent.hass = hass
+    ent.async_write_ha_state = lambda: None  # type: ignore[assignment]
+    await ent.async_set_native_value(10)
+    assert told == [1]

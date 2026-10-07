@@ -2,17 +2,22 @@
   "config": {
     "abort": {
       "already_configured": "Apparaat al geconfigureerd",
-      "cannot_create": "Kan ReefBeat-apparaat niet aanmaken met de opgegeven parameters"
+      "cannot_create": "Kan ReefBeat-apparaat niet aanmaken met de opgegeven parameters",
+      "group_already_driven": "Deze lampen worden al door een virtuele LED aangestuurd"
     },
     "error": {
       "auth_failed": "Authenticatie mislukt, controleer je gegevens",
       "nothing_detected": "Geen apparaat gedetecteerd"
     },
-    "flow_title": "ReefBeat configuratie",
+    "flow_title": "{name}",
+    "progress": {
+      "scanning": "Bezig met scannen: {subnet} (netwerk {current} van {total})…\n\nTot nu toe gevonden apparaten: {found}"
+    },
     "step": {
       "user": {
         "data": {
           "add_type": "Kies je toevoegmethode",
+          "cloud_server": "Cloudserver (adres van de simulator)",
           "disable_supplements": "Supplementen uitschakelen",
           "hw_model": "Hardware Model",
           "ip_address": "IP of subnet adres (bijv: 10.0.1.0/255.255.255.0)",
@@ -28,6 +33,10 @@
         },
         "description": "Alle op het netwerk gevonden apparaten zijn vooraf aangevinkt. Vink apparaten uit die u niet wilt toevoegen en bevestig — alle overige apparaten worden in één keer toegevoegd.",
         "title": "Gedetecteerde apparaten toevoegen"
+      },
+      "discovery_confirm": {
+        "title": "Groep van de ReefBeat-app",
+        "description": "De ReefBeat-app groepeert deze {model}-lampen in het aquarium {aquarium}:\n\n{leds}\n\nEen virtuele LED maken die ze samen aanstuurt, in deze volgorde?"
       }
     }
   },
@@ -229,6 +238,12 @@
       },
       "maint_mat_carbon_replace": {
         "name": "Actieve kool vervangen"
+      },
+      "maint_power_dust_clean": {
+        "name": "Stof en zoutafzetting verwijderen"
+      },
+      "maint_power_visual_check": {
+        "name": "Visuele inspectie"
       },
       "maint_run_pump_motor": {
         "name": "Motor en rotor reinigen"
@@ -453,6 +468,12 @@
       "maint_mat_carbon_replace_interval_weeks": {
         "name": "Actieve kool vervangen (weken)"
       },
+      "maint_power_dust_clean_interval_months": {
+        "name": "Stof en zoutafzetting verwijderen (maanden)"
+      },
+      "maint_power_visual_check_interval_months": {
+        "name": "Visuele inspectie (maanden)"
+      },
       "maint_run_pump_motor_interval_months": {
         "name": "Motor en rotor reinigen (maanden)"
       },
@@ -594,6 +615,21 @@
       "danger_debounce_seconds": {
         "name": "Ontdender gevaar"
       },
+      "weather_min_intensity": {
+        "name": "Minimale weerintensiteit"
+      },
+      "weather_max_intensity": {
+        "name": "Maximale weerintensiteit"
+      },
+      "weather_refresh_days": {
+        "name": "Weer vernieuwen (dagen)"
+      },
+      "sunrise_offset": {
+        "name": "Verschuiving zonsopgang"
+      },
+      "staggered_delay": {
+        "name": "Vertraging verschoven zonsopgang"
+      },
       "port_ato_volume_left_set": {
         "name": "Poort {port} ATO-restvolume reservoir"
       },
@@ -670,14 +706,42 @@
           "ppt": "Saliniteit (ppt)",
           "sg": "Dichtheid (SG)"
         }
+      },
+      "weather_period": {
+        "name": "Weerperiode",
+        "state": {
+          "next_week": "Volgende week (voorspelling)",
+          "last_week": "Vorige week (gemeten)"
+        }
+      },
+      "weather_anchor": {
+        "name": "Weerdag in het aquarium",
+        "state": {
+          "place": "Tijd van de plaats",
+          "sunrise": "Uitgelijnd op zonsopgang",
+          "sunset": "Uitgelijnd op zonsondergang",
+          "both": "Uitgerekt tussen op- en ondergang"
+        }
       }
     },
     "sensor": {
+      "acclimation_current_intensity_factor": {
+        "name": "Huidige acclimatisatie-intensiteitsfactor"
+      },
       "acclimation_duration": {
         "name": "Acclimatisatie duur"
       },
+      "acclimation_remaining_days": {
+        "name": "Resterende acclimatisatiedagen"
+      },
       "acclimation_start_intensity_factor": {
         "name": "Acclimatisatie start intensiteit factor"
+      },
+      "current_program": {
+        "name": "Huidig programma"
+      },
+      "linked_leds": {
+        "name": "Gekoppelde leds"
       },
       "ato_sensor_code": {
         "name": "Code temperatuursensor"
@@ -1406,6 +1470,16 @@
       "probe_uid": {
         "name": "UID van {probe}"
       },
+      "weather_program": {
+        "name": "Weerprogramma",
+        "state": {
+          "ok": "OK",
+          "error": "Fout"
+        }
+      },
+      "linked_waves": {
+        "name": "Gekoppelde ReefWaves"
+      },
       "port_ato_status": {
         "name": "Poort {port} ATO-status",
         "state": {
@@ -1497,6 +1571,12 @@
       },
       "maint_mat_carbon_replace_notify": {
         "name": "Actieve kool vervangen (meldingen)"
+      },
+      "maint_power_dust_clean_notify": {
+        "name": "Stof en zoutafzetting verwijderen (meldingen)"
+      },
+      "maint_power_visual_check_notify": {
+        "name": "Visuele inspectie (meldingen)"
       },
       "maint_run_pump_motor_notify": {
         "name": "Motor en rotor reinigen (meldingen)"
@@ -1606,6 +1686,18 @@
       "leak_detector_enabled": {
         "name": "Lekdetector"
       },
+      "weather_sync": {
+        "name": "GPS-weermodus"
+      },
+      "weather_clouds": {
+        "name": "Weerwolken"
+      },
+      "staggered_sunrise": {
+        "name": "Verschoven zonsopgang"
+      },
+      "wave_grouped": {
+        "name": "Gegroepeerd met het aquarium"
+      },
       "port_ato_auto_fill": {
         "name": "Poort {port} ATO automatisch bijvullen"
       },
@@ -1664,11 +1756,20 @@
       },
       "temperature_probe_name": {
         "name": "Naam van de temperatuursonde"
+      },
+      "weather_location": {
+        "name": "Weerlocatie"
       }
     },
     "time": {
       "schedule_time": {
         "name": "Schema tijd"
+      },
+      "weather_sunrise": {
+        "name": "Weer zonsopgang"
+      },
+      "weather_sunset": {
+        "name": "Weer zonsondergang"
       }
     },
     "update": {
@@ -1696,6 +1797,8 @@
       "wifi_bad_cidr": "Geen geldige IPv4-CIDR (verwacht bv. 10.0.0.0/24).",
       "wifi_manual_not_found": "Apparaat niet gevonden op dat subnet. Probeer een andere CIDR of laat het veld leeg om op te geven.",
       "no_probe_detected": "Geen nieuwe sonde van het gekozen type gedetecteerd. Zet hem in koppelmodus en probeer opnieuw.",
+      "group_min_members": "Kies minstens twee LED's.",
+      "group_duplicate_position": "Elke LED moet precies één positie krijgen.",
       "ato_install_failed": "De hub weigerde de ATO-module te installeren. Controleer of de poort vrij is en de ATO-sonde aangesloten."
     },
     "progress": {
@@ -1773,6 +1876,29 @@
       "del_probe_confirm": {
         "title": "Verwijderen bevestigen",
         "description": "Dit verwijdert de gekozen sonde(s) en al hun entiteiten en geschiedenis permanent: {probes}.\n\nBevestig om door te gaan, of sluit dit venster om te annuleren."
+      },
+      "group_members": {
+        "title": "LED's van de groep",
+        "description": "Kies de ReefLED's die deze virtuele LED samen aanstuurt (minstens twee). Een LED kan maar in één groep zitten.",
+        "data": {
+          "members": "LED's"
+        }
+      },
+      "group_order": {
+        "title": "Volgorde van de LED's",
+        "description": "Volgorde van de LED's in de groep, zoals in de ReefBeat-app: de verschoven zonsopgang begint met de eerste.",
+        "data": {
+          "position_1": "Positie 1",
+          "position_2": "Positie 2",
+          "position_3": "Positie 3",
+          "position_4": "Positie 4",
+          "position_5": "Positie 5",
+          "position_6": "Positie 6",
+          "position_7": "Positie 7",
+          "position_8": "Positie 8",
+          "position_9": "Positie 9",
+          "position_10": "Positie 10"
+        }
       },
       "install_ato": {
         "title": "ATO-module installeren",
@@ -1861,6 +1987,389 @@
         "solution_rated_temp": {
           "name": "Referentietemperatuur van de oplossing",
           "description": "Temperatuur waarbij de waarde van de oplossing geldt, in °C (alleen pH)."
+        }
+      }
+    },
+    "led_convert": {
+      "name": "ReefLED-kleuren omrekenen",
+      "description": "Rekent punten van een G1-ReefLED om tussen wit/blauw en kelvin/intensiteit, met de tabel van het model en de intensiteitscompensatie.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de G1-ReefLED."
+        },
+        "points": {
+          "name": "Punten",
+          "description": "Lijst met punten, elk (kelvin, intensity) of (white, blue)."
+        }
+      }
+    },
+    "led_library": {
+      "name": "ReefLED-bibliotheek weergeven",
+      "description": "Lichtprogramma's uit de cloudbibliotheek van het aquarium van de ReefLED.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefLED (of virtuele LED)."
+        }
+      }
+    },
+    "led_library_save": {
+      "name": "ReefLED-programma in de bibliotheek opslaan",
+      "description": "Voegt een lichtprogramma toe aan de cloudbibliotheek van de ReefLED, of wijzigt er een.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefLED (of virtuele LED)."
+        },
+        "name": {
+          "name": "Naam",
+          "description": "Naam van het programma in de bibliotheek."
+        },
+        "program": {
+          "name": "Programma",
+          "description": "Dagprogramma in het formaat van de lamp, op de tijdlijn van één dag."
+        },
+        "clouds": {
+          "name": "Wolken",
+          "description": "Wolken van het programma (from, to, intensity), indien aanwezig."
+        },
+        "uid": {
+          "name": "Programma-ID",
+          "description": "Het bibliotheekprogramma om te wijzigen; leeg laten om een nieuw toe te voegen. Red Sea-programma's kunnen niet worden gewijzigd."
+        }
+      }
+    },
+    "led_library_delete": {
+      "name": "ReefLED-bibliotheekprogramma verwijderen",
+      "description": "Verwijdert een programma van de gebruiker uit de cloudbibliotheek van de ReefLED.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefLED (of virtuele LED)."
+        },
+        "uid": {
+          "name": "Programma-ID",
+          "description": "Het te verwijderen programma (geen Red Sea-programma)."
+        }
+      }
+    },
+    "led_weather_apply": {
+      "name": "ReefLED-weer vernieuwen",
+      "description": "Haalt het weer opnieuw op en stuurt de week naar een ReefLED in GPS-weermodus.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefLED (of virtuele LED)."
+        }
+      }
+    },
+    "led_weather_preview": {
+      "name": "Voorbeeld van de weerweek",
+      "description": "Maakt de week die het weer nu zou geven en geeft die terug met de eigen week van de lamp, zonder iets te schrijven.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefLED (of virtuele LED)."
+        },
+        "settings": {
+          "name": "Instellingen",
+          "description": "Weerinstellingen in bewerking, boven de opgeslagen."
+        }
+      }
+    },
+    "led_weather_save": {
+      "name": "Weerprogramma opslaan",
+      "description": "Slaat de weerinstellingen en -modus op en schrijft de lamp één keer: de weerweek of de eigen week terug.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefLED (of virtuele LED)."
+        },
+        "settings": {
+          "name": "Instellingen",
+          "description": "Weerinstellingen in bewerking, boven de opgeslagen."
+        },
+        "enabled": {
+          "name": "Weermodus",
+          "description": "Of de lamp het weer volgt."
+        },
+        "wait": {
+          "name": "Wachten op de lamp",
+          "description": "Antwoorden zodra de lamp is geschreven (standaard wordt de week opgeslagen en getoond, en daarna op de achtergrond geschreven)."
+        }
+      }
+    },
+    "wave_library": {
+      "name": "ReefWave-golvenbibliotheek",
+      "description": "Golven die een ReefWave kan gebruiken (cloudbibliotheek van zijn aquarium, met zijn intensiteiten), de pompen die ze gebruiken en zijn groep.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        }
+      }
+    },
+    "wave_library_save": {
+      "name": "ReefWave-golf in de bibliotheek opslaan",
+      "description": "Voegt een golf toe aan de cloudbibliotheek van het aquarium van de ReefWave, of werkt er een bij (geen Red Sea-golf).",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "name": {
+          "name": "Naam",
+          "description": "Naam van de golf, uniek in de bibliotheek."
+        },
+        "settings": {
+          "name": "Instellingen",
+          "description": "type, frt, rrt, pd, sn (volgens het type), fti, rti, sync."
+        },
+        "uid": {
+          "name": "Golf-ID",
+          "description": "De bij te werken golf; leeg laten om een nieuwe toe te voegen."
+        }
+      }
+    },
+    "wave_library_delete": {
+      "name": "ReefWave-golf uit de bibliotheek verwijderen",
+      "description": "Verwijdert een golf van de gebruiker uit de cloudbibliotheek (geen Red Sea-golf en geen golf die een programma gebruikt).",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "uid": {
+          "name": "Golf-ID",
+          "description": "De te verwijderen golf."
+        }
+      }
+    },
+    "wave_program_save": {
+      "name": "Dagprogramma van een ReefWave opslaan",
+      "description": "Schrijft het dagprogramma van een ReefWave (van zijn hele groep), via de cloud indien gekoppeld.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "slots": {
+          "name": "Tijdvakken",
+          "description": "Lijst van (st, wave_uid, direction); het eerste begint op 0."
+        }
+      }
+    },
+    "wave_preview": {
+      "name": "ReefWave-golf voorvertonen",
+      "description": "Laat een golf een tijdje op de pomp draaien en keert daarna terug naar het programma.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "settings": {
+          "name": "Instellingen",
+          "description": "type, frt, rrt, pd, sn (volgens het type), fti, rti."
+        },
+        "direction": {
+          "name": "Richting",
+          "description": "fw, rw of alt."
+        },
+        "duration": {
+          "name": "Duur",
+          "description": "Duur van de voorvertoning, in ms (60000 tot 600000)."
+        }
+      }
+    },
+    "wave_preview_stop": {
+      "name": "ReefWave-voorvertoning stoppen",
+      "description": "De pomp keert terug naar het programma.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        }
+      }
+    },
+    "wave_pump_set": {
+      "name": "ReefWave instellen in de huidige golf",
+      "description": "Richting en intensiteiten van deze pomp in de huidige golf; de andere pompen van de groep blijven ongewijzigd.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "direction": {
+          "name": "Richting",
+          "description": "fw, rw of alt."
+        },
+        "fti": {
+          "name": "Voorwaartse intensiteit",
+          "description": "Voorwaartse intensiteit van deze pomp, in %."
+        },
+        "rti": {
+          "name": "Achterwaartse intensiteit",
+          "description": "Achterwaartse intensiteit van deze pomp, in %."
+        }
+      }
+    },
+    "wave_group_order": {
+      "name": "ReefWave-groep ordenen",
+      "description": "Volgorde van de pompen van de ReefWave-groep (cloud).",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van een ReefWave van de groep."
+        },
+        "hwids": {
+          "name": "Pompen",
+          "description": "Hardware-id's van alle pompen van de groep, in de nieuwe volgorde."
+        }
+      }
+    },
+    "wave_group_set": {
+      "name": "ReefWave groeperen of degroeperen",
+      "description": "Groepeert de ReefWave met de andere ReefWaves van het aquarium, of heft de groepering op (cloud).",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-invoer van de ReefWave."
+        },
+        "grouped": {
+          "name": "Gegroepeerd",
+          "description": "Aan om de pomp te groeperen, uit om de groepering op te heffen."
+        }
+      }
+    },
+    "led_library_rename": {
+      "name": "Een ReefLED-bibliotheekprogramma hernoemen",
+      "description": "Hernoemt een programma van de gebruiker: in de cloudbibliotheek en op elke dag die zijn naam draagt, op de lamp en op de lampen van zijn groep.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-entry van de ReefLED (of virtuele LED)."
+        },
+        "uid": {
+          "name": "Programma-ID",
+          "description": "Het te hernoemen bibliotheekprogramma (geen Red Sea-programma)."
+        },
+        "name": {
+          "name": "Naam",
+          "description": "De nieuwe naam van het programma."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "group_member_unavailable": {
+      "message": "{group}: actie geweigerd, deze LED's zijn niet beschikbaar: {members}. Er is niets verzonden, de groep blijft synchroon."
+    },
+    "group_channel_unavailable": {
+      "message": "{group} bevat G1- en G2-lampen: wit en blauw kunnen niet voor de hele groep worden ingesteld. Gebruik kleurtemperatuur en intensiteit."
+    },
+    "wave_group_member_unavailable": {
+      "message": "{group}: actie geweigerd, deze ReefWaves zijn niet beschikbaar: {members}. Er is niets verzonden, de groep blijft gesynchroniseerd."
+    },
+    "wave_cloud_required": {
+      "message": "{pump} is niet gekoppeld aan een ReefBeat-cloudaccount: de golvenbibliotheek kan niet worden bewerkt."
+    },
+    "wave_not_a_wave": {
+      "message": "Dit apparaat is geen ReefWave."
+    },
+    "wave_not_found": {
+      "message": "Golf {uid} staat niet in de bibliotheek."
+    },
+    "wave_default_readonly": {
+      "message": "{name} is een Red Sea-golf: die kan niet worden gewijzigd of verwijderd. Sla hem op als nieuwe golf."
+    },
+    "wave_in_use": {
+      "message": "{name} wordt gebruikt door het programma van: {pumps}. Verwijder hem eerst uit die programma's."
+    },
+    "wave_name_required": {
+      "message": "Een golf heeft een naam nodig."
+    },
+    "wave_name_taken": {
+      "message": "Er bestaat al een golf met de naam {name} in de bibliotheek."
+    },
+    "wave_name_too_long": {
+      "message": "De naam {name} is te lang: een golfnaam heeft maximaal {max} tekens."
+    },
+    "wave_replace_failed": {
+      "message": "De golf {name} kon zijn nieuwe type niet krijgen: de ReefBeat-cloud heeft het geweigerd. Er is niets gewijzigd."
+    },
+    "wave_bad_type": {
+      "message": "Onbekend golftype: {type}."
+    },
+    "wave_bad_value": {
+      "message": "Ongeldige waarde voor {field}."
+    },
+    "wave_program_empty": {
+      "message": "Een programma heeft minstens één tijdvak nodig."
+    },
+    "wave_program_bad_slot": {
+      "message": "Een tijdvak van het programma is ongeldig (begin, golf of richting)."
+    },
+    "wave_program_midnight": {
+      "message": "Het programma moet om 00:00 beginnen."
+    },
+    "wave_program_same_start": {
+      "message": "Twee tijdvakken beginnen op hetzelfde tijdstip."
+    },
+    "wave_program_too_short": {
+      "message": "Elk tijdvak moet minstens {min} minuten duren: de pomp laat een korter tijdvak weg."
+    },
+    "wave_preview_no_wave": {
+      "message": "\"Geen golf\" kan niet worden voorvertoond."
+    },
+    "wave_group_bad_order": {
+      "message": "De nieuwe volgorde moet elke pomp van de groep één keer bevatten."
+    }
+  },
+  "issues": {
+    "group_no_cloud": {
+      "title": "{group}: geen ReefBeat-cloudaccount",
+      "fix_flow": {
+        "step": {
+          "keep_local": {
+            "title": "Groep alleen in Home Assistant houden",
+            "description": "De LED's van {group} zouden ook in de ReefBeat-app gegroepeerd kunnen worden, maar er is geen ReefBeat-cloudaccount ingesteld dat ze vermeldt. Zonder dat bestaat de groep alleen in Home Assistant: de app ziet haar niet en kan haar LED's afzonderlijk aansturen.\n\nOm de groep met de app te delen, voeg je ReefBeat-cloudaccount toe (Instellingen > Apparaten en diensten > Integratie toevoegen > Red Sea > Cloud API): dit probleem verdwijnt dan vanzelf. Of houd de groep alleen in Home Assistant.\n\nDe groep wordt niet naar de ReefBeat-cloud geschreven. Je kunt het cloudaccount later nog toevoegen."
+          }
+        },
+        "abort": {
+          "group_not_loaded": "De groep is niet geladen: probeer het opnieuw zodra ze dat is."
+        }
+      }
+    },
+    "group_mixed_models": {
+      "title": "{group}: LED's gegroepeerd in de ReefBeat-app",
+      "fix_flow": {
+        "step": {
+          "ungroup": {
+            "title": "Groepering opheffen in de ReefBeat-app",
+            "description": "{group} bevat LED's van meerdere modellen, die de ReefBeat-app niet samen kan groeperen: de app groepeert alleen LED's van één model. Deze LED's zijn nog gegroepeerd in de app, die ze los van de andere zou aansturen: {leds}.\n\nHef hun groepering op in de ReefBeat-app: de groep bestaat dan alleen in Home Assistant (haar volgorde is globaal).\n\nDe groepering van deze LED's wordt opgeheven in de ReefBeat-cloud (de app toont ze apart). Home Assistant blijft ze samen aansturen."
+          }
+        },
+        "abort": {
+          "group_not_loaded": "De groep is niet geladen: probeer het opnieuw zodra ze dat is."
+        }
+      }
+    },
+    "group_conflict": {
+      "title": "{group}: gewijzigd in Home Assistant en in de ReefBeat-app",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Welke groep behouden?",
+            "description": "De LED's, hun volgorde of de verschoven zonsopgang van {group} zijn sinds de laatste synchronisatie zowel in Home Assistant als in de ReefBeat-app gewijzigd. Kies de groep die behouden blijft.",
+            "menu_options": {
+              "keep_home_assistant": "Die van Home Assistant (naar de ReefBeat-cloud geschreven)",
+              "keep_reefbeat": "Die van de ReefBeat-app (overgenomen door Home Assistant)"
+            }
+          }
+        },
+        "abort": {
+          "group_not_loaded": "De groep is niet geladen: probeer het opnieuw zodra ze dat is."
         }
       }
     }

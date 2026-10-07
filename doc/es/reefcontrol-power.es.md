@@ -5,7 +5,7 @@
 El RSPOWER (Power Center) es un dispositivo independiente con su propia dirección IP, expuesto por separado en Home Assistant.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
+<img src="../img/rspower_devices.png" alt="Image">
 </p>
 
 - 6 u 8 tomas controlables según el modelo (RSPOWER6 / RSPOWER8)
@@ -16,9 +16,9 @@ El RSPOWER (Power Center) es un dispositivo independiente con su propia direcci�
 - Las escrituras se muestran al instante (actualización optimista) y después se confirman leyendo de nuevo el dispositivo
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
+<img src="../img/rspower_ctrl.png" alt="Image">
+<img src="../img/rspower_conf.png" alt="Image">
+<img src="../img/rspower_diag.png" alt="Image">
 </p>
 
 > [!NOTE]
@@ -42,6 +42,14 @@ Cada toma expone una entidad `sensor.socket_N_mode` para las automatizaciones: s
 Una toma controlada por un programa o una sonda puede apagarse a mano: su modo indica entonces `off`, mientras el sensor **modo anterior** conserva el modo automático al que volverá.
 
 El dispositivo sale automáticamente de su estado inicial «setup» en cuanto se configura la primera toma, igual que la aplicación ReefBeat — no hace falta ninguna acción manual.
+
+## Tareas de mantenimiento
+| Tarea | Por defecto | Rango |
+| ----- | ----------- | ----- |
+| Inspección visual | 1 mes | 1 – 3 meses |
+| Quitar el polvo y los depósitos de sal | 3 meses | 2 – 4 meses |
+
+Red Sea no publica ningún calendario de mantenimiento para el Power Center: estas dos tareas siguen la práctica habitual en acuariofilia de arrecife para equipos eléctricos cercanos al agua salada. Desenchufa el Power Center antes de quitarle el polvo o los depósitos de sal, y usa un paño seco. Consulta la sección [Mantenimiento](maintenance.es.md#mantenimiento).
 
 ---
 

@@ -26,6 +26,13 @@ from custom_components.redsea.const import (
     CONFIG_FLOW_IP_ADDRESS,
     DOMAIN,
 )
+from tests._scan_test_helpers import drive_scan_to_end
+
+
+def _patch_scan(monkeypatch: pytest.MonkeyPatch) -> None:
+    """One fake subnet holding the three fake devices, no network access."""
+    monkeypatch.setattr(cf, "list_scan_targets", lambda _s=None: ["192.0.2.0/24"])
+    monkeypatch.setattr(cf, "get_reefbeats", lambda **_kwargs: _fake_devices())
 
 
 def _fake_devices() -> list[dict[str, str]]:
@@ -57,7 +64,7 @@ async def test_auto_detect_presents_all_devices_precchecked(
     hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Every discovered device shows up as a multi-select option, all checked."""
-    monkeypatch.setattr(cf, "get_reefbeats", lambda *, subnetwork=None: _fake_devices())
+    _patch_scan(monkeypatch)
 
     flow = cast(Any, hass.config_entries.flow)
     r1 = cast(dict[str, Any], await flow.async_init(DOMAIN, context={"source": "user"}))
@@ -67,6 +74,7 @@ async def test_auto_detect_presents_all_devices_precchecked(
             r1["flow_id"], user_input={CONFIG_FLOW_ADD_TYPE: ADD_LOCAL_DETECT}
         ),
     )
+    r2 = await drive_scan_to_end(hass, r2)
 
     assert r2["type"] == FlowResultType.FORM
     assert r2["step_id"] == "select_devices"
@@ -98,7 +106,7 @@ async def test_bulk_submit_fans_out_import_flows(
         the first selected device
       - schedule two background ``async_init`` calls for the remaining two
     """
-    monkeypatch.setattr(cf, "get_reefbeats", lambda *, subnetwork=None: _fake_devices())
+    _patch_scan(monkeypatch)
 
     # Neutralise the per-device unique_id resolution so the "first device"
     # branch does not try to hit the network. The device string carries
@@ -137,6 +145,7 @@ async def test_bulk_submit_fans_out_import_flows(
             r1["flow_id"], user_input={CONFIG_FLOW_ADD_TYPE: ADD_LOCAL_DETECT}
         ),
     )
+    r2 = await drive_scan_to_end(hass, r2)
     assert r2["step_id"] == "select_devices"
 
     # Rebuild the device strings the picker offered, in the same order.
@@ -171,7 +180,7 @@ async def test_bulk_submit_with_empty_selection_aborts(
     hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Unchecking every box should abort the flow, not create a broken entry."""
-    monkeypatch.setattr(cf, "get_reefbeats", lambda *, subnetwork=None: _fake_devices())
+    _patch_scan(monkeypatch)
 
     flow = cast(Any, hass.config_entries.flow)
     r1 = cast(dict[str, Any], await flow.async_init(DOMAIN, context={"source": "user"}))
@@ -181,6 +190,7 @@ async def test_bulk_submit_with_empty_selection_aborts(
             r1["flow_id"], user_input={CONFIG_FLOW_ADD_TYPE: ADD_LOCAL_DETECT}
         ),
     )
+    r2 = await drive_scan_to_end(hass, r2)
     assert r2["step_id"] == "select_devices"
 
     # Submitting with an explicit empty list — voluptuous validates
@@ -236,24 +246,57 @@ async def test_async_step_import_delegates_to_user_step(
 
 
 @pytest.mark.asyncio
-async def test_select_devices_with_no_input_returns_to_the_picker(
+async def test_select_devices_with_no_input_starts_a_scan_when_none_was_done(
     hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """An empty submission re-renders the picker instead of aborting.
+    """Without input and without a previous scan, the step starts one.
 
-    Home Assistant's flow driver shows the form itself when `user_input` is
-    None, so this branch is unreachable through `async_configure`; the step is
-    called directly. It still matters: `async_step_import` and any external
-    re-entry can land here with no input, and falling through would raise on
+    The step is called directly: `async_step_import` and any external re-entry
+    can land here with no input, and falling through would raise on
     `user_input.get()`.
     """
-    monkeypatch.setattr(cf, "get_reefbeats", lambda *, subnetwork=None: _fake_devices())
+    _patch_scan(monkeypatch)
 
     handler = cf.ReefBeatConfigFlow()
     handler.hass = hass
 
     result = cast(dict[str, Any], await handler.async_step_select_devices(None))
 
-    # Bounced back to the multi-select form, not aborted.
-    assert result["type"] == FlowResultType.FORM
-    assert result["step_id"] == "select_devices"
+    assert result["type"] == FlowResultType.SHOW_PROGRESS
+    assert result["step_id"] == "scan"
+    await result["progress_task"]
+
+
+@pytest.mark.asyncio
+async def test_select_devices_with_no_input_shows_the_picker_again_after_a_scan(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """After a scan, a call without input re-renders the picker, no rescan.
+
+    This is what Home Assistant does when the progress dialog gives way to the
+    picker: scanning again there would loop forever.
+    """
+    calls: list[str] = []
+
+    def _get_rb(**kwargs: Any) -> list[dict[str, str]]:
+        calls.append(kwargs["subnetwork"])
+        return _fake_devices()
+
+    monkeypatch.setattr(cf, "list_scan_targets", lambda _s=None: ["192.0.2.0/24"])
+    monkeypatch.setattr(cf, "get_reefbeats", _get_rb)
+
+    flow = cast(Any, hass.config_entries.flow)
+    r1 = cast(dict[str, Any], await flow.async_init(DOMAIN, context={"source": "user"}))
+    r2 = cast(
+        dict[str, Any],
+        await flow.async_configure(
+            r1["flow_id"], user_input={CONFIG_FLOW_ADD_TYPE: ADD_LOCAL_DETECT}
+        ),
+    )
+    r2 = await drive_scan_to_end(hass, r2)
+    assert r2["step_id"] == "select_devices"
+
+    r3 = cast(dict[str, Any], await flow.async_configure(r1["flow_id"]))
+    assert r3["type"] == FlowResultType.FORM
+    assert r3["step_id"] == "select_devices"
+    assert calls == ["192.0.2.0/24"]

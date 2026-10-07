@@ -5,7 +5,7 @@
 The RSPOWER (Power Center) is a standalone device with its own IP address, exposed separately in Home Assistant.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
+<img src="../img/rspower_devices.png" alt="Image">
 </p>
 
 - 6 or 8 controllable sockets depending on the model (RSPOWER6 / RSPOWER8)
@@ -16,9 +16,9 @@ The RSPOWER (Power Center) is a standalone device with its own IP address, expos
 - Writes are shown at once (optimistic update), then confirmed by reading the device back
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
+<img src="../img/rspower_ctrl.png" alt="Image">
+<img src="../img/rspower_conf.png" alt="Image">
+<img src="../img/rspower_diag.png" alt="Image">
 </p>
 
 > [!NOTE]
@@ -42,6 +42,14 @@ Each socket exposes a `sensor.socket_N_mode` entity for automations: its state i
 A socket driven by a schedule or a probe can be switched off by hand: its mode then reads `off` while the **previous mode** sensor keeps the automatic mode it will return to.
 
 The device automatically leaves its initial "setup" state as soon as the first socket is configured, mirroring the ReefBeat app — no manual action needed.
+
+## Maintenance tasks
+| Task | Default | Range |
+| ---- | ------- | ----- |
+| Visual inspection | 1 month | 1 – 3 months |
+| Remove dust and salt deposits | 3 months | 2 – 4 months |
+
+Red Sea publishes no upkeep schedule for the power center: these two tasks follow general reef-keeping practice for mains equipment near salt water. Unplug the power center before dusting it or removing salt deposits, and use a dry cloth. See the [Maintenance](maintenance.md#maintenance) section.
 
 ---
 

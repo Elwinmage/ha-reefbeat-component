@@ -71,6 +71,7 @@ from .coordinator import (
     ReefPowerCoordinator,
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
+    ReefWaveCoordinator,
 )
 from .entity import (
     MaintenanceLabelMixin,
@@ -78,6 +79,8 @@ from .entity import (
     ReefRoleMixin,
     RestoreSpec,
 )
+from .group_entities import group_entities
+from .led_weather_entities import weather_entities
 from .maintenance import (
     PROBE_SCOPES,
     MaintenanceStore,
@@ -86,6 +89,7 @@ from .maintenance import (
     tasks_for,
 )
 from .probe_entities import probe_display_name, tag_port_entities, tag_probe_entities
+from .wave_group_entities import WaveGroupSwitchEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -337,6 +341,14 @@ COMMON_SWITCHES: tuple[ReefBeatSwitchEntityDescription, ...] = (
     ),
 )
 
+# ReefWave: grouped with the aquarium's other ReefWaves (cloud)
+WAVE_GROUP_SWITCH = SwitchEntityDescription(
+    key="wave_grouped",
+    translation_key="wave_grouped",
+    icon="mdi:link-variant",
+    entity_category=EntityCategory.CONFIG,
+)
+
 LED_SWITCHES: tuple[ReefLedSwitchEntityDescription, ...] = (
     ReefLedSwitchEntityDescription(
         key="sw_acclimation_enabled",
@@ -533,6 +545,8 @@ async def async_setup_entry(
             for description in LED_SWITCHES
             if description.exists_fn(led_device)
         )
+    elif isinstance(device, ReefWaveCoordinator):
+        entities.append(WaveGroupSwitchEntity(device, WAVE_GROUP_SWITCH))
     elif isinstance(device, ReefBeatCloudCoordinator):
         cloud_descs: list[ReefCloudSwitchEntityDescription] = []
         for aquarium in device.get_data("$.sources[?(@.name=='/aquarium')].data"):
@@ -960,6 +974,11 @@ async def async_setup_entry(
         tag_probe_entities(device, entities)
         tag_port_entities(device, entities)
 
+    # ReefLED week program following the weather
+    entities.extend(weather_entities(device, "switch"))
+    # Group (virtual LED) settings: staggered sunrise
+    entities.extend(group_entities(device, "switch"))
+
     async_add_entities(entities, True)
 
 
@@ -1277,7 +1296,15 @@ class ReefLedSwitchEntity(ReefBeatSwitchEntity):
         if self._source:
             pusher = cast(_HasPushValuesBySource, self._device)
             await pusher.post_specific(self._source)
+            self._expect(True)
             await pusher.async_request_refresh(source=self._source)
+
+    def _expect(self, enabled: bool) -> None:
+        """Show at once what the lamp (each lamp of its group) makes of the
+        acclimation or moon phase turned on or off (optimistic update)."""
+        expect = getattr(self._device, "expect_settings", None)
+        if callable(expect) and self._source:
+            expect(self._source, enabled)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         self._attr_is_on = False
@@ -1289,6 +1316,7 @@ class ReefLedSwitchEntity(ReefBeatSwitchEntity):
         if self._source:
             pusher = cast(_HasPushValuesBySource, self._device)
             await pusher.delete(self._source)
+            self._expect(False)
             await pusher.async_request_refresh(source=self._source)
 
 

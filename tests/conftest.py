@@ -39,6 +39,14 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 
+@pytest.fixture(autouse=True)
+def _no_write_delay(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Lamps are written without the pause real ones need between requests."""
+    from custom_components.redsea import led_weather
+
+    monkeypatch.setattr(led_weather, "WRITE_DELAY_S", 0)
+
+
 # Ensure HA loads integrations from ./custom_components during tests
 @pytest.fixture(autouse=True)
 def _auto_enable_custom_integrations(enable_custom_integrations):

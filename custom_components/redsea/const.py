@@ -10,7 +10,7 @@ This module contains:
 
 from __future__ import annotations
 
-from typing import Final, TypedDict
+from typing import Any, Final, TypedDict
 
 # -----------------------------------------------------------------------------
 # Platforms
@@ -72,6 +72,9 @@ ADD_TYPES: Final[tuple[str, ...]] = (
 # CLOUD
 CONFIG_FLOW_CLOUD_USERNAME: Final[str] = "username"
 CONFIG_FLOW_CLOUD_PASSWORD: Final[str] = "password"
+# Cloud server, asked only with the local .simulator_enabled flag file: a
+# simulator answering the same API over HTTPS
+CONFIG_FLOW_CLOUD_SERVER: Final[str] = "cloud_server"
 CONFIG_FLOW_DISABLE_SUPPLEMENT: Final[str] = "disable_supplements"
 CLOUD_SCAN_INTERVAL: Final[int] = 600
 CLOUD_DEVICE_TYPE: Final[str] = "Smartphone App"
@@ -303,8 +306,67 @@ EVENT_WB_LIGHT_UPDATED: Final[str] = "Kelvin_wb_updated"
 # -----------------------------------------------------------------------------
 
 VIRTUAL_LED_MAX_WAITING_TIME: Final[int] = 15
+# Legacy (config entry minor version 1) storage of the linked LEDs: a dict
+# keyed by "LED-<model>-: <title> (<entry_id>)". Migrated to CONF_GROUP_MEMBERS.
 LINKED_LED: Final[str] = "linked"
 VIRTUAL_LED_SCAN_INTERVAL: Final[int] = 10  # seconds
+
+# -----------------------------------------------------------------------------
+# Device groups (virtual LED, later virtual wave)
+# -----------------------------------------------------------------------------
+
+# Ordered list of the config entry ids of the group members. The order is
+# the group order (staggered sunrise position, like group_index in the app).
+CONF_GROUP_MEMBERS: Final[str] = "members"
+# Options flow: one field per position when ordering the members
+CONF_GROUP_POSITION: Final[str] = "position_"
+GROUP_MIN_MEMBERS: Final[int] = 2
+
+# Dispatcher signals: a device entry is loaded / unloaded (arg: entry_id)
+SIGNAL_GROUP_MEMBER_READY: Final[str] = f"{DOMAIN}_group_member_ready"
+SIGNAL_GROUP_MEMBER_GONE: Final[str] = f"{DOMAIN}_group_member_gone"
+
+# LED sources a group drives as a whole: a write to one of them on a member
+# is applied to every member. Anything else (name, Wi-Fi, cloud, firmware,
+# identify, reset...) stays on the member it was made on.
+LED_GROUP_SOURCES: Final[tuple[str, ...]] = (
+    "/manual",
+    "/mode",
+    "/timer",
+    "/acclimation",
+    "/moonphase",
+    "/auto",
+    "/preset_name",
+    "/clouds",
+)
+# Settings written through their own endpoint, kept in a "config" source: read
+# back after a write (a plain refresh only reads the "data" sources)
+LED_SETTINGS_SOURCES: Final[tuple[str, ...]] = ("/acclimation", "/moonphase")
+# Local (not yet pushed) LED values a group shares, "$.local.<key>..."
+LED_GROUP_LOCAL_KEYS: Final[tuple[str, ...]] = (
+    "manual_trick",
+    "manual_duration",
+    "acclimation",
+    "moonphase",
+)
+# Staggered sunrise: each lamp of a group starts its day `delay` minutes after
+# the previous one (GET/POST /offset {"offset": minutes}, POST replaces it).
+# The app offers 1..15 minutes, 10 by default; offset = delay * position.
+LED_OFFSET_SOURCE: Final[str] = "/offset"
+LED_OFFSET_INTERNAL_NAME: Final[JsonPath] = (
+    "$.sources[?(@.name=='/offset')].data.offset"
+)
+LED_OFFSET_MAX: Final[int] = 120  # minutes
+STAGGERED_DELAY_MIN: Final[int] = 1
+STAGGERED_DELAY_MAX: Final[int] = 15
+STAGGERED_DELAY_DEFAULT: Final[int] = 10
+# Persistent state of a group (staggered sunrise, offsets written)
+GROUP_STORE_VERSION: Final[int] = 1
+GROUP_STORE_KEY_TPL: Final[str] = DOMAIN + ".group.{entry_id}"
+# Kelvin/intensity: G1 keeps them locally, G2 in /manual
+LED_G1_KI_PATH: Final[str] = "$.local.manual_trick"
+LED_G2_KI_PATH: Final[str] = "$.sources[?(@.name=='/manual')].data"
+LED_KI_KEYS: Final[tuple[str, ...]] = ("kelvin", "intensity")
 
 # -----------------------------------------------------------------------------
 # REEFMAT
@@ -559,6 +621,86 @@ PORT_SOCKET_STATES: Final[tuple[str, ...]] = (
 # -----------------------------------------------------------------------------
 
 LIGHTS_LIBRARY: Final[str] = "/reef-lights/library?include=all"
+# G2 programs live in their own, per-user library (ReefBeat app: E1.g2/w5)
+LIGHTS_G2_LIBRARY: Final[str] = "/v2/reef-lights/library"
+
+# Red Sea programs of the ReefBeat app, which cannot be edited nor deleted.
+# G1: they are stored in the cloud library, known by name (LedProgramType and
+# LedsProgram.updateIsDefaultFromName in the app).
+LIGHTS_G1_DEFAULT_NAMES: Final[frozenset[str]] = frozenset(
+    {"12K", "15K", "18K", "20K", "23K", "RS Accelerated Growth"}
+)
+
+
+def _g2_color(rise: int, set_: int, points: list[tuple[int, int, int]]) -> Any:
+    """G2 colour channel: points as (absolute minute, intensity, kelvin)."""
+    return {
+        "rise": rise,
+        "set": set_,
+        "points": [
+            {"t": m - rise, "i1": i, "i2": i, "k1": k, "k2": k} for m, i, k in points
+        ],
+    }
+
+
+def _g2_moon(rise: int, set_: int, points: list[tuple[int, int]]) -> Any:
+    """G2 moon channel: points as (absolute minute, intensity)."""
+    return {
+        "rise": rise,
+        "set": set_,
+        "points": [{"t": m - rise, "i": i} for m, i in points],
+    }
+
+
+# G2: built into the app, not stored in the cloud (LedG2Program.defaultPrograms)
+LIGHTS_G2_DEFAULTS: Final[list[dict[str, Any]]] = [
+    {
+        "name": "15K",
+        "color": _g2_color(480, 1140, [(540, 100, 15000), (1080, 100, 15000)]),
+        "moon": _g2_moon(1140, 1320, [(1215, 10), (1245, 10)]),
+    },
+    {
+        "name": "23K",
+        "color": _g2_color(480, 1140, [(540, 100, 23000), (1080, 100, 23000)]),
+        "moon": _g2_moon(1140, 1320, [(1215, 10), (1245, 10)]),
+    },
+    {
+        "name": "Shallow Reef",
+        "color": _g2_color(
+            480,
+            1200,
+            [
+                (540, 50, 11000),
+                (600, 100, 12000),
+                (660, 100, 15000),
+                (960, 100, 15000),
+                (1020, 100, 12000),
+                (1080, 100, 11000),
+                (1140, 50, 10000),
+            ],
+        ),
+        "moon": _g2_moon(1200, 1380, [(1275, 10), (1305, 10)]),
+    },
+    {
+        "name": "Deep Reef",
+        "color": _g2_color(
+            480,
+            1200,
+            [
+                (540, 50, 16000),
+                (600, 100, 17000),
+                (660, 100, 18000),
+                (720, 100, 20000),
+                (900, 100, 20000),
+                (960, 100, 21000),
+                (1080, 100, 23000),
+            ],
+        ),
+        "moon": _g2_moon(1200, 1380, [(1275, 10), (1305, 10)]),
+    },
+]
+# Uid prefix of the built-in G2 programs (they have no cloud uid)
+LIGHTS_DEFAULT_UID_PREFIX: Final[str] = "default:"
 WAVES_LIBRARY: Final[str] = "/reef-wave/library"
 SUPPLEMENTS_LIBRARY: Final[str] = "/reef-dosing/supplement"
 

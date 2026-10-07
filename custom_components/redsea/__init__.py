@@ -14,7 +14,7 @@ import logging
 import re
 from contextlib import suppress
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.components.frontend import add_extra_js_url
 
@@ -38,9 +38,14 @@ from homeassistant.core import (
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.event import async_call_later, async_track_time_change
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.util import dt as dt_util
+from homeassistant.util.json import JsonValueType
 
 from .const import (
+    CONF_GROUP_MEMBERS,
     CONFIG_FLOW_CLOUD_USERNAME,
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_IP_ADDRESS,
@@ -54,8 +59,11 @@ from .const import (
     HW_POWER_IDS,
     HW_RUN_IDS,
     HW_WAVE_IDS,
+    LINKED_LED,
     PLATFORMS,
     REFRESH_DEVICE_DELAY,
+    SIGNAL_GROUP_MEMBER_GONE,
+    SIGNAL_GROUP_MEMBER_READY,
     VIRTUAL_LED,
 )
 from .coordinator import (
@@ -72,9 +80,23 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
+from .groups import GroupStore, group_error, members_from_legacy
+from .led_weather import (
+    WEATHER_CHECK_SECONDS,
+    WEATHER_SETTLE_SECONDS,
+    WEATHER_SHOW_SECONDS,
+    WeatherStore,
+    preview_weather,
+    publish_weather,
+    rename_program,
+    run_weather,
+    save_weather,
+    weather_lost,
+)
 from .maintenance import MaintenanceStore, register_led_tasks
 from .reefbeat.cloud import InvalidAuth
 from .reefbeat.control import ReefControlAPI
+from .wave_library import program_waves
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -208,6 +230,90 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # hass.data again; also keeps the lifecycle tied to the entry.
     coordinator.maintenance = maintenance_store  # type: ignore[attr-defined]
 
+    # ReefLED: settings of the week program following the weather of a place
+    if isinstance(coordinator, ReefLedCoordinator):
+        weather_store = WeatherStore(hass, entry.entry_id)
+        await weather_store.async_load()
+        coordinator.weather = weather_store  # type: ignore[attr-defined]
+
+        @callback
+        def _weather_tick(_now: Any) -> None:
+            """Every night, fetch the weather again when it is due.
+
+            A lamp of a group uses its group's weather program (see
+            ReefLedCoordinator.weather): the group runs it for all its lamps.
+            """
+            if coordinator.weather is not weather_store:
+                return
+            if weather_store.due(dt_util.now().date()) or weather_lost(
+                coordinator, weather_store
+            ):
+                hass.async_create_task(run_weather(hass, coordinator))
+
+        entry.async_on_unload(
+            async_track_time_change(hass, _weather_tick, hour=0, minute=10, second=0)
+        )
+
+        @callback
+        def _weather_check(_now: Any) -> None:
+            """Once set up: a lamp in weather mode that no longer holds the
+            weather week (reset, restarted, programmed from the app) gets
+            it again, instead of playing its own under a weather mode."""
+            if coordinator.weather is weather_store and weather_lost(
+                coordinator, weather_store
+            ):
+                hass.async_create_task(run_weather(hass, coordinator))
+
+        entry.async_on_unload(
+            async_call_later(hass, WEATHER_CHECK_SECONDS, _weather_check)
+        )
+
+        # A changed setting shows its new week at once, and sends it once
+        # the user is done (the settings are often changed one after the
+        # other)
+        pending: dict[str, Any] = {}
+
+        @callback
+        def _weather_show(_now: Any) -> None:
+            pending.pop("show", None)
+            hass.async_create_task(publish_weather(hass, coordinator))
+
+        @callback
+        def _weather_now(_now: Any) -> None:
+            pending.pop("cancel", None)
+            hass.async_create_task(run_weather(hass, coordinator))
+
+        def _cancel(key: str) -> None:
+            cancel = pending.pop(key, None)
+            if cancel is not None:
+                cancel()
+
+        @callback
+        def _weather_changed(_key: str) -> None:
+            _cancel("show")
+            _cancel("cancel")
+            pending["show"] = async_call_later(
+                hass, WEATHER_SHOW_SECONDS, _weather_show
+            )
+            pending["cancel"] = async_call_later(
+                hass, WEATHER_SETTLE_SECONDS, _weather_now
+            )
+
+        weather_store.on_settings_change = _weather_changed
+
+        @callback
+        def _weather_unload() -> None:
+            _cancel("show")
+            _cancel("cancel")
+
+        entry.async_on_unload(_weather_unload)
+
+    # Group (virtual LED): staggered sunrise and offsets written to the lamps
+    if isinstance(coordinator, ReefVirtualLedCoordinator):
+        group_store = GroupStore(hass, entry.entry_id)
+        await group_store.async_load()
+        coordinator.group_store = group_store
+
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
     # Before the platforms build their entities, so a leak probe keeps its
@@ -217,6 +323,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _migrate_leak_unique_ids(hass, entry, coordinator)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Presence: the group this device belongs to (if any) follows it now
+    async_dispatcher_send(hass, SIGNAL_GROUP_MEMBER_READY, entry.entry_id)
+    # A group whose members or order changed writes its offsets again
+    if isinstance(coordinator, ReefVirtualLedCoordinator):
+        coordinator.async_reconcile_staggered()
 
     # After a probe is removed (via the options flow, which reloads the entry),
     # its entities are no longer rebuilt but linger in the registry — drop them.
@@ -247,6 +359,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await _migrate_head_device_names(hass, entry)
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
+    return True
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Migrate a config entry to the current version.
+
+    1.1 -> 1.2: a virtual LED keeps its members as an ordered list of entry
+    ids (CONF_GROUP_MEMBERS) instead of the "linked" mapping, whose keys
+    embedded the model and the title of each LED.
+    """
+    if entry.version > 1:
+        # Written by a newer version of the integration: cannot be read
+        return False
+    if entry.minor_version < 2:
+        data = dict(entry.data)
+        if LINKED_LED in data:
+            data[CONF_GROUP_MEMBERS] = members_from_legacy(data.pop(LINKED_LED) or {})
+            _LOGGER.info(
+                "Migrated %s to an ordered group of %d LEDs",
+                entry.title,
+                len(data[CONF_GROUP_MEMBERS]),
+            )
+        hass.config_entries.async_update_entry(entry, data=data, minor_version=2)
     return True
 
 
@@ -430,6 +565,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         return False
 
     coordinator = hass.data[DOMAIN].pop(entry.entry_id, None)
+    # Presence: the group this device belongs to (if any) lets it go
+    async_dispatcher_send(hass, SIGNAL_GROUP_MEMBER_GONE, entry.entry_id)
     if coordinator is not None:
         # Cancel the DataUpdateCoordinator's internal Debouncer timer.
         # Try async_shutdown() first (HA 2024.x+), then fall back to
@@ -794,6 +931,350 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         DOMAIN,
         "get_control_subscriptions",
         handle_get_control_subscriptions,
+        supports_response=SupportsResponse.ONLY,
+    )
+
+    @callback
+    async def handle_led_convert(call: ServiceCall) -> ServiceResponse:
+        """Convert G1 ReefLED points between white/blue and kelvin/intensity.
+
+        The card edits G1 programs either channel by channel or as
+        intensity + colour temperature. The conversion depends on the model
+        (LEDS_CONV table) and on the intensity compensation option of the
+        entry: rather than duplicating both, the card asks the lamp's own
+        API object, the one its light entities already use.
+
+        Each point is either `{kelvin, intensity}` or `{white, blue}`; every
+        answer carries all four values, in the same order.
+        """
+        device_id = call.data.get("device_id")
+        device = hass.data.get(DOMAIN, {}).get(device_id)
+        if not isinstance(device, ReefLedCoordinator) or isinstance(
+            device, (ReefLedG2Coordinator, ReefVirtualLedCoordinator)
+        ):
+            return {"error": "Not a G1 ReefLED"}
+
+        points = call.data.get("points")
+        if not isinstance(points, list):
+            return {"error": "points must be a list"}
+
+        api = device.my_api
+        result: list[JsonValueType] = []
+        for point in points:
+            if not isinstance(point, dict):
+                result.append({})
+                continue
+            if "kelvin" in point:
+                raw = api.kelvin_to_white_and_blue(
+                    point.get("kelvin"), int(point.get("intensity", 100))
+                )
+            else:
+                raw = api.white_and_blue_to_kelvin(
+                    point.get("white"), point.get("blue")
+                )
+            result.append(
+                {key: raw.get(key) for key in ("kelvin", "intensity", "white", "blue")}
+            )
+        return {"points": result}
+
+    async def handle_led_library(call: ServiceCall) -> ServiceResponse:
+        """List the cloud light programs of a ReefLED's aquarium.
+
+        The card's program editor offers them when the lamp is linked to a
+        ReefBeat cloud account (a virtual LED uses its first linked lamp).
+        """
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        programs = device.light_library()
+        if programs is None:
+            return {"linked": False, "programs": []}
+        return {"linked": True, "programs": cast(list[JsonValueType], programs)}
+
+    async def handle_led_library_save(call: ServiceCall) -> ServiceResponse:
+        """Add a light program to a ReefLED's cloud library, or update one.
+
+        With a `uid`, the user's program is updated (a Red Sea program cannot
+        be); without, a new one is added.
+        """
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        name = call.data.get("name")
+        program = call.data.get("program")
+        clouds = call.data.get("clouds")
+        if not isinstance(name, str) or not name.strip():
+            return {"error": "name is required"}
+        if not isinstance(program, dict):
+            return {"error": "program must be an object"}
+        if device.library_link() is None:
+            return {"error": "Not linked to a ReefBeat cloud account"}
+        uid = call.data.get("uid")
+        if uid is not None and not isinstance(uid, str):
+            return {"error": "uid must be a string"}
+        if uid is not None:
+            entry = device.library_program(uid)
+            if entry is None:
+                return {"error": "Program not found"}
+            if entry.get("default"):
+                return {"error": "Red Sea programs cannot be edited"}
+        saved = await device.save_light_program(
+            name.strip(),
+            cast(dict[str, Any], program),
+            cast(dict[str, Any], clouds) if isinstance(clouds, dict) else None,
+            uid,
+        )
+        return {"uid": saved}
+
+    async def handle_led_library_delete(call: ServiceCall) -> ServiceResponse:
+        """Delete one of the user's programs from a ReefLED's cloud library."""
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        if device.library_link() is None:
+            return {"error": "Not linked to a ReefBeat cloud account"}
+        uid = call.data.get("uid")
+        if not isinstance(uid, str) or not uid:
+            return {"error": "uid is required"}
+        entry = device.library_program(uid)
+        if entry is None:
+            return {"error": "Program not found"}
+        if entry.get("default"):
+            return {"error": "Red Sea programs cannot be deleted"}
+        return {"deleted": await device.delete_light_program(uid)}
+
+    async def handle_led_library_rename(call: ServiceCall) -> ServiceResponse:
+        """Rename one of the user's programs: in the library, and on every
+        day named after it of the lamp and of the lamps of its group."""
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        if device.library_link() is None:
+            return {"error": "Not linked to a ReefBeat cloud account"}
+        uid = call.data.get("uid")
+        if not isinstance(uid, str) or not uid:
+            return {"error": "uid is required"}
+        name = call.data.get("name")
+        if not isinstance(name, str) or not name.strip():
+            return {"error": "name is required"}
+        return cast(
+            dict[str, JsonValueType], await rename_program(device, uid, name.strip())
+        )
+
+    async def handle_led_weather_apply(call: ServiceCall) -> ServiceResponse:
+        """Fetch the weather again and send the week now (weather mode only)."""
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        return cast(dict[str, JsonValueType], await run_weather(hass, device))
+
+    hass.services.async_register(
+        DOMAIN,
+        "led_weather_apply",
+        handle_led_weather_apply,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    async def handle_led_weather_preview(call: ServiceCall) -> ServiceResponse:
+        """The week the weather would make, and the lamp's own: nothing is
+        written (the card's editor shows it before its Save)."""
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        settings = call.data.get("settings")
+        return cast(
+            dict[str, JsonValueType],
+            await preview_weather(
+                hass,
+                device,
+                settings=settings if isinstance(settings, dict) else None,
+            ),
+        )
+
+    hass.services.async_register(
+        DOMAIN,
+        "led_weather_preview",
+        handle_led_weather_preview,
+        supports_response=SupportsResponse.ONLY,
+    )
+
+    async def handle_led_weather_save(call: ServiceCall) -> ServiceResponse:
+        """Save the weather settings and mode, and write the lamp once."""
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefLedCoordinator):
+            return {"error": "Not a ReefLED"}
+        settings = call.data.get("settings")
+        return cast(
+            dict[str, JsonValueType],
+            await save_weather(
+                hass,
+                device,
+                settings if isinstance(settings, dict) else None,
+                bool(call.data.get("enabled")),
+                bool(call.data.get("wait")),
+            ),
+        )
+
+    hass.services.async_register(
+        DOMAIN,
+        "led_weather_save",
+        handle_led_weather_save,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    _LOGGER.debug("Registering services redsea.led_library(_save)")
+    hass.services.async_register(
+        DOMAIN,
+        "led_library",
+        handle_led_library,
+        supports_response=SupportsResponse.ONLY,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "led_library_save",
+        handle_led_library_save,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        "led_library_delete",
+        handle_led_library_delete,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        "led_library_rename",
+        handle_led_library_rename,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    # -- ReefWave: wave library and day program (card's program editor) --
+
+    def _wave(call: ServiceCall) -> ReefWaveCoordinator:
+        """The ReefWave a call is for, or a translated refusal."""
+        device = hass.data.get(DOMAIN, {}).get(call.data.get("device_id"))
+        if not isinstance(device, ReefWaveCoordinator):
+            raise group_error("wave_not_a_wave")
+        return device
+
+    async def handle_wave_library(call: ServiceCall) -> ServiceResponse:
+        """Waves a ReefWave can use, the pumps using them, and its group.
+
+        Linked to a cloud account: the aquarium's library, with this pump's
+        intensities. Without: the waves of the pump's own program only.
+        """
+        device = _wave(call)
+        waves = device.wave_library()
+        linked = waves is not None
+        if waves is None:
+            waves = program_waves(device.program_intervals())
+        group = [
+            {
+                "hwid": m["hwid"],
+                "name": m["name"],
+                "in_service": m["in_service"],
+                "available": m["coordinator"] is not None
+                and bool(getattr(m["coordinator"], "last_update_success", True)),
+            }
+            for m in device.wave_group()
+        ]
+        return {
+            "linked": linked,
+            "hwid": device.model_id,
+            "waves": cast(list[JsonValueType], waves),
+            "usage": cast(dict[str, JsonValueType], device.wave_usage()),
+            "group": cast(list[JsonValueType], group),
+            # Grouped in the app: True / False, None without a cloud account
+            "grouped": device.wave_grouped(),
+        }
+
+    async def handle_wave_library_save(call: ServiceCall) -> ServiceResponse:
+        """Add a wave to the cloud library of a ReefWave, or update one."""
+        device = _wave(call)
+        uid = call.data.get("uid")
+        settings = call.data.get("settings")
+        uid = await device.save_wave(
+            cast(str, call.data.get("name")),
+            cast(dict[str, Any], settings) if isinstance(settings, dict) else {},
+            uid if isinstance(uid, str) and uid else None,
+        )
+        return {"uid": uid}
+
+    async def handle_wave_library_delete(call: ServiceCall) -> ServiceResponse:
+        """Delete one of the user's waves from the cloud library."""
+        device = _wave(call)
+        return {"deleted": await device.delete_wave(str(call.data.get("uid", "")))}
+
+    async def handle_wave_program_save(call: ServiceCall) -> ServiceResponse:
+        """Write the day program of a ReefWave (of its group)."""
+        device = _wave(call)
+        await device.save_program(call.data.get("slots"))
+        return {"saved": True}
+
+    async def handle_wave_preview(call: ServiceCall) -> ServiceResponse:
+        """Run a wave on a ReefWave for a while (preview)."""
+        device = _wave(call)
+        settings = call.data.get("settings")
+        await device.start_preview(
+            cast(dict[str, Any], settings) if isinstance(settings, dict) else {},
+            str(call.data.get("direction", "fw")),
+            int(call.data.get("duration", 300000)),
+        )
+        return {"preview": True}
+
+    async def handle_wave_preview_stop(call: ServiceCall) -> ServiceResponse:
+        """Stop the preview of a ReefWave."""
+        await _wave(call).stop_preview()
+        return {"preview": False}
+
+    async def handle_wave_pump_set(call: ServiceCall) -> ServiceResponse:
+        """Set this pump's direction and intensities in the current wave."""
+        await _wave(call).set_current_pump(
+            str(call.data.get("direction", "")),
+            call.data.get("fti"),
+            call.data.get("rti"),
+        )
+        return {"saved": True}
+
+    async def handle_wave_group_order(call: ServiceCall) -> ServiceResponse:
+        """Order the pumps of a ReefWave's group."""
+        await _wave(call).set_wave_group_order(call.data.get("hwids"))
+        return {"saved": True}
+
+    async def handle_wave_group_set(call: ServiceCall) -> ServiceResponse:
+        """Group a ReefWave with its aquarium's other ReefWaves, or ungroup it."""
+        device = _wave(call)
+        grouped = call.data.get("grouped") is True
+        await device.set_wave_grouped(grouped)
+        return {"grouped": grouped}
+
+    _LOGGER.debug("Registering services redsea.wave_*")
+    hass.services.async_register(
+        DOMAIN,
+        "wave_library",
+        handle_wave_library,
+        supports_response=SupportsResponse.ONLY,
+    )
+    for service, handler in (
+        ("wave_library_save", handle_wave_library_save),
+        ("wave_library_delete", handle_wave_library_delete),
+        ("wave_program_save", handle_wave_program_save),
+        ("wave_preview", handle_wave_preview),
+        ("wave_preview_stop", handle_wave_preview_stop),
+        ("wave_pump_set", handle_wave_pump_set),
+        ("wave_group_order", handle_wave_group_order),
+        ("wave_group_set", handle_wave_group_set),
+    ):
+        hass.services.async_register(
+            DOMAIN, service, handler, supports_response=SupportsResponse.OPTIONAL
+        )
+
+    _LOGGER.debug("Registering service redsea.led_convert")
+    hass.services.async_register(
+        DOMAIN,
+        "led_convert",
+        handle_led_convert,
         supports_response=SupportsResponse.ONLY,
     )
 

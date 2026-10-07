@@ -5,7 +5,7 @@
 RSPOWER (Power Center) to samodzielne urządzenie z własnym adresem IP, udostępniane w Home Assistant osobno.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
+<img src="../img/rspower_devices.png" alt="Image">
 </p>
 
 - 6 lub 8 sterowanych gniazd w zależności od modelu (RSPOWER6 / RSPOWER8)
@@ -16,9 +16,9 @@ RSPOWER (Power Center) to samodzielne urządzenie z własnym adresem IP, udostę
 - Zapisy są pokazywane natychmiast (aktualizacja optymistyczna), a następnie potwierdzane ponownym odczytem urządzenia
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
+<img src="../img/rspower_ctrl.png" alt="Image">
+<img src="../img/rspower_conf.png" alt="Image">
+<img src="../img/rspower_diag.png" alt="Image">
 </p>
 
 > [!NOTE]
@@ -42,6 +42,14 @@ Każde gniazdo udostępnia encję `sensor.socket_N_mode` dla automatyzacji: jej 
 Gniazdo sterowane harmonogramem lub sondą można ręcznie wyłączyć: jego tryb pokazuje wtedy `off`, a czujnik **poprzedni tryb** zachowuje tryb automatyczny, do którego gniazdo wróci.
 
 Urządzenie automatycznie opuszcza początkowy stan „setup”, gdy tylko zostanie skonfigurowane pierwsze gniazdo, tak jak w aplikacji ReefBeat — nie jest potrzebna żadna ręczna czynność.
+
+## Zadania konserwacyjne
+| Zadanie | Domyślnie | Zakres |
+| ------- | --------- | ------ |
+| Kontrola wzrokowa | 1 miesiąc | 1 – 3 miesiące |
+| Usunąć kurz i osady soli | 3 miesiące | 2 – 4 miesiące |
+
+Red Sea nie publikuje harmonogramu konserwacji Power Center: te dwa zadania wynikają z ogólnej praktyki akwarystyki rafowej dla urządzeń sieciowych w pobliżu słonej wody. Przed odkurzaniem lub usuwaniem osadów soli odłącz Power Center od zasilania i użyj suchej ściereczki. Zobacz sekcję [Konserwacja](maintenance.pl.md#konserwacja).
 
 ---
 

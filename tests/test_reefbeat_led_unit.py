@@ -152,6 +152,8 @@ async def test_apply_runtime_source_patches_rsled90_and_preset_name_variants(
     assert "/manual" in source_names
     assert "/acclimation" in source_names
     assert "/moonphase" in source_names
+    # The lamp answers /offset: its staggered sunrise offset is read
+    assert "/offset" in source_names
 
 
 @pytest.mark.asyncio
@@ -216,6 +218,24 @@ async def test_apply_runtime_source_patches_preset_name_per_day(
     assert "/" not in source_names
     for day in range(1, 8):
         assert f"/preset_name/{day}" in source_names
+
+
+@pytest.mark.asyncio
+async def test_apply_runtime_source_patches_without_offset(
+    monkeypatch: Any,
+) -> None:
+    """A firmware without /offset (no staggered sunrise): not read."""
+    api = _make_led_api(hw=VIRTUAL_LED)
+
+    async def _fake_probe(path: str) -> int:
+        return 404 if path == "/offset" else 200
+
+    monkeypatch.setattr(api, "_probe_path", _fake_probe)
+    await api._apply_runtime_source_patches()
+    source_names = [
+        s.get("name") for s in cast(list[dict[str, Any]], api.data["sources"])
+    ]
+    assert "/offset" not in source_names
 
 
 def test_update_acclimation_copies_fields_when_present() -> None:
@@ -874,3 +894,150 @@ def test_white_and_blue_to_kelvin_uses_cached_kelvin_when_no_wb_to_kelvin() -> N
 
     res = api.white_and_blue_to_kelvin(100, 0)
     assert res["kelvin"] == 10000
+
+
+def test_expect_settings_shows_what_the_lamp_makes_of_a_write() -> None:
+    """Optimistic update of the acclimation and the moon phase."""
+    api = _make_led_api(hw="RSLED160")
+
+    def data(source: str) -> Any:
+        return api.get_data(f"$.sources[?(@.name=='{source}')].data", True)
+
+    def put(source: str, value: Any) -> None:
+        next(s for s in api.data["sources"] if s["name"] == source)["data"] = value
+
+    # No such source, or nothing read from the lamp yet: nothing to show
+    api.expect_settings("/acclimation", True)
+    api.add_source("/acclimation", "config", "")
+    api.add_source("/moonphase", "config", "")
+    api.expect_settings("/acclimation", True)
+    assert data("/acclimation") == ""
+
+    put(
+        "/acclimation",
+        {
+            "enabled": False,
+            "started_on": "never",
+            "duration": 50,
+            "start_intensity_factor": 50,
+            "remaining_days": 0,
+            "current_intensity_factor": 100,
+        },
+    )
+    api.data["local"]["acclimation"].update(duration=12, start_intensity_factor=35)
+    api.expect_settings("/acclimation", True)
+    acc = data("/acclimation")
+    assert (acc["enabled"], acc["duration"], acc["remaining_days"]) == (True, 12, 12)
+    assert acc["start_intensity_factor"] == acc["current_intensity_factor"] == 35
+    api.expect_settings("/acclimation", False)
+    acc = data("/acclimation")
+    assert (acc["enabled"], acc["started_on"]) == (False, "never")
+    assert (acc["remaining_days"], acc["current_intensity_factor"]) == (0, 100)
+
+    put("/moonphase", {"enabled": False, "todays_moon_day": 3, "intensity": 21})
+    # As lamps report it: day 2 -> 14 %, full in 12 days, new in 27
+    api.data["local"]["moonphase"]["moon_day"] = 2
+    api.expect_settings("/moonphase", True)
+    moon = data("/moonphase")
+    assert (moon["enabled"], moon["todays_moon_day"], moon["intensity"]) == (
+        True,
+        2,
+        14,
+    )
+    assert (moon["next_full_moon"], moon["next_new_moon"]) == (12, 27)
+    # Day 28 -> 0 %, full in 14 days, new in 1
+    api.data["local"]["moonphase"]["moon_day"] = 28
+    api.expect_settings("/moonphase", True)
+    moon = data("/moonphase")
+    assert (moon["intensity"], moon["next_full_moon"], moon["next_new_moon"]) == (
+        0,
+        14,
+        1,
+    )
+    # Off: the cycle is left as it is; an odd day is not shown
+    api.expect_settings("/moonphase", False)
+    assert data("/moonphase")["enabled"] is False
+    assert data("/moonphase")["todays_moon_day"] == 28
+    api.data["local"]["moonphase"]["moon_day"] = 40
+    api.expect_settings("/moonphase", True)
+    assert data("/moonphase")["todays_moon_day"] == 28
+
+
+@pytest.mark.asyncio
+async def test_g2_manual_is_written_as_colour_and_intensity(monkeypatch: Any) -> None:
+    """A G2 computes its white and blue levels: only its colour temperature,
+    intensity and moon are written (POST /manual and /timer), as the app."""
+    manual = {
+        "kelvin": 12000,
+        "intensity": 50.0,
+        "white": 0,
+        "white_full": 0.0,
+        "white_pwm": 0,
+        "blue": 0,
+        "blue_pwm": 0,
+        "moon": 3,
+        "moon_pwm": 0,
+        "fan": 0,
+        "temperature": 40.8,
+    }
+    sent: list[tuple[str, dict[str, Any]]] = []
+
+    async def _send(url: str, payload: Any, method: str) -> None:
+        sent.append((url.rsplit("/", 1)[1], dict(payload)))
+
+    g2 = _make_led_api(hw="RSLED115")
+    assert g2._g1 is False
+    g2.add_source("/manual", "data", dict(manual))
+    monkeypatch.setattr(g2, "_http_send", _send)
+    await g2.push_values("/manual")
+    g2.data["local"]["manual_duration"] = 5
+    await g2.post_specific("/timer")
+    colour = {"kelvin": 12000, "intensity": 50, "moon": 3}
+    assert sent[0] == ("manual", colour)
+    assert sent[1] == ("timer", {**colour, "duration": 5})
+    # Only what the lamp reports
+    assert g2._manual_payload({"kelvin": None, "white": 4}) == {"kelvin": 0}
+
+    # A G1 is written its levels as read
+    sent.clear()
+    g1 = _make_led_api(hw="RSLED160")
+    g1.add_source("/manual", "data", dict(manual))
+    monkeypatch.setattr(g1, "_http_send", _send)
+    await g1.push_values("/manual")
+    assert sent == [("manual", manual)]
+
+
+def test_update_light_wb_keeps_the_colour_and_intensity_last_set(
+    monkeypatch: Any,
+) -> None:
+    """Whole white/blue levels do not give back the intensity they were made
+    from (50 read back as 49 with the intensity compensation): what was set
+    is kept while the lamp reports the levels it gives."""
+    api = _make_led_api(hw="RSLED160")
+    monkeypatch.setattr(
+        api,
+        "kelvin_to_white_and_blue",
+        lambda kelvin, intensity=100: {"white": 32, "blue": 24},
+    )
+    monkeypatch.setattr(
+        api,
+        "white_and_blue_to_kelvin",
+        lambda white, blue: {"kelvin": 11960, "intensity": 49},
+    )
+    api.add_source("/manual", "data", {"white": 32, "blue": 24, "moon": 0})
+    trick = api.data["local"]["manual_trick"]
+    trick.update(kelvin=12000, intensity=50)
+    api.update_light_wb()
+    manual = api.get_data("$.sources[?(@.name=='/manual')].data")
+    assert (manual["kelvin"], manual["intensity"]) == (12000, 50)
+    assert (trick["kelvin"], trick["intensity"]) == (12000, 50)
+    # Other levels (set by white/blue, the app, a program): derived
+    manual["white"] = 40
+    api.update_light_wb()
+    assert (manual["kelvin"], manual["intensity"]) == (11960, 49)
+    assert (trick["kelvin"], trick["intensity"]) == (11960, 49)
+    # Nothing set yet: derived
+    trick.update(kelvin=None, intensity=None)
+    manual["white"] = 32
+    api.update_light_wb()
+    assert trick["intensity"] == 49

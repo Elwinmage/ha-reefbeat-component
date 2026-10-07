@@ -1,0 +1,9 @@
+# Rename this file to .simulator_enabled to let the ReefBeat Cloud API form
+# ask for its server, to point it at a reefbeat-devices-simulator (its
+# CLOUD device, e.g. 192.168.0.251).
+#
+# This file is git-ignored; it must be created manually on each dev machine.
+# Never commit .simulator_enabled to git — it must not appear in production.
+#
+# To enable:  cp simulator_enabled.example .simulator_enabled
+# To disable: rm .simulator_enabled

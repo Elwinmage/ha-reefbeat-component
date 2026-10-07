@@ -2,7 +2,7 @@
 
 # ReefControl:
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_devices.png" alt="Image">
+<img src="../img/rscontrol_devices.png" alt="Image">
 </p>
 
 Der ReefControl-Hub (RSCONTROLPRO / RSCONTROLLITE) liest die ReefSense-Sonden an seinen Erweiterungsboxen, steuert seine 12V-DC-Ports (2 beim Pro, 1 beim Lite) und, sobald gekoppelt, die Steckdosen eines [ReefControl-Power](reefcontrol-power.de.md#reefcontrol-power).
@@ -19,10 +19,10 @@ Der ReefControl-Hub (RSCONTROLPRO / RSCONTROLLITE) liest die ReefSense-Sonden an
 - Schreibvorgänge werden sofort angezeigt (optimistische Aktualisierung) und anschließend durch erneutes Auslesen des Geräts bestätigt.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_sensors.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_diag.png" alt="Image">
+<img src="../img/rscontrol_sensors.png" alt="Image">
+<img src="../img/rscontrol_ctrl.png" alt="Image">
+<img src="../img/rscontrol_conf.png" alt="Image">
+<img src="../img/rscontrol_diag.png" alt="Image">
 </p>
 
 > [!TIP]
@@ -32,7 +32,7 @@ Der ReefControl-Hub (RSCONTROLPRO / RSCONTROLLITE) liest die ReefSense-Sonden an
 BLE-Sonden (pH, ORP, EC, ATO, Leck, Temperatur) werden über das Menü **Optionen** der Integration verwaltet, wie in der Red Sea App:
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rscontrol_probe_management.png" alt="Image">
+<img src="../img/rscontrol_probe_management.png" alt="Image">
 </p>
 
 - **Sonde hinzufügen**: Sonde in den Kopplungsmodus versetzen, Typ wählen und zum Suchen bestätigen. Die Sonde wird so eingerichtet wie von der App: Eine Lecksonde zum Beispiel heißt `Leak <uid>`, mit eingeschaltetem Summer, Leckdetektor und Benachrichtigungen.

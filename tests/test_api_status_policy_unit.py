@@ -172,6 +172,28 @@ async def test_wave_503_write_is_a_success() -> None:
 
 
 @pytest.mark.asyncio
+async def test_local_500_firmware_verdict_is_not_retried() -> None:
+    """A ReefLED judging a payload: the same payload gets the same answer."""
+    verdict = {
+        "success": False,
+        "message": "json structure is wrong.Cloud period is outside the "
+        "preset [rise:set] interval",
+    }
+    session = _Session(500, verdict)
+    api = _api(session)
+    result = await api.http_send("/clouds/7", {"from": 1, "to": 2}, "post")
+    assert result is not None and result.get("ok") is False
+    assert session.calls == ["post"]
+    # Without the firmware's verdict, or from the cloud: retried as before
+    plain = _Session(500)
+    await _api(plain).http_send("/x", {}, "post")
+    assert len(plain.calls) == api_mod.HTTP_MAX_RETRY
+    cloud = _Session(500, verdict)
+    await _api(cloud, secure=True).http_send("/x", {}, "post")
+    assert len(cloud.calls) == api_mod.HTTP_MAX_RETRY
+
+
+@pytest.mark.asyncio
 async def test_cloud_503_write_is_retried() -> None:
     session = _Session(503)
     api = _api(session, secure=True)

@@ -70,7 +70,7 @@ para marcar a tarefa como feita, um sino para a silenciar e um cursor em linha
 para alterar o seu intervalo.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/maintenance_task.png" alt="Tarefas de manutenção no ha-reef-card">
+<img src="../img/maintenance_task.png" alt="Tarefas de manutenção no ha-reef-card">
 </p>
 
 ## Notificações: o blueprint de alertas

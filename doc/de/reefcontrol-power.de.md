@@ -5,7 +5,7 @@
 Das RSPOWER (Power Center) ist ein eigenständiges Gerät mit eigener IP-Adresse und wird in Home Assistant separat angezeigt.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
+<img src="../img/rspower_devices.png" alt="Image">
 </p>
 
 - 6 oder 8 steuerbare Steckdosen je nach Modell (RSPOWER6 / RSPOWER8)
@@ -16,9 +16,9 @@ Das RSPOWER (Power Center) ist ein eigenständiges Gerät mit eigener IP-Adresse
 - Schreibvorgänge werden sofort angezeigt (optimistische Aktualisierung) und anschließend durch erneutes Auslesen des Geräts bestätigt
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
+<img src="../img/rspower_ctrl.png" alt="Image">
+<img src="../img/rspower_conf.png" alt="Image">
+<img src="../img/rspower_diag.png" alt="Image">
 </p>
 
 > [!NOTE]
@@ -42,6 +42,14 @@ Jede Steckdose stellt eine Entität `sensor.socket_N_mode` für Automatisierunge
 Eine per Zeitplan oder Sonde gesteuerte Steckdose kann von Hand ausgeschaltet werden: Ihr Modus zeigt dann `off`, während der Sensor **vorheriger Modus** den automatischen Modus behält, zu dem sie zurückkehrt.
 
 Das Gerät verlässt seinen anfänglichen „setup“-Zustand automatisch, sobald die erste Steckdose konfiguriert ist, wie in der ReefBeat-App — keine manuelle Aktion nötig.
+
+## Wartungsaufgaben
+| Aufgabe | Standard | Bereich |
+| ------- | -------- | ------- |
+| Sichtprüfung | 1 Monat | 1 – 3 Monate |
+| Staub und Salzablagerungen entfernen | 3 Monate | 2 – 4 Monate |
+
+Red Sea veröffentlicht keinen Wartungsplan für das Power Center: Diese beiden Aufgaben folgen der üblichen Praxis in der Riffaquaristik für Netzgeräte in der Nähe von Salzwasser. Trennen Sie das Power Center vom Netz, bevor Sie es entstauben oder Salzablagerungen entfernen, und verwenden Sie ein trockenes Tuch. Siehe den Abschnitt [Wartung](maintenance.de.md#wartung).
 
 ---
 

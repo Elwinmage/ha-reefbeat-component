@@ -19,7 +19,12 @@ from typing import Any, cast
 import aiohttp
 from homeassistant.exceptions import HomeAssistantError
 
-from ..const import LIGHTS_LIBRARY, SUPPLEMENTS_LIBRARY, WAVES_LIBRARY
+from ..const import (
+    LIGHTS_G2_LIBRARY,
+    LIGHTS_LIBRARY,
+    SUPPLEMENTS_LIBRARY,
+    WAVES_LIBRARY,
+)
 from .api import HttpResult, ReefBeatAPI, SourceEntry, parse
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,7 +47,8 @@ class ReefBeatCloudAPI(ReefBeatAPI):
         - /user
         - /aquarium
         - /device
-        - LIGHTS_LIBRARY / WAVES_LIBRARY / SUPPLEMENTS_LIBRARY (cloud libraries)
+        - LIGHTS_LIBRARY / LIGHTS_G2_LIBRARY / WAVES_LIBRARY / SUPPLEMENTS_LIBRARY
+          (cloud libraries)
     """
 
     def __init__(
@@ -78,6 +84,7 @@ class ReefBeatCloudAPI(ReefBeatAPI):
                 {"name": "/aquarium", "type": "data", "data": ""},
                 {"name": "/device", "type": "config", "data": ""},
                 {"name": LIGHTS_LIBRARY, "type": "config", "data": ""},
+                {"name": LIGHTS_G2_LIBRARY, "type": "config", "data": ""},
                 {"name": WAVES_LIBRARY, "type": "config", "data": ""},
             ],
         )

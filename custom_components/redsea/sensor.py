@@ -108,6 +108,7 @@ from .coordinator import (
     ReefWaveCoordinator,
 )
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
+from .led_weather_entities import weather_entities
 from .probe_entities import probe_state_attributes
 
 _LOGGER = logging.getLogger(__name__)
@@ -259,6 +260,9 @@ class ReefWaveSensorEntityDescription(SensorEntityDescription):
     exists_fn: Callable[[ReefBeatCoordinator], bool] = lambda _: True
     value_basename: str = WAVE_SCHEDULE_PATH
     value_name: str = ""
+    # Optional computed attributes merged into extra_state_attributes on
+    # every update (see ReefBeatSensorEntity._update_val).
+    attributes_fn: Callable[[ReefBeatCoordinator], dict[str, Any]] | None = None
 
 
 DescriptionT = (
@@ -527,6 +531,64 @@ LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         ),
         icon="mdi:sun-wireless-outline",
     ),
+    # Live acclimation progress: the card shows both next to the acclimation
+    # switch ("3 days / 35 %"), the device reports them on /acclimation.
+    ReefBeatSensorEntityDescription(
+        key="acclimation_remaining_days",
+        translation_key="acclimation_remaining_days",
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/acclimation')].data.remaining_days", True
+        ),
+        icon="mdi:calendar-clock",
+    ),
+    ReefBeatSensorEntityDescription(
+        key="acclimation_current_intensity_factor",
+        translation_key="acclimation_current_intensity_factor",
+        native_unit_of_measurement=PERCENTAGE,
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/acclimation')].data.current_intensity_factor",
+            True,
+        ),
+        icon="mdi:brightness-percent",
+    ),
+    # Program the lamp is running, from its own clock: `active_preset` is the
+    # weekday of the /auto/<day> source in use (G1 and G2 dashboards).
+    ReefBeatSensorEntityDescription(
+        key="current_program",
+        translation_key="current_program",
+        value_fn=lambda device: device.get_data(
+            "$.sources[?(@.name=='/dashboard')].data.current_program.name", True
+        ),
+        attributes_fn=lambda device: {
+            "active_preset": device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.current_program.active_preset",
+                True,
+            )
+        },
+        exists_fn=lambda device: (
+            not isinstance(device, ReefVirtualLedCoordinator)
+            and device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.current_program", True
+            )
+            is not None
+        ),
+        icon="mdi:calendar-star",
+    ),
+)
+
+# The lamps of a group, in its order, for the card (list, links, program
+# writes): on the virtual LED, and on each of its lamps (none when alone)
+VIRTUAL_LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
+    ReefBeatSensorEntityDescription(
+        key="linked_leds",
+        translation_key="linked_leds",
+        value_fn=lambda device: len(cast(ReefLedCoordinator, device).linked_leds()),
+        attributes_fn=lambda device: {
+            "leds": cast(ReefLedCoordinator, device).linked_leds()
+        },
+        icon="mdi:lightbulb-group",
+    ),
 )
 
 G2_LED_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
@@ -654,9 +716,54 @@ LED_SCHEDULES: tuple[ReefLedScheduleSensorEntityDescription, ...] = tuple(
     _led_schedules
 )
 
+# A group (virtual LED) reads its week from its first lamp, which may be
+# loaded after it: one sensor per day whatever is there yet, the name read
+# whichever way that lamp reports it (see ReefLedScheduleSensorEntity).
+VIRTUAL_LED_SCHEDULES: tuple[ReefLedScheduleSensorEntityDescription, ...] = tuple(
+    ReefLedScheduleSensorEntityDescription(
+        key="auto_" + str(auto_id),
+        translation_key="auto_" + str(auto_id),
+        id_name=auto_id,
+        icon="mdi:calendar",
+    )
+    for auto_id in range(1, 8)
+)
+
+
+def _schedule_name(device: ReefBeatCoordinator, day: int) -> Any:
+    """Name of the program of a weekday, from the one list of names or from
+    the per-day ones (depending on the firmware); None when unknown."""
+    names = device.get_data("$.sources[?(@.name=='/preset_name')].data", True)
+    if isinstance(names, list):
+        return next(
+            (
+                entry.get("name")
+                for entry in names
+                if isinstance(entry, dict) and str(entry.get("day")) == str(day)
+            ),
+            None,
+        )
+    return device.get_data(
+        f"$.sources[?(@.name=='/preset_name/{day}')].data.name", True
+    )
+
+
 # -----------------------------------------------------------------------------
 # Wave / ATO descriptions
 # -----------------------------------------------------------------------------
+
+
+def _wave_schedule_attributes(device: ReefBeatCoordinator) -> dict[str, Any]:
+    """Expose the whole day program of a ReefWave.
+
+    The card draws the day from it: every interval of the /auto source, with
+    its start minute (`st`) and its wave settings. An absent or malformed
+    program is reported as an empty list rather than None, so the attribute
+    keeps the same type whatever the device answered.
+    """
+    intervals = device.get_data(WAVE_SCHEDULE_PATH, True)
+    return {"schedule": intervals if isinstance(intervals, list) else []}
+
 
 WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
     ReefWaveSensorEntityDescription(
@@ -666,6 +773,8 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.ENUM,
         options=WAVE_TYPES,
         icon="mdi:wave",
+        # The day program rides along with the current wave type
+        attributes_fn=_wave_schedule_attributes,
     ),
     ReefWaveSensorEntityDescription(
         key="wave_name",
@@ -716,6 +825,19 @@ WAVE_SCHEDULE_SENSORS: tuple[ReefWaveSensorEntityDescription, ...] = (
         translation_key="wave_step",
         value_name="sn",
         icon="mdi:stairs",
+    ),
+)
+
+WAVE_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
+    # Pumps of the ReefWave group (cloud), for the card's list
+    ReefBeatSensorEntityDescription(
+        key="linked_waves",
+        translation_key="linked_waves",
+        value_fn=lambda device: len(cast(ReefWaveCoordinator, device).linked_waves()),
+        attributes_fn=lambda device: {
+            "waves": cast(ReefWaveCoordinator, device).linked_waves()
+        },
+        icon="mdi:waves",
     ),
 )
 
@@ -1958,6 +2080,13 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
+    if isinstance(device, ReefLedCoordinator):
+        entities.extend(
+            ReefBeatSensorEntity(device, description)
+            for description in VIRTUAL_LED_SENSORS
+            if description.exists_fn(device)
+        )
+
     if isinstance(device, (ReefLedCoordinator, ReefLedG2Coordinator)):
         entities.extend(
             ReefBeatSensorEntity(device, description)
@@ -1974,6 +2103,11 @@ async def async_setup_entry(
         entities.extend(
             ReefWaveSensorEntity(device, description)
             for description in WAVE_SCHEDULE_SENSORS
+            if description.exists_fn(device)
+        )
+        entities.extend(
+            ReefBeatSensorEntity(device, description)
+            for description in WAVE_SENSORS
             if description.exists_fn(device)
         )
     elif isinstance(device, ReefDoseCoordinator):
@@ -2519,7 +2653,12 @@ async def async_setup_entry(
         )
 
     # Schedule sensors (LED coordinators)
-    if isinstance(device, (ReefLedCoordinator, ReefVirtualLedCoordinator)):
+    if isinstance(device, ReefVirtualLedCoordinator):
+        entities.extend(
+            ReefLedScheduleSensorEntity(device, description)
+            for description in VIRTUAL_LED_SCHEDULES
+        )
+    elif isinstance(device, ReefLedCoordinator):
         led_device = cast(ReefLedCoordinator, device)
         entities.extend(
             ReefLedScheduleSensorEntity(device, description)
@@ -2612,6 +2751,9 @@ async def async_setup_entry(
             for description in cloud_descs
             if description.exists_fn(device)
         )
+
+    # ReefLED week program following the weather
+    entities.extend(weather_entities(device, "sensor"))
 
     async_add_entities(entities, True)
 
@@ -2806,9 +2948,24 @@ class ReefLedScheduleSensorEntity(ReefBeatSensorEntity):
         self._attr_available = True
         desc = cast(ReefLedScheduleSensorEntityDescription, self._description)
 
+        id_name = desc.id_name
+        if not desc.value_name:
+            # A group: nothing to read before its first lamp is loaded
+            self._attr_native_value = _schedule_name(self._device, id_name)
+            prog_data = self._device.get_data(
+                f"$.sources[?(@.name=='/auto/{id_name}')].data", True
+            )
+            cloud_data = self._device.get_data(
+                f"$.sources[?(@.name=='/clouds/{id_name}')].data", True
+            )
+            self._attr_extra_state_attributes = {
+                "data": prog_data,
+                "clouds": cloud_data,
+            }
+            return
+
         self._attr_native_value = self._device.get_data(desc.value_name)
 
-        id_name = desc.id_name
         prog_data = self._device.get_data(
             f"$.sources[?(@.name=='/auto/{id_name}')].data"
         )

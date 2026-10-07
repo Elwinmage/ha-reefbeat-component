@@ -5,7 +5,7 @@
 L'RSPOWER (Power Center) è un dispositivo autonomo con un proprio indirizzo IP, esposto separatamente in Home Assistant.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_devices.png" alt="Image">
+<img src="../img/rspower_devices.png" alt="Image">
 </p>
 
 - 6 o 8 prese controllabili a seconda del modello (RSPOWER6 / RSPOWER8)
@@ -16,9 +16,9 @@ L'RSPOWER (Power Center) è un dispositivo autonomo con un proprio indirizzo IP,
 - Le scritture vengono mostrate subito (aggiornamento ottimistico), poi confermate rileggendo il dispositivo
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_ctrl.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_conf.png" alt="Image">
-<img src="https://raw.githubusercontent.com/Elwinmage/ha-reefbeat-component/main/doc/img/rspower_diag.png" alt="Image">
+<img src="../img/rspower_ctrl.png" alt="Image">
+<img src="../img/rspower_conf.png" alt="Image">
+<img src="../img/rspower_diag.png" alt="Image">
 </p>
 
 > [!NOTE]
@@ -42,6 +42,14 @@ Ogni presa espone un'entità `sensor.socket_N_mode` per le automazioni: il suo s
 Una presa pilotata da un programma o da una sonda può essere spenta a mano: la sua modalità indica allora `off`, mentre il sensore **modalità precedente** conserva la modalità automatica a cui tornerà.
 
 Il dispositivo esce automaticamente dallo stato iniziale «setup» non appena viene configurata la prima presa, come fa l'app ReefBeat — nessuna azione manuale necessaria.
+
+## Attività di manutenzione
+| Attività | Predefinito | Intervallo |
+| -------- | ----------- | ---------- |
+| Ispezione visiva | 1 mese | 1 – 3 mesi |
+| Rimuovere polvere e depositi di sale | 3 mesi | 2 – 4 mesi |
+
+Red Sea non pubblica alcun calendario di manutenzione per il Power Center: queste due attività seguono la prassi comune in acquariofilia marina per le apparecchiature elettriche vicine all'acqua salata. Scollega il Power Center prima di spolverarlo o di rimuovere i depositi di sale, e usa un panno asciutto. Vedi la sezione [Manutenzione](maintenance.it.md#manutenzione).
 
 ---
 
