@@ -1431,6 +1431,8 @@ async def test_cloud_proposes_the_groups_of_the_app(
     )
     cloud._hass = hass
     cloud._proposed = set()
+    # Device IPs are not followed here (see test_cloud_devices_unit.py)
+    cloud._entry = cast(Any, SimpleNamespace(data={"ip_update": "off"}))
     cloud.aquariums[0]["name"] = "Reef"
     hass.data[DOMAIN]["cloud"] = cloud
     started: list[tuple[Any, ...]] = []

@@ -47,6 +47,21 @@ def _no_write_delay(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(led_weather, "WRITE_DELAY_S", 0)
 
 
+@pytest.fixture(autouse=True)
+def _no_cloud_device_probe(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No device answers at the IPs a cloud account reports, and the device
+    list of an account being added cannot be read: neither opens a socket.
+    Tests of cloud_devices.py patch them again with their own answers."""
+    from unittest.mock import AsyncMock
+
+    from custom_components.redsea import cloud_devices, config_flow
+
+    monkeypatch.setattr(cloud_devices, "probe_device", lambda ip: None)
+    monkeypatch.setattr(
+        config_flow, "async_fetch_account_devices", AsyncMock(return_value=None)
+    )
+
+
 # Ensure HA loads integrations from ./custom_components during tests
 @pytest.fixture(autouse=True)
 def _auto_enable_custom_integrations(enable_custom_integrations):

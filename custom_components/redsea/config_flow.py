@@ -22,7 +22,6 @@ from typing import TYPE_CHECKING, Any, cast
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
     SelectOptionDict,
@@ -51,6 +50,12 @@ from .auto_detect import (
     list_scan_targets,
     list_scannable_subnets,
 )
+from .cloud_devices import (
+    AccountDevices,
+    async_account_devices,
+    async_fetch_account_devices,
+    spawn_imports,
+)
 from .const import (
     ADD_CLOUD_API,
     ADD_LOCAL_DETECT,
@@ -70,6 +75,7 @@ from .const import (
     CONFIG_FLOW_ATO_PROBE,
     CONFIG_FLOW_ATO_VOLUME,
     CONFIG_FLOW_ATO_VOLUME_MONITOR,
+    CONFIG_FLOW_CLOUD_DEVICES,
     CONFIG_FLOW_CLOUD_PASSWORD,
     CONFIG_FLOW_CLOUD_SERVER,
     CONFIG_FLOW_CLOUD_USERNAME,
@@ -78,6 +84,7 @@ from .const import (
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_INTENSITY_COMPENSATION,
     CONFIG_FLOW_IP_ADDRESS,
+    CONFIG_FLOW_IP_UPDATE,
     CONFIG_FLOW_OLD_PROBE,
     CONFIG_FLOW_PROBE_TYPE,
     CONFIG_FLOW_PROBES,
@@ -101,11 +108,14 @@ from .const import (
     HW_MAT_IDS,
     HW_POWER_IDS,
     HW_RUN_IDS,
+    IP_UPDATE_AUTO,
+    IP_UPDATE_MODES,
     LED_SCAN_INTERVAL,
     LEDS_INTENSITY_COMPENSATION,
     MAT_SCAN_INTERVAL,
     OPTIONS_MENU_ADD_PROBE,
     OPTIONS_MENU_CHANGE_PROBE,
+    OPTIONS_MENU_CLOUD_DEVICES,
     OPTIONS_MENU_DEL_PROBE,
     OPTIONS_MENU_INSTALL_ATO,
     OPTIONS_MENU_SETTINGS,
@@ -241,6 +251,65 @@ def _device_to_string(d: ReefBeatInfo) -> str:
     hw_model = d.get("hw_model", "")
     friendly_name = d.get("friendly_name", "")
     return f"{ip} {hw_model} {friendly_name}".strip()
+
+
+def _device_label(d: ReefBeatInfo) -> str:
+    """Human-readable label of a detected device: name · model · IP."""
+    parts = [
+        str(d.get("friendly_name") or ""),
+        str(d.get("hw_model") or ""),
+        str(d.get("ip") or ""),
+    ]
+    return " · ".join(part for part in parts if part)
+
+
+def _account_devices_form(
+    found: AccountDevices,
+) -> tuple[vol.Schema, dict[str, str]]:
+    """Checkbox list of the account devices to add, and the unreachable ones."""
+    options = [
+        SelectOptionDict(value=_device_to_string(d), label=_device_label(d))
+        for d in found.found
+    ]
+    schema = vol.Schema(
+        {
+            vol.Optional(
+                CONFIG_FLOW_CLOUD_DEVICES,
+                default=[option["value"] for option in options],
+            ): _checkbox_list(options)
+        }
+    )
+    placeholders = {
+        "count": str(len(options)),
+        "unreachable": ", ".join(found.unreachable) or "—",
+    }
+    return schema, placeholders
+
+
+def _ip_update_selector() -> SelectSelector:
+    """Dropdown of the IP change handling modes."""
+    return SelectSelector(
+        SelectSelectorConfig(
+            options=IP_UPDATE_MODES,
+            mode=SelectSelectorMode.DROPDOWN,
+            translation_key=CONFIG_FLOW_IP_UPDATE,
+        )
+    )
+
+
+def _checkbox_list(options: list[SelectOptionDict]) -> SelectSelector:
+    """Multi-select always rendered as a list of checkboxes.
+
+    ``cv.multi_select`` falls back to a dropdown above a handful of options,
+    which is impractical when many devices are found at once.
+    """
+    return SelectSelector(
+        SelectSelectorConfig(
+            options=options,
+            multiple=True,
+            mode=SelectSelectorMode.LIST,
+        )
+    )
 
 
 # Config flow
@@ -473,9 +542,13 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             user_input[CONFIG_FLOW_HW_MODEL] = CLOUD_DEVICE_TYPE
             user_input[CONFIG_FLOW_DISABLE_SUPPLEMENT] = True
 
+            user_input.setdefault(CONFIG_FLOW_IP_UPDATE, IP_UPDATE_AUTO)
+
             title = str(user_input[CONFIG_FLOW_CLOUD_USERNAME])
             await self.async_set_unique_id(title)
-            return self.async_create_entry(title=title, data=user_input)
+            self._cloud_title = title
+            self._cloud_data = user_input
+            return await self.async_step_cloud_devices()
 
         # DETECT and MANUAL
         if CONFIG_FLOW_IP_ADDRESS in user_input:
@@ -757,25 +830,25 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         _LOGGER.info("Available devices: %s", available_devices)
 
-        available_devices_s = list(map(_device_to_string, available_devices))
-
         # No device detected reask for IP or subnetwork
-        if len(available_devices_s) == 0:
+        if len(available_devices) == 0:
             self._scan_nothing = True
             return self._show_nothing_detected()
         self._scan_nothing = False
-        # Propose detected devices as a multi-select. cv.multi_select needs a
-        # {key: label} mapping; we re-use the encoded string as both because
-        # the async_step_user parser already knows how to split it back.
-        options = {value: value for value in available_devices_s}
+        # The value is the encoded "ip model name" string the async_step_user
+        # parser already knows how to split back; the label is readable.
+        options = [
+            SelectOptionDict(value=_device_to_string(d), label=_device_label(d))
+            for d in available_devices
+        ]
         return self.async_show_form(
             step_id="select_devices",
             data_schema=vol.Schema(
                 {
                     vol.Required(
                         CONFIG_FLOW_IP_ADDRESS,
-                        default=list(options.keys()),
-                    ): cv.multi_select(options)
+                        default=[option["value"] for option in options],
+                    ): _checkbox_list(options)
                 }
             ),
         )
@@ -809,18 +882,51 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # Fan out: schedule an import flow for every device except the first.
         # The first one goes through the current flow to give the user visible
         # feedback (the "Success" dialog closes on that entry).
-        for device_str in selected[1:]:
-            self.hass.async_create_task(
-                self.hass.config_entries.flow.async_init(
-                    DOMAIN,
-                    context={"source": config_entries.SOURCE_IMPORT},
-                    data={CONFIG_FLOW_IP_ADDRESS: device_str},
-                )
-            )
+        spawn_imports(self.hass, selected[1:])
 
         # Finalise the current flow with the first device by re-entering the
         # user step with a single-IP payload — same code path as before.
         return await self.async_step_user({CONFIG_FLOW_IP_ADDRESS: selected[0]})
+
+    # Cloud account being created, waiting for the choice of its devices
+    _cloud_title: str
+    _cloud_data: dict[str, Any]
+
+    async def async_step_cloud_devices(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Propose the devices of the new cloud account, then create it.
+
+        The account's `/device` list gives every device's IP: the ones not
+        configured yet and answering there are pre-checked. Nothing to
+        propose (or the list cannot be read) creates the account directly.
+        """
+        if user_input is not None:
+            spawn_imports(
+                self.hass, list(user_input.get(CONFIG_FLOW_CLOUD_DEVICES) or [])
+            )
+            return self.async_create_entry(
+                title=self._cloud_title, data=self._cloud_data
+            )
+
+        data = self._cloud_data
+        devices = await async_fetch_account_devices(
+            self.hass,
+            str(data[CONFIG_FLOW_CLOUD_USERNAME]),
+            str(data[CONFIG_FLOW_CLOUD_PASSWORD]),
+            str(data[CONFIG_FLOW_IP_ADDRESS]),
+        )
+        found = await async_account_devices(self.hass, devices or [])
+        if not found.found and not found.unreachable:
+            return self.async_create_entry(
+                title=self._cloud_title, data=self._cloud_data
+            )
+        schema, placeholders = _account_devices_form(found)
+        return self.async_show_form(
+            step_id="cloud_devices",
+            data_schema=schema,
+            description_placeholders=placeholders,
+        )
 
     async def async_step_import(
         self, user_input: dict[str, Any] | None = None
@@ -906,7 +1012,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         if kind == "cloud":
             # Cloud accounts have no local IP — no Wi-Fi provisioning either.
-            return await self.async_step_settings(user_input)
+            return self.async_show_menu(
+                step_id="init",
+                menu_options=[OPTIONS_MENU_SETTINGS, OPTIONS_MENU_CLOUD_DEVICES],
+            )
 
         # Local device: only offer the menu if the hardware model looks
         # like a known ReefBeat device. Otherwise fall back to the plain
@@ -936,6 +1045,45 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             )
 
         return await self.async_step_settings(user_input)
+
+    # ------------------------------------------------------------------
+    # Devices of a cloud account
+    # ------------------------------------------------------------------
+
+    async def async_step_cloud_devices(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Add the account's devices not configured yet (e.g. a new one).
+
+        Ends with an abort rather than an entry: saving options would reload
+        the account for nothing.
+        """
+        if user_input is not None:
+            selected = list(user_input.get(CONFIG_FLOW_CLOUD_DEVICES) or [])
+            spawn_imports(self.hass, selected)
+            return self.async_abort(
+                reason="cloud_devices_added",
+                description_placeholders={"count": str(len(selected))},
+            )
+
+        data = self._config_entry.data
+        devices = await async_fetch_account_devices(
+            self.hass,
+            str(data[CONFIG_FLOW_CLOUD_USERNAME]),
+            str(data[CONFIG_FLOW_CLOUD_PASSWORD]),
+            str(data.get(CONFIG_FLOW_IP_ADDRESS) or CLOUD_SERVER_ADDR),
+        )
+        if devices is None:
+            return self.async_abort(reason="cloud_devices_unavailable")
+        found = await async_account_devices(self.hass, devices)
+        if not found.found and not found.unreachable:
+            return self.async_abort(reason="cloud_devices_none")
+        schema, placeholders = _account_devices_form(found)
+        return self.async_show_form(
+            step_id="cloud_devices",
+            data_schema=schema,
+            description_placeholders=placeholders,
+        )
 
     # ------------------------------------------------------------------
     # Settings step (classic options form, unchanged behaviour)
@@ -979,6 +1127,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                                 default=user_input[CONFIG_FLOW_SCAN_INTERVAL],
                             ): int,
                             vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
+                            vol.Required(
+                                CONFIG_FLOW_IP_UPDATE,
+                                default=user_input.get(
+                                    CONFIG_FLOW_IP_UPDATE, IP_UPDATE_AUTO
+                                ),
+                            ): _ip_update_selector(),
                         }
                     )
                     # Stay on the settings step so validation errors don't
@@ -1063,6 +1217,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     ): int,
                     vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
                     vol.Required(CONFIG_FLOW_DISABLE_SUPPLEMENT, default=True): bool,
+                    vol.Required(
+                        CONFIG_FLOW_IP_UPDATE,
+                        default=self._config_entry.data.get(
+                            CONFIG_FLOW_IP_UPDATE, IP_UPDATE_AUTO
+                        ),
+                    ): _ip_update_selector(),
                 }
             )
         else:
@@ -1076,14 +1236,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 }
             )
 
-        # We render the same form under two step ids: "init" for cloud
-        # entries that skip the menu (preserving their long-standing UX and
-        # translation strings), and "settings" for local devices coming from
-        # the menu (so both branches can coexist in strings.json).
-        step_id = "init" if self._entry_kind() != "local" else "settings"
-
         return self.async_show_form(
-            step_id=step_id,
+            step_id="settings",
             data_schema=self.add_suggested_values_to_schema(
                 options_schema, self._config_entry.options
             ),
@@ -1308,10 +1462,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         # value "type:uid" → label "name (type- uid)" — the uid disambiguates
         # two probes of the same type (e.g. two pH probes).
-        options = {
-            f"{p['type']}:{p['uid']}": f"{p['name']} ({p['type']}- {p['uid']})"
+        options = [
+            SelectOptionDict(
+                value=f"{p['type']}:{p['uid']}",
+                label=f"{p['name']} ({p['type']}- {p['uid']})",
+            )
             for p in probes
-        }
+        ]
 
         if user_input is not None:
             self._del_tokens = list(user_input.get(CONFIG_FLOW_PROBES, []))
@@ -1322,7 +1479,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="del_probe",
             data_schema=vol.Schema(
-                {vol.Required(CONFIG_FLOW_PROBES): cv.multi_select(options)}
+                {vol.Required(CONFIG_FLOW_PROBES): _checkbox_list(options)}
             ),
         )
 
@@ -1372,10 +1529,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         # value "type:uid" → label "name (type- uid)" — the uid disambiguates
         # two probes of the same type (e.g. two pH probes).
-        options = {
-            f"{p['type']}:{p['uid']}": f"{p['name']} ({p['type']}- {p['uid']})"
+        options = [
+            SelectOptionDict(
+                value=f"{p['type']}:{p['uid']}",
+                label=f"{p['name']} ({p['type']}- {p['uid']})",
+            )
             for p in probes
-        }
+        ]
 
         if user_input is not None and coordinator is not None:
             token = user_input[CONFIG_FLOW_OLD_PROBE]

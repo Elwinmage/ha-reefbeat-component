@@ -37,6 +37,13 @@
       "discovery_confirm": {
         "title": "Grupa aplikacji ReefBeat",
         "description": "Aplikacja ReefBeat grupuje te lampy {model} w akwarium {aquarium}:\n\n{leds}\n\nUtworzyć wirtualny LED sterujący nimi razem, w tej kolejności?"
+      },
+      "cloud_devices": {
+        "title": "Urządzenia tego konta",
+        "description": "{count} urządzenie(a) tego konta ReefBeat nie są jeszcze w Home Assistant i odpowiadają pod adresem podanym przez chmurę. Są zaznaczone: odznacz te, których nie chcesz dodać, i zatwierdź.\n\nNiedostępne pod ostatnim znanym adresem (dodaj je skanowaniem sieci lub po IP): {unreachable}",
+        "data": {
+          "cloud_devices": "Urządzenia do dodania"
+        }
       }
     }
   },
@@ -1779,7 +1786,10 @@
       "wifi_change_failed_unknown": "Nieoczekiwany błąd podczas zmiany sieci Wi-Fi.",
       "no_probes": "Ten hub nie ma sond do usunięcia.",
       "no_ato_probe": "Ten hub nie ma sondy ATO: najpierw ją dodaj.",
-      "no_free_port": "Ten hub nie ma wolnego portu 12V dla modułu ATO."
+      "no_free_port": "Ten hub nie ma wolnego portu 12V dla modułu ATO.",
+      "cloud_devices_added": "Dodawanie {count} urządzenia(eń).",
+      "cloud_devices_unavailable": "Nie udało się odczytać urządzeń tego konta z chmury ReefBeat. Spróbuj później.",
+      "cloud_devices_none": "Wszystkie urządzenia tego konta są już w Home Assistant."
     },
     "error": {
       "auth_failed": "Uwierzytelnianie nie powiodło się, sprawdź dane logowania",
@@ -1810,7 +1820,8 @@
           "add_probe": "Dodaj sondę",
           "del_probe": "Usuń sondę",
           "change_probe": "Wymień sondę",
-          "install_ato": "Zainstaluj moduł ATO"
+          "install_ato": "Zainstaluj moduł ATO",
+          "cloud_devices": "Dodaj urządzenia tego konta"
         },
         "title": "Konfiguracja"
       },
@@ -1821,9 +1832,13 @@
           "intensity_compensation": "Kompensacja intensywności",
           "scan_interval": "Interwał odświeżania",
           "not_virtual": "Nie można konfigurować",
-          "slaves": "LED"
+          "slaves": "LED",
+          "ip_update": "Gdy urządzenie zmieni IP"
         },
-        "title": "Ustawienia urządzenia"
+        "title": "Ustawienia urządzenia",
+        "data_description": {
+          "ip_update": "Chmura podaje IP każdego urządzenia. Urządzenie znalezione pod nowym adresem (sprawdzone, że to samo) może zostać zaktualizowane automatycznie lub przez naprawę do potwierdzenia."
+        }
       },
       "wifi_scan": {
         "data": {
@@ -1904,6 +1919,13 @@
           "ato_auto_fill": "Automatyczna dolewka",
           "ato_volume_monitor": "Monitorowanie zbiornika"
         }
+      },
+      "cloud_devices": {
+        "title": "Urządzenia tego konta",
+        "description": "{count} urządzenie(a) tego konta ReefBeat nie są jeszcze w Home Assistant i odpowiadają pod adresem podanym przez chmurę. Są zaznaczone: odznacz te, których nie chcesz dodać, i zatwierdź.\n\nNiedostępne pod ostatnim znanym adresem (dodaj je skanowaniem sieci lub po IP): {unreachable}",
+        "data": {
+          "cloud_devices": "Urządzenia do dodania"
+        }
       }
     }
   },
@@ -1919,6 +1941,13 @@
     "ip_address": {
       "options": {
         "virtual_led": "Dodaj wirtualny LED"
+      }
+    },
+    "ip_update": {
+      "options": {
+        "auto": "Aktualizuj automatycznie",
+        "repair": "Zapytaj mnie (naprawa)",
+        "off": "Nic nie rób"
       }
     }
   },
@@ -2362,6 +2391,21 @@
         },
         "abort": {
           "group_not_loaded": "Grupa nie jest załadowana: spróbuj ponownie, gdy będzie."
+        }
+      }
+    },
+    "ip_changed": {
+      "title": "{device} przeniesiono na {new_ip}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Zaktualizuj adres {device}",
+            "description": "Chmura ReefBeat podaje {device} pod {new_ip} i odpowiada tam to samo urządzenie. Home Assistant nadal używa {old_ip}, gdzie już nie odpowiada.\n\nZatwierdź, aby przenieść {device} na {new_ip} (wpis zostanie przeładowany)."
+          }
+        },
+        "abort": {
+          "entry_gone": "To urządzenie nie jest już skonfigurowane.",
+          "device_not_found": "Urządzenie nie odpowiada już pod tym adresem: problem wróci, jeśli zostanie tam znalezione."
         }
       }
     }

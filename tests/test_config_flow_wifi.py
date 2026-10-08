@@ -147,7 +147,7 @@ async def test_options_flow_local_device_shows_menu(hass: HomeAssistant) -> None
 
 @pytest.mark.asyncio
 async def test_options_flow_cloud_skips_menu(hass: HomeAssistant) -> None:
-    """Cloud accounts go straight to the classic form (no Wi-Fi option)."""
+    """Cloud accounts get their own menu: settings and account devices (no Wi-Fi)."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Cloud",
@@ -167,9 +167,8 @@ async def test_options_flow_cloud_skips_menu(hass: HomeAssistant) -> None:
         dict[str, Any],
         await hass.config_entries.options.async_init(entry.entry_id),
     )
-    assert result["type"] == FlowResultType.FORM
-    # No menu payload.
-    assert "menu_options" not in result
+    assert result["type"] == FlowResultType.MENU
+    assert result["menu_options"] == ["settings", "cloud_devices"]
 
 
 @pytest.mark.asyncio

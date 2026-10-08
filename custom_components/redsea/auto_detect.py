@@ -47,6 +47,7 @@ class ReefBeatInfo(TypedDict, total=False):
     hw_model: str
     friendly_name: str
     uuid: str
+    hwid: str
 
 
 # Network helpers
@@ -388,6 +389,33 @@ def is_reefbeat(ip: str) -> tuple[bool, str, str | None, str | None, str | None]
         return True, ip, hw_model, name, uuid
     except Exception:
         return False, ip, None, None, None
+
+
+def probe_device(ip: str) -> ReefBeatInfo | None:
+    """Identify the ReefBeat device answering at `ip`, hwid included.
+
+    Returns None when nothing, or not a known ReefBeat model, answers there.
+    """
+    try:
+        r = requests.get(f"http://{ip}/device-info", timeout=2)
+        if r.status_code != 200:
+            return None
+        data = r.json()
+    except Exception:
+        return None
+    hw_model = data.get("hw_model")
+    if hw_model not in HW_DEVICES_IDS:
+        return None
+    info: ReefBeatInfo = {
+        "ip": ip,
+        "hw_model": str(hw_model),
+        "friendly_name": str(data.get("name") or ""),
+        "hwid": str(data.get("hwid") or "").lower(),
+    }
+    uuid = get_unique_id(ip)
+    if uuid:
+        info["uuid"] = uuid
+    return info
 
 
 def get_reefbeats(
