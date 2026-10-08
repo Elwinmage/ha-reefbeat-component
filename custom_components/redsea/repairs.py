@@ -9,6 +9,12 @@
 - group_conflict: the group changed both in Home Assistant and in the
   ReefBeat app since they were last synchronized. Fixed by choosing which
   one is kept (this flow).
+
+And of the device addresses: see cloud_devices.py.
+
+- ip_changed: the cloud account reports a configured device at another IP,
+  and the device answering there is the same. Fixed by moving the entry to
+  the new address (this flow).
 """
 
 from __future__ import annotations
@@ -19,7 +25,8 @@ from homeassistant.components.repairs import RepairsFlow, RepairsFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 
-from .const import DOMAIN
+from .cloud_devices import apply_new_ip, async_probe
+from .const import CONFIG_FLOW_IP_ADDRESS, DOMAIN, ISSUE_IP_CHANGED
 from .groups import ISSUE_CONFLICT, ISSUE_MIXED, ISSUE_NO_CLOUD
 
 # Step of each issue, and what its confirmation does on the group
@@ -104,6 +111,43 @@ class GroupRepairFlow(RepairsFlow):
         return await self._resolve(False)
 
 
+class IpChangedRepairFlow(RepairsFlow):
+    """Move a device entry to the address the cloud reports."""
+
+    def __init__(self, entry_id: str, new_ip: str) -> None:
+        self._entry_id = entry_id
+        self._new_ip = new_ip
+
+    def _placeholders(self) -> dict[str, str]:
+        issue = ir.async_get(self.hass).async_get_issue(DOMAIN, self.issue_id)
+        return dict(issue.translation_placeholders or {}) if issue else {}
+
+    async def async_step_init(
+        self, user_input: dict[str, str] | None = None
+    ) -> RepairsFlowResult:
+        return await self.async_step_confirm()
+
+    async def async_step_confirm(
+        self, user_input: dict[str, str] | None = None
+    ) -> RepairsFlowResult:
+        if user_input is None:
+            return self.async_show_form(
+                step_id="confirm", description_placeholders=self._placeholders()
+            )
+        entry = self.hass.config_entries.async_get_entry(self._entry_id)
+        if entry is None:
+            ir.async_delete_issue(self.hass, DOMAIN, self.issue_id)
+            return self.async_abort(reason="entry_gone")
+        # The device may have moved again since the issue was raised
+        info = await async_probe(self.hass, self._new_ip)
+        if info is None or (entry.unique_id and info.get("uuid") != entry.unique_id):
+            return self.async_abort(reason="device_not_found")
+        if entry.data.get(CONFIG_FLOW_IP_ADDRESS) != self._new_ip:
+            apply_new_ip(self.hass, entry, self._new_ip)
+        ir.async_delete_issue(self.hass, DOMAIN, self.issue_id)
+        return self.async_create_entry(data={})
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant,
     issue_id: str,
@@ -111,4 +155,6 @@ async def async_create_fix_flow(
 ) -> RepairsFlow:
     """The fix flow of a group issue."""
     data = data or {}
+    if data.get("kind") == ISSUE_IP_CHANGED:
+        return IpChangedRepairFlow(str(data.get("entry_id")), str(data.get("new_ip")))
     return GroupRepairFlow(str(data.get("kind")), str(data.get("entry_id")))

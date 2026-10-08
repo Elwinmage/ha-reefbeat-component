@@ -17,7 +17,7 @@ import pytest
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
-from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.selector import SelectSelector, SelectSelectorMode
 
 import custom_components.redsea.config_flow as cf
 from custom_components.redsea.const import (
@@ -79,13 +79,18 @@ async def test_auto_detect_presents_all_devices_precchecked(
     assert r2["type"] == FlowResultType.FORM
     assert r2["step_id"] == "select_devices"
 
-    # `str(schema)` prints the multi_select's <object at 0x...> repr, not its
-    # options. Walk into the schema to extract the actual set of choices.
+    # Walk into the schema to extract the actual set of choices: a selector
+    # always rendered as a checkbox list, whatever the number of devices.
     schema = r2["data_schema"].schema
-    multi = next(v for v in schema.values() if isinstance(v, cv.multi_select))
-    options: dict[str, str] = cast(dict[str, str], multi.options)
+    selector = next(v for v in schema.values() if isinstance(v, SelectSelector))
+    assert selector.config["multiple"] is True
+    assert selector.config["mode"] == SelectSelectorMode.LIST
+    options = {o["value"]: o["label"] for o in selector.config["options"]}
     for dev in _fake_devices():
-        assert cf._device_to_string(cast(Any, dev)) in options
+        value = cf._device_to_string(cast(Any, dev))
+        assert value in options
+        # The label is readable, not the encoded value
+        assert options[value] == cf._device_label(cast(Any, dev))
 
     # Every option is pre-checked: the Required key carries a `default` list
     # equal to the full set of option keys.
@@ -194,7 +199,7 @@ async def test_bulk_submit_with_empty_selection_aborts(
     assert r2["step_id"] == "select_devices"
 
     # Submitting with an explicit empty list — voluptuous validates
-    # `cv.multi_select` as any subset of the options including empty.
+    # the multi-select as any subset of the options including empty.
     r3 = cast(
         dict[str, Any],
         await flow.async_configure(

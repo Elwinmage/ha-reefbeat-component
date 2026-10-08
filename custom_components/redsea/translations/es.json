@@ -37,6 +37,13 @@
       "discovery_confirm": {
         "title": "Grupo de la app ReefBeat",
         "description": "La app ReefBeat agrupa estas lámparas {model} en el acuario {aquarium}:\n\n{leds}\n\n¿Crear un LED virtual que las controle juntas, en este orden?"
+      },
+      "cloud_devices": {
+        "title": "Dispositivos de esta cuenta",
+        "description": "{count} dispositivo(s) de esta cuenta ReefBeat aún no están en Home Assistant y responden en la dirección indicada por la nube. Están marcados: desmarque los que no quiera añadir y envíe.\n\nNo accesibles en su última dirección conocida (añádalos con un escaneo de red o por IP): {unreachable}",
+        "data": {
+          "cloud_devices": "Dispositivos a añadir"
+        }
       }
     }
   },
@@ -1779,7 +1786,10 @@
       "wifi_change_failed_unknown": "Error inesperado al cambiar la red Wi-Fi.",
       "no_probes": "Este hub no tiene sondas para eliminar.",
       "no_ato_probe": "Este hub no tiene sonda ATO: añada una primero.",
-      "no_free_port": "Este hub no tiene un puerto de 12V libre para el módulo ATO."
+      "no_free_port": "Este hub no tiene un puerto de 12V libre para el módulo ATO.",
+      "cloud_devices_added": "Se están añadiendo {count} dispositivo(s).",
+      "cloud_devices_unavailable": "No se pudieron leer los dispositivos de esta cuenta en la nube ReefBeat. Inténtelo más tarde.",
+      "cloud_devices_none": "Todos los dispositivos de esta cuenta ya están en Home Assistant."
     },
     "error": {
       "auth_failed": "Fallo de autenticación, comprueba tus credenciales",
@@ -1810,7 +1820,8 @@
           "add_probe": "Añadir sonda",
           "del_probe": "Eliminar sonda",
           "change_probe": "Reemplazar una sonda",
-          "install_ato": "Instalar el módulo ATO"
+          "install_ato": "Instalar el módulo ATO",
+          "cloud_devices": "Añadir los dispositivos de esta cuenta"
         },
         "title": "Configuración"
       },
@@ -1821,9 +1832,13 @@
           "intensity_compensation": "Compensación de intensidad",
           "scan_interval": "Intervalo de actualización",
           "not_virtual": "No configurable",
-          "slaves": "LED"
+          "slaves": "LED",
+          "ip_update": "Cuando un dispositivo cambia de IP"
         },
-        "title": "Ajustes del dispositivo"
+        "title": "Ajustes del dispositivo",
+        "data_description": {
+          "ip_update": "La nube indica la IP de cada dispositivo. Un dispositivo encontrado en una nueva dirección (comprobado que es el mismo) puede actualizarse automáticamente o mediante una reparación a confirmar."
+        }
       },
       "wifi_scan": {
         "data": {
@@ -1904,6 +1919,13 @@
           "ato_auto_fill": "Llenado automático",
           "ato_volume_monitor": "Seguimiento del depósito"
         }
+      },
+      "cloud_devices": {
+        "title": "Dispositivos de esta cuenta",
+        "description": "{count} dispositivo(s) de esta cuenta ReefBeat aún no están en Home Assistant y responden en la dirección indicada por la nube. Están marcados: desmarque los que no quiera añadir y envíe.\n\nNo accesibles en su última dirección conocida (añádalos con un escaneo de red o por IP): {unreachable}",
+        "data": {
+          "cloud_devices": "Dispositivos a añadir"
+        }
       }
     }
   },
@@ -1919,6 +1941,13 @@
     "ip_address": {
       "options": {
         "virtual_led": "Añadir LED virtual"
+      }
+    },
+    "ip_update": {
+      "options": {
+        "auto": "Actualizar automáticamente",
+        "repair": "Preguntarme (reparación)",
+        "off": "No hacer nada"
       }
     }
   },
@@ -2362,6 +2391,21 @@
         },
         "abort": {
           "group_not_loaded": "El grupo no está cargado: inténtelo de nuevo cuando lo esté."
+        }
+      }
+    },
+    "ip_changed": {
+      "title": "{device} se ha movido a {new_ip}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Actualizar la dirección de {device}",
+            "description": "La nube ReefBeat indica {device} en {new_ip}, y el dispositivo que responde allí es el mismo. Home Assistant aún usa {old_ip}, donde ya no responde.\n\nEnvíe para pasar {device} a {new_ip} (su entrada se recarga)."
+          }
+        },
+        "abort": {
+          "entry_gone": "Este dispositivo ya no está configurado.",
+          "device_not_found": "El dispositivo ya no responde en esta dirección: el problema volverá si se encuentra allí."
         }
       }
     }

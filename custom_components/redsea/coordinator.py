@@ -42,6 +42,7 @@ from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util.event_type import EventType
 
+from .cloud_devices import IpTracker
 from .const import (
     CONF_GROUP_MEMBERS,
     CONFIG_FLOW_CLOUD_PASSWORD,
@@ -51,6 +52,7 @@ from .const import (
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_INTENSITY_COMPENSATION,
     CONFIG_FLOW_IP_ADDRESS,
+    CONFIG_FLOW_IP_UPDATE,
     CONFIG_FLOW_SCAN_INTERVAL,
     DEVICE_MANUFACTURER,
     DOMAIN,
@@ -66,6 +68,8 @@ from .const import (
     HW_POWER_IDS,
     HW_RUN_IDS,
     HW_WAVE_IDS,
+    IP_UPDATE_AUTO,
+    IP_UPDATE_OFF,
     LED_BLUE_INTERNAL_NAME,
     LED_G2_KI_PATH,
     LED_KI_KEYS,
@@ -4183,6 +4187,8 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
         # Groups of the ReefBeat app already proposed as a virtual LED
         # (discovery unique ids), while they still need one
         self._proposed: set[str] = set()
+        # Follows the IP changes of the devices the account reports
+        self._ip_tracker = IpTracker(hass)
 
     async def _async_setup(self) -> None:
         """Connect and fetch initial cloud data; start link request listener."""
@@ -4199,10 +4205,29 @@ class ReefBeatCloudCoordinator(ReefBeatCoordinator):
         await self._async_setup()
 
     async def _async_update_data(self) -> dict[str, Any]:
-        """Fetch the account, then propose its groups Home Assistant lacks."""
+        """Fetch the account, then propose its groups Home Assistant lacks
+        and follow the IP changes of its devices."""
         data = await super()._async_update_data()
         self._propose_groups()
+        self._check_device_ips()
         return data
+
+    @callback
+    def _check_device_ips(self) -> None:
+        """Compare the IPs the account reports with the configured ones.
+
+        Runs in the background: probing a moved device must not delay the
+        refresh of the account.
+        """
+        mode = str(self._entry.data.get(CONFIG_FLOW_IP_UPDATE, IP_UPDATE_AUTO))
+        if mode == IP_UPDATE_OFF:
+            return
+        devices = self.get_data("$.sources[?(@.name=='/device')].data", True)
+        self._entry.async_create_background_task(
+            self._hass,
+            self._ip_tracker.async_check(devices, mode),
+            f"{DOMAIN} {self._title} device IPs",
+        )
 
     # Discovery of the groups of the ReefBeat app
     def app_groups(self) -> dict[tuple[str, str], list[str]]:

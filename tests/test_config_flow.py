@@ -522,8 +522,15 @@ async def test_options_flow_cloud_invalid_credentials_shows_error(
     )
     entry.add_to_hass(hass)
 
-    result = cast(
+    menu = cast(
         dict[str, Any], await hass.config_entries.options.async_init(entry.entry_id)
+    )
+    assert menu["type"] == FlowResultType.MENU
+    result = cast(
+        dict[str, Any],
+        await hass.config_entries.options.async_configure(
+            menu["flow_id"], user_input={"next_step_id": "settings"}
+        ),
     )
     assert result["type"] == FlowResultType.FORM
 
@@ -586,8 +593,15 @@ async def test_options_flow_cloud_valid_credentials_schedules_reload(
     )
     entry.add_to_hass(hass)
 
-    result = cast(
+    menu = cast(
         dict[str, Any], await hass.config_entries.options.async_init(entry.entry_id)
+    )
+    assert menu["type"] == FlowResultType.MENU
+    result = cast(
+        dict[str, Any],
+        await hass.config_entries.options.async_configure(
+            menu["flow_id"], user_input={"next_step_id": "settings"}
+        ),
     )
     assert result["type"] == FlowResultType.FORM
 

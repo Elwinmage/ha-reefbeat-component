@@ -37,6 +37,13 @@
       "discovery_confirm": {
         "title": "Group of the ReefBeat app",
         "description": "The ReefBeat app groups these {model} lamps in the aquarium {aquarium}:\n\n{leds}\n\nCreate a virtual LED driving them together, in this order?"
+      },
+      "cloud_devices": {
+        "title": "Devices of this account",
+        "description": "{count} device(s) of this ReefBeat account are not in Home Assistant yet and answer at the address the cloud reports. They are pre-checked: uncheck any you don't want to add, then submit.\n\nNot reachable at their last known address (add them with a network scan or by IP): {unreachable}",
+        "data": {
+          "cloud_devices": "Devices to add"
+        }
       }
     }
   },
@@ -1787,7 +1794,10 @@
       "wifi_change_failed_unknown": "Unexpected error while changing Wi-Fi network.",
       "no_probes": "This hub has no probes to remove.",
       "no_ato_probe": "This hub has no ATO probe: add one first.",
-      "no_free_port": "This hub has no free 12V port for the ATO module."
+      "no_free_port": "This hub has no free 12V port for the ATO module.",
+      "cloud_devices_added": "{count} device(s) are being added.",
+      "cloud_devices_unavailable": "The devices of this account could not be read from the ReefBeat cloud. Try again later.",
+      "cloud_devices_none": "Every device of this account is already in Home Assistant."
     },
     "error": {
       "auth_failed": "Authentification failed, check your crendentials",
@@ -1818,7 +1828,8 @@
           "add_probe": "Add a probe",
           "del_probe": "Remove a probe",
           "change_probe": "Replace a probe",
-          "install_ato": "Install the ATO module"
+          "install_ato": "Install the ATO module",
+          "cloud_devices": "Add the devices of this account"
         },
         "title": "Configuration"
       },
@@ -1829,9 +1840,13 @@
           "intensity_compensation": "Intensity compensation",
           "scan_interval": "Scan interval",
           "not_virtual": "Not configurable",
-          "slaves": "LED"
+          "slaves": "LED",
+          "ip_update": "When a device changes IP"
         },
-        "title": "Device settings"
+        "title": "Device settings",
+        "data_description": {
+          "ip_update": "The cloud reports each device's IP. A device found at a new address (checked to be the same device) can have its entry updated automatically, or through a repair you confirm."
+        }
       },
       "wifi_scan": {
         "data": {
@@ -1912,6 +1927,13 @@
           "ato_auto_fill": "Auto fill",
           "ato_volume_monitor": "Reservoir monitoring"
         }
+      },
+      "cloud_devices": {
+        "title": "Devices of this account",
+        "description": "{count} device(s) of this ReefBeat account are not in Home Assistant yet and answer at the address the cloud reports. They are pre-checked: uncheck any you don't want to add, then submit.\n\nNot reachable at their last known address (add them with a network scan or by IP): {unreachable}",
+        "data": {
+          "cloud_devices": "Devices to add"
+        }
       }
     }
   },
@@ -1927,6 +1949,13 @@
     "ip_address": {
       "options": {
         "virtual_led": "Add Virtual LED"
+      }
+    },
+    "ip_update": {
+      "options": {
+        "auto": "Update automatically",
+        "repair": "Ask me (repair)",
+        "off": "Do nothing"
       }
     }
   },
@@ -2370,6 +2399,21 @@
         },
         "abort": {
           "group_not_loaded": "The group is not loaded: try again once it is."
+        }
+      }
+    },
+    "ip_changed": {
+      "title": "{device} moved to {new_ip}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Update the address of {device}",
+            "description": "The ReefBeat cloud reports {device} at {new_ip}, and the device answering there is the same one. Home Assistant still uses {old_ip}, where it no longer answers.\n\nSubmit to move {device} to {new_ip} (its entry is reloaded)."
+          }
+        },
+        "abort": {
+          "entry_gone": "This device is no longer configured.",
+          "device_not_found": "The device no longer answers at this address: the issue will come back if it is found again."
         }
       }
     }

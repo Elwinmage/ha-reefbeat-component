@@ -81,6 +81,16 @@ CLOUD_DEVICE_TYPE: Final[str] = "Smartphone App"
 CLOUD_AUTH_TIMEOUT: Final[int] = 2700  # seconds => 45m
 
 CONFIG_FLOW_CLOUD_ACCOUNT: Final[str] = "cloud_account"
+# Devices of the cloud account proposed for addition (config / options flow)
+CONFIG_FLOW_CLOUD_DEVICES: Final[str] = "cloud_devices"
+# What to do when the cloud reports a new IP for a configured device
+CONFIG_FLOW_IP_UPDATE: Final[str] = "ip_update"
+IP_UPDATE_AUTO: Final[str] = "auto"
+IP_UPDATE_REPAIR: Final[str] = "repair"
+IP_UPDATE_OFF: Final[str] = "off"
+IP_UPDATE_MODES: Final[list[str]] = [IP_UPDATE_AUTO, IP_UPDATE_REPAIR, IP_UPDATE_OFF]
+# Repair issue raised in IP_UPDATE_REPAIR mode
+ISSUE_IP_CHANGED: Final[str] = "ip_changed"
 CONFIG_FLOW_HW_MODEL: Final[str] = "hw_model"
 CONFIG_FLOW_SCAN_INTERVAL: Final[str] = "scan_interval"
 CONFIG_FLOW_INTENSITY_COMPENSATION: Final[str] = "intensity_compensation"
@@ -126,6 +136,7 @@ INITIAL_PROBE_TIMEOUT: Final[int] = 5
 # Options-flow menu entries
 OPTIONS_MENU_SETTINGS: Final[str] = "settings"
 OPTIONS_MENU_WIFI: Final[str] = "wifi_scan"
+OPTIONS_MENU_CLOUD_DEVICES: Final[str] = "cloud_devices"
 OPTIONS_MENU_ADD_PROBE: Final[str] = "add_probe"
 OPTIONS_MENU_DEL_PROBE: Final[str] = "del_probe"
 OPTIONS_MENU_CHANGE_PROBE: Final[str] = "change_probe"

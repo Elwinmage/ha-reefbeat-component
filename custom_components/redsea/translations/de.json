@@ -37,6 +37,13 @@
       "discovery_confirm": {
         "title": "Gruppe der ReefBeat-App",
         "description": "Die ReefBeat-App gruppiert diese {model}-Leuchten im Aquarium {aquarium}:\n\n{leds}\n\nEine virtuelle LED erstellen, die sie gemeinsam in dieser Reihenfolge steuert?"
+      },
+      "cloud_devices": {
+        "title": "Geräte dieses Kontos",
+        "description": "{count} Gerät(e) dieses ReefBeat-Kontos sind noch nicht in Home Assistant und antworten unter der vom Cloud gemeldeten Adresse. Sie sind vorausgewählt: Abwählen, was nicht hinzugefügt werden soll, dann absenden.\n\nUnter ihrer letzten bekannten Adresse nicht erreichbar (per Netzwerkscan oder IP hinzufügen): {unreachable}",
+        "data": {
+          "cloud_devices": "Hinzuzufügende Geräte"
+        }
       }
     }
   },
@@ -1779,7 +1786,10 @@
       "wifi_change_failed_unknown": "Unerwarteter Fehler beim Ändern des WLAN-Netzwerks.",
       "no_probes": "Dieser Hub hat keine Sonden zum Entfernen.",
       "no_ato_probe": "Dieser Hub hat keine ATO-Sonde: fügen Sie zuerst eine hinzu.",
-      "no_free_port": "Dieser Hub hat keinen freien 12V-Port für das ATO-Modul."
+      "no_free_port": "Dieser Hub hat keinen freien 12V-Port für das ATO-Modul.",
+      "cloud_devices_added": "{count} Gerät(e) werden hinzugefügt.",
+      "cloud_devices_unavailable": "Die Geräte dieses Kontos konnten nicht aus der ReefBeat-Cloud gelesen werden. Später erneut versuchen.",
+      "cloud_devices_none": "Alle Geräte dieses Kontos sind bereits in Home Assistant."
     },
     "error": {
       "auth_failed": "Authentifizierung fehlgeschlagen, Anmeldedaten prüfen",
@@ -1810,7 +1820,8 @@
           "add_probe": "Sonde hinzufügen",
           "del_probe": "Sonde entfernen",
           "change_probe": "Sonde ersetzen",
-          "install_ato": "ATO-Modul installieren"
+          "install_ato": "ATO-Modul installieren",
+          "cloud_devices": "Geräte dieses Kontos hinzufügen"
         },
         "title": "Konfiguration"
       },
@@ -1821,9 +1832,13 @@
           "intensity_compensation": "Intensitätskompensation",
           "scan_interval": "Aktualisierungsintervall",
           "not_virtual": "Nicht konfigurierbar",
-          "slaves": "LED"
+          "slaves": "LED",
+          "ip_update": "Wenn ein Gerät seine IP ändert"
         },
-        "title": "Geräteeinstellungen"
+        "title": "Geräteeinstellungen",
+        "data_description": {
+          "ip_update": "Die Cloud meldet die IP jedes Geräts. Ein unter einer neuen Adresse gefundenes Gerät (als dasselbe geprüft) kann automatisch oder über eine zu bestätigende Reparatur aktualisiert werden."
+        }
       },
       "wifi_scan": {
         "data": {
@@ -1904,6 +1919,13 @@
           "ato_auto_fill": "Automatisch nachfüllen",
           "ato_volume_monitor": "Behälterüberwachung"
         }
+      },
+      "cloud_devices": {
+        "title": "Geräte dieses Kontos",
+        "description": "{count} Gerät(e) dieses ReefBeat-Kontos sind noch nicht in Home Assistant und antworten unter der vom Cloud gemeldeten Adresse. Sie sind vorausgewählt: Abwählen, was nicht hinzugefügt werden soll, dann absenden.\n\nUnter ihrer letzten bekannten Adresse nicht erreichbar (per Netzwerkscan oder IP hinzufügen): {unreachable}",
+        "data": {
+          "cloud_devices": "Hinzuzufügende Geräte"
+        }
       }
     }
   },
@@ -1919,6 +1941,13 @@
     "ip_address": {
       "options": {
         "virtual_led": "Virtuelles LED hinzufügen"
+      }
+    },
+    "ip_update": {
+      "options": {
+        "auto": "Automatisch aktualisieren",
+        "repair": "Nachfragen (Reparatur)",
+        "off": "Nichts tun"
       }
     }
   },
@@ -2362,6 +2391,21 @@
         },
         "abort": {
           "group_not_loaded": "Die Gruppe ist nicht geladen: versuchen Sie es erneut, sobald sie es ist."
+        }
+      }
+    },
+    "ip_changed": {
+      "title": "{device} ist nach {new_ip} umgezogen",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Adresse von {device} aktualisieren",
+            "description": "Die ReefBeat-Cloud meldet {device} unter {new_ip}, und dort antwortet dasselbe Gerät. Home Assistant verwendet noch {old_ip}, wo es nicht mehr antwortet.\n\nAbsenden, um {device} auf {new_ip} umzustellen (der Eintrag wird neu geladen)."
+          }
+        },
+        "abort": {
+          "entry_gone": "Dieses Gerät ist nicht mehr konfiguriert.",
+          "device_not_found": "Das Gerät antwortet unter dieser Adresse nicht mehr: Das Problem erscheint wieder, wenn es dort gefunden wird."
         }
       }
     }
