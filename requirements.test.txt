@@ -1,7 +1,7 @@
 pytest>=9.0.3
 pytest-cov>=7.1.0
 pytest-asyncio>=1.4.0
-pytest-homeassistant-custom-component>=0.13.368
+pytest-homeassistant-custom-component>=0.13.370
 pyright>=1.1.414
 requests>=2.34.2
 pre-commit>=3.7.1
