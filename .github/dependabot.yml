@@ -1,18 +1,13 @@
 version: 2
 updates:
-  # Mise à jour des Actions GitHub
+  # GitHub Actions used by the workflows
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly" # Peut être daily, weekly ou monthly
+      interval: "weekly"
 
-  # Mise à jour des dépendances (ex: npm, pip, gomod)
-  - package-ecosystem: "npm" # Remplacez par votre écosystème
+  # Python dependencies (requirements.txt and requirements.test.txt)
+  - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly
-    groups:
-      vitest-ecosystem:
-        patterns:
-          - "vitest*"
-          - "@vitest/*"
+      interval: "weekly"
