@@ -2,6 +2,16 @@
 
 ## MODIFICATIONS
 
+### Cloud aquariums for the aquarium view
+
+- New WebSocket command `redsea/aquariums`: the aquariums of every ReefBeat
+  cloud account (name, model, series, dimensions in cm, volumes) with the
+  Home Assistant devices that belong to them and their feeding shortcut
+  switches. The aquarium view of ha-reef-card (with the reeftank
+  integration) uses it to pre-fill a new aquarium and filter its device
+  tree.
+- `websocket_api` added to the manifest dependencies.
+
 ### RSWAVE
 
 - The `wave_type` sensor carries the whole day program in a `schedule`
