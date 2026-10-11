@@ -2,7 +2,7 @@ name: GitHub Clone Count Update Everyday
 
 on:
   schedule:
-    - cron: "0 */24 * * *"
+    - cron: "0 0 * * *" # Exécution quotidienne à minuit UTC
   workflow_dispatch:
 
 jobs:
@@ -10,12 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.SECRET_TOKEN }}
-      
+
     steps:
       - uses: actions/checkout@v6
-
-      - name: gh login
-        run: echo "${{ secrets.SECRET_TOKEN }}" | gh auth login --with-token
 
       - name: parse latest clone count
         run: |
@@ -38,7 +35,7 @@ jobs:
                 echo $gist_id | gh secret set GIST_ID
                 echo "GIST=$gist_id" >> $GITHUB_OUTPUT
                 cp clone.json clone_before.json
-                git rm --ignore-unmatch  CLONE.md
+                git rm --ignore-unmatch CLONE.md
               fi
           else
               echo "GIST_ID not found. Creating a gist..."
@@ -80,9 +77,9 @@ jobs:
             echo "<a href='$repo'><img alt='GitHub Clones' src='$shields$url&logo=github'></a>" >> CLONE.md
             echo '```' >> CLONE.md
 
-            git add CLONE.md
             git config --global user.name "GitHub Action"
             git config --global user.email "action@github.com"
+            git add CLONE.md
             git commit -m "create clone count badge"
           fi
 
