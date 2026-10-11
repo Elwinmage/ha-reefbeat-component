@@ -97,6 +97,7 @@ from .maintenance import MaintenanceStore, register_led_tasks
 from .reefbeat.cloud import InvalidAuth
 from .reefbeat.control import ReefControlAPI
 from .wave_library import program_waves
+from .websocket import async_register_websocket
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -593,6 +594,9 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema("redsea")
 # Services
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the integration (register services and frontend resources)."""
+
+    # Cloud aquariums for the aquarium view of the card (reeftank)
+    async_register_websocket(hass)
 
     # RSLED hw ids share the same maintenance task list; register them once
     # at integration setup so const.py stays the single source of truth.
