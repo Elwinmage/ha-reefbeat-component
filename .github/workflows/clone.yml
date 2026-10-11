@@ -12,7 +12,7 @@ jobs:
       GH_TOKEN: ${{ secrets.SECRET_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: parse latest clone count
         run: |
