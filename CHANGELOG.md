@@ -2,6 +2,57 @@
 
 ## MODIFICATIONS
 
+### RSDOSE: dose regulation of the heads
+
+- New per-head `regulation_mode` select: `off`, `assisted` or `brine`.
+- Bundled heads (Red Sea Complete Reef Care): only head 1 (Part 1) is
+  regulated, in assisted mode on the calcium (Red Sea's weekly calcium
+  test); the doser derives the other heads from the bundle ratios. The
+  `daily_dose` of heads 2-4 is refused while the heads are bundled, as in
+  ha-reef-card.
+- Assisted dosing: set a target (KH, Ca, Mg, K, NO3, PO4), the supplement
+  potency (unit/mL/100 L) and record test results (`regulation_measurement`
+  + `regulation_record`, or the new `redsea.record_measurement` service).
+  From the results and the volumes actually dosed, the tank's consumption is
+  estimated and a new daily dose proposed (`regulation_proposed_dose`),
+  applied only with `regulation_apply`. The correction is spread over a few
+  days, capped per day, and a dose moves at most `regulation_max_change` %
+  at a time. A result far from the prediction asks for a retest.
+- Brine: new supplement "DIY - Brine" in the supplement list, the only one
+  offering the salinity regulation (`regulation_mode`: off / brine on a brine
+  head, off / assisted on any other); taking the brine off a head stops its
+  regulation. The head holds a brine (g/L); a salinity sensor (RSCONTROL EC probe
+  or any sensor in ppt, mS/cm or SG) is sampled every 10 minutes and Home
+  Assistant sends manual doses (1 mL minimum) to hold the target salinity
+  (default 35 ppt): learned salt loss plus a correction, capped per day
+  (halved without a refractometer check for 45 days). Nothing is dosed while
+  Home Assistant is down. Switching a head to brine mode switches its own
+  schedule off: the whole plan is dosed by Home Assistant (a schedule the
+  user switches back on is taken into account).
+- Brine start: the salinity is sampled as soon as the brine mode and the
+  sensor are set, and the regulation starts after 6 samples (1 hour); until
+  then the status is `waiting_data` with `samples` / `samples_needed`, and
+  `brine_salinity` shows the current reading (`averaged` attribute false)
+  instead of nothing.
+- A supplement changed on a head (brine put on or taken off) is seen on the
+  next read of the doser: the regulation mode offers the right modes and
+  the status follows at once (until then, until the next change of the
+  regulation or a restart).
+- Alarms (`regulation_alarm` binary sensor and `redsea_dose_regulation_alarm`
+  event): too salty for 24 h, salinity not recovered after 3 days, sensor
+  lost for 2 h, probe recalibration required.
+- Refractometer check: a salinity recorded in brine mode is compared with
+  the probe; within `salinity_check_tolerance` it marks the new RSCONTROL
+  maintenance task `control_probe_refractometer_check` (monthly) done,
+  otherwise the regulation pauses until the EC probe is calibrated again.
+- Tank volume: the user's value, else the `water_volume` sensor of the
+  reeftank aquarium holding the doser (the doser or a head placed on its
+  views, or linked to the doser's cloud aquarium; reeftank stays optional),
+  else the net water volume of the ReefBeat cloud aquarium of the doser.
+- Brine concentration defaults to 200 g/L.
+- Dosed volumes come from the doser's `/daily-log` (7 days, new config
+  source), kept 180 days in `.storage/redsea_dose_regulation_<entry_id>`.
+
 ### Cloud aquariums for the aquarium view
 
 - New WebSocket command `redsea/aquariums`: the aquariums of every ReefBeat

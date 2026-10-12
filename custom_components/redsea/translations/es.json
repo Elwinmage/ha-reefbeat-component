@@ -156,6 +156,9 @@
       },
       "port_ato_fault": {
         "name": "Puerto {port} fallo ATO"
+      },
+      "regulation_alarm": {
+        "name": "Alarma de regulación"
       }
     },
     "button": {
@@ -395,6 +398,18 @@
       },
       "port_ato_stop": {
         "name": "Puerto {port} detener ATO"
+      },
+      "regulation_record": {
+        "name": "Registrar resultado de test"
+      },
+      "regulation_apply": {
+        "name": "Aplicar dosis propuesta"
+      },
+      "regulation_dismiss": {
+        "name": "Descartar dosis propuesta"
+      },
+      "maint_control_probe_refractometer_check": {
+        "name": "Control con refractómetro de la sonda {probe}"
       }
     },
     "light": {
@@ -648,6 +663,42 @@
       },
       "port_ato_flow_rate": {
         "name": "Puerto {port} caudal ATO"
+      },
+      "regulation_target": {
+        "name": "Objetivo de regulación"
+      },
+      "regulation_potency": {
+        "name": "Potencia del suplemento"
+      },
+      "regulation_tolerance": {
+        "name": "Tolerancia de regulación"
+      },
+      "regulation_tank_volume": {
+        "name": "Volumen de agua del acuario"
+      },
+      "regulation_max_change": {
+        "name": "Cambio máx. de dosis"
+      },
+      "regulation_correction_days": {
+        "name": "Reparto de la corrección"
+      },
+      "brine_concentration": {
+        "name": "Concentración de la salmuera"
+      },
+      "brine_max_rise": {
+        "name": "Subida máx. de salinidad"
+      },
+      "brine_doses_per_day": {
+        "name": "Dosis de salmuera por día"
+      },
+      "salinity_check_tolerance": {
+        "name": "Tolerancia del control con refractómetro"
+      },
+      "regulation_measurement": {
+        "name": "Resultado de test"
+      },
+      "maint_control_probe_refractometer_check_interval_weeks": {
+        "name": "Control con refractómetro de la sonda {probe} (semanas)"
       }
     },
     "select": {
@@ -728,6 +779,32 @@
           "sunrise": "Anclado al amanecer",
           "sunset": "Anclado al atardecer",
           "both": "Estirado entre amanecer y atardecer"
+        }
+      },
+      "regulation_mode": {
+        "name": "Regulación de dosificación",
+        "state": {
+          "off": "Desactivada",
+          "assisted": "Dosificación asistida",
+          "brine": "Salmuera (salinidad)"
+        }
+      },
+      "regulation_parameter": {
+        "name": "Parámetro regulado",
+        "state": {
+          "kh": "KH / Alcalinidad",
+          "ca": "Calcio",
+          "mg": "Magnesio",
+          "k": "Potasio",
+          "no3": "Nitrato",
+          "po4": "Fosfato",
+          "salinity": "Salinidad"
+        }
+      },
+      "brine_salinity_source": {
+        "name": "Sensor de salinidad",
+        "state": {
+          "none": "Ninguno"
         }
       }
     },
@@ -1505,6 +1582,41 @@
           "ec_sensor_s1": "Sensor de nivel 1",
           "ec_sensor_s2": "Sensor de nivel 2"
         }
+      },
+      "regulation_status": {
+        "name": "Estado de la regulación",
+        "state": {
+          "off": "Desactivada",
+          "bundle": "Cabezales agrupados (no compatible)",
+          "not_configured": "No configurada",
+          "waiting_data": "Esperando datos",
+          "in_range": "En objetivo",
+          "proposal": "Nueva dosis propuesta",
+          "retest_suggested": "Se recomienda repetir el test",
+          "regulating": "Regulando",
+          "too_salty": "Demasiado salado",
+          "cannot_compensate": "Compensación imposible",
+          "source_unavailable": "Sensor de salinidad no disponible",
+          "recalibration_required": "Recalibración de la sonda necesaria"
+        }
+      },
+      "regulation_proposed_dose": {
+        "name": "Dosis diaria propuesta"
+      },
+      "regulation_consumption": {
+        "name": "Consumo"
+      },
+      "regulation_last_measurement": {
+        "name": "Último resultado de test"
+      },
+      "regulation_tank_volume_used": {
+        "name": "Volumen de agua usado"
+      },
+      "brine_salinity": {
+        "name": "Salinidad (media 24 h)"
+      },
+      "brine_daily_volume": {
+        "name": "Salmuera prevista por día"
       }
     },
     "switch": {
@@ -1708,6 +1820,9 @@
       },
       "port_ato_temp_log": {
         "name": "Puerto {port} registro de temperatura ATO"
+      },
+      "maint_control_probe_refractometer_check_notify": {
+        "name": "Control con refractómetro de la sonda {probe} (notificaciones)"
       }
     },
     "text": {
@@ -2280,6 +2395,28 @@
           "description": "El nuevo nombre del programa."
         }
       }
+    },
+    "record_measurement": {
+      "name": "Registrar medición",
+      "description": "Registra un resultado de test para un cabezal ReefDose. En modo asistido se propone una nueva dosis diaria; en modo salmuera, una salinidad es el control con refractómetro de la sonda de salinidad.",
+      "fields": {
+        "device_id": {
+          "name": "Cabezal",
+          "description": "El dispositivo del cabezal ReefDose."
+        },
+        "value": {
+          "name": "Valor",
+          "description": "Valor medido, en la unidad del parámetro (dKH, ppm, ppt)."
+        },
+        "parameter": {
+          "name": "Parámetro",
+          "description": "Parámetro medido. Por defecto, el regulado por el cabezal."
+        },
+        "measured_at": {
+          "name": "Medido el",
+          "description": "Momento del test. Por defecto, ahora."
+        }
+      }
     }
   },
   "exceptions": {
@@ -2345,6 +2482,9 @@
     },
     "wave_group_bad_order": {
       "message": "El nuevo orden debe incluir una vez cada bomba del grupo."
+    },
+    "bundled_daily_dose": {
+      "message": "Cabezales agrupados: solo el cabezal 1 (Part 1, ajustado según el test de calcio) tiene dosis diaria, el dosificador deduce los demás según las proporciones del bundle."
     }
   },
   "issues": {

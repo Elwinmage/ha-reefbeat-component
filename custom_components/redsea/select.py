@@ -46,6 +46,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
+from .dose_regulation_entities import regulation_entities
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
 from .i18n import translate, translate_list
 from .led_weather_entities import weather_entities
@@ -338,6 +339,8 @@ async def async_setup_entry(
         tag_probe_entities(device, entities)
 
     # ReefLED week program following the weather
+    # ReefDose heads: dose regulation (assisted dosing, brine)
+    entities.extend(regulation_entities(device, "select"))
     entities.extend(weather_entities(device, "select"))
 
     async_add_entities(entities, True)

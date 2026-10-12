@@ -366,6 +366,69 @@ if os.path.exists(weather_file):
     keys_in_code = sorted(set(keys_in_code))
 ## End weather patch
 
+# ---------------------------------------------------------------------------
+# ReefDose dose regulation (entities built in dose_regulation_entities.py)
+# ---------------------------------------------------------------------------
+# Same builder shape as the weather entities, but every entity belongs to a
+# head: {"<platform>": lambda: [RegulationX(device, head, "<key>", ...)]}.
+# The translation_key is the third argument; a select's (or the status
+# enum's) options are the list constant given as fifth argument (MODES,
+# PARAMETER_OPTIONS, STATUSES in dose_regulation.py).
+regulation_file = os.path.join(base_path, "dose_regulation_entities.py")
+regulation_consts_file = os.path.join(base_path, "dose_regulation.py")
+if os.path.exists(regulation_file):
+    reg_consts: dict[str, list[str]] = {}
+    if os.path.exists(regulation_consts_file):
+        with open(regulation_consts_file) as f:
+            for stmt in ast.parse(f.read()).body:
+                # Constants are annotated (Final[...]): AnnAssign, or Assign
+                if isinstance(stmt, ast.AnnAssign) and isinstance(
+                    stmt.target, ast.Name
+                ):
+                    target, value = stmt.target, stmt.value
+                elif (
+                    isinstance(stmt, ast.Assign)
+                    and len(stmt.targets) == 1
+                    and isinstance(stmt.targets[0], ast.Name)
+                ):
+                    target, value = stmt.targets[0], stmt.value
+                else:
+                    continue
+                if isinstance(value, ast.List) and all(
+                    isinstance(e, ast.Constant) and isinstance(e.value, str)
+                    for e in value.elts
+                ):
+                    reg_consts[target.id] = [str(e.value) for e in value.elts]  # type: ignore[union-attr]
+    with open(regulation_file) as f:
+        reg_tree = ast.parse(f.read())
+    for node in ast.walk(reg_tree):
+        if not isinstance(node, ast.Dict):
+            continue
+        for k, v in zip(node.keys, node.values, strict=False):
+            if not (
+                isinstance(k, ast.Constant)
+                and k.value in entity_domains
+                and isinstance(v, ast.Lambda)
+                and isinstance(v.body, ast.List)
+            ):
+                continue
+            for call in v.body.elts:
+                if not (isinstance(call, ast.Call) and len(call.args) >= 3):
+                    continue
+                key_arg = call.args[2]
+                if not (
+                    isinstance(key_arg, ast.Constant) and isinstance(key_arg.value, str)
+                ):
+                    continue
+                full_key = f"{k.value}.{key_arg.value}"
+                keys_in_code.append(full_key)
+                if len(call.args) >= 5 and isinstance(call.args[4], ast.Name):
+                    opts = reg_consts.get(call.args[4].id)
+                    if isinstance(opts, list):
+                        entity_options[full_key] = list(opts)
+    keys_in_code = sorted(set(keys_in_code))
+## End regulation patch
+
 all_good: bool = True
 
 for lang in langs:

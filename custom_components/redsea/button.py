@@ -51,6 +51,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
+from .dose_regulation_entities import regulation_entities
 from .entity import MaintenanceLabelMixin, ReefRoleMixin
 from .maintenance import (
     PROBE_SCOPES,
@@ -1000,6 +1001,9 @@ async def async_setup_entry(
     if isinstance(device, ReefControlCoordinator):
         tag_probe_entities(device, entities)
         tag_port_entities(device, entities)
+
+    # ReefDose heads: dose regulation (assisted dosing, brine)
+    entities.extend(regulation_entities(device, "button"))
 
     async_add_entities(entities, True)
 

@@ -156,6 +156,9 @@
       },
       "port_ato_fault": {
         "name": "Port {port} awaria ATO"
+      },
+      "regulation_alarm": {
+        "name": "Alarm regulacji"
       }
     },
     "button": {
@@ -395,6 +398,18 @@
       },
       "port_ato_stop": {
         "name": "Port {port} zatrzymaj ATO"
+      },
+      "regulation_record": {
+        "name": "Zapisz wynik testu"
+      },
+      "regulation_apply": {
+        "name": "Zastosuj proponowaną dawkę"
+      },
+      "regulation_dismiss": {
+        "name": "Odrzuć proponowaną dawkę"
+      },
+      "maint_control_probe_refractometer_check": {
+        "name": "Kontrola refraktometrem sondy {probe}"
       }
     },
     "light": {
@@ -648,6 +663,42 @@
       },
       "port_ato_flow_rate": {
         "name": "Port {port} przepływ ATO"
+      },
+      "regulation_target": {
+        "name": "Cel regulacji"
+      },
+      "regulation_potency": {
+        "name": "Moc suplementu"
+      },
+      "regulation_tolerance": {
+        "name": "Tolerancja regulacji"
+      },
+      "regulation_tank_volume": {
+        "name": "Objętość wody w zbiorniku"
+      },
+      "regulation_max_change": {
+        "name": "Maks. zmiana dawki"
+      },
+      "regulation_correction_days": {
+        "name": "Rozłożenie korekty"
+      },
+      "brine_concentration": {
+        "name": "Stężenie solanki"
+      },
+      "brine_max_rise": {
+        "name": "Maks. wzrost zasolenia"
+      },
+      "brine_doses_per_day": {
+        "name": "Dawki solanki na dzień"
+      },
+      "salinity_check_tolerance": {
+        "name": "Tolerancja kontroli refraktometrem"
+      },
+      "regulation_measurement": {
+        "name": "Wynik testu"
+      },
+      "maint_control_probe_refractometer_check_interval_weeks": {
+        "name": "Kontrola refraktometrem sondy {probe} (tygodnie)"
       }
     },
     "select": {
@@ -728,6 +779,32 @@
           "sunrise": "Wyrównany do wschodu",
           "sunset": "Wyrównany do zachodu",
           "both": "Rozciągnięty między wschodem a zachodem"
+        }
+      },
+      "regulation_mode": {
+        "name": "Regulacja dozowania",
+        "state": {
+          "off": "Wyłączona",
+          "assisted": "Dozowanie wspomagane",
+          "brine": "Solanka (zasolenie)"
+        }
+      },
+      "regulation_parameter": {
+        "name": "Regulowany parametr",
+        "state": {
+          "kh": "KH / Alkaliczność",
+          "ca": "Wapń",
+          "mg": "Magnez",
+          "k": "Potas",
+          "no3": "Azotany",
+          "po4": "Fosforany",
+          "salinity": "Zasolenie"
+        }
+      },
+      "brine_salinity_source": {
+        "name": "Czujnik zasolenia",
+        "state": {
+          "none": "Brak"
         }
       }
     },
@@ -1505,6 +1582,41 @@
           "ec_sensor_s1": "Czujnik poziomu 1",
           "ec_sensor_s2": "Czujnik poziomu 2"
         }
+      },
+      "regulation_status": {
+        "name": "Stan regulacji",
+        "state": {
+          "off": "Wyłączona",
+          "bundle": "Głowice zgrupowane (nieobsługiwane)",
+          "not_configured": "Nieskonfigurowana",
+          "waiting_data": "Oczekiwanie na dane",
+          "in_range": "W normie",
+          "proposal": "Zaproponowano nową dawkę",
+          "retest_suggested": "Zalecany ponowny test",
+          "regulating": "Regulacja",
+          "too_salty": "Za słone",
+          "cannot_compensate": "Kompensacja niemożliwa",
+          "source_unavailable": "Czujnik zasolenia niedostępny",
+          "recalibration_required": "Wymagana ponowna kalibracja sondy"
+        }
+      },
+      "regulation_proposed_dose": {
+        "name": "Proponowana dawka dzienna"
+      },
+      "regulation_consumption": {
+        "name": "Zużycie"
+      },
+      "regulation_last_measurement": {
+        "name": "Ostatni wynik testu"
+      },
+      "regulation_tank_volume_used": {
+        "name": "Użyta objętość wody"
+      },
+      "brine_salinity": {
+        "name": "Zasolenie (średnia 24 h)"
+      },
+      "brine_daily_volume": {
+        "name": "Planowana solanka na dzień"
       }
     },
     "switch": {
@@ -1708,6 +1820,9 @@
       },
       "port_ato_temp_log": {
         "name": "Port {port} dziennik temperatury ATO"
+      },
+      "maint_control_probe_refractometer_check_notify": {
+        "name": "Kontrola refraktometrem sondy {probe} (powiadomienia)"
       }
     },
     "text": {
@@ -2280,6 +2395,28 @@
           "description": "Nowa nazwa programu."
         }
       }
+    },
+    "record_measurement": {
+      "name": "Zapisz pomiar",
+      "description": "Zapisuje wynik testu dla głowicy ReefDose. W trybie wspomaganym proponowana jest nowa dawka dzienna; w trybie solanki zasolenie jest kontrolą refraktometrem sondy zasolenia.",
+      "fields": {
+        "device_id": {
+          "name": "Głowica",
+          "description": "Urządzenie głowicy ReefDose."
+        },
+        "value": {
+          "name": "Wartość",
+          "description": "Zmierzona wartość w jednostce parametru (dKH, ppm, ppt)."
+        },
+        "parameter": {
+          "name": "Parametr",
+          "description": "Mierzony parametr. Domyślnie parametr regulowany przez głowicę."
+        },
+        "measured_at": {
+          "name": "Zmierzono",
+          "description": "Kiedy wykonano test. Domyślnie teraz."
+        }
+      }
     }
   },
   "exceptions": {
@@ -2345,6 +2482,9 @@
     },
     "wave_group_bad_order": {
       "message": "Nowa kolejność musi zawierać każdą pompę grupy dokładnie raz."
+    },
+    "bundled_daily_dose": {
+      "message": "Głowice zgrupowane: tylko głowica 1 (Part 1, ustawiana według testu wapnia) ma dawkę dzienną, dozownik wylicza pozostałe głowice z proporcji pakietu."
     }
   },
   "issues": {

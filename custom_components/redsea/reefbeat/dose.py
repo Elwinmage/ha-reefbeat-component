@@ -51,6 +51,9 @@ class ReefDoseAPI(ReefBeatAPI):
         # Register sources
         self.add_source("/device-settings", "config", "")
         self.add_source("/dosing-queue", "data", "")
+        # Volumes dosed per head over the last 7 days: read on demand by the
+        # dose regulation (dose_regulation.py), not at every poll
+        self.add_source("/daily-log", "config", "")
 
         # Initialize local head cache (preserve existing local keys like use_cloud_api)
         local_any = self.data.get("local")
@@ -156,6 +159,19 @@ class ReefDoseAPI(ReefBeatAPI):
             return
 
         await self._http_send(self._base_url + "/" + action, payload={}, method="post")
+
+    async def manual_dose(self, head: int, volume: float) -> bool:
+        """Dose ``volume`` mL on a head now, without touching the local
+        manual dose the user set (used by the brine regulation).
+
+        Returns whether the doser accepted it.
+        """
+        result = await self._http_send(
+            f"{self._base_url}/head/{head}/manual",
+            {"manual_dose_scheduled": True, "volume": volume},
+            method="post",
+        )
+        return bool(result and result.get("ok"))
 
     async def push_values(
         self,

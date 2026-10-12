@@ -1825,6 +1825,13 @@ class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
         """Trigger a dose-specific action (optionally head-scoped)."""
         await self.my_api.press(action, head)
 
+    async def manual_dose(self, head: int, volume: float) -> bool:
+        """Dose ``volume`` mL on a head now (see ReefDoseAPI.manual_dose)."""
+        ok = await self.my_api.manual_dose(head, volume)
+        if ok:
+            await self.async_request_refresh(wait=0)
+        return ok
+
     async def push_values(  # type: ignore[override]
         self,
         source: str = "/configuration",

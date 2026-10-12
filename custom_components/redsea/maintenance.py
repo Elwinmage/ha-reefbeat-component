@@ -311,6 +311,19 @@ TASKS: Final[dict[str, tuple[MaintenanceTask, ...]]] = {
             icon="mdi:water-check",
             unit="months",
         ),
+        # Monthly refractometer check of the salinity probe. Not a Red Sea
+        # recommendation: it guards the brine regulation of the doser
+        # (dose_regulation.py), which records it when the check passes.
+        MaintenanceTask(
+            key="control_probe_refractometer_check",
+            translation_key="maint_control_probe_refractometer_check",
+            default_days=30,  # monthly (2-8 weeks)
+            min_days=14,
+            max_days=56,
+            applies_to_sub="probe_ec",
+            icon="mdi:eyedropper-variant",
+            unit="weeks",
+        ),
         MaintenanceTask(
             key="control_probe_calibration_orp",
             translation_key="maint_control_probe_calibration_orp",
@@ -435,6 +448,9 @@ CALIBRATION_TASKS: Final[dict[str, str]] = {
     "ec": "control_probe_calibration_ec",
     "orp": "control_probe_calibration_orp",
 }
+
+# Refractometer check of an EC probe, recorded by the brine regulation
+REFRACTOMETER_TASK: Final[str] = "control_probe_refractometer_check"
 
 
 def probe_sub_id(uid: str) -> int:

@@ -156,6 +156,9 @@
       },
       "port_ato_fault": {
         "name": "Port {port} ATO fault"
+      },
+      "regulation_alarm": {
+        "name": "Regulation alarm"
       }
     },
     "button": {
@@ -395,6 +398,18 @@
       },
       "port_ato_stop": {
         "name": "Port {port} ATO stop"
+      },
+      "regulation_record": {
+        "name": "Record test result"
+      },
+      "regulation_apply": {
+        "name": "Apply proposed dose"
+      },
+      "regulation_dismiss": {
+        "name": "Dismiss proposed dose"
+      },
+      "maint_control_probe_refractometer_check": {
+        "name": "Refractometer check of probe {probe}"
       }
     },
     "light": {
@@ -648,6 +663,42 @@
       },
       "port_ato_flow_rate": {
         "name": "Port {port} ATO flow rate"
+      },
+      "regulation_target": {
+        "name": "Regulation target"
+      },
+      "regulation_potency": {
+        "name": "Supplement potency"
+      },
+      "regulation_tolerance": {
+        "name": "Regulation tolerance"
+      },
+      "regulation_tank_volume": {
+        "name": "Tank water volume"
+      },
+      "regulation_max_change": {
+        "name": "Max dose change"
+      },
+      "regulation_correction_days": {
+        "name": "Correction spread"
+      },
+      "brine_concentration": {
+        "name": "Brine concentration"
+      },
+      "brine_max_rise": {
+        "name": "Max salinity rise"
+      },
+      "brine_doses_per_day": {
+        "name": "Brine doses per day"
+      },
+      "salinity_check_tolerance": {
+        "name": "Refractometer check tolerance"
+      },
+      "regulation_measurement": {
+        "name": "Test result"
+      },
+      "maint_control_probe_refractometer_check_interval_weeks": {
+        "name": "Refractometer check of probe {probe} (weeks)"
       }
     },
     "select": {
@@ -728,6 +779,32 @@
           "sunrise": "Anchored on sunrise",
           "sunset": "Anchored on sunset",
           "both": "Stretched between sunrise and sunset"
+        }
+      },
+      "regulation_mode": {
+        "name": "Dose regulation",
+        "state": {
+          "off": "Off",
+          "assisted": "Assisted dosing",
+          "brine": "Brine (salinity)"
+        }
+      },
+      "regulation_parameter": {
+        "name": "Regulated parameter",
+        "state": {
+          "kh": "KH / Alkalinity",
+          "ca": "Calcium",
+          "mg": "Magnesium",
+          "k": "Potassium",
+          "no3": "Nitrate",
+          "po4": "Phosphate",
+          "salinity": "Salinity"
+        }
+      },
+      "brine_salinity_source": {
+        "name": "Salinity sensor",
+        "state": {
+          "none": "None"
         }
       }
     },
@@ -1513,6 +1590,41 @@
           "ec_sensor_s1": "Level sensor 1",
           "ec_sensor_s2": "Level sensor 2"
         }
+      },
+      "regulation_status": {
+        "name": "Regulation status",
+        "state": {
+          "off": "Off",
+          "bundle": "Bundled heads (not supported)",
+          "not_configured": "Not configured",
+          "waiting_data": "Waiting for data",
+          "in_range": "In range",
+          "proposal": "New dose proposed",
+          "retest_suggested": "Retest suggested",
+          "regulating": "Regulating",
+          "too_salty": "Too salty",
+          "cannot_compensate": "Cannot compensate",
+          "source_unavailable": "Salinity sensor unavailable",
+          "recalibration_required": "Probe recalibration required"
+        }
+      },
+      "regulation_proposed_dose": {
+        "name": "Proposed daily dose"
+      },
+      "regulation_consumption": {
+        "name": "Consumption"
+      },
+      "regulation_last_measurement": {
+        "name": "Last test result"
+      },
+      "regulation_tank_volume_used": {
+        "name": "Water volume used"
+      },
+      "brine_salinity": {
+        "name": "Salinity (24 h average)"
+      },
+      "brine_daily_volume": {
+        "name": "Brine planned per day"
       }
     },
     "switch": {
@@ -1716,6 +1828,9 @@
       },
       "port_ato_temp_log": {
         "name": "Port {port} ATO temperature log"
+      },
+      "maint_control_probe_refractometer_check_notify": {
+        "name": "Refractometer check of probe {probe} (notifications)"
       }
     },
     "text": {
@@ -2288,6 +2403,28 @@
           "description": "The new name of the program."
         }
       }
+    },
+    "record_measurement": {
+      "name": "Record measurement",
+      "description": "Record a test result for a ReefDose head. In assisted mode a new daily dose is proposed; in brine mode a salinity is the refractometer check of the salinity probe.",
+      "fields": {
+        "device_id": {
+          "name": "Head",
+          "description": "The device of the ReefDose head."
+        },
+        "value": {
+          "name": "Value",
+          "description": "Measured value, in the unit of the parameter (dKH, ppm, ppt)."
+        },
+        "parameter": {
+          "name": "Parameter",
+          "description": "Measured parameter. Defaults to the parameter regulated by the head."
+        },
+        "measured_at": {
+          "name": "Measured at",
+          "description": "When the test was done. Defaults to now."
+        }
+      }
     }
   },
   "exceptions": {
@@ -2353,6 +2490,9 @@
     },
     "wave_group_bad_order": {
       "message": "The new order must list every pump of the group once."
+    },
+    "bundled_daily_dose": {
+      "message": "Bundled heads: only head 1 (Part 1, set from the calcium test) has a daily dose, the doser derives the other heads from the bundle ratios."
     }
   },
   "issues": {

@@ -32,6 +32,7 @@ from homeassistant.const import (
     UnitOfVolume,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -75,6 +76,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
+from .dose_regulation_entities import regulation_entities
 from .entity import MaintenanceLabelMixin, ReefRoleMixin
 from .group_entities import group_entities
 from .led_weather_entities import weather_entities
@@ -1398,6 +1400,8 @@ async def async_setup_entry(
     # Group (virtual LED) settings: staggered sunrise delay
     entities.extend(group_entities(device, "number"))
 
+    # ReefDose heads: dose regulation (assisted dosing, brine)
+    entities.extend(regulation_entities(device, "number"))
     async_add_entities(entities, update_before_add=True)
 
 
@@ -1638,6 +1642,11 @@ class ReefLedNumberEntity(ReefBeatNumberEntity):
 
 
 # REEFDOSE
+def _translated_error(key: str) -> HomeAssistantError:
+    """An error translated from the "exceptions" of strings.json."""
+    return HomeAssistantError(translation_domain=DOMAIN, translation_key=key)
+
+
 class ReefDoseNumberEntity(ReefBeatNumberEntity):
     """Dose-specific number entity (head-scoped pushes)."""
 
@@ -1675,13 +1684,23 @@ class ReefDoseNumberEntity(ReefBeatNumberEntity):
             self._attr_device_info = cast(DeviceInfo, di_dict)
 
     async def async_set_native_value(self, value: float) -> None:
+        head = self._dose_description.head
+        # Bundled heads: only head 1 (Part 1, set from the calcium) holds a
+        # daily dose, the doser derives the other heads from the bundle ratios
+        if (
+            head > 1
+            and self._dose_description.translation_key == "daily_dose"
+            and self._device.get_data(
+                "$.sources[?(@.name=='/dashboard')].data.bundled_heads", True
+            )
+        ):
+            raise _translated_error("bundled_daily_dose")
         v: Any = int(value) if float(value).is_integer() else value
         self._attr_native_value = cast(float | None, v)
 
         self._device.set_data(self._description.value_name, v)
         self.async_write_ha_state()
 
-        head = self._dose_description.head
         if head > 0:
             if self._dose_description.translation_key != "calibration_dose_value":
                 # Push head-scoped changes via coordinator API.

@@ -155,6 +155,9 @@
       },
       "port_ato_fault": {
         "name": "Port {port} défaut osmolateur"
+      },
+      "regulation_alarm": {
+        "name": "Alarme de régulation"
       }
     },
     "button": {
@@ -394,6 +397,18 @@
       },
       "port_ato_stop": {
         "name": "Port {port} arrêt osmolateur"
+      },
+      "regulation_record": {
+        "name": "Enregistrer le résultat de test"
+      },
+      "regulation_apply": {
+        "name": "Appliquer la dose proposée"
+      },
+      "regulation_dismiss": {
+        "name": "Ignorer la dose proposée"
+      },
+      "maint_control_probe_refractometer_check": {
+        "name": "Contrôle réfractomètre de la sonde {probe}"
       }
     },
     "light": {
@@ -647,6 +662,42 @@
       },
       "port_ato_flow_rate": {
         "name": "Port {port} débit osmolateur"
+      },
+      "regulation_target": {
+        "name": "Cible de régulation"
+      },
+      "regulation_potency": {
+        "name": "Puissance du supplément"
+      },
+      "regulation_tolerance": {
+        "name": "Tolérance de régulation"
+      },
+      "regulation_tank_volume": {
+        "name": "Volume d'eau du bac"
+      },
+      "regulation_max_change": {
+        "name": "Variation max de dose"
+      },
+      "regulation_correction_days": {
+        "name": "Étalement de la correction"
+      },
+      "brine_concentration": {
+        "name": "Concentration de la saumure"
+      },
+      "brine_max_rise": {
+        "name": "Hausse max de salinité"
+      },
+      "brine_doses_per_day": {
+        "name": "Doses de saumure par jour"
+      },
+      "salinity_check_tolerance": {
+        "name": "Tolérance du contrôle réfractomètre"
+      },
+      "regulation_measurement": {
+        "name": "Résultat de test"
+      },
+      "maint_control_probe_refractometer_check_interval_weeks": {
+        "name": "Contrôle réfractomètre de la sonde {probe} (semaines)"
       }
     },
     "select": {
@@ -727,6 +778,32 @@
           "sunrise": "Calée sur le lever",
           "sunset": "Calée sur le coucher",
           "both": "Étirée entre lever et coucher"
+        }
+      },
+      "regulation_mode": {
+        "name": "Régulation du dosage",
+        "state": {
+          "off": "Désactivée",
+          "assisted": "Dosage assisté",
+          "brine": "Saumure (salinité)"
+        }
+      },
+      "regulation_parameter": {
+        "name": "Paramètre régulé",
+        "state": {
+          "kh": "KH / Alcalinité",
+          "ca": "Calcium",
+          "mg": "Magnésium",
+          "k": "Potassium",
+          "no3": "Nitrate",
+          "po4": "Phosphate",
+          "salinity": "Salinité"
+        }
+      },
+      "brine_salinity_source": {
+        "name": "Capteur de salinité",
+        "state": {
+          "none": "Aucun"
         }
       }
     },
@@ -1505,6 +1582,41 @@
           "ec_sensor_s1": "Capteur de niveau 1",
           "ec_sensor_s2": "Capteur de niveau 2"
         }
+      },
+      "regulation_status": {
+        "name": "État de la régulation",
+        "state": {
+          "off": "Désactivée",
+          "bundle": "Têtes groupées (non pris en charge)",
+          "not_configured": "Non configurée",
+          "waiting_data": "En attente de données",
+          "in_range": "Dans la cible",
+          "proposal": "Nouvelle dose proposée",
+          "retest_suggested": "Nouveau test conseillé",
+          "regulating": "Régulation en cours",
+          "too_salty": "Trop salé",
+          "cannot_compensate": "Compensation impossible",
+          "source_unavailable": "Capteur de salinité indisponible",
+          "recalibration_required": "Recalibration de la sonde nécessaire"
+        }
+      },
+      "regulation_proposed_dose": {
+        "name": "Dose journalière proposée"
+      },
+      "regulation_consumption": {
+        "name": "Consommation"
+      },
+      "regulation_last_measurement": {
+        "name": "Dernier résultat de test"
+      },
+      "regulation_tank_volume_used": {
+        "name": "Volume d'eau utilisé"
+      },
+      "brine_salinity": {
+        "name": "Salinité (moyenne 24 h)"
+      },
+      "brine_daily_volume": {
+        "name": "Saumure prévue par jour"
       }
     },
     "switch": {
@@ -1708,6 +1820,9 @@
       },
       "port_ato_temp_log": {
         "name": "Port {port} journal de température osmolateur"
+      },
+      "maint_control_probe_refractometer_check_notify": {
+        "name": "Contrôle réfractomètre de la sonde {probe} (notifications)"
       }
     },
     "text": {
@@ -2280,6 +2395,28 @@
           "description": "Le nouveau nom du programme."
         }
       }
+    },
+    "record_measurement": {
+      "name": "Enregistrer une mesure",
+      "description": "Enregistre un résultat de test pour une tête ReefDose. En mode assisté, une nouvelle dose journalière est proposée ; en mode saumure, une salinité est le contrôle réfractomètre de la sonde de salinité.",
+      "fields": {
+        "device_id": {
+          "name": "Tête",
+          "description": "L'appareil de la tête ReefDose."
+        },
+        "value": {
+          "name": "Valeur",
+          "description": "Valeur mesurée, dans l'unité du paramètre (dKH, ppm, ppt)."
+        },
+        "parameter": {
+          "name": "Paramètre",
+          "description": "Paramètre mesuré. Par défaut, celui régulé par la tête."
+        },
+        "measured_at": {
+          "name": "Mesuré le",
+          "description": "Date du test. Par défaut, maintenant."
+        }
+      }
     }
   },
   "exceptions": {
@@ -2345,6 +2482,9 @@
     },
     "wave_group_bad_order": {
       "message": "Le nouvel ordre doit lister une fois chaque pompe du groupe."
+    },
+    "bundled_daily_dose": {
+      "message": "Têtes groupées : seule la tête 1 (Part 1, réglée sur le test de calcium) a une dose journalière, la pompe en déduit les autres têtes selon les ratios du bundle."
     }
   },
   "issues": {

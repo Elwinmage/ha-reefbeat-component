@@ -156,6 +156,9 @@
       },
       "port_ato_fault": {
         "name": "Poort {port} ATO-storing"
+      },
+      "regulation_alarm": {
+        "name": "Regelalarm"
       }
     },
     "button": {
@@ -395,6 +398,18 @@
       },
       "port_ato_stop": {
         "name": "Poort {port} ATO stoppen"
+      },
+      "regulation_record": {
+        "name": "Testresultaat opslaan"
+      },
+      "regulation_apply": {
+        "name": "Voorgestelde dosis toepassen"
+      },
+      "regulation_dismiss": {
+        "name": "Voorgestelde dosis negeren"
+      },
+      "maint_control_probe_refractometer_check": {
+        "name": "Refractometercontrole van sonde {probe}"
       }
     },
     "light": {
@@ -648,6 +663,42 @@
       },
       "port_ato_flow_rate": {
         "name": "Poort {port} ATO-debiet"
+      },
+      "regulation_target": {
+        "name": "Regeldoel"
+      },
+      "regulation_potency": {
+        "name": "Sterkte van het supplement"
+      },
+      "regulation_tolerance": {
+        "name": "Regeltolerantie"
+      },
+      "regulation_tank_volume": {
+        "name": "Watervolume van de bak"
+      },
+      "regulation_max_change": {
+        "name": "Max. doseringswijziging"
+      },
+      "regulation_correction_days": {
+        "name": "Spreiding van de correctie"
+      },
+      "brine_concentration": {
+        "name": "Concentratie van de pekel"
+      },
+      "brine_max_rise": {
+        "name": "Max. stijging saliniteit"
+      },
+      "brine_doses_per_day": {
+        "name": "Pekeldoses per dag"
+      },
+      "salinity_check_tolerance": {
+        "name": "Tolerantie refractometercontrole"
+      },
+      "regulation_measurement": {
+        "name": "Testresultaat"
+      },
+      "maint_control_probe_refractometer_check_interval_weeks": {
+        "name": "Refractometercontrole van sonde {probe} (weken)"
       }
     },
     "select": {
@@ -728,6 +779,32 @@
           "sunrise": "Uitgelijnd op zonsopgang",
           "sunset": "Uitgelijnd op zonsondergang",
           "both": "Uitgerekt tussen op- en ondergang"
+        }
+      },
+      "regulation_mode": {
+        "name": "Doseerregeling",
+        "state": {
+          "off": "Uit",
+          "assisted": "Ondersteund doseren",
+          "brine": "Pekel (saliniteit)"
+        }
+      },
+      "regulation_parameter": {
+        "name": "Geregelde parameter",
+        "state": {
+          "kh": "KH / Alkaliniteit",
+          "ca": "Calcium",
+          "mg": "Magnesium",
+          "k": "Kalium",
+          "no3": "Nitraat",
+          "po4": "Fosfaat",
+          "salinity": "Saliniteit"
+        }
+      },
+      "brine_salinity_source": {
+        "name": "Saliniteitssensor",
+        "state": {
+          "none": "Geen"
         }
       }
     },
@@ -1513,6 +1590,41 @@
           "ec_sensor_s1": "Niveausensor 1",
           "ec_sensor_s2": "Niveausensor 2"
         }
+      },
+      "regulation_status": {
+        "name": "Status van de regeling",
+        "state": {
+          "off": "Uit",
+          "bundle": "Gekoppelde koppen (niet ondersteund)",
+          "not_configured": "Niet geconfigureerd",
+          "waiting_data": "Wacht op gegevens",
+          "in_range": "Binnen doel",
+          "proposal": "Nieuwe dosis voorgesteld",
+          "retest_suggested": "Nieuwe test aanbevolen",
+          "regulating": "Regelt",
+          "too_salty": "Te zout",
+          "cannot_compensate": "Compensatie onmogelijk",
+          "source_unavailable": "Saliniteitssensor niet beschikbaar",
+          "recalibration_required": "Herkalibratie van de sonde nodig"
+        }
+      },
+      "regulation_proposed_dose": {
+        "name": "Voorgestelde dagdosis"
+      },
+      "regulation_consumption": {
+        "name": "Verbruik"
+      },
+      "regulation_last_measurement": {
+        "name": "Laatste testresultaat"
+      },
+      "regulation_tank_volume_used": {
+        "name": "Gebruikt watervolume"
+      },
+      "brine_salinity": {
+        "name": "Saliniteit (24-uursgemiddelde)"
+      },
+      "brine_daily_volume": {
+        "name": "Geplande pekel per dag"
       }
     },
     "switch": {
@@ -1716,6 +1828,9 @@
       },
       "port_ato_temp_log": {
         "name": "Poort {port} ATO-temperatuurlog"
+      },
+      "maint_control_probe_refractometer_check_notify": {
+        "name": "Refractometercontrole van sonde {probe} (meldingen)"
       }
     },
     "text": {
@@ -2288,6 +2403,28 @@
           "description": "De nieuwe naam van het programma."
         }
       }
+    },
+    "record_measurement": {
+      "name": "Meting opslaan",
+      "description": "Slaat een testresultaat op voor een ReefDose-kop. In ondersteunde modus wordt een nieuwe dagdosis voorgesteld; in pekelmodus is een saliniteit de refractometercontrole van de saliniteitssonde.",
+      "fields": {
+        "device_id": {
+          "name": "Kop",
+          "description": "Het apparaat van de ReefDose-kop."
+        },
+        "value": {
+          "name": "Waarde",
+          "description": "Gemeten waarde, in de eenheid van de parameter (dKH, ppm, ppt)."
+        },
+        "parameter": {
+          "name": "Parameter",
+          "description": "Gemeten parameter. Standaard de parameter die de kop regelt."
+        },
+        "measured_at": {
+          "name": "Gemeten op",
+          "description": "Wanneer de test werd gedaan. Standaard nu."
+        }
+      }
     }
   },
   "exceptions": {
@@ -2353,6 +2490,9 @@
     },
     "wave_group_bad_order": {
       "message": "De nieuwe volgorde moet elke pomp van de groep één keer bevatten."
+    },
+    "bundled_daily_dose": {
+      "message": "Gekoppelde koppen: alleen kop 1 (Part 1, ingesteld op de calciumtest) heeft een dagdosis, de doseerpomp leidt de andere koppen af uit de bundelverhoudingen."
     }
   },
   "issues": {

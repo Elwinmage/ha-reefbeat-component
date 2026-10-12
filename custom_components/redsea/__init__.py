@@ -80,6 +80,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
+from .dose_regulation import DoseRegulator, RegulationStore
 from .groups import GroupStore, group_error, members_from_legacy
 from .led_weather import (
     WEATHER_CHECK_SECONDS,
@@ -308,6 +309,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _cancel("cancel")
 
         entry.async_on_unload(_weather_unload)
+
+    # ReefDose: dose regulation of the heads (assisted dosing, brine)
+    if isinstance(coordinator, ReefDoseCoordinator):
+        regulation_store = RegulationStore(
+            hass, entry.entry_id, range(1, coordinator.heads_nb + 1)
+        )
+        await regulation_store.async_load()
+        regulator = DoseRegulator(hass, coordinator, regulation_store)
+        coordinator.regulation = regulator  # type: ignore[attr-defined]
+        await regulator.async_start()
+        entry.async_on_unload(regulator.async_stop)
 
     # Group (virtual LED): staggered sunrise and offsets written to the lamps
     if isinstance(coordinator, ReefVirtualLedCoordinator):
@@ -1282,4 +1294,63 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         supports_response=SupportsResponse.ONLY,
     )
 
+    @callback
+    async def handle_record_measurement(call: ServiceCall) -> ServiceResponse:
+        """Record a test result for a ReefDose head (dose regulation).
+
+        ``device_id`` is the head's device. ``parameter`` defaults to the
+        head's regulated parameter; ``measured_at`` to now.
+        """
+        found = _dose_head(hass, call.data.get("device_id"))
+        if found is None:
+            return {"ok": False, "error": "Not a ReefDose head"}
+        coordinator, head = found
+        regulator = getattr(coordinator, "regulation", None)
+        if not isinstance(regulator, DoseRegulator):
+            return {"ok": False, "error": "Regulation unavailable"}
+        at = call.data.get("measured_at")
+        if at is not None:
+            # The datetime selector gives a local time without offset
+            parsed = dt_util.parse_datetime(str(at))
+            if parsed is None:
+                return {"ok": False, "error": f"invalid measured_at {at!r}"}
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=dt_util.get_default_time_zone())
+            at = dt_util.as_local(parsed)
+        try:
+            value = float(call.data["value"])
+            result = await regulator.async_record(
+                head, value, call.data.get("parameter"), at
+            )
+        except (KeyError, TypeError, ValueError) as err:
+            return {"ok": False, "error": str(err)}
+        return {"ok": True, **result}
+
+    _LOGGER.debug("Registering service redsea.record_measurement")
+    hass.services.async_register(
+        DOMAIN,
+        "record_measurement",
+        handle_record_measurement,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
     return True
+
+
+def _dose_head(hass: HomeAssistant, device_id: Any) -> tuple[Any, int] | None:
+    """ReefDose coordinator and head number of a head's device id."""
+    if not isinstance(device_id, str):
+        return None
+    ha_device = dr.async_get(hass).async_get(device_id)
+    if ha_device is None:
+        return None
+    for domain, ident in ha_device.identifiers:
+        match = _HEAD_NAME_RE.match(ident) if domain == DOMAIN else None
+        if match is None:
+            continue
+        for coordinator in hass.data.get(DOMAIN, {}).values():
+            if isinstance(
+                coordinator, ReefDoseCoordinator
+            ) and coordinator.model_id == match.group("prefix"):
+                return coordinator, int(match.group("head"))
+    return None

@@ -156,6 +156,9 @@
       },
       "port_ato_fault": {
         "name": "Porta {port} guasto ATO"
+      },
+      "regulation_alarm": {
+        "name": "Allarme di regolazione"
       }
     },
     "button": {
@@ -395,6 +398,18 @@
       },
       "port_ato_stop": {
         "name": "Porta {port} ferma ATO"
+      },
+      "regulation_record": {
+        "name": "Registra risultato del test"
+      },
+      "regulation_apply": {
+        "name": "Applica dose proposta"
+      },
+      "regulation_dismiss": {
+        "name": "Ignora dose proposta"
+      },
+      "maint_control_probe_refractometer_check": {
+        "name": "Controllo con rifrattometro della sonda {probe}"
       }
     },
     "light": {
@@ -648,6 +663,42 @@
       },
       "port_ato_flow_rate": {
         "name": "Porta {port} portata ATO"
+      },
+      "regulation_target": {
+        "name": "Obiettivo di regolazione"
+      },
+      "regulation_potency": {
+        "name": "Potenza dell'integratore"
+      },
+      "regulation_tolerance": {
+        "name": "Tolleranza di regolazione"
+      },
+      "regulation_tank_volume": {
+        "name": "Volume d'acqua della vasca"
+      },
+      "regulation_max_change": {
+        "name": "Variazione max della dose"
+      },
+      "regulation_correction_days": {
+        "name": "Distribuzione della correzione"
+      },
+      "brine_concentration": {
+        "name": "Concentrazione della salamoia"
+      },
+      "brine_max_rise": {
+        "name": "Aumento max di salinità"
+      },
+      "brine_doses_per_day": {
+        "name": "Dosi di salamoia al giorno"
+      },
+      "salinity_check_tolerance": {
+        "name": "Tolleranza del controllo con rifrattometro"
+      },
+      "regulation_measurement": {
+        "name": "Risultato del test"
+      },
+      "maint_control_probe_refractometer_check_interval_weeks": {
+        "name": "Controllo con rifrattometro della sonda {probe} (settimane)"
       }
     },
     "select": {
@@ -728,6 +779,32 @@
           "sunrise": "Allineata all'alba",
           "sunset": "Allineata al tramonto",
           "both": "Estesa tra alba e tramonto"
+        }
+      },
+      "regulation_mode": {
+        "name": "Regolazione del dosaggio",
+        "state": {
+          "off": "Disattivata",
+          "assisted": "Dosaggio assistito",
+          "brine": "Salamoia (salinità)"
+        }
+      },
+      "regulation_parameter": {
+        "name": "Parametro regolato",
+        "state": {
+          "kh": "KH / Alcalinità",
+          "ca": "Calcio",
+          "mg": "Magnesio",
+          "k": "Potassio",
+          "no3": "Nitrato",
+          "po4": "Fosfato",
+          "salinity": "Salinità"
+        }
+      },
+      "brine_salinity_source": {
+        "name": "Sensore di salinità",
+        "state": {
+          "none": "Nessuno"
         }
       }
     },
@@ -1505,6 +1582,41 @@
           "ec_sensor_s1": "Sensore di livello 1",
           "ec_sensor_s2": "Sensore di livello 2"
         }
+      },
+      "regulation_status": {
+        "name": "Stato della regolazione",
+        "state": {
+          "off": "Disattivata",
+          "bundle": "Teste raggruppate (non supportato)",
+          "not_configured": "Non configurata",
+          "waiting_data": "In attesa di dati",
+          "in_range": "Nell'obiettivo",
+          "proposal": "Nuova dose proposta",
+          "retest_suggested": "Nuovo test consigliato",
+          "regulating": "Regolazione in corso",
+          "too_salty": "Troppo salato",
+          "cannot_compensate": "Compensazione impossibile",
+          "source_unavailable": "Sensore di salinità non disponibile",
+          "recalibration_required": "Ricalibrazione della sonda necessaria"
+        }
+      },
+      "regulation_proposed_dose": {
+        "name": "Dose giornaliera proposta"
+      },
+      "regulation_consumption": {
+        "name": "Consumo"
+      },
+      "regulation_last_measurement": {
+        "name": "Ultimo risultato del test"
+      },
+      "regulation_tank_volume_used": {
+        "name": "Volume d'acqua usato"
+      },
+      "brine_salinity": {
+        "name": "Salinità (media 24 h)"
+      },
+      "brine_daily_volume": {
+        "name": "Salamoia prevista al giorno"
       }
     },
     "switch": {
@@ -1708,6 +1820,9 @@
       },
       "port_ato_temp_log": {
         "name": "Porta {port} registro temperatura ATO"
+      },
+      "maint_control_probe_refractometer_check_notify": {
+        "name": "Controllo con rifrattometro della sonda {probe} (notifiche)"
       }
     },
     "text": {
@@ -2280,6 +2395,28 @@
           "description": "Il nuovo nome del programma."
         }
       }
+    },
+    "record_measurement": {
+      "name": "Registra misura",
+      "description": "Registra un risultato di test per una testa ReefDose. In modalità assistita viene proposta una nuova dose giornaliera; in modalità salamoia, una salinità è il controllo con rifrattometro della sonda di salinità.",
+      "fields": {
+        "device_id": {
+          "name": "Testa",
+          "description": "Il dispositivo della testa ReefDose."
+        },
+        "value": {
+          "name": "Valore",
+          "description": "Valore misurato, nell'unità del parametro (dKH, ppm, ppt)."
+        },
+        "parameter": {
+          "name": "Parametro",
+          "description": "Parametro misurato. Predefinito: quello regolato dalla testa."
+        },
+        "measured_at": {
+          "name": "Misurato il",
+          "description": "Quando è stato fatto il test. Predefinito: ora."
+        }
+      }
     }
   },
   "exceptions": {
@@ -2345,6 +2482,9 @@
     },
     "wave_group_bad_order": {
       "message": "Il nuovo ordine deve elencare una volta ogni pompa del gruppo."
+    },
+    "bundled_daily_dose": {
+      "message": "Teste raggruppate: solo la testa 1 (Part 1, regolata sul test del calcio) ha una dose giornaliera, il dosatore ricava le altre teste dai rapporti del bundle."
     }
   },
   "issues": {

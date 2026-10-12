@@ -156,6 +156,9 @@
       },
       "port_ato_fault": {
         "name": "Port {port} ATO-Störung"
+      },
+      "regulation_alarm": {
+        "name": "Regelalarm"
       }
     },
     "button": {
@@ -395,6 +398,18 @@
       },
       "port_ato_stop": {
         "name": "Port {port} ATO stoppen"
+      },
+      "regulation_record": {
+        "name": "Testergebnis speichern"
+      },
+      "regulation_apply": {
+        "name": "Vorgeschlagene Dosis übernehmen"
+      },
+      "regulation_dismiss": {
+        "name": "Vorgeschlagene Dosis verwerfen"
+      },
+      "maint_control_probe_refractometer_check": {
+        "name": "Refraktometerprüfung der Sonde {probe}"
       }
     },
     "light": {
@@ -648,6 +663,42 @@
       },
       "port_ato_flow_rate": {
         "name": "Port {port} ATO-Durchfluss"
+      },
+      "regulation_target": {
+        "name": "Regelziel"
+      },
+      "regulation_potency": {
+        "name": "Wirkstärke des Zusatzes"
+      },
+      "regulation_tolerance": {
+        "name": "Regeltoleranz"
+      },
+      "regulation_tank_volume": {
+        "name": "Wasservolumen des Beckens"
+      },
+      "regulation_max_change": {
+        "name": "Max. Dosisänderung"
+      },
+      "regulation_correction_days": {
+        "name": "Korrekturzeitraum"
+      },
+      "brine_concentration": {
+        "name": "Konzentration der Salzlösung"
+      },
+      "brine_max_rise": {
+        "name": "Max. Salinitätsanstieg"
+      },
+      "brine_doses_per_day": {
+        "name": "Salzlösungsdosen pro Tag"
+      },
+      "salinity_check_tolerance": {
+        "name": "Toleranz der Refraktometerprüfung"
+      },
+      "regulation_measurement": {
+        "name": "Testergebnis"
+      },
+      "maint_control_probe_refractometer_check_interval_weeks": {
+        "name": "Refraktometerprüfung der Sonde {probe} (Wochen)"
       }
     },
     "select": {
@@ -728,6 +779,32 @@
           "sunrise": "Am Sonnenaufgang ausgerichtet",
           "sunset": "Am Sonnenuntergang ausgerichtet",
           "both": "Zwischen Auf- und Untergang gestreckt"
+        }
+      },
+      "regulation_mode": {
+        "name": "Dosierregelung",
+        "state": {
+          "off": "Aus",
+          "assisted": "Assistierte Dosierung",
+          "brine": "Salzlösung (Salinität)"
+        }
+      },
+      "regulation_parameter": {
+        "name": "Geregelter Parameter",
+        "state": {
+          "kh": "KH / Alkalinität",
+          "ca": "Calcium",
+          "mg": "Magnesium",
+          "k": "Kalium",
+          "no3": "Nitrat",
+          "po4": "Phosphat",
+          "salinity": "Salinität"
+        }
+      },
+      "brine_salinity_source": {
+        "name": "Salinitätssensor",
+        "state": {
+          "none": "Keiner"
         }
       }
     },
@@ -1505,6 +1582,41 @@
           "ec_sensor_s1": "Füllstandsensor 1",
           "ec_sensor_s2": "Füllstandsensor 2"
         }
+      },
+      "regulation_status": {
+        "name": "Regelstatus",
+        "state": {
+          "off": "Aus",
+          "bundle": "Gekoppelte Köpfe (nicht unterstützt)",
+          "not_configured": "Nicht konfiguriert",
+          "waiting_data": "Warte auf Daten",
+          "in_range": "Im Zielbereich",
+          "proposal": "Neue Dosis vorgeschlagen",
+          "retest_suggested": "Neuer Test empfohlen",
+          "regulating": "Regelung aktiv",
+          "too_salty": "Zu salzig",
+          "cannot_compensate": "Ausgleich unmöglich",
+          "source_unavailable": "Salinitätssensor nicht verfügbar",
+          "recalibration_required": "Neukalibrierung der Sonde erforderlich"
+        }
+      },
+      "regulation_proposed_dose": {
+        "name": "Vorgeschlagene Tagesdosis"
+      },
+      "regulation_consumption": {
+        "name": "Verbrauch"
+      },
+      "regulation_last_measurement": {
+        "name": "Letztes Testergebnis"
+      },
+      "regulation_tank_volume_used": {
+        "name": "Verwendetes Wasservolumen"
+      },
+      "brine_salinity": {
+        "name": "Salinität (24-h-Mittel)"
+      },
+      "brine_daily_volume": {
+        "name": "Geplante Salzlösung pro Tag"
       }
     },
     "switch": {
@@ -1708,6 +1820,9 @@
       },
       "port_ato_temp_log": {
         "name": "Port {port} ATO-Temperaturprotokoll"
+      },
+      "maint_control_probe_refractometer_check_notify": {
+        "name": "Refraktometerprüfung der Sonde {probe} (Benachrichtigungen)"
       }
     },
     "text": {
@@ -2280,6 +2395,28 @@
           "description": "Der neue Name des Programms."
         }
       }
+    },
+    "record_measurement": {
+      "name": "Messung speichern",
+      "description": "Speichert ein Testergebnis für einen ReefDose-Kopf. Im assistierten Modus wird eine neue Tagesdosis vorgeschlagen; im Salzlösungsmodus ist eine Salinität die Refraktometerprüfung der Salinitätssonde.",
+      "fields": {
+        "device_id": {
+          "name": "Kopf",
+          "description": "Das Gerät des ReefDose-Kopfes."
+        },
+        "value": {
+          "name": "Wert",
+          "description": "Gemessener Wert in der Einheit des Parameters (dKH, ppm, ppt)."
+        },
+        "parameter": {
+          "name": "Parameter",
+          "description": "Gemessener Parameter. Standardmäßig der vom Kopf geregelte."
+        },
+        "measured_at": {
+          "name": "Gemessen am",
+          "description": "Zeitpunkt des Tests. Standardmäßig jetzt."
+        }
+      }
     }
   },
   "exceptions": {
@@ -2345,6 +2482,9 @@
     },
     "wave_group_bad_order": {
       "message": "Die neue Reihenfolge muss jede Pumpe der Gruppe genau einmal enthalten."
+    },
+    "bundled_daily_dose": {
+      "message": "Gekoppelte Köpfe: nur Kopf 1 (Part 1, nach dem Calciumtest eingestellt) hat eine Tagesdosis, der Dosierer leitet die anderen Köpfe aus den Bundle-Verhältnissen ab."
     }
   },
   "issues": {

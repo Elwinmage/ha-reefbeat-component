@@ -564,3 +564,47 @@ wave_group_set:
       required: true
       selector:
         boolean:
+
+# Record a test result for a ReefDose head (dose regulation): in assisted
+# mode a new daily dose is proposed; in brine mode a salinity is the
+# refractometer check of the salinity probe.
+record_measurement:
+  fields:
+    device_id:
+      name: Head
+      description: The device of the ReefDose head.
+      required: true
+      selector:
+        device:
+          integration: redsea
+    value:
+      name: Value
+      description: Measured value, in the unit of the parameter (dKH, ppm, ppt).
+      required: true
+      example: 8.2
+      selector:
+        number:
+          min: 0
+          max: 2000
+          step: 0.01
+          mode: box
+    parameter:
+      name: Parameter
+      description: Measured parameter. Defaults to the parameter regulated by the head.
+      required: false
+      selector:
+        select:
+          options:
+            - kh
+            - ca
+            - mg
+            - k
+            - no3
+            - po4
+            - salinity
+    measured_at:
+      name: Measured at
+      description: When the test was done. Defaults to now.
+      required: false
+      selector:
+        datetime:
