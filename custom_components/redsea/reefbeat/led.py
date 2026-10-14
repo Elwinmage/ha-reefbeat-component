@@ -642,9 +642,11 @@ class ReefLedAPI(ReefBeatAPI):
                 self.get_data(LED_MANUAL_DURATION_INTERNAL_NAME, is_None_possible=True)
                 or 0
             )
+            # With a duration the lamp runs its manual levels for that time
+            # (/timer); without one, it stays in manual mode (/manual).
+            # One request either way.
             if duration > 0:
                 payload["duration"] = duration
-                await self._http_send(self._base_url + source, payload, "post")
             else:
                 source = "/manual"
 
