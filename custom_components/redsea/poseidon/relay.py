@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import socket
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -93,7 +94,11 @@ class Relay:
         for port 0)."""
         if self._server is None or not self._server.sockets:
             return self.port
-        return int(self._server.sockets[0].getsockname()[1])
+        sockets = list(self._server.sockets)
+        # With port 0, each address family gets its own random port: prefer
+        # the IPv4 one, the family devices connect over
+        ipv4 = [sock for sock in sockets if sock.family == socket.AF_INET]
+        return int((ipv4 or sockets)[0].getsockname()[1])
 
     async def async_start(self) -> None:
         """Listen on every address; raises OSError when the port is taken."""

@@ -237,3 +237,22 @@ async def test_pump_without_identity_records_nothing() -> None:
     sink = _Sink()
     await relay._pump(_Source(b"\xc0\x00", b""), sink, "", UP)  # type: ignore[arg-type]
     assert sink.data == b"\xc0\x00" and relay.traffic == {}
+
+
+def test_bound_port_prefers_ipv4() -> None:
+    """Port 0 on a dual-stack host: one random port per address family."""
+    import socket
+    from types import SimpleNamespace
+
+    def _sock(family: int, port: int) -> Any:
+        return SimpleNamespace(family=family, getsockname=lambda: ("::", port))
+
+    relay = Relay(0)
+    relay._server = SimpleNamespace(  # type: ignore[assignment]
+        sockets=[_sock(socket.AF_INET6, 41983), _sock(socket.AF_INET, 42449)]
+    )
+    assert relay.bound_port == 42449
+    # IPv6 only: its port all the same
+    relay._server = SimpleNamespace(sockets=[_sock(socket.AF_INET6, 41983)])  # type: ignore[assignment]
+    assert relay.bound_port == 41983
+    relay._server = None
