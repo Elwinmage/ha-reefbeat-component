@@ -50,6 +50,8 @@ from .dose_regulation_entities import regulation_entities
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
 from .i18n import translate, translate_list
 from .led_weather_entities import weather_entities
+from .poseidon import get_poseidon, is_poseidon_entry
+from .poseidon.switch_entity import PoseidonStrategySelect
 from .probe_entities import probe_display_name, tag_probe_entities
 from .reefbeat import fusion
 from .supplements_list import SUPPLEMENTS as SUPPLEMENTS_LIST
@@ -169,6 +171,18 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up ReefBeat select entities from a config entry."""
+    if is_poseidon_entry(config_entry):
+        poseidon = get_poseidon(hass)
+        if poseidon is not None:
+            poseidon.async_set_entity_adder(
+                "select",
+                lambda devices: async_add_entities(
+                    PoseidonStrategySelect(poseidon, hwid, device)
+                    for hwid, device in devices.items()
+                ),
+            )
+        return
+
     device = cast(ReefBeatCoordinator, hass.data[DOMAIN][config_entry.entry_id])
 
     entities: list[SelectEntity] = []

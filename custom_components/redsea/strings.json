@@ -3,11 +3,14 @@
     "abort": {
       "already_configured": "Device Already configured",
       "cannot_create": "Unable to create ReefBeat device with specified parameters",
-      "group_already_driven": "These lamps are already driven by a virtual LED"
+      "group_already_driven": "These lamps are already driven by a virtual LED",
+      "poseidon_no_cloud_account": "Poseidon needs a ReefBeat cloud account: add one first."
     },
     "error": {
       "auth_failed": "Authentification failed, check your crendentials",
-      "nothing_detected": "No device detected"
+      "nothing_detected": "No device detected",
+      "port_in_use": "This port is already used on this machine",
+      "invalid_host": "Not a valid IPv4 address"
     },
     "flow_title": "{name}",
     "progress": {
@@ -43,6 +46,15 @@
         "description": "{count} device(s) of this ReefBeat account are not in Home Assistant yet and answer at the address the cloud reports. They are pre-checked: uncheck any you don't want to add, then submit.\n\nNot reachable at their last known address (add them with a network scan or by IP): {unreachable}",
         "data": {
           "cloud_devices": "Devices to add"
+        }
+      },
+      "poseidon": {
+        "title": "Poseidon mode",
+        "description": "Poseidon puts a relay between your devices and the Red Sea broker, inside Home Assistant. Devices keep working with the ReefBeat app; their traffic goes through Home Assistant.\n\nThe proposed port is the first free one found. The address is the one devices use to reach Home Assistant. The cloud account is used to get the keys of devices that lack them.",
+        "data": {
+          "port": "Listening port",
+          "host": "Address of Home Assistant seen by the devices",
+          "cloud_account": "Cloud account"
         }
       }
     }
@@ -805,6 +817,14 @@
         "name": "Salinity sensor",
         "state": {
           "none": "None"
+        }
+      },
+      "poseidon_strategy": {
+        "name": "Poseidon strategy",
+        "state": {
+          "spy": "Spy",
+          "shadow": "Shadow",
+          "poseidon": "Poseidon"
         }
       }
     },
@@ -1831,6 +1851,12 @@
       },
       "maint_control_probe_refractometer_check_notify": {
         "name": "Refractometer check of probe {probe} (notifications)"
+      },
+      "poseidon_mode": {
+        "name": "Poseidon mode"
+      },
+      "poseidon_poll_pause": {
+        "name": "Polling pause (spy)"
       }
     },
     "text": {
@@ -1912,7 +1938,14 @@
       "no_free_port": "This hub has no free 12V port for the ATO module.",
       "cloud_devices_added": "{count} device(s) are being added.",
       "cloud_devices_unavailable": "The devices of this account could not be read from the ReefBeat cloud. Try again later.",
-      "cloud_devices_none": "Every device of this account is already in Home Assistant."
+      "cloud_devices_none": "Every device of this account is already in Home Assistant.",
+      "poseidon_not_running": "Poseidon is not running.",
+      "poseidon_nothing_to_add": "No device can be added.\n\nAlready in Poseidon mode: {poseidon}\nNo cloud credentials (local-only aquarium): {no_cloud}\nNot in the cloud account: {not_in_account}\nUnreachable: {unreachable}",
+      "poseidon_devices_added": "Done:\n{report}",
+      "poseidon_add_failed": "Adding the devices failed, see the logs.",
+      "poseidon_imported": "Import done: {added} added, {updated} updated, {skipped} skipped.",
+      "poseidon_export_link": "**{link_start}Download the keys of {count} devices{link_end}**\n\nThe link works for {minutes} minutes and opens in a new tab. The file holds the keys in clear: keep it safe.",
+      "poseidon_rescue_link": "**{link_start}Download the rescue script ({count} devices){link_end}**\n\nThe link works for {minutes} minutes and opens in a new tab. If Home Assistant cannot do it any more, `python3 {file}` switches the devices back to the Red Sea broker from any computer on their network (Python 3.8+, nothing else to install; `--dry-run` to only look, `--help` for the options).\n\nThe script holds the keys of the devices in clear: keep it safe, and download it again after adding devices."
     },
     "error": {
       "auth_failed": "Authentification failed, check your crendentials",
@@ -1924,10 +1957,16 @@
       "no_probe_detected": "No new probe of the selected type was detected. Put it in pairing mode and try again.",
       "group_min_members": "Choose at least two LEDs.",
       "group_duplicate_position": "Each LED must be given one position.",
-      "ato_install_failed": "The hub refused to install the ATO module. Check that the port is free and the ATO probe connected."
+      "ato_install_failed": "The hub refused to install the ATO module. Check that the port is free and the ATO probe connected.",
+      "nothing_selected": "Select at least one device",
+      "confirm_required": "Tick the box to confirm",
+      "invalid_watchdog_key": "The key must be exactly 16 characters",
+      "invalid_keystore": "This file is not a keystore",
+      "upload_missing": "The file sent is no longer available: send it again"
     },
     "progress": {
-      "applying": "Applying the new Wi-Fi credentials and locating the device on the network..."
+      "applying": "Applying the new Wi-Fi credentials and locating the device on the network...",
+      "poseidon_adding": "Getting the keys and switching the devices to Poseidon mode. A key capture takes about a minute per device."
     },
     "step": {
       "init": {
@@ -1944,7 +1983,12 @@
           "del_probe": "Remove a probe",
           "change_probe": "Replace a probe",
           "install_ato": "Install the ATO module",
-          "cloud_devices": "Add the devices of this account"
+          "cloud_devices": "Add the devices of this account",
+          "add_devices": "Add devices",
+          "settings_poseidon": "Poseidon settings",
+          "export_keystore": "Export the keys",
+          "import_keystore": "Import keys",
+          "rescue_script": "Rescue script"
         },
         "title": "Configuration"
       },
@@ -2049,6 +2093,38 @@
         "data": {
           "cloud_devices": "Devices to add"
         }
+      },
+      "add_devices": {
+        "title": "Add devices to Poseidon",
+        "description": "Devices marked 🔑 have no keys yet: getting them is destructive (see the next step). The others switch to Poseidon mode right away.\n\nAlready in Poseidon mode: {poseidon}\nNo cloud credentials (local-only aquarium): {no_cloud}\nNot in the cloud account: {not_in_account}\nUnreachable: {unreachable}",
+        "data": {
+          "devices": "Devices"
+        }
+      },
+      "add_devices_confirm": {
+        "title": "Key capture: destructive",
+        "description": "To get their keys, these devices are deleted from the ReefBeat cloud and created again: {devices}.\n\n- they are unbound from their aquarium, and the app may need them paired again;\n- schedules, presets and history kept in the cloud for them can be lost;\n- their configuration is saved before and compared after: RSRUN and RSWAVE get theirs back automatically, for the others what changed is listed in a notification.\n\nHome Assistant keeps the keys, even if Poseidon is removed.",
+        "data": {
+          "confirm": "I understand, get the keys"
+        }
+      },
+      "settings_poseidon": {
+        "title": "Poseidon settings",
+        "description": "Debug mode writes every frame crossing the relay to {logs}/poseidon.jsonl (rotated), decrypted: data are in clear there.\n\nA device in Poseidon mode is reported silent (repair issue, `silent` attribute of its switch) when nothing went through the relay for it during the delay.\n\nThe watchdog key encrypts the `is_alive` exchanges: copy it to the watchdog configuration. Leave it empty to answer no watchdog.\n\nThe strategy applies to the devices in Poseidon mode that have none of their own (the Poseidon strategy select of each device). Spy records frames, HTTP requests and comparisons in {logs}/spy.jsonl. Shadow merges the pushed states and writes the differences left in {logs}/shadow.jsonl. Poseidon polls every N minutes and uses the pushed states.",
+        "data": {
+          "debug": "Debug mode (decrypted frames in a file)",
+          "silent_minutes": "Delay before a device is silent (minutes)",
+          "watchdog_key": "Watchdog key (16 characters)",
+          "strategy": "Default strategy of the devices",
+          "reduced_minutes": "Polling interval of the Poseidon strategy (minutes)"
+        }
+      },
+      "import_keystore": {
+        "title": "Import keys",
+        "description": "A keystore in the format of the CLI (keystore.json) or of an export, sent from this browser.\n\nA device is only replaced by a more recent record; devices without keys are skipped.",
+        "data": {
+          "file": "Keystore file (.json)"
+        }
       }
     }
   },
@@ -2058,7 +2134,8 @@
         "cloud_api": "Cloud Account",
         "local_detect": "Local detection",
         "manual_mode": "Manual Mode",
-        "virtual_led": "Virtual Led"
+        "virtual_led": "Virtual Led",
+        "poseidon": "Poseidon mode"
       }
     },
     "ip_address": {
@@ -2071,6 +2148,13 @@
         "auto": "Update automatically",
         "repair": "Ask me (repair)",
         "off": "Do nothing"
+      }
+    },
+    "poseidon_strategy": {
+      "options": {
+        "spy": "Spy: polling unchanged, everything recorded (spy.jsonl)",
+        "shadow": "Shadow: polling unchanged, pushed states merged (shadow.jsonl)",
+        "poseidon": "Poseidon: polling every N minutes, pushed states used"
       }
     }
   },
@@ -2425,6 +2509,10 @@
           "description": "When the test was done. Defaults to now."
         }
       }
+    },
+    "poseidon_export": {
+      "name": "Poseidon: export the keys",
+      "description": "Write the keys of the Poseidon devices to a file of /config/redsea/poseidon, in the format of the CLI."
     }
   },
   "exceptions": {
@@ -2493,6 +2581,9 @@
     },
     "bundled_daily_dose": {
       "message": "Bundled heads: only head 1 (Part 1, set from the calcium test) has a daily dose, the doser derives the other heads from the bundle ratios."
+    },
+    "poseidon_not_running": {
+      "message": "Poseidon is not running."
     }
   },
   "issues": {
@@ -2556,6 +2647,14 @@
           "device_not_found": "The device no longer answers at this address: the issue will come back if it is found again."
         }
       }
+    },
+    "poseidon_port_in_use": {
+      "title": "Poseidon: port {port} is taken",
+      "description": "Another service listens on port {port}: the Poseidon relay cannot start, so the devices in Poseidon mode cannot reach the Red Sea cloud. Stop that service, or remove Poseidon and add it again with another port."
+    },
+    "poseidon_device_silent": {
+      "title": "{name}: silent in Poseidon mode",
+      "description": "{name} is in Poseidon mode but nothing went through the relay for it for more than {minutes} minutes: it may be off, or unable to reach Home Assistant. It is not switched back automatically; this issue goes away by itself when its traffic resumes."
     }
   }
 }

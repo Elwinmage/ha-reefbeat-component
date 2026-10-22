@@ -61,12 +61,15 @@ ADD_CLOUD_API: Final[str] = "cloud_api"
 ADD_LOCAL_DETECT: Final[str] = "local_detect"
 ADD_MANUAL_MODE: Final[str] = "manual_mode"
 VIRTUAL_LED: Final[str] = "virtual_led"
+# Poseidon mode (MQTT relay), see poseidon/README.md
+ADD_POSEIDON: Final[str] = "poseidon"
 
 ADD_TYPES: Final[tuple[str, ...]] = (
     ADD_CLOUD_API,
     ADD_LOCAL_DETECT,
     ADD_MANUAL_MODE,
     VIRTUAL_LED,
+    ADD_POSEIDON,
 )
 
 # CLOUD

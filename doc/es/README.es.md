@@ -263,6 +263,7 @@ Todos están documentados juntos en la [página del proyecto ReefTech](https://e
 - [ReefWave](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/es/reefwave.es.md#reefwave)
 - [Mantenimiento](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/es/maintenance.es.md#mantenimiento)
 - [Cloud API](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/es/cloud-api.es.md#api-cloud)
+- [Modo Poseidon](poseidon.es.md#modo-poseidon)
 - [FAQ](#faq)
 
 # Instalación via HACS

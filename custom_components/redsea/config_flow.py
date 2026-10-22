@@ -60,6 +60,7 @@ from .const import (
     ADD_CLOUD_API,
     ADD_LOCAL_DETECT,
     ADD_MANUAL_MODE,
+    ADD_POSEIDON,
     ADD_TYPES,
     ATO_SCAN_INTERVAL,
     CLOUD_DEVICE_TYPE,
@@ -131,6 +132,8 @@ from .const import (
     WIFI_REDISCOVER_MAX_ATTEMPTS,
 )
 from .groups import cloud_groups, discovery_unique_id
+from .poseidon.flow import PoseidonConfigFlowMixin, PoseidonOptionsFlowMixin
+from .poseidon.manager import is_poseidon_entry
 from .reefbeat import parse
 from .wifi import (
     connect_wifi,
@@ -319,7 +322,9 @@ def _checkbox_list(options: list[SelectOptionDict]) -> SelectSelector:
 # =============================================================================
 
 
-class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class ReefBeatConfigFlow(
+    PoseidonConfigFlowMixin, config_entries.ConfigFlow, domain=DOMAIN
+):
     """ReefBeat config flow."""
 
     VERSION = 1
@@ -474,7 +479,15 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     {
                         vol.Required(
                             CONFIG_FLOW_ADD_TYPE, default=ADD_LOCAL_DETECT
-                        ): vol.In(ADD_TYPES)
+                        ): SelectSelector(
+                            # A selector, so the options take their labels
+                            # from selector.add_type in the translations
+                            SelectSelectorConfig(
+                                options=list(ADD_TYPES),
+                                mode=SelectSelectorMode.LIST,
+                                translation_key=CONFIG_FLOW_ADD_TYPE,
+                            )
+                        )
                     }
                 ),
             )
@@ -494,6 +507,9 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             if add_type == ADD_LOCAL_DETECT:
                 return await self.auto_detect(subnetwork)
+
+            if add_type == ADD_POSEIDON:
+                return await self.async_step_poseidon()
 
             if add_type == VIRTUAL_LED:
                 title = f"{VIRTUAL_LED}-{int(time())}"
@@ -940,7 +956,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 # Options flow
-class OptionsFlowHandler(config_entries.OptionsFlow):
+class OptionsFlowHandler(PoseidonOptionsFlowMixin, config_entries.OptionsFlow):
     """Handle integration options.
 
     Structure:
@@ -986,13 +1002,17 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self._wifi_manual_candidates: list[str] = []
         # Group (virtual LED): members chosen, waiting to be ordered
         self._new_group_members: list[str] = []
+        # Poseidon entry: devices being added
+        self._poseidon_init()
 
     # ------------------------------------------------------------------
     # Dispatcher
     # ------------------------------------------------------------------
 
     def _entry_kind(self) -> str:
-        """Classify the config entry: 'virtual', 'cloud' or 'local'."""
+        """Classify the config entry: 'virtual', 'cloud', 'poseidon' or 'local'."""
+        if is_poseidon_entry(self._config_entry):
+            return "poseidon"
         if self._config_entry.title.startswith(VIRTUAL_LED + "-"):
             return "virtual"
         hw_model = self._config_entry.data.get(CONFIG_FLOW_HW_MODEL)
@@ -1005,6 +1025,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     ) -> config_entries.ConfigFlowResult:
         """Route to the right sub-flow based on the entry kind."""
         kind = self._entry_kind()
+
+        if kind == "poseidon":
+            return await self.async_step_poseidon_menu()
 
         if kind == "virtual":
             # Virtual LEDs only choose and order their LEDs — no menu, no Wi-Fi.

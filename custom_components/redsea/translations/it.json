@@ -3,11 +3,14 @@
     "abort": {
       "already_configured": "Dispositivo già configurato",
       "cannot_create": "Impossibile creare il dispositivo ReefBeat con i parametri specificati",
-      "group_already_driven": "Queste lampade sono già comandate da un LED virtuale"
+      "group_already_driven": "Queste lampade sono già comandate da un LED virtuale",
+      "poseidon_no_cloud_account": "Poseidon richiede un account cloud ReefBeat: aggiungine prima uno."
     },
     "error": {
       "auth_failed": "Autenticazione fallita, verificare le credenziali",
-      "nothing_detected": "Nessun dispositivo rilevato"
+      "nothing_detected": "Nessun dispositivo rilevato",
+      "port_in_use": "Questa porta è già usata su questa macchina",
+      "invalid_host": "Indirizzo IPv4 non valido"
     },
     "flow_title": "{name}",
     "progress": {
@@ -43,6 +46,15 @@
         "description": "{count} dispositivo/i di questo account ReefBeat non sono ancora in Home Assistant e rispondono all'indirizzo indicato dal cloud. Sono preselezionati: deseleziona quelli da non aggiungere, poi conferma.\n\nNon raggiungibili all'ultimo indirizzo noto (aggiungili con una scansione di rete o tramite IP): {unreachable}",
         "data": {
           "cloud_devices": "Dispositivi da aggiungere"
+        }
+      },
+      "poseidon": {
+        "title": "Modalità Poseidon",
+        "description": "Poseidon mette un relè tra i tuoi dispositivi e il broker Red Sea, dentro Home Assistant. I dispositivi continuano a funzionare con l'app ReefBeat; il loro traffico passa da Home Assistant.\n\nLa porta proposta è la prima porta libera trovata. L'indirizzo è quello con cui i dispositivi raggiungono Home Assistant. L'account cloud serve a recuperare le chiavi dei dispositivi che non le hanno.",
+        "data": {
+          "port": "Porta di ascolto",
+          "host": "Indirizzo di Home Assistant visto dai dispositivi",
+          "cloud_account": "Account cloud"
         }
       }
     }
@@ -805,6 +817,14 @@
         "name": "Sensore di salinità",
         "state": {
           "none": "Nessuno"
+        }
+      },
+      "poseidon_strategy": {
+        "name": "Strategia Poseidon",
+        "state": {
+          "spy": "Spia",
+          "shadow": "Shadow",
+          "poseidon": "Poseidon"
         }
       }
     },
@@ -1823,6 +1843,12 @@
       },
       "maint_control_probe_refractometer_check_notify": {
         "name": "Controllo con rifrattometro della sonda {probe} (notifiche)"
+      },
+      "poseidon_mode": {
+        "name": "Modalità Poseidon"
+      },
+      "poseidon_poll_pause": {
+        "name": "Pausa dell'interrogazione (spia)"
       }
     },
     "text": {
@@ -1904,7 +1930,14 @@
       "no_free_port": "Questo hub non ha una porta 12V libera per il modulo ATO.",
       "cloud_devices_added": "Aggiunta di {count} dispositivo/i in corso.",
       "cloud_devices_unavailable": "Impossibile leggere i dispositivi di questo account dal cloud ReefBeat. Riprova più tardi.",
-      "cloud_devices_none": "Tutti i dispositivi di questo account sono già in Home Assistant."
+      "cloud_devices_none": "Tutti i dispositivi di questo account sono già in Home Assistant.",
+      "poseidon_not_running": "Poseidon non è avviato.",
+      "poseidon_nothing_to_add": "Nessun dispositivo può essere aggiunto.\n\nGià in modalità Poseidon: {poseidon}\nSenza credenziali cloud (acquario locale): {no_cloud}\nNon presenti nell'account cloud: {not_in_account}\nNon raggiungibili: {unreachable}",
+      "poseidon_devices_added": "Fatto:\n{report}",
+      "poseidon_add_failed": "L'aggiunta dei dispositivi non è riuscita, vedi i log.",
+      "poseidon_imported": "Importazione completata: {added} aggiunti, {updated} aggiornati, {skipped} saltati.",
+      "poseidon_export_link": "**{link_start}Scarica le chiavi di {count} dispositivi{link_end}**\n\nIl link è valido {minutes} minuti e si apre in una nuova scheda. Il file contiene le chiavi in chiaro: conservalo al sicuro.",
+      "poseidon_rescue_link": "**{link_start}Scarica lo script di emergenza ({count} dispositivi){link_end}**\n\nIl link è valido {minutes} minuti e si apre in una nuova scheda. Se Home Assistant non può più farlo, `python3 {file}` riporta i dispositivi sul broker Red Sea da qualsiasi computer della loro rete (Python 3.8+, nient'altro da installare; `--dry-run` per guardare soltanto, `--help` per le opzioni).\n\nLo script contiene le chiavi dei dispositivi in chiaro: conservalo al sicuro, e riscaricalo dopo aver aggiunto dispositivi."
     },
     "error": {
       "auth_failed": "Autenticazione fallita, verifica le credenziali",
@@ -1916,10 +1949,16 @@
       "no_probe_detected": "Nessuna nuova sonda del tipo selezionato rilevata. Mettila in abbinamento e riprova.",
       "group_min_members": "Scegli almeno due LED.",
       "group_duplicate_position": "Ogni LED deve avere una sola posizione.",
-      "ato_install_failed": "L'hub ha rifiutato di installare il modulo ATO. Verifica che la porta sia libera e la sonda ATO collegata."
+      "ato_install_failed": "L'hub ha rifiutato di installare il modulo ATO. Verifica che la porta sia libera e la sonda ATO collegata.",
+      "nothing_selected": "Seleziona almeno un dispositivo",
+      "confirm_required": "Spunta la casella per confermare",
+      "invalid_watchdog_key": "La chiave deve essere lunga esattamente 16 caratteri",
+      "invalid_keystore": "Questo file non è un keystore",
+      "upload_missing": "Il file inviato non è più disponibile: invialo di nuovo"
     },
     "progress": {
-      "applying": "Applicazione delle nuove credenziali Wi-Fi e ricerca del dispositivo sulla rete..."
+      "applying": "Applicazione delle nuove credenziali Wi-Fi e ricerca del dispositivo sulla rete...",
+      "poseidon_adding": "Recupero delle chiavi e passaggio dei dispositivi in modalità Poseidon. Un recupero delle chiavi richiede circa un minuto per dispositivo."
     },
     "step": {
       "init": {
@@ -1936,7 +1975,12 @@
           "del_probe": "Rimuovi sonda",
           "change_probe": "Sostituisci una sonda",
           "install_ato": "Installa il modulo ATO",
-          "cloud_devices": "Aggiungi i dispositivi di questo account"
+          "cloud_devices": "Aggiungi i dispositivi di questo account",
+          "add_devices": "Aggiungi dispositivi",
+          "settings_poseidon": "Impostazioni di Poseidon",
+          "export_keystore": "Esporta le chiavi",
+          "import_keystore": "Importa chiavi",
+          "rescue_script": "Script di emergenza"
         },
         "title": "Configurazione"
       },
@@ -2041,6 +2085,38 @@
         "data": {
           "cloud_devices": "Dispositivi da aggiungere"
         }
+      },
+      "add_devices": {
+        "title": "Aggiungi dispositivi a Poseidon",
+        "description": "I dispositivi segnati con 🔑 non hanno ancora le chiavi: recuperarle è distruttivo (vedi il passo successivo). Gli altri passano subito in modalità Poseidon.\n\nGià in modalità Poseidon: {poseidon}\nSenza credenziali cloud (acquario locale): {no_cloud}\nNon presenti nell'account cloud: {not_in_account}\nNon raggiungibili: {unreachable}",
+        "data": {
+          "devices": "Dispositivi"
+        }
+      },
+      "add_devices_confirm": {
+        "title": "Recupero delle chiavi: distruttivo",
+        "description": "Per recuperare le loro chiavi, questi dispositivi vengono eliminati dal cloud ReefBeat e ricreati: {devices}.\n\n- vengono scollegati dal loro acquario, e l'app potrebbe chiedere di riassociarli;\n- programmi, preset e cronologia salvati nel cloud per loro possono andare persi;\n- la loro configurazione viene salvata prima e confrontata dopo: RSRUN e RSWAVE riottengono la loro automaticamente, per gli altri le modifiche sono elencate in una notifica.\n\nHome Assistant conserva le chiavi, anche se Poseidon viene rimosso.",
+        "data": {
+          "confirm": "Ho capito, recupera le chiavi"
+        }
+      },
+      "settings_poseidon": {
+        "title": "Impostazioni di Poseidon",
+        "description": "La modalità debug scrive ogni frame che attraversa il relè in {logs}/poseidon.jsonl (con rotazione), decifrato: lì i dati sono in chiaro.\n\nUn dispositivo in modalità Poseidon è segnalato silenzioso (avviso di riparazione, attributo `silent` del suo interruttore) quando nulla è passato per il relè per lui durante il ritardo.\n\nLa chiave del watchdog cifra gli scambi `is_alive`: copiala nella configurazione del watchdog. Lasciala vuota per non rispondere a nessun watchdog.\n\nLa strategia si applica ai dispositivi in modalità Poseidon che non ne hanno una propria (il selettore Strategia Poseidon di ogni dispositivo). Spia registra frame, richieste HTTP e confronti in {logs}/spy.jsonl. Shadow unisce gli stati inviati e scrive le differenze rimaste in {logs}/shadow.jsonl. Poseidon interroga ogni N minuti e usa gli stati inviati.",
+        "data": {
+          "debug": "Modalità debug (frame decifrati in un file)",
+          "silent_minutes": "Ritardo prima che un dispositivo sia silenzioso (minuti)",
+          "watchdog_key": "Chiave del watchdog (16 caratteri)",
+          "strategy": "Strategia predefinita dei dispositivi",
+          "reduced_minutes": "Intervallo di interrogazione della strategia Poseidon (minuti)"
+        }
+      },
+      "import_keystore": {
+        "title": "Importa chiavi",
+        "description": "Un keystore nel formato della CLI (keystore.json) o di un'esportazione, inviato da questo browser.\n\nUn dispositivo viene sostituito solo da un record più recente; i dispositivi senza chiavi vengono ignorati.",
+        "data": {
+          "file": "File keystore (.json)"
+        }
       }
     }
   },
@@ -2050,7 +2126,8 @@
         "cloud_api": "Account cloud",
         "local_detect": "Rilevamento locale",
         "manual_mode": "Modalità manuale",
-        "virtual_led": "LED virtuale"
+        "virtual_led": "LED virtuale",
+        "poseidon": "Modalità Poseidon"
       }
     },
     "ip_address": {
@@ -2063,6 +2140,13 @@
         "auto": "Aggiorna automaticamente",
         "repair": "Chiedimi (riparazione)",
         "off": "Non fare nulla"
+      }
+    },
+    "poseidon_strategy": {
+      "options": {
+        "spy": "Spia: interrogazione invariata, tutto registrato (spy.jsonl)",
+        "shadow": "Shadow: interrogazione invariata, stati inviati uniti (shadow.jsonl)",
+        "poseidon": "Poseidon: interrogazione ogni N minuti, stati inviati usati"
       }
     }
   },
@@ -2417,6 +2501,10 @@
           "description": "Quando è stato fatto il test. Predefinito: ora."
         }
       }
+    },
+    "poseidon_export": {
+      "name": "Poseidon: esporta le chiavi",
+      "description": "Scrive le chiavi dei dispositivi Poseidon in un file di /config/redsea/poseidon, nel formato della CLI."
     }
   },
   "exceptions": {
@@ -2485,6 +2573,9 @@
     },
     "bundled_daily_dose": {
       "message": "Teste raggruppate: solo la testa 1 (Part 1, regolata sul test del calcio) ha una dose giornaliera, il dosatore ricava le altre teste dai rapporti del bundle."
+    },
+    "poseidon_not_running": {
+      "message": "Poseidon non è avviato."
     }
   },
   "issues": {
@@ -2548,6 +2639,14 @@
           "device_not_found": "Il dispositivo non risponde più a questo indirizzo: il problema tornerà se verrà ritrovato lì."
         }
       }
+    },
+    "poseidon_port_in_use": {
+      "title": "Poseidon: la porta {port} è occupata",
+      "description": "Un altro servizio è in ascolto sulla porta {port}: il relè Poseidon non può avviarsi, quindi i dispositivi in modalità Poseidon non raggiungono il cloud Red Sea. Arresta quel servizio, oppure rimuovi Poseidon e aggiungilo di nuovo con un'altra porta."
+    },
+    "poseidon_device_silent": {
+      "title": "{name}: silenzioso in modalità Poseidon",
+      "description": "{name} è in modalità Poseidon ma nulla è passato dal relè per lui da più di {minutes} minuti: potrebbe essere spento, o non raggiungere più Home Assistant. Non viene riportato in modalità normale automaticamente; questo avviso scompare da solo quando il suo traffico riprende."
     }
   }
 }

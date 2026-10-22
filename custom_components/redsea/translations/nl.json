@@ -3,11 +3,14 @@
     "abort": {
       "already_configured": "Apparaat al geconfigureerd",
       "cannot_create": "Kan ReefBeat-apparaat niet aanmaken met de opgegeven parameters",
-      "group_already_driven": "Deze lampen worden al door een virtuele LED aangestuurd"
+      "group_already_driven": "Deze lampen worden al door een virtuele LED aangestuurd",
+      "poseidon_no_cloud_account": "Poseidon heeft een ReefBeat-cloudaccount nodig: voeg er eerst een toe."
     },
     "error": {
       "auth_failed": "Authenticatie mislukt, controleer je gegevens",
-      "nothing_detected": "Geen apparaat gedetecteerd"
+      "nothing_detected": "Geen apparaat gedetecteerd",
+      "port_in_use": "Deze poort is al in gebruik op deze machine",
+      "invalid_host": "Geen geldig IPv4-adres"
     },
     "flow_title": "{name}",
     "progress": {
@@ -43,6 +46,15 @@
         "description": "{count} apparaat/apparaten van dit ReefBeat-account staan nog niet in Home Assistant en antwoorden op het adres dat de cloud meldt. Ze zijn aangevinkt: vink uit wat u niet wilt toevoegen en verstuur.\n\nNiet bereikbaar op hun laatst bekende adres (voeg ze toe via een netwerkscan of op IP): {unreachable}",
         "data": {
           "cloud_devices": "Toe te voegen apparaten"
+        }
+      },
+      "poseidon": {
+        "title": "Poseidon-modus",
+        "description": "Poseidon plaatst in Home Assistant een relais tussen je apparaten en de Red Sea-broker. De apparaten blijven werken met de ReefBeat-app; hun verkeer loopt via Home Assistant.\n\nDe voorgestelde poort is de eerste vrije die gevonden is. Het adres is het adres waarmee de apparaten Home Assistant bereiken. Het cloudaccount wordt gebruikt om de sleutels op te halen van apparaten die er nog geen hebben.",
+        "data": {
+          "port": "Luisterpoort",
+          "host": "Adres van Home Assistant zoals de apparaten het zien",
+          "cloud_account": "Cloudaccount"
         }
       }
     }
@@ -805,6 +817,14 @@
         "name": "Saliniteitssensor",
         "state": {
           "none": "Geen"
+        }
+      },
+      "poseidon_strategy": {
+        "name": "Poseidon-strategie",
+        "state": {
+          "spy": "Spion",
+          "shadow": "Shadow",
+          "poseidon": "Poseidon"
         }
       }
     },
@@ -1831,6 +1851,12 @@
       },
       "maint_control_probe_refractometer_check_notify": {
         "name": "Refractometercontrole van sonde {probe} (meldingen)"
+      },
+      "poseidon_mode": {
+        "name": "Poseidon-modus"
+      },
+      "poseidon_poll_pause": {
+        "name": "Opvraagpauze (spion)"
       }
     },
     "text": {
@@ -1912,7 +1938,14 @@
       "no_free_port": "Deze hub heeft geen vrije 12V-poort voor de ATO-module.",
       "cloud_devices_added": "{count} apparaat/apparaten worden toegevoegd.",
       "cloud_devices_unavailable": "De apparaten van dit account konden niet uit de ReefBeat-cloud worden gelezen. Probeer het later opnieuw.",
-      "cloud_devices_none": "Alle apparaten van dit account staan al in Home Assistant."
+      "cloud_devices_none": "Alle apparaten van dit account staan al in Home Assistant.",
+      "poseidon_not_running": "Poseidon draait niet.",
+      "poseidon_nothing_to_add": "Er kan geen apparaat worden toegevoegd.\n\nAl in Poseidon-modus: {poseidon}\nZonder cloudgegevens (lokaal aquarium): {no_cloud}\nNiet in het cloudaccount: {not_in_account}\nOnbereikbaar: {unreachable}",
+      "poseidon_devices_added": "Klaar:\n{report}",
+      "poseidon_add_failed": "Het toevoegen van de apparaten is mislukt, zie de logboeken.",
+      "poseidon_imported": "Import klaar: {added} toegevoegd, {updated} bijgewerkt, {skipped} overgeslagen.",
+      "poseidon_export_link": "**{link_start}Sleutels van {count} apparaten downloaden{link_end}**\n\nDe link is {minutes} minuten geldig en opent in een nieuw tabblad. Het bestand bevat de sleutels leesbaar: bewaar het veilig.",
+      "poseidon_rescue_link": "**{link_start}Noodscript downloaden ({count} apparaten){link_end}**\n\nDe link is {minutes} minuten geldig en opent in een nieuw tabblad. Kan Home Assistant het niet meer, dan zet `python3 {file}` de apparaten terug op de Red Sea-broker vanaf elke computer in hun netwerk (Python 3.8+, verder niets te installeren; `--dry-run` om alleen te kijken, `--help` voor de opties).\n\nHet script bevat de sleutels van de apparaten leesbaar: bewaar het veilig en download het opnieuw na het toevoegen van apparaten."
     },
     "error": {
       "auth_failed": "Verificatie mislukt, controleer je gegevens",
@@ -1924,10 +1957,16 @@
       "no_probe_detected": "Geen nieuwe sonde van het gekozen type gedetecteerd. Zet hem in koppelmodus en probeer opnieuw.",
       "group_min_members": "Kies minstens twee LED's.",
       "group_duplicate_position": "Elke LED moet precies één positie krijgen.",
-      "ato_install_failed": "De hub weigerde de ATO-module te installeren. Controleer of de poort vrij is en de ATO-sonde aangesloten."
+      "ato_install_failed": "De hub weigerde de ATO-module te installeren. Controleer of de poort vrij is en de ATO-sonde aangesloten.",
+      "nothing_selected": "Selecteer minstens één apparaat",
+      "confirm_required": "Vink het vakje aan om te bevestigen",
+      "invalid_watchdog_key": "De sleutel moet precies 16 tekens lang zijn",
+      "invalid_keystore": "Dit bestand is geen keystore",
+      "upload_missing": "Het verzonden bestand is niet meer beschikbaar: verzend het opnieuw"
     },
     "progress": {
-      "applying": "Nieuwe Wi-Fi-inloggegevens toepassen en het apparaat op het netwerk lokaliseren..."
+      "applying": "Nieuwe Wi-Fi-inloggegevens toepassen en het apparaat op het netwerk lokaliseren...",
+      "poseidon_adding": "De sleutels worden opgehaald en de apparaten naar de Poseidon-modus geschakeld. Sleutels ophalen duurt ongeveer een minuut per apparaat."
     },
     "step": {
       "init": {
@@ -1944,7 +1983,12 @@
           "del_probe": "Sonde verwijderen",
           "change_probe": "Sonde vervangen",
           "install_ato": "ATO-module installeren",
-          "cloud_devices": "Apparaten van dit account toevoegen"
+          "cloud_devices": "Apparaten van dit account toevoegen",
+          "add_devices": "Apparaten toevoegen",
+          "settings_poseidon": "Poseidon-instellingen",
+          "export_keystore": "Sleutels exporteren",
+          "import_keystore": "Sleutels importeren",
+          "rescue_script": "Noodscript"
         },
         "title": "Configuratie"
       },
@@ -2049,6 +2093,38 @@
         "data": {
           "cloud_devices": "Toe te voegen apparaten"
         }
+      },
+      "add_devices": {
+        "title": "Apparaten aan Poseidon toevoegen",
+        "description": "Apparaten met 🔑 hebben nog geen sleutels: die ophalen is destructief (zie de volgende stap). De andere schakelen meteen naar de Poseidon-modus.\n\nAl in Poseidon-modus: {poseidon}\nZonder cloudgegevens (lokaal aquarium): {no_cloud}\nNiet in het cloudaccount: {not_in_account}\nOnbereikbaar: {unreachable}",
+        "data": {
+          "devices": "Apparaten"
+        }
+      },
+      "add_devices_confirm": {
+        "title": "Sleutels ophalen: destructief",
+        "description": "Om hun sleutels op te halen, worden deze apparaten uit de ReefBeat-cloud verwijderd en opnieuw aangemaakt: {devices}.\n\n- ze worden losgekoppeld van hun aquarium, en de app kan vragen ze opnieuw te koppelen;\n- schema's, presets en geschiedenis die in de cloud voor hen bewaard worden, kunnen verloren gaan;\n- hun configuratie wordt vooraf opgeslagen en achteraf vergeleken: RSRUN en RSWAVE krijgen de hunne automatisch terug, voor de andere wordt wat veranderd is in een melding vermeld.\n\nHome Assistant bewaart de sleutels, ook als Poseidon verwijderd wordt.",
+        "data": {
+          "confirm": "Begrepen, sleutels ophalen"
+        }
+      },
+      "settings_poseidon": {
+        "title": "Poseidon-instellingen",
+        "description": "De debugmodus schrijft elk frame dat het relais passeert ontsleuteld naar {logs}/poseidon.jsonl (geroteerd): de gegevens staan daar in leesbare vorm.\n\nEen apparaat in Poseidon-modus wordt als stil gemeld (reparatiemelding, attribuut `silent` van zijn schakelaar) wanneer er gedurende de termijn niets voor het apparaat door het relais ging.\n\nDe watchdog-sleutel versleutelt de `is_alive`-uitwisselingen: kopieer hem naar de watchdog-configuratie. Laat leeg om geen enkele watchdog te antwoorden.\n\nDe strategie geldt voor de apparaten in Poseidon-modus zonder eigen strategie (de keuzelijst Poseidon-strategie van elk apparaat). Spion legt frames, HTTP-verzoeken en vergelijkingen vast in {logs}/spy.jsonl. Shadow voegt de verzonden toestanden samen en schrijft de resterende verschillen naar {logs}/shadow.jsonl. Poseidon vraagt elke N minuten op en gebruikt de verzonden toestanden.",
+        "data": {
+          "debug": "Debugmodus (ontsleutelde frames in een bestand)",
+          "silent_minutes": "Wachttijd voordat een apparaat stil is (minuten)",
+          "watchdog_key": "Watchdog-sleutel (16 tekens)",
+          "strategy": "Standaardstrategie van de apparaten",
+          "reduced_minutes": "Opvraaginterval van de Poseidon-strategie (minuten)"
+        }
+      },
+      "import_keystore": {
+        "title": "Sleutels importeren",
+        "description": "Een keystore in het formaat van de CLI (keystore.json) of van een export, verzonden vanuit deze browser.\n\nEen apparaat wordt alleen vervangen door een recenter record; apparaten zonder sleutels worden overgeslagen.",
+        "data": {
+          "file": "Keystore-bestand (.json)"
+        }
       }
     }
   },
@@ -2058,7 +2134,8 @@
         "cloud_api": "Cloud account",
         "local_detect": "Lokale detectie",
         "manual_mode": "Handmatige modus",
-        "virtual_led": "Virtuele Led"
+        "virtual_led": "Virtuele Led",
+        "poseidon": "Poseidon-modus"
       }
     },
     "ip_address": {
@@ -2071,6 +2148,13 @@
         "auto": "Automatisch bijwerken",
         "repair": "Vraag het mij (reparatie)",
         "off": "Niets doen"
+      }
+    },
+    "poseidon_strategy": {
+      "options": {
+        "spy": "Spion: opvragen ongewijzigd, alles vastgelegd (spy.jsonl)",
+        "shadow": "Shadow: opvragen ongewijzigd, verzonden toestanden samengevoegd (shadow.jsonl)",
+        "poseidon": "Poseidon: opvragen elke N minuten, verzonden toestanden gebruikt"
       }
     }
   },
@@ -2425,6 +2509,10 @@
           "description": "Wanneer de test werd gedaan. Standaard nu."
         }
       }
+    },
+    "poseidon_export": {
+      "name": "Poseidon: sleutels exporteren",
+      "description": "Schrijft de sleutels van de Poseidon-apparaten naar een bestand in /config/redsea/poseidon, in het formaat van de CLI."
     }
   },
   "exceptions": {
@@ -2493,6 +2581,9 @@
     },
     "bundled_daily_dose": {
       "message": "Gekoppelde koppen: alleen kop 1 (Part 1, ingesteld op de calciumtest) heeft een dagdosis, de doseerpomp leidt de andere koppen af uit de bundelverhoudingen."
+    },
+    "poseidon_not_running": {
+      "message": "Poseidon draait niet."
     }
   },
   "issues": {
@@ -2556,6 +2647,14 @@
           "device_not_found": "Het apparaat antwoordt niet meer op dit adres: het probleem komt terug als het daar weer wordt gevonden."
         }
       }
+    },
+    "poseidon_port_in_use": {
+      "title": "Poseidon: poort {port} is bezet",
+      "description": "Een andere dienst luistert op poort {port}: het Poseidon-relais kan niet starten, dus de apparaten in Poseidon-modus bereiken de Red Sea-cloud niet. Stop die dienst, of verwijder Poseidon en voeg het opnieuw toe met een andere poort."
+    },
+    "poseidon_device_silent": {
+      "title": "{name}: stil in Poseidon-modus",
+      "description": "{name} staat in Poseidon-modus maar er ging al meer dan {minutes} minuten niets voor het apparaat door het relais: het staat misschien uit of bereikt Home Assistant niet meer. Het wordt niet automatisch teruggeschakeld; deze melding verdwijnt vanzelf zodra het verkeer weer loopt."
     }
   }
 }

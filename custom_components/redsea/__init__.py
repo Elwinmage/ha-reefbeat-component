@@ -95,6 +95,13 @@ from .led_weather import (
     weather_lost,
 )
 from .maintenance import MaintenanceStore, register_led_tasks
+from .poseidon import (
+    async_register_poseidon_services,
+    async_remove_poseidon,
+    async_setup_poseidon,
+    async_unload_poseidon,
+    is_poseidon_entry,
+)
 from .reefbeat.cloud import InvalidAuth
 from .reefbeat.control import ReefControlAPI
 from .wave_library import program_waves
@@ -189,6 +196,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.entry_id,
         entry.data,
     )
+
+    if is_poseidon_entry(entry):
+        return await async_setup_poseidon(hass, entry)
 
     try:
         if CONFIG_FLOW_CLOUD_USERNAME in entry.data:
@@ -573,6 +583,9 @@ async def async_remove_config_entry_device(
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry and its platforms."""
+    if is_poseidon_entry(entry):
+        return await async_unload_poseidon(hass, entry)
+
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if not unload_ok:
         return False
@@ -596,6 +609,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """A config entry was removed: only Poseidon has something to undo."""
+    if is_poseidon_entry(entry):
+        await async_remove_poseidon(hass, entry)
+
+
 # Frontend resources
 _FRONTEND_DIR = Path(__file__).parent / "frontend"
 _ICONS_JS_URL = f"/{DOMAIN}/frontend/redsea-icons.js"
@@ -606,6 +625,8 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema("redsea")
 # Services
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the integration (register services and frontend resources)."""
+    # Poseidon mode: keystore export
+    async_register_poseidon_services(hass)
 
     # Cloud aquariums for the aquarium view of the card (reeftank)
     async_register_websocket(hass)

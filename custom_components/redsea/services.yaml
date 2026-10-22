@@ -608,3 +608,5 @@ record_measurement:
       required: false
       selector:
         datetime:
+# Poseidon mode: write the keystore to a file (CLI format).
+poseidon_export:

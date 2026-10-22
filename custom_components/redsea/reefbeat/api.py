@@ -12,7 +12,7 @@ import json
 import logging
 import time
 from asyncio import timeout
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from contextlib import suppress
 from functools import lru_cache
 from typing import Any, Protocol, TypedDict, cast
@@ -29,6 +29,54 @@ from ..const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# -----------------------------------------------------------------------------
+# HTTP observers (Poseidon spy mode): every request sent to a host, with the
+# same clock as the MQTT frames. Each gets a record: host, method, endpoint,
+# status (0 when no answer came back), duration_ms, payload sent, origin.
+# -----------------------------------------------------------------------------
+
+HttpObserver = Callable[[dict[str, Any]], None]
+_HTTP_OBSERVERS: list[HttpObserver] = []
+
+
+def add_http_observer(observer: HttpObserver) -> Callable[[], None]:
+    """Observe the HTTP requests of every API instance; the remover."""
+    _HTTP_OBSERVERS.append(observer)
+
+    def _remove() -> None:
+        with suppress(ValueError):
+            _HTTP_OBSERVERS.remove(observer)
+
+    return _remove
+
+
+def notify_http(
+    host: str,
+    method: str,
+    endpoint: str,
+    status: int,
+    started: float,
+    payload: Any = None,
+    origin: str = "integration",
+) -> None:
+    """Report one request to the observers (never raises)."""
+    if not _HTTP_OBSERVERS:
+        return
+    record: dict[str, Any] = {
+        "host": host,
+        "method": method.upper(),
+        "endpoint": endpoint,
+        "status": status,
+        "duration_ms": int((time.time() - started) * 1000),
+        "payload": payload,
+        "origin": origin,
+    }
+    for observer in tuple(_HTTP_OBSERVERS):
+        try:
+            observer(record)
+        except Exception:
+            _LOGGER.debug("HTTP observer failed", exc_info=True)
 
 
 # -----------------------------------------------------------------------------
@@ -281,11 +329,13 @@ class ReefBeatAPI:
         url = self._base_url + access_path
         started = time.time()
         _LOGGER.debug("http_get %s", url)
+        status = 0
         try:
             async with timeout(DEFAULT_TIMEOUT):
                 async with self._session.get(
                     url, headers=self._header, ssl=False
                 ) as resp:
+                    status = resp.status
                     text = await resp.text()
                     json_body: Any | None = None
                     with suppress(Exception):
@@ -304,6 +354,8 @@ class ReefBeatAPI:
         except Exception as err:
             _LOGGER.debug("http_get failed: %s", err)
             return None
+        finally:
+            notify_http(getattr(self, "ip", ""), "get", access_path, status, started)
 
     async def _http_get(
         self,
@@ -329,6 +381,8 @@ class ReefBeatAPI:
 
         url = f"{self._base_url}{endpoint}"
         _LOGGER.debug("_http_get %s", url)
+        started = time.time()
+        status = 0
 
         try:
             req_timeout = (
@@ -336,6 +390,7 @@ class ReefBeatAPI:
             )
             async with timeout(req_timeout):
                 async with session.get(url, headers=self._header, ssl=False) as resp:
+                    status = resp.status
                     if resp.status == 401 and self._secure:
                         # token expired — renew once
                         await self.connect()
@@ -343,6 +398,7 @@ class ReefBeatAPI:
                             url, headers=self._header, ssl=False
                         ) as resp2:
                             resp = resp2
+                            status = resp.status
                     if resp.status >= 400 and not self._is_status_ok(
                         resp.status, endpoint, "get"
                     ):
@@ -381,6 +437,8 @@ class ReefBeatAPI:
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.debug("GET %s error: %s", url, err)
             return False
+        finally:
+            notify_http(getattr(self, "ip", ""), "get", endpoint, status, started)
 
     async def _call_url(
         self,
@@ -779,6 +837,7 @@ class ReefBeatAPI:
 
         while status_ok is False and error_count < HTTP_MAX_RETRY:
             started = time.time()
+            notified = False
             try:
                 async with timeout(DEFAULT_TIMEOUT):
                     if method_l in ("post", "put"):
@@ -828,6 +887,15 @@ class ReefBeatAPI:
 
                 status = int(last_result.get("status", 0)) if last_result else 0
                 status_ok = bool(last_result and last_result.get("ok"))
+                notified = True
+                notify_http(
+                    getattr(self, "ip", ""),
+                    method_l,
+                    self._path_of(url),
+                    status,
+                    started,
+                    payload,
+                )
 
                 # Hard failures that should not be retried. Other 4xx keep
                 # the historical retry behaviour; a local 503 is a firmware
@@ -861,6 +929,15 @@ class ReefBeatAPI:
                         self.data["message"] = {}
             except Exception as e:
                 error_count += 1
+                if not notified:
+                    notify_http(
+                        getattr(self, "ip", ""),
+                        method_l,
+                        self._path_of(url),
+                        0,
+                        started,
+                        payload,
+                    )
                 _LOGGER.debug(
                     "Can not %s data: %s to %s, retry nb %d/%d",
                     method_l,

@@ -897,3 +897,54 @@ def test_add_remove_source_cache_and_live_config_update_helpers() -> None:
 
     api.set_live_config_update(True)
     assert api.live_config_update is True
+
+
+@pytest.mark.asyncio
+async def test_http_observers_see_every_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Poseidon spy mode: each request, with its status, reaches observers."""
+    monkeypatch.setattr(ReefBeatAPI, "_http_get", _ORIG_HTTP_GET, raising=True)
+    monkeypatch.setattr(api_mod, "HTTP_MAX_RETRY", 1)
+    monkeypatch.setattr(api_mod, "HTTP_DELAY_BETWEEN_RETRY", 0)
+
+    async def _fake_sleep(_delay: float) -> None:
+        return
+
+    monkeypatch.setattr(api_mod.asyncio, "sleep", _fake_sleep)
+    session = _FakeSession(
+        responses={
+            "get": [
+                _FakeResponse(status=200, body_json={"mode": "auto"}),
+                _FakeResponse(status=200, body_json={}),
+            ],
+            "post": [_FakeResponse(status=200, body_json={"ok": True})],
+        }
+    )
+    api = _make_api(session)
+    seen: list[dict[str, Any]] = []
+    remove = api_mod.add_http_observer(seen.append)
+
+    class _Match:
+        def __init__(self, value: dict[str, Any]):
+            self.value = value
+            self.context = None
+            self.path = "/"
+
+    try:
+        assert await api._http_get(cast(Any, session), _Match({"name": "/mode"}))
+        await api.http_get("/dashboard")
+        await api._http_send(api._base_url + "/mode", {"mode": "x"})
+        # No answer: status 0
+        await api._http_send(api._base_url + "/x", method="patch")
+    finally:
+        remove()
+    assert [(r["method"], r["endpoint"], r["status"]) for r in seen] == [
+        ("GET", "/mode", 200),
+        ("GET", "/dashboard", 200),
+        ("POST", "/mode", 200),
+        ("PATCH", "/x", 0),
+    ]
+    assert seen[2]["payload"] == {"mode": "x"}
+    assert all(r["host"] == "192.0.2.1" for r in seen)
+    assert all(r["origin"] == "integration" for r in seen)

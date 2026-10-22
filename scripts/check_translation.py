@@ -429,6 +429,51 @@ if os.path.exists(regulation_file):
     keys_in_code = sorted(set(keys_in_code))
 ## End regulation patch
 
+# ---------------------------------------------------------------------------
+# Poseidon mode (entities in the poseidon/ package)
+# ---------------------------------------------------------------------------
+# Each entity class sets `_attr_translation_key` as a class attribute; its
+# platform is the one of the class it derives from (SwitchEntity -> switch).
+poseidon_dir = os.path.join(base_path, "poseidon")
+if os.path.isdir(poseidon_dir):
+    for poseidon_file in sorted(os.listdir(poseidon_dir)):
+        if not poseidon_file.endswith(".py"):
+            continue
+        with open(os.path.join(poseidon_dir, poseidon_file)) as f:
+            poseidon_tree = ast.parse(f.read())
+        for node in ast.walk(poseidon_tree):
+            if not isinstance(node, ast.ClassDef):
+                continue
+            platform = next(
+                (
+                    base.id[: -len("Entity")].lower()
+                    for base in node.bases
+                    if isinstance(base, ast.Name)
+                    and base.id.endswith("Entity")
+                    and base.id[: -len("Entity")].lower() in entity_domains
+                ),
+                None,
+            )
+            if platform is None:
+                continue
+            for stmt in node.body:
+                if (
+                    isinstance(stmt, ast.AnnAssign | ast.Assign)
+                    and isinstance(stmt.value, ast.Constant)
+                    and isinstance(stmt.value.value, str)
+                    and any(
+                        isinstance(t, ast.Name) and t.id == "_attr_translation_key"
+                        for t in (
+                            stmt.targets
+                            if isinstance(stmt, ast.Assign)
+                            else [stmt.target]
+                        )
+                    )
+                ):
+                    keys_in_code.append(f"{platform}.{stmt.value.value}")
+    keys_in_code = sorted(set(keys_in_code))
+## End poseidon patch
+
 all_good: bool = True
 
 for lang in langs:

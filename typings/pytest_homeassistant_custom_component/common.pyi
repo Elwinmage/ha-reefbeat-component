@@ -1,16 +1,16 @@
-from __future__ import annotations
-
+from collections.abc import Mapping
 from datetime import datetime
-from typing import Any, Mapping, MutableMapping
+from typing import Any
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-class MockConfigEntry:
+# The real MockConfigEntry subclasses ConfigEntry: keep that relation so a mock
+# entry can be passed where a ConfigEntry is expected (and exposes .state).
+class MockConfigEntry(ConfigEntry[Any]):
     entry_id: str
     domain: str
     title: str
-    data: MutableMapping[str, Any]
-    options: MutableMapping[str, Any]
     unique_id: str | None
     version: int
     minor_version: int

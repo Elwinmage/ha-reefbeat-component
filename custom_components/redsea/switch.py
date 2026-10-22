@@ -88,6 +88,8 @@ from .maintenance import (
     iter_maintenance_probes,
     tasks_for,
 )
+from .poseidon import get_poseidon, is_poseidon_entry
+from .poseidon.switch_entity import PoseidonPollPauseSwitch, PoseidonSwitch
 from .probe_entities import probe_display_name, tag_port_entities, tag_probe_entities
 from .wave_group_entities import WaveGroupSwitchEntity
 
@@ -522,6 +524,21 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up switch entities for a config entry."""
+    if is_poseidon_entry(entry):
+        poseidon = get_poseidon(hass)
+        if poseidon is not None:
+            poseidon.async_set_switch_adder(
+                lambda devices: async_add_entities(
+                    entity
+                    for hwid, device in devices.items()
+                    for entity in (
+                        PoseidonSwitch(poseidon, hwid, device),
+                        PoseidonPollPauseSwitch(poseidon, hwid, device),
+                    )
+                )
+            )
+        return
+
     device = cast(ReefBeatCoordinator, hass.data[DOMAIN][entry.entry_id])
     entities: list[SwitchEntity] = []
 
