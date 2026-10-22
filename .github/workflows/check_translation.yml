@@ -7,6 +7,16 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v7"
+
+      - uses: "actions/setup-python@v7"
+        with:
+          python-version: "3.14"
+
+      # check_translation.py prints colored output through colorama, which
+      # the runner's Python does not ship.
+      - name: "Install script dependencies"
+        run: pip install colorama
+
       - name: "Run test script"
         run: |
           python scripts/check_translation.py
