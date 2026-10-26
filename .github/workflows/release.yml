@@ -21,7 +21,7 @@ jobs:
         id: update_manifest
         run: |
           yq -i -o json '.version="${{ github.event.inputs.tag}}"' \
-            "${{ github.workspace }}/custom_components/window_airing/manifest.json"
+            "${{ github.workspace }}/custom_components/redsea/manifest.json"
           git config --global user.email "moranderic31@gmail.com"
           git config --global user.name "Elwinmage"
           git commit -a -m "Update version"
@@ -46,7 +46,7 @@ jobs:
       - name: Pack integration ZIP
         run: |
           # On se place à la racine pour inclure le dossier custom_components
-          zip -r window_airing.zip custom_components/window_airing
+          zip -r redsea.zip custom_components/redsea
 
       # 🚀 2. Publication avec le bon Asset
       - name: Create Release with Zip Asset
@@ -55,6 +55,6 @@ jobs:
           prerelease: true
           generateReleaseNotes: true
           tag: ${{ github.event.inputs.tag }}
-          artifacts: window_airing.zip # 👈 Nom officiel attendu
+          artifacts: redsea.zip # 👈 Nom officiel attendu
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
