@@ -8,7 +8,12 @@ same clock. Files rotate by size, and are only created on their first
 record. Writing happens in a logging QueueListener thread: the event loop
 never waits on the disk.
 
-The payloads are written in clear: the options screen says so.
+The payloads are written in clear: the options screen says so. The
+answers of the HTTP requests (``response``) are written too, to tell what a
+pushed value is in the polled sources, with two exceptions: the answer of
+``/cloud`` never (it holds the device keys), and any key, secret, password
+or token inside the others is masked. An answer equal to the previous one of
+the same request is not repeated (``response_unchanged``).
 """
 
 from __future__ import annotations
@@ -82,15 +87,71 @@ def frame_record(
     return record
 
 
-def http_record(hwid: str, request: dict[str, Any]) -> dict[str, Any]:
-    """The JSONL record of an HTTP request sent to a device."""
-    return {
+# Endpoints whose answer is never written: /cloud holds api_key/api_secret
+SECRET_ENDPOINTS: frozenset[str] = frozenset({"/cloud"})
+# Keys masked in the written answers (and parts of key names)
+SECRET_KEYS: frozenset[str] = frozenset({"api_key", "api_secret", "psk"})
+SECRET_PARTS: tuple[str, ...] = ("password", "secret", "token", "passwd")
+MASK = "***"
+
+
+def _secret_key(key: Any) -> bool:
+    name = str(key).lower()
+    return name in SECRET_KEYS or any(part in name for part in SECRET_PARTS)
+
+
+def redact(value: Any) -> Any:
+    """The value with every secret masked (keys of dicts, at any depth)."""
+    if isinstance(value, dict):
+        return {
+            k: (MASK if _secret_key(k) and v not in (None, "") else redact(v))
+            for k, v in value.items()
+        }
+    if isinstance(value, list):
+        return [redact(v) for v in value]
+    return value
+
+
+def http_record(
+    hwid: str,
+    request: dict[str, Any],
+    seen: dict[tuple[str, str, str], str] | None = None,
+) -> dict[str, Any]:
+    """The JSONL record of an HTTP request sent to a device.
+
+    Args:
+        hwid: the device
+        request: the request as notify_http reports it (``response`` is
+            its decoded answer)
+        seen: last answer written per (hwid, method, endpoint), updated:
+            an answer equal to it is not written again
+    """
+    fields = {k: v for k, v in request.items() if k != "response"}
+    record: dict[str, Any] = {
         "ts": dt_util.now().isoformat(),
         "kind": "http",
         "direction": HTTP_LABEL,
         "hwid": hwid,
-        **request,
+        **fields,
     }
+    response = request.get("response")
+    endpoint = str(request.get("endpoint") or "")
+    if endpoint in SECRET_ENDPOINTS:
+        if response is not None:
+            record["response_omitted"] = "device keys"
+        return record
+    if response is None:
+        return record
+    masked = redact(response)
+    if seen is not None:
+        key = (hwid, str(request.get("method") or ""), endpoint)
+        digest = json.dumps(masked, sort_keys=True, default=str)
+        if seen.get(key) == digest:
+            record["response_unchanged"] = True
+            return record
+        seen[key] = digest
+    record["response"] = masked
+    return record
 
 
 def mark_record(hwid: str, event: str, value: Any) -> dict[str, Any]:

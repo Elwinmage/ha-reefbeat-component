@@ -31,16 +31,25 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.util import dt as dt_util
 
 from ..const import CONFIG_FLOW_CLOUD_USERNAME, DOMAIN, VIRTUAL_LED
-from ..reefbeat.api import add_http_observer
+from ..reefbeat.api import add_http_observer, http_origin
 from . import const
 from .capture import CaptureReport, SnapshotStore, acquire_keys
 from .crypto import decrypt_payload
 from .debug import DebugLog, frame_record, http_record, mark_record
-from .device_http import DeviceHttp
+from .device_http import ORIGIN, DeviceHttp
 from .keystore import DeviceKeys, KeyStore
 from .mqtt import PACKET_PUBLISH, MqttFrame
 from .relay import UP, Relay, Traffic
-from .strategy import Comparisons, PollControl, is_state_topic, merge_state
+from .strategy import (
+    TELEMETRY_MERGERS,
+    Comparisons,
+    PollControl,
+    fully_pushed,
+    is_state_topic,
+    is_telemetry_topic,
+    merge_state,
+    merge_telemetry,
+)
 from .watchdog import WATCHDOG_USERNAME, WatchdogSession
 
 _LOGGER = logging.getLogger(__name__)
@@ -74,6 +83,19 @@ def broker_of(cloud: dict[str, Any] | None) -> str:
 def get_poseidon(hass: HomeAssistant) -> Poseidon | None:
     """The running Poseidon, if any."""
     return cast(Poseidon | None, hass.data.get(const.DATA_POSEIDON))
+
+
+def _belongs_to(device: dr.DeviceEntry, entry_id: str) -> bool:
+    """Whether a registry device belongs to a config entry.
+
+    Home Assistant 2026.10 gives a device a single config entry
+    (``config_entry_id``) and deprecates the ``config_entries`` set, which
+    stops working in 2027.10. Older versions only have the set.
+    """
+    owner = getattr(device, "config_entry_id", None)
+    if owner is not None:
+        return owner == entry_id
+    return entry_id in (getattr(device, "config_entries", None) or set())
 
 
 class Poseidon:
@@ -112,6 +134,8 @@ class Poseidon:
         self.paused: set[str] = set()
         # Spy mode: device address -> hwid, for the HTTP requests
         self._spy_hosts: dict[str, str] = {}
+        # Spy mode: last answer written per request, not repeated (debug.py)
+        self._http_seen: dict[tuple[str, str, str], str] = {}
         self._unsub_http: Callable[[], None] | None = None
         # Coordinator listeners of the comparisons, per device
         self._poll_unsubs: dict[str, Callable[[], None]] = {}
@@ -119,6 +143,8 @@ class Poseidon:
         self._merging: set[str] = set()
         # Last refresh asked by a pushed state, per device (monotonic)
         self._push_refresh: dict[str, float] = {}
+        # Last read of /cloud, per device (monotonic)
+        self._cloud_read: dict[str, float] = {}
         # A device is not silent before the relay had the time to see it
         self._started_at = dt_util.utcnow()
         self._unsub_refresh: Callable[[], None] | None = None
@@ -197,6 +223,22 @@ class Poseidon:
                 const.CONF_REDUCED_MINUTES, const.DEFAULT_REDUCED_MINUTES
             )
         )
+
+    @property
+    def safety_minutes(self) -> int:
+        """Polling of a device whose pushed messages cover everything."""
+        return int(
+            self.entry.options.get(
+                const.CONF_SAFETY_MINUTES, const.DEFAULT_SAFETY_MINUTES
+            )
+        )
+
+    def poseidon_interval(self, hwid: str, coordinator: Any) -> timedelta:
+        """Polling interval of a device with the poseidon strategy."""
+        dev = self.keystore.get(hwid)
+        if fully_pushed(dev.type if dev else "", coordinator):
+            return timedelta(minutes=max(self.safety_minutes, self.reduced_minutes))
+        return timedelta(minutes=self.reduced_minutes)
 
     async def async_apply_options(self) -> None:
         """Options saved: applied at once, without restarting the relay."""
@@ -283,7 +325,7 @@ class Poseidon:
         for device in dr.async_get(self.hass).async_get_devices(
             identifiers={(DOMAIN, hwid)}
         ):
-            if self.entry.entry_id not in device.config_entries:
+            if not _belongs_to(device, self.entry.entry_id):
                 return device
         return None
 
@@ -695,10 +737,36 @@ class Poseidon:
     # ------------------------------------------------------------------
 
     async def _refresh_cloud(self, coordinator: Any) -> None:
+        self._cloud_read[str(coordinator.model_id).lower()] = time.monotonic()
         try:
-            await coordinator.fetch_config("/cloud")
+            # Read through the coordinator, but sent for Poseidon
+            with http_origin(ORIGIN):
+                await coordinator.fetch_config("/cloud")
         except Exception:
             _LOGGER.debug("Could not read /cloud of %s", coordinator.title)
+
+    def talking(self, hwid: str) -> bool:
+        """In Poseidon mode and exchanging through the relay right now."""
+        if not self.in_poseidon(self.cached_cloud(hwid)):
+            return False
+        traffic = self.traffic(hwid)
+        seen = [t for t in (traffic.last_up, traffic.last_down) if t is not None]
+        if not seen:
+            return False
+        return dt_util.utcnow() - max(seen) < timedelta(seconds=const.TALKING_S)
+
+    def _cloud_due(self, hwid: str) -> bool:
+        """Whether /cloud of a device is to be read on this tick.
+
+        Every tick, except for a device talking to the relay: it is in
+        Poseidon mode, its traffic says so, so /cloud is only read now and
+        then (``safety_minutes``). As soon as it goes quiet (rebooting,
+        pointed back at Red Sea), it is read on every tick again.
+        """
+        last = self._cloud_read.get(hwid)
+        if last is None or not self.talking(hwid):
+            return True
+        return time.monotonic() - last >= self.safety_minutes * 60
 
     async def _refresh_tick(self, _now: Any = None) -> None:
         """Read /cloud of the managed devices again (it is a config source,
@@ -706,7 +774,11 @@ class Poseidon:
         for dev in self.keystore.with_keys():
             coordinator = self.coordinator(dev.hwid)
             # A paused device gets no request at all, this one included
-            if coordinator is not None and dev.hwid not in self.paused:
+            if (
+                coordinator is not None
+                and dev.hwid not in self.paused
+                and self._cloud_due(dev.hwid)
+            ):
                 await self._refresh_cloud(coordinator)
         self._apply_polling()
         self._update_silent_issues()
@@ -739,11 +811,20 @@ class Poseidon:
                 continue
             active[dev.hwid] = self.strategy_of(dev.hwid)
             coordinators[dev.hwid] = coordinator
+        changed: set[str] = set()
         for hwid, strategy in active.items():
             if self.active.get(hwid) != strategy:
                 self.spy_log.write(mark_record(hwid, "strategy", strategy))
+                changed.add(hwid)
         for hwid in set(self.active) - set(active):
             self.spy_log.write(mark_record(hwid, "strategy", None))
+            changed.add(hwid)
+        # A new run starts with whole answers, never "unchanged" ones
+        self._http_seen = {
+            key: digest
+            for key, digest in self._http_seen.items()
+            if key[0] not in changed
+        }
         self.active = active
         # A pause only exists in spy mode
         self.paused &= {h for h, s in active.items() if s == const.STRATEGY_SPY}
@@ -752,7 +833,7 @@ class Poseidon:
             coordinator = coordinators[hwid]
             if strategy == const.STRATEGY_POSEIDON:
                 self.poll_control.set(
-                    hwid, coordinator, timedelta(minutes=self.reduced_minutes)
+                    hwid, coordinator, self.poseidon_interval(hwid, coordinator)
                 )
             elif hwid in self.paused:
                 self.poll_control.set(hwid, coordinator, None)
@@ -802,7 +883,8 @@ class Poseidon:
         """Merge a pushed state into the sources of its device, and tell its
         entities (that is no poll: the comparison waits for the next one)."""
         dev = self.keystore.get(hwid)
-        if not merge_state(dev.type if dev else "", coordinator, topic, payload):
+        merge = merge_telemetry if is_telemetry_topic(topic) else merge_state
+        if not merge(dev.type if dev else "", coordinator, topic, payload):
             return False
         self._merging.add(hwid)
         try:
@@ -837,12 +919,34 @@ class Poseidon:
         )
 
     @callback
+    def _on_telemetry(self, hwid: str, topic: str, payload: Any) -> None:
+        """A device in Poseidon mode pushed its telemetry (every 60 s)."""
+        strategy = self.active.get(hwid)
+        coordinator = self.coordinator(hwid)
+        dev = self.keystore.get(hwid)
+        if strategy is None or coordinator is None or dev is None:
+            return
+        if dev.type not in TELEMETRY_MERGERS:
+            # Nothing to learn from it yet: no comparison every minute either
+            return
+        if strategy == const.STRATEGY_SPY:
+            self.comparisons.add(
+                hwid, topic, payload, self.spy_log.write, latest_only=True
+            )
+            return
+        merged = self._merge(hwid, coordinator, topic, payload)
+        if strategy == const.STRATEGY_SHADOW:
+            self.comparisons.add(
+                hwid, topic, payload, self.shadow_log.write, merged, latest_only=True
+            )
+
+    @callback
     def _on_http(self, record: dict[str, Any]) -> None:
         """An HTTP request to a host (any API instance): kept when the host
         is a device in spy mode."""
         hwid = self._spy_hosts.get(str(record.get("host") or ""))
         if hwid is not None:
-            self.spy_log.write(http_record(hwid, record))
+            self.spy_log.write(http_record(hwid, record, self._http_seen))
 
     @callback
     def _on_connect(self, hwid: str, fields: dict[str, str]) -> None:
@@ -880,12 +984,16 @@ class Poseidon:
         ):
             return
         topic, payload = frame.parse_publish()
-        if not is_state_topic(topic):
+        telemetry = is_telemetry_topic(topic)
+        if not telemetry and not is_state_topic(topic):
             return
         try:
             state = decrypt_payload(payload.decode("utf-8", errors="replace"), secret)
         except Exception:
             _LOGGER.debug("Poseidon: state of %s does not decrypt", hwid)
+            return
+        if telemetry:
+            self._on_telemetry(hwid, topic, state)
             return
         self._on_state(hwid, topic, state)
 

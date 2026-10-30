@@ -313,6 +313,12 @@ class PoseidonOptionsFlowMixin:
                                 const.DEFAULT_REDUCED_MINUTES,
                             )
                         ),
+                        const.CONF_SAFETY_MINUTES: int(
+                            user_input.get(
+                                const.CONF_SAFETY_MINUTES,
+                                const.DEFAULT_SAFETY_MINUTES,
+                            )
+                        ),
                     }
                 )
         current = user_input or options
@@ -352,6 +358,18 @@ class PoseidonOptionsFlowMixin:
                 ): NumberSelector(
                     NumberSelectorConfig(
                         min=1, max=60, step=1, mode=NumberSelectorMode.BOX
+                    )
+                ),
+                vol.Required(
+                    const.CONF_SAFETY_MINUTES,
+                    default=int(
+                        current.get(
+                            const.CONF_SAFETY_MINUTES, const.DEFAULT_SAFETY_MINUTES
+                        )
+                    ),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=5, max=1440, step=5, mode=NumberSelectorMode.BOX
                     )
                 ),
                 # A new key is proposed while none is set: the watchdog needs

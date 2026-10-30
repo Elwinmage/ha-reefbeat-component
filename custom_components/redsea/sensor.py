@@ -288,7 +288,51 @@ CLOUD_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         value_fn=lambda device: cast(_CloudLinkedCoordinator, device).cloud_link(),
         icon="mdi:cloud-sync-outline",
     ),
+    # Name of the cloud aquarium the device belongs to (unknown when the
+    # device is not linked or in no aquarium). A group of lamps has no
+    # aquarium of its own.
+    ReefBeatSensorEntityDescription(
+        key="aquarium",
+        translation_key="aquarium",
+        exists_fn=lambda device: not isinstance(device, ReefVirtualLedCoordinator),
+        value_fn=lambda device: _aquarium_name(device),
+        attributes_fn=lambda device: _aquarium_attributes(device),
+        icon="mdi:fishbowl-outline",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
 )
+
+
+def _cloud_aquarium(device: ReefBeatCoordinator) -> dict[str, Any] | None:
+    """Cloud aquarium of a linked device (see cloud_aquarium), or None."""
+    getter = getattr(device, "cloud_aquarium", None)
+    if getter is None:
+        return None
+    aquarium = getter()
+    return aquarium if isinstance(aquarium, dict) else None
+
+
+def _aquarium_name(device: ReefBeatCoordinator) -> str | None:
+    """Name of the device's cloud aquarium (its uid when it has no name)."""
+    aquarium = _cloud_aquarium(device)
+    if aquarium is None:
+        return None
+    return str(aquarium.get("name") or aquarium.get("uid") or "") or None
+
+
+def _aquarium_attributes(device: ReefBeatCoordinator) -> dict[str, Any]:
+    """Identity of the device's cloud aquarium, for cards and templates."""
+    aquarium = _cloud_aquarium(device) or {}
+    link = getattr(device, "cloud_link", None)
+    account = link() if callable(link) else None
+    return {
+        "aquarium_uid": aquarium.get("uid"),
+        "cloud_account": account if aquarium else None,
+        "system_model": aquarium.get("system_model"),
+        "water_volume": aquarium.get("water_volume"),
+        "net_water_volume": aquarium.get("net_water_volume"),
+    }
+
 
 USER_SENSORS: tuple[ReefBeatCloudSensorEntityDescription, ...] = (
     ReefBeatCloudSensorEntityDescription(
@@ -389,6 +433,10 @@ COMMON_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         key="last_alert_message",
         translation_key="last_alert_message",
         value_fn=lambda device: device.get_data("$.message.alert.message", True),
+        # When the alert came (ISO 8601), None once cleaned
+        attributes_fn=lambda device: {
+            "timestamp": device.get_data("$.message_meta.last_alert_message", True)
+        },
         icon="mdi:alert",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
@@ -396,6 +444,10 @@ COMMON_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         key="last_message",
         translation_key="last_message",
         value_fn=lambda device: device.get_data("$.message.message", True),
+        # When the message came (ISO 8601), None once cleaned
+        attributes_fn=lambda device: {
+            "timestamp": device.get_data("$.message_meta.last_message", True)
+        },
         icon="mdi:note-check",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),

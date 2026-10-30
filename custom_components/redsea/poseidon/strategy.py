@@ -13,9 +13,15 @@
 - ``poseidon``: polling slowed down (every N minutes), pushed states as the
   main source. A family without a merger yet gets its device refreshed on
   every pushed ``state`` instead (``telemetry``, every 60 s, triggers
-  nothing).
+  nothing). A device whose pushed messages cover every polled value that
+  changes (``FULLY_PUSHED``) is only polled now and then, as a safety net
+  (every M minutes).
 
-No family has a merger yet: they are written from the spy files.
+The ``telemetry`` a device pushes every 60 s is merged too when its family
+has a telemetry merger (``TELEMETRY_MERGERS``), and compared like a state:
+only the last one waits for the next poll.
+
+The mergers are written per family from the spy files (mergers.py).
 """
 
 from __future__ import annotations
@@ -27,12 +33,20 @@ from typing import Any
 
 from homeassistant.util import dt as dt_util
 
+from .mergers import merge_reef_power, merge_reef_power_telemetry, power_fully_pushed
+
 # Topic suffix of the states a device pushes
 STATE_SUFFIX = "/state"
+# Topic suffix of the telemetry a device pushes every 60 s
+TELEMETRY_SUFFIX = "/telemetry"
 
 
 def is_state_topic(topic: str) -> bool:
     return topic.startswith("device/") and topic.endswith(STATE_SUFFIX)
+
+
+def is_telemetry_topic(topic: str) -> bool:
+    return topic.startswith("device/") and topic.endswith(TELEMETRY_SUFFIX)
 
 
 def flatten(value: Any, prefix: str = "") -> Iterator[tuple[str, Any]]:
@@ -70,25 +84,62 @@ def _suffix_match(polled_path: str, pushed_path: str) -> bool:
     return polled_path == pushed_path or polled_path.endswith("." + pushed_path)
 
 
+# Keys a pushed state wraps its values in, absent from the polled sources:
+# {"specific_attributes": {"sockets": ...}} is "sockets..." of /dashboard.
+STATE_WRAPPERS: tuple[str, ...] = ("specific_attributes",)
+
+
+def _unwrap(path: str) -> str:
+    """The pushed path without the wrapper of the state."""
+    for wrapper in STATE_WRAPPERS:
+        if path == wrapper:
+            return ""
+        if path.startswith(wrapper + "."):
+            return path[len(wrapper) + 1 :]
+    return path
+
+
+def _candidates(
+    path: str, leaves: list[tuple[str, str, Any]]
+) -> tuple[list[tuple[str, str, Any]], str]:
+    """The polled values matching a pushed path, and the suffix that did.
+
+    The whole path first; then, when nothing matches, the path without its
+    first segments, down to two segments ("sockets.0.mode" is "0.mode" of a
+    source holding the list of sockets). The closest matches (the shortest
+    polled paths) are kept.
+    """
+    parts = path.split(".")
+    for start in range(max(1, len(parts) - 1)):
+        suffix = ".".join(parts[start:])
+        found = [leaf for leaf in leaves if _suffix_match(leaf[1], suffix)]
+        if found:
+            shortest = min(len(leaf[1]) for leaf in found)
+            return [leaf for leaf in found if len(leaf[1]) == shortest], suffix
+    return [], path
+
+
 def compare(pushed: Any, leaves: list[tuple[str, str, Any]]) -> list[dict[str, Any]]:
     """Each pushed value against the polled values at the same path.
 
     A pushed path matches a polled one when it is a suffix of it (a state
-    carries a subtree, the poll the whole source). The closest matches (the
-    shortest polled paths) are kept.
+    carries a subtree, the poll the whole source), once the wrapper of the
+    state is dropped (``STATE_WRAPPERS``). A match found on a shorter suffix
+    tells it (``via``).
     """
     results: list[dict[str, Any]] = []
-    for path, value in flatten(pushed):
+    for full_path, value in flatten(pushed):
+        path = _unwrap(full_path)
         if not path:
             continue
-        candidates = [leaf for leaf in leaves if _suffix_match(leaf[1], path)]
-        if candidates:
-            shortest = min(len(leaf[1]) for leaf in candidates)
-            candidates = [leaf for leaf in candidates if len(leaf[1]) == shortest]
+        candidates, via = _candidates(path, leaves)
         matches = [
             {"source": source, "path": polled_path, "polled": polled}
             for source, polled_path, polled in candidates
         ]
+        if matches and via != path:
+            for match in matches:
+                match["via"] = via
         if not matches:
             verdict = "unknown"
         elif any(m["polled"] == value for m in matches):
@@ -96,16 +147,52 @@ def compare(pushed: Any, leaves: list[tuple[str, str, Any]]) -> list[dict[str, A
         else:
             verdict = "differs"
         results.append(
-            {"path": path, "pushed": value, "verdict": verdict, "matches": matches}
+            {
+                "path": full_path,
+                "pushed": value,
+                "verdict": verdict,
+                "matches": matches,
+            }
         )
     return results
 
 
 # Device type (cloud namespace) -> merger of its pushed states into the
-# sources of its coordinator: (coordinator, topic, payload) -> merged. None
-# yet: they are written per family from the spy files.
+# sources of its coordinator: (coordinator, topic, payload) -> merged. They
+# are written per family from the spy files (mergers.py).
 Merger = Callable[[Any, str, Any], bool]
-MERGERS: dict[str, Merger] = {}
+MERGERS: dict[str, Merger] = {
+    "reef-power": merge_reef_power,
+}
+# Device type -> merger of its telemetry
+TELEMETRY_MERGERS: dict[str, Merger] = {
+    "reef-power": merge_reef_power_telemetry,
+}
+# Device type -> whether a device of it has every changing value pushed
+FULLY_PUSHED: dict[str, Callable[[Any], bool]] = {
+    "reef-power": power_fully_pushed,
+}
+
+
+def merge_telemetry(
+    device_type: str, coordinator: Any, topic: str, payload: Any
+) -> bool:
+    """Merge a pushed telemetry into the sources; whether the family knows how."""
+    merger = TELEMETRY_MERGERS.get(device_type)
+    if merger is None:
+        return False
+    return merger(coordinator, topic, payload)
+
+
+def fully_pushed(device_type: str, coordinator: Any) -> bool:
+    """Whether the device needs polling only as a safety net."""
+    check = FULLY_PUSHED.get(device_type)
+    if check is None or device_type not in TELEMETRY_MERGERS:
+        return False
+    try:
+        return bool(check(coordinator))
+    except Exception:
+        return False
 
 
 def merge_state(device_type: str, coordinator: Any, topic: str, payload: Any) -> bool:
@@ -138,9 +225,17 @@ class Comparisons:
         payload: Any,
         write: Callable[[dict[str, Any]], None],
         merged: bool = False,
+        latest_only: bool = False,
     ) -> None:
-        """Keep a pushed state; ``write`` gets its comparison."""
-        self.pending.setdefault(hwid, []).append(
+        """Keep a pushed message; ``write`` gets its comparison.
+
+        ``latest_only``: only the last message of this topic waits (a
+        telemetry every 60 s would pile up while the polling is paused).
+        """
+        pending = self.pending.setdefault(hwid, [])
+        if latest_only:
+            pending[:] = [state for state in pending if state.topic != topic]
+        pending.append(
             PendingState(topic, payload, dt_util.now().isoformat(), merged, write)
         )
 
@@ -187,6 +282,11 @@ class PollControl:
         if hwid not in self._original or self._original[hwid][0] is not coordinator:
             self._original[hwid] = (coordinator, coordinator.update_interval)
         coordinator.update_interval = interval
+        if interval is None:
+            # A refresh already scheduled would still run once: cancel it
+            unschedule = getattr(coordinator, "_async_unsub_refresh", None)
+            if callable(unschedule):
+                unschedule()
 
     def interval(self, hwid: str) -> timedelta | None:
         """The interval set on a controlled device's coordinator."""

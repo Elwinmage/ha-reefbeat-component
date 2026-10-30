@@ -898,6 +898,9 @@
           "none": "żaden"
         }
       },
+      "aquarium": {
+        "name": "Akwarium"
+      },
       "connected_control": {
         "name": "Paired control hub"
       },
@@ -1992,11 +1995,15 @@
           "scan_interval": "Interwał odświeżania",
           "not_virtual": "Nie można konfigurować",
           "slaves": "LED",
-          "ip_update": "Gdy urządzenie zmieni IP"
+          "ip_update": "Gdy urządzenie zmieni IP",
+          "message_history_days": "Historia komunikatów (dni)",
+          "message_history_max": "Historia komunikatów (maks. wpisów)"
         },
         "title": "Ustawienia urządzenia",
         "data_description": {
-          "ip_update": "Chmura podaje IP każdego urządzenia. Urządzenie znalezione pod nowym adresem (sprawdzone, że to samo) może zostać zaktualizowane automatycznie lub przez naprawę do potwierdzenia."
+          "ip_update": "Chmura podaje IP każdego urządzenia. Urządzenie znalezione pod nowym adresem (sprawdzone, że to samo) może zostać zaktualizowane automatycznie lub przez naprawę do potwierdzenia.",
+          "message_history_days": "Jak długo przechowywane są komunikaty i alerty urządzenia, wyświetlane w historii karty.",
+          "message_history_max": "Powyżej tej liczby najstarsze komunikaty są usuwane."
         }
       },
       "wifi_scan": {
@@ -2102,13 +2109,17 @@
       },
       "settings_poseidon": {
         "title": "Ustawienia Poseidon",
-        "description": "Tryb debug zapisuje każdą ramkę przechodzącą przez przekaźnik, odszyfrowaną, do {logs}/poseidon.jsonl (z rotacją): dane są tam jawne.\n\nUrządzenie w trybie Poseidon jest zgłaszane jako ciche (zgłoszenie naprawy, atrybut `silent` jego przełącznika), gdy przez ten czas nic dla niego nie przeszło przez przekaźnik.\n\nKlucz watchdoga szyfruje wymianę `is_alive`: skopiuj go do konfiguracji watchdoga. Zostaw pusty, aby nie odpowiadać żadnemu watchdogowi.\n\nStrategia dotyczy urządzeń w trybie Poseidon, które nie mają własnej (wybór Strategia Poseidon każdego urządzenia). Szpieg zapisuje ramki, żądania HTTP i porównania do {logs}/spy.jsonl. Shadow scala wysłane stany i zapisuje pozostałe różnice do {logs}/shadow.jsonl. Poseidon odpytuje co N minut i korzysta z wysłanych stanów.",
+        "description": "Tryb debug zapisuje każdą ramkę przechodzącą przez przekaźnik, odszyfrowaną, do {logs}/poseidon.jsonl (z rotacją): dane są tam jawne.\n\nUrządzenie w trybie Poseidon jest zgłaszane jako ciche (zgłoszenie naprawy, atrybut `silent` jego przełącznika), gdy przez ten czas nic dla niego nie przeszło przez przekaźnik.\n\nKlucz watchdoga szyfruje wymianę `is_alive`: skopiuj go do konfiguracji watchdoga. Zostaw pusty, aby nie odpowiadać żadnemu watchdogowi.\n\nStrategia dotyczy urządzeń w trybie Poseidon, które nie mają własnej (wybór Strategia Poseidon każdego urządzenia). Szpieg zapisuje ramki, żądania HTTP wraz z odpowiedziami (klucze i hasła zamaskowane, /cloud nigdy nie zapisywane) i porównania do {logs}/spy.jsonl. Shadow scala wysłane stany i zapisuje pozostałe różnice do {logs}/shadow.jsonl. Poseidon odpytuje co N minut i korzysta z wysłanych stanów.",
         "data": {
           "debug": "Tryb debug (odszyfrowane ramki w pliku)",
           "silent_minutes": "Czas, po którym urządzenie jest ciche (minuty)",
           "watchdog_key": "Klucz watchdoga (16 znaków)",
           "strategy": "Domyślna strategia urządzeń",
-          "reduced_minutes": "Interwał odpytywania strategii Poseidon (minuty)"
+          "reduced_minutes": "Interwał odpytywania strategii Poseidon (minuty)",
+          "safety_minutes": "Odczyt bezpieczeństwa urządzenia w pełni wysyłającego (minuty)"
+        },
+        "data_description": {
+          "safety_minutes": "Strategia Poseidon: urządzenie, którego wysyłane wiadomości obejmują każdą zmieniającą się wartość (ReefControl Power bez sondy temperatury i bez gniazda sterowanego czujnikiem), jest odczytywane tylko z tą częstotliwością, dla bezpieczeństwa. Także jego /cloud, dopóki komunikuje się z przekaźnikiem."
         }
       },
       "import_keystore": {
@@ -2505,6 +2516,28 @@
     "poseidon_export": {
       "name": "Poseidon: eksportuj klucze",
       "description": "Zapisuje klucze urządzeń Poseidon do pliku w /config/redsea/poseidon, w formacie CLI."
+    },
+    "get_messages": {
+      "name": "Pobierz komunikaty",
+      "description": "Zwraca historię komunikatów i alertów urządzenia, od najnowszych.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji urządzenia."
+        },
+        "msg_type": {
+          "name": "Typ komunikatu",
+          "description": "last_message, last_alert_message lub All."
+        },
+        "days": {
+          "name": "Dni",
+          "description": "Tylko komunikaty z ostatnich dni."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Najwyżej tyle komunikatów."
+        }
+      }
     }
   },
   "exceptions": {

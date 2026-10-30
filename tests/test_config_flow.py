@@ -766,6 +766,61 @@ async def test_options_flow_led_with_intensity_compensation_updates_entry(
 
 
 @pytest.mark.asyncio
+async def test_options_flow_saves_message_history_settings(
+    hass: HomeAssistant,
+) -> None:
+    """The message history settings are offered and stored with the entry."""
+
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="My RUN",
+        data={
+            CONFIG_FLOW_IP_ADDRESS: "192.0.2.12",
+            CONFIG_FLOW_HW_MODEL: "RSRUN",
+            CONFIG_FLOW_SCAN_INTERVAL: 120,
+            CONFIG_FLOW_CONFIG_TYPE: False,
+            "message_history_days": 10,
+        },
+        unique_id="run-history-uid",
+    )
+    entry.add_to_hass(hass)
+
+    result = cast(
+        dict[str, Any], await hass.config_entries.options.async_init(entry.entry_id)
+    )
+    result = cast(
+        dict[str, Any],
+        await hass.config_entries.options.async_configure(
+            result["flow_id"], user_input={"next_step_id": "settings"}
+        ),
+    )
+    assert result["type"] == FlowResultType.FORM
+    schema = result["data_schema"].schema
+    defaults = {str(k): k.default() for k in schema if hasattr(k, "default")}
+    # The stored value is the default, the built-in one otherwise
+    assert defaults["message_history_days"] == 10
+    assert defaults["message_history_max"] == 500
+
+    result2 = cast(
+        dict[str, Any],
+        await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                CONFIG_FLOW_SCAN_INTERVAL: 120,
+                CONFIG_FLOW_CONFIG_TYPE: False,
+                "message_history_days": 60,
+                "message_history_max": 1000,
+            },
+        ),
+    )
+    assert result2["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.data["message_history_days"] == 60
+    assert entry.data["message_history_max"] == 1000
+
+
+@pytest.mark.asyncio
 async def test_options_flow_missing_hw_model_falls_back_to_generic_schema(
     hass: HomeAssistant,
 ) -> None:

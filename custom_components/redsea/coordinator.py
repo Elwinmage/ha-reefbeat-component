@@ -499,6 +499,8 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
                 "Link to cloud %s closed for %s", event.data.get("account"), self._title
             )
             self._cloud_link = None
+            # The aquarium sensor follows the link
+            self.async_update_listeners()
         else:
             self._ask_for_link()
 
@@ -540,6 +542,8 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
         else:
             self.latest_firmware_url = f"/firmware/api/{model_type}/latest?board={self.board}&framework={self.framework}"
         await cloud.listen_for_firmware(self.latest_firmware_url, self._title)
+        # The aquarium sensor follows the link
+        self.async_update_listeners()
 
     @property
     def cloud_coordinator(self) -> ReefBeatCloudCoordinator | None:
@@ -549,6 +553,44 @@ class ReefBeatCloudLinkedCoordinator(ReefBeatCoordinator):
     def cloud_link(self) -> str:
         """Return linked cloud account name, or 'None'."""
         return self._cloud_link.title if self._cloud_link is not None else "none"
+
+    def cloud_aquarium(self) -> dict[str, Any] | None:
+        """The aquarium this device belongs to in its linked cloud account.
+
+        The device is found in the account's device list by hwid; its
+        ``aquarium_uid`` names the aquarium in the account's aquarium list.
+
+        Returns:
+            The cloud's aquarium entry (``uid``, ``name``, ``system_model``,
+            volumes, ...), or None when the device is not linked or belongs
+            to no known aquarium.
+        """
+        cloud = self._cloud_link
+        if cloud is None:
+            return None
+        devices = cloud.get_data("$.sources[?(@.name=='/device')].data", True)
+        aquariums = cloud.get_data("$.sources[?(@.name=='/aquarium')].data", True)
+        if not isinstance(devices, list) or not isinstance(aquariums, list):
+            return None
+        hwid = str(self.model_id)
+        uid = next(
+            (
+                d.get("aquarium_uid")
+                for d in devices
+                if isinstance(d, dict) and str(d.get("hwid", "")) == hwid
+            ),
+            None,
+        )
+        if not isinstance(uid, str) or not uid:
+            return None
+        return next(
+            (
+                a
+                for a in aquariums
+                if isinstance(a, dict) and str(a.get("uid", "")) == uid
+            ),
+            None,
+        )
 
 
 # REEFLED

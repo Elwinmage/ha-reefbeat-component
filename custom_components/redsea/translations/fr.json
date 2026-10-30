@@ -897,6 +897,9 @@
           "none": "Aucun"
         }
       },
+      "aquarium": {
+        "name": "Aquarium"
+      },
       "connected_control": {
         "name": "Hub Control apparié"
       },
@@ -1992,11 +1995,15 @@
           "scan_interval": "Intervalle de rafraichissement",
           "not_virtual": "Pas de configuration disponible",
           "slaves": "LED",
-          "ip_update": "Quand un appareil change d'IP"
+          "ip_update": "Quand un appareil change d'IP",
+          "message_history_days": "Historique des messages (jours)",
+          "message_history_max": "Historique des messages (nombre max)"
         },
         "title": "Paramètres de l'équipement",
         "data_description": {
-          "ip_update": "Le cloud indique l'IP de chaque appareil. Un appareil trouvé à une nouvelle adresse (après vérification que c'est bien le même) peut voir son entrée mise à jour automatiquement, ou via une réparation à confirmer."
+          "ip_update": "Le cloud indique l'IP de chaque appareil. Un appareil trouvé à une nouvelle adresse (après vérification que c'est bien le même) peut voir son entrée mise à jour automatiquement, ou via une réparation à confirmer.",
+          "message_history_days": "Durée de conservation des messages et alertes de l'appareil, affichés dans l'historique de la carte.",
+          "message_history_max": "Au-delà, les messages les plus anciens sont supprimés."
         }
       },
       "wifi_scan": {
@@ -2102,13 +2109,17 @@
       },
       "settings_poseidon": {
         "title": "Réglages de Poseidon",
-        "description": "Le mode debug écrit chaque trame qui traverse le relais dans {logs}/poseidon.jsonl (avec rotation), déchiffrée : les données y sont en clair.\n\nUn appareil en mode Poseidon est signalé silencieux (alerte de réparation, attribut `silent` de son switch) quand rien n'est passé par le relais pour lui pendant le délai.\n\nLa clef du watchdog chiffre les échanges `is_alive` : recopiez-la dans la configuration du watchdog. Laissez-la vide pour ne répondre à aucun watchdog.\n\nLa stratégie s'applique aux appareils en mode Poseidon qui n'en ont pas une à eux (le select Stratégie Poseidon de chaque appareil). Espion enregistre trames, requêtes HTTP et comparaisons dans {logs}/spy.jsonl. Shadow fusionne les états poussés et écrit les différences restantes dans {logs}/shadow.jsonl. Poseidon relève toutes les N minutes et utilise les états poussés.",
+        "description": "Le mode debug écrit chaque trame qui traverse le relais dans {logs}/poseidon.jsonl (avec rotation), déchiffrée : les données y sont en clair.\n\nUn appareil en mode Poseidon est signalé silencieux (alerte de réparation, attribut `silent` de son switch) quand rien n'est passé par le relais pour lui pendant le délai.\n\nLa clef du watchdog chiffre les échanges `is_alive` : recopiez-la dans la configuration du watchdog. Laissez-la vide pour ne répondre à aucun watchdog.\n\nLa stratégie s'applique aux appareils en mode Poseidon qui n'en ont pas une à eux (le select Stratégie Poseidon de chaque appareil). Espion enregistre trames, requêtes HTTP avec leurs réponses (clés et mots de passe masqués, /cloud jamais écrit) et comparaisons dans {logs}/spy.jsonl. Shadow fusionne les états poussés et écrit les différences restantes dans {logs}/shadow.jsonl. Poseidon relève toutes les N minutes et utilise les états poussés.",
         "data": {
           "debug": "Mode debug (trames déchiffrées dans un fichier)",
           "silent_minutes": "Délai avant qu'un appareil soit silencieux (minutes)",
           "watchdog_key": "Clef du watchdog (16 caractères)",
           "strategy": "Stratégie par défaut des appareils",
-          "reduced_minutes": "Intervalle du relevé en stratégie Poseidon (minutes)"
+          "reduced_minutes": "Intervalle du relevé en stratégie Poseidon (minutes)",
+          "safety_minutes": "Relevé de sécurité d'un appareil entièrement poussé (minutes)"
+        },
+        "data_description": {
+          "safety_minutes": "Stratégie Poseidon : un appareil dont les messages poussés couvrent toutes les valeurs qui changent (une ReefControl Power sans sonde de température ni prise pilotée par un capteur) n'est relevé qu'à cette fréquence, par sécurité. Son /cloud aussi, tant qu'il échange avec le relais."
         }
       },
       "import_keystore": {
@@ -2505,6 +2516,28 @@
     "poseidon_export": {
       "name": "Poseidon : exporter les clefs",
       "description": "Écrit les clefs des appareils Poseidon dans un fichier de /config/redsea/poseidon, au format de la CLI."
+    },
+    "get_messages": {
+      "name": "Lire les messages",
+      "description": "Renvoie l'historique des messages et alertes d'un appareil, du plus récent au plus ancien.",
+      "fields": {
+        "device_id": {
+          "name": "ID de l'appareil",
+          "description": "L'entrée de configuration de l'appareil."
+        },
+        "msg_type": {
+          "name": "Type de message",
+          "description": "last_message, last_alert_message ou All."
+        },
+        "days": {
+          "name": "Jours",
+          "description": "Seulement les messages des derniers jours."
+        },
+        "limit": {
+          "name": "Limite",
+          "description": "Au plus ce nombre de messages."
+        }
+      }
     }
   },
   "exceptions": {

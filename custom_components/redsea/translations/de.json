@@ -898,6 +898,9 @@
           "none": "Keiner"
         }
       },
+      "aquarium": {
+        "name": "Aquarium"
+      },
       "connected_control": {
         "name": "Paired control hub"
       },
@@ -1992,11 +1995,15 @@
           "scan_interval": "Aktualisierungsintervall",
           "not_virtual": "Nicht konfigurierbar",
           "slaves": "LED",
-          "ip_update": "Wenn ein Gerät seine IP ändert"
+          "ip_update": "Wenn ein Gerät seine IP ändert",
+          "message_history_days": "Meldungsverlauf (Tage)",
+          "message_history_max": "Meldungsverlauf (max. Einträge)"
         },
         "title": "Geräteeinstellungen",
         "data_description": {
-          "ip_update": "Die Cloud meldet die IP jedes Geräts. Ein unter einer neuen Adresse gefundenes Gerät (als dasselbe geprüft) kann automatisch oder über eine zu bestätigende Reparatur aktualisiert werden."
+          "ip_update": "Die Cloud meldet die IP jedes Geräts. Ein unter einer neuen Adresse gefundenes Gerät (als dasselbe geprüft) kann automatisch oder über eine zu bestätigende Reparatur aktualisiert werden.",
+          "message_history_days": "Wie lange die Meldungen und Alarme des Geräts aufbewahrt werden (Verlauf in der Karte).",
+          "message_history_max": "Darüber hinaus werden die ältesten Meldungen gelöscht."
         }
       },
       "wifi_scan": {
@@ -2102,13 +2109,17 @@
       },
       "settings_poseidon": {
         "title": "Poseidon-Einstellungen",
-        "description": "Der Debug-Modus schreibt jeden Frame, der das Relais passiert, entschlüsselt nach {logs}/poseidon.jsonl (rotiert): Die Daten stehen dort im Klartext.\n\nEin Gerät im Poseidon-Modus gilt als still (Reparaturhinweis, Attribut `silent` seines Schalters), wenn während der Frist nichts für es durch das Relais ging.\n\nDer Watchdog-Schlüssel verschlüsselt den `is_alive`-Austausch: Kopiere ihn in die Watchdog-Konfiguration. Leer lassen, um keinem Watchdog zu antworten.\n\nDie Strategie gilt für die Geräte im Poseidon-Modus ohne eigene (die Auswahl Poseidon-Strategie jedes Geräts). Spion zeichnet Frames, HTTP-Anfragen und Vergleiche in {logs}/spy.jsonl auf. Shadow übernimmt die gesendeten Zustände und schreibt die verbleibenden Unterschiede in {logs}/shadow.jsonl. Poseidon fragt alle N Minuten ab und nutzt die gesendeten Zustände.",
+        "description": "Der Debug-Modus schreibt jeden Frame, der das Relais passiert, entschlüsselt nach {logs}/poseidon.jsonl (rotiert): Die Daten stehen dort im Klartext.\n\nEin Gerät im Poseidon-Modus gilt als still (Reparaturhinweis, Attribut `silent` seines Schalters), wenn während der Frist nichts für es durch das Relais ging.\n\nDer Watchdog-Schlüssel verschlüsselt den `is_alive`-Austausch: Kopiere ihn in die Watchdog-Konfiguration. Leer lassen, um keinem Watchdog zu antworten.\n\nDie Strategie gilt für die Geräte im Poseidon-Modus ohne eigene (die Auswahl Poseidon-Strategie jedes Geräts). Spion zeichnet Frames, HTTP-Anfragen mit ihren Antworten (Schlüssel und Passwörter maskiert, /cloud nie geschrieben) und Vergleiche in {logs}/spy.jsonl auf. Shadow übernimmt die gesendeten Zustände und schreibt die verbleibenden Unterschiede in {logs}/shadow.jsonl. Poseidon fragt alle N Minuten ab und nutzt die gesendeten Zustände.",
         "data": {
           "debug": "Debug-Modus (entschlüsselte Frames in einer Datei)",
           "silent_minutes": "Wartezeit, bis ein Gerät still ist (Minuten)",
           "watchdog_key": "Watchdog-Schlüssel (16 Zeichen)",
           "strategy": "Standardstrategie der Geräte",
-          "reduced_minutes": "Abfrageintervall der Poseidon-Strategie (Minuten)"
+          "reduced_minutes": "Abfrageintervall der Poseidon-Strategie (Minuten)",
+          "safety_minutes": "Sicherheitsabfrage eines vollständig gepushten Geräts (Minuten)"
+        },
+        "data_description": {
+          "safety_minutes": "Poseidon-Strategie: Ein Gerät, dessen gepushte Nachrichten jeden sich ändernden Wert abdecken (eine ReefControl Power ohne Temperaturfühler und ohne sensorgesteuerte Steckdose), wird nur in diesem Abstand abgefragt, zur Sicherheit. Ebenso sein /cloud, solange es mit dem Relais kommuniziert."
         }
       },
       "import_keystore": {
@@ -2505,6 +2516,28 @@
     "poseidon_export": {
       "name": "Poseidon: Schlüssel exportieren",
       "description": "Schreibt die Schlüssel der Poseidon-Geräte in eine Datei unter /config/redsea/poseidon, im Format der CLI."
+    },
+    "get_messages": {
+      "name": "Meldungen abrufen",
+      "description": "Gibt den Verlauf der Meldungen und Alarme eines Geräts zurück, neueste zuerst.",
+      "fields": {
+        "device_id": {
+          "name": "Geräte-ID",
+          "description": "Der Konfigurationseintrag des Geräts."
+        },
+        "msg_type": {
+          "name": "Meldungstyp",
+          "description": "last_message, last_alert_message oder All."
+        },
+        "days": {
+          "name": "Tage",
+          "description": "Nur die Meldungen der letzten Tage."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Höchstens so viele Meldungen."
+        }
+      }
     }
   },
   "exceptions": {

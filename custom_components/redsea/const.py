@@ -98,6 +98,14 @@ CONFIG_FLOW_HW_MODEL: Final[str] = "hw_model"
 CONFIG_FLOW_SCAN_INTERVAL: Final[str] = "scan_interval"
 CONFIG_FLOW_INTENSITY_COMPENSATION: Final[str] = "intensity_compensation"
 CONFIG_FLOW_CONFIG_TYPE: Final[str] = "live_config_update"
+# History of the last_message / last_alert_message of a device (messages.py)
+CONFIG_FLOW_MESSAGE_HISTORY_DAYS: Final[str] = "message_history_days"
+CONFIG_FLOW_MESSAGE_HISTORY_MAX: Final[str] = "message_history_max"
+MESSAGE_HISTORY_DAYS: Final[int] = 31
+MESSAGE_HISTORY_MAX: Final[int] = 500
+# Kinds of message, named after their sensors (and clean_message's msg_type)
+MSG_LAST_MESSAGE: Final[str] = "last_message"
+MSG_LAST_ALERT: Final[str] = "last_alert_message"
 
 SCAN_INTERVAL: Final[int] = 120  # seconds
 DO_NOT_REFRESH_TIME: Final[int] = 2  # seconds

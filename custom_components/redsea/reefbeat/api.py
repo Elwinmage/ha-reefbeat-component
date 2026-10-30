@@ -8,12 +8,15 @@ offers JSONPath-based getters/setters as well as async-safe HTTP helpers.
 from __future__ import annotations
 
 import asyncio
+import copy
 import json
 import logging
 import time
 from asyncio import timeout
-from collections.abc import Awaitable, Callable
-from contextlib import suppress
+from collections.abc import Awaitable, Callable, Iterator
+from contextlib import contextmanager, suppress
+from contextvars import ContextVar
+from datetime import UTC, datetime
 from functools import lru_cache
 from typing import Any, Protocol, TypedDict, cast
 
@@ -26,6 +29,8 @@ from ..const import (
     HTTP_MAX_RETRY,
     INITIAL_PROBE_MAX_RETRY,
     INITIAL_PROBE_TIMEOUT,
+    MSG_LAST_ALERT,
+    MSG_LAST_MESSAGE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -38,6 +43,20 @@ _LOGGER = logging.getLogger(__name__)
 
 HttpObserver = Callable[[dict[str, Any]], None]
 _HTTP_OBSERVERS: list[HttpObserver] = []
+
+# Who sends the requests of the running task: "integration" unless a caller
+# says otherwise (Poseidon reading /cloud through a coordinator, say).
+_HTTP_ORIGIN: ContextVar[str] = ContextVar("redsea_http_origin", default="integration")
+
+
+@contextmanager
+def http_origin(origin: str) -> Iterator[None]:
+    """Label the requests sent in this block (and the tasks it awaits)."""
+    token = _HTTP_ORIGIN.set(origin)
+    try:
+        yield
+    finally:
+        _HTTP_ORIGIN.reset(token)
 
 
 def add_http_observer(observer: HttpObserver) -> Callable[[], None]:
@@ -58,9 +77,15 @@ def notify_http(
     status: int,
     started: float,
     payload: Any = None,
-    origin: str = "integration",
+    origin: str | None = None,
+    response: Any = None,
 ) -> None:
-    """Report one request to the observers (never raises)."""
+    """Report one request to the observers (never raises).
+
+    ``origin`` defaults to the one set by ``http_origin`` ("integration"
+    otherwise). ``response`` is the decoded answer (JSON, or text), None when
+    there was none; observers decide what to keep of it.
+    """
     if not _HTTP_OBSERVERS:
         return
     record: dict[str, Any] = {
@@ -70,7 +95,10 @@ def notify_http(
         "status": status,
         "duration_ms": int((time.time() - started) * 1000),
         "payload": payload,
-        "origin": origin,
+        "origin": origin or _HTTP_ORIGIN.get(),
+        # A copy: the integration adds to the answer once decoded (alert),
+        # the observers must see what the device sent
+        "response": copy.deepcopy(response),
     }
     for observer in tuple(_HTTP_OBSERVERS):
         try:
@@ -168,6 +196,7 @@ class ReefBeatAPI:
             - `sources`: list of registered endpoint sources and their last decoded JSON
             - `local`: integration-maintained derived state
             - `message`: last response message/alert decoded from push calls
+            - `message_meta`: when the last message and the last alert came
         - Provide JSONPath-based getters/setters (`get_data`, `set_data`)
         - Provide async HTTP fetch/push with retry/backoff (`fetch_*`, `_http_send`)
 
@@ -217,6 +246,11 @@ class ReefBeatAPI:
         # Ensure common local keys exist so jsonpath lookups don't spam logs.
         self.data["local"] = {"use_cloud_api": None}
         self.data["message"] = {}
+        # When the last message / alert came (ISO 8601, UTC). Apart from
+        # `message`, which a successful push replaces with the firmware answer.
+        self.data["message_meta"] = {MSG_LAST_MESSAGE: None, MSG_LAST_ALERT: None}
+        # Called with every new message / alert (see MessageStore)
+        self.on_message: Callable[[dict[str, Any]], None] | None = None
 
         # Cache mapping JSONPath expression -> "self.data[...]..." eval string
         self._data_db: dict[str, str] = {}
@@ -307,11 +341,44 @@ class ReefBeatAPI:
             result["json"] = json_body
         return result
 
-    def clean_message(self, type_msg):
-        if type_msg == "last_message" or type_msg == "All":
+    def clean_message(self, type_msg: str) -> None:
+        """Clear the last message and/or the last alert (not their history)."""
+        meta = self.data.setdefault("message_meta", {})
+        if type_msg in (MSG_LAST_MESSAGE, "All"):
             self.data["message"]["message"] = ""
-        elif type_msg == "last_alert_message" or type_msg == "All":
+            meta[MSG_LAST_MESSAGE] = None
+        if type_msg in (MSG_LAST_ALERT, "All"):
             self.data["message"]["alert"] = {"message": ""}
+            meta[MSG_LAST_ALERT] = None
+
+    def _record_message(
+        self, kind: str, text: str, method: str, url: str, status: int
+    ) -> None:
+        """Stamp a new message / alert and hand it to the history.
+
+        Args:
+            kind: MSG_LAST_MESSAGE or MSG_LAST_ALERT
+            text: the message
+            method: HTTP method of the push that got it
+            url: URL of that push
+            status: HTTP status of the answer
+        """
+        ts = datetime.now(UTC).isoformat(timespec="seconds")
+        self.data.setdefault("message_meta", {})[kind] = ts
+        if self.on_message is None:
+            return
+        entry = {
+            "ts": ts,
+            "type": kind,
+            "text": text,
+            "method": method,
+            "path": self._path_of(url),
+            "status": status,
+        }
+        try:
+            self.on_message(entry)
+        except Exception:  # never let the history break a push
+            _LOGGER.exception("Message history callback failed")
 
     async def connect(self) -> None:
         """Perform authentication/handshake if needed.
@@ -330,6 +397,7 @@ class ReefBeatAPI:
         started = time.time()
         _LOGGER.debug("http_get %s", url)
         status = 0
+        answer: Any = None
         try:
             async with timeout(DEFAULT_TIMEOUT):
                 async with self._session.get(
@@ -340,6 +408,7 @@ class ReefBeatAPI:
                     json_body: Any | None = None
                     with suppress(Exception):
                         json_body = await resp.json(content_type=None)
+                    answer = json_body if json_body is not None else text
 
                     return self._build_result(
                         method="get",
@@ -355,7 +424,14 @@ class ReefBeatAPI:
             _LOGGER.debug("http_get failed: %s", err)
             return None
         finally:
-            notify_http(getattr(self, "ip", ""), "get", access_path, status, started)
+            notify_http(
+                getattr(self, "ip", ""),
+                "get",
+                access_path,
+                status,
+                started,
+                response=answer,
+            )
 
     async def _http_get(
         self,
@@ -383,6 +459,7 @@ class ReefBeatAPI:
         _LOGGER.debug("_http_get %s", url)
         started = time.time()
         status = 0
+        answer: Any = None
 
         try:
             req_timeout = (
@@ -432,13 +509,21 @@ class ReefBeatAPI:
                     # store under the source name key (or whatever your integration expects)
                     # source.value is the dict inside self.data["sources"], so mutate it in place
                     source.value["data"] = payload
+                    answer = payload
                     return True
 
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.debug("GET %s error: %s", url, err)
             return False
         finally:
-            notify_http(getattr(self, "ip", ""), "get", endpoint, status, started)
+            notify_http(
+                getattr(self, "ip", ""),
+                "get",
+                endpoint,
+                status,
+                started,
+                response=answer,
+            )
 
     async def _call_url(
         self,
@@ -895,6 +980,9 @@ class ReefBeatAPI:
                     status,
                     started,
                     payload,
+                    response=(last_result or {}).get(
+                        "json", (last_result or {}).get("text")
+                    ),
                 )
 
                 # Hard failures that should not be retried. Other 4xx keep
@@ -911,22 +999,32 @@ class ReefBeatAPI:
                     error_count = HTTP_MAX_RETRY
 
                 if not status_ok:
-                    _LOGGER.error("%d: %s", status, (last_result or {}).get("text", ""))
+                    text_err = str((last_result or {}).get("text", ""))
+                    _LOGGER.error("%d: %s", status, text_err)
                     error_count += 1
-                    self.data["message"]["alert"] = {
-                        "message": (last_result or {}).get("text", "")
-                    }
+                    self.data["message"]["alert"] = {"message": text_err}
+                    self._record_message(
+                        MSG_LAST_ALERT, text_err, method_l, url, status
+                    )
                 else:
                     _LOGGER.debug("%d: %s", status, (last_result or {}).get("text", ""))
                     msg = (last_result or {}).get("json")
+                    # A successful push keeps the last alert: only the
+                    # clean_message service (or a new alert) replaces it.
+                    alert = self.data.get("message", {}).get("alert", {"message": ""})
                     if isinstance(msg, dict):
                         if "alert" not in msg:
-                            msg["alert"] = ""
+                            msg["alert"] = alert
                         self.data["message"] = msg
+                        text_msg = msg.get("message")
+                        if isinstance(text_msg, str) and text_msg:
+                            self._record_message(
+                                MSG_LAST_MESSAGE, text_msg, method_l, url, status
+                            )
                     elif msg is not None:
-                        self.data["message"] = {"data": msg, "alert": ""}
+                        self.data["message"] = {"data": msg, "alert": alert}
                     else:
-                        self.data["message"] = {}
+                        self.data["message"] = {"alert": alert}
             except Exception as e:
                 error_count += 1
                 if not notified:

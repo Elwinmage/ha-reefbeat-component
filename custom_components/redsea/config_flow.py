@@ -15,6 +15,7 @@ import ipaddress
 import logging
 import pathlib
 from asyncio import timeout
+from collections.abc import Mapping
 from functools import partial
 from time import time
 from typing import TYPE_CHECKING, Any, cast
@@ -86,6 +87,8 @@ from .const import (
     CONFIG_FLOW_INTENSITY_COMPENSATION,
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_IP_UPDATE,
+    CONFIG_FLOW_MESSAGE_HISTORY_DAYS,
+    CONFIG_FLOW_MESSAGE_HISTORY_MAX,
     CONFIG_FLOW_OLD_PROBE,
     CONFIG_FLOW_PROBE_TYPE,
     CONFIG_FLOW_PROBES,
@@ -114,6 +117,8 @@ from .const import (
     LED_SCAN_INTERVAL,
     LEDS_INTENSITY_COMPENSATION,
     MAT_SCAN_INTERVAL,
+    MESSAGE_HISTORY_DAYS,
+    MESSAGE_HISTORY_MAX,
     OPTIONS_MENU_ADD_PROBE,
     OPTIONS_MENU_CHANGE_PROBE,
     OPTIONS_MENU_CLOUD_DEVICES,
@@ -298,6 +303,22 @@ def _ip_update_selector() -> SelectSelector:
             translation_key=CONFIG_FLOW_IP_UPDATE,
         )
     )
+
+
+def _message_history_fields(data: Mapping[str, Any]) -> dict[Any, Any]:
+    """Settings fields of the message / alert history (see messages.py)."""
+    return {
+        vol.Required(
+            CONFIG_FLOW_MESSAGE_HISTORY_DAYS,
+            default=int(
+                data.get(CONFIG_FLOW_MESSAGE_HISTORY_DAYS, MESSAGE_HISTORY_DAYS)
+            ),
+        ): vol.All(vol.Coerce(int), vol.Range(min=1, max=365)),
+        vol.Required(
+            CONFIG_FLOW_MESSAGE_HISTORY_MAX,
+            default=int(data.get(CONFIG_FLOW_MESSAGE_HISTORY_MAX, MESSAGE_HISTORY_MAX)),
+        ): vol.All(vol.Coerce(int), vol.Range(min=1, max=10000)),
+    }
 
 
 def _checkbox_list(options: list[SelectOptionDict]) -> SelectSelector:
@@ -1156,6 +1177,7 @@ class OptionsFlowHandler(PoseidonOptionsFlowMixin, config_entries.OptionsFlow):
                                     CONFIG_FLOW_IP_UPDATE, IP_UPDATE_AUTO
                                 ),
                             ): _ip_update_selector(),
+                            **_message_history_fields(user_input),
                         }
                     )
                     # Stay on the settings step so validation errors don't
@@ -1184,6 +1206,12 @@ class OptionsFlowHandler(PoseidonOptionsFlowMixin, config_entries.OptionsFlow):
                     CONFIG_FLOW_SCAN_INTERVAL: user_input[CONFIG_FLOW_SCAN_INTERVAL],
                     CONFIG_FLOW_CONFIG_TYPE: user_input[CONFIG_FLOW_CONFIG_TYPE],
                 }
+                for key in (
+                    CONFIG_FLOW_MESSAGE_HISTORY_DAYS,
+                    CONFIG_FLOW_MESSAGE_HISTORY_MAX,
+                ):
+                    if key in user_input:
+                        data[key] = user_input[key]
                 if CONFIG_FLOW_INTENSITY_COMPENSATION in user_input:
                     data[CONFIG_FLOW_INTENSITY_COMPENSATION] = user_input[
                         CONFIG_FLOW_INTENSITY_COMPENSATION
@@ -1218,6 +1246,7 @@ class OptionsFlowHandler(PoseidonOptionsFlowMixin, config_entries.OptionsFlow):
                     vol.Required(
                         CONFIG_FLOW_INTENSITY_COMPENSATION, default=False
                     ): bool,
+                    **_message_history_fields(self._config_entry.data),
                 }
             )
         elif hw_model == CLOUD_DEVICE_TYPE:
@@ -1246,6 +1275,7 @@ class OptionsFlowHandler(PoseidonOptionsFlowMixin, config_entries.OptionsFlow):
                             CONFIG_FLOW_IP_UPDATE, IP_UPDATE_AUTO
                         ),
                     ): _ip_update_selector(),
+                    **_message_history_fields(self._config_entry.data),
                 }
             )
         else:
@@ -1256,6 +1286,7 @@ class OptionsFlowHandler(PoseidonOptionsFlowMixin, config_entries.OptionsFlow):
                         default=get_scan_interval_safe(hw_model),
                     ): int,
                     vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
+                    **_message_history_fields(self._config_entry.data),
                 }
             )
 

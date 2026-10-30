@@ -898,6 +898,9 @@
           "none": "None"
         }
       },
+      "aquarium": {
+        "name": "Aquarium"
+      },
       "connected_control": {
         "name": "Paired control hub"
       },
@@ -2000,11 +2003,15 @@
           "scan_interval": "Scan interval",
           "not_virtual": "Not configurable",
           "slaves": "LED",
-          "ip_update": "When a device changes IP"
+          "ip_update": "When a device changes IP",
+          "message_history_days": "Message history (days)",
+          "message_history_max": "Message history (max entries)"
         },
         "title": "Device settings",
         "data_description": {
-          "ip_update": "The cloud reports each device's IP. A device found at a new address (checked to be the same device) can have its entry updated automatically, or through a repair you confirm."
+          "ip_update": "The cloud reports each device's IP. A device found at a new address (checked to be the same device) can have its entry updated automatically, or through a repair you confirm.",
+          "message_history_days": "How long the messages and alerts of the device are kept, shown in the card's history.",
+          "message_history_max": "Oldest messages are dropped beyond this number."
         }
       },
       "wifi_scan": {
@@ -2110,13 +2117,17 @@
       },
       "settings_poseidon": {
         "title": "Poseidon settings",
-        "description": "Debug mode writes every frame crossing the relay to {logs}/poseidon.jsonl (rotated), decrypted: data are in clear there.\n\nA device in Poseidon mode is reported silent (repair issue, `silent` attribute of its switch) when nothing went through the relay for it during the delay.\n\nThe watchdog key encrypts the `is_alive` exchanges: copy it to the watchdog configuration. Leave it empty to answer no watchdog.\n\nThe strategy applies to the devices in Poseidon mode that have none of their own (the Poseidon strategy select of each device). Spy records frames, HTTP requests and comparisons in {logs}/spy.jsonl. Shadow merges the pushed states and writes the differences left in {logs}/shadow.jsonl. Poseidon polls every N minutes and uses the pushed states.",
+        "description": "Debug mode writes every frame crossing the relay to {logs}/poseidon.jsonl (rotated), decrypted: data are in clear there.\n\nA device in Poseidon mode is reported silent (repair issue, `silent` attribute of its switch) when nothing went through the relay for it during the delay.\n\nThe watchdog key encrypts the `is_alive` exchanges: copy it to the watchdog configuration. Leave it empty to answer no watchdog.\n\nThe strategy applies to the devices in Poseidon mode that have none of their own (the Poseidon strategy select of each device). Spy records frames, HTTP requests with their answers (keys and passwords masked, /cloud never written) and comparisons in {logs}/spy.jsonl. Shadow merges the pushed states and writes the differences left in {logs}/shadow.jsonl. Poseidon polls every N minutes and uses the pushed states.",
         "data": {
           "debug": "Debug mode (decrypted frames in a file)",
           "silent_minutes": "Delay before a device is silent (minutes)",
           "watchdog_key": "Watchdog key (16 characters)",
           "strategy": "Default strategy of the devices",
-          "reduced_minutes": "Polling interval of the Poseidon strategy (minutes)"
+          "reduced_minutes": "Polling interval of the Poseidon strategy (minutes)",
+          "safety_minutes": "Safety polling of a fully pushed device (minutes)"
+        },
+        "data_description": {
+          "safety_minutes": "Poseidon strategy: a device whose pushed messages cover every value that changes (a ReefControl Power without temperature probe nor sensor driven socket) is only polled this often, as a safety net. Its /cloud too, while it talks to the relay."
         }
       },
       "import_keystore": {
@@ -2513,6 +2524,28 @@
     "poseidon_export": {
       "name": "Poseidon: export the keys",
       "description": "Write the keys of the Poseidon devices to a file of /config/redsea/poseidon, in the format of the CLI."
+    },
+    "get_messages": {
+      "name": "Get messages",
+      "description": "Return the history of the messages and alerts of a device, newest first.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The config entry of the device."
+        },
+        "msg_type": {
+          "name": "Message type",
+          "description": "last_message, last_alert_message or All."
+        },
+        "days": {
+          "name": "Days",
+          "description": "Only the messages of the last days."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "At most this many messages."
+        }
+      }
     }
   },
   "exceptions": {

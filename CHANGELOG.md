@@ -2,6 +2,103 @@
 
 ## MODIFICATIONS
 
+### Poseidon: ReefControl Power states merged
+
+- First merger of pushed states (`poseidon/mergers.py`), for the
+  ReefControl Power (`reef-power`), written from a spy run with the HTTP
+  answers. With the shadow and poseidon strategies, a socket switched, set
+  or renamed, a schedule written or the strip turned off or on in the
+  ReefBeat app shows in Home Assistant at once, without waiting for a poll:
+  - `mode` -> `/mode` and `/dashboard` (`previous_mode` takes the old one);
+  - `sockets.N` -> the socket `N` of `/dashboard` and `/sockets/config`
+    (`prev_mode` takes the old mode); its `state` is not merged when the
+    push says `unknown` (it always does, where `/dashboard` tells
+    `standby` or `on`);
+  - `schedule.N` -> `/socket/N/config/schedule`;
+  - `feed_schedule`: nothing polled matches it yet, not merged.
+- Telemetry merged too (every 60 s): main mode, battery level, and the
+  consumption, mode and previous mode of each socket into `/dashboard`
+  (mode also into `/sockets/config`), the wifi signal into `/wifi`. The
+  consumption may lag a poll by up to a minute after a change (the device
+  does not always push a telemetry at once). With the spy and shadow
+  strategies, only the last telemetry waits for its comparison.
+- Socket state computed as the ReefBeat app does (it never reads
+  `/dashboard`): a socket in `schedule` mode is `on` within one of its
+  intervals, `standby` otherwise, any other mode `unknown`, on the clock of
+  the device itself (`local_time` of its telemetry, its own offset).
+  Checked against every polled `/dashboard` of a spy run. Only with the
+  strip in `auto` mode and for sockets driven by nothing else (no power
+  detector, no sensor): the others keep their polled state.
+- Poseidon strategy: a device whose pushed messages cover every value that
+  changes (a ReefControl Power without temperature probe nor sensor driven
+  socket) is only polled every `safety_minutes` (new option, 60 by
+  default, never more often than `reduced_minutes`), as a safety net. The
+  others keep `reduced_minutes`.
+- `/cloud` of a device in Poseidon mode that is exchanging through the relay
+  (traffic within the last 2 minutes) is read every `safety_minutes` only,
+  instead of every minute: its traffic says where it is. As soon as it goes
+  quiet (rebooting, pointed back at Red Sea), it is read every minute again.
+
+### Poseidon spy: HTTP answers, pause, comparisons
+
+- The spy file records the answer of each HTTP request sent to the device
+  (`response`), to tell what a pushed value is in the polled sources. An
+  answer equal to the previous one of the same request is not repeated
+  (`response_unchanged`); a new spy run starts with whole answers. The
+  answer of `/cloud` is never written (`response_omitted`: it holds the
+  device keys), and keys, secrets, passwords and tokens are masked in the
+  others. The answers are copied as the device sent them, before the
+  integration adds to them.
+- Fix: pausing the polling of a device let one more poll through (the one
+  already scheduled); it is cancelled now.
+- Fix: the comparisons of a pushed state found nothing: its values are
+  wrapped in `specific_attributes`, absent from the polled sources. The
+  wrapper is dropped; a value matched on a shorter part of its path tells
+  it (`via`).
+- Fix: the reads of `/cloud` Poseidon does through the coordinator were
+  recorded with the `integration` origin; they are `poseidon` now
+  (`http_origin` context of the API).
+
+### Poseidon: new trident icon
+
+- `redsea:trident` redrawn heavier: barbed outward tines, diamond
+  spearhead, chevron guard and pommel (readable at 16-24 px).
+
+### Fix: deprecated `DeviceEntry.config_entries`
+
+- Poseidon no longer reads `DeviceEntry.config_entries` (deprecated since
+  Home Assistant 2026.10, removed in 2027.10) but `config_entry_id`, with a
+  fallback on the set for older Home Assistant versions.
+
+### Cloud aquarium sensor
+
+- New `aquarium` sensor (diagnostic) on every device linked to a cloud
+  account: the name of the aquarium the device belongs to in the ReefBeat
+  app, unknown when it is not linked or in no aquarium. Attributes:
+  `aquarium_uid`, `cloud_account`, `system_model`, `water_volume`,
+  `net_water_volume`. Not on LED groups. Refreshed when the device links to
+  or unlinks from its account, and with the device's data; a rename in the
+  app shows at the next device refresh.
+
+### Messages: timestamp and history
+
+- `last_message` and `last_alert_message` sensors: new `timestamp` attribute
+  (ISO 8601, UTC) telling when the message / alert came; reset by
+  `redsea.clean_message`.
+- Every message and alert of a device is kept in a history
+  (`.storage/redsea_messages_<entry_id>`), all of them, repeated ones
+  included. Kept 31 days and at most 500 entries by default, both settable
+  in the device settings (`message_history_days`, `message_history_max`).
+  The history survives restarts and entry reloads, and is deleted with the
+  entry.
+- New `redsea.get_messages` service (response only): the history of a
+  device, newest first, filtered by `msg_type`, `days` and `limit`. Used by
+  ha-reef-card's message history dialog.
+- Fix: a successful push no longer clears the last alert; only
+  `redsea.clean_message` or a new alert replaces it.
+- Fix: `redsea.clean_message` with `msg_type: All` now also clears the
+  alert.
+
 ### RSDOSE: dose regulation of the heads
 
 - New per-head `regulation_mode` select: `off`, `assisted` or `brine`.

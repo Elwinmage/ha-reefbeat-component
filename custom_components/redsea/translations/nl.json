@@ -898,6 +898,9 @@
           "none": "Geen"
         }
       },
+      "aquarium": {
+        "name": "Aquarium"
+      },
       "connected_control": {
         "name": "Paired control hub"
       },
@@ -2000,11 +2003,15 @@
           "scan_interval": "Verversingsinterval",
           "not_virtual": "Niet configureerbaar",
           "slaves": "LED",
-          "ip_update": "Als een apparaat van IP wisselt"
+          "ip_update": "Als een apparaat van IP wisselt",
+          "message_history_days": "Berichtgeschiedenis (dagen)",
+          "message_history_max": "Berichtgeschiedenis (max. items)"
         },
         "title": "Apparaatinstellingen",
         "data_description": {
-          "ip_update": "De cloud meldt het IP van elk apparaat. Een apparaat dat op een nieuw adres wordt gevonden (gecontroleerd dat het hetzelfde is) kan automatisch of via een te bevestigen reparatie worden bijgewerkt."
+          "ip_update": "De cloud meldt het IP van elk apparaat. Een apparaat dat op een nieuw adres wordt gevonden (gecontroleerd dat het hetzelfde is) kan automatisch of via een te bevestigen reparatie worden bijgewerkt.",
+          "message_history_days": "Hoe lang de berichten en waarschuwingen van het apparaat bewaard worden, getoond in de geschiedenis van de kaart.",
+          "message_history_max": "Daarboven worden de oudste berichten verwijderd."
         }
       },
       "wifi_scan": {
@@ -2110,13 +2117,17 @@
       },
       "settings_poseidon": {
         "title": "Poseidon-instellingen",
-        "description": "De debugmodus schrijft elk frame dat het relais passeert ontsleuteld naar {logs}/poseidon.jsonl (geroteerd): de gegevens staan daar in leesbare vorm.\n\nEen apparaat in Poseidon-modus wordt als stil gemeld (reparatiemelding, attribuut `silent` van zijn schakelaar) wanneer er gedurende de termijn niets voor het apparaat door het relais ging.\n\nDe watchdog-sleutel versleutelt de `is_alive`-uitwisselingen: kopieer hem naar de watchdog-configuratie. Laat leeg om geen enkele watchdog te antwoorden.\n\nDe strategie geldt voor de apparaten in Poseidon-modus zonder eigen strategie (de keuzelijst Poseidon-strategie van elk apparaat). Spion legt frames, HTTP-verzoeken en vergelijkingen vast in {logs}/spy.jsonl. Shadow voegt de verzonden toestanden samen en schrijft de resterende verschillen naar {logs}/shadow.jsonl. Poseidon vraagt elke N minuten op en gebruikt de verzonden toestanden.",
+        "description": "De debugmodus schrijft elk frame dat het relais passeert ontsleuteld naar {logs}/poseidon.jsonl (geroteerd): de gegevens staan daar in leesbare vorm.\n\nEen apparaat in Poseidon-modus wordt als stil gemeld (reparatiemelding, attribuut `silent` van zijn schakelaar) wanneer er gedurende de termijn niets voor het apparaat door het relais ging.\n\nDe watchdog-sleutel versleutelt de `is_alive`-uitwisselingen: kopieer hem naar de watchdog-configuratie. Laat leeg om geen enkele watchdog te antwoorden.\n\nDe strategie geldt voor de apparaten in Poseidon-modus zonder eigen strategie (de keuzelijst Poseidon-strategie van elk apparaat). Spion legt frames, HTTP-verzoeken met hun antwoorden (sleutels en wachtwoorden gemaskeerd, /cloud nooit geschreven) en vergelijkingen vast in {logs}/spy.jsonl. Shadow voegt de verzonden toestanden samen en schrijft de resterende verschillen naar {logs}/shadow.jsonl. Poseidon vraagt elke N minuten op en gebruikt de verzonden toestanden.",
         "data": {
           "debug": "Debugmodus (ontsleutelde frames in een bestand)",
           "silent_minutes": "Wachttijd voordat een apparaat stil is (minuten)",
           "watchdog_key": "Watchdog-sleutel (16 tekens)",
           "strategy": "Standaardstrategie van de apparaten",
-          "reduced_minutes": "Opvraaginterval van de Poseidon-strategie (minuten)"
+          "reduced_minutes": "Opvraaginterval van de Poseidon-strategie (minuten)",
+          "safety_minutes": "Veiligheidsuitlezing van een volledig gepusht apparaat (minuten)"
+        },
+        "data_description": {
+          "safety_minutes": "Poseidon-strategie: een apparaat waarvan de gepushte berichten elke veranderende waarde dekken (een ReefControl Power zonder temperatuursensor en zonder door een sensor gestuurd stopcontact) wordt alleen zo vaak uitgelezen, als vangnet. Ook zijn /cloud, zolang het met de relay communiceert."
         }
       },
       "import_keystore": {
@@ -2513,6 +2524,28 @@
     "poseidon_export": {
       "name": "Poseidon: sleutels exporteren",
       "description": "Schrijft de sleutels van de Poseidon-apparaten naar een bestand in /config/redsea/poseidon, in het formaat van de CLI."
+    },
+    "get_messages": {
+      "name": "Berichten ophalen",
+      "description": "Geeft de geschiedenis van de berichten en waarschuwingen van een apparaat terug, nieuwste eerst.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-entry van het apparaat."
+        },
+        "msg_type": {
+          "name": "Berichttype",
+          "description": "last_message, last_alert_message of All."
+        },
+        "days": {
+          "name": "Dagen",
+          "description": "Alleen de berichten van de laatste dagen."
+        },
+        "limit": {
+          "name": "Limiet",
+          "description": "Maximaal dit aantal berichten."
+        }
+      }
     }
   },
   "exceptions": {

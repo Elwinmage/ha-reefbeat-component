@@ -49,6 +49,8 @@ from .const import (
     CONFIG_FLOW_CLOUD_USERNAME,
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_IP_ADDRESS,
+    CONFIG_FLOW_MESSAGE_HISTORY_DAYS,
+    CONFIG_FLOW_MESSAGE_HISTORY_MAX,
     DOMAIN,
     HW_ATO_IDS,
     HW_CONTROL_IDS,
@@ -60,6 +62,8 @@ from .const import (
     HW_RUN_IDS,
     HW_WAVE_IDS,
     LINKED_LED,
+    MESSAGE_HISTORY_DAYS,
+    MESSAGE_HISTORY_MAX,
     PLATFORMS,
     REFRESH_DEVICE_DELAY,
     SIGNAL_GROUP_MEMBER_GONE,
@@ -95,6 +99,12 @@ from .led_weather import (
     weather_lost,
 )
 from .maintenance import MaintenanceStore, register_led_tasks
+from .messages import (
+    MESSAGES_DATA,
+    MessageStore,
+    async_get_message_store,
+    async_remove_message_store,
+)
 from .poseidon import (
     async_register_poseidon_services,
     async_remove_poseidon,
@@ -241,6 +251,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Attach to the coordinator so platforms find it without going through
     # hass.data again; also keeps the lifecycle tied to the entry.
     coordinator.maintenance = maintenance_store  # type: ignore[attr-defined]
+
+    # History of the device's messages and alerts, fed by its API
+    message_store = await async_get_message_store(
+        hass,
+        entry.entry_id,
+        int(entry.data.get(CONFIG_FLOW_MESSAGE_HISTORY_DAYS, MESSAGE_HISTORY_DAYS)),
+        int(entry.data.get(CONFIG_FLOW_MESSAGE_HISTORY_MAX, MESSAGE_HISTORY_MAX)),
+    )
+    coordinator.messages = message_store  # type: ignore[attr-defined]
+    api = getattr(coordinator, "my_api", None)
+    if api is not None:
+        api.on_message = message_store.add
 
     # ReefLED: settings of the week program following the weather of a place
     if isinstance(coordinator, ReefLedCoordinator):
@@ -610,9 +632,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """A config entry was removed: only Poseidon has something to undo."""
+    """A config entry was removed: drop what it kept on disk."""
     if is_poseidon_entry(entry):
         await async_remove_poseidon(hass, entry)
+        return
+    with suppress(Exception):
+        await async_remove_message_store(hass, entry.entry_id)
 
 
 # Frontend resources
@@ -752,6 +777,33 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         "clean_message",
         handle_clean_message,
         supports_response=SupportsResponse.NONE,
+    )
+
+    @callback
+    async def handle_get_messages(call: ServiceCall) -> ServiceResponse:
+        """Return the message / alert history of a device, newest first."""
+        entry_id = call.data.get("device_id")
+        store: MessageStore | None = hass.data.get(MESSAGES_DATA, {}).get(entry_id)
+        if entry_id not in hass.data.get(DOMAIN, {}) or store is None:
+            return {"error": "Device not enabled", "messages": []}
+        days = call.data.get("days")
+        limit = call.data.get("limit")
+        messages = store.entries(
+            msg_type=call.data.get("msg_type"),
+            days=float(days) if days else None,
+            limit=int(limit) if limit else None,
+        )
+        return {
+            "messages": cast(JsonValueType, messages),
+            "retention_days": store.days,
+            "max_entries": store.max_entries,
+        }
+
+    hass.services.async_register(
+        DOMAIN,
+        "get_messages",
+        handle_get_messages,
+        supports_response=SupportsResponse.ONLY,
     )
 
     @callback

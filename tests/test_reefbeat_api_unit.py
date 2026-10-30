@@ -137,6 +137,26 @@ def test_clean_message_clears_last_message_and_alert() -> None:
     assert api.data["message"]["alert"] == {"message": ""}
 
 
+def test_clean_message_all_clears_both_and_their_timestamps() -> None:
+    session = _FakeSession()
+    api = _make_api(session)
+
+    api.data["message"] = {"message": "x", "alert": {"message": "y"}}
+    api.data["message_meta"] = {
+        "last_message": "2026-10-29T08:00:00+00:00",
+        "last_alert_message": "2026-10-29T08:00:00+00:00",
+    }
+
+    api.clean_message("All")
+
+    assert api.data["message"]["message"] == ""
+    assert api.data["message"]["alert"] == {"message": ""}
+    assert api.data["message_meta"] == {
+        "last_message": None,
+        "last_alert_message": None,
+    }
+
+
 @pytest.mark.asyncio
 async def test_push_values_no_payload_does_not_send(
     monkeypatch: pytest.MonkeyPatch,
@@ -172,7 +192,7 @@ async def test_http_send_sets_message_dict_and_adds_alert() -> None:
     res = await api.http_send("/action", payload={"x": 1}, method="post")
 
     assert res is not None and res.get("ok") is True
-    assert api.data["message"] == {"ok": True, "alert": ""}
+    assert api.data["message"] == {"ok": True, "alert": {"message": ""}}
 
 
 @pytest.mark.asyncio
@@ -188,7 +208,7 @@ async def test_http_send_sets_message_for_non_dict_json() -> None:
 
     await api.http_send("/action", payload={"x": 1}, method="post")
 
-    assert api.data["message"] == {"data": ["x"], "alert": ""}
+    assert api.data["message"] == {"data": ["x"], "alert": {"message": ""}}
 
 
 @pytest.mark.asyncio
@@ -204,7 +224,103 @@ async def test_http_send_sets_empty_message_when_no_json() -> None:
 
     await api.http_send("/action", payload={"x": 1}, method="post")
 
-    assert api.data["message"] == {}
+    assert api.data["message"] == {"alert": {"message": ""}}
+
+
+@pytest.mark.asyncio
+async def test_http_send_message_is_stamped_and_recorded() -> None:
+    session = _FakeSession(
+        responses={
+            "post": [
+                _FakeResponse(
+                    status=200, body_json={"success": True, "message": "done"}
+                ),
+            ]
+        }
+    )
+    api = _make_api(session)
+    recorded: list[dict[str, Any]] = []
+    api.on_message = recorded.append
+
+    await api.http_send("/action", payload={"x": 1}, method="post")
+
+    ts = api.data["message_meta"]["last_message"]
+    assert isinstance(ts, str) and ts.endswith("+00:00")
+    assert api.data["message_meta"]["last_alert_message"] is None
+    assert len(recorded) == 1
+    assert recorded[0]["type"] == "last_message"
+    assert recorded[0]["text"] == "done"
+    assert recorded[0]["path"] == "/action"
+    assert recorded[0]["method"] == "post"
+    assert recorded[0]["status"] == 200
+    assert recorded[0]["ts"] == ts
+
+
+@pytest.mark.asyncio
+async def test_http_send_without_message_records_nothing() -> None:
+    session = _FakeSession(
+        responses={"post": [_FakeResponse(status=200, body_json={"ok": True})]}
+    )
+    api = _make_api(session)
+    recorded: list[dict[str, Any]] = []
+    api.on_message = recorded.append
+
+    await api.http_send("/action", payload={"x": 1}, method="post")
+
+    assert recorded == []
+    assert api.data["message_meta"]["last_message"] is None
+
+
+@pytest.mark.asyncio
+async def test_http_send_alert_is_stamped_recorded_and_kept(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = _FakeSession(
+        responses={
+            "post": [
+                _FakeResponse(status=400, body_text="bad"),
+                _FakeResponse(status=200, body_json={"message": "ok now"}),
+            ]
+        }
+    )
+    api = _make_api(session)
+    recorded: list[dict[str, Any]] = []
+    api.on_message = recorded.append
+
+    async def _fake_sleep(_delay: float) -> None:
+        return None
+
+    monkeypatch.setattr(api_mod.asyncio, "sleep", _fake_sleep)
+
+    await api.http_send("/action", payload={"x": 1}, method="post")
+    assert api.data["message"]["alert"] == {"message": "bad"}
+    assert isinstance(api.data["message_meta"]["last_alert_message"], str)
+    assert [r["type"] for r in recorded] == ["last_alert_message"]
+    assert recorded[0]["status"] == 400
+
+    # A later successful push keeps the alert
+    await api.http_send("/action", payload={"x": 1}, method="post")
+    assert api.data["message"]["message"] == "ok now"
+    assert api.data["message"]["alert"] == {"message": "bad"}
+    assert [r["type"] for r in recorded] == ["last_alert_message", "last_message"]
+
+
+@pytest.mark.asyncio
+async def test_http_send_survives_a_failing_history_callback() -> None:
+    session = _FakeSession(
+        responses={"post": [_FakeResponse(status=200, body_json={"message": "m"})]}
+    )
+    api = _make_api(session)
+
+    def _boom(_entry: dict[str, Any]) -> None:
+        raise RuntimeError("boom")
+
+    api.on_message = _boom
+
+    res = await api.http_send("/action", payload={"x": 1}, method="post")
+
+    assert res is not None and res.get("ok") is True
+    assert api.data["message"]["message"] == "m"
 
 
 @pytest.mark.asyncio
@@ -948,3 +1064,43 @@ async def test_http_observers_see_every_request(
     assert seen[2]["payload"] == {"mode": "x"}
     assert all(r["host"] == "192.0.2.1" for r in seen)
     assert all(r["origin"] == "integration" for r in seen)
+
+
+@pytest.mark.asyncio
+async def test_requests_report_their_answer(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The HTTP observers (Poseidon spy file) get the decoded answers."""
+    session = _FakeSession(
+        responses={
+            "get": [
+                _FakeResponse(status=200, body_json={"poll": 1}),
+                _FakeResponse(status=200, body_text="plain", json_raises=True),
+                _FakeResponse(status=200, body_json={"src": 2}),
+            ],
+            "post": [_FakeResponse(status=200, body_json={"message": "ok"})],
+        }
+    )
+    api = _make_api(session)
+    monkeypatch.setattr(ReefBeatAPI, "_http_get", _ORIG_HTTP_GET, raising=True)
+    seen: list[dict[str, Any]] = []
+    remove = api_mod.add_http_observer(seen.append)
+    try:
+        await api.http_get("/mode")
+        await api.http_get("/text")
+
+        class _Match:
+            def __init__(self, value: dict[str, Any]):
+                self.value = value
+                self.context = None
+                self.path = "/"
+
+        await api._http_get(cast(Any, session), _Match({"name": "/dashboard"}))
+        await api.http_send("/action", payload={"x": 1}, method="post")
+    finally:
+        remove()
+    assert [(r["endpoint"], r["response"]) for r in seen] == [
+        ("/mode", {"poll": 1}),
+        ("/text", "plain"),
+        ("/dashboard", {"src": 2}),
+        # As the device sent it, without what the integration adds
+        ("/action", {"message": "ok"}),
+    ]

@@ -48,6 +48,9 @@ READ_CHUNK: Final[int] = 8192
 
 # How often the /cloud of the managed devices is read again
 CLOUD_REFRESH_S: Final[int] = 60
+# A device in Poseidon mode that exchanged through the relay this recently
+# is talking to it: its /cloud is only read again every safety_minutes
+TALKING_S: Final[int] = 120
 # Pause before reading /cloud again after a switch
 SWITCH_SETTLE_S: Final[float] = 2.0
 
@@ -130,6 +133,10 @@ LEGACY_STRATEGIES: Final[dict[str, str]] = {
     "reduced": STRATEGY_POSEIDON,
 }
 DEFAULT_REDUCED_MINUTES: Final[int] = 10
+# Poseidon strategy, device whose pushed messages cover every changing value:
+# a poll now and then only, as a safety net
+CONF_SAFETY_MINUTES: Final[str] = "safety_minutes"
+DEFAULT_SAFETY_MINUTES: Final[int] = 60
 # Poseidon strategy: a pushed state triggers a refresh, at most this often
 # per device
 PUSH_REFRESH_MIN_S: Final[float] = 5.0

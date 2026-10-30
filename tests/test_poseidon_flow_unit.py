@@ -295,6 +295,7 @@ async def test_settings(hass: HomeAssistant) -> None:
     assert defaults[const.CONF_DEBUG] is True
     assert defaults[const.CONF_SILENT_MINUTES] == const.DEFAULT_SILENT_MINUTES
     assert defaults[const.CONF_REDUCED_MINUTES] == const.DEFAULT_REDUCED_MINUTES
+    assert defaults[const.CONF_SAFETY_MINUTES] == const.DEFAULT_SAFETY_MINUTES
     # An earlier value, mapped to the new strategies
     assert defaults[const.CONF_STRATEGY] == const.STRATEGY_SPY
     # No key yet: a new one is proposed
@@ -313,6 +314,7 @@ async def test_settings(hass: HomeAssistant) -> None:
         const.CONF_WATCHDOG_KEY: "",
         const.CONF_STRATEGY: const.DEFAULT_STRATEGY,
         const.CONF_REDUCED_MINUTES: const.DEFAULT_REDUCED_MINUTES,
+        const.CONF_SAFETY_MINUTES: const.DEFAULT_SAFETY_MINUTES,
     }
 
     # A key set is proposed as is

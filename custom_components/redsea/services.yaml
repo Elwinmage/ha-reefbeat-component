@@ -610,3 +610,43 @@ record_measurement:
         datetime:
 # Poseidon mode: write the keystore to a file (CLI format).
 poseidon_export:
+
+# History of the messages and alerts of a device, newest first
+get_messages:
+  fields:
+    device_id:
+      name: Device ID
+      description: The config entry of the device.
+      required: true
+      selector:
+        config_entry:
+          integration: redsea
+    msg_type:
+      required: false
+      description: Kind of message
+      default: "All"
+      example: "last_alert_message"
+      selector:
+        select:
+          options:
+            - "All"
+            - "last_message"
+            - "last_alert_message"
+    days:
+      required: false
+      description: Only the messages of the last days
+      example: 7
+      selector:
+        number:
+          min: 1
+          max: 365
+          mode: box
+    limit:
+      required: false
+      description: At most this many messages
+      example: 50
+      selector:
+        number:
+          min: 1
+          max: 10000
+          mode: box
