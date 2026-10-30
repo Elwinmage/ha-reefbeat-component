@@ -15,6 +15,7 @@ import logging
 import os
 import time
 from collections.abc import Awaitable, Callable
+from contextlib import suppress
 from datetime import timedelta
 from pathlib import Path
 from typing import Any, cast
@@ -28,11 +29,13 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.loader import async_get_integration
 from homeassistant.util import dt as dt_util
 
 from ..const import CONFIG_FLOW_CLOUD_USERNAME, DOMAIN, VIRTUAL_LED
 from ..reefbeat.api import add_http_observer, http_origin
 from . import const
+from .anomalies import AnomalyMonitor, check_frame
 from .capture import CaptureReport, SnapshotStore, acquire_keys
 from .crypto import decrypt_payload
 from .debug import DebugLog, frame_record, http_record, mark_record
@@ -125,6 +128,11 @@ class Poseidon:
         # Strategies (see strategy.py): one file each, created on first write
         self.spy_log = DebugLog(logs, const.SPY_FILE)
         self.shadow_log = DebugLog(logs, const.SHADOW_FILE)
+        # Messages nothing expected (anomalies.py)
+        self.anomaly_log = DebugLog(logs, const.ANOMALY_FILE)
+        self.anomalies = AnomalyMonitor(
+            hass, self.anomaly_log.write, lambda: self.anomaly_search
+        )
         self.comparisons = Comparisons()
         self.poll_control = PollControl()
         # Strategy of each device in Poseidon mode, as last applied
@@ -173,6 +181,22 @@ class Poseidon:
     @property
     def debug(self) -> bool:
         return bool(self.entry.options.get(const.CONF_DEBUG, False))
+
+    @property
+    def anomaly_detection(self) -> bool:
+        """Messages nothing expected are logged and reported."""
+        return bool(
+            self.entry.options.get(const.CONF_ANOMALIES, const.DEFAULT_ANOMALIES)
+        )
+
+    @property
+    def anomaly_search(self) -> bool:
+        """The reports of an anomaly are looked for on GitHub."""
+        return self.anomaly_detection and bool(
+            self.entry.options.get(
+                const.CONF_ANOMALY_SEARCH, const.DEFAULT_ANOMALY_SEARCH
+            )
+        )
 
     @property
     def silent_minutes(self) -> int:
@@ -243,6 +267,9 @@ class Poseidon:
     async def async_apply_options(self) -> None:
         """Options saved: applied at once, without restarting the relay."""
         await self._run_log(self.debug_log, self.debug)
+        await self._run_log(self.anomaly_log, self.anomaly_detection)
+        if not self.anomaly_detection:
+            self.anomalies.clear()
         self._apply_polling()
         self._update_silent_issues()
         self._signal(force=True)
@@ -257,6 +284,9 @@ class Poseidon:
         """Load the keys and listen; OSError when the port is taken."""
         await self.async_load()
         self._started_at = dt_util.utcnow()
+        with suppress(Exception):
+            integration = await async_get_integration(self.hass, DOMAIN)
+            self.anomalies.version = str(integration.version or "")
         await self.relay.async_start()
         await self._run_log(self.spy_log, True)
         await self._run_log(self.shadow_log, True)
@@ -289,6 +319,7 @@ class Poseidon:
         await self._run_log(self.debug_log, False)
         await self._run_log(self.spy_log, False)
         await self._run_log(self.shadow_log, False)
+        await self._run_log(self.anomaly_log, False)
 
     # ------------------------------------------------------------------
     # Devices of the integration
@@ -976,26 +1007,57 @@ class Poseidon:
                 self.debug_log.write(record)
             if strategy == const.STRATEGY_SPY:
                 self.spy_log.write(record)
-        if (
-            strategy is None
-            or direction != UP
-            or frame.packet_type != PACKET_PUBLISH
-            or len(secret) != 16
-        ):
+        if strategy is None:
+            return
+        if frame.packet_type != PACKET_PUBLISH:
+            self._check_anomalies(hwid, direction, frame.packet_type, None, None)
             return
         topic, payload = frame.parse_publish()
-        telemetry = is_telemetry_topic(topic)
-        if not telemetry and not is_state_topic(topic):
+        message: Any = None
+        if len(secret) == 16:
+            try:
+                message = decrypt_payload(
+                    payload.decode("utf-8", errors="replace"), secret
+                )
+            except Exception:
+                _LOGGER.debug("Poseidon: %s of %s does not decrypt", topic, hwid)
+        self._check_anomalies(hwid, direction, PACKET_PUBLISH, topic, message)
+        if direction != UP or message is None:
             return
+        if is_telemetry_topic(topic):
+            self._on_telemetry(hwid, topic, message)
+        elif is_state_topic(topic):
+            self._on_state(hwid, topic, message)
+
+    @callback
+    def _check_anomalies(
+        self,
+        hwid: str,
+        direction: str,
+        packet_type: int,
+        topic: str | None,
+        message: Any,
+    ) -> None:
+        """Report what a frame carried that nothing expected."""
+        if not self.anomaly_detection:
+            return
+        dev = self.keystore.get(hwid)
         try:
-            state = decrypt_payload(payload.decode("utf-8", errors="replace"), secret)
+            found = check_frame(
+                dev.type if dev else "", direction, packet_type, topic, message, hwid
+            )
         except Exception:
-            _LOGGER.debug("Poseidon: state of %s does not decrypt", hwid)
+            _LOGGER.debug("Poseidon: anomaly check failed", exc_info=True)
             return
-        if telemetry:
-            self._on_telemetry(hwid, topic, state)
+        if not found:
             return
-        self._on_state(hwid, topic, state)
+        coordinator = self.coordinator(hwid)
+        self.anomalies.report(
+            hwid,
+            found,
+            model=str(getattr(coordinator, "model", "") or ""),
+            firmware=str(getattr(coordinator, "sw_version", "") or ""),
+        )
 
     @callback
     def _signal(self, force: bool = False) -> None:

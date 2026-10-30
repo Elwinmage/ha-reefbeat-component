@@ -2116,10 +2116,14 @@
           "watchdog_key": "Clef du watchdog (16 caractères)",
           "strategy": "Stratégie par défaut des appareils",
           "reduced_minutes": "Intervalle du relevé en stratégie Poseidon (minutes)",
-          "safety_minutes": "Relevé de sécurité d'un appareil entièrement poussé (minutes)"
+          "safety_minutes": "Relevé de sécurité d'un appareil entièrement poussé (minutes)",
+          "anomalies": "Signaler les messages inattendus",
+          "anomaly_search": "Chercher les signalements existants sur GitHub"
         },
         "data_description": {
-          "safety_minutes": "Stratégie Poseidon : un appareil dont les messages poussés couvrent toutes les valeurs qui changent (une ReefControl Power sans sonde de température ni prise pilotée par un capteur) n'est relevé qu'à cette fréquence, par sécurité. Son /cloud aussi, tant qu'il échange avec le relais."
+          "safety_minutes": "Stratégie Poseidon : un appareil dont les messages poussés couvrent toutes les valeurs qui changent (une ReefControl Power sans sonde de température ni prise pilotée par un capteur) n'est relevé qu'à cette fréquence, par sécurité. Son /cloud aussi, tant qu'il échange avec le relais.",
+          "anomalies": "Les messages d'un appareil en mode Poseidon que rien ne prévoyait (nouveau topic, commande inconnue, nouveau champ) vont dans {logs}/anomalies.jsonl (anonymisés), avec une réparation pour les signaler sur GitHub.",
+          "anomaly_search": "Avant de créer une réparation, les issues du dépôt sont cherchées par la signature de l'anomalie : seule cette courte empreinte est envoyée, rien sur vos appareils. Désactivé : aucune requête vers GitHub."
         }
       },
       "import_keystore": {
@@ -2680,6 +2684,22 @@
     "poseidon_device_silent": {
       "title": "{name} : silencieux en mode Poseidon",
       "description": "{name} est en mode Poseidon mais rien n'est passé par le relais pour lui depuis plus de {minutes} minutes : il est peut-être éteint, ou ne joint plus Home Assistant. Il n'est pas remis en mode normal automatiquement ; cette alerte disparaît d'elle-même quand son trafic reprend."
+    },
+    "poseidon_anomaly_new": {
+      "title": "Poseidon : message inattendu d'un {model} ({signature})",
+      "description": "Un {model} (firmware {firmware}) en mode Poseidon a envoyé quelque chose que rien ne prévoyait : **{kind}** — {details}.\n\nC'est consigné dans redsea/poseidon/logs/anomalies.jsonl (anonymisé). **En savoir plus** ouvre une issue GitHub préremplie : vous pouvez la relire et la modifier avant de l'envoyer, rien ne part sans vous."
+    },
+    "poseidon_anomaly_reported": {
+      "title": "Poseidon : message inattendu déjà signalé d'un {model} ({signature})",
+      "description": "Un {model} (firmware {firmware}) en mode Poseidon a envoyé quelque chose que rien ne prévoyait : **{kind}** — {details}.\n\nC'est déjà signalé (issue #{number}) : **En savoir plus** l'ouvre, pour la suivre ou ajouter ce que vous avez vu."
+    },
+    "poseidon_anomaly_fixed": {
+      "title": "Poseidon : pris en charge en version {version} ({signature})",
+      "description": "Un {model} (firmware {firmware}) en mode Poseidon a envoyé quelque chose qu'une version précédente ne prévoyait pas : **{kind}** — {details}.\n\nC'est pris en charge à partir de la version {version} de l'intégration (issue #{number}) : mettez-la à jour pour faire disparaître cette réparation."
+    },
+    "poseidon_anomaly_closed": {
+      "title": "Poseidon : message inattendu déjà traité ({signature})",
+      "description": "Un {model} (firmware {firmware}) en mode Poseidon a envoyé quelque chose que rien ne prévoyait : **{kind}** — {details}.\n\nSon signalement (issue #{number}) est fermé : **En savoir plus** l'ouvre. Rouvrez-le si c'est toujours d'actualité."
     }
   }
 }

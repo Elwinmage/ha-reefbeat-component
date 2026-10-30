@@ -319,6 +319,17 @@ class PoseidonOptionsFlowMixin:
                                 const.DEFAULT_SAFETY_MINUTES,
                             )
                         ),
+                        const.CONF_ANOMALIES: bool(
+                            user_input.get(
+                                const.CONF_ANOMALIES, const.DEFAULT_ANOMALIES
+                            )
+                        ),
+                        const.CONF_ANOMALY_SEARCH: bool(
+                            user_input.get(
+                                const.CONF_ANOMALY_SEARCH,
+                                const.DEFAULT_ANOMALY_SEARCH,
+                            )
+                        ),
                     }
                 )
         current = user_input or options
@@ -372,6 +383,20 @@ class PoseidonOptionsFlowMixin:
                         min=5, max=1440, step=5, mode=NumberSelectorMode.BOX
                     )
                 ),
+                vol.Required(
+                    const.CONF_ANOMALIES,
+                    default=bool(
+                        current.get(const.CONF_ANOMALIES, const.DEFAULT_ANOMALIES)
+                    ),
+                ): BooleanSelector(),
+                vol.Required(
+                    const.CONF_ANOMALY_SEARCH,
+                    default=bool(
+                        current.get(
+                            const.CONF_ANOMALY_SEARCH, const.DEFAULT_ANOMALY_SEARCH
+                        )
+                    ),
+                ): BooleanSelector(),
                 # A new key is proposed while none is set: the watchdog needs
                 # the same one in its configuration
                 vol.Optional(

@@ -2116,10 +2116,14 @@
           "watchdog_key": "Klucz watchdoga (16 znaków)",
           "strategy": "Domyślna strategia urządzeń",
           "reduced_minutes": "Interwał odpytywania strategii Poseidon (minuty)",
-          "safety_minutes": "Odczyt bezpieczeństwa urządzenia w pełni wysyłającego (minuty)"
+          "safety_minutes": "Odczyt bezpieczeństwa urządzenia w pełni wysyłającego (minuty)",
+          "anomalies": "Zgłaszaj nieoczekiwane wiadomości",
+          "anomaly_search": "Szukaj istniejących zgłoszeń na GitHubie"
         },
         "data_description": {
-          "safety_minutes": "Strategia Poseidon: urządzenie, którego wysyłane wiadomości obejmują każdą zmieniającą się wartość (ReefControl Power bez sondy temperatury i bez gniazda sterowanego czujnikiem), jest odczytywane tylko z tą częstotliwością, dla bezpieczeństwa. Także jego /cloud, dopóki komunikuje się z przekaźnikiem."
+          "safety_minutes": "Strategia Poseidon: urządzenie, którego wysyłane wiadomości obejmują każdą zmieniającą się wartość (ReefControl Power bez sondy temperatury i bez gniazda sterowanego czujnikiem), jest odczytywane tylko z tą częstotliwością, dla bezpieczeństwa. Także jego /cloud, dopóki komunikuje się z przekaźnikiem.",
+          "anomalies": "Wiadomości urządzenia w trybie Poseidon, których nic nie przewidywało (nowy topic, nieznane polecenie, nowe pole), trafiają do {logs}/anomalies.jsonl (zanonimizowane), wraz z naprawą do zgłoszenia ich na GitHubie.",
+          "anomaly_search": "Przed utworzeniem naprawy zgłoszenia repozytorium są przeszukiwane po sygnaturze anomalii: wysyłany jest tylko ten krótki skrót, nic o Twoich urządzeniach. Wyłączone: brak zapytań do GitHuba."
         }
       },
       "import_keystore": {
@@ -2680,6 +2684,22 @@
     "poseidon_device_silent": {
       "title": "{name}: ciche w trybie Poseidon",
       "description": "{name} jest w trybie Poseidon, ale od ponad {minutes} minut nic dla niego nie przeszło przez przekaźnik: może jest wyłączone albo nie łączy się już z Home Assistant. Nie jest automatycznie przełączane z powrotem; to zgłoszenie znika samo, gdy ruch wznowi się."
+    },
+    "poseidon_anomaly_new": {
+      "title": "Poseidon: nieoczekiwana wiadomość od {model} ({signature})",
+      "description": "{model} (firmware {firmware}) w trybie Poseidon wysłał coś, czego nic nie przewidywało: **{kind}** — {details}.\n\nZapisano to w redsea/poseidon/logs/anomalies.jsonl (zanonimizowane). **Dowiedz się więcej** otwiera wypełnione zgłoszenie na GitHubie: możesz je przeczytać i zmienić przed wysłaniem, nic nie zostanie wysłane bez Ciebie."
+    },
+    "poseidon_anomaly_reported": {
+      "title": "Poseidon: znana nieoczekiwana wiadomość od {model} ({signature})",
+      "description": "{model} (firmware {firmware}) w trybie Poseidon wysłał coś, czego nic nie przewidywało: **{kind}** — {details}.\n\nZostało to już zgłoszone (issue #{number}): **Dowiedz się więcej** otwiera zgłoszenie, aby je śledzić lub dodać swoje obserwacje."
+    },
+    "poseidon_anomaly_fixed": {
+      "title": "Poseidon: obsługiwane od wersji {version} ({signature})",
+      "description": "{model} (firmware {firmware}) w trybie Poseidon wysłał coś, czego wcześniejsza wersja nie przewidywała: **{kind}** — {details}.\n\nJest to obsługiwane od wersji {version} integracji (issue #{number}): zaktualizuj ją, aby ta naprawa zniknęła."
+    },
+    "poseidon_anomaly_closed": {
+      "title": "Poseidon: nieoczekiwana wiadomość już obsłużona ({signature})",
+      "description": "{model} (firmware {firmware}) w trybie Poseidon wysłał coś, czego nic nie przewidywało: **{kind}** — {details}.\n\nJego zgłoszenie (issue #{number}) jest zamknięte: **Dowiedz się więcej** je otwiera. Otwórz je ponownie, jeśli to nadal ważne."
     }
   }
 }

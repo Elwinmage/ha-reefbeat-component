@@ -2,15 +2,26 @@
 
 from __future__ import annotations
 
+import copy
+import json
 from datetime import timedelta
+from pathlib import Path
 from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from custom_components.redsea.poseidon import const, strategy
+from custom_components.redsea.poseidon import manager as manager_mod
+from custom_components.redsea.poseidon.crypto import encrypt_payload
 from custom_components.redsea.poseidon.debug import MASK, http_record, redact
+from custom_components.redsea.poseidon.mqtt import (
+    MqttFrame,
+    encode_publish,
+)
+from custom_components.redsea.poseidon.relay import UP, Traffic
 from custom_components.redsea.reefbeat import api as api_mod
-from tests._poseidon_fakes import HWID
+from tests._poseidon_fakes import HWID, SECRET
 from tests.test_poseidon_spy_unit import _logs, _poseidon
 
 # -- answers in the spy records ------------------------------------------------
@@ -220,18 +231,6 @@ def test_compare_never_matches_a_single_segment_left_over() -> None:
 
 # -- telemetry and safety polling ---------------------------------------------------
 
-import copy
-import json
-from pathlib import Path
-
-from custom_components.redsea.poseidon.crypto import encrypt_payload
-from custom_components.redsea.poseidon.mqtt import (
-    MqttFrame,
-    encode_publish,
-)
-from custom_components.redsea.poseidon.relay import UP
-from tests._poseidon_fakes import SECRET
-
 
 def _state_frame(payload: Any, topic: str) -> MqttFrame:
     """A PUBLISH frame of any size (variable remaining length)."""
@@ -372,11 +371,6 @@ async def test_other_topics_are_neither_merged_nor_compared(
 
 
 # -- /cloud read now and then while the device talks to the relay ------------------
-
-from homeassistant.util import dt as dt_util
-
-from custom_components.redsea.poseidon import manager as manager_mod
-from custom_components.redsea.poseidon.relay import Traffic
 
 
 async def test_cloud_read_spaced_while_talking(

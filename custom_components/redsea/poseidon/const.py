@@ -143,3 +143,20 @@ PUSH_REFRESH_MIN_S: Final[float] = 5.0
 PUSH_REFRESH_WAIT_S: Final[int] = 1
 SPY_FILE: Final[str] = "spy.jsonl"
 SHADOW_FILE: Final[str] = "shadow.jsonl"
+# Messages nothing expected (anomalies.py)
+ANOMALY_FILE: Final[str] = "anomalies.jsonl"
+CONF_ANOMALIES: Final[str] = "anomalies"
+DEFAULT_ANOMALIES: Final[bool] = True
+CONF_ANOMALY_SEARCH: Final[str] = "anomaly_search"
+DEFAULT_ANOMALY_SEARCH: Final[bool] = True
+# Repair issues of the anomalies: one per signature
+ISSUE_ANOMALY: Final[str] = "poseidon_anomaly"
+# Where the anomalies are reported and looked for
+GITHUB_REPO: Final[str] = "Elwinmage/ha-reefbeat-component"
+GITHUB_SEARCH_URL: Final[str] = "https://api.github.com/search/issues"
+GITHUB_NEW_ISSUE_URL: Final[str] = f"https://github.com/{GITHUB_REPO}/issues/new"
+# Label of the reported anomalies; "fixed-in-<version>" closes one
+ANOMALY_LABEL: Final[str] = "poseidon-anomaly"
+FIXED_LABEL_PREFIX: Final[str] = "fixed-in-"
+# How long a search answer is trusted (seconds)
+ANOMALY_SEARCH_TTL_S: Final[int] = 24 * 3600

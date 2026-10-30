@@ -2,6 +2,32 @@
 
 ## MODIFICATIONS
 
+### Poseidon: unexpected messages reported
+
+- Every message crossing the relay for a device in Poseidon mode is checked
+  against what is known of its family (`poseidon/anomalies.py`), on four
+  levels:
+  1. unknown MQTT packet type or topic (any family);
+  2. unknown command sent to the device (method and URL, numbers as `*`);
+  3. state with an unknown field, or a known field with another type;
+  4. telemetry with an unknown field, a missing one or another type.
+  Only the ReefControl Power has a catalogue yet (levels 2 to 4); it gives
+  no anomaly on the recorded runs.
+- Each anomaly has a signature (hash of its kind, family, topic and key
+  differences, never of the values): the same for every user. Its first
+  occurrence goes to `logs/anomalies.jsonl` with an anonymised sample
+  (hwid, names, network addresses, keys and secrets removed); the next ones
+  are counted.
+- The signature is looked for in the titles of the GitHub issues (only the
+  signature is sent, answer kept 24 h), and a repair issue tells what to do:
+  open a new issue (link with title, body and label prefilled, sent only by
+  the user), follow the open one, update to the version of its
+  `fixed-in-x.y.z` label, or read the closed one. A telemetry anomaly only
+  gets a repair when the search answered and found nothing.
+- Two new options in the Poseidon settings: `anomalies` (detection, on by
+  default; off removes its repairs) and `anomaly_search` (GitHub search,
+  on by default).
+
 ### Poseidon: ReefControl Power states merged
 
 - First merger of pushed states (`poseidon/mergers.py`), for the
