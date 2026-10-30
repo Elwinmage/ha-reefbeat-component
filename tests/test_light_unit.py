@@ -131,7 +131,7 @@ async def test_light_async_setup_entry_adds_entities_for_g2_and_virtual_only_g1(
     def _add_g2(
         new_entities: Iterable[Entity], update_before_add: bool = False
     ) -> None:
-        assert update_before_add is True
+        assert update_before_add is False
         added_g2.extend(new_entities)
 
     await light_mod.async_setup_entry(hass, cast(ConfigEntry, entry_g2), _add_g2)
@@ -149,7 +149,7 @@ async def test_light_async_setup_entry_adds_entities_for_g2_and_virtual_only_g1(
     added_v: list[Any] = []
 
     def _add_v(new_entities: Iterable[Entity], update_before_add: bool = False) -> None:
-        assert update_before_add is True
+        assert update_before_add is False
         added_v.extend(new_entities)
 
     caplog.clear()
@@ -668,3 +668,24 @@ async def test_light_turn_off_kelvin_intensity_sets_intensity_zero_and_fires_kel
 
     assert (desc.value_name + ".intensity", 0) in device.set_calls
     assert (EVENT_KELVIN_LIGHT_UPDATED, {}) in cast(_FakeHass, entity.hass).bus.fired
+
+
+@pytest.mark.asyncio
+async def test_light_coordinator_update_and_update_read_the_device(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    device = _FakeLedCoordinator()
+    desc = ReefLedLightEntityDescription(
+        key="white",
+        translation_key="white",
+        value_name="$.local.white",
+    )
+    entity = ReefLedLightEntity(cast(Any, device), desc)
+    read: list[bool] = []
+    monkeypatch.setattr(entity, "_update_from_device", lambda: read.append(True))
+    monkeypatch.setattr(
+        CoordinatorEntity, "_handle_coordinator_update", lambda self: None
+    )
+    entity._handle_coordinator_update()
+    await entity.async_update()
+    assert read == [True, True]

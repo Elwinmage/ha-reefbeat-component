@@ -996,7 +996,7 @@ async def async_setup_entry(
     # Group (virtual LED) settings: staggered sunrise
     entities.extend(group_entities(device, "switch"))
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
 def _add_maintenance_notify_switches(

@@ -87,12 +87,12 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
-        async_add_entities(entities, True)
+        async_add_entities(entities)
 
     # ReefLED week program following the weather
     weather = weather_entities(device, "time")
     if weather:
-        async_add_entities(weather, True)
+        async_add_entities(weather)
 
 
 # -----------------------------------------------------------------------------

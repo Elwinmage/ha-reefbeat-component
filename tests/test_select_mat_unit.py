@@ -34,5 +34,5 @@ async def test_async_setup_entry_mat_adds_two_select_entities(
 
     assert added
     entities, update_before_add = added[0]
-    assert update_before_add is True
+    assert update_before_add is False
     assert len(entities) == 2

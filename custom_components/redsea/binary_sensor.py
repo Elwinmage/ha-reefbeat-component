@@ -730,7 +730,7 @@ async def async_setup_entry(
     # ReefDose heads: dose regulation (assisted dosing, brine)
     entities.extend(regulation_entities(device, "binary_sensor"))
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
 # -----------------------------------------------------------------------------

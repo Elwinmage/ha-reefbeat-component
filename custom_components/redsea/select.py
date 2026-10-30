@@ -357,7 +357,7 @@ async def async_setup_entry(
     entities.extend(regulation_entities(device, "select"))
     entities.extend(weather_entities(device, "select"))
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
 # -----------------------------------------------------------------------------

@@ -710,6 +710,19 @@ commands carry nothing more. Two gaps closed:
 
 ## FIXES
 
+- Faster start: the entities are no longer updated before being added
+  (`update_before_add`). That update asked each device for a full poll,
+  after a 2 s pause, right after the one that had just filled the cache:
+  every platform waited for it ("Setup of … platform redsea is taking over
+  10 seconds"), and each device was polled twice in a row. The entities
+  take their state from the cache, read just before.
+- A number restored at start no longer hides the value the device just
+  gave: only a value Home Assistant keeps itself (`$.local…`, such as the
+  manual dose volume) is restored over the cache, a value of the device
+  only when the device told nothing for it. A restored value used to stay
+  until the next poll, and for good in a config source (device settings,
+  LED offset…), which the polling never reads again.
+
 - Cloud aquariums: the devices of an aquarium are found with
   `async_get_devices` instead of the deprecated `async_get_device` (device
   identifiers are only unique within a config entry; it stops working in

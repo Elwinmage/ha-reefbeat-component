@@ -998,3 +998,18 @@ def test_white_and_blue_to_kelvin_uses_cached_kelvin_when_no_wb_to_kelvin() -> N
 
     res = api.white_and_blue_to_kelvin(100, 0)
     assert res["kelvin"] == 10000
+
+
+def test_update_light_wb_keeps_the_colour_and_intensity_last_set() -> None:
+    # Read again with the very levels the last colour and intensity gave:
+    # they are kept as they are, not derived back from whole levels
+    hw = HW_G1_LED_IDS[0]
+    api = _make_led_api(hw=hw)
+    api.add_source("/manual", "data", {"white": 100, "blue": 0, "moon": 0})
+    api.update_light_wb()
+    manual = api.get_data('$.sources[?(@.name=="/manual")].data')
+    for key in ("kelvin", "intensity"):
+        manual.pop(key)
+    api.update_light_wb()
+    manual = api.get_data('$.sources[?(@.name=="/manual")].data')
+    assert (manual["kelvin"], manual["intensity"]) == (9000, 100)

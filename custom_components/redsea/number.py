@@ -1402,7 +1402,7 @@ async def async_setup_entry(
 
     # ReefDose heads: dose regulation (assisted dosing, brine)
     entities.extend(regulation_entities(device, "number"))
-    async_add_entities(entities, update_before_add=True)
+    async_add_entities(entities)
 
 
 def _add_maintenance_numbers(
@@ -1536,15 +1536,25 @@ class ReefBeatNumberEntity(CoordinatorEntity[ReefBeatCoordinator], RestoreNumber
             pass
 
     async def async_added_to_hass(self) -> None:
-        """Restore last known value and prime from coordinator cache."""
+        """Restore the last value, then take the state from the cache.
 
+        A value Home Assistant keeps itself (``$.local...``) is restored into
+        the cache. A value of the device is not: the cache was read from it
+        just before the entities were added, a restored value would hide the
+        real one until the next poll (or for good, in a config source). It is
+        only restored when the device told nothing for it.
+        """
+        value_name = str(self._description.value_name)
         res = await self.async_get_last_extra_data()
-        if res is not None:
-            self._attr_native_value = res.as_dict()["native_value"]
-            self._device.set_data(self._description.value_name, self._attr_native_value)
-        else:
-            self._attr_native_value = None
+        restored = res.as_dict().get("native_value") if res is not None else None
+        if restored is not None and (
+            value_name.startswith("$.local")
+            or self._device.get_data(value_name, True) is None
+        ):
+            self._device.set_data(value_name, restored)
         await super().async_added_to_hass()
+        # The state from the cache, as on any coordinator update
+        self._handle_coordinator_update()
 
     @callback
     def _handle_coordinator_update(self) -> None:
