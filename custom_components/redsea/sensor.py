@@ -110,6 +110,8 @@ from .coordinator import (
 from .dose_regulation_entities import regulation_entities
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
 from .led_weather_entities import weather_entities
+from .poseidon import get_poseidon, is_poseidon_entry
+from .poseidon.switch_entity import poseidon_dose_sensors
 from .probe_entities import probe_state_attributes
 
 _LOGGER = logging.getLogger(__name__)
@@ -2112,6 +2114,17 @@ async def async_setup_entry(
     - Creates entities from static description lists.
     - Creates dynamic cloud library entities when running as a cloud coordinator.
     """
+    if is_poseidon_entry(entry):
+        poseidon = get_poseidon(hass)
+        if poseidon is not None:
+            poseidon.async_set_entity_adder(
+                "sensor",
+                lambda devices: async_add_entities(
+                    poseidon_dose_sensors(poseidon, devices)
+                ),
+            )
+        return
+
     device = cast(ReefBeatCoordinator, hass.data[DOMAIN][entry.entry_id])
     entities: list[SensorEntity] = []
 

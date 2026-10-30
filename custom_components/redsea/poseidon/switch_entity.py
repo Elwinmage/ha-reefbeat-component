@@ -1,4 +1,5 @@
-"""The Poseidon entities of a device: mode switch, polling pause, strategy.
+"""The Poseidon entities of a device: mode switch, polling pause, strategy,
+and the last dose of each head of a ReefDose.
 
 One per device whose keys are known. It belongs to the Poseidon entry but is
 attached to the device's own registry entry (``device_entry``, as helpers
@@ -13,9 +14,11 @@ back.
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from homeassistant.components.select import SelectEntity
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import EntityCategory
 from homeassistant.helpers import device_registry as dr
@@ -145,3 +148,78 @@ class PoseidonStrategySelect(_PoseidonDeviceEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         self._poseidon.async_set_strategy(self._hwid, option)
+
+
+class PoseidonLastDoseSensor(_PoseidonDeviceEntity, SensorEntity):
+    """Last dose of a ReefDose head, told by its dosing-log: only known in
+    Poseidon mode, so only available then. Attached to the head device."""
+
+    _attr_translation_key = "poseidon_last_dose"
+    _attr_icon = "mdi:water-check-outline"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(
+        self, poseidon: Poseidon, hwid: str, device: dr.DeviceEntry, head: int
+    ) -> None:
+        super().__init__(poseidon, hwid, device)
+        self._head = head
+        self._attr_unique_id = f"poseidon_last_dose_{hwid}_{head}"
+
+    async def async_added_to_hass(self) -> None:
+        _connect_updates(self)
+
+    @property
+    def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
+        return self._device_ready() and self._poseidon.in_poseidon(
+            self._poseidon.cached_cloud(self._hwid)
+        )
+
+    def _last(self) -> dict[str, Any] | None:
+        return self._poseidon.doses.last(self._hwid, self._head)
+
+    @property
+    def native_value(self) -> datetime | None:  # pyright: ignore[reportIncompatibleVariableOverride]
+        last = self._last()
+        if last is None:
+            return None
+        try:
+            return datetime.fromisoformat(str(last.get("ended_at")))
+        except ValueError:
+            return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:  # pyright: ignore[reportIncompatibleVariableOverride]
+        last = self._last() or {}
+        return {
+            "head": self._head,
+            "volume": last.get("volume"),
+            "dose_type": last.get("dose_type"),
+            "started_at": last.get("started_at"),
+            "duration_s": last.get("duration_s"),
+            "supplement": last.get("supplement"),
+        }
+
+
+def _heads_of(poseidon: Poseidon, hwid: str, device: dr.DeviceEntry) -> int:
+    """Number of heads of a ReefDose (RSDOSE2, RSDOSE4)."""
+    heads = getattr(poseidon.coordinator(hwid), "heads_nb", None)
+    if isinstance(heads, int) and heads > 0:
+        return heads
+    model = str(device.model or "")
+    return int(model[-1]) if model[-1:].isdigit() else 4
+
+
+def poseidon_dose_sensors(
+    poseidon: Poseidon, devices: dict[str, dr.DeviceEntry]
+) -> list[PoseidonLastDoseSensor]:
+    """The last dose sensors of the ReefDose among new Poseidon devices: one
+    per head, on the head device (the doser itself when it is not there)."""
+    sensors: list[PoseidonLastDoseSensor] = []
+    for hwid, device in devices.items():
+        dev = poseidon.keystore.get(hwid)
+        if dev is None or dev.type != "reef-dosing":
+            continue
+        for head in range(1, _heads_of(poseidon, hwid, device) + 1):
+            entry = poseidon.head_device_entry(hwid, head) or device
+            sensors.append(PoseidonLastDoseSensor(poseidon, hwid, entry, head))
+    return sensors

@@ -81,6 +81,7 @@ traffic resumes. A silent device is never switched back automatically.
 | Home Assistant restarts, Poseidon reloads | Left as they are: they reconnect when the relay is back |
 | Poseidon disabled or removed | All switched back to normal mode |
 | A device cannot be switched back | Named in a notification |
+| A device is pointed at the relay but never connects to it (it kept its session with Red Sea) | Made to reconnect after 2 minutes: pointed back at Red Sea, then at the relay again, twice at most |
 
 Poseidon mode is only ever entered by you. Every automatic switch goes back to
 normal mode.
@@ -96,10 +97,25 @@ What Home Assistant does with a device in Poseidon mode. Each device has a
 | *Shadow* | unchanged | merged into the device's data, compared with the next poll | `shadow.jsonl` |
 | *Poseidon* | every N minutes | used; the device is read again on each state while its family cannot be merged | — |
 
-> [!NOTE]
-> No device family can be merged yet: the spy files are what the merging is
-> written from. Until then, *Shadow* only compares, and *Poseidon* reads the
-> device again every time it pushes a state.
+Families merged so far, from the spy runs:
+
+| Family | Merged |
+|---|---|
+| ReefControl Power | states, telemetry; the socket states are computed from their schedules, as the ReefBeat app does |
+| ReefDose | states, telemetry; a `dosing-log` (end of a dose) reads it again, for its dosing queue |
+| ReefMat | states, telemetry, `rolling-log` (end of an advance) |
+| ReefLED | telemetry |
+
+For the other families, *Shadow* only compares, and *Poseidon* reads the device
+again every time it pushes a state. *Poseidon* also reads it again when a state
+tells something its merger cannot write (a setting it does not know, a ReefDose
+schedule, pushed without its intervals). Such a read includes the config
+sources: what the app changes is mostly settings, which the polling never reads
+again.
+
+A ReefControl Power without temperature probe nor socket driven by a sensor has
+everything that changes pushed: with *Poseidon*, it is only polled every
+*Safety polling interval*.
 
 ### Spy
 
@@ -140,12 +156,106 @@ time zone):
   `/config/redsea/poseidon/logs/poseidon.jsonl` (rotated at 10 MB, 5 files
   kept). The payloads are in clear in that file.
 - **Delay before a device is silent**, in minutes (10 by default).
+- **Safety polling interval**, in minutes (60 by default): the polling of a
+  device whose pushed messages cover everything that changes, and how often the
+  `/cloud` of a device exchanging through the relay is read.
+- **Report unexpected messages** (on by default): see
+  [Unexpected messages](#unexpected-messages).
+- **Look for existing reports on GitHub** (on by default): only the signature
+  of an unexpected message is sent.
+- **Hold back the cloud's write commands at connection** (on by default): see
+  [Guard at connection](#guard-at-connection).
 - **Watchdog key**: 16 characters, proposed when none is set. A watchdog on
   another machine (standalone, or in
   [reefbeatEnergyBackup](https://github.com/Elwinmage/reefbeatEnergyBackup))
   asks the relay whether it is alive, and switches the devices back to normal
   mode when it is not. Copy this key into its configuration; leave it empty to
   answer no watchdog.
+
+## Unexpected messages
+
+Every message crossing the relay is checked against what is known of its device
+family: an MQTT packet or topic nothing knows, a command of the cloud to an
+unknown endpoint, a state or a telemetry with a new field, a missing one or
+another type. The first occurrence goes to
+`/config/redsea/poseidon/logs/anomalies.jsonl`, anonymised (ids, names,
+network addresses, keys removed); an unknown command waits 5 seconds for what
+the device answers and pushes, written with it.
+
+Each one has a signature, the same for every user. The repository issues are
+searched for it, and a repair issue tells what to do: report it (a GitHub issue
+prefilled, sent only by you), follow the open report, update to the version
+that handles it, or read the closed report. A new telemetry field only raises a
+repair issue when the search found no report.
+
+## Guard at connection
+
+At every connection of a device, the Red Sea cloud sends it its own copy of the
+device settings. When that copy is out of date, the device loses its current
+ones: a ReefWave lost its whole schedule that way. For the first 30 seconds of
+each connection through the relay, the write commands of the cloud are
+therefore held back (its reads still pass).
+
+The known restores (a ReefDose food head, a ReefWave group and schedule) are
+held back silently. Any other write command held back raises a repair issue
+listing it: if you changed something in the ReefBeat app at that very moment,
+do it again.
+
+## Events
+
+### `redsea_dose`
+
+Fired when a ReefDose in Poseidon mode (any strategy) ends a dose, scheduled or
+manual, from its `dosing-log`. A dose pushed twice (after a reconnection) is
+fired once.
+
+| Field | Content |
+|---|---|
+| `device_id` | the device in Home Assistant |
+| `name` | its name |
+| `head` | head number |
+| `supplement`, `brand` | as the device tells them |
+| `dose_type` | `scheduled` or `manual` |
+| `volume` | dosed volume, in mL |
+| `started_at` | start of the dose, from the dosing queue polled before it (device local time); `null` for a dose that was not in it (manual from the app) |
+| `ended_at` | end of the dose (device local time) |
+| `duration_s` | `ended_at` − `started_at`, `null` without start |
+
+Nothing is pushed when a dose starts: its start is the time the dosing queue
+gave it.
+
+### History of the doses
+
+Every dose is also kept, per head, for 30 days (5000 doses at most), across
+restarts:
+
+- each head of a ReefDose gets a **Last dose** sensor (on the head device),
+  available only while the doser is in Poseidon mode: its state is the end
+  of the last dose, its attributes the volume, type, start, duration and
+  supplement; the recorder keeps them as any sensor;
+- the `redsea.get_doses` action returns the doses, newest first: `device_id`
+  (the doser, one of its heads, or its config entry), and optionally `head`,
+  `days`, `limit`;
+- the ha-reef-card shows them in the configuration dialog of a head
+  (**Dose history**).
+
+```yaml
+automation:
+  - alias: Log the doses
+    triggers:
+      - trigger: event
+        event_type: redsea_dose
+    actions:
+      - action: logbook.log
+        data:
+          name: "{{ trigger.event.data.name }}"
+          message: >-
+            head {{ trigger.event.data.head }}
+            ({{ trigger.event.data.supplement }}):
+            {{ trigger.event.data.volume }} mL,
+            {{ trigger.event.data.dose_type }},
+            {{ trigger.event.data.started_at }} → {{ trigger.event.data.ended_at }}
+```
 
 ## Exporting and importing the keys
 

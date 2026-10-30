@@ -116,6 +116,8 @@ RESCUE_VIEW_URL: Final[str] = "/api/redsea/poseidon/rescue"
 RESCUE_VIEW_NAME: Final[str] = "api:redsea:poseidon_rescue"
 RESCUE_FILE: Final[str] = "poseidon_rescue.py"
 SERVICE_EXPORT: Final[str] = "poseidon_export"
+# History of the doses of a ReefDose (doses.py)
+SERVICE_GET_DOSES: Final[str] = "get_doses"
 
 # Strategy of a device in Poseidon mode (see strategy.py). A default in the
 # options, and an override per device (the select next to its switch)

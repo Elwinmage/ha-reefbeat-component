@@ -1648,6 +1648,9 @@
       },
       "brine_daily_volume": {
         "name": "Brine planned per day"
+      },
+      "poseidon_last_dose": {
+        "name": "Last dose"
       }
     },
     "switch": {
@@ -2550,6 +2553,28 @@
         "limit": {
           "name": "Limit",
           "description": "At most this many messages."
+        }
+      }
+    },
+    "get_doses": {
+      "name": "Get doses",
+      "description": "Return the history of the doses of a ReefDose in Poseidon mode, newest first.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The ReefDose, one of its heads, or its config entry."
+        },
+        "head": {
+          "name": "Head",
+          "description": "Only the doses of this head."
+        },
+        "days": {
+          "name": "Days",
+          "description": "Only the doses of the last days."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "At most this many doses."
         }
       }
     }

@@ -7,6 +7,7 @@ specific to it; the integration only wires the Poseidon config entry in.
 from __future__ import annotations
 
 import logging
+from typing import cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -18,6 +19,7 @@ from homeassistant.core import (
 )
 from homeassistant.exceptions import ConfigEntryNotReady, ServiceValidationError
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.util.json import JsonValueType
 
 from ..const import DOMAIN
 from . import const
@@ -26,7 +28,7 @@ from .manager import Poseidon, get_poseidon, is_poseidon_entry
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.SELECT, Platform.SWITCH]
+PLATFORMS: list[Platform] = [Platform.SELECT, Platform.SENSOR, Platform.SWITCH]
 
 __all__ = [
     "PLATFORMS",
@@ -61,6 +63,39 @@ def async_register_poseidon_services(hass: HomeAssistant) -> None:
         const.SERVICE_EXPORT,
         _export,
         supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    async def _get_doses(call: ServiceCall) -> ServiceResponse:
+        poseidon = get_poseidon(hass)
+        if poseidon is None:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="poseidon_not_running"
+            )
+        found = poseidon.hwid_of_device(str(call.data.get("device_id", "")))
+        if found is None:
+            return {"error": "Unknown device", "doses": []}
+        hwid, head = found
+        if call.data.get("head") is not None:
+            head = int(call.data["head"])
+        days = call.data.get("days")
+        limit = call.data.get("limit")
+        doses = poseidon.doses.entries(
+            hwid,
+            head,
+            days=float(days) if days else None,
+            limit=int(limit) if limit else None,
+        )
+        return {
+            "doses": cast(JsonValueType, doses),
+            "retention_days": poseidon.doses.days,
+            "max_entries": poseidon.doses.max_entries,
+        }
+
+    hass.services.async_register(
+        DOMAIN,
+        const.SERVICE_GET_DOSES,
+        _get_doses,
+        supports_response=SupportsResponse.ONLY,
     )
 
 

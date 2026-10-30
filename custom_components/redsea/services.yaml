@@ -650,3 +650,37 @@ get_messages:
           min: 1
           max: 10000
           mode: box
+
+# History of the doses of a ReefDose in Poseidon mode, newest first
+get_doses:
+  fields:
+    device_id:
+      required: true
+      example: "a1b2c3d4e5f6"
+      selector:
+        device:
+          integration: redsea
+    head:
+      required: false
+      example: 2
+      selector:
+        number:
+          min: 1
+          max: 4
+          mode: box
+    days:
+      required: false
+      example: 7
+      selector:
+        number:
+          min: 1
+          max: 365
+          mode: box
+    limit:
+      required: false
+      example: 50
+      selector:
+        number:
+          min: 1
+          max: 5000
+          mode: box

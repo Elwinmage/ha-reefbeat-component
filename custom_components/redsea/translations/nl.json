@@ -1648,6 +1648,9 @@
       },
       "brine_daily_volume": {
         "name": "Geplande pekel per dag"
+      },
+      "poseidon_last_dose": {
+        "name": "Laatste dosering"
       }
     },
     "switch": {
@@ -2550,6 +2553,28 @@
         "limit": {
           "name": "Limiet",
           "description": "Maximaal dit aantal berichten."
+        }
+      }
+    },
+    "get_doses": {
+      "name": "Doseringen ophalen",
+      "description": "Geeft de geschiedenis van de doseringen van een ReefDose in Poseidon-modus, de nieuwste eerst.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat",
+          "description": "De ReefDose, een van zijn koppen, of zijn configuratie-item."
+        },
+        "head": {
+          "name": "Kop",
+          "description": "Alleen de doseringen van deze kop."
+        },
+        "days": {
+          "name": "Dagen",
+          "description": "Alleen de doseringen van de laatste dagen."
+        },
+        "limit": {
+          "name": "Limiet",
+          "description": "Hoogstens zoveel doseringen."
         }
       }
     }

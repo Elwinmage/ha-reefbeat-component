@@ -1640,6 +1640,9 @@
       },
       "brine_daily_volume": {
         "name": "Geplante Salzlösung pro Tag"
+      },
+      "poseidon_last_dose": {
+        "name": "Letzte Dosierung"
       }
     },
     "switch": {
@@ -2542,6 +2545,28 @@
         "limit": {
           "name": "Limit",
           "description": "Höchstens so viele Meldungen."
+        }
+      }
+    },
+    "get_doses": {
+      "name": "Dosierungen abrufen",
+      "description": "Gibt den Verlauf der Dosierungen einer ReefDose im Poseidon-Modus zurück, die neuesten zuerst.",
+      "fields": {
+        "device_id": {
+          "name": "Gerät",
+          "description": "Die ReefDose, einer ihrer Köpfe oder ihr Konfigurationseintrag."
+        },
+        "head": {
+          "name": "Kopf",
+          "description": "Nur die Dosierungen dieses Kopfes."
+        },
+        "days": {
+          "name": "Tage",
+          "description": "Nur die Dosierungen der letzten Tage."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Höchstens so viele Dosierungen."
         }
       }
     }

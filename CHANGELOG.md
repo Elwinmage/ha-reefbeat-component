@@ -2,6 +2,31 @@
 
 ## MODIFICATIONS
 
+### Poseidon: history of the doses of a ReefDose
+
+- Every `redsea_dose` is also kept, per device and head, for 30 days (5000
+  doses at most), in `.storage/redsea_poseidon_doses`: across restarts and
+  recorder purges.
+- Each head of a ReefDose with Poseidon keys gets a **Last dose** sensor
+  (`poseidon_last_dose`, timestamp, on the head device), available only
+  while the doser is in Poseidon mode: the end of the last dose, with its
+  volume, type, start, duration and supplement as attributes.
+- New action `redsea.get_doses`: the doses, newest first, of a doser, one of
+  its heads, or its config entry, optionally by head, over the last days, at
+  most a number of them. Read by the ha-reef-card (dose history of a head).
+
+### Poseidon: `redsea_dose` event
+
+- Fired when a ReefDose in Poseidon mode (any strategy) ends a dose, from its
+  `dosing-log`: device, head, supplement, brand, type (`scheduled`,
+  `manual`), volume, end, and its start and duration when the dosing queue
+  polled before it had it (nothing is pushed when a dose starts: its start
+  is the time the queue gave it; a manual dose from the app has none).
+  Checked on ten doses of a spy run (4 to 19 s each, start found for all).
+  A `dosing-log` pushed twice after a reconnection is fired once.
+- Poseidon documentation (English, French): merged families, new settings,
+  unexpected messages, guard at connection, events.
+
 ### Poseidon: what the app changes always reaches Home Assistant
 
 Checked on every write command of the ReefBeat app in the spy runs (RSPOWER,

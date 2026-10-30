@@ -1640,6 +1640,9 @@
       },
       "brine_daily_volume": {
         "name": "Planowana solanka na dzień"
+      },
+      "poseidon_last_dose": {
+        "name": "Ostatnia dawka"
       }
     },
     "switch": {
@@ -2542,6 +2545,28 @@
         "limit": {
           "name": "Limit",
           "description": "Najwyżej tyle komunikatów."
+        }
+      }
+    },
+    "get_doses": {
+      "name": "Pobierz dawki",
+      "description": "Zwraca historię dawek ReefDose w trybie Poseidon, od najnowszych.",
+      "fields": {
+        "device_id": {
+          "name": "Urządzenie",
+          "description": "ReefDose, jedna z jego głowic lub jego wpis konfiguracji."
+        },
+        "head": {
+          "name": "Głowica",
+          "description": "Tylko dawki tej głowicy."
+        },
+        "days": {
+          "name": "Dni",
+          "description": "Tylko dawki z ostatnich dni."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Najwyżej tyle dawek."
         }
       }
     }

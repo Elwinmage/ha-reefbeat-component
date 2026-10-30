@@ -84,6 +84,7 @@ en mode normal automatiquement.
 | Redémarrage de Home Assistant, rechargement de Poseidon | Laissés tels quels : ils se reconnectent quand le relais revient |
 | Poseidon désactivé ou supprimé | Tous remis en mode normal |
 | Un appareil ne peut pas être remis en mode normal | Nommé dans une notification |
+| Un appareil pointe vers le relais mais ne s'y connecte jamais (il a gardé sa session avec Red Sea) | Reconnecté au bout de 2 minutes : repointé vers Red Sea puis vers le relais, deux fois au plus |
 
 On ne passe en mode Poseidon que sur votre décision. Toute bascule automatique
 ramène au mode normal.
@@ -100,10 +101,25 @@ valeur par défaut.
 | *Shadow* | inchangé | fusionnés dans les données de l'appareil, comparés au relevé suivant | `shadow.jsonl` |
 | *Poseidon* | toutes les N minutes | utilisés ; l'appareil est relu à chaque état tant que sa famille ne sait pas être fusionnée | — |
 
-> [!NOTE]
-> Aucune famille d'appareils ne sait encore être fusionnée : la fusion s'écrit à
-> partir des fichiers espion. D'ici là, *Shadow* ne fait que comparer, et
-> *Poseidon* relit l'appareil chaque fois qu'il pousse un état.
+Familles fusionnées à ce jour, d'après les relevés espion :
+
+| Famille | Fusionné |
+|---|---|
+| ReefControl Power | états, télémétrie ; l'état des prises est calculé depuis leurs programmes, comme le fait l'app ReefBeat |
+| ReefDose | états, télémétrie ; un `dosing-log` (fin d'une dose) le fait relire, pour sa file de dosage |
+| ReefMat | états, télémétrie, `rolling-log` (fin d'une avance) |
+| ReefLED | télémétrie |
+
+Pour les autres familles, *Shadow* ne fait que comparer, et *Poseidon* relit
+l'appareil chaque fois qu'il pousse un état. *Poseidon* le relit aussi quand un
+état dit quelque chose que son fusionneur ne sait pas écrire (un réglage
+inconnu, un programme de ReefDose, poussé sans ses intervalles). Cette relecture
+comprend les sources de configuration : ce que l'app modifie, ce sont surtout
+des réglages, que le relevé ne relit jamais.
+
+Un ReefControl Power sans sonde de température ni prise pilotée par un capteur
+a tout ce qui change poussé : en stratégie *Poseidon*, il n'est relevé que tous
+les *Intervalle du relevé de sécurité*.
 
 ### Espion
 
@@ -144,12 +160,108 @@ synchronisées, même fuseau horaire) :
   dans `/config/redsea/poseidon/logs/poseidon.jsonl` (rotation à 10 Mo, 5
   fichiers gardés). Les données sont en clair dans ce fichier.
 - **Délai avant qu'un appareil soit silencieux**, en minutes (10 par défaut).
+- **Intervalle du relevé de sécurité**, en minutes (60 par défaut) : le relevé
+  d'un appareil dont les messages poussés couvrent tout ce qui change, et la
+  fréquence de lecture du `/cloud` d'un appareil qui échange via le relais.
+- **Signaler les messages inattendus** (activé par défaut) : voir
+  [Messages inattendus](#messages-inattendus).
+- **Chercher les signalements existants sur GitHub** (activé par défaut) :
+  seule la signature d'un message inattendu est envoyée.
+- **Retenir les commandes d'écriture du cloud à la connexion** (activé par
+  défaut) : voir [Garde à la connexion](#garde-à-la-connexion).
 - **Clef du watchdog** : 16 caractères, proposée tant qu'aucune n'est définie.
   Un watchdog sur une autre machine (autonome, ou dans
   [reefbeatEnergyBackup](https://github.com/Elwinmage/reefbeatEnergyBackup))
   demande au relais s'il est vivant, et remet les appareils en mode normal
   quand il ne l'est pas. Recopiez cette clef dans sa configuration ; laissez-la
   vide pour ne répondre à aucun watchdog.
+
+## Messages inattendus
+
+Chaque message qui traverse le relais est comparé à ce que l'on connaît de la
+famille de l'appareil : un paquet ou un topic MQTT inconnu, une commande du
+cloud vers un endpoint inconnu, un état ou une télémétrie avec un champ
+nouveau, manquant ou d'un autre type. La première occurrence est écrite dans
+`/config/redsea/poseidon/logs/anomalies.jsonl`, anonymisée (identifiants, noms,
+adresses réseau, clefs retirés) ; une commande inconnue attend 5 secondes ce
+que l'appareil répond et pousse, écrit avec elle.
+
+Chacun a une signature, la même pour tous les utilisateurs. Les issues du dépôt
+sont cherchées par cette signature, et une réparation dit quoi faire : le
+signaler (une issue GitHub pré-remplie, envoyée par vous seul), suivre le
+signalement ouvert, passer à la version qui le prend en charge, ou lire le
+signalement fermé. Un champ nouveau de télémétrie ne crée une réparation que si
+la recherche n'a trouvé aucun signalement.
+
+## Garde à la connexion
+
+À chaque connexion d'un appareil, le cloud Red Sea lui renvoie sa propre copie
+des réglages de l'appareil. Quand cette copie n'est pas à jour, l'appareil perd
+ses réglages actuels : une ReefWave a perdu tout son programme ainsi. Pendant
+les 30 premières secondes de chaque connexion via le relais, les commandes
+d'écriture du cloud sont donc retenues (ses lectures passent).
+
+Les restaurations connues (tête de nourrissage d'une ReefDose, groupe et
+programme d'une ReefWave) sont retenues sans rien dire. Toute autre commande
+d'écriture retenue crée une réparation qui la liste : si vous avez modifié
+quelque chose dans l'app ReefBeat à ce moment précis, refaites-le.
+
+## Événements
+
+### `redsea_dose`
+
+Émis quand une ReefDose en mode Poseidon (quelle que soit la stratégie) termine
+une dose, programmée ou manuelle, d'après son `dosing-log`. Une dose poussée
+deux fois (après une reconnexion) n'est émise qu'une fois.
+
+| Champ | Contenu |
+|---|---|
+| `device_id` | l'appareil dans Home Assistant |
+| `name` | son nom |
+| `head` | numéro de la tête |
+| `supplement`, `brand` | tels que l'appareil les donne |
+| `dose_type` | `scheduled` ou `manual` |
+| `volume` | volume dosé, en mL |
+| `started_at` | début de la dose, d'après la file de dosage relevée avant elle (heure locale de l'appareil) ; `null` pour une dose qui n'y était pas (manuelle depuis l'app) |
+| `ended_at` | fin de la dose (heure locale de l'appareil) |
+| `duration_s` | `ended_at` − `started_at`, `null` sans début |
+
+Rien n'est poussé quand une dose commence : son début est l'heure que lui
+donnait la file de dosage.
+
+### Historique des doses
+
+Chaque dose est aussi gardée, par tête, 30 jours (5000 doses au plus), malgré
+les redémarrages :
+
+- chaque tête d'une ReefDose a un capteur **Dernière dose** (sur l'appareil
+  de la tête), disponible seulement quand le doseur est en mode Poseidon : son
+  état est la fin de la dernière dose, ses attributs le volume, le type, le
+  début, la durée et le supplément ; l'enregistreur les garde comme pour tout
+  capteur ;
+- l'action `redsea.get_doses` renvoie les doses, les plus récentes d'abord :
+  `device_id` (le doseur, une de ses têtes, ou son entrée de configuration),
+  et en option `head`, `days`, `limit` ;
+- la ha-reef-card les montre dans la boîte de dialogue de configuration
+  d'une tête (**Historique des doses**).
+
+```yaml
+automation:
+  - alias: Journal des doses
+    triggers:
+      - trigger: event
+        event_type: redsea_dose
+    actions:
+      - action: logbook.log
+        data:
+          name: "{{ trigger.event.data.name }}"
+          message: >-
+            tête {{ trigger.event.data.head }}
+            ({{ trigger.event.data.supplement }}) :
+            {{ trigger.event.data.volume }} mL,
+            {{ trigger.event.data.dose_type }},
+            {{ trigger.event.data.started_at }} → {{ trigger.event.data.ended_at }}
+```
 
 ## Exporter et importer les clefs
 

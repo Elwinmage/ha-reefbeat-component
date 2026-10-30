@@ -1640,6 +1640,9 @@
       },
       "brine_daily_volume": {
         "name": "Salmoura prevista por dia"
+      },
+      "poseidon_last_dose": {
+        "name": "Última dose"
       }
     },
     "switch": {
@@ -2542,6 +2545,28 @@
         "limit": {
           "name": "Limite",
           "description": "No máximo este número de mensagens."
+        }
+      }
+    },
+    "get_doses": {
+      "name": "Obter doses",
+      "description": "Devolve o histórico das doses de uma ReefDose em modo Poseidon, as mais recentes primeiro.",
+      "fields": {
+        "device_id": {
+          "name": "Dispositivo",
+          "description": "A ReefDose, uma das suas cabeças ou a sua entrada de configuração."
+        },
+        "head": {
+          "name": "Cabeça",
+          "description": "Apenas as doses desta cabeça."
+        },
+        "days": {
+          "name": "Dias",
+          "description": "Apenas as doses dos últimos dias."
+        },
+        "limit": {
+          "name": "Limite",
+          "description": "No máximo este número de doses."
         }
       }
     }

@@ -40,6 +40,8 @@ from .capture import CaptureReport, SnapshotStore, acquire_keys
 from .crypto import decode_plain, decrypt_payload
 from .debug import DebugLog, frame_record, http_record, mark_record, redact
 from .device_http import ORIGIN, DeviceHttp
+from .doses import DoseHistory
+from .events import EVENT_DOSE, DoseEvents, dose_event
 from .keystore import DeviceKeys, KeyStore
 from .mqtt import PACKET_PUBLISH, MqttFrame
 from .relay import UP, Relay, Traffic
@@ -154,6 +156,9 @@ class Poseidon:
         self._merging: set[str] = set()
         # Last refresh asked by a pushed state, per device (monotonic)
         self._push_refresh: dict[str, float] = {}
+        # Doses already told by a redsea_dose event, and their history
+        self._doses = DoseEvents()
+        self.doses = DoseHistory(hass)
         # Refresh waiting for the end of PUSH_REFRESH_MIN_S, per device
         self._pending_reads: dict[str, Callable[[], None]] = {}
         # Last read of /cloud, per device (monotonic)
@@ -184,6 +189,7 @@ class Poseidon:
 
     async def async_load(self) -> None:
         await self.keystore.async_load()
+        await self.doses.async_load()
 
     # ------------------------------------------------------------------
     # Options
@@ -381,6 +387,39 @@ class Poseidon:
         ):
             if not _belongs_to(device, self.entry.entry_id):
                 return device
+        return None
+
+    def head_device_entry(self, hwid: str, head: int) -> dr.DeviceEntry | None:
+        """The registry entry of a ReefDose head (``<id>_head_<n>``)."""
+        device = self.device_entry(hwid)
+        if device is None:
+            return None
+        for domain, ident in device.identifiers:
+            if domain != DOMAIN:
+                continue
+            for head_device in dr.async_get(self.hass).async_get_devices(
+                identifiers={(DOMAIN, f"{ident}_head_{head}")}
+            ):
+                if not _belongs_to(head_device, self.entry.entry_id):
+                    return head_device
+        return None
+
+    def hwid_of_device(self, device_id: str) -> tuple[str, int | None] | None:
+        """The device (and head) of a registry device id, or of the config
+        entry id of a device."""
+        coordinator = self.hass.data.get(DOMAIN, {}).get(device_id)
+        if coordinator is not None and getattr(coordinator, "model_id", None):
+            return str(coordinator.model_id).lower(), None
+        device = dr.async_get(self.hass).async_get(device_id)
+        if device is None:
+            return None
+        for domain, ident in device.identifiers:
+            if domain != DOMAIN:
+                continue
+            base, _, head = ident.rpartition("_head_")
+            if base and head.isdigit():
+                return base.lower(), int(head)
+            return ident.lower(), None
         return None
 
     def switch_devices(self) -> dict[str, dr.DeviceEntry]:
@@ -1102,6 +1141,28 @@ class Poseidon:
         self._read_again(hwid, coordinator)
 
     @callback
+    def _fire_dose(self, hwid: str, payload: Any) -> None:
+        """A ReefDose ended a dose: the redsea_dose event (once per dose)."""
+        coordinator = self.coordinator(hwid)
+        if coordinator is None or not isinstance(payload, dict):
+            return
+        data = dose_event(coordinator, payload)
+        if data is None or not self._doses.first_time(hwid, payload):
+            return
+        entry = self.device_entry(hwid)
+        self.hass.bus.async_fire(
+            EVENT_DOSE,
+            {
+                "device_id": entry.id if entry else None,
+                "name": str(getattr(coordinator, "title", "") or hwid),
+                **data,
+            },
+        )
+        self.doses.add(hwid, data)
+        # The last dose sensors
+        self._signal(force=True)
+
+    @callback
     def _read_again(self, hwid: str, coordinator: Any) -> None:
         """Read a device again (poseidon strategy), its config sources
         included: what the app changes is mostly settings, which the polling
@@ -1217,6 +1278,8 @@ class Poseidon:
             self._on_state(hwid, topic, message)
         elif reads_on(dev.type if dev else "", topic):
             self._on_event(hwid, topic)
+        if topic.endswith("/dosing-log"):
+            self._fire_dose(hwid, message)
 
     @callback
     def _check_anomalies(
