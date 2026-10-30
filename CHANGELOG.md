@@ -2,6 +2,16 @@
 
 ## MODIFICATIONS
 
+### Fix: colour and intensity of a ReefLED G1 in Poseidon mode
+
+- The telemetry of a G1 updates its white and blue, but its colour and
+  intensity (light **kelvin_intensity**), which Home Assistant derives from
+  them, were only derived again at the next poll: in Poseidon mode they
+  stayed those of an earlier time, far from the white and blue shown (seen
+  on a RSLED160 in auto mode: white 32 %, blue 94 % shown as 9000 K, 95 %
+  instead of about 21200 K, 94 %). They are now derived again with every
+  telemetry.
+
 ### Poseidon: messages of the ReefBeat app
 
 - In Poseidon mode (any strategy), the answer of a device to a write command

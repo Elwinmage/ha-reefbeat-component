@@ -765,6 +765,10 @@ def _merge_wifi(coordinator: Any, payload: dict[str, Any]) -> bool:
 #   mode                  -> /mode.mode and /dashboard.mode
 #   wifi_signal           -> /wifi.signal_dBm
 #   *_full, *_pwm of /manual: pushed by nothing (unused by Home Assistant)
+#   colour and intensity of a G1 (light kelvin_intensity): derived from
+#                            white/blue, derived again from the merged ones
+#                            (as after a poll); else they stayed those of the
+#                            last poll, far from the white/blue shown
 #   overheat-reduction-factor, clouds -> nothing polled
 # Checked against every poll of the run (differences only while ramping,
 # between a telemetry and the next poll).
@@ -791,6 +795,10 @@ def merge_reef_lights_telemetry(coordinator: Any, topic: str, payload: Any) -> b
     if not isinstance(payload, dict):
         return False
     merged = _merge_led_manual(_data(coordinator, "/manual"), payload)
+    api: Any = getattr(coordinator, "my_api", None)
+    if merged and getattr(api, "_g1", False):
+        # Kelvin and intensity of a G1 follow its white and blue
+        api.update_light_wb()
     dashboard = _data(coordinator, "/dashboard")
     if dashboard is not None:
         merged = _merge_led_manual(dashboard.get("manual"), payload) or merged

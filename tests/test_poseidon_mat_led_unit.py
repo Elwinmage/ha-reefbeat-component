@@ -8,6 +8,7 @@ from typing import Any, cast
 
 from homeassistant.core import HomeAssistant
 
+from custom_components.redsea.const import LEDS_CONV
 from custom_components.redsea.poseidon import anomalies as an
 from custom_components.redsea.poseidon import const, strategy
 from custom_components.redsea.poseidon.mergers import (
@@ -16,10 +17,12 @@ from custom_components.redsea.poseidon.mergers import (
     merge_reef_mat_telemetry,
 )
 from custom_components.redsea.poseidon.relay import UP
+from custom_components.redsea.reefbeat.led import _make_interpolator
 from tests._poseidon_fakes import HWID
 from tests.test_poseidon_events_unit import LIGHTS_TELEMETRY, MAT_TELEMETRY
 from tests.test_poseidon_spy_responses_unit import _state_frame
 from tests.test_poseidon_spy_unit import _poseidon
+from tests.test_reefbeat_led_unit import _make_led_api
 
 # As polled on the RSMAT of the spy run of 2026-10-30
 MAT_ANSWERS: dict[str, Any] = {
@@ -232,6 +235,41 @@ def test_lights_telemetry() -> None:
     assert dashboard["current_program"]["name"] == "Perso-2"
     assert dashboard["mode"] == "manual"
     assert _data(coordinator, "/mode")["mode"] == "manual"
+
+
+def test_lights_telemetry_derives_the_colour_of_a_g1() -> None:
+    coordinator = _coordinator(LED_ANSWERS)
+    derived: list[str] = []
+    api = coordinator.my_api
+    api.update_light_wb = lambda: derived.append("wb")
+    # A G2 has its own kelvin and intensity
+    api._g1 = False
+    assert merge_reef_lights_telemetry(coordinator, "", LIGHTS_TELEMETRY) is True
+    assert derived == []
+    api._g1 = True
+    assert merge_reef_lights_telemetry(coordinator, "", LIGHTS_TELEMETRY) is True
+    assert derived == ["wb"]
+    # Nothing of /manual pushed: nothing to derive
+    merge_reef_lights_telemetry(coordinator, "", {"moonphase": 3})
+    assert derived == ["wb"]
+
+
+def test_lights_telemetry_g1_kelvin_from_white_and_blue() -> None:
+    api = _make_led_api(hw="RSLED160")
+    conv = next(c for c in LEDS_CONV if c["name"] == "RSLED160")
+    api._wb_to_kelvin = _make_interpolator(
+        [float(v) for v in conv["white_blue"]], [float(v) for v in conv["kelvin"]]
+    )
+    api.add_source("/manual", "data", {"white": 0, "blue": 0, "moon": 0})
+    assert api._g1
+    # Kelvin and intensity of the last poll, while the program ramps up
+    api.data["local"]["manual_trick"] = {"kelvin": 9000, "intensity": 95}
+    coordinator = SimpleNamespace(my_api=api)
+    # As pushed by a RSLED160 in auto mode, an evening
+    telemetry = {"intensities": {"white": 32, "blue": 94, "moon": 0}}
+    assert merge_reef_lights_telemetry(coordinator, "", telemetry) is True
+    trick = api.data["local"]["manual_trick"]
+    assert 21000 < trick["kelvin"] < 21400 and trick["intensity"] == 94
 
 
 def test_lights_telemetry_without_anything_polled() -> None:
