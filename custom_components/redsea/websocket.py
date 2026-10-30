@@ -76,11 +76,14 @@ def cloud_aquariums(hass: HomeAssistant) -> list[dict[str, Any]]:
             for device in devices:
                 if not isinstance(device, dict) or device.get("aquarium_uid") != uid:
                     continue
-                entry = dev_reg.async_get_device(
-                    identifiers={(DOMAIN, str(device.get("hwid", "")))}
+                # Identifiers are only unique within a config entry: every
+                # device carrying this one belongs to the aquarium
+                device_ids.extend(
+                    entry.id
+                    for entry in dev_reg.async_get_devices(
+                        identifiers={(DOMAIN, str(device.get("hwid", "")))}
+                    )
                 )
-                if entry is not None:
-                    device_ids.append(entry.id)
             feeding = [
                 entity_id
                 for n in _FEEDING_SHORTCUTS

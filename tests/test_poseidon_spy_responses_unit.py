@@ -15,10 +15,7 @@ from custom_components.redsea.poseidon import const, strategy
 from custom_components.redsea.poseidon import manager as manager_mod
 from custom_components.redsea.poseidon.crypto import encrypt_payload
 from custom_components.redsea.poseidon.debug import MASK, http_record, redact
-from custom_components.redsea.poseidon.mqtt import (
-    MqttFrame,
-    encode_publish,
-)
+from custom_components.redsea.poseidon.mqtt import MqttFrame, encode_publish
 from custom_components.redsea.poseidon.relay import UP, Traffic
 from custom_components.redsea.reefbeat import api as api_mod
 from tests._poseidon_fakes import HWID, SECRET

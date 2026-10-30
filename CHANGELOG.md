@@ -710,6 +710,11 @@ commands carry nothing more. Two gaps closed:
 
 ## FIXES
 
+- Cloud aquariums: the devices of an aquarium are found with
+  `async_get_devices` instead of the deprecated `async_get_device` (device
+  identifiers are only unique within a config entry; it stops working in
+  Home Assistant 2027.8).
+
 ### RSCONTROL probes
  - The probe-scoped maintenance tasks were built by `button.py` and
    `switch.py` as a single device-level entity, without the `{probe}`

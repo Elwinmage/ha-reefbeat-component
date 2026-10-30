@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import copy
 import json
+from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
-from custom_components.redsea.poseidon import strategy
+from custom_components.redsea.poseidon import mergers, strategy
 from custom_components.redsea.poseidon.mergers import merge_reef_power
 
 FIXTURE = json.loads(
@@ -154,10 +155,6 @@ def test_sources_not_read_yet() -> None:
 
 
 # -- telemetry and socket states ------------------------------------------------
-
-from datetime import datetime
-
-from custom_components.redsea.poseidon import mergers
 
 TELEMETRY_TOPIC = "device/reef-power/0000aaaa0001/telemetry"
 
