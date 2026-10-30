@@ -51,6 +51,23 @@ def decrypt_payload(encrypted: str, api_secret: str) -> Any:
         return text
 
 
+def decode_plain(raw: str) -> Any:
+    """A payload sent in clear: base64 of a JSON object, padded with NUL
+    bytes (the ``group/`` topics: ``{"method": "post", "url": "/group/sync"}``).
+
+    Returns the object, None when the payload is not that.
+    """
+    text = raw.strip()
+    if not text or "." in text:
+        return None
+    try:
+        decoded = base64.b64decode(text + "=" * ((4 - len(text) % 4) % 4))
+        value = json.loads(decoded.rstrip(b"\x00").decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return None
+    return value if isinstance(value, dict) else None
+
+
 def encrypt_payload(data: Any, api_secret: str) -> str:
     """Encrypt a payload the way a ReefBeat device expects it."""
     key = _key(api_secret)

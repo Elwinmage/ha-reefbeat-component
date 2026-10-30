@@ -33,7 +33,16 @@ from typing import Any
 
 from homeassistant.util import dt as dt_util
 
-from .mergers import merge_reef_power, merge_reef_power_telemetry, power_fully_pushed
+from .mergers import (
+    merge_reef_dosing,
+    merge_reef_dosing_telemetry,
+    merge_reef_lights_telemetry,
+    merge_reef_mat,
+    merge_reef_mat_telemetry,
+    merge_reef_power,
+    merge_reef_power_telemetry,
+    power_fully_pushed,
+)
 
 # Topic suffix of the states a device pushes
 STATE_SUFFIX = "/state"
@@ -163,15 +172,43 @@ def compare(pushed: Any, leaves: list[tuple[str, str, Any]]) -> list[dict[str, A
 Merger = Callable[[Any, str, Any], bool]
 MERGERS: dict[str, Merger] = {
     "reef-power": merge_reef_power,
+    "reef-dosing": merge_reef_dosing,
+    "reef-mat": merge_reef_mat,
 }
 # Device type -> merger of its telemetry
 TELEMETRY_MERGERS: dict[str, Merger] = {
     "reef-power": merge_reef_power_telemetry,
+    "reef-dosing": merge_reef_dosing_telemetry,
+    "reef-mat": merge_reef_mat_telemetry,
+    "reef-lights": merge_reef_lights_telemetry,
+}
+# Device type -> topic suffixes of the events after which the poseidon
+# strategy reads the device again: what changed is pushed by nothing (a
+# dose changes the dosing queue)
+READ_ON: dict[str, frozenset[str]] = {
+    "reef-dosing": frozenset({"dosing-log"}),
 }
 # Device type -> whether a device of it has every changing value pushed
 FULLY_PUSHED: dict[str, Callable[[Any], bool]] = {
     "reef-power": power_fully_pushed,
 }
+
+
+# Device type -> topic suffixes of the events merged like a state (with the
+# merger of the family)
+MERGES_ON: dict[str, frozenset[str]] = {
+    "reef-mat": frozenset({"rolling-log"}),
+}
+
+
+def merges_on(device_type: str, topic: str) -> bool:
+    """Whether a pushed event of this topic is merged like a state."""
+    return topic.rsplit("/", 1)[-1] in MERGES_ON.get(device_type, frozenset())
+
+
+def reads_on(device_type: str, topic: str) -> bool:
+    """Whether a pushed event of this topic calls for a read of the device."""
+    return topic.rsplit("/", 1)[-1] in READ_ON.get(device_type, frozenset())
 
 
 def merge_telemetry(

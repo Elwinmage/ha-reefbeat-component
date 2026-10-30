@@ -25,6 +25,14 @@ class MqttFrame:
     def qos(self) -> int:
         return (self.flags >> 1) & 0x03
 
+    def encode(self) -> bytes:
+        """The packet as sent on the wire."""
+        return (
+            bytes([(self.packet_type << 4) | self.flags])
+            + encode_remaining_length(len(self.body))
+            + self.body
+        )
+
     def parse_publish(self) -> tuple[str, bytes]:
         """Split a PUBLISH body into (topic, payload)."""
         topic_len = int.from_bytes(self.body[0:2], "big")

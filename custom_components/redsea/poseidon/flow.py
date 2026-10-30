@@ -330,6 +330,12 @@ class PoseidonOptionsFlowMixin:
                                 const.DEFAULT_ANOMALY_SEARCH,
                             )
                         ),
+                        const.CONF_CONNECT_GUARD: bool(
+                            user_input.get(
+                                const.CONF_CONNECT_GUARD,
+                                const.DEFAULT_CONNECT_GUARD,
+                            )
+                        ),
                     }
                 )
         current = user_input or options
@@ -394,6 +400,14 @@ class PoseidonOptionsFlowMixin:
                     default=bool(
                         current.get(
                             const.CONF_ANOMALY_SEARCH, const.DEFAULT_ANOMALY_SEARCH
+                        )
+                    ),
+                ): BooleanSelector(),
+                vol.Required(
+                    const.CONF_CONNECT_GUARD,
+                    default=bool(
+                        current.get(
+                            const.CONF_CONNECT_GUARD, const.DEFAULT_CONNECT_GUARD
                         )
                     ),
                 ): BooleanSelector(),

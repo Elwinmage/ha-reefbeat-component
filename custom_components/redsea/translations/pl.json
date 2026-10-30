@@ -2118,12 +2118,14 @@
           "reduced_minutes": "Interwał odpytywania strategii Poseidon (minuty)",
           "safety_minutes": "Odczyt bezpieczeństwa urządzenia w pełni wysyłającego (minuty)",
           "anomalies": "Zgłaszaj nieoczekiwane wiadomości",
-          "anomaly_search": "Szukaj istniejących zgłoszeń na GitHubie"
+          "anomaly_search": "Szukaj istniejących zgłoszeń na GitHubie",
+          "connect_guard": "Wstrzymuj polecenia zapisu chmury przy połączeniu"
         },
         "data_description": {
           "safety_minutes": "Strategia Poseidon: urządzenie, którego wysyłane wiadomości obejmują każdą zmieniającą się wartość (ReefControl Power bez sondy temperatury i bez gniazda sterowanego czujnikiem), jest odczytywane tylko z tą częstotliwością, dla bezpieczeństwa. Także jego /cloud, dopóki komunikuje się z przekaźnikiem.",
           "anomalies": "Wiadomości urządzenia w trybie Poseidon, których nic nie przewidywało (nowy topic, nieznane polecenie, nowe pole), trafiają do {logs}/anomalies.jsonl (zanonimizowane), wraz z naprawą do zgłoszenia ich na GitHubie.",
-          "anomaly_search": "Przed utworzeniem naprawy zgłoszenia repozytorium są przeszukiwane po sygnaturze anomalii: wysyłany jest tylko ten krótki skrót, nic o Twoich urządzeniach. Wyłączone: brak zapytań do GitHuba."
+          "anomaly_search": "Przed utworzeniem naprawy zgłoszenia repozytorium są przeszukiwane po sygnaturze anomalii: wysyłany jest tylko ten krótki skrót, nic o Twoich urządzeniach. Wyłączone: brak zapytań do GitHuba.",
+          "connect_guard": "Przez pierwsze 30 sekund każdego połączenia urządzenia z przekaźnikiem polecenia zapisu chmury Red Sea (nie odczyty) nie są przekazywane. Przy pierwszym połączeniu przez przekaźnik chmura może przywrócić starą kopię ustawień urządzenia: ReefWave stracił w ten sposób cały program. Zgłoszenie naprawy wymienia to, co zostało wstrzymane."
         }
       },
       "import_keystore": {
@@ -2700,6 +2702,10 @@
     "poseidon_anomaly_closed": {
       "title": "Poseidon: nieoczekiwana wiadomość już obsłużona ({signature})",
       "description": "{model} (firmware {firmware}) w trybie Poseidon wysłał coś, czego nic nie przewidywało: **{kind}** — {details}.\n\nJego zgłoszenie (issue #{number}) jest zamknięte: **Dowiedz się więcej** je otwiera. Otwórz je ponownie, jeśli to nadal ważne."
+    },
+    "poseidon_guard": {
+      "title": "{name}: polecenia chmury wstrzymane przy połączeniu",
+      "description": "Gdy {name} połączył się przez przekaźnik, chmura Red Sea wysłała mu {count} polecenie(-a) zapisu w pierwszych {seconds} sekundach: {commands}. Nie zostały przekazane: tuż po połączeniu chmura może przywrócić starą kopię ustawień urządzenia i usunąć obecne. Sprawdź ustawienia urządzenia; jeśli dokładnie w tym momencie zmieniłeś coś w aplikacji ReefBeat, zrób to ponownie. Ochronę można wyłączyć w ustawieniach Poseidon."
     }
   }
 }

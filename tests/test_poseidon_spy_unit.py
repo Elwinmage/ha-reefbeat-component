@@ -65,6 +65,8 @@ def _poseidon(
     poseidon.keystore.devices[HWID] = DeviceKeys(
         hwid=HWID, api_key="key", api_secret=SECRET, ip="192.0.2.10", type="reef-wave"
     )
+    # The fake messages of the tests are anomalies: never look them up
+    poseidon.anomalies.search_enabled = lambda: False
     return poseidon, coordinator
 
 

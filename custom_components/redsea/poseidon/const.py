@@ -151,6 +151,39 @@ CONF_ANOMALY_SEARCH: Final[str] = "anomaly_search"
 DEFAULT_ANOMALY_SEARCH: Final[bool] = True
 # Repair issues of the anomalies: one per signature
 ISSUE_ANOMALY: Final[str] = "poseidon_anomaly"
+
+# Guard of a new connection: for its first seconds, the write commands of
+# the cloud to a device are held back. At a first connection through the
+# relay, the cloud may restore an old copy of the device settings (a
+# ReefWave lost its schedule that way, 3 s after connecting)
+CONF_CONNECT_GUARD: Final[str] = "connect_guard"
+DEFAULT_CONNECT_GUARD: Final[bool] = True
+CONNECT_GUARD_S: Final[float] = 30.0
+ISSUE_GUARD: Final[str] = "poseidon_guard"
+# What the cloud sends at every connection of a device to restore its copy
+# of the settings (spy runs of 2026-10-30): held back by the guard without a
+# repair issue, only logged. Any other write command held back raises one
+GUARD_KNOWN_RESTORES: Final[dict[str, frozenset[str]]] = {
+    # Resets the feeding schedule of a food head to its default
+    "reef-dosing": frozenset({"POST /food-head"}),
+    # Its group, then the whole schedule interval by interval, then applies
+    # it (a ReefWave got a single "No Wave" that way)
+    "reef-wave": frozenset(
+        {
+            "POST /group",
+            "POST /auto/init",
+            "POST /auto",
+            "POST /auto/complete",
+            "POST /auto/apply",
+        }
+    ),
+}
+
+# A device pointed at the relay that never connects to it (it kept its
+# session with the Red Sea broker) is made to reconnect: pointed back at
+# the Red Sea broker, then at the relay again, at most RECONNECT_MAX times
+RECONNECT_AFTER_S: Final[float] = 120.0
+RECONNECT_MAX: Final[int] = 2
 # Where the anomalies are reported and looked for
 GITHUB_REPO: Final[str] = "Elwinmage/ha-reefbeat-component"
 GITHUB_SEARCH_URL: Final[str] = "https://api.github.com/search/issues"

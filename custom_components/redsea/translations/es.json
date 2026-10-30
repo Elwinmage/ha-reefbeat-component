@@ -2118,12 +2118,14 @@
           "reduced_minutes": "Intervalo de consulta de la estrategia Poseidon (minutos)",
           "safety_minutes": "Sondeo de seguridad de un dispositivo totalmente enviado (minutos)",
           "anomalies": "Señalar mensajes inesperados",
-          "anomaly_search": "Buscar informes existentes en GitHub"
+          "anomaly_search": "Buscar informes existentes en GitHub",
+          "connect_guard": "Retener los comandos de escritura de la nube al conectar"
         },
         "data_description": {
           "safety_minutes": "Estrategia Poseidon: un dispositivo cuyos mensajes enviados cubren todos los valores que cambian (una ReefControl Power sin sonda de temperatura ni enchufe controlado por sensor) solo se sondea con esta frecuencia, por seguridad. También su /cloud, mientras se comunica con el relé.",
           "anomalies": "Los mensajes de un dispositivo en modo Poseidon que nada preveía (nuevo topic, comando desconocido, nuevo campo) van a {logs}/anomalies.jsonl (anonimizados), con una reparación para señalarlos en GitHub.",
-          "anomaly_search": "Antes de crear una reparación, se buscan las issues del repositorio por la firma de la anomalía: solo se envía esa huella corta, nada de sus dispositivos. Desactivado: ninguna petición a GitHub."
+          "anomaly_search": "Antes de crear una reparación, se buscan las issues del repositorio por la firma de la anomalía: solo se envía esa huella corta, nada de sus dispositivos. Desactivado: ninguna petición a GitHub.",
+          "connect_guard": "Durante los primeros 30 segundos de cada conexión de un dispositivo al relé, los comandos de escritura de la nube de Red Sea (no sus lecturas) no se reenvían. En una primera conexión a través del relé, la nube puede restaurar una copia antigua de los ajustes del dispositivo: una ReefWave perdió así todo su programa. Una incidencia de reparación indica lo retenido."
         }
       },
       "import_keystore": {
@@ -2700,6 +2702,10 @@
     "poseidon_anomaly_closed": {
       "title": "Poseidon: mensaje inesperado ya tratado ({signature})",
       "description": "Un {model} (firmware {firmware}) en modo Poseidon envió algo que nada preveía: **{kind}** — {details}.\n\nSu informe (issue #{number}) está cerrado: **Más información** lo abre. Reábralo si sigue siendo relevante."
+    },
+    "poseidon_guard": {
+      "title": "{name}: comandos de la nube retenidos al conectar",
+      "description": "Al conectarse {name} a través del relé, la nube de Red Sea le envió {count} comando(s) de escritura en sus primeros {seconds} segundos: {commands}. No se reenviaron: justo después de una conexión, la nube puede restaurar una copia antigua de los ajustes del dispositivo y borrar los actuales. Compruebe los ajustes del dispositivo; si cambió algo en la app ReefBeat en ese mismo momento, hágalo de nuevo. La protección se desactiva en los ajustes de Poseidon."
     }
   }
 }

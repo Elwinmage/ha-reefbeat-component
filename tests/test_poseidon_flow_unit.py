@@ -298,6 +298,7 @@ async def test_settings(hass: HomeAssistant) -> None:
     assert defaults[const.CONF_SAFETY_MINUTES] == const.DEFAULT_SAFETY_MINUTES
     assert defaults[const.CONF_ANOMALIES] is const.DEFAULT_ANOMALIES
     assert defaults[const.CONF_ANOMALY_SEARCH] is const.DEFAULT_ANOMALY_SEARCH
+    assert defaults[const.CONF_CONNECT_GUARD] is const.DEFAULT_CONNECT_GUARD
     # An earlier value, mapped to the new strategies
     assert defaults[const.CONF_STRATEGY] == const.STRATEGY_SPY
     # No key yet: a new one is proposed
@@ -319,6 +320,7 @@ async def test_settings(hass: HomeAssistant) -> None:
         const.CONF_SAFETY_MINUTES: const.DEFAULT_SAFETY_MINUTES,
         const.CONF_ANOMALIES: const.DEFAULT_ANOMALIES,
         const.CONF_ANOMALY_SEARCH: const.DEFAULT_ANOMALY_SEARCH,
+        const.CONF_CONNECT_GUARD: const.DEFAULT_CONNECT_GUARD,
     }
 
     # A key set is proposed as is

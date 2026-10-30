@@ -7,6 +7,11 @@ then pipes the bytes verbatim both ways. The cloud still authenticates the
 device and the official app keeps working; the frames are only parsed on a
 copy.
 
+For the first seconds of a connection (``guard_s``), the frames to the
+device go one by one through ``down_filter``, which may hold one back (the
+write commands of the cloud at connection, see manager.py); then the bytes
+are piped verbatim again.
+
 Ported from ``reefbeat_god_mode.py`` (``MqttRelay``, ``RelaySession``), with
 threads replaced by asyncio.
 """
@@ -17,6 +22,7 @@ import asyncio
 import contextlib
 import logging
 import socket
+import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -78,6 +84,11 @@ class Relay:
         self._on_frame = on_frame
         # Debug mode: frames are handed to on_frame
         self.log_frames = False
+        # Frames to a device during the first guard_s of its connection:
+        # forwarded when it returns True
+        self.down_filter: Callable[[str, MqttFrame], bool] | None = None
+        self.guard_s: float = const.CONNECT_GUARD_S
+        self.clock: Callable[[], float] = time.monotonic
         # Logins served locally (reserved usernames), see LocalHandler
         self.local_handlers: dict[str, LocalHandler] = {}
         self._server: asyncio.Server | None = None
@@ -150,9 +161,14 @@ class Relay:
             self._seen(hwid, UP)
             for frame in MqttStreamParser().feed(preface):
                 self._frame(hwid, UP, frame)
+            guard_until = (
+                self.clock() + self.guard_s
+                if hwid and self.down_filter is not None
+                else 0.0
+            )
             await asyncio.gather(
                 self._pump(reader, upstream, hwid, UP),
-                self._pump(up_reader, writer, hwid, DOWN),
+                self._pump(up_reader, writer, hwid, DOWN, guard_until),
             )
         except (OSError, TimeoutError) as err:
             _LOGGER.debug("Poseidon relay connection closed: %s", err)
@@ -186,24 +202,55 @@ class Relay:
         sink: asyncio.StreamWriter,
         hwid: str,
         direction: str,
+        guard_until: float = 0.0,
     ) -> None:
-        """Copy bytes one way until either side closes, parsing a copy."""
+        """Copy bytes one way until either side closes, parsing a copy.
+
+        Until ``guard_until`` (monotonic), frame by frame through
+        ``down_filter`` instead.
+        """
         parser = MqttStreamParser()
+        guarded = guard_until > 0.0
         try:
             while True:
                 data = await source.read(const.READ_CHUNK)
                 if not data:
                     break
-                sink.write(data)
-                await sink.drain()
+                if guarded and self.clock() >= guard_until:
+                    # Back to verbatim: what was buffered of a frame goes first
+                    guarded = False
+                    data = bytes(parser.buffer) + data
+                    parser = MqttStreamParser()
+                if guarded:
+                    frames = parser.feed(data)
+                    kept = b"".join(
+                        frame.encode() for frame in frames if self._keep(hwid, frame)
+                    )
+                    if kept:
+                        sink.write(kept)
+                        await sink.drain()
+                else:
+                    sink.write(data)
+                    await sink.drain()
+                    frames = parser.feed(data)
                 self._seen(hwid, direction)
-                for frame in parser.feed(data):
+                for frame in frames:
                     self._frame(hwid, direction, frame)
         except (OSError, ConnectionError):
             pass
         finally:
             with contextlib.suppress(Exception):
                 sink.close()
+
+    def _keep(self, hwid: str, frame: MqttFrame) -> bool:
+        """Whether a frame to a device under guard is forwarded."""
+        if self.down_filter is None:
+            return True
+        try:
+            return self.down_filter(hwid, frame)
+        except Exception:
+            _LOGGER.debug("Poseidon guard failed: frame forwarded", exc_info=True)
+            return True
 
     def _seen(self, hwid: str, direction: str) -> None:
         if not hwid:

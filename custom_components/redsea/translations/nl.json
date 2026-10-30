@@ -2126,12 +2126,14 @@
           "reduced_minutes": "Opvraaginterval van de Poseidon-strategie (minuten)",
           "safety_minutes": "Veiligheidsuitlezing van een volledig gepusht apparaat (minuten)",
           "anomalies": "Onverwachte berichten melden",
-          "anomaly_search": "Bestaande meldingen op GitHub zoeken"
+          "anomaly_search": "Bestaande meldingen op GitHub zoeken",
+          "connect_guard": "Schrijfopdrachten van de cloud bij verbinden tegenhouden"
         },
         "data_description": {
           "safety_minutes": "Poseidon-strategie: een apparaat waarvan de gepushte berichten elke veranderende waarde dekken (een ReefControl Power zonder temperatuursensor en zonder door een sensor gestuurd stopcontact) wordt alleen zo vaak uitgelezen, als vangnet. Ook zijn /cloud, zolang het met de relay communiceert.",
           "anomalies": "Berichten van een apparaat in Poseidon-modus die niets voorzag (nieuw topic, onbekend commando, nieuw veld) gaan geanonimiseerd naar {logs}/anomalies.jsonl, met een reparatie om ze op GitHub te melden.",
-          "anomaly_search": "Voor een reparatie worden de issues van de repository op de handtekening van de anomalie doorzocht: alleen die korte hash wordt verzonden, niets over uw apparaten. Uit: geen verzoek naar GitHub."
+          "anomaly_search": "Voor een reparatie worden de issues van de repository op de handtekening van de anomalie doorzocht: alleen die korte hash wordt verzonden, niets over uw apparaten. Uit: geen verzoek naar GitHub.",
+          "connect_guard": "Tijdens de eerste 30 seconden van elke verbinding van een apparaat met de relay worden de schrijfopdrachten van de Red Sea-cloud (niet de leesopdrachten) niet doorgestuurd. Bij een eerste verbinding via de relay kan de cloud een oude kopie van de apparaatinstellingen terugzetten: een ReefWave is zo zijn hele programma kwijtgeraakt. Een reparatiemelding toont wat werd tegengehouden."
         }
       },
       "import_keystore": {
@@ -2708,6 +2710,10 @@
     "poseidon_anomaly_closed": {
       "title": "Poseidon: onverwacht bericht al behandeld ({signature})",
       "description": "Een {model} (firmware {firmware}) in Poseidon-modus stuurde iets wat niets voorzag: **{kind}** — {details}.\n\nDe melding (issue #{number}) is gesloten: **Meer informatie** opent die. Heropen haar als het nog speelt."
+    },
+    "poseidon_guard": {
+      "title": "{name}: cloudopdrachten tegengehouden bij verbinden",
+      "description": "Toen {name} via de relay verbond, stuurde de Red Sea-cloud het {count} schrijfopdracht(en) in de eerste {seconds} seconden: {commands}. Ze zijn niet doorgestuurd: vlak na een verbinding kan de cloud een oude kopie van de apparaatinstellingen terugzetten en de huidige wissen. Controleer de instellingen van het apparaat; als u precies op dat moment iets in de ReefBeat-app hebt gewijzigd, doe het opnieuw. De bescherming kan worden uitgeschakeld in de Poseidon-instellingen."
     }
   }
 }

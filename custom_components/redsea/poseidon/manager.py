@@ -28,17 +28,17 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.event import async_call_later, async_track_time_interval
 from homeassistant.loader import async_get_integration
 from homeassistant.util import dt as dt_util
 
 from ..const import CONFIG_FLOW_CLOUD_USERNAME, DOMAIN, VIRTUAL_LED
 from ..reefbeat.api import add_http_observer, http_origin
 from . import const
-from .anomalies import AnomalyMonitor, check_frame
+from .anomalies import AnomalyMonitor, check_frame, command_key
 from .capture import CaptureReport, SnapshotStore, acquire_keys
-from .crypto import decrypt_payload
-from .debug import DebugLog, frame_record, http_record, mark_record
+from .crypto import decode_plain, decrypt_payload
+from .debug import DebugLog, frame_record, http_record, mark_record, redact
 from .device_http import ORIGIN, DeviceHttp
 from .keystore import DeviceKeys, KeyStore
 from .mqtt import PACKET_PUBLISH, MqttFrame
@@ -52,6 +52,8 @@ from .strategy import (
     is_telemetry_topic,
     merge_state,
     merge_telemetry,
+    merges_on,
+    reads_on,
 )
 from .watchdog import WATCHDOG_USERNAME, WatchdogSession
 
@@ -120,6 +122,7 @@ class Poseidon:
             on_traffic=self._on_traffic,
             on_frame=self._on_frame,
         )
+        self.relay.down_filter = self._guard_down
         self.relay.local_handlers[WATCHDOG_USERNAME] = WatchdogSession(
             lambda: self.watchdog_key, self.is_alive
         )
@@ -151,10 +154,18 @@ class Poseidon:
         self._merging: set[str] = set()
         # Last refresh asked by a pushed state, per device (monotonic)
         self._push_refresh: dict[str, float] = {}
+        # Refresh waiting for the end of PUSH_REFRESH_MIN_S, per device
+        self._pending_reads: dict[str, Callable[[], None]] = {}
         # Last read of /cloud, per device (monotonic)
         self._cloud_read: dict[str, float] = {}
         # A device is not silent before the relay had the time to see it
         self._started_at = dt_util.utcnow()
+        # When each device was last pointed at the relay (switch, reconnection)
+        self._switched_at: dict[str, Any] = {}
+        # Reconnections forced so far, per device that never showed up
+        self._reconnects: dict[str, int] = {}
+        # Commands of the cloud held back by the guard, per device
+        self._guarded: dict[str, list[str]] = {}
         self._unsub_refresh: Callable[[], None] | None = None
         self._last_signal = 0.0
         # Platform callbacks of the per-device entities, and the devices that
@@ -187,6 +198,15 @@ class Poseidon:
         """Messages nothing expected are logged and reported."""
         return bool(
             self.entry.options.get(const.CONF_ANOMALIES, const.DEFAULT_ANOMALIES)
+        )
+
+    @property
+    def connect_guard(self) -> bool:
+        """Write commands of the cloud are held back at connection."""
+        return bool(
+            self.entry.options.get(
+                const.CONF_CONNECT_GUARD, const.DEFAULT_CONNECT_GUARD
+            )
         )
 
     @property
@@ -306,6 +326,9 @@ class Poseidon:
             self._unsub_http()
             self._unsub_http = None
         await self.relay.async_stop()
+        for cancel in self._pending_reads.values():
+            cancel()
+        self._pending_reads.clear()
         # Every device gets its own polling back
         self.paused.clear()
         for hwid in list(self.poll_control.controlled):
@@ -490,6 +513,9 @@ class Poseidon:
             ir.async_delete_issue(
                 self.hass, DOMAIN, f"{const.ISSUE_DEVICE_SILENT}_{hwid}"
             )
+        for hwid in self._guarded:
+            ir.async_delete_issue(self.hass, DOMAIN, f"{const.ISSUE_GUARD}_{hwid}")
+        self._guarded.clear()
 
     # ------------------------------------------------------------------
     # Keystore export / import (CLI format)
@@ -689,6 +715,10 @@ class Poseidon:
         dev = self.device_keys(coordinator)
         url = self.advertised_url if poseidon else self.normal_url(dev)
         done = await self.http(dev.ip).set_cloud(url, dev.api_key, dev.api_secret)
+        if poseidon:
+            # It has RECONNECT_AFTER_S to show up at the relay
+            self._switched_at[hwid] = dt_util.utcnow()
+            self._reconnects.pop(hwid, None)
         if done and dev.ip != old_ip:
             # The device moved: the watchdog will need its new address
             await self.keystore.async_upsert(dev)
@@ -811,9 +841,127 @@ class Poseidon:
                 and self._cloud_due(dev.hwid)
             ):
                 await self._refresh_cloud(coordinator)
+        await self._reconnect_absent()
         self._apply_polling()
         self._update_silent_issues()
         self._signal(force=True)
+
+    async def _reconnect_absent(self) -> None:
+        """Make a device pointed at the relay that never connected to it
+        reconnect (it kept its session with the Red Sea broker)."""
+        now = dt_util.utcnow()
+        for dev in self.keystore.with_keys():
+            hwid = dev.hwid
+            coordinator = self.coordinator(hwid)
+            if (
+                coordinator is None
+                or hwid in self.paused
+                or not self.in_poseidon(self.cached_cloud(hwid))
+            ):
+                self._reconnects.pop(hwid, None)
+                continue
+            since = max(self._started_at, self._switched_at.get(hwid, self._started_at))
+            traffic = self.traffic(hwid)
+            seen = [t for t in (traffic.last_up, traffic.last_down) if t is not None]
+            if seen and max(seen) >= since:
+                # Showed up: nothing to do
+                self._reconnects.pop(hwid, None)
+                continue
+            count = self._reconnects.get(hwid, 0)
+            if (
+                now - since < timedelta(seconds=const.RECONNECT_AFTER_S)
+                or count >= const.RECONNECT_MAX
+            ):
+                continue
+            self._reconnects[hwid] = count + 1
+            self._switched_at[hwid] = now
+            _LOGGER.warning(
+                "Poseidon: %s is pointed at the relay but never connected to it:"
+                " making it reconnect (%d/%d)",
+                dev.name or hwid,
+                count + 1,
+                const.RECONNECT_MAX,
+            )
+            self.spy_log.write(mark_record(hwid, "reconnect", count + 1))
+            keys = self.device_keys(coordinator)
+            http = self.http(keys.ip)
+            if await http.set_cloud(
+                self.normal_url(keys), keys.api_key, keys.api_secret
+            ):
+                await asyncio.sleep(const.SWITCH_SETTLE_S)
+                await http.set_cloud(self.advertised_url, keys.api_key, keys.api_secret)
+
+    @callback
+    def _guard_down(self, hwid: str, frame: MqttFrame) -> bool:
+        """A frame to a device in the first seconds of its connection:
+        whether it is forwarded. Write commands of the cloud are held back
+        (read ones pass): the cloud may restore an old copy of the device
+        settings when it connects."""
+        if not self.connect_guard or frame.packet_type != PACKET_PUBLISH:
+            return True
+        topic, payload = frame.parse_publish()
+        if not (topic.startswith("device/") and topic.endswith("/command")):
+            return True
+        dev = self.keystore.get(hwid)
+        secret = dev.api_secret if dev else ""
+        message: Any = None
+        if len(secret) == 16:
+            with suppress(Exception):
+                message = decrypt_payload(
+                    payload.decode("utf-8", errors="replace"), secret
+                )
+        key = command_key(message)
+        if key is not None and key.startswith("GET "):
+            return True
+        # Encrypted otherwise than usual: held back too, it cannot be read
+        shown = key or "(unreadable command)"
+        name = (dev.name if dev else "") or hwid
+        known = shown in const.GUARD_KNOWN_RESTORES.get(dev.type if dev else "", ())
+        record = mark_record(hwid, "guard_blocked", shown)
+        record["known_restore"] = known
+        # What it would have written (the device may not be in spy mode yet
+        # at connection: its frames are not logged then)
+        if isinstance(message, dict):
+            record["command"] = redact(message)
+        if self.debug:
+            self.debug_log.write(record)
+        self.spy_log.write(record)
+        if known:
+            # Sent at every connection: no repair issue each time
+            _LOGGER.info(
+                "Poseidon: %s just connected, restore of the cloud held back: %s",
+                name,
+                shown,
+            )
+            return False
+        self._guarded.setdefault(hwid, []).append(shown)
+        _LOGGER.warning(
+            "Poseidon: %s just connected, command of the cloud held back: %s",
+            name,
+            shown,
+        )
+        self._raise_guard_issue(hwid)
+        return False
+
+    @callback
+    def _raise_guard_issue(self, hwid: str) -> None:
+        dev = self.keystore.get(hwid)
+        held = self._guarded.get(hwid, [])
+        ir.async_create_issue(
+            self.hass,
+            DOMAIN,
+            f"{const.ISSUE_GUARD}_{hwid}",
+            is_fixable=False,
+            is_persistent=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key=const.ISSUE_GUARD,
+            translation_placeholders={
+                "name": (dev.name if dev else "") or hwid,
+                "count": str(len(held)),
+                "seconds": str(int(const.CONNECT_GUARD_S)),
+                "commands": ", ".join(f"`{c}`" for c in held[-10:]),
+            },
+        )
 
     @callback
     def async_set_paused(self, hwid: str, paused: bool) -> None:
@@ -940,14 +1088,49 @@ class Poseidon:
             return
         if merged:
             return
-        # Poseidon strategy, family without a merger: read the device again
+        # Poseidon strategy, nothing merged: read the device again
+        self._read_again(hwid, coordinator)
+
+    @callback
+    def _on_event(self, hwid: str, topic: str) -> None:
+        """A device in Poseidon mode pushed an event telling that something
+        nothing pushes changed (a dose: the dosing queue)."""
+        coordinator = self.coordinator(hwid)
+        if self.active.get(hwid) != const.STRATEGY_POSEIDON or coordinator is None:
+            # Spy and shadow keep their polling: the frame is logged already
+            return
+        self._read_again(hwid, coordinator)
+
+    @callback
+    def _read_again(self, hwid: str, coordinator: Any) -> None:
+        """Read a device again (poseidon strategy), its config sources
+        included: what the app changes is mostly settings, which the polling
+        never reads again. At most every PUSH_REFRESH_MIN_S: a message
+        arriving sooner gets one more read at the end of that delay."""
         now = time.monotonic()
-        if now - self._push_refresh.get(hwid, 0.0) < const.PUSH_REFRESH_MIN_S:
+        elapsed = now - self._push_refresh.get(hwid, -const.PUSH_REFRESH_MIN_S)
+        if elapsed < const.PUSH_REFRESH_MIN_S:
+            if hwid not in self._pending_reads:
+                self._pending_reads[hwid] = async_call_later(
+                    self.hass,
+                    const.PUSH_REFRESH_MIN_S - elapsed,
+                    self._pending_read(hwid, coordinator),
+                )
             return
         self._push_refresh[hwid] = now
         self.hass.async_create_task(
-            coordinator.async_request_refresh(wait=const.PUSH_REFRESH_WAIT_S)
+            coordinator.async_request_refresh(
+                wait=const.PUSH_REFRESH_WAIT_S, config=True
+            )
         )
+
+    def _pending_read(self, hwid: str, coordinator: Any) -> Callable[[Any], None]:
+        @callback
+        def _read(_now: Any) -> None:
+            self._pending_reads.pop(hwid, None)
+            self._read_again(hwid, coordinator)
+
+        return _read
 
     @callback
     def _on_telemetry(self, hwid: str, topic: str, payload: Any) -> None:
@@ -1013,21 +1196,27 @@ class Poseidon:
             self._check_anomalies(hwid, direction, frame.packet_type, None, None)
             return
         topic, payload = frame.parse_publish()
-        message: Any = None
-        if len(secret) == 16:
+        raw = payload.decode("utf-8", errors="replace")
+        # Sent in clear (group topics), else encrypted with the device secret
+        message: Any = decode_plain(raw)
+        if message is None and len(secret) == 16:
             try:
-                message = decrypt_payload(
-                    payload.decode("utf-8", errors="replace"), secret
-                )
+                message = decrypt_payload(raw, secret)
             except Exception:
                 _LOGGER.debug("Poseidon: %s of %s does not decrypt", topic, hwid)
         self._check_anomalies(hwid, direction, PACKET_PUBLISH, topic, message)
+        if direction == UP and message is not None and self.anomaly_detection:
+            # What the device makes of an unknown command
+            self.anomalies.observe(hwid, topic, message)
         if direction != UP or message is None:
             return
         if is_telemetry_topic(topic):
             self._on_telemetry(hwid, topic, message)
-        elif is_state_topic(topic):
+        elif is_state_topic(topic) or merges_on(dev.type if dev else "", topic):
+            # A state, or an event merged like one (rolling-log of a ReefMat)
             self._on_state(hwid, topic, message)
+        elif reads_on(dev.type if dev else "", topic):
+            self._on_event(hwid, topic)
 
     @callback
     def _check_anomalies(
@@ -1057,6 +1246,7 @@ class Poseidon:
             found,
             model=str(getattr(coordinator, "model", "") or ""),
             firmware=str(getattr(coordinator, "sw_version", "") or ""),
+            message=message,
         )
 
     @callback

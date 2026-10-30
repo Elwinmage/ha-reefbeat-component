@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
@@ -11,6 +12,8 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.redsea.poseidon import anomalies as an
 from custom_components.redsea.poseidon import const
@@ -53,6 +56,8 @@ def test_known_commands_and_packets() -> None:
         ("GET", "/mode"),
         ("POST", "/off"),
         ("DELETE", "/off"),
+        ("POST", "/time"),
+        ("GET", "/time"),
     ):
         command = {"method": method, "url": url, "body": None, "hwid": HWID}
         assert an.check_frame(PWR, DOWN, 3, _topic("command"), command) == []
@@ -133,7 +138,7 @@ def test_level4_telemetry_keys() -> None:
 def test_no_catalogue_or_payload_no_check() -> None:
     telemetry = {"anything": 1}
     assert (
-        an.check_frame("reef-wave", UP, 3, _topic("telemetry", "reef-wave"), telemetry)
+        an.check_frame("reef-ato", UP, 3, _topic("telemetry", "reef-ato"), telemetry)
         == []
     )
     # Not decrypted: only its topic is checked
@@ -436,3 +441,96 @@ async def test_manager_detection_turned_off_clears(hass: HomeAssistant) -> None:
     poseidon.anomalies.clear = lambda: cleared.append(True)
     await poseidon.async_apply_options()
     assert cleared == [True]
+
+
+# -- context of an unknown command -------------------------------------------------------
+
+UUID = "84937076-9a90-4c83-809d-f26d5c2e1975"
+TIME_COMMAND = {
+    "uuid": UUID,
+    "hwid": HWID,
+    "method": "POST",
+    "url": "/feed/start",
+    "body": {"minutes": 10},
+    "retries": 1,
+    "timeout": None,
+}
+
+
+async def test_unknown_command_waits_for_its_answer(hass: HomeAssistant) -> None:
+    monitor, written = _monitor(hass, search=False)
+    [anomaly] = an.check_frame(PWR, DOWN, 3, _topic("command"), TIME_COMMAND, HWID)
+    monitor.report(HWID, [anomaly], "RSPOWER6", "1.1.9", message=TIME_COMMAND)
+    await hass.async_block_till_done()
+    assert written == []  # waits for what the device makes of it
+    answer = {
+        "body": {"success": True, "message": "Feed started", "hwid": HWID},
+        "uuid": UUID,
+        "hwid": HWID,
+        "status": 200,
+    }
+    monitor.observe(HWID, _topic("command-response"), answer)
+    # Another answer, another device, a telemetry: not its context
+    monitor.observe(HWID, _topic("command-response"), {"uuid": "other", "status": 200})
+    monitor.observe(HWID, _topic("command-response"), "junk")
+    monitor.observe("someone-else", _topic("state"), {"specific_attributes": {}})
+    monitor.observe(HWID, _topic("telemetry"), TELEMETRY)
+    state = {"specific_attributes": {"mode": "feed"}}
+    monitor.observe(HWID, _topic("state"), state)
+    async_fire_time_changed(
+        hass, dt_util.utcnow() + timedelta(seconds=an.CONTEXT_S + 1)
+    )
+    await hass.async_block_till_done()
+    [record] = written
+    context = record["context"]
+    assert [c["topic"] for c in context] == ["command-response", "state"]
+    assert context[0]["payload"]["body"]["message"] == "Feed started"
+    assert context[0]["payload"]["uuid"] == "<…>"
+    assert context[0]["payload"]["body"]["hwid"] == "<…>"
+    assert context[1]["payload"] == state
+    # Nothing more waits: what comes next is not recorded
+    monitor.observe(HWID, _topic("state"), state)
+    assert len(monitor.seen[anomaly.signature].context) == 2
+    # And the issue carries it
+    url = monitor._new_issue_url(monitor.seen[anomaly.signature])
+    body = parse_qs(urlparse(url).query)["body"][0]
+    assert "What the device sent next" in body and "Feed started" in body
+    assert HWID not in body and UUID not in body
+
+
+async def test_context_is_bounded(hass: HomeAssistant) -> None:
+    monitor, written = _monitor(hass, search=False)
+    [anomaly] = an.check_frame(PWR, DOWN, 3, _topic("command"), TIME_COMMAND, HWID)
+    monitor.report(HWID, [anomaly], message=TIME_COMMAND)
+    for index in range(an.CONTEXT_MAX + 3):
+        monitor.observe(HWID, _topic("state"), {"specific_attributes": {"i": index}})
+    assert len(monitor.seen[anomaly.signature].context) == an.CONTEXT_MAX
+    # Turned off while waiting: nothing is logged later
+    monitor.clear()
+    async_fire_time_changed(
+        hass, dt_util.utcnow() + timedelta(seconds=an.CONTEXT_S + 1)
+    )
+    await hass.async_block_till_done()
+    assert written == []
+    # A command without uuid does not wait
+    no_uuid = dict(TIME_COMMAND, uuid=None, url="/other")
+    [other] = an.check_frame(PWR, DOWN, 3, _topic("command"), no_uuid, HWID)
+    monitor.report(HWID, [other], message=no_uuid)
+    await hass.async_block_till_done()
+    assert [r["signature"] for r in written] == [other.signature]
+    # Its record has an empty context, the other kinds have none
+    assert written[0]["context"] == []
+    monitor._publish("unknown")
+
+
+async def test_manager_feeds_the_context(hass: HomeAssistant) -> None:
+    poseidon, _, written = _power(hass)
+    poseidon._on_frame(HWID, "down", _state_frame(TIME_COMMAND, _topic("command")))
+    answer = {"body": {"success": True}, "uuid": UUID, "hwid": HWID, "status": 200}
+    poseidon._on_frame(HWID, UP, _state_frame(answer, _topic("command-response")))
+    async_fire_time_changed(
+        hass, dt_util.utcnow() + timedelta(seconds=an.CONTEXT_S + 1)
+    )
+    await hass.async_block_till_done()
+    [record] = written
+    assert record["context"][0]["payload"]["body"] == {"success": True}

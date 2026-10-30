@@ -2118,12 +2118,14 @@
           "reduced_minutes": "Intervallo di interrogazione della strategia Poseidon (minuti)",
           "safety_minutes": "Lettura di sicurezza di un dispositivo interamente inviato (minuti)",
           "anomalies": "Segnalare i messaggi inattesi",
-          "anomaly_search": "Cercare segnalazioni esistenti su GitHub"
+          "anomaly_search": "Cercare segnalazioni esistenti su GitHub",
+          "connect_guard": "Trattenere i comandi di scrittura del cloud alla connessione"
         },
         "data_description": {
           "safety_minutes": "Strategia Poseidon: un dispositivo i cui messaggi inviati coprono ogni valore che cambia (una ReefControl Power senza sonda di temperatura né presa comandata da sensore) viene letto solo con questa frequenza, per sicurezza. Anche il suo /cloud, finché comunica con il relay.",
           "anomalies": "I messaggi di un dispositivo in modalità Poseidon che nulla prevedeva (nuovo topic, comando sconosciuto, nuovo campo) vanno in {logs}/anomalies.jsonl (anonimizzati), con una riparazione per segnalarli su GitHub.",
-          "anomaly_search": "Prima di creare una riparazione, le issue del repository vengono cercate per la firma dell'anomalia: viene inviata solo questa breve impronta, niente dei vostri dispositivi. Disattivato: nessuna richiesta a GitHub."
+          "anomaly_search": "Prima di creare una riparazione, le issue del repository vengono cercate per la firma dell'anomalia: viene inviata solo questa breve impronta, niente dei vostri dispositivi. Disattivato: nessuna richiesta a GitHub.",
+          "connect_guard": "Nei primi 30 secondi di ogni connessione di un dispositivo al relay, i comandi di scrittura del cloud Red Sea (non le sue letture) non vengono inoltrati. A una prima connessione tramite il relay, il cloud può ripristinare una vecchia copia delle impostazioni del dispositivo: una ReefWave ha perso così tutto il suo programma. Una segnalazione di riparazione elenca ciò che è stato trattenuto."
         }
       },
       "import_keystore": {
@@ -2700,6 +2702,10 @@
     "poseidon_anomaly_closed": {
       "title": "Poseidon: messaggio inatteso già trattato ({signature})",
       "description": "Un {model} (firmware {firmware}) in modalità Poseidon ha inviato qualcosa che nulla prevedeva: **{kind}** — {details}.\n\nLa sua segnalazione (issue #{number}) è chiusa: **Maggiori informazioni** la apre. Riapritela se è ancora rilevante."
+    },
+    "poseidon_guard": {
+      "title": "{name}: comandi del cloud trattenuti alla connessione",
+      "description": "Alla connessione di {name} tramite il relay, il cloud Red Sea gli ha inviato {count} comando/i di scrittura nei primi {seconds} secondi: {commands}. Non sono stati inoltrati: subito dopo una connessione, il cloud può ripristinare una vecchia copia delle impostazioni del dispositivo e cancellare quelle attuali. Controlla le impostazioni del dispositivo; se hai modificato qualcosa nell'app ReefBeat proprio in quel momento, rifallo. La protezione si disattiva nelle impostazioni di Poseidon."
     }
   }
 }

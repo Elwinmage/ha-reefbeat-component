@@ -27,7 +27,7 @@ from typing import Any
 
 from homeassistant.util import dt as dt_util
 
-from .crypto import decrypt_payload
+from .crypto import decode_plain, decrypt_payload
 from .mqtt import PACKET_PUBLISH, MqttFrame
 from .relay import UP
 
@@ -75,6 +75,8 @@ def frame_record(
             decrypted = decrypt_payload(raw, api_secret)
         except Exception as err:
             record["error"] = str(err)
+    elif not encrypted:
+        decrypted = decode_plain(raw)
     record.update(
         kind="publish",
         topic=topic,

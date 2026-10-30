@@ -2126,12 +2126,14 @@
           "reduced_minutes": "Polling interval of the Poseidon strategy (minutes)",
           "safety_minutes": "Safety polling of a fully pushed device (minutes)",
           "anomalies": "Report unexpected messages",
-          "anomaly_search": "Look for existing reports on GitHub"
+          "anomaly_search": "Look for existing reports on GitHub",
+          "connect_guard": "Hold back the cloud's write commands at connection"
         },
         "data_description": {
           "safety_minutes": "Poseidon strategy: a device whose pushed messages cover every value that changes (a ReefControl Power without temperature probe nor sensor driven socket) is only polled this often, as a safety net. Its /cloud too, while it talks to the relay.",
           "anomalies": "Messages of a device in Poseidon mode that nothing expected (new topic, unknown command, new field) go to {logs}/anomalies.jsonl (anonymised), with a repair issue to report them on GitHub.",
-          "anomaly_search": "Before raising a repair issue, the reports of the repository are searched for the signature of the anomaly: only that short hash is sent, nothing about your devices. Off: no request to GitHub."
+          "anomaly_search": "Before raising a repair issue, the reports of the repository are searched for the signature of the anomaly: only that short hash is sent, nothing about your devices. Off: no request to GitHub.",
+          "connect_guard": "For the first 30 seconds of each connection of a device to the relay, the write commands of the Red Sea cloud (not its reads) are not forwarded. At a first connection through the relay the cloud may restore an old copy of the device settings: a ReefWave lost its whole schedule that way. A repair issue lists what was held back."
         }
       },
       "import_keystore": {
@@ -2708,6 +2710,10 @@
     "poseidon_anomaly_closed": {
       "title": "Poseidon: unexpected message already handled ({signature})",
       "description": "A {model} (firmware {firmware}) in Poseidon mode sent something nothing expected: **{kind}** — {details}.\n\nIts report (issue #{number}) is closed: **Learn more** opens it. Reopen it if this still matters."
+    },
+    "poseidon_guard": {
+      "title": "{name}: cloud commands held back at connection",
+      "description": "When {name} connected through the relay, the Red Sea cloud sent it {count} write command(s) within its first {seconds} seconds: {commands}. They were not forwarded: right after a connection, the cloud may restore an old copy of the device settings and erase the current ones. Check the device settings; if you changed something in the ReefBeat app at that very moment, do it again. The guard can be turned off in the Poseidon settings."
     }
   }
 }

@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import copy
 import json
-from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
-from custom_components.redsea.poseidon import mergers, strategy
+from custom_components.redsea.poseidon import strategy
 from custom_components.redsea.poseidon.mergers import merge_reef_power
 
 FIXTURE = json.loads(
@@ -156,6 +155,9 @@ def test_sources_not_read_yet() -> None:
 
 # -- telemetry and socket states ------------------------------------------------
 
+from datetime import datetime
+
+from custom_components.redsea.poseidon import mergers
 
 TELEMETRY_TOPIC = "device/reef-power/0000aaaa0001/telemetry"
 
@@ -399,3 +401,14 @@ def test_socket_without_number_or_config_is_left_alone() -> None:
     mergers.derive_power_socket_states(coordinator)
     assert sockets[-2]["state"] == "standby"
     assert sockets[-1]["state"] == "standby"
+
+
+def test_power_unknown_fields_are_read_again() -> None:
+    coordinator = _coordinator()
+    known = {"specific_attributes": {"mode": "auto", "timezone": 60, "ntp_sync": True}}
+    assert merge_reef_power(coordinator, TOPIC, known) is True
+    for pushed in (
+        {"specific_attributes": {"mode": "auto", "new_setting": 1}},
+        {"specific_attributes": {"sockets": {"1": {"mode": "on", "timer": 30}}}},
+    ):
+        assert merge_reef_power(_coordinator(), TOPIC, pushed) is False, pushed

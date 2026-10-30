@@ -2,6 +2,103 @@
 
 ## MODIFICATIONS
 
+### Poseidon: what the app changes always reaches Home Assistant
+
+Checked on every write command of the ReefBeat app in the spy runs (RSPOWER,
+RSWAVE, RSDOSE, RSMAT, RSRUN, RSLED): each one is followed by a pushed
+state, and what it changed comes back through it; the answers of the
+commands carry nothing more. Two gaps closed:
+
+- A read again by the poseidon strategy (state not fully merged, family
+  without merger, dosing-log) now reads the config sources too: what the
+  app changes is mostly settings (`/configuration`, `/device-settings`,
+  `/acclimation`, `/moonphase`, `/preset_name/N`, `/auto/N`...), which the
+  polling never reads again. A message arriving less than
+  `PUSH_REFRESH_MIN_S` after a read is no longer dropped: one more read
+  follows at the end of that delay.
+- A merger now says "read again" whenever the state tells something it
+  cannot write: a field it does not know, or the schedule of a ReefDose
+  head (pushed without its intervals nor its time: an interval moved would
+  have gone unnoticed). What it can merge is merged anyway. The ReefMat
+  merges `auto_advance` and its `device_settings` into `/configuration`.
+- Anomaly catalogue: the commands of a ReefDose head changed in the app
+  (`validate-settings`, `PUT /head/N/settings`, `compensate/cancel`,
+  `GET /bundle/settings`), `metrics.wifi_dis`, and a ReefWave telemetry
+  without `active-wave` (pump off).
+
+### Poseidon: ReefMat and ReefLED merged
+
+- ReefMat (`reef-mat`), from a spy run with eleven advances (one manual):
+  - state at each advance: `is_advancing`, `last_advance_cause`, the
+    lengths (`today_usage`, `total_usage`, `remaining_length`) and the step
+    counters into `/dashboard`. `/dashboard` truncates the lengths to 0.1
+    (never rounds them up): so does the merger;
+  - `rolling-log` (pushed at each advance) merged like a state: its
+    `advance_cause` is the only message telling an advance by the EC sensor;
+  - telemetry: mode, roll level, days left, lengths, step counters,
+    material name, setup date (`+00:00` told as `Z`), wifi signal.
+  - The EC readings of `/dashboard` are pushed by nothing: it keeps its
+    polling (`reduced_minutes`).
+- ReefLED (`reef-lights`) telemetry: the channels Home Assistant reads in
+  `/manual` (only those it has: a G2 has others), the fan, the temperature,
+  the moon phase, the acclimation, the active program, the mode and the
+  wifi signal. No state seen yet.
+- Checked by replaying the run: no difference on what is merged.
+- Anomaly catalogue: the state a ReefControl Power pushes on connection
+  (`attributes`, setup dates, feeding type, temperature settings, time
+  zone) and `metrics.res` in the telemetry are known.
+
+### Poseidon: devices protected when they join the relay
+
+- Guard of a new connection (option `connect_guard`, on by default): for
+  the first 30 seconds of each connection of a device to the relay, the
+  write commands of the Red Sea cloud (`POST`, `PUT`, `DELETE`, and the
+  commands that cannot be read) are not forwarded; its reads still are. At
+  a first connection through the relay, the cloud may restore an old copy
+  of the device settings: a ReefWave lost its whole schedule that way, 3 s
+  after connecting (`/auto/init`, `/auto` with a single "No Wave",
+  `/auto/complete`). The cloud does it at every connection (a ReefDose gets
+  `POST /food-head`, its feeding schedule reset to default; a ReefWave
+  `POST /group`, `/auto/init`, `/auto` per interval, `/auto/complete`,
+  `/auto/apply`): these known restores are held back silently, only logged;
+  any other write command held back raises a repair issue listing it. The
+  spy and debug logs mark them all (`guard_blocked`, with `known_restore`
+  and the command it would have written, keys masked).
+- A device pointed at the relay that never connects to it (it kept its
+  session with the Red Sea broker: an RSRUN did, while telling `CONNECTED`
+  to the relay) is made to reconnect after 2 minutes: pointed back at the
+  Red Sea broker, then at the relay again, twice at most. The spy log
+  marks it (`reconnect`).
+
+### Poseidon: ReefDose states and telemetry merged
+
+- Mergers for the ReefDose (`reef-dosing`), written from a spy run of two
+  RSDOSE4 3.0.1 with the HTTP answers:
+  - telemetry (every 60 s): main mode, and per head the volumes dosed today
+    (rounded to 0.1 mL as the device answers them), doses, daily doses,
+    remaining days, stock level, recalibration, missed doses into
+    `/dashboard`, container volume and today's volume into
+    `/head/N/settings`, the wifi signal into `/wifi`. Checked against every
+    poll of the run;
+  - state: mode, battery, time error, device settings, and per head its
+    state, daily dose, supplement, calibration and options. A pushed
+    schedule other than the polled one is not merged: it only carries part
+    of the schedule and the dosing queue follows it, so the device is read
+    again.
+- `/dosing-queue` is pushed by nothing, but every dose pushes a
+  `dosing-log`: with the poseidon strategy, it reads the device again (at
+  most once every `PUSH_REFRESH_MIN_S`), so the queue and the dosed volumes
+  follow at once. A ReefDose keeps `reduced_minutes` otherwise.
+- Anomaly catalogue of the ReefDose (no anomaly on the recorded runs).
+  `rolling-log` (pushed by a ReefMat when its roll advances) and
+  `dosing-log` are known topics.
+- Telemetry catalogues of the ReefMat, ReefLED and ReefWave (their states
+  and commands are not checked yet).
+- `group/<family>/<group uid>` topics (ReefWave pumps synced together) are
+  known: their messages are sent in clear (base64 of a JSON object padded
+  with NUL bytes), decoded in the spy and debug logs and checked
+  (`POST /group/sync` known).
+
 ### Poseidon: unexpected messages reported
 
 - Every message crossing the relay for a device in Poseidon mode is checked
@@ -12,12 +109,18 @@
   3. state with an unknown field, or a known field with another type;
   4. telemetry with an unknown field, a missing one or another type.
   Only the ReefControl Power has a catalogue yet (levels 2 to 4); it gives
-  no anomaly on the recorded runs.
+  no anomaly on the recorded runs. `GET /time` and `POST /time` (sent by the
+  ReefBeat app when its daylight saving setting changes) are known for every
+  device.
 - Each anomaly has a signature (hash of its kind, family, topic and key
   differences, never of the values): the same for every user. Its first
   occurrence goes to `logs/anomalies.jsonl` with an anonymised sample
   (hwid, names, network addresses, keys and secrets removed); the next ones
   are counted.
+- An unknown command first waits 5 s for what the device made of it: its
+  answer (`command-response` of the same `uuid`) and the states it pushed
+  meanwhile (at most 5 messages, anonymised) go with it, in the log and in
+  the prefilled issue.
 - The signature is looked for in the titles of the GitHub issues (only the
   signature is sent, answer kept 24 h), and a repair issue tells what to do:
   open a new issue (link with title, body and label prefilled, sent only by
