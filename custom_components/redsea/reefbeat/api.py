@@ -31,6 +31,8 @@ from ..const import (
     INITIAL_PROBE_TIMEOUT,
     MSG_LAST_ALERT,
     MSG_LAST_MESSAGE,
+    MSG_ORIGIN_HA,
+    MSG_ORIGIN_REEFBEAT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -196,7 +198,8 @@ class ReefBeatAPI:
             - `sources`: list of registered endpoint sources and their last decoded JSON
             - `local`: integration-maintained derived state
             - `message`: last response message/alert decoded from push calls
-            - `message_meta`: when the last message and the last alert came
+            - `message_meta`: when the last message and the last alert came,
+              and where from (`<kind>_origin`)
         - Provide JSONPath-based getters/setters (`get_data`, `set_data`)
         - Provide async HTTP fetch/push with retry/backoff (`fetch_*`, `_http_send`)
 
@@ -248,7 +251,12 @@ class ReefBeatAPI:
         self.data["message"] = {}
         # When the last message / alert came (ISO 8601, UTC). Apart from
         # `message`, which a successful push replaces with the firmware answer.
-        self.data["message_meta"] = {MSG_LAST_MESSAGE: None, MSG_LAST_ALERT: None}
+        self.data["message_meta"] = {
+            MSG_LAST_MESSAGE: None,
+            MSG_LAST_ALERT: None,
+            f"{MSG_LAST_MESSAGE}_origin": None,
+            f"{MSG_LAST_ALERT}_origin": None,
+        }
         # Called with every new message / alert (see MessageStore)
         self.on_message: Callable[[dict[str, Any]], None] | None = None
 
@@ -347,12 +355,20 @@ class ReefBeatAPI:
         if type_msg in (MSG_LAST_MESSAGE, "All"):
             self.data["message"]["message"] = ""
             meta[MSG_LAST_MESSAGE] = None
+            meta[f"{MSG_LAST_MESSAGE}_origin"] = None
         if type_msg in (MSG_LAST_ALERT, "All"):
             self.data["message"]["alert"] = {"message": ""}
             meta[MSG_LAST_ALERT] = None
+            meta[f"{MSG_LAST_ALERT}_origin"] = None
 
     def _record_message(
-        self, kind: str, text: str, method: str, url: str, status: int
+        self,
+        kind: str,
+        text: str,
+        method: str,
+        url: str,
+        status: int,
+        origin: str = MSG_ORIGIN_HA,
     ) -> None:
         """Stamp a new message / alert and hand it to the history.
 
@@ -360,11 +376,14 @@ class ReefBeatAPI:
             kind: MSG_LAST_MESSAGE or MSG_LAST_ALERT
             text: the message
             method: HTTP method of the push that got it
-            url: URL of that push
+            url: URL (or path) of that push
             status: HTTP status of the answer
+            origin: MSG_ORIGIN_HA or MSG_ORIGIN_REEFBEAT
         """
         ts = datetime.now(UTC).isoformat(timespec="seconds")
-        self.data.setdefault("message_meta", {})[kind] = ts
+        meta = self.data.setdefault("message_meta", {})
+        meta[kind] = ts
+        meta[f"{kind}_origin"] = origin
         if self.on_message is None:
             return
         entry = {
@@ -374,11 +393,55 @@ class ReefBeatAPI:
             "method": method,
             "path": self._path_of(url),
             "status": status,
+            "origin": origin,
         }
         try:
             self.on_message(entry)
         except Exception:  # never let the history break a push
             _LOGGER.exception("Message history callback failed")
+
+    def record_relayed_answer(
+        self, method: str, path: str, status: Any, body: Any
+    ) -> bool:
+        """The answer of the device to a command of the ReefBeat app (or
+        cloud), relayed by Poseidon: the same message / alert as the answer
+        to a push of Home Assistant.
+
+        Args:
+            method: method of the command
+            path: path of the command
+            status: HTTP status the device answered
+            body: body of the answer
+
+        Returns:
+            True when a message or an alert was recorded.
+        """
+        method_l = str(method).lower()
+        code = status if isinstance(status, int) else 0
+        message = self.data.setdefault("message", {})
+        alert = body.get("alert") if isinstance(body, dict) else None
+        text = body.get("message") if isinstance(body, dict) else None
+        failed = not self._is_status_ok(code, path, method_l) or (
+            isinstance(body, dict) and body.get("success") is False
+        )
+        if isinstance(alert, dict) and alert.get("message"):
+            text_alert = str(alert["message"])
+        elif failed:
+            text_alert = str(text or (body if isinstance(body, str) else "") or code)
+        else:
+            text_alert = ""
+        if text_alert:
+            message["alert"] = dict(alert) if isinstance(alert, dict) else {}
+            message["alert"]["message"] = text_alert
+            self._record_message(
+                MSG_LAST_ALERT, text_alert, method_l, path, code, MSG_ORIGIN_REEFBEAT
+            )
+        if not failed and isinstance(text, str) and text:
+            message["message"] = text
+            self._record_message(
+                MSG_LAST_MESSAGE, text, method_l, path, code, MSG_ORIGIN_REEFBEAT
+            )
+        return bool(text_alert) or (not failed and isinstance(text, str) and bool(text))
 
     async def connect(self) -> None:
         """Perform authentication/handshake if needed.

@@ -437,7 +437,9 @@ COMMON_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         value_fn=lambda device: device.get_data("$.message.alert.message", True),
         # When the alert came (ISO 8601), None once cleaned
         attributes_fn=lambda device: {
-            "timestamp": device.get_data("$.message_meta.last_alert_message", True)
+            "timestamp": device.get_data("$.message_meta.last_alert_message", True),
+            # ha, or reefbeat (a command of the app relayed by Poseidon)
+            "origin": device.get_data("$.message_meta.last_alert_message_origin", True),
         },
         icon="mdi:alert",
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -448,7 +450,9 @@ COMMON_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         value_fn=lambda device: device.get_data("$.message.message", True),
         # When the message came (ISO 8601), None once cleaned
         attributes_fn=lambda device: {
-            "timestamp": device.get_data("$.message_meta.last_message", True)
+            "timestamp": device.get_data("$.message_meta.last_message", True),
+            # ha, or reefbeat (a command of the app relayed by Poseidon)
+            "origin": device.get_data("$.message_meta.last_message_origin", True),
         },
         icon="mdi:note-check",
         entity_category=EntityCategory.DIAGNOSTIC,

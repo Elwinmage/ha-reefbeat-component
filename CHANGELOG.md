@@ -2,6 +2,17 @@
 
 ## MODIFICATIONS
 
+### Poseidon: messages of the ReefBeat app
+
+- In Poseidon mode (any strategy), the answer of a device to a write command
+  of the ReefBeat app or of the cloud (`command-response`, paired with its
+  command by `uuid`) feeds the **Last message** / **Last alert** sensors and
+  the message history, as the answer to a push of Home Assistant does: its
+  `message`, its `alert`, or an alert on `"success": false` or an error
+  status. The reads of the app (`GET`) are left out.
+- New `origin` attribute of both sensors, and field of each history entry:
+  `ha` or `reefbeat`.
+
 ### Poseidon: history of the doses of a ReefDose
 
 - Every `redsea_dose` is also kept, per device and head, for 30 days (5000

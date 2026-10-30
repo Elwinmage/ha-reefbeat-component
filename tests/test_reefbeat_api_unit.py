@@ -154,6 +154,8 @@ def test_clean_message_all_clears_both_and_their_timestamps() -> None:
     assert api.data["message_meta"] == {
         "last_message": None,
         "last_alert_message": None,
+        "last_message_origin": None,
+        "last_alert_message_origin": None,
     }
 
 
@@ -254,6 +256,8 @@ async def test_http_send_message_is_stamped_and_recorded() -> None:
     assert recorded[0]["method"] == "post"
     assert recorded[0]["status"] == 200
     assert recorded[0]["ts"] == ts
+    assert recorded[0]["origin"] == "ha"
+    assert api.data["message_meta"]["last_message_origin"] == "ha"
 
 
 @pytest.mark.asyncio

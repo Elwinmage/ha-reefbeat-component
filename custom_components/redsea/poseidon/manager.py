@@ -36,6 +36,7 @@ from ..const import CONFIG_FLOW_CLOUD_USERNAME, DOMAIN, VIRTUAL_LED
 from ..reefbeat.api import add_http_observer, http_origin
 from . import const
 from .anomalies import AnomalyMonitor, check_frame, command_key
+from .answers import RelayedCommands
 from .capture import CaptureReport, SnapshotStore, acquire_keys
 from .crypto import decode_plain, decrypt_payload
 from .debug import DebugLog, frame_record, http_record, mark_record, redact
@@ -161,6 +162,8 @@ class Poseidon:
         self.doses = DoseHistory(hass)
         # Refresh waiting for the end of PUSH_REFRESH_MIN_S, per device
         self._pending_reads: dict[str, Callable[[], None]] = {}
+        # Write commands of the app waiting for their answer (their message)
+        self._relayed = RelayedCommands()
         # Last read of /cloud, per device (monotonic)
         self._cloud_read: dict[str, float] = {}
         # A device is not silent before the relay had the time to see it
@@ -335,6 +338,7 @@ class Poseidon:
         for cancel in self._pending_reads.values():
             cancel()
         self._pending_reads.clear()
+        self._relayed.clear()
         # Every device gets its own polling back
         self.paused.clear()
         for hwid in list(self.poll_control.controlled):
@@ -1269,7 +1273,12 @@ class Poseidon:
         if direction == UP and message is not None and self.anomaly_detection:
             # What the device makes of an unknown command
             self.anomalies.observe(hwid, topic, message)
-        if direction != UP or message is None:
+        if message is None:
+            return
+        if direction != UP:
+            self._relayed.sent(hwid, topic, message)
+            return
+        if self._record_answer(hwid, topic, message):
             return
         if is_telemetry_topic(topic):
             self._on_telemetry(hwid, topic, message)
@@ -1280,6 +1289,32 @@ class Poseidon:
             self._on_event(hwid, topic)
         if topic.endswith("/dosing-log"):
             self._fire_dose(hwid, message)
+
+    @callback
+    def _record_answer(self, hwid: str, topic: str, message: Any) -> bool:
+        """The answer of a device to a write command of the app: its message
+        or alert, as for a push of Home Assistant. True when it was one."""
+        answer = self._relayed.answered(hwid, topic, message)
+        if answer is None:
+            return False
+        coordinator = self.coordinator(hwid)
+        api = getattr(coordinator, "my_api", None)
+        record = getattr(api, "record_relayed_answer", None)
+        if coordinator is None or record is None:
+            return True
+        try:
+            recorded = record(*answer)
+        except Exception:
+            _LOGGER.debug("Poseidon: answer of %s not recorded", hwid, exc_info=True)
+            return True
+        if recorded:
+            # The message sensors (no poll: nothing to compare)
+            self._merging.add(hwid)
+            try:
+                coordinator.async_update_listeners()
+            finally:
+                self._merging.discard(hwid)
+        return True
 
     @callback
     def _check_anomalies(

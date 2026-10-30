@@ -15,7 +15,11 @@ old coordinator's last push and the new one's first.
 Entries are dicts::
 
     {"ts": "2026-10-29T08:30:00+00:00", "type": "last_message",
-     "text": "...", "method": "post", "path": "/mode", "status": 200}
+     "text": "...", "method": "post", "path": "/mode", "status": 200,
+     "origin": "ha"}
+
+``origin`` is ``ha`` (a push of Home Assistant) or ``reefbeat`` (a command
+of the ReefBeat app relayed by Poseidon); entries older than it have none.
 """
 
 from __future__ import annotations

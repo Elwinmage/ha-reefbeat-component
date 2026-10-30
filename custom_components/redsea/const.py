@@ -106,6 +106,10 @@ MESSAGE_HISTORY_MAX: Final[int] = 500
 # Kinds of message, named after their sensors (and clean_message's msg_type)
 MSG_LAST_MESSAGE: Final[str] = "last_message"
 MSG_LAST_ALERT: Final[str] = "last_alert_message"
+# Where a message comes from: an answer to a push of Home Assistant, or an
+# answer to a command of the ReefBeat app / cloud relayed by Poseidon
+MSG_ORIGIN_HA: Final[str] = "ha"
+MSG_ORIGIN_REEFBEAT: Final[str] = "reefbeat"
 
 SCAN_INTERVAL: Final[int] = 120  # seconds
 DO_NOT_REFRESH_TIME: Final[int] = 2  # seconds

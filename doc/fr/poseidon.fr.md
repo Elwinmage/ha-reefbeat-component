@@ -263,6 +263,27 @@ automation:
             {{ trigger.event.data.started_at }} → {{ trigger.event.data.ended_at }}
 ```
 
+## Messages de l'app ReefBeat
+
+Les capteurs **Dernier message** et **Dernière alerte** (et l'historique des
+messages) viennent des réponses des appareils aux envois de Home Assistant,
+qui restent en HTTP dans tous les modes. Les commandes de l'app ReefBeat (ou
+du cloud) arrivent à l'appareil par MQTT : en mode Poseidon (toute
+stratégie), la réponse de l'appareil à chaque commande d'écriture
+(`command-response`, même `uuid`) alimente les mêmes capteurs, comme le
+ferait une réponse HTTP :
+
+- un `message` (`settings updated successfully`, `head settings successfully
+  saved`…) devient le dernier message ;
+- une `alert` (`NoMoreDoseAlert`…), `"success": false` ou un statut d'erreur
+  devient la dernière alerte.
+
+Les lectures de l'app (`GET`) ne portent pas de message : elles sont
+ignorées. L'attribut `origin` des deux capteurs, et de chaque entrée de
+l'historique (action `redsea.get_messages`), dit d'où il vient : `ha` (un
+envoi de Home Assistant) ou `reefbeat` (une commande de l'app ou du cloud).
+La ha-reef-card l'affiche après la date.
+
 ## Exporter et importer les clefs
 
 *Poseidon > Configurer > Exporter les clefs* donne un lien de téléchargement de
