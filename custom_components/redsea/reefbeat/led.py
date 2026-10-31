@@ -249,7 +249,15 @@ class ReefLedAPI(ReefBeatAPI):
         And optionally an intensity compensation function, if enabled.
         """
         await self._apply_runtime_source_patches()
-        data = await super().get_initial_data()
+        # Before the first fetch: it derives the kelvin and intensity of a G1
+        # from its white and blue, with these conversions (built after it, the
+        # first kelvin was the 9000 K fallback until the next poll)
+        self._init_conversions()
+        return await super().get_initial_data()
+
+    def _init_conversions(self) -> None:
+        """Build the kelvin <-> wb conversions and the intensity compensation
+        of the model, from the local tables."""
 
         def _as_str_any_dict(obj: Any) -> dict[str, Any] | None:
             if isinstance(obj, dict):
@@ -331,8 +339,6 @@ class ReefLedAPI(ReefBeatAPI):
                             )
             except Exception as e:
                 _LOGGER.debug("LED intensity compensation init failed: %s", e)
-
-        return data
 
     def _wb(self, value: float) -> tuple[float, float]:
         """Convert a wb value (0..200) to (white, blue) percentages.

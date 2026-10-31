@@ -2,6 +2,40 @@
 
 ## MODIFICATIONS
 
+### Fix: colour of a ReefLED G1 right after a restart
+
+- The kelvin <-> white/blue conversions of a G1 were built after its first
+  fetch, which derives its colour and intensity from its white and blue:
+  until the next poll, the colour was the 9000 K fallback (seen on a
+  RSLED160: white 32 %, blue 94 % shown as 9000 K instead of about
+  21200 K). They are now built before it.
+
+### Poseidon: `metrics.int_dis` of the telemetry is expected
+
+- Pushed once by a device after a loss of its internet access (seen on a
+  RSMAT 1.10.2), like `mqtt_dis` and `wifi_dis`: added to the metrics of
+  every telemetry catalogue, no more "unexpected message" for it.
+
+### Poseidon: ReefDose at midnight
+
+Checked on the spy runs of the night of 2026-10-30/31 (two ReefDose): at
+23:59:53 a doser pushes a state with its daily metrics (merged as it is); its
+daily counters come back to zero with the first telemetry after midnight;
+its dosing queue, pushed by nothing, is replaced at midnight by the one of
+the new day.
+
+- In Poseidon mode, the dosers are read again at 00:01 (Home Assistant's
+  time): the queue of the new day, even for a doser whose first dose is at
+  noon.
+- With that read and the one after each dose, everything that changes on a
+  ReefDose comes pushed: once polled, it is only polled every *Safety
+  polling interval* (`FULLY_PUSHED`).
+- A dose missing from the dosing queue (the one at midnight, which is in no
+  queue; a manual dose from the app) gets a start and a duration estimated
+  from the flow of its head (volume ÷ flow of its last 20 doses of measured
+  duration, at least 3): new `start_estimated` field of `redsea_dose`, of
+  the dose history and of the last dose sensor.
+
 ### Fix: colour and intensity of a ReefLED G1 in Poseidon mode
 
 - The telemetry of a G1 updates its white and blue, but its colour and

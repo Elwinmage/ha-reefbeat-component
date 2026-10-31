@@ -28,7 +28,11 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.event import async_call_later, async_track_time_interval
+from homeassistant.helpers.event import (
+    async_call_later,
+    async_track_time_change,
+    async_track_time_interval,
+)
 from homeassistant.loader import async_get_integration
 from homeassistant.util import dt as dt_util
 
@@ -42,7 +46,7 @@ from .crypto import decode_plain, decrypt_payload
 from .debug import DebugLog, frame_record, http_record, mark_record, redact
 from .device_http import ORIGIN, DeviceHttp
 from .doses import DoseHistory
-from .events import EVENT_DOSE, DoseEvents, dose_event
+from .events import EVENT_DOSE, DoseEvents, dose_event, estimate_start
 from .keystore import DeviceKeys, KeyStore
 from .mqtt import PACKET_PUBLISH, MqttFrame
 from .relay import UP, Relay, Traffic
@@ -56,6 +60,7 @@ from .strategy import (
     merge_state,
     merge_telemetry,
     merges_on,
+    reads_at_midnight,
     reads_on,
 )
 from .watchdog import WATCHDOG_USERNAME, WatchdogSession
@@ -164,6 +169,8 @@ class Poseidon:
         self._pending_reads: dict[str, Callable[[], None]] = {}
         # Write commands of the app waiting for their answer (their message)
         self._relayed = RelayedCommands()
+        # Read of the dosers just after midnight
+        self._unsub_midnight: Callable[[], None] | None = None
         # Last read of /cloud, per device (monotonic)
         self._cloud_read: dict[str, float] = {}
         # A device is not silent before the relay had the time to see it
@@ -326,11 +333,21 @@ class Poseidon:
             self._refresh_tick,
             timedelta(seconds=const.CLOUD_REFRESH_S),
         )
+        self._unsub_midnight = async_track_time_change(
+            self.hass,
+            self._midnight_read,
+            hour=const.MIDNIGHT_READ_AT[0],
+            minute=const.MIDNIGHT_READ_AT[1],
+            second=0,
+        )
 
     async def async_stop(self) -> None:
         if self._unsub_refresh is not None:
             self._unsub_refresh()
             self._unsub_refresh = None
+        if self._unsub_midnight is not None:
+            self._unsub_midnight()
+            self._unsub_midnight = None
         if self._unsub_http is not None:
             self._unsub_http()
             self._unsub_http = None
@@ -889,6 +906,21 @@ class Poseidon:
         self._update_silent_issues()
         self._signal(force=True)
 
+    @callback
+    def _midnight_read(self, _now: Any = None) -> None:
+        """Read again, just after midnight, the devices in Poseidon mode
+        whose new day is pushed by nothing (the dosing queue of a ReefDose).
+        Home Assistant's time: the devices are set to its time zone."""
+        for hwid, strategy in list(self.active.items()):
+            dev = self.keystore.get(hwid)
+            if strategy != const.STRATEGY_POSEIDON or not reads_at_midnight(
+                dev.type if dev else ""
+            ):
+                continue
+            coordinator = self.coordinator(hwid)
+            if coordinator is not None and hwid not in self.paused:
+                self._read_again(hwid, coordinator)
+
     async def _reconnect_absent(self) -> None:
         """Make a device pointed at the relay that never connected to it
         reconnect (it kept its session with the Red Sea broker)."""
@@ -1153,6 +1185,9 @@ class Poseidon:
         data = dose_event(coordinator, payload)
         if data is None or not self._doses.first_time(hwid, payload):
             return
+        # Not in the dosing queue (at midnight, manual from the app): its
+        # start from the flow of its head
+        estimate_start(data, self.doses.flow(hwid, data["head"]))
         entry = self.device_entry(hwid)
         self.hass.bus.async_fire(
             EVENT_DOSE,

@@ -127,6 +127,8 @@ _METRICS = {
     "metrics.mqtt_dis": _types(NUMBER),
     "metrics.res": _types(NUMBER),
     "metrics.wifi_dis": _types(NUMBER),
+    # Once after a loss of the internet access (RSMAT 1.10.2, 2026-10-31)
+    "metrics.int_dis": _types(NUMBER),
 }
 
 

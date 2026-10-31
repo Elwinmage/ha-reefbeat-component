@@ -153,6 +153,20 @@ def test_telemetry_catalogues() -> None:
         )
 
 
+def test_metrics_after_a_disconnection() -> None:
+    # Pushed once after a loss of wifi, broker, internet, or a restart
+    for name in ("mqtt_dis", "res", "wifi_dis", "int_dis"):
+        telemetry = dict(MAT_TELEMETRY, metrics={"wifi_sig": -50, name: 1})
+        topic = _topic("reef-mat", "telemetry")
+        assert an.check_frame("reef-mat", UP, 3, topic, telemetry) == [], name
+    # A string is not a count
+    telemetry = dict(MAT_TELEMETRY, metrics={"int_dis": "1"})
+    [found] = an.check_frame(
+        "reef-mat", UP, 3, _topic("reef-mat", "telemetry"), telemetry
+    )
+    assert found.details == ("~metrics.int_dis:str",)
+
+
 def test_object_of_any_shape_is_still_required() -> None:
     other_channels = dict(LIGHTS_TELEMETRY, intensities={"uv": 1, "violet": 2})
     topic = _topic("reef-lights", "telemetry")
@@ -246,3 +260,46 @@ async def test_reads_include_the_config_and_none_is_lost(hass: HomeAssistant) ->
     assert poseidon._pending_reads
     await poseidon.async_stop()
     assert not poseidon._pending_reads
+
+
+async def test_dosers_are_read_again_after_midnight(hass: HomeAssistant) -> None:
+    poseidon, _ = _dosing(hass, const.STRATEGY_POSEIDON)
+    reads: list[str] = []
+    poseidon._read_again = lambda hwid, _c: reads.append(hwid)  # type: ignore[method-assign]
+    poseidon._midnight_read()
+    assert reads == [HWID]
+    # Paused, spy mode, another family, no coordinator: not read
+    poseidon.paused.add(HWID)
+    poseidon._midnight_read()
+    poseidon.paused.discard(HWID)
+    poseidon.active[HWID] = const.STRATEGY_SPY
+    poseidon._midnight_read()
+    poseidon.active[HWID] = const.STRATEGY_POSEIDON
+    poseidon.keystore.devices[HWID].type = "reef-wave"
+    poseidon._midnight_read()
+    poseidon.keystore.devices[HWID].type = "reef-dosing"
+    poseidon.coordinator = lambda _hwid: None  # type: ignore[method-assign]
+    poseidon._midnight_read()
+    assert reads == [HWID]
+
+
+async def test_midnight_read_is_scheduled(hass: HomeAssistant) -> None:
+    from unittest.mock import AsyncMock, patch
+
+    poseidon, _ = _dosing(hass, const.STRATEGY_POSEIDON)
+    with (
+        patch.object(poseidon, "async_load", AsyncMock()),
+        patch.object(poseidon.relay, "async_start", AsyncMock()),
+        patch.object(poseidon.relay, "async_stop", AsyncMock()),
+        patch(
+            "custom_components.redsea.poseidon.manager.async_track_time_change"
+        ) as track,
+    ):
+        await poseidon.async_start()
+        kwargs = track.call_args.kwargs
+        assert (kwargs["hour"], kwargs["minute"]) == const.MIDNIGHT_READ_AT
+        await poseidon.async_stop()
+        track.return_value.assert_called_once()
+        assert poseidon._unsub_midnight is None
+        # Stopped twice
+        await poseidon.async_stop()

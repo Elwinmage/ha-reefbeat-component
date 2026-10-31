@@ -196,6 +196,8 @@ class PoseidonLastDoseSensor(_PoseidonDeviceEntity, SensorEntity):
             "dose_type": last.get("dose_type"),
             "started_at": last.get("started_at"),
             "duration_s": last.get("duration_s"),
+            # Start and duration from the flow of the head (not in the queue)
+            "start_estimated": bool(last.get("start_estimated")),
             "supplement": last.get("supplement"),
         }
 

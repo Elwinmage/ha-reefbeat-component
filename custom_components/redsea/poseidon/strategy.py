@@ -34,6 +34,7 @@ from typing import Any
 from homeassistant.util import dt as dt_util
 
 from .mergers import (
+    dosing_fully_pushed,
     merge_reef_dosing,
     merge_reef_dosing_telemetry,
     merge_reef_lights_telemetry,
@@ -191,7 +192,11 @@ READ_ON: dict[str, frozenset[str]] = {
 # Device type -> whether a device of it has every changing value pushed
 FULLY_PUSHED: dict[str, Callable[[Any], bool]] = {
     "reef-power": power_fully_pushed,
+    "reef-dosing": dosing_fully_pushed,
 }
+# Device types the poseidon strategy reads again just after midnight: what
+# changes then is pushed by nothing (the dosing queue of the new day)
+READ_AT_MIDNIGHT: frozenset[str] = frozenset({"reef-dosing"})
 
 
 # Device type -> topic suffixes of the events merged like a state (with the
@@ -204,6 +209,11 @@ MERGES_ON: dict[str, frozenset[str]] = {
 def merges_on(device_type: str, topic: str) -> bool:
     """Whether a pushed event of this topic is merged like a state."""
     return topic.rsplit("/", 1)[-1] in MERGES_ON.get(device_type, frozenset())
+
+
+def reads_at_midnight(device_type: str) -> bool:
+    """Whether the device is read again just after midnight."""
+    return device_type in READ_AT_MIDNIGHT
 
 
 def reads_on(device_type: str, topic: str) -> bool:

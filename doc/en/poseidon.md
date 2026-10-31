@@ -102,7 +102,7 @@ Families merged so far, from the spy runs:
 | Family | Merged |
 |---|---|
 | ReefControl Power | states, telemetry; the socket states are computed from their schedules, as the ReefBeat app does |
-| ReefDose | states, telemetry; a `dosing-log` (end of a dose) reads it again, for its dosing queue |
+| ReefDose | states, telemetry; a `dosing-log` (end of a dose) reads it again, for its dosing queue, and so does midnight (00:01, Home Assistant's time), when the queue of the new day replaces the one of the day ending |
 | ReefMat | states, telemetry, `rolling-log` (end of an advance) |
 | ReefLED | telemetry |
 
@@ -113,8 +113,9 @@ schedule, pushed without its intervals). Such a read includes the config
 sources: what the app changes is mostly settings, which the polling never reads
 again.
 
-A ReefControl Power without temperature probe nor socket driven by a sensor has
-everything that changes pushed: with *Poseidon*, it is only polled every
+A ReefControl Power without temperature probe nor socket driven by a sensor,
+and a ReefDose (its dosing queue read after each dose and at midnight), have
+everything that changes pushed: with *Poseidon*, they are only polled every
 *Safety polling interval*.
 
 ### Spy
@@ -217,12 +218,14 @@ fired once.
 | `supplement`, `brand` | as the device tells them |
 | `dose_type` | `scheduled` or `manual` |
 | `volume` | dosed volume, in mL |
-| `started_at` | start of the dose, from the dosing queue polled before it (device local time); `null` for a dose that was not in it (manual from the app) |
+| `started_at` | start of the dose, from the dosing queue polled before it (device local time); for a dose that was not in it (the one at midnight, manual from the app), estimated from the flow of the head; `null` while fewer than 3 doses of the head have a measured duration |
 | `ended_at` | end of the dose (device local time) |
 | `duration_s` | `ended_at` − `started_at`, `null` without start |
+| `start_estimated` | `true` when `started_at` (and `duration_s`) are estimated: volume ÷ flow of the head (its last 20 doses of measured duration) |
 
 Nothing is pushed when a dose starts: its start is the time the dosing queue
-gave it.
+gave it. The dose at midnight is in no queue (the one of the day ending is empty
+by then, the one of the new day starts after it): its start is estimated.
 
 ### History of the doses
 

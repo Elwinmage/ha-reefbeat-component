@@ -14,6 +14,7 @@ from custom_components.redsea.poseidon.events import (
     DoseEvents,
     dose_event,
     dose_start,
+    estimate_start,
 )
 from custom_components.redsea.poseidon.relay import UP
 from tests._poseidon_fakes import HWID
@@ -67,6 +68,7 @@ def test_dose_event() -> None:
         "started_at": "2026-10-30T10:28:45+01:00",
         "ended_at": "2026-10-30T10:29:04+01:00",
         "duration_s": 19.0,
+        "start_estimated": False,
     }
 
 
@@ -95,6 +97,30 @@ def _ended() -> Any:
     from datetime import datetime
 
     return datetime.fromisoformat(LOG["local_time"])
+
+
+def test_start_estimated_from_the_flow_of_the_head() -> None:
+    # The dose at midnight: the queue of the day ending is empty by then
+    log = dict(LOG, local_time="2026-10-31T00:00:14+01:00", volume=6.181812)
+    answers = copy.deepcopy(ANSWERS)
+    answers["/dosing-queue"] = []
+    event = dose_event(_coordinator(answers), log)
+    assert event is not None and event["started_at"] is None
+    # 12.487 mL in 19 s
+    assert estimate_start(event, 12.487 / 19.0)
+    assert event["start_estimated"] is True
+    assert event["duration_s"] == 9.4
+    assert event["started_at"] == "2026-10-31T00:00:04.600000+01:00"
+    # Already started, no flow, no volume, no end: nothing estimated
+    assert not estimate_start(event, 1.0)
+    for data, flow in (
+        (dict(event, started_at=None), None),
+        (dict(event, started_at=None), 0.0),
+        (dict(event, started_at=None, volume=None), 1.0),
+        (dict(event, started_at=None, volume=0), 1.0),
+        (dict(event, started_at=None, ended_at="junk"), 1.0),
+    ):
+        assert not estimate_start(data, flow)
 
 
 def test_not_a_dose() -> None:

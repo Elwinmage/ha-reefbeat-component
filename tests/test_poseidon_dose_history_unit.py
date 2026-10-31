@@ -18,6 +18,7 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.redsea.poseidon import const
+from custom_components.redsea.poseidon import doses as doses_mod
 from custom_components.redsea.poseidon.doses import DoseHistory, ended_at
 from custom_components.redsea.poseidon.keystore import DeviceKeys, KeyStore
 from custom_components.redsea.poseidon.manager import Poseidon, get_poseidon
@@ -71,6 +72,31 @@ async def test_history(hass: HomeAssistant) -> None:
     last = history.last(HWID, 2)
     assert last is not None and last["volume"] == 12.5
     assert history.last(HWID, 3) is None
+
+
+async def test_flow_of_a_head(hass: HomeAssistant) -> None:
+    history = DoseHistory(hass)
+    await history.async_load()
+    # Fewer than FLOW_MIN doses of measured duration
+    history.add(HWID, _dose(2, NOW - timedelta(hours=5), 10.0))
+    history.add(HWID, _dose(2, NOW - timedelta(hours=4), 20.0))
+    assert history.flow(HWID, 2) is None
+    # Not measured: estimated, without duration, nothing dosed
+    history.add(
+        HWID, dict(_dose(2, NOW - timedelta(hours=3), 99.0), start_estimated=True)
+    )
+    history.add(HWID, dict(_dose(2, NOW - timedelta(hours=2), 5.0), duration_s=None))
+    history.add(HWID, dict(_dose(2, NOW - timedelta(hours=1), 0.0)))
+    assert history.flow(HWID, 2) is None
+    history.add(HWID, _dose(2, NOW, 30.0))
+    # 60 mL in 30 s
+    assert history.flow(HWID, 2) == 2.0
+    assert history.flow(HWID, 1) is None
+    # Only the last FLOW_DOSES
+    for hour in range(doses_mod.FLOW_DOSES):
+        history.add(HWID, _dose(3, NOW - timedelta(minutes=hour), 5.0))
+    history.add(HWID, _dose(3, NOW - timedelta(days=1), 500.0))
+    assert history.flow(HWID, 3) == 0.5
 
 
 async def test_history_retention(hass: HomeAssistant) -> None:
@@ -133,6 +159,30 @@ def _dosing(hass: HomeAssistant) -> tuple[Any, Any]:
         "sources"
     ]
     return poseidon, coordinator
+
+
+async def test_start_of_a_dose_off_the_queue_is_estimated(
+    hass: HomeAssistant,
+) -> None:
+    poseidon, _ = _dosing(hass)
+    events: list[Any] = []
+    hass.bus.async_listen("redsea_dose", events.append)
+    # The head doses 1 mL/s
+    for hour in range(1, 4):
+        poseidon.doses.add(HWID, _dose(2, NOW - timedelta(hours=hour), 10.0))
+    # Manual from the app: not in the queue
+    log = dict(
+        LOG, dose_type="manual", volume=5.0, local_time="2026-10-30T09:15:19+01:00"
+    )
+    poseidon._fire_dose(HWID, log)
+    await hass.async_block_till_done()
+    [event] = events
+    assert event.data["start_estimated"] is True
+    assert event.data["duration_s"] == 5.0
+    assert event.data["started_at"] == "2026-10-30T09:15:14+01:00"
+    assert [d["start_estimated"] for d in poseidon.doses.entries(HWID, 2)].count(
+        True
+    ) == 1
 
 
 async def test_doses_are_kept(hass: HomeAssistant) -> None:
@@ -203,6 +253,7 @@ async def test_last_dose_sensor(hass: HomeAssistant) -> None:
     attributes = sensor.extra_state_attributes
     assert attributes["head"] == 2 and attributes["volume"] == 12.487
     assert attributes["started_at"] == "2026-10-30T10:28:45+01:00"
+    assert attributes["start_estimated"] is False
     # Out of Poseidon mode: unavailable
     coordinator.cloud = {"url": "mqtt.reef-beat.com:1883"}
     assert not sensor.available

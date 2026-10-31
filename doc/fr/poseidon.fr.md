@@ -106,7 +106,7 @@ Familles fusionnées à ce jour, d'après les relevés espion :
 | Famille | Fusionné |
 |---|---|
 | ReefControl Power | états, télémétrie ; l'état des prises est calculé depuis leurs programmes, comme le fait l'app ReefBeat |
-| ReefDose | états, télémétrie ; un `dosing-log` (fin d'une dose) le fait relire, pour sa file de dosage |
+| ReefDose | états, télémétrie ; un `dosing-log` (fin d'une dose) le fait relire, pour sa file de dosage, de même que minuit (00:01, heure de Home Assistant), quand la file du nouveau jour remplace celle du jour qui finit |
 | ReefMat | états, télémétrie, `rolling-log` (fin d'une avance) |
 | ReefLED | télémétrie |
 
@@ -117,9 +117,10 @@ inconnu, un programme de ReefDose, poussé sans ses intervalles). Cette relectur
 comprend les sources de configuration : ce que l'app modifie, ce sont surtout
 des réglages, que le relevé ne relit jamais.
 
-Un ReefControl Power sans sonde de température ni prise pilotée par un capteur
-a tout ce qui change poussé : en stratégie *Poseidon*, il n'est relevé que tous
-les *Intervalle du relevé de sécurité*.
+Un ReefControl Power sans sonde de température ni prise pilotée par un
+capteur, et une ReefDose (sa file de dosage relue après chaque dose et à
+minuit), ont tout ce qui change poussé : en stratégie *Poseidon*, ils ne sont
+relevés que tous les *Intervalle du relevé de sécurité*.
 
 ### Espion
 
@@ -222,12 +223,15 @@ deux fois (après une reconnexion) n'est émise qu'une fois.
 | `supplement`, `brand` | tels que l'appareil les donne |
 | `dose_type` | `scheduled` ou `manual` |
 | `volume` | volume dosé, en mL |
-| `started_at` | début de la dose, d'après la file de dosage relevée avant elle (heure locale de l'appareil) ; `null` pour une dose qui n'y était pas (manuelle depuis l'app) |
+| `started_at` | début de la dose, d'après la file de dosage relevée avant elle (heure locale de l'appareil) ; pour une dose qui n'y était pas (celle de minuit, une manuelle depuis l'app), estimé d'après le débit de la tête ; `null` tant que moins de 3 doses de la tête ont une durée mesurée |
 | `ended_at` | fin de la dose (heure locale de l'appareil) |
 | `duration_s` | `ended_at` − `started_at`, `null` sans début |
+| `start_estimated` | `true` quand `started_at` (et `duration_s`) sont estimés : volume ÷ débit de la tête (ses 20 dernières doses de durée mesurée) |
 
 Rien n'est poussé quand une dose commence : son début est l'heure que lui
-donnait la file de dosage.
+donnait la file de dosage. La dose de minuit n'est dans aucune file (celle du
+jour qui finit est vide à ce moment, celle du nouveau jour commence après
+elle) : son début est estimé.
 
 ### Historique des doses
 

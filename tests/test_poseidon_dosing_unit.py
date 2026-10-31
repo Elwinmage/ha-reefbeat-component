@@ -90,8 +90,21 @@ def test_rolling_log_topic_is_known() -> None:
 def test_registered() -> None:
     assert strategy.MERGERS[DOSING] is merge_reef_dosing
     assert strategy.TELEMETRY_MERGERS[DOSING] is merge_reef_dosing_telemetry
-    # The dosing queue is pushed by nothing
-    assert DOSING not in strategy.FULLY_PUSHED
+    # The dosing queue is pushed by nothing: read after a dose, at midnight
+    assert DOSING in strategy.FULLY_PUSHED
+    assert strategy.reads_at_midnight(DOSING)
+    assert not strategy.reads_at_midnight("reef-power")
+
+
+def test_fully_pushed_once_polled() -> None:
+    coordinator = _coordinator()
+    assert strategy.fully_pushed(DOSING, coordinator)
+    answers = copy.deepcopy(FIXTURE["answers_before"])
+    answers["/dosing-queue"] = {"x": 1}
+    assert not strategy.fully_pushed(DOSING, _coordinator(answers))
+    del answers["/dosing-queue"]
+    assert not strategy.fully_pushed(DOSING, _coordinator(answers))
+    assert not strategy.fully_pushed(DOSING, _coordinator({}))
 
 
 def test_recorded_telemetry_matches_the_polls() -> None:

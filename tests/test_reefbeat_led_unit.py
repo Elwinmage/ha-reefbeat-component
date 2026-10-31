@@ -385,6 +385,31 @@ async def test_get_initial_data_builds_kelvin_conversions_from_list_table(
 
 
 @pytest.mark.asyncio
+async def test_first_fetch_of_a_g1_derives_its_kelvin_with_the_conversions(
+    monkeypatch: Any,
+) -> None:
+    # Right after a restart: the first fetch derives kelvin and intensity
+    # from white and blue, the conversions must be there already
+    api = _make_led_api(hw="RSLED160")
+    api.add_source("/manual", "data", {"white": 32, "blue": 94, "moon": 0})
+
+    async def _noop() -> None:
+        return
+
+    async def _first_fetch(self: Any) -> dict[str, Any]:
+        self.update_light_wb()
+        return self.data
+
+    monkeypatch.setattr(api, "_apply_runtime_source_patches", _noop)
+    monkeypatch.setattr(ReefLedAPI.__mro__[1], "get_initial_data", _first_fetch)
+
+    await api.get_initial_data()
+    # Not the 9000 K fallback
+    assert 21000 < api.get_data(LED_KELVIN_INTERNAL_NAME) < 21400
+    assert api.get_data(LED_INTENSITY_INTERNAL_NAME) == 94
+
+
+@pytest.mark.asyncio
 async def test_get_initial_data_ignores_invalid_leds_conv_table(
     monkeypatch: Any,
 ) -> None:

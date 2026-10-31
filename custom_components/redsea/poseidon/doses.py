@@ -12,7 +12,11 @@ Entries are dicts::
     {"hwid": "...", "head": 2, "supplement": "...", "brand": "...",
      "dose_type": "scheduled", "volume": 12.487,
      "started_at": "2026-10-30T10:28:45+01:00",
-     "ended_at": "2026-10-30T10:29:04+01:00", "duration_s": 19.0}
+     "ended_at": "2026-10-30T10:29:04+01:00", "duration_s": 19.0,
+     "start_estimated": false}
+
+A dose missing from the dosing queue (the one at midnight, a manual one from
+the app) has its start estimated from the flow of its head (``flow``).
 """
 
 from __future__ import annotations
@@ -29,6 +33,10 @@ DOSE_HISTORY_DAYS: Final[int] = 30
 DOSE_HISTORY_MAX: Final[int] = 5000
 # Delay before writing the file after a change (seconds)
 SAVE_DELAY: Final[int] = 30
+# Doses of a head whose duration is known that its flow is computed from:
+# at least FLOW_MIN, the last FLOW_DOSES
+FLOW_MIN: Final[int] = 3
+FLOW_DOSES: Final[int] = 20
 
 # What an entry keeps of an event
 FIELDS: Final[tuple[str, ...]] = (
@@ -40,6 +48,7 @@ FIELDS: Final[tuple[str, ...]] = (
     "started_at",
     "ended_at",
     "duration_s",
+    "start_estimated",
 )
 
 
@@ -137,3 +146,25 @@ class DoseHistory:
         """The last dose of a head."""
         found = self.entries(hwid, head, limit=1)
         return found[0] if found else None
+
+    def flow(self, hwid: str, head: int) -> float | None:
+        """Flow of a head (mL/s), from its last doses of measured duration;
+        None while there are fewer than FLOW_MIN of them."""
+        volume = duration = 0.0
+        count = 0
+        for entry in self.entries(hwid, head):
+            if entry.get("start_estimated"):
+                continue
+            v, d = entry.get("volume"), entry.get("duration_s")
+            if not isinstance(v, (int, float)) or not isinstance(d, (int, float)):
+                continue
+            if v <= 0 or d <= 0:
+                continue
+            volume += float(v)
+            duration += float(d)
+            count += 1
+            if count >= FLOW_DOSES:
+                break
+        if count < FLOW_MIN:
+            return None
+        return volume / duration

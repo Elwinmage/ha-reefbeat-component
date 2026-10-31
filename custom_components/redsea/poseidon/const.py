@@ -143,6 +143,10 @@ DEFAULT_SAFETY_MINUTES: Final[int] = 60
 # per device
 PUSH_REFRESH_MIN_S: Final[float] = 5.0
 PUSH_REFRESH_WAIT_S: Final[int] = 1
+# Time (hour, minute) the devices whose new day is pushed by nothing are read
+# again (strategy.READ_AT_MIDNIGHT): the dosing queue of a ReefDose is
+# renewed at midnight
+MIDNIGHT_READ_AT: Final[tuple[int, int]] = (0, 1)
 SPY_FILE: Final[str] = "spy.jsonl"
 SHADOW_FILE: Final[str] = "shadow.jsonl"
 # Messages nothing expected (anomalies.py)

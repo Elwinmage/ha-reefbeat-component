@@ -9,6 +9,11 @@ missing from the queue (manual, from the app) has no start.
 Seen on RSDOSE4 3.0.1 (spy runs of 2026-10-30): ten doses, 4 to 17 s each.
 After a reconnection, a device may push the same ``dosing-log`` twice: the
 events are deduplicated (device, head, local time).
+
+A dose missing from the queue (the one at midnight: the queue of the day
+ending is empty by then, the one of the new day starts after it; a manual
+dose from the app) gets a start estimated from the flow of its head
+(``estimate_start``), ``start_estimated`` telling so.
 """
 
 from __future__ import annotations
@@ -88,7 +93,24 @@ def dose_event(coordinator: Any, payload: Any) -> dict[str, Any] | None:
         "started_at": started.isoformat() if started else None,
         "ended_at": ended.isoformat(),
         "duration_s": (ended - started).total_seconds() if started else None,
+        "start_estimated": False,
     }
+
+
+def estimate_start(data: dict[str, Any], flow: float | None) -> bool:
+    """Give a dose without start the one its volume and the flow of its head
+    (mL/s) tell. Whether it was estimated."""
+    if data.get("started_at") is not None or not flow or flow <= 0:
+        return False
+    volume = data.get("volume")
+    ended = _parse(data.get("ended_at"))
+    if not isinstance(volume, (int, float)) or volume <= 0 or ended is None:
+        return False
+    duration = round(volume / flow, 1)
+    data["started_at"] = (ended - timedelta(seconds=duration)).isoformat()
+    data["duration_s"] = duration
+    data["start_estimated"] = True
+    return True
 
 
 class DoseEvents:

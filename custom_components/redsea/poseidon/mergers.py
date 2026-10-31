@@ -413,7 +413,11 @@ def power_fully_pushed(coordinator: Any) -> bool:
 #                                    on connection)
 #   ntp_sync, timezone, attributes... -> nothing polled
 #   any other key         -> read again
-# /dosing-queue is pushed by nothing: a ReefDose is never FULLY_PUSHED.
+# /dosing-queue is pushed by nothing. It changes with each dose (a
+# dosing-log: read again, READ_ON) and at midnight, when the queue of the new
+# day replaces the empty one of the day ending (read again at 00:01,
+# READ_AT_MIDNIGHT; seen on the spy runs of 2026-10-30/31). With both, a
+# ReefDose is FULLY_PUSHED once its dashboard and queue were polled.
 
 _DOSING_SETTINGS = (
     "stock_alert_days",
@@ -446,6 +450,18 @@ _DOSING_TELEMETRY_DASHBOARD = (
     "recalibration_required",
     "missed_dose",
 )
+
+
+def dosing_fully_pushed(coordinator: Any) -> bool:
+    """Whether this ReefDose has been polled once (its dashboard and its
+    dosing queue): everything that changes then comes pushed, or by a read
+    after a dose and at midnight."""
+    queue = _source(coordinator, "/dosing-queue")
+    return (
+        _data(coordinator, "/dashboard") is not None
+        and queue is not None
+        and isinstance(queue.get("data"), list)
+    )
 
 
 def _volume(value: Any) -> Any:
