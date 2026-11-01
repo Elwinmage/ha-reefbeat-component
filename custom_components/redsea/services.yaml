@@ -601,6 +601,8 @@ record_measurement:
             - k
             - no3
             - po4
+            - i
+            - fe
             - salinity
     measured_at:
       name: Measured at

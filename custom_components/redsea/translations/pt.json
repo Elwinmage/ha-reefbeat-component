@@ -810,6 +810,8 @@
           "k": "Potássio",
           "no3": "Nitrato",
           "po4": "Fosfato",
+          "i": "Iodo",
+          "fe": "Ferro",
           "salinity": "Salinidade"
         }
       },

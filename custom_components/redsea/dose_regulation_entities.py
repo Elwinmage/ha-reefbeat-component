@@ -233,6 +233,15 @@ class ParameterNumber(RegulationNumber):
         return PARAMETERS[self.state_data.settings.parameter].step
 
 
+class PotencyNumber(ParameterNumber):
+    """Potency of the supplement: in the unit of the parameter, but to its
+    own step (0.001), not the parameter's: 0.056 dKH/mL/100L is a potency."""
+
+    @property
+    def native_step(self) -> float:  # pyright: ignore[reportIncompatibleVariableOverride]
+        return float(self._attr_native_step or 0.001)
+
+
 class MeasurementNumber(ParameterNumber):
     """Test result typed in before pressing "record" (not a config)."""
 
@@ -476,7 +485,7 @@ def _head_entities(device: Any, head: int, platform: str) -> list[Any]:
             ParameterNumber(
                 device, head, "regulation_target", "target", 0.01, icon="mdi:target"
             ),
-            ParameterNumber(
+            PotencyNumber(
                 device,
                 head,
                 "regulation_potency",

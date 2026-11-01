@@ -127,6 +127,8 @@ async def test_numbers(hass: HomeAssistant) -> None:
     with pytest.raises(HomeAssistantError):
         await target.async_set_native_value(5000)
     assert found["regulation_potency"].native_unit_of_measurement == "dKH/mL/100L"
+    # Its own step, not the one of the parameter (0.01 dKH)
+    assert found["regulation_potency"].native_step == 0.001
     assert found["regulation_measurement"].entity_category is None
     concentration = found["brine_concentration"]
     assert concentration.native_unit_of_measurement == "g/L"

@@ -2,6 +2,44 @@
 
 ## MODIFICATIONS
 
+### ReefDose assisted dosing: potency of the supplements
+
+- A head holding a supplement of the ReefDose list whose label gives its
+  dose gets its potency while none is set (1 mL in 100 L):
+  - Red Sea: Foundation A 2 ppm Ca, Foundation B 0.1 dKH, Foundation C
+    1 ppm Mg, Colors A 0.03 ppm iodine, Colors B 1.75 ppm K, Colors C
+    0.02 ppm iron;
+  - Aquaforest Lab: Ca Plus 2 ppm, KH Plus 0.05 dKH, Mg Plus 1 ppm;
+  - Brightwell: Reef Code A 0.606 ppm Ca, Reef Code B 0.084 dKH, Calcion
+    1.514 ppm, Hydrat-Mg 0.738 ppm, Potassion 0.795 ppm K, Ferrion
+    0.038 ppm Fe;
+  - Seachem: Reef Calcium 0.48 ppm, Reef Complete 1.6 ppm, Reef Fusion 1
+    1 ppm Ca, Reef Fusion 2 0.123 dKH;
+  - Tropic Marin: Potassium 1.009 ppm K. Turning assisted dosing on regulates
+  the head on what its supplement raises. A head already regulated without
+  potency gets it at start, and a proposal from its tests at once. Not the
+  powders (it depends on how they are dissolved), the two-parts given as a
+  starting dose only (ESV B-Ionic, ATI Essentials Pro, Aquaforest
+  Component 1+2+3+) nor NO3:PO4-X (what it removes depends on the
+  bacteria).
+- The potency is set to 0.001, whatever the parameter (it followed the step
+  of the parameter: 0.01 for KH).
+
+### ReefDose assisted dosing: iodine and iron
+
+- Two new regulated parameters, in mg/L (ppm) as the hobby tests give them
+  (a Colombo iodine test reads 0.06): iodine (target 0.06, tolerance 0.01,
+  at most 0.01 corrected a day, step 0.001) and iron (target 0.005,
+  tolerance 0.002, at most 0.002 a day, step 0.001). Translated in every
+  language; offered by `redsea.record_measurement` too.
+
+### Poseidon: `POST /head/*/compensate` of a ReefDose is expected
+
+- Sent by the ReefBeat app when a lowered daily dose leaves no dose for
+  today (alert `NoMoreDosesManualDoseAlert` of the head settings): it doses
+  the rest of the day (`{"volume": mL}`), told by a `dosing-log` of type
+  `compensation`. No more "unexpected message" for it.
+
 ### Poseidon: the waves of a ReefWave are kept by a key capture
 
 A ReefWave depends on the cloud: its waves and its program live there, and

@@ -810,6 +810,8 @@
           "k": "Kalium",
           "no3": "Nitrat",
           "po4": "Phosphat",
+          "i": "Jod",
+          "fe": "Eisen",
           "salinity": "Salinität"
         }
       },

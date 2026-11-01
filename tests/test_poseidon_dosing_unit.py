@@ -72,6 +72,14 @@ def test_new_firmware_task_is_no_anomaly() -> None:
     assert found.details == ("+heads.*.new_counter:number",)
 
 
+def test_compensation_dose_is_known() -> None:
+    # The rest of the day's dose after a lowered daily dose (spy 2026-11-01)
+    command = {"method": "POST", "url": "/head/1/compensate", "body": {"volume": 0.07}}
+    assert an.check_frame(DOSING, "down", 3, _topic("command"), command) == []
+    log = {"head": 1, "dose_type": "compensation", "volume": 0.072727}
+    assert an.check_frame(DOSING, UP, 3, _topic("dosing-log"), log) == []
+
+
 def test_unknown_dosing_command() -> None:
     command = {"method": "POST", "url": "/head/2/manual", "body": {"volume": 1}}
     [found] = an.check_frame(DOSING, "down", 3, _topic("command"), command)

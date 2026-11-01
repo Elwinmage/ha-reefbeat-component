@@ -304,6 +304,11 @@ REEF_DOSING = FamilyCatalog(
             "POST /head/*/validate-settings",
             "PUT /head/*/settings",
             "POST /head/*/compensate/cancel",
+            # The rest of the day's dose, offered by the app when a lowered
+            # daily dose leaves no dose for today (NoMoreDosesManualDoseAlert
+            # of PUT /head/*/settings): {"volume": mL}, then a dosing-log of
+            # type "compensation" (spy run of 2026-11-01 22:39)
+            "POST /head/*/compensate",
             "GET /bundle/settings",
             # The food head restored by the cloud at connection
             "POST /food-head",

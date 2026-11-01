@@ -810,6 +810,8 @@
           "k": "Potas",
           "no3": "Azotany",
           "po4": "Fosforany",
+          "i": "Jod",
+          "fe": "Żelazo",
           "salinity": "Zasolenie"
         }
       },

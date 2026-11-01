@@ -341,6 +341,24 @@ def test_proposal_worked_example() -> None:
     assert proposal.dose == 24.7 and not proposal.limited
 
 
+def test_trace_elements_in_mg_per_litre() -> None:
+    settings = R.HeadSettings()
+    settings.set("mode", "assisted")
+    settings.set("parameter", "i")
+    # The defaults of the parameter, in mg/L (Colombo iodine reads 0.06)
+    assert (settings.target, settings.tolerance) == (0.06, 0.01)
+    assert R.PARAMETERS["i"].unit == "ppm" and R.PARAMETERS["i"].step == 0.001
+    # 1 mL raises 0.004 mg/L here; 0.03 below target: 0.01 a day at most,
+    # 2.5 mL more than the 3 mL holding it, capped at +20 %
+    proposal = R.compute_proposal(settings, 0.03, 3.0, None, 0.004, T0)
+    assert proposal.correction == pytest.approx(2.5)
+    assert proposal.dose == 3.6 and proposal.limited
+    settings.set("parameter", "fe")
+    assert (settings.target, settings.tolerance) == (0.005, 0.002)
+    assert R.PARAMETER_OPTIONS.index("fe") == R.PARAMETER_OPTIONS.index("salinity") - 1
+    assert "i" in R.ASSISTED_PARAMETERS and "fe" in R.ASSISTED_PARAMETERS
+
+
 def test_proposal_cases() -> None:
     settings = _assisted()
     # No consumption yet: the current dose holds, plus the correction
@@ -1123,6 +1141,113 @@ async def test_supplement_change_seen_at_once(hass: HomeAssistant) -> None:
     assert regulator.head_state(1).details == {"missing": ["supplement"]}
     listener()
     assert notified == [True]
+    regulator.async_stop()
+
+
+FOUNDATION_B = "76830db3-a0bd-459a-9974-76a57d026893"
+COLORS_A = "93e742b0-67c9-4800-9aa9-212e52532343"
+
+
+def test_potency_of_the_red_sea_supplements() -> None:
+    from custom_components.redsea.supplements_list import SUPPLEMENTS
+
+    names = {s["uid"]: s["name"] for s in SUPPLEMENTS}
+    brands = {s["uid"]: s["brand_name"] for s in SUPPLEMENTS}
+    red_sea = {
+        names[uid]: v
+        for uid, v in R.SUPPLEMENT_POTENCY.items()
+        if brands[uid] == "Red Sea"
+    }
+    assert red_sea == {
+        "Calcium (Foundation A)": ("ca", 2.0),
+        "KH/Alkalinity (Foundation B)": ("kh", 0.1),
+        "Magnesium (Foundation C)": ("mg", 1.0),
+        "Iodine (Colors A)": ("i", 0.03),
+        "Potassium (Colors B)": ("k", 1.75),
+        "Iron (Colors C)": ("fe", 0.02),
+    }
+    # Every one in the list, its parameter the one its short name tells
+    short = {s["uid"]: s["short_name"].strip().lower() for s in SUPPLEMENTS}
+    for uid, (parameter, potency) in R.SUPPLEMENT_POTENCY.items():
+        assert uid in names
+        assert short[uid] == parameter, names[uid]
+        assert potency > 0 and potency == round(potency, 3)
+    # Converted from 1 US gallon: Reef Code B, 2.22 dKH/mL/gal
+    assert R.SUPPLEMENT_POTENCY["fb5347b5-9764-445e-ac6a-513700f6740d"] == ("kh", 0.084)
+    for parameter, _ in R.SUPPLEMENT_POTENCY.values():
+        assert parameter in R.ASSISTED_PARAMETERS
+
+
+async def test_assisted_mode_takes_the_potency_of_the_supplement(
+    hass: HomeAssistant,
+) -> None:
+    regulator, doser, _clock = await _regulator(hass)
+    doser.data[SUPPLEMENT(1)] = COLORS_A
+    await regulator.async_set(1, "mode", "assisted")
+    settings = regulator.head_state(1).settings
+    # Regulated on what it raises, with its potency
+    assert (settings.parameter, settings.target, settings.potency) == ("i", 0.06, 0.03)
+    # Set by the user: kept
+    await regulator.async_set(1, "potency", 0.05)
+    await regulator.async_set(1, "mode", "off")
+    await regulator.async_set(1, "mode", "assisted")
+    assert settings.potency == 0.05
+    # Back to 0: the supplement's again
+    await regulator.async_set(1, "potency", 0)
+    assert settings.potency == 0.03
+    # Another parameter: nothing to give
+    await regulator.async_set(1, "parameter", "kh")
+    assert settings.potency == 0.03
+    await regulator.async_set(1, "potency", 0)
+    assert settings.potency == 0
+    # An unknown supplement: the parameter stays as it was
+    doser.data[SUPPLEMENT(2)] = "unknown"
+    await regulator.async_set(2, "mode", "assisted")
+    assert regulator.head_state(2).settings.parameter == "kh"
+    assert regulator.head_state(2).settings.potency == 0
+
+
+async def test_potency_given_at_start_proposes(hass: HomeAssistant) -> None:
+    """A head regulated without potency (KH with two tests): the potency of
+    its Red Sea supplement at start, and a proposal at once."""
+    regulator, doser, clock = await _regulator(hass)
+    doser.data[DD(1)] = 20
+    await regulator.async_set(1, "mode", "assisted")
+    await regulator.async_set(1, "target", 8.4)
+    await regulator.async_set(1, "tank_volume", 100)
+    await regulator.async_record(1, 8.0)
+    clock.advance(days=7)
+    await regulator.async_record(1, 7.3)
+    assert regulator.head_state(1).status == "not_configured"
+    doser.data[SUPPLEMENT(1)] = FOUNDATION_B
+    saved: list[bool] = []
+    original = regulator.store.async_save
+
+    async def _save() -> None:
+        saved.append(True)
+        await original()
+
+    regulator.store.async_save = _save  # type: ignore[method-assign]
+    await regulator.async_start()
+    state = regulator.head_state(1)
+    assert state.settings.potency == 0.1 and saved
+    assert state.status == "proposal" and state.proposal is not None
+    regulator.async_stop()
+
+
+async def test_supplement_put_on_later_gives_its_potency(hass: HomeAssistant) -> None:
+    regulator, doser, _clock = await _regulator(hass)
+    await regulator.async_set(1, "mode", "assisted")
+    await regulator.async_start()
+    (listener,) = doser.listeners
+    doser.data[SUPPLEMENT(1)] = FOUNDATION_B
+    listener()
+    await hass.async_block_till_done()
+    assert regulator.head_state(1).settings.potency == 0.1
+    # Another one, not raising KH: nothing more
+    doser.data[SUPPLEMENT(1)] = COLORS_A
+    listener()
+    assert regulator.head_state(1).settings.potency == 0.1
     regulator.async_stop()
 
 
