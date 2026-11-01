@@ -396,7 +396,10 @@ async def _capture(
 
 async def test_capture_unchanged_device(hass: HomeAssistant, tmp_path: Path) -> None:
     http = FakeHttp({"/mode": {"mode": "auto"}, "/cloud": {"url": "x"}})
-    report, keystore, snapshots, cloud = await _capture(hass, tmp_path, http)
+    # Not a ReefWave: nothing of it kept by the cloud
+    report, keystore, snapshots, cloud = await _capture(
+        hass, tmp_path, http, dev=_dev("reef-mat")
+    )
     assert report.ok and not report.error and report.changes == []
     keys = keystore.get(HWID)
     assert keys is not None and keys.api_secret == SECRET and keys.mqtt_url
@@ -414,6 +417,18 @@ async def test_capture_restores_a_wave(hass: HomeAssistant, tmp_path: Path) -> N
     report, _keystore, snapshots, _cloud = await _capture(hass, tmp_path, http)
     assert report.ok and report.changes == ["/auto"] and report.restored is True
     assert any(w[0] == "/auto/apply" for w in http.writes)
+    assert not snapshots.pending_path(HWID).exists()
+
+
+async def test_capture_restores_a_pump(hass: HomeAssistant, tmp_path: Path) -> None:
+    http = FakeHttp({"/mode": {"mode": "auto"}})
+    settings = {"pump_1": {"schedule_enabled": True, "schedule": [{"st": 0}]}}
+    http.sequence["/pump/settings"] = [settings, {"pump_1": {"schedule": []}}]
+    report, _keystore, snapshots, _cloud = await _capture(
+        hass, tmp_path, http, dev=_dev("reef-run")
+    )
+    assert report.ok and report.changes == ["/pump/settings"] and report.restored
+    assert report.cloud_restored is None
     assert not snapshots.pending_path(HWID).exists()
 
 
@@ -504,5 +519,5 @@ async def test_capture_failures(
 async def test_capture_device_gone_after(hass: HomeAssistant, tmp_path: Path) -> None:
     http = FakeHttp({})
     http.sequence["/mode"] = [{"mode": "auto"}]
-    report, *_ = await _capture(hass, tmp_path, http)
+    report, *_ = await _capture(hass, tmp_path, http, dev=_dev("reef-mat"))
     assert report.ok and report.error == "reread_failed"

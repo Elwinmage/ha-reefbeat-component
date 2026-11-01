@@ -51,7 +51,14 @@ Every device of the integration is listed with its status:
 > - its configuration is saved before and compared after: ReefRun and
 >   ReefWave get theirs back automatically, for the other devices what changed
 >   is listed in a notification (the saved configuration stays in
->   `/config/redsea/poseidon/snapshots/`).
+>   `/config/redsea/poseidon/snapshots/`);
+> - a ReefWave depends on the cloud, which pushes its program to it at every
+>   connection: before the delete, the custom waves of its aquarium (with the
+>   intensities of each pump) are saved too, with its program; the capture
+>   stops, deleting nothing, if they cannot be read. After it, the waves the
+>   cloud lost are created again (or get back the settings of the pump), the
+>   program is posted to the cloud and the cloud pushes it to the pumps; the
+>   pump is written itself only if it did not get it.
 >
 > A capture is done once per device: Home Assistant keeps the keys, even when
 > Poseidon is removed.
@@ -105,6 +112,7 @@ Families merged so far, from the spy runs:
 | ReefDose | states, telemetry; a `dosing-log` (end of a dose) reads it again, for its dosing queue, and so does midnight (00:01, Home Assistant's time), when the queue of the new day replaces the one of the day ending |
 | ReefMat | states, telemetry, `rolling-log` (end of an advance) |
 | ReefLED | telemetry |
+| ReefControl | telemetry (mode, signal; seen in setup mode only, its probes not merged yet); every pushed state reads it again |
 
 For the other families, *Shadow* only compares, and *Poseidon* reads the device
 again every time it pushes a state. *Poseidon* also reads it again when a state

@@ -393,12 +393,33 @@ REEF_WAVE = FamilyCatalog(
     commands=None,
 )
 
+_CONTROL_TELEMETRY_REQUIRED = {
+    "mode": _types(STR),
+    "active_shortcut": _types(STR),
+    "probes": _types(LIST),
+    "local_time": _types(STR),
+    "utc_time": _types(STR),
+    "hwid": _types(STR),
+    "wifi_signal": _types(NUMBER),
+    "free_heap": _types(NUMBER),
+}
+# ReefControl, seen in setup mode only (no probe, no port set up; spy run of
+# 2026-11-01): the fields of a probe in the telemetry are reported as
+# unexpected, which tells them
+REEF_CONTROL = FamilyCatalog(
+    telemetry={**_CONTROL_TELEMETRY_REQUIRED, **_METRICS},
+    telemetry_required=frozenset(_CONTROL_TELEMETRY_REQUIRED),
+    state=None,
+    commands=None,
+)
+
 CATALOGS: dict[str, FamilyCatalog] = {
     "reef-power": REEF_POWER,
     "reef-dosing": REEF_DOSING,
     "reef-mat": REEF_MAT,
     "reef-lights": REEF_LIGHTS,
     "reef-wave": REEF_WAVE,
+    "reef-control": REEF_CONTROL,
 }
 
 

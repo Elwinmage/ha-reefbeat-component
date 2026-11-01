@@ -563,9 +563,10 @@ class PoseidonOptionsFlowMixin:
                 if r.restored is None
                 else (" → restored" if r.restored else " → NOT restored")
             )
+            + "".join(f"\n  {note}" for note in r.notes)
             + (f"\n  snapshot: {r.snapshot}" if r.snapshot else "")
             for r in reports
-            if r.changes or (r.snapshot and not r.ok)
+            if r.changes or r.notes or (r.snapshot and not r.ok)
         ]
         if details:
             persistent_notification.async_create(

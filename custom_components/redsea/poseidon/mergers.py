@@ -835,3 +835,33 @@ def merge_reef_lights_telemetry(coordinator: Any, topic: str, payload: Any) -> b
         mode_data["mode"] = payload["mode"]
         merged = True
     return _merge_wifi(coordinator, payload) or merged
+
+
+# -- ReefControl (reef-control) -----------------------------------------------------
+#
+# Seen on a ReefControl in setup mode (spy, 2026-11-01: no probe, no port set
+# up, no state yet). Home Assistant reads the mode of /mode and /dashboard,
+# the signal of /wifi.
+# telemetry (every 60 s):
+#   mode                  -> /mode.mode and /dashboard.mode
+#   wifi_signal           -> /wifi.signal_dBm
+#   probes                -> not merged yet: always empty so far, its items
+#                            unknown (/dashboard.probes has the readings)
+#   active_shortcut       -> nothing polled
+# No state merger yet: the poseidon strategy reads the device again on each
+# pushed state. Never FULLY_PUSHED (the probe readings are not merged).
+
+
+def merge_reef_control_telemetry(coordinator: Any, topic: str, payload: Any) -> bool:
+    """Merge a telemetry of a ReefControl (see the table above)."""
+    if not isinstance(payload, dict):
+        return False
+    merged = False
+    mode = payload.get("mode")
+    if isinstance(mode, str):
+        for name in ("/mode", "/dashboard"):
+            data = _data(coordinator, name)
+            if data is not None:
+                data["mode"] = mode
+                merged = True
+    return _merge_wifi(coordinator, payload) or merged

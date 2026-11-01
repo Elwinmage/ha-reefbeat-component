@@ -57,6 +57,9 @@ SWITCH_SETTLE_S: Final[float] = 2.0
 # Key capture
 CLOUD_SETTLE_S: Final[float] = 1.0
 DEVICE_SETTLE_S: Final[float] = 4.0
+# After the waves and the program of a ReefWave are put back in the cloud:
+# time for the cloud to push them to the pump before it is read again
+WAVE_SYNC_SETTLE_S: Final[float] = 10.0
 RESTORE_RETRIES: Final[int] = 3
 RESTORE_INTERVAL_S: Final[float] = 5.0
 STEP_WAIT_S: Final[float] = 2.0

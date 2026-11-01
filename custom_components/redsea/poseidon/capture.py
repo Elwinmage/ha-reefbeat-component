@@ -15,6 +15,11 @@ Sequence for one device:
 4. snapshot again and compare; RSRUN and RSWAVE get their configuration
    back automatically (verified handlers), the other families only report
    what changed — never guessed.
+
+A RSWAVE depends on the cloud, which pushes its copy of the program at every
+connection: its custom waves are saved too before the delete, and put back
+in the cloud with its program before it is read again (wave_backup.py); the
+pump itself is only written when the cloud did not put everything back.
 """
 
 from __future__ import annotations
@@ -34,6 +39,13 @@ from homeassistant.util import dt as dt_util
 from . import const
 from .device_http import DeviceHttp
 from .keystore import DeviceKeys, KeyStore
+from .wave_backup import (
+    CLOUD_WAVES,
+    backup_waves,
+    renamed_auto,
+    restore_waves,
+    same_program,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -96,11 +108,14 @@ def endpoints_for(device_type: str) -> list[str]:
 
 
 class CloudAccount(Protocol):
-    """What capture needs of a cloud account: ReefBeatCloudAPI.http_send."""
+    """What capture needs of a cloud account: ReefBeatCloudAPI.http_send and
+    http_get."""
 
     async def http_send(
         self, action: str, payload: Any = None, method: str = "post"
     ) -> Any: ...
+
+    async def http_get(self, access_path: str) -> Any: ...
 
 
 # =============================================================================
@@ -119,6 +134,8 @@ class Snapshot:
     model: str = ""
     name: str = ""
     endpoints: dict[str, Any] = field(default_factory=dict)
+    # What the cloud keeps of the device (the waves of a ReefWave)
+    cloud: dict[str, Any] = field(default_factory=dict)
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -130,6 +147,7 @@ class Snapshot:
             "model": self.model,
             "name": self.name,
             "endpoints": self.endpoints,
+            "cloud": self.cloud,
         }
 
     @classmethod
@@ -142,6 +160,7 @@ class Snapshot:
             model=str(data.get("model", "")),
             name=str(data.get("name", "")),
             endpoints=dict(data.get("endpoints") or {}),
+            cloud=dict(data.get("cloud") or {}),
         )
 
     @property
@@ -367,6 +386,10 @@ class CaptureReport:
     # None: nothing to restore, True/False: restore result
     restored: bool | None = None
     snapshot: str = ""
+    # ReefWave: whether the cloud took its waves and program back, and what
+    # was done
+    cloud_restored: bool | None = None
+    notes: list[str] = field(default_factory=list)
 
 
 def _cloud_status(res: Any) -> int:
@@ -395,6 +418,15 @@ async def acquire_keys(
     else:
         dev.backup_file = str(snapshots.pending_path(dev.hwid))
     report.snapshot = dev.backup_file
+    # A ReefWave: its waves, kept by the cloud, saved too before the delete
+    if dev.type == "reef-wave" and CLOUD_WAVES not in before.cloud:
+        backup = await backup_waves(cloud, dev.aquarium_uid)
+        if backup is None:
+            report.error = "wave_backup_failed"
+            return report
+        before.cloud[CLOUD_WAVES] = backup
+        dev.backup_file = str(await snapshots.async_save(before))
+        report.snapshot = dev.backup_file
 
     # 2. Delete then create again: the creation answers the keys
     res = await cloud.http_send(f"/device/{dev.hwid}", method="delete")
@@ -436,6 +468,11 @@ async def acquire_keys(
 
     # 4. Compare, and put back what can be
     await sleep(const.DEVICE_SETTLE_S)
+    backup = before.cloud.get(CLOUD_WAVES)
+    if isinstance(backup, dict):
+        return await _put_waves_back(
+            cloud, http, dev, before, backup, report, snapshots, sleep
+        )
     after = await take_snapshot(http, dev)
     if not after.endpoints:
         report.error = "reread_failed"
@@ -444,5 +481,43 @@ async def acquire_keys(
     if report.changes and can_restore(dev.type):
         report.restored = await restore_with_retries(http, before)
     if not report.changes or report.restored:
+        await snapshots.async_drop(dev.hwid)
+    return report
+
+
+async def _put_waves_back(
+    cloud: CloudAccount,
+    http: DeviceHttp,
+    dev: DeviceKeys,
+    before: Snapshot,
+    backup: dict[str, Any],
+    report: CaptureReport,
+    snapshots: SnapshotStore,
+    sleep: Callable[[float], Awaitable[Any]],
+) -> CaptureReport:
+    """A ReefWave: its waves and program back in the cloud, which pushes them
+    to the pump; the pump written itself only when it did not get them."""
+    auto = before.endpoints.get("/auto")
+    ok, notes, renamed = await restore_waves(cloud, dev.hwid, backup, auto)
+    report.cloud_restored = ok
+    report.notes = notes
+    await sleep(const.WAVE_SYNC_SETTLE_S)
+    after = await take_snapshot(http, dev)
+    if not after.endpoints:
+        report.error = "reread_failed"
+        return report
+    report.changes = diff_snapshots(before, after)
+    if not same_program(auto, after.endpoints.get("/auto"), renamed):
+        target = Snapshot.from_json(before.to_json())
+        target.endpoints["/auto"] = renamed_auto(auto, renamed)
+        report.restored = await restore_with_retries(http, target)
+        report.notes.append(
+            "program written on the pump"
+            if report.restored
+            else "program NOT written on the pump"
+        )
+    else:
+        report.restored = True
+    if report.restored and ok:
         await snapshots.async_drop(dev.hwid)
     return report

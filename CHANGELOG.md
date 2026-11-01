@@ -2,6 +2,39 @@
 
 ## MODIFICATIONS
 
+### Poseidon: the waves of a ReefWave are kept by a key capture
+
+A ReefWave depends on the cloud: its waves and its program live there, and
+the cloud pushes its copy to the pump at every connection. The capture
+(delete then create the device again) put the program back on the pump
+only: a cloud copy lost by the delete wiped it again at the next
+connection.
+
+- Before the delete, the custom waves of the aquarium (not the Red Sea
+  ones), with the intensities of each pump, are saved in the snapshot with
+  the program of the pump. If the library cannot be read, the capture
+  stops before deleting anything.
+- After the keys: a wave gone is created again (the program uses its new
+  uid), a wave that lost the settings of the pump gets them back (the other
+  pumps keep theirs); the program is posted to the cloud
+  (`/reef-wave/schedule/<hwid>`), then the cloud pushes the programs of the
+  aquarium to its pumps (`/reef-wave/<aquarium>/sync`).
+- The pump is read again: only if it did not get its program is it written
+  directly, as before. The snapshot is kept until the cloud took everything
+  back; what was done is listed in the notification of the capture.
+
+### Poseidon: first merger of the ReefControl
+
+From a spy run of a ReefControl still in setup mode (no probe, no port set
+up, no state pushed yet):
+
+- Telemetry catalogue of the `reef-control` family: the first telemetry
+  with a probe will be reported as an unexpected message, which tells the
+  fields of a probe (sample in the issue).
+- Telemetry merger: the mode into `/mode` and `/dashboard`, the signal into
+  `/wifi`. The probes are not merged yet (always empty so far); every
+  pushed state reads the device again (no state merger yet).
+
 ### Fix: colour of a ReefLED G1 right after a restart
 
 - The kelvin <-> white/blue conversions of a G1 were built after its first

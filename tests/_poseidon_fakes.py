@@ -58,12 +58,15 @@ class FakeHttp:
 
 
 class FakeCloudApi:
-    """Stands for ReefBeatCloudAPI.http_send."""
+    """Stands for ReefBeatCloudAPI.http_send and http_get, with a wave
+    library (/reef-wave/...); ``unreadable`` makes it unreadable."""
 
     def __init__(
         self,
         delete_status: int = 204,
         created: Any = None,
+        library: list[dict[str, Any]] | None = None,
+        refuse: set[str] | None = None,
     ) -> None:
         self.delete_status = delete_status
         self.created = (
@@ -72,11 +75,27 @@ class FakeCloudApi:
             else created
         )
         self.calls: list[tuple[str, Any, str]] = []
+        self.library: list[dict[str, Any]] = [] if library is None else library
+        self.unreadable = False
+        # Wave library / schedule / sync paths answered 400
+        self.refuse = set(refuse or set())
+
+    async def http_get(self, access_path: str) -> Any:
+        self.calls.append((access_path, None, "get"))
+        if self.unreadable:
+            return {"status": 500}
+        return {"status": 200, "json": [dict(e) for e in self.library]}
 
     async def http_send(
         self, action: str, payload: Any = None, method: str = "post"
     ) -> Any:
         self.calls.append((action, payload, method))
+        if action.startswith("/reef-wave"):
+            if action in self.refuse:
+                return {"status": 400}
+            if action == "/reef-wave/library" and method == "post":
+                self.library.append({**payload, "uid": f"new-{len(self.library)}"})
+            return {"status": 200}
         if method == "delete":
             return {"status": self.delete_status}
         if self.created == "none":

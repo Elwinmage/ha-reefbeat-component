@@ -35,6 +35,7 @@ from homeassistant.util import dt as dt_util
 
 from .mergers import (
     dosing_fully_pushed,
+    merge_reef_control_telemetry,
     merge_reef_dosing,
     merge_reef_dosing_telemetry,
     merge_reef_lights_telemetry,
@@ -182,6 +183,7 @@ TELEMETRY_MERGERS: dict[str, Merger] = {
     "reef-dosing": merge_reef_dosing_telemetry,
     "reef-mat": merge_reef_mat_telemetry,
     "reef-lights": merge_reef_lights_telemetry,
+    "reef-control": merge_reef_control_telemetry,
 }
 # Device type -> topic suffixes of the events after which the poseidon
 # strategy reads the device again: what changed is pushed by nothing (a

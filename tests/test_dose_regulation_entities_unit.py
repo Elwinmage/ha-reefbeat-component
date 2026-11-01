@@ -349,7 +349,9 @@ async def test_setup_and_record_measurement_service(
     assert response["ok"] is True
     first = regulator.head_state(1).measurements[0]
     assert first.value == 8.3
-    assert first.at.utcoffset() == dt_util.now().utcoffset()
+    # The offset of that date in Home Assistant's time zone (not today's: they
+    # differ across a daylight saving change)
+    assert first.at == datetime(2026, 9, 30, 8, tzinfo=dt_util.get_default_time_zone())
     assert await call(
         {"device_id": head.id, "value": 8.3, "measured_at": "yesterday"}
     ) == {"ok": False, "error": "invalid measured_at 'yesterday'"}
