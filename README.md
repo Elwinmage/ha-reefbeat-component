@@ -53,6 +53,8 @@ To help us with translation, follow this [guide](https://github.com/Elwinmage/ha
 
 The ReefTech projects fit together: the integrations bring your equipment into Home Assistant, the card displays and drives it, and the backup keeps it running through an outage. Each one also works on its own.
 
+<p align="center"><a href="https://elwinmage.github.io/reeftank/"><img src="https://raw.githubusercontent.com/Elwinmage/reeftank/main/assets/flower/ecosystem-flower.png" width="480" alt="ReefTech project ecosystem" /></a></p>
+
 <table>
   <tr>
     <th width="100px"></th>
