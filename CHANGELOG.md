@@ -10,7 +10,8 @@ port of the ReefControl installed and scheduled in the ReefBeat app:
 - ReefControl states: `ports` (mode, state) and `ports_settings` (name,
   mode, enabled...) merged into `/dashboard.ports` and `/ports/config`; a
   port of another type than polled (installed, removed) reads the device
-  again. The schedule of a port is pushed by nothing: the read after every
+  again. A port switched by its schedule pushes its state too (checked at
+  23:00:00, "on"); its consumption is pushed by nothing. The schedule of a port is pushed by nothing: the read after every
   write command of the app covers it.
 - ReefControl Power: the null consumption pushed for a socket in setup mode
   (removed) is 0, as polled.

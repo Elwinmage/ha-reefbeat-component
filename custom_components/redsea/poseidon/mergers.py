@@ -919,7 +919,8 @@ def merge_reef_lights_telemetry(coordinator: Any, topic: str, payload: Any) -> b
 #   timezone, is_factory_reset, factory_reset_time, device_setup_date,
 #     active_shortcut, attributes -> nothing polled
 #   ports.N               -> the port "number": N of /dashboard.ports: mode,
-#                            state (spy run of 2026-11-02 21:18)
+#                            state (spy run of 2026-11-02 21:18); pushed too
+#                            when its schedule switches it (23:00:00, "on")
 #   ports_settings.N      -> the same port: name, user_config_mode; and the
 #                            port of /ports/config: name, user_config_mode,
 #                            enabled, power_detector_enabled, sensor
@@ -931,8 +932,8 @@ def merge_reef_lights_telemetry(coordinator: Any, topic: str, payload: Any) -> b
 #                            set up: the device is read again
 # A probe the poll does not know yet (being installed) is not merged: the
 # state of its installation reads the device again. Never FULLY_PUSHED: the
-# consumption and the state of a port running its schedule are not in the
-# telemetry (a port seen standby only).
+# consumption of a port is pushed by nothing (6.8 W polled once its schedule
+# switched it on, nothing in the telemetry).
 
 _CONTROL_PROBE_FIELDS = (
     "name",

@@ -137,3 +137,35 @@ def test_socket_removed_from_the_power() -> None:
     # null pushed for a socket in setup mode, 0 polled
     assert POWER["telemetry"][0]["sockets"]["1"]["consumption"] is None
     assert socket["consumption"] == polled["consumption"] == 0
+
+
+def test_port_switched_by_its_schedule() -> None:
+    """At 23:00:00 the schedule of the port switched it on: a state, the
+    next poll (23:00:41) telling the same; its consumption is pushed by
+    nothing."""
+    coordinator = _coordinator(
+        {
+            "/dashboard": CONTROL["after"]["/dashboard"],
+            "/ports/config": CONTROL["before"]["/ports/config"],
+        }
+    )
+    state = {
+        "specific_attributes": {
+            "ports": [
+                {
+                    "type": "other",
+                    "number": 0,
+                    "is_setup": True,
+                    "mode": "schedule",
+                    "state": "on",
+                    "last_installation_date": 1793654332,
+                },
+                {"type": "unknown", "number": 1, "last_installation_date": None},
+            ]
+        }
+    }
+    topic = _topic("reef-control", HWID, "state")
+    assert an.check_frame("reef-control", UP, 3, topic, state, HWID) == []
+    assert merge_reef_control(coordinator, topic, state)
+    port = _data(coordinator, "/dashboard")["ports"][0]
+    assert (port["mode"], port["state"]) == ("schedule", "on")
