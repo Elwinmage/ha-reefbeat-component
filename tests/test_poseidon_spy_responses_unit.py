@@ -245,6 +245,15 @@ FIXTURE = json.loads(
 )
 TELEMETRY = next(e for e in FIXTURE["events"] if e["kind"] == "telemetry")["payload"]
 POWER_TOPIC = f"device/reef-power/{HWID}/telemetry"
+# /dashboard.temperature of a RSPOWER6 1.1.9 with a probe (spy 2026-11-02)
+PROBE = {
+    "value": 25.198999404907227,
+    "status": "connected",
+    "level": "desired",
+    "last_installation_date": "2026-11-02T19:19:09Z",
+    "name": "Temp",
+    "uid": "0x000F7",
+}
 
 
 def _power(hass: HomeAssistant, strategy_name: str) -> tuple[Any, Any, list, list]:
@@ -308,7 +317,13 @@ async def test_poseidon_merges_the_telemetry_and_polls_hourly(
     poseidon._on_frame(HWID, UP, _state_frame(_telemetry(9.0), POWER_TOPIC))
     assert _dashboard(coordinator)["sockets"][3]["consumption"] == 9.0
     assert coordinator.refreshes == []  # a telemetry never asks for a poll
-    # A temperature probe appears: back to the reduced polling
+    # A temperature probe, pushed by the telemetry: still a safety poll
+    _dashboard(coordinator)["temperature"] = dict(PROBE)
+    poseidon._apply_polling()
+    assert coordinator.update_interval == timedelta(
+        minutes=const.DEFAULT_SAFETY_MINUTES
+    )
+    # A temperature the telemetry cannot write: back to the reduced polling
     _dashboard(coordinator)["temperature"] = 25.0
     poseidon._apply_polling()
     assert coordinator.update_interval == timedelta(

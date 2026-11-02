@@ -142,7 +142,12 @@ REEF_POWER = FamilyCatalog(
         "sockets.*.consumption": _types(NUMBER),
         "sockets.*.mode": _types(STR),
         "sockets.*.prev_mode": _types(STR),
-        "pwr_temperature": _types(NUMBER),
+        # null without a temperature probe (value null while it is set up)
+        "pwr_temperature": _types(DICT),
+        "pwr_temperature.value": _types(NUMBER),
+        "pwr_temperature.status": _types(STR),
+        "pwr_temperature.level": _types(STR),
+        "pwr_temperature.agg_disabled": _types(BOOL),
         "local_time": _types(STR),
         "utc_time": _types(STR),
         "hwid": _types(STR),
@@ -207,6 +212,18 @@ REEF_POWER = FamilyCatalog(
             "GET /socket/*/config/schedule",
             "PUT /socket/*/config/schedule",
             "PUT /sockets/config",
+            "GET /sockets/config",
+            # A temperature probe installed and set up in the app (spy run
+            # of 2026-11-02 19:19)
+            "POST /sensor/install",
+            "POST /ble/off",
+            "GET /temperature-probe-info",
+            "GET /temperature",
+            "GET /temperature/config",
+            "PUT /temperature/config",
+            "GET /temperature/subscriptions",
+            "GET /probe/offset",
+            "POST /probe/offset",
         }
     ),
 )

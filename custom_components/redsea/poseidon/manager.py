@@ -1332,6 +1332,11 @@ class Poseidon:
         answer = self._relayed.answered(hwid, topic, message)
         if answer is None:
             return False
+        status = answer[2]
+        if isinstance(status, int) and 200 <= status < 300:
+            # What the app wrote is not always pushed (the offset of a
+            # temperature probe): the device is read again, config included
+            self._on_event(hwid, topic)
         coordinator = self.coordinator(hwid)
         api = getattr(coordinator, "my_api", None)
         record = getattr(api, "record_relayed_answer", None)

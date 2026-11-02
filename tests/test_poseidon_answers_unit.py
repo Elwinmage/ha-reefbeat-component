@@ -6,7 +6,7 @@ from typing import Any
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.redsea.poseidon import answers
+from custom_components.redsea.poseidon import answers, const
 from custom_components.redsea.poseidon.answers import RelayedCommands
 from custom_components.redsea.poseidon.relay import DOWN, UP
 from tests._poseidon_fakes import HWID
@@ -193,3 +193,28 @@ async def test_answers_without_message_or_api(hass: HomeAssistant) -> None:
     assert polled == []
     await poseidon.async_stop()
     assert len(poseidon._relayed) == 0
+
+
+async def test_writes_of_the_app_read_the_device_again(hass: HomeAssistant) -> None:
+    """Not every write is pushed (the offset of a temperature probe): in
+    Poseidon mode, a write the device accepted reads it again."""
+    poseidon, _coordinator = _poseidon(
+        hass, {const.CONF_DEVICE_STRATEGIES: {HWID: const.STRATEGY_POSEIDON}}
+    )
+    poseidon.keystore.devices[HWID].type = "reef-power"
+    poseidon._apply_polling()
+    reads: list[str] = []
+    poseidon._read_again = lambda hwid, _c: reads.append(hwid)  # type: ignore[method-assign]
+    command = f"device/reef-power/{HWID}/command"
+    response = f"device/reef-power/{HWID}/command-response"
+    offset = {"uuid": "o", "method": "POST", "url": "/probe/offset", "body": {}}
+    poseidon._on_frame(HWID, DOWN, _state_frame(offset, command))
+    answer = {"uuid": "o", "status": 200, "body": {"success": True}}
+    poseidon._on_frame(HWID, UP, _state_frame(answer, response))
+    assert reads == [HWID]
+    # Refused: nothing changed
+    poseidon._on_frame(HWID, DOWN, _state_frame(dict(offset, uuid="r"), command))
+    refused = {"uuid": "r", "status": 400, "body": {"success": False}}
+    poseidon._on_frame(HWID, UP, _state_frame(refused, response))
+    assert reads == [HWID]
+    await poseidon.async_stop()

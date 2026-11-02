@@ -108,7 +108,7 @@ Families merged so far, from the spy runs:
 
 | Family | Merged |
 |---|---|
-| ReefControl Power | states, telemetry; the socket states are computed from their schedules, as the ReefBeat app does |
+| ReefControl Power | states, telemetry (temperature probe included); the socket states are computed from their schedules, as the ReefBeat app does |
 | ReefDose | states, telemetry; a `dosing-log` (end of a dose) reads it again, for its dosing queue, and so does midnight (00:01, Home Assistant's time), when the queue of the new day replaces the one of the day ending |
 | ReefMat | states, telemetry, `rolling-log` (end of an advance) |
 | ReefLED | telemetry |
@@ -119,9 +119,11 @@ again every time it pushes a state. *Poseidon* also reads it again when a state
 tells something its merger cannot write (a setting it does not know, a ReefDose
 schedule, pushed without its intervals). Such a read includes the config
 sources: what the app changes is mostly settings, which the polling never reads
-again.
+again. Every write command of the app the device accepts reads it again too:
+not every setting is pushed (the offset of a temperature probe is not).
 
-A ReefControl Power without temperature probe nor socket driven by a sensor,
+A ReefControl Power without socket driven by a sensor (with or without a
+temperature probe),
 and a ReefDose (its dosing queue read after each dose and at midnight), have
 everything that changes pushed: with *Poseidon*, they are only polled every
 *Safety polling interval*.

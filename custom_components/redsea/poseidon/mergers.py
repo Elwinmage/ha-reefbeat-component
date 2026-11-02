@@ -120,9 +120,17 @@ def device_now(coordinator: Any) -> datetime | None:
 #                           (mode also in /sockets/config)
 #   wifi_signal          -> /wifi.signal_dBm
 #   local_time           -> the clock of the device (see below)
-#   pwr_temperature      -> probably /dashboard.temperature, not seen with a
-#                           probe yet: not merged (a device with a probe is
-#                           not FULLY_PUSHED)
+#   pwr_temperature      -> /dashboard.temperature: its value, status and
+#                           level (same values as the poll, not rounded;
+#                           RSPOWER6 1.1.9 with a temperature probe, spy run
+#                           of 2026-11-02); null without a probe. A probe
+#                           installed or removed pushes a state with its
+#                           settings (device_settings): the device is read
+#                           again then
+# Probe settings (/temperature/config: ranges, name, offset): pushed by a
+# state after PUT /temperature/config, but not after POST /probe/offset (the
+# offset set from the app): every write command of the app answered by the
+# device reads it again (manager), so this one too.
 #   active_shortcut, pairing_status, free_heap, metrics -> nothing polled
 # Socket state (/dashboard.sockets.N.state), pushed by nothing: the ReefBeat
 # app computes it from the schedules, so does Home Assistant. A socket in
@@ -350,6 +358,16 @@ def merge_reef_power_telemetry(coordinator: Any, topic: str, payload: Any) -> bo
         wifi["signal_dBm"] = payload["wifi_signal"]
         merged = True
 
+    # The temperature probe: only into a probe the poll knows (its name and
+    # uid are not pushed)
+    probe = payload.get("pwr_temperature")
+    polled = dashboard.get("temperature") if dashboard is not None else None
+    if isinstance(probe, dict) and isinstance(polled, dict):
+        for field in ("value", "status", "level"):
+            if field in probe:
+                polled[field] = probe[field]
+                merged = True
+
     # Every minute: the schedules move on with the clock
     merged = derive_power_socket_states(coordinator) or merged
     return merged
@@ -357,10 +375,15 @@ def merge_reef_power_telemetry(coordinator: Any, topic: str, payload: Any) -> bo
 
 def power_fully_pushed(coordinator: Any) -> bool:
     """Whether every polled value of this ReefControl Power that changes is
-    pushed (or computed): no temperature probe, no socket driven by a power
-    detector or a sensor, all of them seen polled once."""
+    pushed (or computed): its temperature probe, if any, pushed by the
+    telemetry; no socket driven by a power detector or a sensor; all of them
+    seen polled once."""
     dashboard = _data(coordinator, "/dashboard")
-    if dashboard is None or dashboard.get("temperature") is not None:
+    if dashboard is None:
+        return False
+    if dashboard.get("temperature") is not None and not isinstance(
+        dashboard.get("temperature"), dict
+    ):
         return False
     sockets = dashboard.get("sockets")
     if not isinstance(sockets, list) or not sockets:

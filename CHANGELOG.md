@@ -2,6 +2,23 @@
 
 ## MODIFICATIONS
 
+### Poseidon: ReefControl Power with a temperature probe
+
+From a spy run of a RSPOWER6 1.1.9 whose temperature probe was installed and
+set up in the ReefBeat app:
+
+- The `pwr_temperature` of the telemetry (value, status, level: the values
+  of the poll, not rounded) is merged into `/dashboard.temperature`. A
+  device with a probe is now `FULLY_PUSHED` too (safety polling only).
+- Catalogue: the probe fields of the telemetry, and the commands of the app
+  (`POST /sensor/install`, `POST /ble/off`, `GET /temperature-probe-info`,
+  `GET /temperature`, `GET|PUT /temperature/config`,
+  `GET /temperature/subscriptions`, `GET|POST /probe/offset`,
+  `GET /sockets/config`).
+- Not every setting changed in the app is pushed: the offset of the probe
+  (`POST /probe/offset`) is not. In Poseidon mode, every write command of
+  the app that the device accepts now reads it again, config included.
+
 ### ReefDose assisted dosing: potency of the supplements
 
 - A head holding a supplement of the ReefDose list whose label gives its

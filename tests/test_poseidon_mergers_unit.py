@@ -336,12 +336,64 @@ def test_socket_state_left_alone() -> None:
     assert _data(coordinator, "/dashboard")["sockets"][1]["state"] == "standby"
 
 
+def test_temperature_probe_of_the_telemetry() -> None:
+    # RSPOWER6 1.1.9, probe installed in the app (spy run of 2026-11-02)
+    coordinator = _coordinator()
+    dashboard = _data(coordinator, "/dashboard")
+    dashboard["temperature"] = {
+        "value": 25.198999404907227,
+        "status": "connected",
+        "level": "desired",
+        "last_installation_date": "2026-11-02T19:19:09Z",
+        "name": "Temp",
+        "uid": "0x000F7",
+    }
+    telemetry = {
+        "pwr_temperature": {
+            "value": 26.0625,
+            "status": "connected",
+            "level": "acceptable",
+            "agg_disabled": False,
+        }
+    }
+    assert mergers.merge_reef_power_telemetry(coordinator, TELEMETRY_TOPIC, telemetry)
+    # As the next poll (19:20:20): what is not pushed stays
+    assert dashboard["temperature"] == {
+        "value": 26.0625,
+        "status": "connected",
+        "level": "acceptable",
+        "last_installation_date": "2026-11-02T19:19:09Z",
+        "name": "Temp",
+        "uid": "0x000F7",
+    }
+    # Being set up: no value yet
+    setup = {"pwr_temperature": {"value": None, "status": "setup", "level": "desired"}}
+    mergers.merge_reef_power_telemetry(coordinator, TELEMETRY_TOPIC, setup)
+    assert dashboard["temperature"]["status"] == "setup"
+    assert dashboard["temperature"]["value"] is None
+    # Without a probe known to the poll: nothing written (no name nor uid)
+    coordinator = _coordinator()
+    _data(coordinator, "/dashboard")["temperature"] = None
+    mergers.merge_reef_power_telemetry(coordinator, TELEMETRY_TOPIC, telemetry)
+    assert _data(coordinator, "/dashboard")["temperature"] is None
+    # No probe pushed: the polled one stays
+    coordinator = _coordinator()
+    _data(coordinator, "/dashboard")["temperature"] = {"value": 25.0}
+    mergers.merge_reef_power_telemetry(
+        coordinator, TELEMETRY_TOPIC, {"pwr_temperature": None}
+    )
+    assert _data(coordinator, "/dashboard")["temperature"] == {"value": 25.0}
+
+
 def test_power_fully_pushed() -> None:
     coordinator = _coordinator()
     assert mergers.power_fully_pushed(coordinator)
     assert strategy.fully_pushed("reef-power", coordinator)
     assert not strategy.fully_pushed("reef-wave", coordinator)
-    # A temperature probe: its value is not merged yet
+    # A temperature probe as the poll gives it: pushed by the telemetry
+    _data(coordinator, "/dashboard")["temperature"] = {"value": 25.1}
+    assert mergers.power_fully_pushed(coordinator)
+    # Anything else the telemetry cannot write
     _data(coordinator, "/dashboard")["temperature"] = 25.1
     assert not mergers.power_fully_pushed(coordinator)
     coordinator = _coordinator()
@@ -409,3 +461,47 @@ def test_power_unknown_fields_are_read_again() -> None:
         {"specific_attributes": {"sockets": {"1": {"mode": "on", "timer": 30}}}},
     ):
         assert merge_reef_power(_coordinator(), TOPIC, pushed) is False, pushed
+
+
+def test_temperature_probe_is_no_anomaly() -> None:
+    from custom_components.redsea.poseidon import anomalies as an
+    from custom_components.redsea.poseidon.relay import UP
+
+    hwid = "0000aaaa0001"
+    telemetry = {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "unpaired",
+        "sockets": {"0": {"consumption": 0, "mode": "on", "prev_mode": "off"}},
+        "pwr_temperature": {
+            "value": 25.53125,
+            "status": "connected",
+            "level": "desired",
+            "agg_disabled": False,
+        },
+        "local_time": "2026-11-02T19:23:07+01:00",
+        "utc_time": "2026-11-02T18:23:07Z",
+        "hwid": hwid,
+        "wifi_signal": -61,
+        "free_heap": 55820,
+        "metrics": {"wifi_sig": -59, "ping": 22},
+    }
+    assert an.check_frame("reef-power", UP, 3, TELEMETRY_TOPIC, telemetry) == []
+    # Without a probe, and while it is set up
+    for probe in (None, {"value": None, "status": "setup", "level": "desired"}):
+        telemetry["pwr_temperature"] = probe
+        assert an.check_frame("reef-power", UP, 3, TELEMETRY_TOPIC, telemetry) == []
+    command = "device/reef-power/0000aaaa0001/command"
+    for method, url in (
+        ("POST", "/sensor/install"),
+        ("POST", "/ble/off"),
+        ("GET", "/temperature-probe-info"),
+        ("GET", "/temperature"),
+        ("PUT", "/temperature/config"),
+        ("GET", "/temperature/subscriptions"),
+        ("POST", "/probe/offset"),
+        ("GET", "/sockets/config"),
+    ):
+        message = {"method": method, "url": url, "body": {}}
+        assert an.check_frame("reef-power", "down", 3, command, message) == [], url

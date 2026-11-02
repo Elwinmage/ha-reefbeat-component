@@ -113,7 +113,7 @@ Familles fusionnées à ce jour, d'après les relevés espion :
 
 | Famille | Fusionné |
 |---|---|
-| ReefControl Power | états, télémétrie ; l'état des prises est calculé depuis leurs programmes, comme le fait l'app ReefBeat |
+| ReefControl Power | états, télémétrie (sonde de température comprise) ; l'état des prises est calculé depuis leurs programmes, comme le fait l'app ReefBeat |
 | ReefDose | états, télémétrie ; un `dosing-log` (fin d'une dose) le fait relire, pour sa file de dosage, de même que minuit (00:01, heure de Home Assistant), quand la file du nouveau jour remplace celle du jour qui finit |
 | ReefMat | états, télémétrie, `rolling-log` (fin d'une avance) |
 | ReefLED | télémétrie |
@@ -124,10 +124,12 @@ l'appareil chaque fois qu'il pousse un état. *Poseidon* le relit aussi quand un
 état dit quelque chose que son fusionneur ne sait pas écrire (un réglage
 inconnu, un programme de ReefDose, poussé sans ses intervalles). Cette relecture
 comprend les sources de configuration : ce que l'app modifie, ce sont surtout
-des réglages, que le relevé ne relit jamais.
+des réglages, que le relevé ne relit jamais. Toute commande d'écriture de l'app
+acceptée par l'appareil le fait aussi relire : tous les réglages ne sont pas
+poussés (le décalage d'une sonde de température ne l'est pas).
 
-Un ReefControl Power sans sonde de température ni prise pilotée par un
-capteur, et une ReefDose (sa file de dosage relue après chaque dose et à
+Un ReefControl Power sans prise pilotée par un capteur (avec ou sans sonde de
+température), et une ReefDose (sa file de dosage relue après chaque dose et à
 minuit), ont tout ce qui change poussé : en stratégie *Poseidon*, ils ne sont
 relevés que tous les *Intervalle du relevé de sécurité*.
 
