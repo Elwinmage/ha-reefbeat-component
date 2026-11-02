@@ -1,0 +1,2776 @@
+{
+  "source": "spy ReefControl paired with a ReefControl Power, probes installed and calibrated, 2026-11-02 19:50-20:53",
+  "hwid": "0000aaaa0005",
+  "power_hwid": "0000aaaa0001",
+  "dashboard_before": {
+    "mode": "auto",
+    "is_internet_connected": true,
+    "cable_connected": true,
+    "connected_device": {
+      "state": "paired_connected",
+      "hwid": "0000aaaa0001",
+      "internet_connected": true
+    },
+    "probes": [
+      {
+        "type": "orp",
+        "uid": "0x0071F",
+        "name": "ORP 71F",
+        "status": "auto",
+        "value": 66,
+        "level": "danger",
+        "last_installation_date": 1793649719
+      },
+      {
+        "type": "ec",
+        "uid": "0x007BF",
+        "measurement_unit": "ppt",
+        "value": 34.4,
+        "name": "Salinité 7BF",
+        "status": "auto",
+        "ec": 52.3,
+        "ppt": 34.4,
+        "sg": 1.0259,
+        "level": "desired",
+        "temp_value": 25.5,
+        "temp_level": "desired",
+        "last_installation_date": 1793650296,
+        "last_adjustment_date": 1793651648
+      },
+      {
+        "type": "ph",
+        "uid": "0x00B39",
+        "name": "pH B39",
+        "status": "auto",
+        "value": 8.05,
+        "level": "desired",
+        "temp_value": 25.5,
+        "temp_level": "desired",
+        "last_installation_date": 1793650908,
+        "last_adjustment_date": 1793652054
+      },
+      {
+        "type": "temperature",
+        "uid": "0x000F7",
+        "name": "Température F7",
+        "status": "auto",
+        "value": 25.5,
+        "level": "desired",
+        "last_installation_date": 1793651722,
+        "last_adjustment_date": 1793647293
+      },
+      {
+        "type": "leak",
+        "uid": "0x0032B",
+        "name": "Fuite 32B",
+        "status": "auto",
+        "detected": false,
+        "last_installation_date": 1793651744
+      },
+      {
+        "type": "ato",
+        "uid": "0x0024E",
+        "name": "Temp. osmolateur 24E",
+        "status": "auto",
+        "water_level": "above",
+        "temp_value": 23.4,
+        "temp_level": "desired",
+        "last_installation_date": 1793652199,
+        "last_adjustment_date": null
+      }
+    ],
+    "ports": [
+      {
+        "number": 0,
+        "name": "S1",
+        "mode": "setup",
+        "type": "unknown",
+        "state": "unknown",
+        "user_config_mode": "setup",
+        "consumption": 0
+      },
+      {
+        "number": 1,
+        "name": "S2",
+        "mode": "setup",
+        "type": "unknown",
+        "state": "unknown",
+        "user_config_mode": "setup",
+        "consumption": 0
+      }
+    ],
+    "buzzer": {
+      "active": false,
+      "cause": "none",
+      "dismissed": false
+    },
+    "leak_detector": true,
+    "leak": {
+      "mode": "auto"
+    }
+  },
+  "events": [
+    {
+      "ts": "2026-11-02T20:44:39.363084+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 66,
+            "level": "danger"
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.5,
+            "temp_level": "desired"
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.05,
+            "level": "desired",
+            "temp_value": 25.5,
+            "temp_level": "desired"
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.5,
+            "level": "desired"
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "above",
+            "temp_value": 23.4,
+            "temp_level": "desired"
+          }
+        ],
+        "local_time": "2026-11-02T20:44:39+01:00",
+        "utc_time": "2026-11-02T19:44:39Z",
+        "hwid": "0000aaaa0005",
+        "wifi_signal": -61,
+        "free_heap": 90723,
+        "metrics": {
+          "fatal_error": 1,
+          "res": 1,
+          "wifi_sig": -62,
+          "ping": 21
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:44:43.906436+01:00",
+      "kind": "probe",
+      "payload": {
+        "type": "ato",
+        "uid": "0x0024E",
+        "properties": {
+          "status": "auto",
+          "temp_value": 23.4,
+          "temp_level": "desired",
+          "level": "desired_level_2"
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:45:22.147794+01:00",
+      "kind": "poll",
+      "payload": {
+        "mode": "auto",
+        "is_internet_connected": true,
+        "cable_connected": true,
+        "connected_device": {
+          "state": "paired_connected",
+          "hwid": "0000aaaa0001",
+          "internet_connected": true
+        },
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 66,
+            "level": "danger",
+            "last_installation_date": 1793649719
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "measurement_unit": "ppt",
+            "value": 34.4,
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.5,
+            "temp_level": "desired",
+            "last_installation_date": 1793650296,
+            "last_adjustment_date": 1793651648
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.05,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793650908,
+            "last_adjustment_date": 1793652054
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired",
+            "last_installation_date": 1793651722,
+            "last_adjustment_date": 1793647293
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false,
+            "last_installation_date": 1793651744
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 23.4,
+            "temp_level": "desired",
+            "last_installation_date": 1793652199,
+            "last_adjustment_date": null
+          }
+        ],
+        "ports": [
+          {
+            "number": 0,
+            "name": "S1",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          }
+        ],
+        "buzzer": {
+          "active": false,
+          "cause": "none",
+          "dismissed": false
+        },
+        "leak_detector": true,
+        "leak": {
+          "mode": "auto"
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:45:39.335316+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 66,
+            "level": "danger"
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.5,
+            "temp_level": "desired"
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.05,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired"
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired"
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 23.4,
+            "temp_level": "desired"
+          }
+        ],
+        "local_time": "2026-11-02T20:45:39+01:00",
+        "utc_time": "2026-11-02T19:45:39Z",
+        "hwid": "0000aaaa0005",
+        "wifi_signal": -61,
+        "free_heap": 67530,
+        "metrics": {
+          "wifi_sig": -61,
+          "ping": 41
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:45:58.306522+01:00",
+      "kind": "probe",
+      "payload": {
+        "type": "ato",
+        "uid": "0x0024E",
+        "properties": {
+          "status": "auto",
+          "temp_value": 23.4,
+          "temp_level": "desired",
+          "level": "above"
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:46:22.221867+01:00",
+      "kind": "poll",
+      "payload": {
+        "mode": "auto",
+        "is_internet_connected": true,
+        "cable_connected": true,
+        "connected_device": {
+          "state": "paired_connected",
+          "hwid": "0000aaaa0001",
+          "internet_connected": true
+        },
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 67,
+            "level": "danger",
+            "last_installation_date": 1793649719
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "measurement_unit": "ppt",
+            "value": 34.4,
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.2,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793650296,
+            "last_adjustment_date": 1793651648
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.05,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793650908,
+            "last_adjustment_date": 1793652054
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired",
+            "last_installation_date": 1793651722,
+            "last_adjustment_date": 1793647293
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false,
+            "last_installation_date": 1793651744
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "above",
+            "temp_value": 23.4,
+            "temp_level": "desired",
+            "last_installation_date": 1793652199,
+            "last_adjustment_date": null
+          }
+        ],
+        "ports": [
+          {
+            "number": 0,
+            "name": "S1",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          }
+        ],
+        "buzzer": {
+          "active": false,
+          "cause": "none",
+          "dismissed": false
+        },
+        "leak_detector": true,
+        "leak": {
+          "mode": "auto"
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:46:23.296968+01:00",
+      "kind": "probe",
+      "payload": {
+        "type": "ato",
+        "uid": "0x0024E",
+        "properties": {
+          "status": "auto",
+          "temp_value": 23.4,
+          "temp_level": "desired",
+          "level": "desired_level_2"
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:46:39.324047+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 67,
+            "level": "danger"
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired"
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.05,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired"
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired"
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 23.4,
+            "temp_level": "desired"
+          }
+        ],
+        "local_time": "2026-11-02T20:46:39+01:00",
+        "utc_time": "2026-11-02T19:46:39Z",
+        "hwid": "0000aaaa0005",
+        "wifi_signal": -57,
+        "free_heap": 58289,
+        "metrics": {
+          "wifi_sig": -59,
+          "ping": 32
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:47:23.154266+01:00",
+      "kind": "poll",
+      "payload": {
+        "mode": "auto",
+        "is_internet_connected": true,
+        "cable_connected": true,
+        "connected_device": {
+          "state": "paired_connected",
+          "hwid": "0000aaaa0001",
+          "internet_connected": true
+        },
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 67,
+            "level": "danger",
+            "last_installation_date": 1793649719
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "measurement_unit": "ppt",
+            "value": 34.4,
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793650296,
+            "last_adjustment_date": 1793651648
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.05,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793650908,
+            "last_adjustment_date": 1793652054
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired",
+            "last_installation_date": 1793651722,
+            "last_adjustment_date": 1793647293
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false,
+            "last_installation_date": 1793651744
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793652199,
+            "last_adjustment_date": 1793652434
+          }
+        ],
+        "ports": [
+          {
+            "number": 0,
+            "name": "S1",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          }
+        ],
+        "buzzer": {
+          "active": false,
+          "cause": "none",
+          "dismissed": false
+        },
+        "leak_detector": true,
+        "leak": {
+          "mode": "auto"
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:47:29.146929+01:00",
+      "kind": "probe",
+      "payload": {
+        "type": "ato",
+        "uid": "0x0024E",
+        "properties": {
+          "status": "auto",
+          "temp_value": 27.1,
+          "temp_level": "acceptable",
+          "level": "desired_level_2"
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:47:39.299815+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 67,
+            "level": "danger"
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.2,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired"
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.05,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired"
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired"
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 27.7,
+            "temp_level": "acceptable"
+          }
+        ],
+        "local_time": "2026-11-02T20:47:39+01:00",
+        "utc_time": "2026-11-02T19:47:39Z",
+        "hwid": "0000aaaa0005",
+        "wifi_signal": -60,
+        "free_heap": 54484,
+        "metrics": {
+          "wifi_sig": -58,
+          "ping": 33
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:47:43.737340+01:00",
+      "kind": "probe",
+      "payload": {
+        "type": "ato",
+        "uid": "0x0024E",
+        "properties": {
+          "status": "auto",
+          "temp_value": 25.5,
+          "temp_level": "desired",
+          "level": "desired_level_2"
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:48:23.373990+01:00",
+      "kind": "poll",
+      "payload": {
+        "mode": "auto",
+        "is_internet_connected": true,
+        "cable_connected": true,
+        "connected_device": {
+          "state": "paired_connected",
+          "hwid": "0000aaaa0001",
+          "internet_connected": true
+        },
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 67,
+            "level": "danger",
+            "last_installation_date": 1793649719
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "measurement_unit": "ppt",
+            "value": 34.4,
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793650296,
+            "last_adjustment_date": 1793651648
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.06,
+            "level": "desired",
+            "temp_value": 25.7,
+            "temp_level": "desired",
+            "last_installation_date": 1793650908,
+            "last_adjustment_date": 1793652054
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired",
+            "last_installation_date": 1793651722,
+            "last_adjustment_date": 1793647293
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false,
+            "last_installation_date": 1793651744
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 25.5,
+            "temp_level": "desired",
+            "last_installation_date": 1793652199,
+            "last_adjustment_date": 1793652460
+          }
+        ],
+        "ports": [
+          {
+            "number": 0,
+            "name": "S1",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          }
+        ],
+        "buzzer": {
+          "active": false,
+          "cause": "none",
+          "dismissed": false
+        },
+        "leak_detector": true,
+        "leak": {
+          "mode": "auto"
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:48:39.350198+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 67,
+            "level": "danger"
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired"
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.06,
+            "level": "desired",
+            "temp_value": 25.7,
+            "temp_level": "desired"
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired"
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 25.5,
+            "temp_level": "desired"
+          }
+        ],
+        "local_time": "2026-11-02T20:48:39+01:00",
+        "utc_time": "2026-11-02T19:48:39Z",
+        "hwid": "0000aaaa0005",
+        "wifi_signal": -60,
+        "free_heap": 52813,
+        "metrics": {
+          "wifi_sig": -59,
+          "ping": 19
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:49:24.729042+01:00",
+      "kind": "poll",
+      "payload": {
+        "mode": "auto",
+        "is_internet_connected": true,
+        "cable_connected": true,
+        "connected_device": {
+          "state": "paired_connected",
+          "hwid": "0000aaaa0001",
+          "internet_connected": true
+        },
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 67,
+            "level": "danger",
+            "last_installation_date": 1793649719
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "measurement_unit": "ppt",
+            "value": 34.4,
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793650296,
+            "last_adjustment_date": 1793651648
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.07,
+            "level": "desired",
+            "temp_value": 25.7,
+            "temp_level": "desired",
+            "last_installation_date": 1793650908,
+            "last_adjustment_date": 1793652054
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired",
+            "last_installation_date": 1793651722,
+            "last_adjustment_date": 1793647293
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false,
+            "last_installation_date": 1793651744
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 25.5,
+            "temp_level": "desired",
+            "last_installation_date": 1793652199,
+            "last_adjustment_date": 1793652460
+          }
+        ],
+        "ports": [
+          {
+            "number": 0,
+            "name": "S1",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          }
+        ],
+        "buzzer": {
+          "active": false,
+          "cause": "none",
+          "dismissed": false
+        },
+        "leak_detector": true,
+        "leak": {
+          "mode": "auto"
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:49:39.321745+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 67,
+            "level": "danger"
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired"
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.07,
+            "level": "desired",
+            "temp_value": 25.7,
+            "temp_level": "desired"
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired"
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 25.5,
+            "temp_level": "desired"
+          }
+        ],
+        "local_time": "2026-11-02T20:49:39+01:00",
+        "utc_time": "2026-11-02T19:49:39Z",
+        "hwid": "0000aaaa0005",
+        "wifi_signal": -63,
+        "free_heap": 52155,
+        "metrics": {
+          "wifi_sig": -61,
+          "ping": 25
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:50:25.131532+01:00",
+      "kind": "poll",
+      "payload": {
+        "mode": "auto",
+        "is_internet_connected": true,
+        "cable_connected": true,
+        "connected_device": {
+          "state": "paired_connected",
+          "hwid": "0000aaaa0001",
+          "internet_connected": true
+        },
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 68,
+            "level": "danger",
+            "last_installation_date": 1793649719
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "measurement_unit": "ppt",
+            "value": 34.4,
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793650296,
+            "last_adjustment_date": 1793651648
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.07,
+            "level": "desired",
+            "temp_value": 25.7,
+            "temp_level": "desired",
+            "last_installation_date": 1793650908,
+            "last_adjustment_date": 1793652054
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired",
+            "last_installation_date": 1793651722,
+            "last_adjustment_date": 1793647293
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false,
+            "last_installation_date": 1793651744
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 25.5,
+            "temp_level": "desired",
+            "last_installation_date": 1793652199,
+            "last_adjustment_date": 1793652460
+          }
+        ],
+        "ports": [
+          {
+            "number": 0,
+            "name": "S1",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          }
+        ],
+        "buzzer": {
+          "active": false,
+          "cause": "none",
+          "dismissed": false
+        },
+        "leak_detector": true,
+        "leak": {
+          "mode": "auto"
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:50:39.340731+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 68,
+            "level": "danger"
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired"
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.07,
+            "level": "desired",
+            "temp_value": 25.7,
+            "temp_level": "desired"
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired"
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 25.5,
+            "temp_level": "desired"
+          }
+        ],
+        "local_time": "2026-11-02T20:50:39+01:00",
+        "utc_time": "2026-11-02T19:50:39Z",
+        "hwid": "0000aaaa0005",
+        "wifi_signal": -58,
+        "free_heap": 51988,
+        "metrics": {
+          "wifi_sig": -62,
+          "ping": 28
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:51:39.369224+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 68,
+            "level": "danger"
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired"
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.07,
+            "level": "desired",
+            "temp_value": 25.7,
+            "temp_level": "desired"
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired"
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 25.5,
+            "temp_level": "desired"
+          }
+        ],
+        "local_time": "2026-11-02T20:51:39+01:00",
+        "utc_time": "2026-11-02T19:51:39Z",
+        "hwid": "0000aaaa0005",
+        "wifi_signal": -57,
+        "free_heap": 51811,
+        "metrics": {
+          "wifi_sig": -58,
+          "ping": 26
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:52:39.507975+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 69,
+            "level": "danger"
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired"
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.07,
+            "level": "desired",
+            "temp_value": 25.7,
+            "temp_level": "desired"
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired"
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 25.5,
+            "temp_level": "desired"
+          }
+        ],
+        "local_time": "2026-11-02T20:52:39+01:00",
+        "utc_time": "2026-11-02T19:52:39Z",
+        "hwid": "0000aaaa0005",
+        "wifi_signal": -56,
+        "free_heap": 51816,
+        "metrics": {
+          "wifi_sig": -57,
+          "ping": 35
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:52:49.476601+01:00",
+      "kind": "poll",
+      "payload": {
+        "mode": "auto",
+        "is_internet_connected": true,
+        "cable_connected": true,
+        "connected_device": {
+          "state": "paired_connected",
+          "hwid": "0000aaaa0001",
+          "internet_connected": true
+        },
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 69,
+            "level": "danger",
+            "last_installation_date": 1793649719
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "measurement_unit": "ppt",
+            "value": 34.4,
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.3,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793650296,
+            "last_adjustment_date": 1793651648
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.07,
+            "level": "desired",
+            "temp_value": 25.7,
+            "temp_level": "desired",
+            "last_installation_date": 1793650908,
+            "last_adjustment_date": 1793652054
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.6,
+            "level": "desired",
+            "last_installation_date": 1793651722,
+            "last_adjustment_date": 1793647293
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false,
+            "last_installation_date": 1793651744
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 25.5,
+            "temp_level": "desired",
+            "last_installation_date": 1793652199,
+            "last_adjustment_date": 1793652460
+          }
+        ],
+        "ports": [
+          {
+            "number": 0,
+            "name": "S1",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          }
+        ],
+        "buzzer": {
+          "active": false,
+          "cause": "none",
+          "dismissed": false
+        },
+        "leak_detector": true,
+        "leak": {
+          "mode": "auto"
+        }
+      }
+    }
+  ],
+  "states": [
+    {
+      "ts": "2026-11-02T19:53:23.310202+01:00",
+      "payload": {
+        "specific_attributes": {
+          "cable_connected": true,
+          "connected_device": null
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T19:54:22.327178+01:00",
+      "payload": {
+        "specific_attributes": {
+          "cable_connected": true,
+          "connected_device": {
+            "state": "paired_connected",
+            "hwid": "0000aaaa0001",
+            "internet_connected": false
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:02:00.388313+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes_settings": [
+            {
+              "name": "ORP",
+              "buzzer": false,
+              "notify": false,
+              "type": "orp",
+              "uid": "0x0071F"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:02:00.414488+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "orp",
+              "uid": "0x0071F",
+              "last_installation_date": 1793649719,
+              "last_adjustment_date": 0,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:02:00.695674+01:00",
+      "payload": {
+        "specific_attributes": {
+          "device_setup_date": 1793646120
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:02:00.773404+01:00",
+      "payload": {
+        "specific_attributes": {
+          "mode": "auto"
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:02:00.812344+01:00",
+      "payload": {
+        "specific_attributes": {
+          "ports_settings": [
+            {
+              "type": "unknown",
+              "number": 0
+            },
+            {
+              "type": "unknown",
+              "number": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:02:01.402653+01:00",
+      "payload": {
+        "attributes": {
+          "system": {
+            "name": "RSCONTROL-0000000000",
+            "hw_type": "reef-control",
+            "hw_model": "RSCONTROLPRO",
+            "hw_revision": "v1.3_25A"
+          },
+          "firmware": {
+            "version": "1.1.13",
+            "board": "esp32",
+            "framework": "i"
+          },
+          "networking": {
+            "wifi_ip": "192.0.2.30",
+            "mac": "00:00:00:00:00:05",
+            "network": "reef-net",
+            "bssid": "00:00:00:00:00:01"
+          }
+        },
+        "specific_attributes": {
+          "timezone": 60,
+          "mode": "auto",
+          "cable_connected": true,
+          "active_shortcut": "no_shortcut",
+          "device_settings": {
+            "leak": {
+              "notify": true,
+              "buzzer": true,
+              "leak_detector": true
+            }
+          },
+          "probes_settings": [
+            {
+              "name": "ORP",
+              "buzzer": false,
+              "notify": false,
+              "type": "orp",
+              "uid": "0x0071F"
+            }
+          ],
+          "ports_settings": [
+            {
+              "type": "unknown",
+              "number": 0
+            },
+            {
+              "type": "unknown",
+              "number": 1
+            }
+          ],
+          "device_setup_date": 1793646120,
+          "factory_reset_time": 0,
+          "probes": [
+            {
+              "type": "orp",
+              "uid": "0x0071F",
+              "last_installation_date": 1793649719,
+              "last_adjustment_date": 0,
+              "fw_version": "1.1.8"
+            }
+          ],
+          "ports": [
+            {
+              "type": "unknown",
+              "number": 0,
+              "last_installation_date": null
+            },
+            {
+              "type": "unknown",
+              "number": 1,
+              "last_installation_date": null
+            }
+          ],
+          "leak": {
+            "mode": "auto"
+          },
+          "connected_device": {
+            "state": "paired_connected",
+            "hwid": "0000aaaa0001",
+            "internet_connected": true
+          },
+          "is_factory_reset": false
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:02:16.507876+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes_settings": [
+            {
+              "name": "ORP 71F",
+              "buzzer": true,
+              "notify": true,
+              "type": "orp",
+              "uid": "0x0071F"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:06:53.739828+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "orp",
+              "uid": "0x0071F",
+              "last_installation_date": 1793649719,
+              "last_adjustment_date": 1793650013,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:08:59.943376+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes_settings": [
+            {
+              "name": "ORP 71F",
+              "buzzer": false,
+              "notify": true,
+              "type": "orp",
+              "uid": "0x0071F"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:11:37.822990+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes_settings": [
+            {
+              "name": "Salinity temp",
+              "unit": "ppt",
+              "buzzer": false,
+              "notify": false,
+              "temp": {
+                "buzzer": false,
+                "notify": false
+              },
+              "type": "ec",
+              "uid": "0x007BF"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:11:37.922602+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "ec",
+              "uid": "0x007BF",
+              "last_installation_date": 1793650296,
+              "last_adjustment_date": 0,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:12:08.499479+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes_settings": [
+            {
+              "name": "Salinité 7BF",
+              "unit": "ppt",
+              "buzzer": true,
+              "notify": true,
+              "temp": {
+                "buzzer": false,
+                "notify": true
+              },
+              "type": "ec",
+              "uid": "0x007BF"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:15:50.721230+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "ec",
+              "uid": "0x007BF",
+              "last_installation_date": 1793650296,
+              "last_adjustment_date": 1790434885,
+              "last_calibration_date": 1793646941,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:18:12.267798+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "ec",
+              "uid": "0x007BF",
+              "last_installation_date": 1793650296,
+              "last_adjustment_date": 1793650692,
+              "last_calibration_date": 1793646941,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:21:50.923818+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes_settings": [
+            {
+              "name": "pH temp",
+              "buzzer": false,
+              "notify": false,
+              "temp": {
+                "buzzer": false,
+                "notify": false
+              },
+              "type": "ph",
+              "uid": "0x00B39"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:21:50.931661+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "ph",
+              "uid": "0x00B39",
+              "last_installation_date": 1793650908,
+              "last_adjustment_date": 0,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:22:05.511795+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes_settings": [
+            {
+              "name": "pH B39",
+              "buzzer": false,
+              "notify": true,
+              "temp": {
+                "buzzer": false,
+                "notify": true
+              },
+              "type": "ph",
+              "uid": "0x00B39"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:32:59.474006+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "ph",
+              "uid": "0x00B39",
+              "last_installation_date": 1793650908,
+              "last_adjustment_date": 1790434810,
+              "last_calibration_date": 1793647934,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:34:08.543033+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "ec",
+              "uid": "0x007BF",
+              "last_installation_date": 1793650296,
+              "last_adjustment_date": 1793651648,
+              "last_calibration_date": 1793646941,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:35:24.004865+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes_settings": [
+            {
+              "name": "Temp",
+              "buzzer": false,
+              "notify": false,
+              "type": "temperature",
+              "uid": "0x000F7"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:35:24.061496+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "temperature",
+              "uid": "0x000F7",
+              "last_installation_date": 1793651722,
+              "last_adjustment_date": 0,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:35:27.790232+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes_settings": [
+            {
+              "name": "Température F7",
+              "buzzer": false,
+              "notify": true,
+              "type": "temperature",
+              "uid": "0x000F7"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:35:45.083754+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes_settings": [
+            {
+              "name": "Leak",
+              "type": "leak",
+              "uid": "0x0032B"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:35:45.167325+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "leak",
+              "uid": "0x0032B",
+              "last_installation_date": 1793651744,
+              "last_adjustment_date": 0,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:35:56.674755+01:00",
+      "payload": {
+        "specific_attributes": {
+          "device_settings": {
+            "leak": {
+              "notify": true,
+              "buzzer": true,
+              "leak_detector": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:35:57.013822+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes_settings": [
+            {
+              "name": "Fuite 32B",
+              "type": "leak",
+              "uid": "0x0032B"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:37:21.273983+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "ph",
+              "uid": "0x00B39",
+              "last_installation_date": 1793650908,
+              "last_adjustment_date": 1793651841,
+              "last_calibration_date": 1793647934,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:40:54.400773+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "ph",
+              "uid": "0x00B39",
+              "last_installation_date": 1793650908,
+              "last_adjustment_date": 1793652054,
+              "last_calibration_date": 1793647934,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:43:20.906654+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes_settings": [
+            {
+              "name": "Level & Temp",
+              "notify": false,
+              "temp": {
+                "buzzer": false,
+                "notify": false
+              },
+              "type": "ato",
+              "uid": "0x0024E"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:43:20.970833+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "ato",
+              "uid": "0x0024E",
+              "last_installation_date": 1793652199,
+              "last_adjustment_date": 0,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:43:35.331697+01:00",
+      "payload": {
+        "attributes": {
+          "system": {
+            "name": "RSCONTROL-0000000000",
+            "hw_type": "reef-control",
+            "hw_model": "RSCONTROLPRO",
+            "hw_revision": "v1.3_25A"
+          },
+          "firmware": {
+            "version": "1.1.13",
+            "board": "esp32",
+            "framework": "i"
+          },
+          "networking": {
+            "wifi_ip": "192.0.2.30",
+            "mac": "00:00:00:00:00:05",
+            "network": "reef-net",
+            "bssid": "00:00:00:00:00:01"
+          }
+        },
+        "specific_attributes": {
+          "is_factory_reset": false,
+          "timezone": 60
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:43:37.933256+01:00",
+      "payload": {
+        "specific_attributes": {
+          "cable_connected": true,
+          "connected_device": {
+            "state": "paired_connected",
+            "hwid": "0000aaaa0001",
+            "internet_connected": true
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:43:48.137275+01:00",
+      "payload": {
+        "attributes": {
+          "system": {
+            "name": "RSCONTROL-0000000000",
+            "hw_type": "reef-control",
+            "hw_model": "RSCONTROLPRO",
+            "hw_revision": "v1.3_25A"
+          },
+          "firmware": {
+            "version": "1.1.13",
+            "board": "esp32",
+            "framework": "i"
+          },
+          "networking": {
+            "wifi_ip": "192.0.2.30",
+            "mac": "00:00:00:00:00:05",
+            "network": "reef-net",
+            "bssid": "00:00:00:00:00:01"
+          }
+        },
+        "specific_attributes": {
+          "timezone": 60,
+          "mode": "auto",
+          "cable_connected": true,
+          "active_shortcut": "no_shortcut",
+          "device_settings": {
+            "leak": {
+              "notify": true,
+              "buzzer": true,
+              "leak_detector": true
+            }
+          },
+          "probes_settings": [
+            {
+              "name": "ORP 71F",
+              "buzzer": false,
+              "notify": true,
+              "type": "orp",
+              "uid": "0x0071F"
+            },
+            {
+              "name": "Salinité 7BF",
+              "unit": "ppt",
+              "buzzer": true,
+              "notify": true,
+              "temp": {
+                "buzzer": false,
+                "notify": true
+              },
+              "type": "ec",
+              "uid": "0x007BF"
+            },
+            {
+              "name": "pH B39",
+              "buzzer": false,
+              "notify": true,
+              "temp": {
+                "buzzer": false,
+                "notify": true
+              },
+              "type": "ph",
+              "uid": "0x00B39"
+            },
+            {
+              "name": "Température F7",
+              "buzzer": false,
+              "notify": true,
+              "type": "temperature",
+              "uid": "0x000F7"
+            },
+            {
+              "name": "Fuite 32B",
+              "type": "leak",
+              "uid": "0x0032B"
+            },
+            {
+              "name": "Level & Temp",
+              "notify": false,
+              "temp": {
+                "buzzer": false,
+                "notify": false
+              },
+              "type": "ato",
+              "uid": "0x0024E"
+            }
+          ],
+          "ports_settings": [
+            {
+              "type": "unknown",
+              "number": 0
+            },
+            {
+              "type": "unknown",
+              "number": 1
+            }
+          ],
+          "device_setup_date": 1793646120,
+          "factory_reset_time": 0,
+          "probes": [
+            {
+              "type": "orp",
+              "uid": "0x0071F",
+              "last_installation_date": 1793649719,
+              "last_adjustment_date": 1793650013,
+              "fw_version": "1.1.8"
+            },
+            {
+              "type": "ec",
+              "uid": "0x007BF",
+              "last_installation_date": 1793650296,
+              "last_adjustment_date": 1793651648,
+              "last_calibration_date": 1793646941,
+              "fw_version": "1.1.8"
+            },
+            {
+              "type": "ph",
+              "uid": "0x00B39",
+              "last_installation_date": 1793650908,
+              "last_adjustment_date": 1793652054,
+              "last_calibration_date": 1793647934,
+              "fw_version": "1.1.8"
+            },
+            {
+              "type": "temperature",
+              "uid": "0x000F7",
+              "last_installation_date": 1793651722,
+              "last_adjustment_date": 0,
+              "fw_version": "1.1.8"
+            },
+            {
+              "type": "leak",
+              "uid": "0x0032B",
+              "last_installation_date": 1793651744,
+              "last_adjustment_date": 0,
+              "fw_version": "1.1.8"
+            },
+            {
+              "type": "ato",
+              "uid": "0x0024E",
+              "last_installation_date": 1793652199,
+              "last_adjustment_date": 0,
+              "fw_version": "1.1.8"
+            }
+          ],
+          "ports": [
+            {
+              "type": "unknown",
+              "number": 0,
+              "last_installation_date": null
+            },
+            {
+              "type": "unknown",
+              "number": 1,
+              "last_installation_date": null
+            }
+          ],
+          "leak": {
+            "mode": "auto"
+          },
+          "connected_device": {
+            "state": "paired_connected",
+            "hwid": "0000aaaa0001",
+            "internet_connected": true
+          },
+          "is_factory_reset": false
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:43:59.833711+01:00",
+      "payload": {
+        "specific_attributes": {
+          "timezone": 60
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:44:10.166654+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes_settings": [
+            {
+              "name": "Temp. osmolateur 24E",
+              "notify": true,
+              "temp": {
+                "buzzer": false,
+                "notify": true
+              },
+              "type": "ato",
+              "uid": "0x0024E"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:47:15.254319+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "ato",
+              "uid": "0x0024E",
+              "last_installation_date": 1793652199,
+              "last_adjustment_date": 1793652434,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:47:27.792869+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "ato",
+              "uid": "0x0024E",
+              "last_installation_date": 1793652199,
+              "last_adjustment_date": 1793652447,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:47:40.984387+01:00",
+      "payload": {
+        "specific_attributes": {
+          "probes": [
+            {
+              "type": "ato",
+              "uid": "0x0024E",
+              "last_installation_date": 1793652199,
+              "last_adjustment_date": 1793652460,
+              "fw_version": "1.1.8"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "power_states": [
+    {
+      "ts": "2026-11-02T19:50:19.630166+01:00",
+      "payload": {
+        "specific_attributes": {
+          "device_settings": {
+            "feed_schedule_shortcut_code": "no_shortcut",
+            "temp_hysteresis": 0.5,
+            "temperature": null
+          },
+          "temperature": null
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T19:54:22.015894+01:00",
+      "payload": {
+        "specific_attributes": {
+          "connected_device": {
+            "type": "control",
+            "hwid": "0000aaaa0005",
+            "status": "disconnected",
+            "internet_connected": false
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T19:54:25.285875+01:00",
+      "payload": {
+        "specific_attributes": {
+          "connected_device": {
+            "type": "control",
+            "hwid": "0000aaaa0005",
+            "status": "connected",
+            "internet_connected": true
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:40:00.570585+01:00",
+      "payload": {
+        "specific_attributes": {
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "standby"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Chauffage 1",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Chauffage 2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:40:00.602594+01:00",
+      "payload": {
+        "specific_attributes": {
+          "schedule": {
+            "0": {
+              "intervals": null
+            },
+            "1": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 465
+                },
+                {
+                  "time": 465,
+                  "duration": 2
+                }
+              ]
+            },
+            "2": {
+              "intervals": null
+            },
+            "3": {
+              "intervals": null
+            },
+            "4": {
+              "intervals": null
+            },
+            "5": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 839
+                },
+                {
+                  "time": 840,
+                  "duration": 241
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-11-02T20:40:00.641057+01:00",
+      "payload": {
+        "specific_attributes": {
+          "feed_schedule": null
+        }
+      }
+    }
+  ],
+  "commands": [
+    {
+      "method": "POST",
+      "url": "/power/discover",
+      "body": {
+        "pair": false
+      }
+    },
+    {
+      "method": "GET",
+      "url": "/probe/config",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "/ports/config",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "/subscription-info",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "url": "/probe/install?type=orp",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "url": "/setup-finish",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "/probe/info?type=orp&uid=0x0071F",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "url": "/ble/off?type=orp&uid=0x0071F",
+      "body": null
+    },
+    {
+      "method": "PUT",
+      "url": "/probe/config",
+      "body": [
+        {
+          "name": "ORP 71F",
+          "uid": "0x0071F",
+          "type": "orp",
+          "buzzer": true,
+          "notify": true,
+          "ranges": [100, 200, 400, 480]
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "url": "/probe/offset?type=orp&uid=0x0071F",
+      "body": null
+    },
+    {
+      "method": "GET",
+      "url": "/probe?type=orp&uid=0x0071F",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "url": "/probe/offset?type=orp&uid=0x0071F",
+      "body": {
+        "offset": -18
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/probe/calibration-enter?type=ec&uid=0x007BF",
+      "body": {
+        "time": 1793646734
+      }
+    },
+    {
+      "method": "POST",
+      "url": "/probe/calibration-point-start?type=ec&uid=0x007BF",
+      "body": {
+        "solution_value": 53.1,
+        "point": "MID"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "/probe/calibration-status?type=ec&uid=0x007BF",
+      "body": null
+    },
+    {
+      "method": "POST",
+      "url": "/probe/calibration-exit?type=ec&uid=0x007BF",
+      "body": null
+    },
+    {
+      "method": "PUT",
+      "url": "/leak/config",
+      "body": {
+        "notify": true,
+        "buzzer": true,
+        "leak_detector": true
+      }
+    },
+    {
+      "method": "DELETE",
+      "url": "/probe?type=ato&uid=0x0024E",
+      "body": null
+    }
+  ],
+  "other_topics": {
+    "notification": {
+      "probe": "ORP 71F",
+      "hwid": "0000aaaa0005",
+      "type": "sensor_danger_range",
+      "sub-type": 234882847
+    },
+    "calibration-log": {
+      "local_time": 1793650541,
+      "utc_time": 1793646941,
+      "probe_type": "ec",
+      "probe_uid": "0x007BF",
+      "solution_value": 53.1,
+      "temperature_value": 23.42,
+      "kcell_value": 0.881
+    }
+  }
+}

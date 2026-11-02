@@ -2,6 +2,40 @@
 
 ## MODIFICATIONS
 
+### Poseidon: the guard at connection holds back the known restores only
+
+- A ReefControl crashed (`metrics.fatal_error`) as an ATO probe was
+  installed in the ReefBeat app, and reconnected: for 30 seconds, the guard
+  held back the commands the app was sending (`DELETE /probe`,
+  `POST /ble/off`, `PUT /probe/config`) and raised a repair issue.
+- The guard now holds back only the known restores of the cloud (the group
+  and schedule of a ReefWave, the food head of a ReefDose); any other
+  command passes, written to the logs (`guard_passed` in the spy file). No
+  repair issue any more; the option is renamed accordingly.
+
+### Poseidon: ReefControl with probes, paired with a ReefControl Power
+
+From a spy run where the probe of a ReefControl Power was removed, the
+Power paired with a ReefControl, and an ORP, EC, pH, temperature, leak and
+ATO probe installed, set up and calibrated on the ReefControl:
+
+- ReefControl telemetry: the readings of each probe (value, level, status,
+  ec / ppt / sg, temperature, leak detected, ATO water level) merged into
+  the probe of `/dashboard` with the same uid; the value of an EC probe is
+  the one of its measurement unit. Checked against every poll of the run.
+- New `probe` topic (pushed when a reading changes): merged the same way,
+  at once rather than at the next telemetry (the level of an ATO probe is
+  its water level).
+- ReefControl states: mode, link with the ReefControl Power
+  (`connected_device`, `cable_connected`), leak mode merged; a probe or a
+  port installed, set up or calibrated reads the device again.
+- ReefControl Power states: the link with the ReefControl, and the
+  temperature probe removed (`DELETE /sensor`), merged.
+- Catalogue: the `probe`, `notification` and `calibration-log` topics, the
+  states and commands of the ReefControl (probes installed, set up,
+  calibrated, offset, removed; leak; pairing), `DELETE /sensor` of the
+  Power, and `metrics.fatal_error` (pushed once after a firmware crash).
+
 ### Poseidon: ReefControl Power with a temperature probe
 
 From a spy run of a RSPOWER6 1.1.9 whose temperature probe was installed and

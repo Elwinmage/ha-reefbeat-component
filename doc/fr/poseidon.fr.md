@@ -117,7 +117,7 @@ Familles fusionnées à ce jour, d'après les relevés espion :
 | ReefDose | états, télémétrie ; un `dosing-log` (fin d'une dose) le fait relire, pour sa file de dosage, de même que minuit (00:01, heure de Home Assistant), quand la file du nouveau jour remplace celle du jour qui finit |
 | ReefMat | états, télémétrie, `rolling-log` (fin d'une avance) |
 | ReefLED | télémétrie |
-| ReefControl | télémétrie (mode, signal ; vue en mode setup seulement, ses sondes pas encore fusionnées) ; chaque état poussé le fait relire |
+| ReefControl | télémétrie et événements `probe` (mesures des sondes), états (mode, liaison avec un ReefControl Power, mode fuite) ; une sonde ou un port installé ou réglé le fait relire |
 
 Pour les autres familles, *Shadow* ne fait que comparer, et *Poseidon* relit
 l'appareil chaque fois qu'il pousse un état. *Poseidon* le relit aussi quand un
@@ -179,7 +179,7 @@ synchronisées, même fuseau horaire) :
   [Messages inattendus](#messages-inattendus).
 - **Chercher les signalements existants sur GitHub** (activé par défaut) :
   seule la signature d'un message inattendu est envoyée.
-- **Retenir les commandes d'écriture du cloud à la connexion** (activé par
+- **Retenir les restaurations du cloud à la connexion** (activé par
   défaut) : voir [Garde à la connexion](#garde-à-la-connexion).
 - **Clef du watchdog** : 16 caractères, proposée tant qu'aucune n'est définie.
   Un watchdog sur une autre machine (autonome, ou dans
@@ -210,13 +210,14 @@ la recherche n'a trouvé aucun signalement.
 À chaque connexion d'un appareil, le cloud Red Sea lui renvoie sa propre copie
 des réglages de l'appareil. Quand cette copie n'est pas à jour, l'appareil perd
 ses réglages actuels : une ReefWave a perdu tout son programme ainsi. Pendant
-les 30 premières secondes de chaque connexion via le relais, les commandes
-d'écriture du cloud sont donc retenues (ses lectures passent).
+les 30 premières secondes de chaque connexion via le relais, les restaurations
+connues du cloud (groupe et programme d'une ReefWave, tête de nourrissage d'une
+ReefDose) sont donc retenues.
 
-Les restaurations connues (tête de nourrissage d'une ReefDose, groupe et
-programme d'une ReefWave) sont retenues sans rien dire. Toute autre commande
-d'écriture retenue crée une réparation qui la liste : si vous avez modifié
-quelque chose dans l'app ReefBeat à ce moment précis, refaites-le.
+Toute autre commande passe, et est notée dans les logs (`guard_passed` dans le
+fichier espion) : un appareil qui redémarre pendant que l'app est utilisée (un
+ReefControl qui plante à l'installation d'une sonde) reçoit les commandes de
+l'utilisateur.
 
 ## Événements
 

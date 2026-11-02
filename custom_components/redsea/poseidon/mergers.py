@@ -113,6 +113,11 @@ def device_now(coordinator: Any) -> datetime | None:
 #                           "standby" or "on"
 #   schedule.N.intervals -> /socket/N/config/schedule.intervals
 #   feed_schedule        -> nothing polled matches it yet: not merged
+#   connected_device     -> /dashboard.connected_device (the ReefControl it
+#                           is paired with, spy run of 2026-11-02)
+#   temperature: null    -> /dashboard.temperature (the probe removed); a
+#                           probe installed or set up (temperature,
+#                           device_settings.temperature) reads it again
 # telemetry (every 60 s, no wrapper):
 #   mode                 -> as in the state
 #   battery_level        -> /dashboard.battery_level
@@ -158,6 +163,9 @@ _POWER_STATE_KNOWN = frozenset(
         "mode",
         "sockets",
         "schedule",
+        "connected_device",
+        # null: merged; else, with device_settings, read again (see below)
+        "temperature",
         # Nothing polled matches them
         "feed_schedule",
         "timezone",
@@ -166,8 +174,6 @@ _POWER_STATE_KNOWN = frozenset(
         "device_setup_date",
         "factory_reset_time",
         "feeding_type",
-        "temperature",
-        "connected_device",
         "initial",
         "is_factory_reset",
     }
@@ -308,12 +314,35 @@ def merge_reef_power(coordinator: Any, topic: str, payload: Any) -> bool:
             data["intervals"] = copy.deepcopy(pushed["intervals"])
             merged = True
 
+    dashboard = _data(coordinator, "/dashboard")
+    if dashboard is not None and "connected_device" in state:
+        # The ReefControl it is paired with, as /dashboard tells it
+        dashboard["connected_device"] = state["connected_device"]
+        merged = True
+    probe_settings = state.get("device_settings")
+    if dashboard is not None and state.get("temperature", 0) is None:
+        # The temperature probe removed
+        dashboard["temperature"] = None
+        merged = True
+        if (
+            isinstance(probe_settings, dict)
+            and probe_settings.get("temperature") is None
+        ):
+            # Nothing left to read again of it
+            probe_settings = None
+
     if merged:
         # A mode or a schedule changed: the sockets may have changed state
         derive_power_socket_states(coordinator)
-    unknown = _unhandled(state, _POWER_STATE_KNOWN) or any(
-        isinstance(pushed, dict) and _unhandled(pushed, _POWER_SOCKET_KNOWN)
-        for pushed in (sockets.values() if isinstance(sockets, dict) else ())
+    # A probe installed or set up (device_settings, temperature): read again
+    unsettled = probe_settings is not None or isinstance(state.get("temperature"), dict)
+    unknown = (
+        unsettled
+        or _unhandled(state, _POWER_STATE_KNOWN | {"device_settings"})
+        or any(
+            isinstance(pushed, dict) and _unhandled(pushed, _POWER_SOCKET_KNOWN)
+            for pushed in (sockets.values() if isinstance(sockets, dict) else ())
+        )
     )
     return merged and not unknown
 
@@ -862,29 +891,146 @@ def merge_reef_lights_telemetry(coordinator: Any, topic: str, payload: Any) -> b
 
 # -- ReefControl (reef-control) -----------------------------------------------------
 #
-# Seen on a ReefControl in setup mode (spy, 2026-11-01: no probe, no port set
-# up, no state yet). Home Assistant reads the mode of /mode and /dashboard,
-# the signal of /wifi.
+# Seen on a ReefControl, in setup mode (spy, 2026-11-01), then paired with a
+# ReefControl Power and given an ORP, EC, pH, temperature, leak and ATO probe
+# (spy, 2026-11-02). Home Assistant reads the mode of /mode and /dashboard,
+# the probes and the link of /dashboard, the signal of /wifi.
 # telemetry (every 60 s):
 #   mode                  -> /mode.mode and /dashboard.mode
 #   wifi_signal           -> /wifi.signal_dBm
-#   probes                -> not merged yet: always empty so far, its items
-#                            unknown (/dashboard.probes has the readings)
+#   probes.N              -> the probe of /dashboard.probes with its uid: name,
+#                            status, value, level, ec, ppt, sg, temp_value,
+#                            temp_level, detected, water_level (the values of
+#                            the poll); an EC probe has no value: /dashboard
+#                            tells the one of its measurement_unit (ppt...)
 #   active_shortcut       -> nothing polled
-# No state merger yet: the poseidon strategy reads the device again on each
-# pushed state. Never FULLY_PUSHED (the probe readings are not merged).
+# probe (an event, each time a reading changes): {type, uid, properties}
+#   properties.<field>    -> the probe with its uid, as the telemetry; for an
+#                            ATO probe, its level is the water_level; for an EC
+#                            probe, the value is the one of its unit
+# state:
+#   mode                  -> as the telemetry
+#   cable_connected, connected_device (the ReefControl Power it is paired
+#                            with), leak.mode -> /dashboard
+#   timezone, is_factory_reset, factory_reset_time, device_setup_date,
+#     active_shortcut, attributes -> nothing polled
+#   probes, probes_settings, ports, ports_settings, device_settings -> a
+#                            probe or a port installed, removed, set up: the
+#                            device is read again
+# A probe the poll does not know yet (being installed) is not merged: the
+# state of its installation reads the device again. Never FULLY_PUSHED: the
+# ports were never seen set up.
+
+_CONTROL_PROBE_FIELDS = (
+    "name",
+    "status",
+    "value",
+    "level",
+    "ec",
+    "ppt",
+    "sg",
+    "temp_value",
+    "temp_level",
+    "detected",
+    "water_level",
+    "last_calibration_date",
+)
+_CONTROL_STATE_IGNORED = frozenset(
+    {
+        "timezone",
+        "is_factory_reset",
+        "factory_reset_time",
+        "device_setup_date",
+        "active_shortcut",
+    }
+)
 
 
-def merge_reef_control_telemetry(coordinator: Any, topic: str, payload: Any) -> bool:
-    """Merge a telemetry of a ReefControl (see the table above)."""
-    if not isinstance(payload, dict):
-        return False
+def _control_probe(coordinator: Any, uid: Any) -> dict[str, Any] | None:
+    """The probe of /dashboard with this uid."""
+    dashboard = _data(coordinator, "/dashboard")
+    probes = dashboard.get("probes") if dashboard is not None else None
+    for probe in probes if isinstance(probes, list) else ():
+        if isinstance(probe, dict) and uid and probe.get("uid") == uid:
+            return probe
+    return None
+
+
+def _merge_control_mode(coordinator: Any, mode: Any) -> bool:
     merged = False
-    mode = payload.get("mode")
     if isinstance(mode, str):
         for name in ("/mode", "/dashboard"):
             data = _data(coordinator, name)
             if data is not None:
                 data["mode"] = mode
                 merged = True
+    return merged
+
+
+def merge_reef_control_telemetry(coordinator: Any, topic: str, payload: Any) -> bool:
+    """Merge a telemetry of a ReefControl (see the table above)."""
+    if not isinstance(payload, dict):
+        return False
+    merged = _merge_control_mode(coordinator, payload.get("mode"))
+    probes = payload.get("probes")
+    for pushed in probes if isinstance(probes, list) else ():
+        if not isinstance(pushed, dict):
+            continue
+        probe = _control_probe(coordinator, pushed.get("uid"))
+        if probe is None:
+            continue
+        for field in _CONTROL_PROBE_FIELDS:
+            if field in pushed:
+                probe[field] = pushed[field]
+                merged = True
+        unit = probe.get("measurement_unit")
+        if isinstance(unit, str) and unit in pushed:
+            probe["value"] = pushed[unit]
     return _merge_wifi(coordinator, payload) or merged
+
+
+def _merge_control_probe_event(coordinator: Any, payload: Any) -> bool:
+    """A probe event: its reading into the probe of /dashboard."""
+    if not isinstance(payload, dict):
+        return False
+    properties = payload.get("properties")
+    probe = _control_probe(coordinator, payload.get("uid"))
+    if probe is None or not isinstance(properties, dict):
+        return False
+    pushed = dict(properties)
+    if payload.get("type") == "ato" and "level" in pushed:
+        pushed["water_level"] = pushed.pop("level")
+    unit = pushed.pop("unit", None)
+    if isinstance(unit, str) and unit in ("ec", "ppt", "sg") and "value" in pushed:
+        pushed[unit] = pushed["value"]
+    for field in _CONTROL_PROBE_FIELDS:
+        if field in pushed:
+            probe[field] = pushed[field]
+    return True
+
+
+def merge_reef_control(coordinator: Any, topic: str, payload: Any) -> bool:
+    """Merge a pushed state, or a probe event, of a ReefControl (see the
+    table above)."""
+    if topic.endswith("/probe"):
+        return _merge_control_probe_event(coordinator, payload)
+    state = payload.get(WRAPPER) if isinstance(payload, dict) else None
+    if not isinstance(state, dict):
+        # The attributes pushed on connection: nothing polled
+        return isinstance(payload, dict) and set(payload) == {"attributes"}
+    merged = _merge_control_mode(coordinator, state.get("mode"))
+    dashboard = _data(coordinator, "/dashboard")
+    if dashboard is not None:
+        for field in ("cable_connected", "connected_device"):
+            if field in state:
+                dashboard[field] = state[field]
+                merged = True
+        leak = state.get("leak")
+        if isinstance(leak, dict) and isinstance(dashboard.get("leak"), dict):
+            dashboard["leak"].update(leak)
+            merged = True
+    known = _CONTROL_STATE_IGNORED | {"mode", "cable_connected", "connected_device"}
+    if dashboard is not None and isinstance(dashboard.get("leak"), dict):
+        known = known | {"leak"}
+    unknown = _unhandled(state, known)
+    return (merged or not set(state) - _CONTROL_STATE_IGNORED) and not unknown

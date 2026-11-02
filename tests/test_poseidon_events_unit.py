@@ -155,7 +155,7 @@ def test_telemetry_catalogues() -> None:
 
 def test_metrics_after_a_disconnection() -> None:
     # Pushed once after a loss of wifi, broker, internet, or a restart
-    for name in ("mqtt_dis", "res", "wifi_dis", "int_dis"):
+    for name in ("mqtt_dis", "res", "wifi_dis", "int_dis", "fatal_error"):
         telemetry = dict(MAT_TELEMETRY, metrics={"wifi_sig": -50, name: 1})
         topic = _topic("reef-mat", "telemetry")
         assert an.check_frame("reef-mat", UP, 3, topic, telemetry) == [], name

@@ -112,7 +112,7 @@ Families merged so far, from the spy runs:
 | ReefDose | states, telemetry; a `dosing-log` (end of a dose) reads it again, for its dosing queue, and so does midnight (00:01, Home Assistant's time), when the queue of the new day replaces the one of the day ending |
 | ReefMat | states, telemetry, `rolling-log` (end of an advance) |
 | ReefLED | telemetry |
-| ReefControl | telemetry (mode, signal; seen in setup mode only, its probes not merged yet); every pushed state reads it again |
+| ReefControl | telemetry and `probe` events (probe readings), states (mode, link with a ReefControl Power, leak mode); a probe or a port installed or set up reads it again |
 
 For the other families, *Shadow* only compares, and *Poseidon* reads the device
 again every time it pushes a state. *Poseidon* also reads it again when a state
@@ -174,7 +174,7 @@ time zone):
   [Unexpected messages](#unexpected-messages).
 - **Look for existing reports on GitHub** (on by default): only the signature
   of an unexpected message is sent.
-- **Hold back the cloud's write commands at connection** (on by default): see
+- **Hold back the cloud's restores at connection** (on by default): see
   [Guard at connection](#guard-at-connection).
 - **Watchdog key**: 16 characters, proposed when none is set. A watchdog on
   another machine (standalone, or in
@@ -204,13 +204,12 @@ repair issue when the search found no report.
 At every connection of a device, the Red Sea cloud sends it its own copy of the
 device settings. When that copy is out of date, the device loses its current
 ones: a ReefWave lost its whole schedule that way. For the first 30 seconds of
-each connection through the relay, the write commands of the cloud are
-therefore held back (its reads still pass).
+each connection through the relay, the known restores of the cloud (a ReefWave
+group and schedule, a ReefDose food head) are therefore held back.
 
-The known restores (a ReefDose food head, a ReefWave group and schedule) are
-held back silently. Any other write command held back raises a repair issue
-listing it: if you changed something in the ReefBeat app at that very moment,
-do it again.
+Any other command passes, written to the logs (`guard_passed` in the spy file):
+a device that restarts while the app is in use (a ReefControl crashing as a
+probe is installed) gets the commands of the user.
 
 ## Events
 

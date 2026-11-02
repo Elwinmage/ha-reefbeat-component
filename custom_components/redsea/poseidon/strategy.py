@@ -35,6 +35,7 @@ from homeassistant.util import dt as dt_util
 
 from .mergers import (
     dosing_fully_pushed,
+    merge_reef_control,
     merge_reef_control_telemetry,
     merge_reef_dosing,
     merge_reef_dosing_telemetry,
@@ -176,6 +177,7 @@ MERGERS: dict[str, Merger] = {
     "reef-power": merge_reef_power,
     "reef-dosing": merge_reef_dosing,
     "reef-mat": merge_reef_mat,
+    "reef-control": merge_reef_control,
 }
 # Device type -> merger of its telemetry
 TELEMETRY_MERGERS: dict[str, Merger] = {
@@ -205,6 +207,8 @@ READ_AT_MIDNIGHT: frozenset[str] = frozenset({"reef-dosing"})
 # merger of the family)
 MERGES_ON: dict[str, frozenset[str]] = {
     "reef-mat": frozenset({"rolling-log"}),
+    # A probe reading changed
+    "reef-control": frozenset({"probe"}),
 }
 
 

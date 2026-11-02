@@ -7,10 +7,8 @@ from datetime import timedelta
 from typing import Any
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import issue_registry as ir
 from homeassistant.util import dt as dt_util
 
-from custom_components.redsea.const import DOMAIN
 from custom_components.redsea.poseidon import const
 from custom_components.redsea.poseidon import manager as manager_mod
 from custom_components.redsea.poseidon.crypto import encrypt_payload
@@ -113,47 +111,44 @@ def _guarded(hass: HomeAssistant, options: dict[str, Any] | None = None) -> Any:
     return poseidon
 
 
-async def test_write_commands_are_held_back(hass: HomeAssistant) -> None:
-    poseidon = _guarded(hass)
+async def test_only_the_known_restores_are_held_back(hass: HomeAssistant) -> None:
+    poseidon = _guarded(hass)  # a reef-wave
     _logs(poseidon)
     spy_writes: list[dict[str, Any]] = []
     poseidon.spy_log.write = spy_writes.append  # type: ignore[method-assign]
     assert poseidon.relay.down_filter == poseidon._guard_down
     assert poseidon._guard_down(HWID, _frame(_command("GET", "/auto")))
-    assert not poseidon._guard_down(HWID, _frame(_command("POST", "/mode")))
-    assert not poseidon._guard_down(HWID, _frame(_command("put", "/manual")))
-    # Encrypted otherwise than usual: unreadable, held back too
+    # A restore of the cloud
+    assert not poseidon._guard_down(HWID, _frame(_command("POST", "/auto/init")))
+    # Anything else: a command of the user, while the device restarted
+    assert poseidon._guard_down(HWID, _frame(_command("POST", "/mode")))
+    assert poseidon._guard_down(HWID, _frame(_command("put", "/manual")))
+    # Encrypted otherwise than usual: unreadable, it passes
     odd = encode_publish(COMMAND_TOPIC, b"SGVsbG8gd29ybGQgZW5jcnlwdGVk")
-    assert not poseidon._guard_down(HWID, _frame(odd))
+    assert poseidon._guard_down(HWID, _frame(odd))
     # What is no command of the cloud passes
     assert poseidon._guard_down(HWID, _frame(PING))
     state = encode_publish(f"device/reef-wave/{HWID}/state", b"x")
     assert poseidon._guard_down(HWID, _frame(state))
     group = encode_publish("group/reef-wave/g/command", b"x")
     assert poseidon._guard_down(HWID, _frame(group))
-    issue = ir.async_get(hass).async_get_issue(DOMAIN, f"{const.ISSUE_GUARD}_{HWID}")
-    assert issue is not None and issue.translation_key == const.ISSUE_GUARD
-    placeholders = issue.translation_placeholders or {}
-    assert placeholders["count"] == "3"
-    assert placeholders["seconds"] == str(int(const.CONNECT_GUARD_S))
-    assert "`POST /mode`" in placeholders["commands"]
-    assert "`PUT /manual`" in placeholders["commands"]
-    assert "(unreadable command)" in placeholders["commands"]
-    assert [r["event"] for r in spy_writes] == ["guard_blocked"] * 3
-    # Poseidon stopped: the issue goes
-    poseidon.async_clear_issues()
-    assert (
-        ir.async_get(hass).async_get_issue(DOMAIN, f"{const.ISSUE_GUARD}_{HWID}")
-        is None
-    )
+    # No repair issue any more: written to the logs
+    assert [(r["event"], r["value"]) for r in spy_writes] == [
+        ("guard_blocked", "POST /auto/init"),
+        ("guard_passed", "POST /mode"),
+        ("guard_passed", "PUT /manual"),
+    ]
+    assert [r["known_restore"] for r in spy_writes] == [True, False, False]
 
 
 async def test_guard_in_debug_mode_and_unknown_device(hass: HomeAssistant) -> None:
     poseidon = _guarded(hass, {const.CONF_DEBUG: True})
     debug: list[dict[str, Any]] = []
     poseidon.debug_log.write = debug.append  # type: ignore[method-assign]
-    assert not poseidon._guard_down("someone", _frame(_command("PUT", "/x")))
-    assert [r["value"] for r in debug] == ["(unreadable command)"]
+    # No keys: unreadable, it passes
+    assert poseidon._guard_down("someone", _frame(_command("PUT", "/x")))
+    assert poseidon._guard_down(HWID, _frame(_command("PUT", "/x")))
+    assert [r["value"] for r in debug] == ["PUT /x"]
 
 
 async def test_guard_turned_off(hass: HomeAssistant) -> None:
@@ -252,21 +247,22 @@ async def _noop(*args: Any) -> None:
     return None
 
 
-async def test_known_restores_raise_no_issue(hass: HomeAssistant) -> None:
+async def test_known_restores_of_each_family(hass: HomeAssistant) -> None:
     poseidon = _guarded(hass)  # a reef-wave
     marks: list[dict[str, Any]] = []
     poseidon.spy_log.write = marks.append  # type: ignore[method-assign]
     restore = ("/group", "/auto/init", "/auto", "/auto/complete", "/auto/apply")
     for url in restore:
         assert not poseidon._guard_down(HWID, _frame(_command("POST", url)))
-    issue_id = f"{const.ISSUE_GUARD}_{HWID}"
-    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
     assert [m["known_restore"] for m in marks] == [True] * len(restore)
     # What it would have written is kept in the mark
     assert marks[0]["command"]["url"] == "/group"
     # Another family: the same URL is no known restore
     poseidon.keystore.devices[HWID].type = "reef-dosing"
-    assert not poseidon._guard_down(HWID, _frame(_command("POST", "/auto")))
-    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is not None
+    assert poseidon._guard_down(HWID, _frame(_command("POST", "/auto")))
     assert not poseidon._guard_down(HWID, _frame(_command("POST", "/food-head")))
-    assert poseidon._guarded[HWID] == ["POST /auto"]
+    # A ReefControl restarting while probes are set up in the app (spy run
+    # of 2026-11-02 20:43): the commands of the user pass
+    poseidon.keystore.devices[HWID].type = "reef-control"
+    for method, url in (("DELETE", "/probe?type=ato"), ("POST", "/ble/off")):
+        assert poseidon._guard_down(HWID, _frame(_command(method, url)))

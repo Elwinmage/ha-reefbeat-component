@@ -73,8 +73,20 @@ COMMON_PACKETS: frozenset[int] = frozenset(range(1, 15))
 # Topics: device/<family>/<hwid>/<suffix>, by direction
 # rolling-log: pushed by a ReefMat when its roll advances; dosing-log: by a
 # ReefDose after a dose (spy runs of 2026-10-30)
+# probe, notification, calibration-log: pushed by a ReefControl when a probe
+# reading changes, an alarm is raised, a calibration ends (spy run of
+# 2026-11-02)
 COMMON_UP_TOPICS: frozenset[str] = frozenset(
-    {"telemetry", "state", "command-response", "rolling-log", "dosing-log"}
+    {
+        "telemetry",
+        "state",
+        "command-response",
+        "rolling-log",
+        "dosing-log",
+        "probe",
+        "notification",
+        "calibration-log",
+    }
 )
 COMMON_DOWN_TOPICS: frozenset[str] = frozenset({"command"})
 # Commands every device answers. POST /time {"timezone": <minutes>}: sent by
@@ -129,6 +141,9 @@ _METRICS = {
     "metrics.wifi_dis": _types(NUMBER),
     # Once after a loss of the internet access (RSMAT 1.10.2, 2026-10-31)
     "metrics.int_dis": _types(NUMBER),
+    # Once after a restart on a firmware crash, with res (ReefControl 1.1.13
+    # installing an ATO probe, 2026-11-02 20:43)
+    "metrics.fatal_error": _types(NUMBER),
 }
 
 
@@ -224,6 +239,8 @@ REEF_POWER = FamilyCatalog(
             "GET /temperature/subscriptions",
             "GET /probe/offset",
             "POST /probe/offset",
+            # The probe removed in the app (spy run of 2026-11-02 19:50)
+            "DELETE /sensor",
         }
     ),
 )
@@ -418,6 +435,7 @@ REEF_WAVE = FamilyCatalog(
 _CONTROL_TELEMETRY_REQUIRED = {
     "mode": _types(STR),
     "active_shortcut": _types(STR),
+    # Empty while no probe is installed
     "probes": _types(LIST),
     "local_time": _types(STR),
     "utc_time": _types(STR),
@@ -425,14 +443,93 @@ _CONTROL_TELEMETRY_REQUIRED = {
     "wifi_signal": _types(NUMBER),
     "free_heap": _types(NUMBER),
 }
-# ReefControl, seen in setup mode only (no probe, no port set up; spy run of
-# 2026-11-01): the fields of a probe in the telemetry are reported as
-# unexpected, which tells them
+# Fields of a probe, by its type: orp, ph, temperature (value, level), ec
+# (ec, ppt, sg), leak (detected), ato (water_level), with the reading of
+# their temperature sensor (temp_value, temp_level) for ec, ph, ato
+_CONTROL_PROBE = {
+    "probes.*.type": _types(STR),
+    "probes.*.uid": _types(STR),
+    "probes.*.name": _types(STR),
+    "probes.*.status": _types(STR),
+    "probes.*.value": _types(NUMBER),
+    "probes.*.level": _types(STR),
+    "probes.*.ec": _types(NUMBER),
+    "probes.*.ppt": _types(NUMBER),
+    "probes.*.sg": _types(NUMBER),
+    "probes.*.temp_value": _types(NUMBER),
+    "probes.*.temp_level": _types(STR),
+    "probes.*.detected": _types(BOOL),
+    "probes.*.water_level": _types(STR),
+}
+# ReefControl: in setup mode (spy run of 2026-11-01), then paired with a
+# ReefControl Power and given an ORP, EC, pH, temperature, leak and ATO probe
+# (spy run of 2026-11-02). Its ports were never set up: their fields are
+# reported as unexpected, which tells them.
 REEF_CONTROL = FamilyCatalog(
-    telemetry={**_CONTROL_TELEMETRY_REQUIRED, **_METRICS},
+    telemetry={**_CONTROL_TELEMETRY_REQUIRED, **_CONTROL_PROBE, **_METRICS},
     telemetry_required=frozenset(_CONTROL_TELEMETRY_REQUIRED),
-    state=None,
-    commands=None,
+    state={
+        "specific_attributes.mode": _types(STR),
+        "specific_attributes.active_shortcut": _types(STR),
+        "specific_attributes.cable_connected": _types(BOOL),
+        "specific_attributes.connected_device": _types(ANY),
+        "specific_attributes.device_settings.leak.buzzer": _types(BOOL),
+        "specific_attributes.device_settings.leak.leak_detector": _types(BOOL),
+        "specific_attributes.device_settings.leak.notify": _types(BOOL),
+        "specific_attributes.leak.mode": _types(STR),
+        "specific_attributes.probes": _types(LIST),
+        "specific_attributes.probes.*.type": _types(STR),
+        "specific_attributes.probes.*.uid": _types(STR),
+        "specific_attributes.probes.*.fw_version": _types(STR),
+        "specific_attributes.probes.*.last_installation_date": _types(NUMBER),
+        "specific_attributes.probes.*.last_adjustment_date": _types(NUMBER),
+        "specific_attributes.probes.*.last_calibration_date": _types(NUMBER),
+        "specific_attributes.probes_settings": _types(LIST),
+        "specific_attributes.probes_settings.*.type": _types(STR),
+        "specific_attributes.probes_settings.*.uid": _types(STR),
+        "specific_attributes.probes_settings.*.name": _types(STR),
+        "specific_attributes.probes_settings.*.unit": _types(STR),
+        "specific_attributes.probes_settings.*.buzzer": _types(BOOL),
+        "specific_attributes.probes_settings.*.notify": _types(BOOL),
+        "specific_attributes.probes_settings.*.temp.buzzer": _types(BOOL),
+        "specific_attributes.probes_settings.*.temp.notify": _types(BOOL),
+        "specific_attributes.ports.*.number": _types(NUMBER),
+        "specific_attributes.ports.*.type": _types(STR),
+        "specific_attributes.ports.*.last_installation_date": _types(NUMBER),
+        "specific_attributes.ports_settings.*.number": _types(NUMBER),
+        "specific_attributes.ports_settings.*.type": _types(STR),
+        # Pushed on connection
+        "attributes": _types(ANY),
+        "specific_attributes.timezone": _types(NUMBER),
+        "specific_attributes.is_factory_reset": _types(BOOL),
+        "specific_attributes.factory_reset_time": _types(NUMBER),
+        "specific_attributes.device_setup_date": _types(NUMBER),
+    },
+    commands=frozenset(
+        {
+            "GET /mode",
+            "GET /ports/config",
+            "GET /subscription-info",
+            "POST /setup-finish",
+            # Paired with a ReefControl Power (POST /power/discover {pair})
+            "POST /power/discover",
+            # Probes: installed, set up, calibrated, removed
+            "POST /probe/install",
+            "DELETE /probe",
+            "POST /ble/off",
+            "GET /probe",
+            "GET /probe/info",
+            "GET /probe/config",
+            "PUT /probe/config",
+            "GET /probe/offset",
+            "POST /probe/offset",
+            "POST /probe/calibration-enter",
+            "POST /probe/calibration-point-start",
+            "GET /probe/calibration-status",
+            "POST /probe/calibration-exit",
+            "PUT /leak/config",
+        }
+    ),
 )
 
 CATALOGS: dict[str, FamilyCatalog] = {

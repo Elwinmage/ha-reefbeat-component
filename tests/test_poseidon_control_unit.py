@@ -11,7 +11,10 @@ from typing import Any
 
 from custom_components.redsea.poseidon import anomalies as an
 from custom_components.redsea.poseidon import strategy
-from custom_components.redsea.poseidon.mergers import merge_reef_control_telemetry
+from custom_components.redsea.poseidon.mergers import (
+    merge_reef_control,
+    merge_reef_control_telemetry,
+)
 from custom_components.redsea.poseidon.relay import UP
 
 FIXTURE = json.loads(
@@ -48,23 +51,17 @@ def test_recorded_telemetry_has_no_anomaly() -> None:
 
 
 def test_fields_of_a_probe_are_told() -> None:
-    # Not seen yet: the first telemetry with a probe tells its fields
+    # A field of a probe not seen yet: told by the first telemetry carrying it
     telemetry = dict(
-        FIXTURE["telemetry"][0], probes=[{"uid": "u", "type": "temp", "value": 25.1}]
+        FIXTURE["telemetry"][0],
+        probes=[{"uid": "u", "type": "no2", "value": 0.1, "no2_unit": "ppm"}],
     )
     [found] = an.check_frame(CONTROL, UP, 3, TOPIC, telemetry, HWID)
     assert found.level == an.LEVEL_TELEMETRY
-    assert found.details == (
-        "+probes.*.type:str",
-        "+probes.*.uid:str",
-        "+probes.*.value:number",
-    )
+    assert found.details == ("+probes.*.no2_unit:str",)
     missing = {k: v for k, v in FIXTURE["telemetry"][0].items() if k != "probes"}
     [found] = an.check_frame(CONTROL, UP, 3, TOPIC, missing, HWID)
     assert found.details == ("-probes",)
-    # States and commands are not checked yet
-    state = f"device/{CONTROL}/{HWID}/state"
-    assert an.check_frame(CONTROL, UP, 3, state, {"x": 1}, HWID) == []
 
 
 # -- merger ------------------------------------------------------------------------------
@@ -72,8 +69,9 @@ def test_fields_of_a_probe_are_told() -> None:
 
 def test_registered() -> None:
     assert strategy.TELEMETRY_MERGERS[CONTROL] is merge_reef_control_telemetry
-    # Every pushed state reads the device again
-    assert CONTROL not in strategy.MERGERS
+    assert strategy.MERGERS[CONTROL] is merge_reef_control
+    assert strategy.merges_on(CONTROL, f"device/{CONTROL}/{HWID}/probe")
+    # Its ports were never seen set up
     assert CONTROL not in strategy.FULLY_PUSHED
 
 

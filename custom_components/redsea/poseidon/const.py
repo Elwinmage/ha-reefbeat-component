@@ -168,7 +168,6 @@ ISSUE_ANOMALY: Final[str] = "poseidon_anomaly"
 CONF_CONNECT_GUARD: Final[str] = "connect_guard"
 DEFAULT_CONNECT_GUARD: Final[bool] = True
 CONNECT_GUARD_S: Final[float] = 30.0
-ISSUE_GUARD: Final[str] = "poseidon_guard"
 # What the cloud sends at every connection of a device to restore its copy
 # of the settings (spy runs of 2026-10-30): held back by the guard without a
 # repair issue, only logged. Any other write command held back raises one

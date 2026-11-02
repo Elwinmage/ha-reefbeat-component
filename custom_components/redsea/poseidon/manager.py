@@ -179,8 +179,6 @@ class Poseidon:
         self._switched_at: dict[str, Any] = {}
         # Reconnections forced so far, per device that never showed up
         self._reconnects: dict[str, int] = {}
-        # Commands of the cloud held back by the guard, per device
-        self._guarded: dict[str, list[str]] = {}
         self._unsub_refresh: Callable[[], None] | None = None
         self._last_signal = 0.0
         # Platform callbacks of the per-device entities, and the devices that
@@ -573,9 +571,6 @@ class Poseidon:
             ir.async_delete_issue(
                 self.hass, DOMAIN, f"{const.ISSUE_DEVICE_SILENT}_{hwid}"
             )
-        for hwid in self._guarded:
-            ir.async_delete_issue(self.hass, DOMAIN, f"{const.ISSUE_GUARD}_{hwid}")
-        self._guarded.clear()
 
     # ------------------------------------------------------------------
     # Keystore export / import (CLI format)
@@ -969,9 +964,12 @@ class Poseidon:
     @callback
     def _guard_down(self, hwid: str, frame: MqttFrame) -> bool:
         """A frame to a device in the first seconds of its connection:
-        whether it is forwarded. Write commands of the cloud are held back
-        (read ones pass): the cloud may restore an old copy of the device
-        settings when it connects."""
+        whether it is forwarded. The known restores of the cloud are held
+        back (the cloud restores an old copy of the device settings when it
+        connects: a ReefWave lost its schedule that way); anything else
+        passes, written to the logs: a device that restarts while the app is
+        in use (a ReefControl crashing as a probe is installed) gets the
+        commands of the user then."""
         if not self.connect_guard or frame.packet_type != PACKET_PUBLISH:
             return True
         topic, payload = frame.parse_publish()
@@ -986,57 +984,26 @@ class Poseidon:
                     payload.decode("utf-8", errors="replace"), secret
                 )
         key = command_key(message)
-        if key is not None and key.startswith("GET "):
+        if key is None or key.startswith("GET "):
             return True
-        # Encrypted otherwise than usual: held back too, it cannot be read
-        shown = key or "(unreadable command)"
         name = (dev.name if dev else "") or hwid
-        known = shown in const.GUARD_KNOWN_RESTORES.get(dev.type if dev else "", ())
-        record = mark_record(hwid, "guard_blocked", shown)
+        known = key in const.GUARD_KNOWN_RESTORES.get(dev.type if dev else "", ())
+        record = mark_record(hwid, "guard_blocked" if known else "guard_passed", key)
         record["known_restore"] = known
-        # What it would have written (the device may not be in spy mode yet
-        # at connection: its frames are not logged then)
+        # What it writes (the device may not be in spy mode yet at
+        # connection: its frames are not logged then)
         if isinstance(message, dict):
             record["command"] = redact(message)
         if self.debug:
             self.debug_log.write(record)
         self.spy_log.write(record)
-        if known:
-            # Sent at every connection: no repair issue each time
-            _LOGGER.info(
-                "Poseidon: %s just connected, restore of the cloud held back: %s",
-                name,
-                shown,
-            )
-            return False
-        self._guarded.setdefault(hwid, []).append(shown)
-        _LOGGER.warning(
-            "Poseidon: %s just connected, command of the cloud held back: %s",
+        _LOGGER.info(
+            "Poseidon: %s just connected, %s of the cloud: %s",
             name,
-            shown,
+            "restore held back" if known else "command forwarded",
+            key,
         )
-        self._raise_guard_issue(hwid)
-        return False
-
-    @callback
-    def _raise_guard_issue(self, hwid: str) -> None:
-        dev = self.keystore.get(hwid)
-        held = self._guarded.get(hwid, [])
-        ir.async_create_issue(
-            self.hass,
-            DOMAIN,
-            f"{const.ISSUE_GUARD}_{hwid}",
-            is_fixable=False,
-            is_persistent=False,
-            severity=ir.IssueSeverity.WARNING,
-            translation_key=const.ISSUE_GUARD,
-            translation_placeholders={
-                "name": (dev.name if dev else "") or hwid,
-                "count": str(len(held)),
-                "seconds": str(int(const.CONNECT_GUARD_S)),
-                "commands": ", ".join(f"`{c}`" for c in held[-10:]),
-            },
-        )
+        return not known
 
     @callback
     def async_set_paused(self, hwid: str, paused: bool) -> None:
