@@ -2,6 +2,23 @@
 
 ## MODIFICATIONS
 
+### Poseidon: ports of the ReefControl, sockets removed from the Power
+
+From a spy run where a socket of the ReefControl Power was removed and a 12V
+port of the ReefControl installed and scheduled in the ReefBeat app:
+
+- ReefControl states: `ports` (mode, state) and `ports_settings` (name,
+  mode, enabled...) merged into `/dashboard.ports` and `/ports/config`; a
+  port of another type than polled (installed, removed) reads the device
+  again. The schedule of a port is pushed by nothing: the read after every
+  write command of the app covers it.
+- ReefControl Power: the null consumption pushed for a socket in setup mode
+  (removed) is 0, as polled.
+- Catalogue: `DELETE /socket/*/config` and `PUT /unsubscribe` of the Power;
+  `POST /port/*/install`, `PUT /port/*/schedule`, `PUT /ports/config`,
+  `PUT /socket/*/unsubscribe`, `GET /leak/config` of the ReefControl; the
+  port fields of its states.
+
 ### Poseidon: the guard at connection holds back the known restores only
 
 - A ReefControl crashed (`metrics.fatal_error`) as an ATO probe was

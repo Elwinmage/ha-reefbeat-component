@@ -241,6 +241,10 @@ REEF_POWER = FamilyCatalog(
             "POST /probe/offset",
             # The probe removed in the app (spy run of 2026-11-02 19:50)
             "DELETE /sensor",
+            # A socket removed in the app, unsubscribed from the ReefControl
+            # it was driven by (spy run of 2026-11-02 21:15)
+            "DELETE /socket/*/config",
+            "PUT /unsubscribe",
         }
     ),
 )
@@ -496,8 +500,17 @@ REEF_CONTROL = FamilyCatalog(
         "specific_attributes.ports.*.number": _types(NUMBER),
         "specific_attributes.ports.*.type": _types(STR),
         "specific_attributes.ports.*.last_installation_date": _types(NUMBER),
+        "specific_attributes.ports.*.is_setup": _types(BOOL),
+        "specific_attributes.ports.*.mode": _types(STR),
+        "specific_attributes.ports.*.state": _types(STR),
         "specific_attributes.ports_settings.*.number": _types(NUMBER),
         "specific_attributes.ports_settings.*.type": _types(STR),
+        "specific_attributes.ports_settings.*.name": _types(STR),
+        "specific_attributes.ports_settings.*.user_config_mode": _types(STR),
+        "specific_attributes.ports_settings.*.enabled": _types(BOOL),
+        "specific_attributes.ports_settings.*.power_detector_enabled": _types(BOOL),
+        # Never seen other than null
+        "specific_attributes.ports_settings.*.sensor": _types(ANY),
         # Pushed on connection
         "attributes": _types(ANY),
         "specific_attributes.timezone": _types(NUMBER),
@@ -528,6 +541,13 @@ REEF_CONTROL = FamilyCatalog(
             "GET /probe/calibration-status",
             "POST /probe/calibration-exit",
             "PUT /leak/config",
+            "GET /leak/config",
+            # A 12V port installed and scheduled, a socket of the Power
+            # unsubscribed from it (spy run of 2026-11-02 21:15-21:19)
+            "POST /port/*/install",
+            "PUT /port/*/schedule",
+            "PUT /ports/config",
+            "PUT /socket/*/unsubscribe",
         }
     ),
 )

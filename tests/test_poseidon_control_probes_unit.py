@@ -75,9 +75,9 @@ def test_recorded_run_has_no_anomaly() -> None:
 
 
 def test_unknown_command_and_state_are_told() -> None:
-    command = {"method": "POST", "url": "/port/1/install", "body": {"type": "ato"}}
+    command = {"method": "POST", "url": "/port/1/uninstall", "body": {}}
     [found] = an.check_frame(CONTROL, "down", 3, _topic("command"), command)
-    assert found.details == ("POST /port/*/install",)
+    assert found.details == ("POST /port/*/uninstall",)
     state = {"specific_attributes": {"buzzer": {"active": True}}}
     [found] = an.check_frame(CONTROL, UP, 3, _topic("state"), state, HWID)
     assert found.details == ("+specific_attributes.buzzer.active:bool",)
@@ -200,9 +200,10 @@ def test_states_merged_or_read_again() -> None:
     for state in (
         _state(probes=[{"type": "ph", "uid": "0x00B39"}]),
         _state(probes_settings=[]),
-        _state(ports_settings=[]),
+        _state(ports_settings=[{"number": 0, "type": "other"}]),
         _state(device_settings={"leak": {"buzzer": True}}),
-        _state(mode="auto", ports=[]),
+        _state(mode="auto", ports=[{"number": 7, "type": "unknown"}]),
+        _state(mode="auto", ports="junk"),
     ):
         assert not merge_reef_control(coordinator, _topic("state"), state)
     assert not merge_reef_control(coordinator, _topic("state"), "junk")

@@ -122,7 +122,8 @@ def device_now(coordinator: Any) -> datetime | None:
 #   mode                 -> as in the state
 #   battery_level        -> /dashboard.battery_level
 #   sockets.N.consumption, mode, prev_mode -> the socket N of /dashboard
-#                           (mode also in /sockets/config)
+#                           (mode also in /sockets/config); null consumption
+#                           of a socket in setup mode (removed) -> 0, as polled
 #   wifi_signal          -> /wifi.signal_dBm
 #   local_time           -> the clock of the device (see below)
 #   pwr_temperature      -> /dashboard.temperature: its value, status and
@@ -377,6 +378,9 @@ def merge_reef_power_telemetry(coordinator: Any, topic: str, payload: Any) -> bo
                     if field in pushed:
                         socket[field] = pushed[field]
                         merged = True
+                if "consumption" in pushed and pushed["consumption"] is None:
+                    # A socket in setup mode: null pushed, 0 polled
+                    socket["consumption"] = 0
             config = _socket_of(_data(coordinator, "/sockets/config"), number)
             if config is not None and "mode" in pushed:
                 config["mode"] = pushed["mode"]
@@ -914,12 +918,21 @@ def merge_reef_lights_telemetry(coordinator: Any, topic: str, payload: Any) -> b
 #                            with), leak.mode -> /dashboard
 #   timezone, is_factory_reset, factory_reset_time, device_setup_date,
 #     active_shortcut, attributes -> nothing polled
-#   probes, probes_settings, ports, ports_settings, device_settings -> a
-#                            probe or a port installed, removed, set up: the
-#                            device is read again
+#   ports.N               -> the port "number": N of /dashboard.ports: mode,
+#                            state (spy run of 2026-11-02 21:18)
+#   ports_settings.N      -> the same port: name, user_config_mode; and the
+#                            port of /ports/config: name, user_config_mode,
+#                            enabled, power_detector_enabled, sensor
+#   a port of another type than polled (installed, removed) -> read again
+#                            (its schedule source follows its type); its
+#                            schedule (PUT /port/N/schedule) is pushed by
+#                            nothing: read again after the command (manager)
+#   probes, probes_settings, device_settings -> a probe installed, removed,
+#                            set up: the device is read again
 # A probe the poll does not know yet (being installed) is not merged: the
 # state of its installation reads the device again. Never FULLY_PUSHED: the
-# ports were never seen set up.
+# consumption and the state of a port running its schedule are not in the
+# telemetry (a port seen standby only).
 
 _CONTROL_PROBE_FIELDS = (
     "name",
@@ -1009,6 +1022,58 @@ def _merge_control_probe_event(coordinator: Any, payload: Any) -> bool:
     return True
 
 
+def _control_port(data: Any, number: Any) -> dict[str, Any] | None:
+    """The port "number" of a list of ports (/dashboard.ports, /ports/config)."""
+    ports = data.get("ports") if isinstance(data, dict) else data
+    for port in ports if isinstance(ports, list) else ():
+        if isinstance(port, dict) and port.get("number") == number:
+            return port
+    return None
+
+
+def _merge_control_ports(coordinator: Any, state: dict[str, Any]) -> tuple[bool, bool]:
+    """The ports and ports_settings of a state: (merged, read again)."""
+    merged = again = False
+    dashboard = _data(coordinator, "/dashboard")
+    # A bare list: not what _data gives
+    source = _source(coordinator, "/ports/config")
+    config = source.get("data") if source is not None else None
+    for key, to_dashboard, to_config in (
+        ("ports", ("mode", "state"), ()),
+        (
+            "ports_settings",
+            ("name", "user_config_mode"),
+            ("name", "user_config_mode", "enabled", "power_detector_enabled", "sensor"),
+        ),
+    ):
+        pushed_ports = state.get(key)
+        if key not in state:
+            continue
+        if not isinstance(pushed_ports, list):
+            again = True
+            continue
+        for pushed in pushed_ports:
+            if not isinstance(pushed, dict):
+                continue
+            port = _control_port(dashboard, pushed.get("number"))
+            if port is None or pushed.get("type", port.get("type")) != port.get("type"):
+                # Installed, removed, or never polled
+                again = True
+                continue
+            for field in to_dashboard:
+                if field in pushed:
+                    port[field] = pushed[field]
+                    merged = True
+            configured = _control_port(config, pushed.get("number"))
+            if configured is None:
+                continue
+            for field in to_config:
+                if field in pushed:
+                    configured[field] = pushed[field]
+                    merged = True
+    return merged, again
+
+
 def merge_reef_control(coordinator: Any, topic: str, payload: Any) -> bool:
     """Merge a pushed state, or a probe event, of a ReefControl (see the
     table above)."""
@@ -1029,8 +1094,16 @@ def merge_reef_control(coordinator: Any, topic: str, payload: Any) -> bool:
         if isinstance(leak, dict) and isinstance(dashboard.get("leak"), dict):
             dashboard["leak"].update(leak)
             merged = True
-    known = _CONTROL_STATE_IGNORED | {"mode", "cable_connected", "connected_device"}
+    ports_merged, again = _merge_control_ports(coordinator, state)
+    merged = merged or ports_merged
+    known = _CONTROL_STATE_IGNORED | {
+        "mode",
+        "cable_connected",
+        "connected_device",
+        "ports",
+        "ports_settings",
+    }
     if dashboard is not None and isinstance(dashboard.get("leak"), dict):
         known = known | {"leak"}
-    unknown = _unhandled(state, known)
+    unknown = again or _unhandled(state, known)
     return (merged or not set(state) - _CONTROL_STATE_IGNORED) and not unknown
