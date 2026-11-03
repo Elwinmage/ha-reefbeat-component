@@ -357,10 +357,12 @@ async def test_safety_polling_option(hass: HomeAssistant) -> None:
 
 
 async def test_telemetry_of_a_family_without_merger(hass: HomeAssistant) -> None:
-    poseidon, coordinator = _poseidon(hass)  # reef-wave: no telemetry merger
+    poseidon, coordinator = _poseidon(hass)
+    # reef-ato: no telemetry merger
+    poseidon.keystore.devices[HWID].type = "reef-ato"
     spy, _ = _logs(poseidon)
     poseidon._apply_polling()
-    topic = f"device/reef-wave/{HWID}/telemetry"
+    topic = f"device/reef-ato/{HWID}/telemetry"
     poseidon._on_frame(HWID, UP, _state_frame({"speed": 1}, topic))
     coordinator.async_update_listeners()
     # Recorded as a frame, never compared

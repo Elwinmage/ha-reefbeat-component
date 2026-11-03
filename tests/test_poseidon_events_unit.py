@@ -145,6 +145,9 @@ def test_telemetry_catalogues() -> None:
     ):
         topic = _topic(family, "telemetry")
         assert an.check_frame(family, UP, 3, topic, telemetry) == [], family
+        if family == "reef-wave":
+            # Its states and commands are known (test_poseidon_wave_merge_unit)
+            continue
         # Their states and commands are not checked yet
         assert an.check_frame(family, UP, 3, _topic(family, "state"), {"x": 1}) == []
         command = {"method": "POST", "url": "/anything"}

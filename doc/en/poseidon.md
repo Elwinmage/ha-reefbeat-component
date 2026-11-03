@@ -112,6 +112,7 @@ Families merged so far, from the spy runs:
 | ReefDose | states, telemetry; a `dosing-log` (end of a dose) reads it again, for its dosing queue, and so does midnight (00:01, Home Assistant's time), when the queue of the new day replaces the one of the day ending |
 | ReefMat | states, telemetry, `rolling-log` (end of an advance) |
 | ReefLED | telemetry |
+| ReefWave | states (mode: a feeding switches it off then back to auto, settings), telemetry (mode, wifi signal); a program written in the app (`schedule`, pushed without its intervals) reads it again. Its current wave is derived from its program and the clock: the change of wave at the start of an interval is pushed by nothing (only its telemetry tells it, within a minute) |
 | ReefRun | states, telemetry (state, intensity, temperature of its pumps: full cup, missing pump...); the end of a calibration and a `notification` (a pump to reconnect) read it again |
 | ReefControl | telemetry and `probe` events (probe readings), states (mode, link with a ReefControl Power, leak mode), the mode and state of its ports (a port switched off consumes 0; the consumption of a port on comes by the poll); a probe or a port installed or set up reads it again |
 
@@ -125,8 +126,9 @@ not every setting is pushed (the offset of a temperature probe is not).
 
 A ReefControl Power without socket driven by a sensor (with or without a
 temperature probe),
-and a ReefDose (its dosing queue read after each dose and at midnight), have
-everything that changes pushed: with *Poseidon*, they are only polled every
+a ReefDose (its dosing queue read after each dose and at midnight), and a
+ReefWave (its program read again when it changes), have everything that
+changes pushed: with *Poseidon*, they are only polled every
 *Safety polling interval*.
 
 ### Spy

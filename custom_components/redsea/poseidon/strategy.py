@@ -46,7 +46,10 @@ from .mergers import (
     merge_reef_power_telemetry,
     merge_reef_run,
     merge_reef_run_telemetry,
+    merge_reef_wave,
+    merge_reef_wave_telemetry,
     power_fully_pushed,
+    wave_fully_pushed,
 )
 
 # Topic suffix of the states a device pushes
@@ -181,6 +184,7 @@ MERGERS: dict[str, Merger] = {
     "reef-mat": merge_reef_mat,
     "reef-control": merge_reef_control,
     "reef-run": merge_reef_run,
+    "reef-wave": merge_reef_wave,
 }
 # Device type -> merger of its telemetry
 TELEMETRY_MERGERS: dict[str, Merger] = {
@@ -190,6 +194,7 @@ TELEMETRY_MERGERS: dict[str, Merger] = {
     "reef-lights": merge_reef_lights_telemetry,
     "reef-control": merge_reef_control_telemetry,
     "reef-run": merge_reef_run_telemetry,
+    "reef-wave": merge_reef_wave_telemetry,
 }
 # Device type -> topic suffixes of the events after which the poseidon
 # strategy reads the device again: what changed is pushed by nothing (a
@@ -203,6 +208,7 @@ READ_ON: dict[str, frozenset[str]] = {
 FULLY_PUSHED: dict[str, Callable[[Any], bool]] = {
     "reef-power": power_fully_pushed,
     "reef-dosing": dosing_fully_pushed,
+    "reef-wave": wave_fully_pushed,
 }
 # Device types the poseidon strategy reads again just after midnight: what
 # changes then is pushed by nothing (the dosing queue of the new day)

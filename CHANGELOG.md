@@ -2,6 +2,25 @@
 
 ## MODIFICATIONS
 
+### Poseidon: ReefWave merged, polled as a safety net only
+
+From the spy runs of 2026-10-30 to 2026-11-03 (a RSWAVE45 0.10.0 in a group:
+programs written in the app, feedings, key capture), checked against 81047
+polls:
+
+- ReefWave merger: its telemetry (mode, wifi signal) and its states (mode,
+  `device_settings`). A program written in the app pushes a `schedule` (its
+  hash and uid, not its intervals): the pump is read again; each of the 30
+  changes of `/auto` polled came after one. A connection and a feeding program
+  read it again too.
+- Fully pushed once its program and mode were polled: with the Poseidon
+  strategy, the pump (polled every 2 minutes so far) is polled every *Safety
+  polling interval*. Its current wave is derived from its program and the
+  clock, refreshed with each telemetry.
+- Catalogue of the ReefWave: its states and the commands of the app
+  (`/auto/init`, `/auto`, `/auto/complete`, `/auto/apply`, `/group`,
+  `/group/sync`, `PUT /device-settings`).
+
 ### Poseidon: ReefRun merged, `redsea_notification` event
 
 From the spy runs of 2026-10-30 to 2026-11-03 (a return pump and an RSK 900

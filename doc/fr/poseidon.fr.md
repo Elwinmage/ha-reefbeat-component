@@ -117,6 +117,7 @@ Familles fusionnées à ce jour, d'après les relevés espion :
 | ReefDose | états, télémétrie ; un `dosing-log` (fin d'une dose) le fait relire, pour sa file de dosage, de même que minuit (00:01, heure de Home Assistant), quand la file du nouveau jour remplace celle du jour qui finit |
 | ReefMat | états, télémétrie, `rolling-log` (fin d'une avance) |
 | ReefLED | télémétrie |
+| ReefWave | états (mode : un nourrissage l'éteint puis le remet en auto, réglages), télémétrie (mode, signal wifi) ; un programme écrit dans l'app (`schedule`, poussé sans ses intervalles) le fait relire. Sa vague en cours se déduit de son programme et de l'heure : le changement de vague au début d'un intervalle n'est poussé par rien (seule sa télémétrie le dit, dans la minute) |
 | ReefRun | états, télémétrie (état, intensité, température de ses pompes : godet plein, pompe absente...) ; la fin d'une calibration et une `notification` (une pompe à reconnecter) le font relire |
 | ReefControl | télémétrie et événements `probe` (mesures des sondes), états (mode, liaison avec un ReefControl Power, mode fuite), mode et état de ses ports (un port éteint consomme 0 ; la consommation d'un port allumé vient du relevé) ; une sonde ou un port installé ou réglé le fait relire |
 
@@ -130,8 +131,9 @@ acceptée par l'appareil le fait aussi relire : tous les réglages ne sont pas
 poussés (le décalage d'une sonde de température ne l'est pas).
 
 Un ReefControl Power sans prise pilotée par un capteur (avec ou sans sonde de
-température), et une ReefDose (sa file de dosage relue après chaque dose et à
-minuit), ont tout ce qui change poussé : en stratégie *Poseidon*, ils ne sont
+température), une ReefDose (sa file de dosage relue après chaque dose et à
+minuit), et une ReefWave (son programme relu quand il change), ont tout ce qui
+change poussé : en stratégie *Poseidon*, ils ne sont
 relevés que tous les *Intervalle du relevé de sécurité*.
 
 ### Espion

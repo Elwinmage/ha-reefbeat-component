@@ -432,8 +432,36 @@ REEF_WAVE = FamilyCatalog(
         **_METRICS,
     },
     telemetry_required=frozenset(_WAVE_TELEMETRY_REQUIRED),
-    state=None,
-    commands=None,
+    # RSWAVE45 0.10.0 in a group (spy runs of 2026-10-30 to 2026-11-03)
+    state={
+        "specific_attributes.mode": _types(STR),
+        "specific_attributes.schedule.hash": _types(STR),
+        "specific_attributes.schedule.uid": _types(STR),
+        "specific_attributes.device_settings.shortcut_off_delay": _types(NUMBER),
+        "specific_attributes.ntp_sync": _types(BOOL),
+        # Pushed on connection
+        "attributes": _types(ANY),
+        "specific_attributes.active_shortcut": _types(STR),
+        "specific_attributes.controlling-mode": _types(STR),
+        "specific_attributes.feeding_type": _types(STR),
+        "specific_attributes.timezone": _types(NUMBER),
+        "specific_attributes.scheduled_feeding.hash": _types(STR),
+        "specific_attributes.scheduled_feeding.setup": _types(BOOL),
+    },
+    commands=frozenset(
+        {
+            # A program written by the app (or put back by the cloud on
+            # connection): init, its intervals, complete, apply
+            "POST /auto/init",
+            "POST /auto",
+            "POST /auto/complete",
+            "POST /auto/apply",
+            # The group of pumps (on connection), and its sync after a program
+            "POST /group",
+            "POST /group/sync",
+            "PUT /device-settings",
+        }
+    ),
 )
 
 _CONTROL_TELEMETRY_REQUIRED = {

@@ -1318,3 +1318,92 @@ def merge_reef_run(coordinator: Any, topic: str, payload: Any) -> bool:
             merged = merged or part_merged
             again = again or part_again
     return merged and not again
+
+
+# -- ReefWave (reef-wave) -----------------------------------------------------------
+#
+# Seen on a RSWAVE45 0.10.0 in a group of pumps (spy runs of 2026-10-30 to
+# 2026-11-03: programs written in the app, feedings, key capture), checked
+# against every poll. Home Assistant reads /mode, /wifi and /auto (the
+# program: its current wave is derived from it and the clock).
+# telemetry (every 60 s):
+#   mode                  -> /mode.mode
+#   wifi_signal           -> /wifi.signal_dBm
+#   active-wave           -> nothing polled (the wave of /auto running now;
+#                            missing while the pump is off)
+#   controlling-mode, active_shortcut, uptime, metrics -> nothing polled
+# state (specific_attributes):
+#   mode                  -> /mode.mode (a feeding: "off" for 2 min, then
+#                            "auto"; each switch pushed at once)
+#   schedule (hash, uid)  -> the program changed (every step of a program
+#                            written by the app: init, intervals, apply): read
+#                            again, its intervals are not pushed. Each of the
+#                            30 changes of /auto polled came after one.
+#   device_settings.shortcut_off_delay -> /device-settings
+#   scheduled_feeding     -> read again (the feeding program, its hash only)
+#   attributes (on connection) -> read again
+#   ntp_sync, timezone, active_shortcut, controlling-mode, feeding_type ->
+#                            nothing polled
+#   any other key         -> read again
+# A /group/sync between the pumps of the group may put a pump "off" for 5 s,
+# pushed by nothing (3 times in 5 days, seen by the poll only): not worth a
+# read. Everything else that changes is pushed: FULLY_PUSHED once its program
+# and mode were polled.
+
+_WAVE_STATE_IGNORED = frozenset(
+    {"ntp_sync", "timezone", "active_shortcut", "controlling-mode", "feeding_type"}
+)
+_WAVE_SETTINGS = ("shortcut_off_delay",)
+
+
+def wave_fully_pushed(coordinator: Any) -> bool:
+    """Whether this ReefWave has been polled once (its program and mode):
+    what changes then is pushed, or read again after a program pushed."""
+    return (
+        _data(coordinator, "/auto") is not None
+        and _data(coordinator, "/mode") is not None
+    )
+
+
+def _merge_wave_mode(coordinator: Any, mode: Any) -> bool:
+    data = _data(coordinator, "/mode")
+    if data is None or not isinstance(mode, str):
+        return False
+    data["mode"] = mode
+    return True
+
+
+def merge_reef_wave_telemetry(coordinator: Any, topic: str, payload: Any) -> bool:
+    """Merge a telemetry of a ReefWave (see the table above)."""
+    if not isinstance(payload, dict):
+        return False
+    merged = _merge_wave_mode(coordinator, payload.get("mode"))
+    return _merge_wifi(coordinator, payload) or merged
+
+
+def merge_reef_wave(coordinator: Any, topic: str, payload: Any) -> bool:
+    """Merge a pushed state of a ReefWave (see the table above)."""
+    if not isinstance(payload, dict) or "attributes" in payload:
+        return False
+    state = payload.get(WRAPPER)
+    if not isinstance(state, dict):
+        return False
+    merged = False
+    again = _unhandled(state, _WAVE_STATE_IGNORED | {"mode", "device_settings"})
+    if "mode" in state:
+        if _merge_wave_mode(coordinator, state["mode"]):
+            merged = True
+        else:
+            again = True
+    if "device_settings" in state:
+        pushed = state["device_settings"]
+        settings = _data(coordinator, "/device-settings")
+        if (
+            settings is None
+            or not isinstance(pushed, dict)
+            or _unhandled(pushed, frozenset(_WAVE_SETTINGS))
+        ):
+            again = True
+        else:
+            merged = _set_fields(settings, pushed, _WAVE_SETTINGS) or merged
+    return (merged or not set(state) - _WAVE_STATE_IGNORED) and not again
