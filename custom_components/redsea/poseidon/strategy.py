@@ -44,6 +44,8 @@ from .mergers import (
     merge_reef_mat_telemetry,
     merge_reef_power,
     merge_reef_power_telemetry,
+    merge_reef_run,
+    merge_reef_run_telemetry,
     power_fully_pushed,
 )
 
@@ -178,6 +180,7 @@ MERGERS: dict[str, Merger] = {
     "reef-dosing": merge_reef_dosing,
     "reef-mat": merge_reef_mat,
     "reef-control": merge_reef_control,
+    "reef-run": merge_reef_run,
 }
 # Device type -> merger of its telemetry
 TELEMETRY_MERGERS: dict[str, Merger] = {
@@ -186,12 +189,15 @@ TELEMETRY_MERGERS: dict[str, Merger] = {
     "reef-mat": merge_reef_mat_telemetry,
     "reef-lights": merge_reef_lights_telemetry,
     "reef-control": merge_reef_control_telemetry,
+    "reef-run": merge_reef_run_telemetry,
 }
 # Device type -> topic suffixes of the events after which the poseidon
 # strategy reads the device again: what changed is pushed by nothing (a
 # dose changes the dosing queue)
 READ_ON: dict[str, frozenset[str]] = {
     "reef-dosing": frozenset({"dosing-log"}),
+    # A pump to reconnect (no_pump): its reconnect_pump is pushed by nothing
+    "reef-run": frozenset({"notification"}),
 }
 # Device type -> whether a device of it has every changing value pushed
 FULLY_PUSHED: dict[str, Callable[[Any], bool]] = {

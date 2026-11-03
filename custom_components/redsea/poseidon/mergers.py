@@ -1118,3 +1118,203 @@ def merge_reef_control(coordinator: Any, topic: str, payload: Any) -> bool:
         known = known | {"leak"}
     unknown = again or _unhandled(state, known)
     return (merged or not set(state) - _CONTROL_STATE_IGNORED) and not unknown
+
+
+# -- ReefRun (reef-run) -------------------------------------------------------------
+#
+# Seen on a RSRUN 2.0.3 (a return pump and an RSK 900 skimmer, spy runs of
+# 2026-10-30 to 2026-11-03), checked against every poll (2683 telemetry, 46
+# states: differences only between a push and the next poll). Its pumps are
+# "1", "2" in the pushes, pump_1, pump_2 in the polls.
+# telemetry (every 60 s):
+#   mode                  -> /mode.mode and /dashboard.mode
+#   pumps.N.state, missing_pump, intensity, pulse, temperature ->
+#                            /dashboard.pump_N (intensity: the real one, 35 for
+#                            a skimmer driven by its EC sensor); a pump in
+#                            calibration is left to the state telling its end
+#   wifi_signal           -> /wifi.signal_dBm
+#   pumps.N.start, baud_rate, rr_driver_data, the EC readings (maxavg_ec_*,
+#     one_min_avg_cup, ec_skimmer_intensity), metrics -> nothing polled
+# state (specific_attributes), pushed at each change of a pump (full cup,
+# missing pump, schedule switched...) and of the settings:
+#   pumps.N.name, type, model, state, reconnect_pump, sensor_controlled,
+#     missing_pump, missing_sensor, schedule_enabled -> /dashboard.pump_N
+#   pumps.N.name, type, model, sensor_controlled, schedule_enabled, schedule
+#                         -> /pump/settings.pump_N
+#   pumps.N.intensity     -> not merged: the one of its schedule (100), not
+#                            the real one of /dashboard (35)
+#   pumps.N.model_address -> nothing polled
+#   a pump leaving "calibration" -> read again: the dates of /calibration are
+#                            pushed by nothing
+#   device_settings.linked, synced -> /dashboard and /pump/settings;
+#     restore_settings -> /dashboard; overskimming, fullcup_enabled ->
+#     /pump/settings; calibration (step counts), sync_subscription -> nothing
+#     polled
+#   mode                  -> /mode and /dashboard
+#   ec_sensor_connected, battery_level, time_error -> /dashboard
+#   shortcuts.pump_N      -> /pump/shortcuts.pump_N
+#   attributes (on connection, with everything above) -> merged, then read
+#                            again: what changed while it was away
+#   initial, is_factory_reset, feeding_type, active_shortcut, timezone ->
+#                            nothing polled
+#   any other key         -> read again
+# Never FULLY_PUSHED: is_internet_connected of /dashboard is pushed by
+# nothing.
+
+_RUN_TELEMETRY_PUMP = ("state", "missing_pump", "intensity", "pulse", "temperature")
+_RUN_STATE_PUMP_DASHBOARD = (
+    "name",
+    "type",
+    "model",
+    "state",
+    "reconnect_pump",
+    "sensor_controlled",
+    "missing_pump",
+    "missing_sensor",
+    "schedule_enabled",
+)
+_RUN_STATE_PUMP_SETTINGS = (
+    "name",
+    "type",
+    "model",
+    "sensor_controlled",
+    "schedule_enabled",
+    "schedule",
+)
+_RUN_STATE_PUMP_KNOWN = frozenset(
+    _RUN_STATE_PUMP_DASHBOARD
+    + _RUN_STATE_PUMP_SETTINGS
+    + ("intensity", "model_address")
+)
+_RUN_SETTINGS_DASHBOARD = ("linked", "synced", "restore_settings")
+_RUN_SETTINGS_PUMP = ("linked", "synced", "overskimming", "fullcup_enabled")
+_RUN_SETTINGS_KNOWN = frozenset(
+    _RUN_SETTINGS_DASHBOARD + _RUN_SETTINGS_PUMP + ("calibration", "sync_subscription")
+)
+_RUN_STATE_DASHBOARD = ("ec_sensor_connected", "battery_level", "time_error")
+_RUN_STATE_IGNORED = frozenset(
+    {"initial", "is_factory_reset", "feeding_type", "active_shortcut", "timezone"}
+)
+_RUN_STATE_KNOWN = _RUN_STATE_IGNORED | {
+    "mode",
+    "pumps",
+    "device_settings",
+    "shortcuts",
+    *_RUN_STATE_DASHBOARD,
+}
+_RUN_CALIBRATION = "calibration"
+
+
+def _run_pump(data: dict[str, Any] | None, number: Any) -> dict[str, Any] | None:
+    """pump_N of a polled source of a ReefRun."""
+    pump = data.get(f"pump_{number}") if data is not None else None
+    return pump if isinstance(pump, dict) else None
+
+
+def _merge_run_mode(coordinator: Any, mode: Any) -> bool:
+    merged = False
+    if isinstance(mode, str):
+        for name in ("/mode", "/dashboard"):
+            data = _data(coordinator, name)
+            if data is not None:
+                data["mode"] = mode
+                merged = True
+    return merged
+
+
+def merge_reef_run_telemetry(coordinator: Any, topic: str, payload: Any) -> bool:
+    """Merge a telemetry of a ReefRun (see the table above)."""
+    if not isinstance(payload, dict):
+        return False
+    merged = _merge_run_mode(coordinator, payload.get("mode"))
+    dashboard = _data(coordinator, "/dashboard")
+    pumps = payload.get("pumps")
+    for number, pushed in pumps.items() if isinstance(pumps, dict) else ():
+        pump = _run_pump(dashboard, number)
+        if pump is None or not isinstance(pushed, dict):
+            continue
+        fields = _RUN_TELEMETRY_PUMP
+        if pump.get("state") == _RUN_CALIBRATION:
+            # Its end reads the device again (the state pushed then)
+            fields = tuple(f for f in fields if f != "state")
+        merged = _set_fields(pump, pushed, fields) or merged
+    return _merge_wifi(coordinator, payload) or merged
+
+
+def _merge_run_pumps(coordinator: Any, pumps: Any) -> tuple[bool, bool]:
+    """The pumps of a state: (merged, read again)."""
+    if not isinstance(pumps, dict):
+        return False, True
+    dashboard = _data(coordinator, "/dashboard")
+    settings = _data(coordinator, "/pump/settings")
+    merged = again = False
+    for number, pushed in pumps.items():
+        pump = _run_pump(dashboard, number)
+        if pump is None or not isinstance(pushed, dict):
+            again = True
+            continue
+        if (
+            pump.get("state") == _RUN_CALIBRATION
+            and pushed.get("state", _RUN_CALIBRATION) != _RUN_CALIBRATION
+        ):
+            # Calibrated: its new dates are in /calibration
+            again = True
+        merged = _set_fields(pump, pushed, _RUN_STATE_PUMP_DASHBOARD) or merged
+        configured = _run_pump(settings, number)
+        if configured is None:
+            again = True
+        else:
+            merged = _set_fields(configured, pushed, _RUN_STATE_PUMP_SETTINGS) or merged
+        again = again or _unhandled(pushed, _RUN_STATE_PUMP_KNOWN)
+    return merged, again
+
+
+def _merge_run_settings(coordinator: Any, settings: Any) -> tuple[bool, bool]:
+    """device_settings of a state: (merged, read again)."""
+    if not isinstance(settings, dict):
+        return False, True
+    dashboard = _data(coordinator, "/dashboard")
+    pump_settings = _data(coordinator, "/pump/settings")
+    if dashboard is None or pump_settings is None:
+        return False, True
+    merged = _set_fields(dashboard, settings, _RUN_SETTINGS_DASHBOARD)
+    merged = _set_fields(pump_settings, settings, _RUN_SETTINGS_PUMP) or merged
+    return merged, _unhandled(settings, _RUN_SETTINGS_KNOWN)
+
+
+def _merge_run_shortcuts(coordinator: Any, shortcuts: Any) -> tuple[bool, bool]:
+    """shortcuts of a state: (merged, read again)."""
+    polled = _data(coordinator, "/pump/shortcuts")
+    if not isinstance(shortcuts, dict) or polled is None:
+        return False, True
+    merged = again = False
+    for key, pushed in shortcuts.items():
+        if isinstance(polled.get(key), dict) and isinstance(pushed, dict):
+            polled[key] = copy.deepcopy(pushed)
+            merged = True
+        else:
+            again = True
+    return merged, again
+
+
+def merge_reef_run(coordinator: Any, topic: str, payload: Any) -> bool:
+    """Merge a pushed state of a ReefRun (see the table above)."""
+    if not isinstance(payload, dict):
+        return False
+    state = payload.get(WRAPPER)
+    if not isinstance(state, dict):
+        return False
+    merged = _merge_run_mode(coordinator, state.get("mode"))
+    dashboard = _data(coordinator, "/dashboard")
+    merged = _set_fields(dashboard, state, _RUN_STATE_DASHBOARD) or merged
+    again = _unhandled(state, _RUN_STATE_KNOWN) or "attributes" in payload
+    for key, merge in (
+        ("pumps", _merge_run_pumps),
+        ("device_settings", _merge_run_settings),
+        ("shortcuts", _merge_run_shortcuts),
+    ):
+        if key in state:
+            part_merged, part_again = merge(coordinator, state[key])
+            merged = merged or part_merged
+            again = again or part_again
+    return merged and not again

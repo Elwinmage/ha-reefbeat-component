@@ -2,6 +2,28 @@
 
 ## MODIFICATIONS
 
+### Poseidon: ReefRun merged, `redsea_notification` event
+
+From the spy runs of 2026-10-30 to 2026-11-03 (a return pump and an RSK 900
+skimmer: cup full, skimmer calibrated, pump disconnected, schedules and
+overskimming changed in the app), checked against every poll:
+
+- ReefRun merger: its telemetry (mode, state, intensity, temperature,
+  missing pump of each pump, wifi signal) and its states (pumps, schedules,
+  overskimming, full cup sensor, shortcuts) merged into `/dashboard`,
+  `/pump/settings`, `/pump/shortcuts`. The intensity of a state is the one of
+  the schedule, not the real one of a skimmer driven by its EC sensor: not
+  merged. The end of a calibration reads the device again (the dates of
+  `/calibration` are pushed by nothing), so does a reconnection, and a
+  `notification` (a pump to reconnect: `reconnect_pump` is pushed by
+  nothing). Not fully pushed: `is_internet_connected` is not.
+- Catalogue of the ReefRun: telemetry, states, `PUT /v2/pump/settings`,
+  `POST /pump/*/reset-state`.
+- `redsea_notification` event: fired for every alarm a device pushes
+  (`full_cup_warning`, `no_pump` of a ReefRun; `sensor_danger_range`,
+  `temperature_danger_range`, `aquarium_water_leak` of a ReefControl;
+  `stock_level_empty` of a ReefDose), with what the device told.
+
 ### Poseidon: ports of a ReefControl toggled in the app
 
 - `POST /port/*/toggle` catalogued: a port of the ReefControl switched on or

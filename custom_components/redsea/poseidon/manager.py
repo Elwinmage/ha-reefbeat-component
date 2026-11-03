@@ -46,7 +46,14 @@ from .crypto import decode_plain, decrypt_payload
 from .debug import DebugLog, frame_record, http_record, mark_record, redact
 from .device_http import ORIGIN, DeviceHttp
 from .doses import DoseHistory
-from .events import EVENT_DOSE, DoseEvents, dose_event, estimate_start
+from .events import (
+    EVENT_DOSE,
+    EVENT_NOTIFICATION,
+    DoseEvents,
+    dose_event,
+    estimate_start,
+    notification_event,
+)
 from .keystore import DeviceKeys, KeyStore
 from .mqtt import PACKET_PUBLISH, MqttFrame
 from .relay import UP, Relay, Traffic
@@ -1169,6 +1176,23 @@ class Poseidon:
         self._signal(force=True)
 
     @callback
+    def _fire_notification(self, hwid: str, device_type: str, payload: Any) -> None:
+        """A device pushed an alarm: the redsea_notification event."""
+        data = notification_event(device_type, payload)
+        if data is None:
+            return
+        coordinator = self.coordinator(hwid)
+        entry = self.device_entry(hwid)
+        self.hass.bus.async_fire(
+            EVENT_NOTIFICATION,
+            {
+                "device_id": entry.id if entry else None,
+                "name": str(getattr(coordinator, "title", "") or hwid),
+                **data,
+            },
+        )
+
+    @callback
     def _read_again(self, hwid: str, coordinator: Any) -> None:
         """Read a device again (poseidon strategy), its config sources
         included: what the app changes is mostly settings, which the polling
@@ -1291,6 +1315,8 @@ class Poseidon:
             self._on_event(hwid, topic)
         if topic.endswith("/dosing-log"):
             self._fire_dose(hwid, message)
+        elif topic.endswith("/notification"):
+            self._fire_notification(hwid, dev.type if dev else "", message)
 
     @callback
     def _record_answer(self, hwid: str, topic: str, message: Any) -> bool:

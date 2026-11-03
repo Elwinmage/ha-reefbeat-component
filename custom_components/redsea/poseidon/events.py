@@ -14,6 +14,17 @@ A dose missing from the queue (the one at midnight: the queue of the day
 ending is empty by then, the one of the new day starts after it; a manual
 dose from the app) gets a start estimated from the flow of its head
 (``estimate_start``), ``start_estimated`` telling so.
+
+``redsea_notification``: an alarm a device pushes (``notification``), the
+one the ReefBeat app shows. Seen (spy runs of 2026-11-02/03):
+
+- ReefRun: ``full_cup_warning`` (``pump``), ``no_pump`` (``pump_name``);
+- ReefControl: ``sensor_danger_range``, ``temperature_danger_range``,
+  ``aquarium_water_leak`` (``probe``: its name);
+- ReefDose: ``stock_level_empty`` (``supplement``).
+
+The event carries what the device told, its ``sub-type`` as ``sub_type``,
+without its hwid (``device_id`` tells the device).
 """
 
 from __future__ import annotations
@@ -25,6 +36,7 @@ from typing import Any
 from .mergers import _data, _source
 
 EVENT_DOSE = "redsea_dose"
+EVENT_NOTIFICATION = "redsea_notification"
 # How far before its end the start of a dose is looked for in the queue
 MAX_DOSE_S = 600
 # Doses remembered against duplicates
@@ -125,3 +137,16 @@ class DoseEvents:
             return False
         self._seen.append(key)
         return True
+
+
+def notification_event(device_type: str, payload: Any) -> dict[str, Any] | None:
+    """The data of a ``redsea_notification`` event for a pushed notification,
+    None when it is not one."""
+    if not isinstance(payload, dict) or not isinstance(payload.get("type"), str):
+        return None
+    data: dict[str, Any] = {"device_type": device_type}
+    for key, value in payload.items():
+        if key == "hwid":
+            continue
+        data[key.replace("-", "_")] = value
+    return data

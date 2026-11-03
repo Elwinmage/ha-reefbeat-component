@@ -554,6 +554,121 @@ REEF_CONTROL = FamilyCatalog(
     ),
 )
 
+_RUN_TELEMETRY_REQUIRED = {
+    "mode": _types(STR),
+    "uptime": _types(STR),
+    "active_shortcut": _types(STR),
+    "maxavg_ec_skim": _types(NUMBER),
+    "maxavg_ec_cup": _types(NUMBER),
+    "one_min_avg_cup": _types(NUMBER),
+    "pumps.*.state": _types(STR),
+    "pumps.*.missing_pump": _types(BOOL),
+    "pumps.*.temperature": _types(NUMBER),
+    "pumps.*.start": _types(NUMBER),
+    "pumps.*.intensity": _types(NUMBER),
+    "pumps.*.pulse": _types(NUMBER),
+    "local_time": _types(STR),
+    "utc_time": _types(STR),
+    "hwid": _types(STR),
+    "wifi_signal": _types(NUMBER),
+    "free_heap": _types(NUMBER),
+}
+_RUN_STATE_PUMP = {
+    f"specific_attributes.pumps.*.{key}": _types(kind)
+    for key, kind in (
+        ("name", STR),
+        ("type", STR),
+        ("model", STR),
+        ("model_address", NUMBER),
+        ("state", STR),
+        ("reconnect_pump", BOOL),
+        ("sensor_controlled", BOOL),
+        ("missing_pump", BOOL),
+        ("missing_sensor", BOOL),
+        ("schedule_enabled", BOOL),
+        ("intensity", NUMBER),
+        ("schedule.*.st", NUMBER),
+        ("schedule.*.ti", NUMBER),
+        ("schedule.*.pd", NUMBER),
+    )
+}
+_RUN_STATE_SHORTCUTS = {
+    f"specific_attributes.shortcuts.{pump}.{key}": _types(kind)
+    for pump in ("pump_1", "pump_2")
+    for key, kind in (
+        ("emergency", BOOL),
+        ("maintenance", BOOL),
+        ("pump_on_delayed", BOOL),
+        ("shortcut_off_delay", NUMBER),
+        ("feeding.enabled", BOOL),
+        ("feeding.intensity", NUMBER),
+        ("feeding.duration", NUMBER),
+        ("feeding.delay", NUMBER),
+    )
+}
+# ReefRun, RSRUN 2.0.3 with a return pump and an RSK 900 skimmer (spy runs
+# of 2026-10-30 to 2026-11-03: full cup, skimmer calibrated, pump
+# disconnected, schedules and overskimming changed in the app)
+REEF_RUN = FamilyCatalog(
+    telemetry={
+        **_RUN_TELEMETRY_REQUIRED,
+        # Missing now and then
+        "ec_skimmer_intensity": _types(NUMBER),
+        # The return pump only
+        "pumps.*.rr_driver_data.intensity": _types(NUMBER),
+        "pumps.*.rr_driver_data.real_time_voltage": _types(NUMBER),
+        "pumps.*.rr_driver_data.real_time_power": _types(NUMBER),
+        "pumps.*.rr_driver_data.real_time_speed": _types(NUMBER),
+        "pumps.*.rr_driver_data.state": _types(NUMBER),
+        "pumps.*.rr_driver_data.current_run_uptime": _types(NUMBER),
+        "pumps.*.rr_driver_data.current_run_power": _types(NUMBER),
+        "pumps.*.rr_driver_data.total_uptime": _types(NUMBER),
+        "pumps.*.rr_driver_data.total_power": _types(NUMBER),
+        # The skimmer only
+        "pumps.*.baud_rate": _types(NUMBER),
+        **_METRICS,
+    },
+    telemetry_required=frozenset(_RUN_TELEMETRY_REQUIRED),
+    state={
+        **_RUN_STATE_PUMP,
+        "specific_attributes.mode": _types(STR),
+        "specific_attributes.ec_sensor_connected": _types(BOOL),
+        "specific_attributes.battery_level": _types(STR),
+        "specific_attributes.time_error": _types(BOOL),
+        "specific_attributes.device_settings.restore_settings": _types(BOOL),
+        "specific_attributes.device_settings.linked": _types(BOOL),
+        "specific_attributes.device_settings.synced": _types(BOOL),
+        "specific_attributes.device_settings.overskimming.enabled": _types(BOOL),
+        "specific_attributes.device_settings.overskimming.threshold": _types(NUMBER),
+        "specific_attributes.device_settings.fullcup_enabled": _types(BOOL),
+        "specific_attributes.device_settings.calibration.skim_calibration": _types(
+            NUMBER
+        ),
+        "specific_attributes.device_settings.calibration.cup_calibration": _types(
+            NUMBER
+        ),
+        "specific_attributes.device_settings.sync_subscription": _types(BOOL),
+        # Pushed on connection
+        **_RUN_STATE_SHORTCUTS,
+        "attributes": _types(ANY),
+        "specific_attributes.initial": _types(BOOL),
+        "specific_attributes.is_factory_reset": _types(BOOL),
+        "specific_attributes.active_shortcut": _types(STR),
+        "specific_attributes.feeding_type": _types(STR),
+        "specific_attributes.timezone": _types(NUMBER),
+    },
+    commands=frozenset(
+        {
+            "GET /pump/settings",
+            "GET /calibration",
+            # Schedules, overskimming threshold, full cup sensor
+            "PUT /v2/pump/settings",
+            # A pump out of full cup / error, from the app
+            "POST /pump/*/reset-state",
+        }
+    ),
+)
+
 CATALOGS: dict[str, FamilyCatalog] = {
     "reef-power": REEF_POWER,
     "reef-dosing": REEF_DOSING,
@@ -561,6 +676,7 @@ CATALOGS: dict[str, FamilyCatalog] = {
     "reef-lights": REEF_LIGHTS,
     "reef-wave": REEF_WAVE,
     "reef-control": REEF_CONTROL,
+    "reef-run": REEF_RUN,
 }
 
 

@@ -112,6 +112,7 @@ Families merged so far, from the spy runs:
 | ReefDose | states, telemetry; a `dosing-log` (end of a dose) reads it again, for its dosing queue, and so does midnight (00:01, Home Assistant's time), when the queue of the new day replaces the one of the day ending |
 | ReefMat | states, telemetry, `rolling-log` (end of an advance) |
 | ReefLED | telemetry |
+| ReefRun | states, telemetry (state, intensity, temperature of its pumps: full cup, missing pump...); the end of a calibration and a `notification` (a pump to reconnect) read it again |
 | ReefControl | telemetry and `probe` events (probe readings), states (mode, link with a ReefControl Power, leak mode), the mode and state of its ports (a port switched off consumes 0; the consumption of a port on comes by the poll); a probe or a port installed or set up reads it again |
 
 For the other families, *Shadow* only compares, and *Poseidon* reads the device
@@ -235,6 +236,42 @@ fired once.
 Nothing is pushed when a dose starts: its start is the time the dosing queue
 gave it. The dose at midnight is in no queue (the one of the day ending is empty
 by then, the one of the new day starts after it): its start is estimated.
+
+### `redsea_notification`
+
+Fired when a device in Poseidon mode (any strategy) pushes an alarm, the one
+the ReefBeat app shows as a notification. It carries what the device told:
+
+| Field | Content |
+|---|---|
+| `device_id` | the device in Home Assistant |
+| `name` | its name |
+| `device_type` | its family: `reef-run`, `reef-control`, `reef-dosing`... |
+| `type` | the alarm, as the device names it |
+| `sub_type` | as the device tells it (`sub-type`) |
+| other fields | what the alarm is about: `pump` or `pump_name` (ReefRun), `probe` (ReefControl, its name), `supplement` (ReefDose) |
+
+Seen so far:
+
+| Family | `type` |
+|---|---|
+| ReefRun | `full_cup_warning` (`pump`), `no_pump` (`pump_name`) |
+| ReefControl | `sensor_danger_range`, `temperature_danger_range`, `aquarium_water_leak` (`probe`) |
+| ReefDose | `stock_level_empty` (`supplement`) |
+
+```yaml
+automation:
+  - alias: Skimmer cup full
+    triggers:
+      - trigger: event
+        event_type: redsea_notification
+        event_data:
+          type: full_cup_warning
+    actions:
+      - action: notify.notify
+        data:
+          message: "{{ trigger.event.data.name }}: the skimmer cup is full"
+```
 
 ### History of the doses
 

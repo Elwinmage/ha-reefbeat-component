@@ -117,6 +117,7 @@ Familles fusionnées à ce jour, d'après les relevés espion :
 | ReefDose | états, télémétrie ; un `dosing-log` (fin d'une dose) le fait relire, pour sa file de dosage, de même que minuit (00:01, heure de Home Assistant), quand la file du nouveau jour remplace celle du jour qui finit |
 | ReefMat | états, télémétrie, `rolling-log` (fin d'une avance) |
 | ReefLED | télémétrie |
+| ReefRun | états, télémétrie (état, intensité, température de ses pompes : godet plein, pompe absente...) ; la fin d'une calibration et une `notification` (une pompe à reconnecter) le font relire |
 | ReefControl | télémétrie et événements `probe` (mesures des sondes), états (mode, liaison avec un ReefControl Power, mode fuite), mode et état de ses ports (un port éteint consomme 0 ; la consommation d'un port allumé vient du relevé) ; une sonde ou un port installé ou réglé le fait relire |
 
 Pour les autres familles, *Shadow* ne fait que comparer, et *Poseidon* relit
@@ -244,6 +245,43 @@ Rien n'est poussé quand une dose commence : son début est l'heure que lui
 donnait la file de dosage. La dose de minuit n'est dans aucune file (celle du
 jour qui finit est vide à ce moment, celle du nouveau jour commence après
 elle) : son début est estimé.
+
+### `redsea_notification`
+
+Émis quand un appareil en mode Poseidon (toute stratégie) pousse une alarme,
+celle que l'app ReefBeat affiche en notification. Il porte ce que l'appareil a
+dit :
+
+| Champ | Contenu |
+|---|---|
+| `device_id` | l'appareil dans Home Assistant |
+| `name` | son nom |
+| `device_type` | sa famille : `reef-run`, `reef-control`, `reef-dosing`... |
+| `type` | l'alarme, comme l'appareil la nomme |
+| `sub_type` | comme l'appareil le dit (`sub-type`) |
+| autres champs | ce dont parle l'alarme : `pump` ou `pump_name` (ReefRun), `probe` (ReefControl, son nom), `supplement` (ReefDose) |
+
+Vus à ce jour :
+
+| Famille | `type` |
+|---|---|
+| ReefRun | `full_cup_warning` (`pump`), `no_pump` (`pump_name`) |
+| ReefControl | `sensor_danger_range`, `temperature_danger_range`, `aquarium_water_leak` (`probe`) |
+| ReefDose | `stock_level_empty` (`supplement`) |
+
+```yaml
+automation:
+  - alias: Godet de l'écumeur plein
+    triggers:
+      - trigger: event
+        event_type: redsea_notification
+        event_data:
+          type: full_cup_warning
+    actions:
+      - action: notify.notify
+        data:
+          message: "{{ trigger.event.data.name }} : le godet de l'écumeur est plein"
+```
 
 ### Historique des doses
 
