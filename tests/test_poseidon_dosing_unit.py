@@ -159,6 +159,19 @@ def test_telemetry_of_a_dose() -> None:
     assert dashboard["missed_dose"]["missed_volume"] == 12.5
 
 
+def test_daily_doses_of_the_telemetry_are_not_merged() -> None:
+    """One more right after each dose (25 for 24), doses_today on connection
+    (spy run of 2026-11-02/03): the polled number stays."""
+    coordinator = _coordinator()
+    polled = _data(coordinator, "/dashboard")["heads"]["2"]["daily_doses"]
+    telemetry = copy.deepcopy(FIXTURE["telemetry"][-1])
+    telemetry["heads"]["2"].update(daily_doses=polled + 1, doses_today=3)
+    assert merge_reef_dosing_telemetry(coordinator, "", telemetry) is True
+    dashboard = _data(coordinator, "/dashboard")["heads"]["2"]
+    assert dashboard["daily_doses"] == polled
+    assert dashboard["doses_today"] == 3
+
+
 def test_telemetry_without_anything_polled() -> None:
     assert merge_reef_dosing_telemetry(_coordinator({}), "", {"heads": {}}) is False
     assert merge_reef_dosing_telemetry(_coordinator(), "", "junk") is False

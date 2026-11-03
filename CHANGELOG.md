@@ -2,6 +2,13 @@
 
 ## MODIFICATIONS
 
+### Poseidon: daily doses of a ReefDose no more taken from its telemetry
+
+- The `daily_doses` of a head in the telemetry is wrong for a moment: one
+  more right after each dose (25 for 24), its `doses_today` on connection
+  (overnight spy run of 2026-11-02/03). It is no more merged: it only changes
+  with the schedule of the head, which reads the device again.
+
 ### Poseidon: ports of the ReefControl, sockets removed from the Power
 
 From a spy run where a socket of the ReefControl Power was removed and a 12V

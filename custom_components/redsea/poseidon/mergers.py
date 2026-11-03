@@ -440,8 +440,13 @@ def power_fully_pushed(coordinator: Any) -> bool:
 #                                    both rounded to 0.1 mL (6.909064 -> 6.9)
 #   heads.N.manual_dosed_today    -> /dashboard (rounded the same way: only
 #                                    seen at 0)
-#   heads.N.doses_today, daily_doses, remaining_days, stock_level,
+#   heads.N.doses_today, remaining_days, stock_level,
 #     recalibration_required, missed_dose -> /dashboard.heads.N
+#   heads.N.daily_doses           -> not merged: wrong for a moment (one
+#                                    more right after each dose, 25 for 24,
+#                                    and doses_today on connection; spy run of
+#                                    2026-11-02/03). It only changes with the
+#                                    schedule, which reads the device again
 #   heads.N.container_volume      -> /head/N/settings.container_volume
 #   heads.N.recalibration_required -> /head/N/settings too
 #   wifi_signal                   -> /wifi.signal_dBm
@@ -500,7 +505,6 @@ _DOSING_HEAD_SETTINGS = (
 )
 _DOSING_TELEMETRY_DASHBOARD = (
     "doses_today",
-    "daily_doses",
     "remaining_days",
     "stock_level",
     "recalibration_required",
