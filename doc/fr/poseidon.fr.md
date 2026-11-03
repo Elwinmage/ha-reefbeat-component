@@ -117,7 +117,7 @@ Familles fusionnées à ce jour, d'après les relevés espion :
 | ReefDose | états, télémétrie ; un `dosing-log` (fin d'une dose) le fait relire, pour sa file de dosage, de même que minuit (00:01, heure de Home Assistant), quand la file du nouveau jour remplace celle du jour qui finit |
 | ReefMat | états, télémétrie, `rolling-log` (fin d'une avance) |
 | ReefLED | télémétrie |
-| ReefControl | télémétrie et événements `probe` (mesures des sondes), états (mode, liaison avec un ReefControl Power, mode fuite) ; une sonde ou un port installé ou réglé le fait relire |
+| ReefControl | télémétrie et événements `probe` (mesures des sondes), états (mode, liaison avec un ReefControl Power, mode fuite), mode et état de ses ports (un port éteint consomme 0 ; la consommation d'un port allumé vient du relevé) ; une sonde ou un port installé ou réglé le fait relire |
 
 Pour les autres familles, *Shadow* ne fait que comparer, et *Poseidon* relit
 l'appareil chaque fois qu'il pousse un état. *Poseidon* le relit aussi quand un

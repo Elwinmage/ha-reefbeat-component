@@ -548,6 +548,8 @@ REEF_CONTROL = FamilyCatalog(
             "PUT /port/*/schedule",
             "PUT /ports/config",
             "PUT /socket/*/unsubscribe",
+            # A port switched on / off in the app (spy run of 2026-11-03)
+            "POST /port/*/toggle",
         }
     ),
 )

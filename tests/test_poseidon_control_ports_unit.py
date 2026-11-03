@@ -169,3 +169,47 @@ def test_port_switched_by_its_schedule() -> None:
     assert merge_reef_control(coordinator, topic, state)
     port = _data(coordinator, "/dashboard")["ports"][0]
     assert (port["mode"], port["state"]) == ("schedule", "on")
+
+
+def test_port_toggled_in_the_app() -> None:
+    """POST /port/0/toggle (spy run of 2026-11-03 11:05): known; the states
+    pushed right after merged, a port off consuming 0 as the next poll
+    tells."""
+    command = {
+        "uuid": "u",
+        "hwid": HWID,
+        "method": "POST",
+        "url": "/port/0/toggle",
+        "body": None,
+    }
+    topic = _topic("reef-control", HWID, "command")
+    assert an.check_frame("reef-control", "down", 3, topic, command) == []
+    answers = copy.deepcopy(CONTROL["after"])
+    answers["/ports/config"] = CONTROL["before"]["/ports/config"]
+    answers["/dashboard"]["ports"][0].update(mode="schedule", consumption=7)
+    coordinator = _coordinator(answers)
+    topic = _topic("reef-control", HWID, "state")
+    ports = {
+        "specific_attributes": {
+            "ports": [
+                {
+                    "type": "other",
+                    "number": 0,
+                    "is_setup": True,
+                    "mode": "off",
+                    "state": "unknown",
+                    "last_installation_date": 1793654332,
+                },
+                {"type": "unknown", "number": 1, "last_installation_date": None},
+            ]
+        }
+    }
+    assert an.check_frame("reef-control", UP, 3, topic, ports, HWID) == []
+    assert merge_reef_control(coordinator, topic, ports)
+    port = _data(coordinator, "/dashboard")["ports"][0]
+    assert (port["mode"], port["consumption"]) == ("off", 0)
+    # Switched on: its consumption is polled
+    ports["specific_attributes"]["ports"][0]["mode"] = "on"
+    port["consumption"] = 5
+    assert merge_reef_control(coordinator, topic, ports)
+    assert (port["mode"], port["consumption"]) == ("on", 5)

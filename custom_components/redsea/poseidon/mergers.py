@@ -925,6 +925,10 @@ def merge_reef_lights_telemetry(coordinator: Any, topic: str, payload: Any) -> b
 #   ports.N               -> the port "number": N of /dashboard.ports: mode,
 #                            state (spy run of 2026-11-02 21:18); pushed too
 #                            when its schedule switches it (23:00:00, "on")
+#                            and when the app toggles it (POST
+#                            /port/N/toggle, spy run of 2026-11-03); a port
+#                            pushed "off" consumes 0 (polled so afterwards,
+#                            its last consumption kept until then)
 #   ports_settings.N      -> the same port: name, user_config_mode; and the
 #                            port of /ports/config: name, user_config_mode,
 #                            enabled, power_detector_enabled, sensor
@@ -1069,6 +1073,8 @@ def _merge_control_ports(coordinator: Any, state: dict[str, Any]) -> tuple[bool,
                 if field in pushed:
                     port[field] = pushed[field]
                     merged = True
+            if key == "ports" and pushed.get("mode") == "off" and "consumption" in port:
+                port["consumption"] = 0
             configured = _control_port(config, pushed.get("number"))
             if configured is None:
                 continue

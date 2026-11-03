@@ -2,6 +2,16 @@
 
 ## MODIFICATIONS
 
+### Poseidon: ports of a ReefControl toggled in the app
+
+- `POST /port/*/toggle` catalogued: a port of the ReefControl switched on or
+  off in the ReefBeat app (spy run of 2026-11-03) no more raises an
+  unexpected message.
+- The states it pushes (`ports`, `ports_settings`) were already merged; a
+  port pushed "off" now consumes 0 at once, as the next poll tells (its
+  consumption is pushed by nothing: the one of a port switched on comes by
+  the poll).
+
 ### Poseidon: daily doses of a ReefDose no more taken from its telemetry
 
 - The `daily_doses` of a head in the telemetry is wrong for a moment: one

@@ -112,7 +112,7 @@ Families merged so far, from the spy runs:
 | ReefDose | states, telemetry; a `dosing-log` (end of a dose) reads it again, for its dosing queue, and so does midnight (00:01, Home Assistant's time), when the queue of the new day replaces the one of the day ending |
 | ReefMat | states, telemetry, `rolling-log` (end of an advance) |
 | ReefLED | telemetry |
-| ReefControl | telemetry and `probe` events (probe readings), states (mode, link with a ReefControl Power, leak mode); a probe or a port installed or set up reads it again |
+| ReefControl | telemetry and `probe` events (probe readings), states (mode, link with a ReefControl Power, leak mode), the mode and state of its ports (a port switched off consumes 0; the consumption of a port on comes by the poll); a probe or a port installed or set up reads it again |
 
 For the other families, *Shadow* only compares, and *Poseidon* reads the device
 again every time it pushes a state. *Poseidon* also reads it again when a state
