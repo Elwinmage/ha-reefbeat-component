@@ -1,0 +1,779 @@
+{
+  "hwid": "0000aaaa0007",
+  "answers_before": {
+    "/dashboard": {
+      "mode": "auto",
+      "is_internet_connected": true,
+      "battery_level": "high",
+      "time_error": false,
+      "restore_settings": true,
+      "linked": false,
+      "synced": true,
+      "ec_sensor_connected": true,
+      "pump_1": {
+        "name": "Return",
+        "type": "return",
+        "model": "return-12000",
+        "state": "operational",
+        "reconnect_pump": false,
+        "sensor_controlled": false,
+        "missing_pump": false,
+        "missing_sensor": false,
+        "schedule_enabled": true,
+        "intensity": 100,
+        "pulse": 0,
+        "temperature": 48.780487060546875
+      },
+      "pump_2": {
+        "name": "RSK 900",
+        "type": "skimmer",
+        "model": "rsk-900",
+        "state": "operational",
+        "reconnect_pump": false,
+        "sensor_controlled": true,
+        "missing_pump": false,
+        "missing_sensor": false,
+        "schedule_enabled": true,
+        "intensity": 100,
+        "pulse": 0,
+        "temperature": 0
+      }
+    },
+    "/pump/settings": {
+      "linked": false,
+      "synced": true,
+      "overskimming": {
+        "enabled": true,
+        "threshold": 100
+      },
+      "fullcup_enabled": true,
+      "pump_1": {
+        "id": 1,
+        "name": "Return",
+        "type": "return",
+        "model": "return-12000",
+        "sensor_controlled": false,
+        "schedule_enabled": true,
+        "schedule": [
+          {
+            "st": 0,
+            "ti": 100,
+            "pd": 0
+          }
+        ]
+      },
+      "pump_2": {
+        "id": 2,
+        "name": "RSK 900",
+        "type": "skimmer",
+        "model": "rsk-900",
+        "sensor_controlled": true,
+        "schedule_enabled": true,
+        "schedule": [
+          {
+            "st": 0,
+            "ti": 100,
+            "pd": 0
+          }
+        ]
+      }
+    },
+    "/wifi": {
+      "signal_dBm": -63
+    },
+    "/mode": {
+      "mode": "auto"
+    }
+  },
+  "telemetry": [
+    {
+      "ts": "14:57:09",
+      "payload": {
+        "mode": "auto",
+        "uptime": "D:010-H:15-m:45-s:10",
+        "active_shortcut": "no_shortcut",
+        "maxavg_ec_skim": 0,
+        "maxavg_ec_cup": 0,
+        "one_min_avg_cup": 0,
+        "ec_skimmer_intensity": 100,
+        "pumps": {
+          "1": {
+            "state": "operational",
+            "missing_pump": false,
+            "temperature": 48.780487060546875,
+            "start": 0,
+            "rr_driver_data": {
+              "intensity": 100,
+              "real_time_voltage": 23,
+              "real_time_power": 95,
+              "real_time_speed": 2420,
+              "state": 0,
+              "current_run_uptime": 120,
+              "current_run_power": 10,
+              "total_uptime": 819,
+              "total_power": 73
+            },
+            "intensity": 100,
+            "pulse": 0
+          },
+          "2": {
+            "state": "operational",
+            "missing_pump": false,
+            "temperature": 0,
+            "start": 0,
+            "baud_rate": 9869,
+            "intensity": 100,
+            "pulse": 0
+          }
+        },
+        "local_time": "2026-11-03T14:57:09+01:00",
+        "utc_time": "2026-11-03T13:57:09Z",
+        "hwid": "0000aaaa0007",
+        "wifi_signal": -57,
+        "free_heap": 50715,
+        "metrics": {
+          "wifi_sig": -60,
+          "ping": 34
+        }
+      }
+    },
+    {
+      "ts": "14:58:09",
+      "payload": {
+        "mode": "auto",
+        "uptime": "D:010-H:15-m:46-s:10",
+        "active_shortcut": "no_shortcut",
+        "maxavg_ec_skim": 433,
+        "maxavg_ec_cup": 0,
+        "one_min_avg_cup": 0,
+        "ec_skimmer_intensity": 0,
+        "pumps": {
+          "1": {
+            "state": "operational",
+            "missing_pump": false,
+            "temperature": 48.780487060546875,
+            "start": 0,
+            "rr_driver_data": {
+              "intensity": 100,
+              "real_time_voltage": 23,
+              "real_time_power": 95,
+              "real_time_speed": 2420,
+              "state": 0,
+              "current_run_uptime": 120,
+              "current_run_power": 10,
+              "total_uptime": 819,
+              "total_power": 73
+            },
+            "intensity": 100,
+            "pulse": 0
+          },
+          "2": {
+            "state": "calibration",
+            "missing_pump": false,
+            "temperature": 0,
+            "start": 0,
+            "baud_rate": 9869,
+            "intensity": 0,
+            "pulse": 0
+          }
+        },
+        "local_time": "2026-11-03T14:58:09+01:00",
+        "utc_time": "2026-11-03T13:58:09Z",
+        "hwid": "0000aaaa0007",
+        "wifi_signal": -56,
+        "free_heap": 50224,
+        "metrics": {
+          "wifi_sig": -55,
+          "ping": 25
+        }
+      }
+    },
+    {
+      "ts": "15:07:09",
+      "payload": {
+        "mode": "auto",
+        "uptime": "D:010-H:15-m:55-s:10",
+        "active_shortcut": "no_shortcut",
+        "maxavg_ec_skim": 186,
+        "maxavg_ec_cup": 0,
+        "one_min_avg_cup": 0,
+        "ec_skimmer_intensity": 100,
+        "pumps": {
+          "1": {
+            "state": "operational",
+            "missing_pump": false,
+            "temperature": 48.780487060546875,
+            "start": 0,
+            "rr_driver_data": {
+              "intensity": 100,
+              "real_time_voltage": 23,
+              "real_time_power": 95,
+              "real_time_speed": 2420,
+              "state": 0,
+              "current_run_uptime": 120,
+              "current_run_power": 10,
+              "total_uptime": 820,
+              "total_power": 73
+            },
+            "intensity": 100,
+            "pulse": 0
+          },
+          "2": {
+            "state": "operational",
+            "missing_pump": false,
+            "temperature": 0,
+            "start": 0,
+            "baud_rate": 9869,
+            "intensity": 100,
+            "pulse": 0
+          }
+        },
+        "local_time": "2026-11-03T15:07:09+01:00",
+        "utc_time": "2026-11-03T14:07:09Z",
+        "hwid": "0000aaaa0007",
+        "wifi_signal": -62,
+        "free_heap": 50670,
+        "metrics": {
+          "wifi_sig": -62,
+          "ping": 43
+        }
+      }
+    },
+    {
+      "ts": "15:08:09",
+      "payload": {
+        "mode": "auto",
+        "uptime": "D:010-H:15-m:56-s:10",
+        "active_shortcut": "no_shortcut",
+        "maxavg_ec_skim": 51,
+        "maxavg_ec_cup": 39,
+        "one_min_avg_cup": 20,
+        "ec_skimmer_intensity": 35,
+        "pumps": {
+          "1": {
+            "state": "operational",
+            "missing_pump": false,
+            "temperature": 48.780487060546875,
+            "start": 0,
+            "rr_driver_data": {
+              "intensity": 100,
+              "real_time_voltage": 23,
+              "real_time_power": 95,
+              "real_time_speed": 2420,
+              "state": 0,
+              "current_run_uptime": 120,
+              "current_run_power": 10,
+              "total_uptime": 820,
+              "total_power": 73
+            },
+            "intensity": 100,
+            "pulse": 0
+          },
+          "2": {
+            "state": "full-cup",
+            "missing_pump": false,
+            "temperature": 0,
+            "start": 0,
+            "baud_rate": 9869,
+            "intensity": 35,
+            "pulse": 0
+          }
+        },
+        "local_time": "2026-11-03T15:08:09+01:00",
+        "utc_time": "2026-11-03T14:08:09Z",
+        "hwid": "0000aaaa0007",
+        "wifi_signal": -62,
+        "free_heap": 50621,
+        "metrics": {
+          "wifi_sig": -62,
+          "ping": 28
+        }
+      }
+    }
+  ],
+  "states": [
+    {
+      "ts": "14:57:37",
+      "payload": {
+        "specific_attributes": {
+          "pumps": {
+            "1": {
+              "name": "Return",
+              "type": "return",
+              "model": "return-12000",
+              "model_address": 224,
+              "state": "operational",
+              "reconnect_pump": false,
+              "sensor_controlled": false,
+              "missing_pump": false,
+              "missing_sensor": false,
+              "schedule_enabled": true,
+              "intensity": 100,
+              "schedule": [
+                {
+                  "st": 0,
+                  "ti": 100,
+                  "pd": 0
+                }
+              ]
+            },
+            "2": {
+              "name": "RSK 900",
+              "type": "skimmer",
+              "model": "rsk-900",
+              "model_address": 178,
+              "state": "calibration",
+              "reconnect_pump": false,
+              "sensor_controlled": true,
+              "missing_pump": false,
+              "missing_sensor": false,
+              "schedule_enabled": true,
+              "intensity": 100,
+              "schedule": [
+                {
+                  "st": 0,
+                  "ti": 100,
+                  "pd": 0
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "14:57:53",
+      "payload": {
+        "specific_attributes": {
+          "device_settings": {
+            "restore_settings": true,
+            "linked": false,
+            "synced": true,
+            "overskimming": {
+              "enabled": true,
+              "threshold": 100
+            },
+            "fullcup_enabled": true,
+            "calibration": {
+              "skim_calibration": 427,
+              "cup_calibration": 308
+            },
+            "sync_subscription": false
+          }
+        }
+      }
+    },
+    {
+      "ts": "14:57:59",
+      "payload": {
+        "specific_attributes": {
+          "pumps": {
+            "1": {
+              "name": "Return",
+              "type": "return",
+              "model": "return-12000",
+              "model_address": 224,
+              "state": "operational",
+              "reconnect_pump": false,
+              "sensor_controlled": false,
+              "missing_pump": false,
+              "missing_sensor": false,
+              "schedule_enabled": true,
+              "intensity": 100,
+              "schedule": [
+                {
+                  "st": 0,
+                  "ti": 100,
+                  "pd": 0
+                }
+              ]
+            },
+            "2": {
+              "name": "RSK 900",
+              "type": "skimmer",
+              "model": "rsk-900",
+              "model_address": 178,
+              "state": "operational",
+              "reconnect_pump": false,
+              "sensor_controlled": true,
+              "missing_pump": false,
+              "missing_sensor": false,
+              "schedule_enabled": true,
+              "intensity": 100,
+              "schedule": [
+                {
+                  "st": 0,
+                  "ti": 100,
+                  "pd": 0
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "14:58:03",
+      "payload": {
+        "specific_attributes": {
+          "pumps": {
+            "1": {
+              "name": "Return",
+              "type": "return",
+              "model": "return-12000",
+              "model_address": 224,
+              "state": "operational",
+              "reconnect_pump": false,
+              "sensor_controlled": false,
+              "missing_pump": false,
+              "missing_sensor": false,
+              "schedule_enabled": true,
+              "intensity": 100,
+              "schedule": [
+                {
+                  "st": 0,
+                  "ti": 100,
+                  "pd": 0
+                }
+              ]
+            },
+            "2": {
+              "name": "RSK 900",
+              "type": "skimmer",
+              "model": "rsk-900",
+              "model_address": 178,
+              "state": "calibration",
+              "reconnect_pump": false,
+              "sensor_controlled": true,
+              "missing_pump": false,
+              "missing_sensor": false,
+              "schedule_enabled": true,
+              "intensity": 100,
+              "schedule": [
+                {
+                  "st": 0,
+                  "ti": 100,
+                  "pd": 0
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "14:58:20",
+      "payload": {
+        "specific_attributes": {
+          "device_settings": {
+            "restore_settings": true,
+            "linked": false,
+            "synced": true,
+            "overskimming": {
+              "enabled": true,
+              "threshold": 100
+            },
+            "fullcup_enabled": true,
+            "calibration": {
+              "skim_calibration": 427,
+              "cup_calibration": 6
+            },
+            "sync_subscription": false
+          }
+        }
+      }
+    },
+    {
+      "ts": "14:58:26",
+      "payload": {
+        "specific_attributes": {
+          "pumps": {
+            "1": {
+              "name": "Return",
+              "type": "return",
+              "model": "return-12000",
+              "model_address": 224,
+              "state": "operational",
+              "reconnect_pump": false,
+              "sensor_controlled": false,
+              "missing_pump": false,
+              "missing_sensor": false,
+              "schedule_enabled": true,
+              "intensity": 100,
+              "schedule": [
+                {
+                  "st": 0,
+                  "ti": 100,
+                  "pd": 0
+                }
+              ]
+            },
+            "2": {
+              "name": "RSK 900",
+              "type": "skimmer",
+              "model": "rsk-900",
+              "model_address": 178,
+              "state": "operational",
+              "reconnect_pump": false,
+              "sensor_controlled": true,
+              "missing_pump": false,
+              "missing_sensor": false,
+              "schedule_enabled": true,
+              "intensity": 100,
+              "schedule": [
+                {
+                  "st": 0,
+                  "ti": 100,
+                  "pd": 0
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "15:07:23",
+      "payload": {
+        "specific_attributes": {
+          "pumps": {
+            "1": {
+              "name": "Return",
+              "type": "return",
+              "model": "return-12000",
+              "model_address": 224,
+              "state": "operational",
+              "reconnect_pump": false,
+              "sensor_controlled": false,
+              "missing_pump": false,
+              "missing_sensor": false,
+              "schedule_enabled": true,
+              "intensity": 100,
+              "schedule": [
+                {
+                  "st": 0,
+                  "ti": 100,
+                  "pd": 0
+                }
+              ]
+            },
+            "2": {
+              "name": "RSK 900",
+              "type": "skimmer",
+              "model": "rsk-900",
+              "model_address": 178,
+              "state": "full-cup",
+              "reconnect_pump": false,
+              "sensor_controlled": true,
+              "missing_pump": false,
+              "missing_sensor": false,
+              "schedule_enabled": true,
+              "intensity": 100,
+              "schedule": [
+                {
+                  "st": 0,
+                  "ti": 100,
+                  "pd": 0
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "15:14:23",
+      "payload": {
+        "specific_attributes": {
+          "pumps": {
+            "1": {
+              "name": "Return",
+              "type": "return",
+              "model": "return-12000",
+              "model_address": 224,
+              "state": "operational",
+              "reconnect_pump": false,
+              "sensor_controlled": false,
+              "missing_pump": false,
+              "missing_sensor": false,
+              "schedule_enabled": true,
+              "intensity": 100,
+              "schedule": [
+                {
+                  "st": 0,
+                  "ti": 100,
+                  "pd": 0
+                }
+              ]
+            },
+            "2": {
+              "name": "RSK 900",
+              "type": "skimmer",
+              "model": "rsk-900",
+              "model_address": 0,
+              "state": "operational",
+              "reconnect_pump": false,
+              "sensor_controlled": true,
+              "missing_pump": false,
+              "missing_sensor": false,
+              "schedule_enabled": true,
+              "intensity": 100,
+              "schedule": [
+                {
+                  "st": 0,
+                  "ti": 100,
+                  "pd": 0
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "answers_after_full_cup": {
+    "/dashboard": {
+      "mode": "auto",
+      "is_internet_connected": true,
+      "battery_level": "high",
+      "time_error": false,
+      "restore_settings": true,
+      "linked": false,
+      "synced": true,
+      "ec_sensor_connected": true,
+      "pump_1": {
+        "name": "Return",
+        "type": "return",
+        "model": "return-12000",
+        "state": "operational",
+        "reconnect_pump": false,
+        "sensor_controlled": false,
+        "missing_pump": false,
+        "missing_sensor": false,
+        "schedule_enabled": true,
+        "intensity": 100,
+        "pulse": 0,
+        "temperature": 48.780487060546875
+      },
+      "pump_2": {
+        "name": "RSK 900",
+        "type": "skimmer",
+        "model": "rsk-900",
+        "state": "full-cup",
+        "reconnect_pump": false,
+        "sensor_controlled": true,
+        "missing_pump": false,
+        "missing_sensor": false,
+        "schedule_enabled": true,
+        "intensity": 35,
+        "pulse": 0,
+        "temperature": 0
+      }
+    }
+  },
+  "connection": {
+    "attributes": {
+      "system": {
+        "hw_type": "reef-run",
+        "hw_model": "RSRUN"
+      },
+      "firmware": {
+        "version": "2.0.3"
+      }
+    },
+    "specific_attributes": {
+      "initial": false,
+      "is_factory_reset": false,
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "feeding_type": "manual",
+      "ec_sensor_connected": true,
+      "battery_level": "high",
+      "time_error": false,
+      "device_settings": {
+        "restore_settings": true,
+        "linked": false,
+        "synced": true,
+        "overskimming": {
+          "enabled": true,
+          "threshold": 100
+        },
+        "fullcup_enabled": true,
+        "calibration": {
+          "skim_calibration": 421,
+          "cup_calibration": 308
+        },
+        "sync_subscription": true
+      },
+      "pumps": {
+        "1": {
+          "name": "Return",
+          "type": "return",
+          "model": "return-12000",
+          "model_address": 224,
+          "state": "operational",
+          "reconnect_pump": false,
+          "sensor_controlled": false,
+          "missing_pump": false,
+          "missing_sensor": false,
+          "schedule_enabled": true,
+          "intensity": 100,
+          "schedule": [
+            {
+              "st": 0,
+              "ti": 100,
+              "pd": 0
+            }
+          ]
+        },
+        "2": {
+          "name": "RSK 900",
+          "type": "skimmer",
+          "model": "rsk-900",
+          "model_address": 178,
+          "state": "operational",
+          "reconnect_pump": false,
+          "sensor_controlled": true,
+          "missing_pump": false,
+          "missing_sensor": false,
+          "schedule_enabled": true,
+          "intensity": 100,
+          "schedule": [
+            {
+              "st": 0,
+              "ti": 100,
+              "pd": 0
+            }
+          ]
+        }
+      },
+      "shortcuts": {
+        "pump_1": {
+          "feeding": {
+            "enabled": false,
+            "duration": 1800,
+            "intensity": 0,
+            "delay": 0
+          },
+          "maintenance": false,
+          "emergency": false,
+          "shortcut_off_delay": 0,
+          "pump_on_delayed": false
+        },
+        "pump_2": {
+          "feeding": {
+            "enabled": false,
+            "duration": 1800,
+            "intensity": 0,
+            "delay": 0
+          },
+          "maintenance": false,
+          "emergency": false,
+          "shortcut_off_delay": 0,
+          "pump_on_delayed": false
+        }
+      },
+      "timezone": 60
+    }
+  }
+}
