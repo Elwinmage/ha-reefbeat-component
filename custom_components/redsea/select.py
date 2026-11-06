@@ -542,14 +542,17 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
         self._attr_current_option = option
         event_type = self._value_name
 
+        # async_fire runs the @callback listeners of the text entities right
+        # away: they are available (or not) before the service call returns,
+        # so a text.set_value sent just after it finds them available.
         if option == "other":
             value = "other"
-            hass.bus.fire(event_type, {"other": True})
+            hass.bus.async_fire(event_type, {"other": True})
         else:
             value = translate(
                 option, "uid", dictionary=_SORTED_SUPPLEMENTS, src_lang="fullname"
             )
-            hass.bus.fire(event_type, {"other": False})
+            hass.bus.async_fire(event_type, {"other": False})
 
         _LOGGER.debug("Setting new supplement %s", value)
         self._device.set_data(self._value_name, value)

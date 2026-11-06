@@ -2,6 +2,18 @@
 
 ## MODIFICATIONS
 
+### ReefDose: ReefCare parts as standalone supplements
+
+- The four ReefCare parts (Part 1 to Part 4) can be set alone on a head, as
+  in the ReefBeat app once the bundle is split (the heads keep their part).
+  They are offered in the supplement select as `Red Sea - ReefCare Part N:
+  …`, their container sizes being those of the bundle times the ratio of
+  the part. Choosing `RedSea - ReefCare Program` still sets the four heads.
+- Selecting `other` in the supplement select makes the text boxes of the new
+  supplement available before the call returns (the event was dispatched
+  later): a `text.set_value` sent right after it, as the card does when
+  renaming a container, no longer hits an unavailable entity.
+
 ### `reef_role` on socket and port switches
 
 - The on/off switches of RSPOWER sockets and RSCONTROL ports now publish a
