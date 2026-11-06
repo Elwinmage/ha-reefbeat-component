@@ -10,6 +10,9 @@
 <img src="../img/rsato_diag.png" alt="Image">
 </p>
 
+> [!IMPORTANT]
+> [Tryb Poseidon](poseidon.pl.md#strategie) nigdy nie działał na ReefATO+: nie mam takiego urządzenia. Użyj najpierw strategii *Szpieg*, a potem wyślij mi jego logi lub otwórz zgłaszane przez niego naprawy, jak wyjaśniono [tutaj](poseidon.pl.md#strategie).
+
 ### Zadania konserwacyjne
 | Zadanie | Domyślnie | Zakres |
 | ------- | --------- | ------ |

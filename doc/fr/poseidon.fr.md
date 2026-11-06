@@ -12,8 +12,10 @@ Home Assistant au lieu de `mqtt.reef-beat.com`, et Home Assistant transmet son
 trafic à Red Sea sans le modifier : l'app ReefBeat continue de fonctionner.
 
 > [!WARNING]
-> Le mode Poseidon est expérimental. Pour l'instant il relaie et observe le
-> trafic : l'intégration lit toujours les appareils en les interrogeant.
+> Le mode Poseidon est expérimental. Avec la stratégie *Espion*, par défaut, il
+> ne fait que relayer et observer le trafic : l'intégration continue d'interroger
+> les appareils. Les stratégies *Shadow* et *Poseidon* utilisent ce que les
+> appareils poussent (voir [Stratégies](#stratégies)).
 
 ## Ajouter Poseidon
 
@@ -92,6 +94,7 @@ en mode normal automatiquement.
 | Redémarrage de Home Assistant, rechargement de Poseidon | Laissés tels quels : ils se reconnectent quand le relais revient |
 | Poseidon désactivé ou supprimé | Tous remis en mode normal |
 | Un appareil ne peut pas être remis en mode normal | Nommé dans une notification |
+| Le relais tombe, un [watchdog](https://github.com/Elwinmage/reefbeatEnergyBackup#-poseidon-mode-watchdog) surveille | Tous remis en mode normal, une fois Red Sea confirmé joignable ; sans watchdog, utilisez le [script de secours](#script-de-secours) |
 | Un appareil pointe vers le relais mais ne s'y connecte jamais (il a gardé sa session avec Red Sea) | Reconnecté au bout de 2 minutes : repointé vers Red Sea puis vers le relais, deux fois au plus |
 
 On ne passe en mode Poseidon que sur votre décision. Toute bascule automatique
@@ -108,6 +111,21 @@ valeur par défaut.
 | *Espion* | inchangé | enregistrés, comparés au relevé suivant | `spy.jsonl` |
 | *Shadow* | inchangé | fusionnés dans les données de l'appareil, comparés au relevé suivant | `shadow.jsonl` |
 | *Poseidon* | toutes les N minutes | utilisés ; l'appareil est relu à chaque état tant que sa famille ne sait pas être fusionnée | — |
+
+> [!IMPORTANT]
+> **Propriétaires de ReefATO+, j'ai besoin de vous.** Je n'ai pas de ReefATO+ : le
+> mode Poseidon n'a donc jamais tourné sur cet appareil, ce qu'il pousse n'est pas
+> encore connu et rien n'est fusionné. Mettez d'abord le vôtre en stratégie
+> *Espion*, puis, pour compléter sa prise en charge :
+> - envoyez-moi son log espion (`/config/redsea/poseidon/logs/spy.jsonl`) dans une
+>   [issue GitHub](https://github.com/Elwinmage/ha-reefbeat-component/issues),
+>   après l'avoir relu : il est déchiffré et contient les identifiants de vos
+>   appareils ;
+> - et/ou ouvrez les réparations que Poseidon remonte pour ses
+>   [messages inattendus](#messages-inattendus) : chacune préremplit l'issue GitHub.
+>
+> N'envoyez jamais le fichier des clefs. L'avertissement sur la récupération des
+> clefs s'applique à la ReefATO+ comme à tout appareil.
 
 Familles fusionnées à ce jour, d'après les relevés espion :
 
@@ -184,12 +202,12 @@ synchronisées, même fuseau horaire) :
   seule la signature d'un message inattendu est envoyée.
 - **Retenir les restaurations du cloud à la connexion** (activé par
   défaut) : voir [Garde à la connexion](#garde-à-la-connexion).
-- **Clef du watchdog** : 16 caractères, proposée tant qu'aucune n'est définie.
-  Un watchdog sur une autre machine (autonome, ou dans
-  [reefbeatEnergyBackup](https://github.com/Elwinmage/reefbeatEnergyBackup))
-  demande au relais s'il est vivant, et remet les appareils en mode normal
-  quand il ne l'est pas. Recopiez cette clef dans sa configuration ; laissez-la
-  vide pour ne répondre à aucun watchdog.
+- **Clef du watchdog** : 16 caractères, proposée tant qu'aucune n'est définie. Le
+  relais répond à une requête chiffrée « es-tu vivant » faite avec cette clef :
+  [reefbeatEnergyBackup](https://github.com/Elwinmage/reefbeatEnergyBackup#-poseidon-mode-watchdog),
+  ou son `poseidon_watchdog.py` seul sur une autre machine, surveille le relais
+  et remet les appareils en mode normal quand il tombe. Recopiez cette clef dans
+  sa configuration ; laissez-la vide pour ne répondre à aucun watchdog.
 
 ## Messages inattendus
 

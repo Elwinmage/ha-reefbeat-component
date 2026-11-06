@@ -4,7 +4,7 @@
   <img src="../../icon.png" width="50%"/>
 </p>
 
-[![HACS Badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=flat-square)](https://github.com/hacs/default)
+[![Marketplace Badge](https://img.shields.io/badge/Marketplace-Default-41BDF5.svg?style=flat-square)](https://github.com/hacs/default)
 [![IoT Class](https://img.shields.io/badge/IoT%20Class-Local%20Polling-green?style=flat-square)](https://developers.home-assistant.io/docs/architecture_index/#branding)
 ![Installations](https://img.shields.io/badge/dynamic/json?label=Instalações%20ativas&query=estimated&url=https%3A%2F%2Fraw.githubusercontent.com%2FElwinmage%2Fha-reefbeat-component%2Fmain%2Fbadges%2Fstats.json&color=CE1126&logo=home-assistant)
 [![GH-release](https://img.shields.io/github/v/release/Elwinmage/ha-reefbeat-component.svg?style=flat-square)](https://github.com/Elwinmage/ha-reefbeat-component/releases)
@@ -18,6 +18,8 @@ Para nos ajudar a traduzir, siga este [guia](https://github.com/Elwinmage/ha-ree
 
 # Apresentação
 ***Gestão local de dispositivos HomeAssistant RedSea Reefbeat (sem cloud): ReefATO+, ReefControl, ReefControl-Power, ReefDose, ReefLed, ReefMat, ReefRun e ReefWave***
+
+Além do controlo dos dispositivos, a integração traz a [regulação da dosagem](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/pt/reefdose.pt.md#regulação-da-dosagem) para a ReefDose (dosagem assistida a partir dos seus resultados de teste, salmoura regulada pela salinidade) e um [modo Poseidon](poseidon.pt.md#modo-poseidon) experimental (um relé local entre os dispositivos e a cloud Red Sea que substitui a maior parte das consultas pelo que os dispositivos enviam).
 
 <!-- generated:demo-videos:start -->
 
@@ -97,7 +99,7 @@ Os projetos ReefTech encaixam-se entre si: as integrações trazem o seu equipam
   <tr>
     <td><img src="https://raw.githubusercontent.com/Elwinmage/ha-reef-blueprints/main/icon.png" width="64" alt="ha-reef-blueprints" /></td>
     <td>🐬<br /><a href="https://github.com/Elwinmage/ha-reef-blueprints"><b>ha-reef-blueprints</b></a></td>
-    <td>Blueprints de notificação comuns a todo o ecossistema: manutenções em atraso encontradas pelo contrato <code>reef_role</code>, e aparelhos que ficaram inacessíveis. Oito idiomas.</td>
+    <td>Blueprints de automação comuns a todo o ecossistema: manutenções em atraso encontradas pelo contrato <code>reef_role</code>, aparelhos que ficaram inacessíveis, um teste periódico dos aquecedores e uma vigilância dos relés. Oito idiomas.</td>
     <td>as três integrações</td>
   </tr>
   <tr>
@@ -184,7 +186,7 @@ Estão todos documentados em conjunto na [página do projeto ReefTech](https://e
 <td align="center" rowspan="6">–</td>
 <td rowspan="6">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsled,all label:enhancement" style="text-decoration:none">📆</a>
-<a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsled,RSLED90,all label:bug" style="text-decoration:none">🐛</a>
+<a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rsled,all label:bug" style="text-decoration:none">🐛</a>
 </td>
 </tr>
 <tr>
@@ -241,7 +243,7 @@ Estão todos documentados em conjunto na [página do projeto ReefTech](https://e
 <td align="center" rowspan="2">✅</td>
 <td rowspan="2">
 <a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rswave,all label:enhancement" style="text-decoration:none">📆</a>
-<a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rwave,all label:bug" style="text-decoration:none">🐛</a>
+<a href="https://github.com/Elwinmage/ha-reefbeat-component/issues?q=is:issue state:open label:rswave,all label:bug" style="text-decoration:none">🐛</a>
 </td>
 </tr>
 <tr>
@@ -252,7 +254,7 @@ Estão todos documentados em conjunto na [página do projeto ReefTech](https://e
 (*) Utilizadores de ReefWave, por favor leiam [isto](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/pt/reefwave.pt.md#reefwave)
 
 # Resumo
-- [Instalação via HACS](#instalação-via-hacs)
+- [Instalação](#instalação)
 - [Funções comuns](#funções-comuns)
 - [ReefATO+](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/pt/reefato.pt.md#reefato)
 - [ReefControl](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/doc/pt/reefcontrol.pt.md#reefcontrol)
@@ -268,16 +270,19 @@ Estão todos documentados em conjunto na [página do projeto ReefTech](https://e
 - [Modo Poseidon](poseidon.pt.md#modo-poseidon)
 - [FAQ](#faq)
 
-# Instalação via HACS
+# Instalação
+
+> [!NOTE]
+> Desde o Home Assistant 2026.11, o HACS faz parte do Home Assistant com o nome **Marketplace** (*Definições > Marketplace*): não há nada a instalar, e uma instalação HACS existente é migrada automaticamente. Num Home Assistant mais antigo, os mesmos passos funcionam no HACS.
 
 ## Instalação direta
 
-Clique aqui para ir diretamente ao repositório no HACS e clique em "Descarregar": [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Elwinmage&repository=ha-reefbeat-component&category=integration)
+Clique aqui para ir diretamente ao repositório no Marketplace e clique em "Instalar": [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Elwinmage&repository=ha-reefbeat-component&category=integration)
 
-Para o cartão complementar ha-reef-card com funcionalidades avançadas, clique aqui para ir ao repositório no HACS e clique em "Descarregar": [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Elwinmage&repository=ha-reef-card&category=plugin)
+Para o cartão complementar ha-reef-card com funcionalidades avançadas, clique aqui para ir diretamente ao repositório no Marketplace e clique em "Instalar": [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Elwinmage&repository=ha-reef-card&category=plugin)
 
-## Pesquisar no HACS
-Ou pesquise «redsea» ou «reefbeat» no HACS.
+## Pesquisar no Marketplace
+Ou pesquise «redsea» ou «reefbeat» em *Definições > Marketplace*.
 
 <p align="center">
 <img src="../img/hacs_search.png" alt="Image">
@@ -367,6 +372,10 @@ Escolha a rede de destino, introduza a respetiva palavra-passe e confirme. A int
 
 > [!NOTE]
 > Cada aparelho expõe também um botão «Atualizar dados». Força uma leitura imediata das fontes consultadas periodicamente, sem esperar pelo próximo intervalo de sondagem, e funciona seja qual for a definição Live_update_config — ao contrário de «Obter configuração», que só atualiza as fontes de configuração.
+
+## Mensagens
+
+Os sensores **Última mensagem** e **Última mensagem de alerta** guardam a última resposta de um dispositivo, com a sua data (atributo `timestamp`) e a sua origem (`origin`). A ação `redsea.get_messages` devolve o seu histórico, e `redsea.clean_message` apaga-as.
 
 ## Atualização de Firmware
 Pode ser notificado e atualizar o seu dispositivo quando estiver disponível uma nova versão de firmware. Tem de ter um dispositivo ["Cloud API"](https://github.com/Elwinmage/ha-reefbeat-component/blob/main/README.md#add-cloud-api) ativo com as suas credenciais e o interruptor "Usar API na nuvem" tem de estar ativado.

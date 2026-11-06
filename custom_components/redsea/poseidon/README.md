@@ -3,8 +3,8 @@
 Poseidon mode puts a **transparent MQTT relay** between ReefBeat devices and
 the Red Sea broker, inside the `redsea` integration. Devices keep talking to
 the Red Sea cloud (the official app keeps working), but every frame crosses
-Home Assistant, where it can be logged and — later — injected into the
-coordinators to replace local polling.
+Home Assistant, where it is logged and, depending on the strategy of the
+device, merged into the coordinators to replace most of the local polling.
 
 It is the integration of the standalone `reefbeat_god_mode.py` tool (formerly
 "god mode"), whose protocol work and switch sequence are validated on real
@@ -17,8 +17,8 @@ hardware. User documentation: [doc/en/poseidon.md](../../../doc/en/poseidon.md).
 | 1 | Entry, relay, keystore, key capture, switches, lifecycle | done (lot A) |
 | 2 | Debug log, silent devices, encrypted `is_alive`, settings | done (lot B) |
 | 3 | Keystore export / import (CLI format) | done (lot C) |
-| 4 | Standalone watchdog, then reefbeatEnergyBackup | to do |
-| 5 | Strategies per device: `spy`, `shadow`, `poseidon` | done; mergers of pushed states: per family, from the spy files |
+| 4 | Standalone watchdog, then reefbeatEnergyBackup | done (`poseidon_watchdog.py` of reefbeatEnergyBackup) |
+| 5 | Strategies per device: `spy`, `shadow`, `poseidon` | done; mergers of every family but RSATO+ (see below) |
 
 ## Modules
 
@@ -32,10 +32,16 @@ poseidon/
 ├── device_http.py    raw local HTTP, /cloud switch sequence
 ├── keystore.py       Store-backed keystore (CLI schema)
 ├── capture.py        snapshots, key capture, diff, RSRUN/RSWAVE restore
+├── wave_backup.py    custom waves and program of a RSWAVE around a capture
 ├── relay.py          asyncio relay, traffic timestamps, local sessions
 ├── watchdog.py       is_alive, served by the relay
 ├── debug.py          decrypted JSONL logs, rotated, written off the loop
-├── strategy.py       comparisons, mergers, polling control
+├── strategy.py       comparisons, polling control
+├── mergers.py        pushed states and telemetry, per device family
+├── anomalies.py      unexpected messages, anonymised, repair issues
+├── answers.py        answers of the devices to the commands of the app
+├── doses.py          history of the doses of a ReefDose
+├── events.py         redsea_dose and redsea_notification events
 ├── manager.py        the running Poseidon (hass.data["redsea_poseidon"])
 ├── switch_entity.py  per device: mode switch, polling pause, strategy select
 ├── flow.py           config / options flow steps (mixins)
@@ -125,7 +131,7 @@ PINGRESP, PUBACK for QoS 1).
 - The key never goes on the wire; a request that does not decrypt gets no
   answer; the response repeats the request id. No key set → no answer.
 
-Watchdog algorithm (step 4): every N minutes `is_alive(10)`; on failure wait
+Watchdog algorithm (`poseidon_watchdog.py`): every N minutes `is_alive(10)`; on failure wait
 10 minutes and retry; still failing and the Red Sea broker reachable from the
 watchdog → every cached device back to normal mode, then notify.
 
@@ -197,9 +203,11 @@ back, and so do all of them when Poseidon stops.
 - `poseidon`: `update_interval` set to `reduced_minutes` (10). A pushed
   `state` is merged; a family without a merger gets
   `async_request_refresh` instead (at most every 5 s per device).
-  `telemetry` triggers nothing.
+  `telemetry` is merged too, for the families that have a merger.
 
-`MERGERS` is empty: mergers are written per family from the spy files.
+`mergers.py` holds one merger per family, written from the spy files and
+checked against the polls; a family listed in `FULLY_PUSHED` is only polled
+every *Safety polling interval*. The user documentation lists them.
 
 Capture protocol, per device (clocks in sync): 30 min paused with every other
 reader stopped (what the device pushes on its own), 30 min polling only, then

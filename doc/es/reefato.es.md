@@ -10,6 +10,9 @@
 <img src="../img/rsato_diag.png" alt="Image">
 </p>
 
+> [!IMPORTANT]
+> El [modo Poseidon](poseidon.es.md#estrategias) nunca ha funcionado en un ReefATO+: no tengo ninguno. Use primero la estrategia *Espía*, y luego envíeme sus registros o abra las reparaciones que genere, como se explica [aquí](poseidon.es.md#estrategias).
+
 ### Tareas de mantenimiento
 | Tarea | Por defecto | Rango |
 | ----- | ----------- | ----- |

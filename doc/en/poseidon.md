@@ -12,8 +12,10 @@ Assistant instead of `mqtt.reef-beat.com`, and Home Assistant passes its
 traffic on to Red Sea unchanged: the ReefBeat app keeps working as before.
 
 > [!WARNING]
-> Poseidon mode is experimental. For now it only relays and observes the
-> traffic: the integration still reads the devices by polling them.
+> Poseidon mode is experimental. With the default *Spy* strategy it only relays
+> and observes the traffic: the integration keeps polling the devices. The
+> *Shadow* and *Poseidon* strategies use what the devices push (see
+> [Strategies](#strategies)).
 
 ## Adding Poseidon
 
@@ -88,6 +90,7 @@ traffic resumes. A silent device is never switched back automatically.
 | Home Assistant restarts, Poseidon reloads | Left as they are: they reconnect when the relay is back |
 | Poseidon disabled or removed | All switched back to normal mode |
 | A device cannot be switched back | Named in a notification |
+| The relay dies, a [watchdog](https://github.com/Elwinmage/reefbeatEnergyBackup#-poseidon-mode-watchdog) is watching | All switched back to normal mode, once Red Sea is confirmed reachable; without a watchdog, use the [rescue script](#rescue-script) |
 | A device is pointed at the relay but never connects to it (it kept its session with Red Sea) | Made to reconnect after 2 minutes: pointed back at Red Sea, then at the relay again, twice at most |
 
 Poseidon mode is only ever entered by you. Every automatic switch goes back to
@@ -103,6 +106,19 @@ What Home Assistant does with a device in Poseidon mode. Each device has a
 | *Spy* | unchanged | recorded, compared with the next poll | `spy.jsonl` |
 | *Shadow* | unchanged | merged into the device's data, compared with the next poll | `shadow.jsonl` |
 | *Poseidon* | every N minutes | used; the device is read again on each state while its family cannot be merged | — |
+
+> [!IMPORTANT]
+> **ReefATO+ owners, your help is needed.** I do not own a ReefATO+, so Poseidon
+> mode has never run on one: what it pushes is not known yet, and nothing of it is
+> merged. Put yours on the *Spy* strategy first, then, to complete its support:
+> - send me its spy log (`/config/redsea/poseidon/logs/spy.jsonl`) in a
+>   [GitHub issue](https://github.com/Elwinmage/ha-reefbeat-component/issues),
+>   after reading it: it is decrypted and holds the identifiers of your devices;
+> - and/or open the repair issues Poseidon raises for its
+>   [unexpected messages](#unexpected-messages): each one prefills the GitHub issue.
+>
+> Never send the file of the keys. The warning on the capture of the keys applies
+> to the ReefATO+ as to any device.
 
 Families merged so far, from the spy runs:
 
@@ -179,12 +195,12 @@ time zone):
   of an unexpected message is sent.
 - **Hold back the cloud's restores at connection** (on by default): see
   [Guard at connection](#guard-at-connection).
-- **Watchdog key**: 16 characters, proposed when none is set. A watchdog on
-  another machine (standalone, or in
-  [reefbeatEnergyBackup](https://github.com/Elwinmage/reefbeatEnergyBackup))
-  asks the relay whether it is alive, and switches the devices back to normal
-  mode when it is not. Copy this key into its configuration; leave it empty to
-  answer no watchdog.
+- **Watchdog key**: 16 characters, proposed when none is set. The relay answers
+  an encrypted "are you alive" request made with this key:
+  [reefbeatEnergyBackup](https://github.com/Elwinmage/reefbeatEnergyBackup#-poseidon-mode-watchdog),
+  or its `poseidon_watchdog.py` alone on any other machine, watches the relay
+  and switches the devices back to normal mode when it dies. Copy this key into
+  its configuration; leave it empty to answer no watchdog.
 
 ## Unexpected messages
 
