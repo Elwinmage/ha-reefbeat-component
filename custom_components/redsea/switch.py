@@ -1487,7 +1487,7 @@ def _effective_state_is_on(mode: Any, state: Any) -> bool | None:
 
 
 # REEFPOWER — per-socket toggle
-class ReefPowerSocketSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class ReefPowerSocketSwitchEntity(ReefRoleMixin, ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Toggle a single AC socket on a RSPOWER device.
 
     Backing endpoint: ``POST /socket/{n}/toggle`` with an empty JSON body.
@@ -1638,7 +1638,7 @@ class ReefPowerTemperatureConfigSwitchEntity(ReefBeatSwitchEntity):
 
 
 # REEFCONTROL — per-port toggle
-class ReefControlPortSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class ReefControlPortSwitchEntity(ReefRoleMixin, ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Toggle a single 12V DC port on a RSCONTROL device.
 
     Backing endpoint: ``POST /port/{n}/toggle``. Same firmware-flip semantics

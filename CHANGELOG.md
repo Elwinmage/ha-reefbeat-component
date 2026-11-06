@@ -2,6 +2,15 @@
 
 ## MODIFICATIONS
 
+### `reef_role` on socket and port switches
+
+- The on/off switches of RSPOWER sockets and RSCONTROL ports now publish a
+  `reef_role` attribute (`socket_N_on_off`, `port_N_on_off`), like their
+  consumption and mode sensors. A blueprint can tie a switch to its own
+  consumption sensor without depending on the install language or on renamed
+  entities: the `reef_heater_test` and `reef_relay_watch` blueprints of
+  ha-reef-blueprints rely on it.
+
 ### Poseidon: ReefWave merged, polled as a safety net only
 
 From the spy runs of 2026-10-30 to 2026-11-03 (a RSWAVE45 0.10.0 in a group:
