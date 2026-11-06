@@ -50,7 +50,8 @@ def _number(value: Any) -> float | None:
 def _dimensions(aquarium: dict[str, Any]) -> dict[str, float] | None:
     """Tank dimensions in cm: length = X (front), width = Y (depth)."""
     dims = {k: _number(aquarium.get(k)) for k in ("length", "width", "height")}
-    if any(v is None for v in dims.values()):
+    # The cloud reports 0 for an aquarium whose dimensions were never entered
+    if any(v is None or v <= 0 for v in dims.values()):
         return None
     return {k: round(v, 2) for k, v in dims.items() if v is not None}
 
