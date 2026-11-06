@@ -42,6 +42,7 @@ from .coordinator import (
     ReefRunCoordinator,
     ReefVirtualLedCoordinator,
 )
+from .dose_regulation_entities import regulation_entities
 from .entity import ReefRoleMixin
 from .probe_entities import probe_display_name, probe_state_attributes
 
@@ -726,7 +727,10 @@ async def async_setup_entry(
             if description.exists_fn(device)
         )
 
-    async_add_entities(entities, True)
+    # ReefDose heads: dose regulation (assisted dosing, brine)
+    entities.extend(regulation_entities(device, "binary_sensor"))
+
+    async_add_entities(entities)
 
 
 # -----------------------------------------------------------------------------

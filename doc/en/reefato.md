@@ -10,6 +10,9 @@
 <img src="../img/rsato_diag.png" alt="Image">
 </p>
 
+> [!IMPORTANT]
+> [Poseidon mode](poseidon.md#strategies) has never run on a ReefATO+: I do not own one. Use the *Spy* strategy first, and send me its logs or open the repair issues it raises, as explained [here](poseidon.md#strategies).
+
 ### Maintenance tasks
 | Task | Default | Range |
 | ---- | ------- | ----- |

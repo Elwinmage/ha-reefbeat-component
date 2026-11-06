@@ -107,8 +107,11 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
+from .dose_regulation_entities import regulation_entities
 from .entity import ReefBeatRestoreEntity, ReefRoleMixin, RestoreSpec
 from .led_weather_entities import weather_entities
+from .poseidon import get_poseidon, is_poseidon_entry
+from .poseidon.switch_entity import poseidon_dose_sensors
 from .probe_entities import probe_state_attributes
 
 _LOGGER = logging.getLogger(__name__)
@@ -287,7 +290,51 @@ CLOUD_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         value_fn=lambda device: cast(_CloudLinkedCoordinator, device).cloud_link(),
         icon="mdi:cloud-sync-outline",
     ),
+    # Name of the cloud aquarium the device belongs to (unknown when the
+    # device is not linked or in no aquarium). A group of lamps has no
+    # aquarium of its own.
+    ReefBeatSensorEntityDescription(
+        key="aquarium",
+        translation_key="aquarium",
+        exists_fn=lambda device: not isinstance(device, ReefVirtualLedCoordinator),
+        value_fn=lambda device: _aquarium_name(device),
+        attributes_fn=lambda device: _aquarium_attributes(device),
+        icon="mdi:fishbowl-outline",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
 )
+
+
+def _cloud_aquarium(device: ReefBeatCoordinator) -> dict[str, Any] | None:
+    """Cloud aquarium of a linked device (see cloud_aquarium), or None."""
+    getter = getattr(device, "cloud_aquarium", None)
+    if getter is None:
+        return None
+    aquarium = getter()
+    return aquarium if isinstance(aquarium, dict) else None
+
+
+def _aquarium_name(device: ReefBeatCoordinator) -> str | None:
+    """Name of the device's cloud aquarium (its uid when it has no name)."""
+    aquarium = _cloud_aquarium(device)
+    if aquarium is None:
+        return None
+    return str(aquarium.get("name") or aquarium.get("uid") or "") or None
+
+
+def _aquarium_attributes(device: ReefBeatCoordinator) -> dict[str, Any]:
+    """Identity of the device's cloud aquarium, for cards and templates."""
+    aquarium = _cloud_aquarium(device) or {}
+    link = getattr(device, "cloud_link", None)
+    account = link() if callable(link) else None
+    return {
+        "aquarium_uid": aquarium.get("uid"),
+        "cloud_account": account if aquarium else None,
+        "system_model": aquarium.get("system_model"),
+        "water_volume": aquarium.get("water_volume"),
+        "net_water_volume": aquarium.get("net_water_volume"),
+    }
+
 
 USER_SENSORS: tuple[ReefBeatCloudSensorEntityDescription, ...] = (
     ReefBeatCloudSensorEntityDescription(
@@ -388,6 +435,12 @@ COMMON_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         key="last_alert_message",
         translation_key="last_alert_message",
         value_fn=lambda device: device.get_data("$.message.alert.message", True),
+        # When the alert came (ISO 8601), None once cleaned
+        attributes_fn=lambda device: {
+            "timestamp": device.get_data("$.message_meta.last_alert_message", True),
+            # ha, or reefbeat (a command of the app relayed by Poseidon)
+            "origin": device.get_data("$.message_meta.last_alert_message_origin", True),
+        },
         icon="mdi:alert",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
@@ -395,6 +448,12 @@ COMMON_SENSORS: tuple[ReefBeatSensorEntityDescription, ...] = (
         key="last_message",
         translation_key="last_message",
         value_fn=lambda device: device.get_data("$.message.message", True),
+        # When the message came (ISO 8601), None once cleaned
+        attributes_fn=lambda device: {
+            "timestamp": device.get_data("$.message_meta.last_message", True),
+            # ha, or reefbeat (a command of the app relayed by Poseidon)
+            "origin": device.get_data("$.message_meta.last_message_origin", True),
+        },
         icon="mdi:note-check",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
@@ -2059,6 +2118,17 @@ async def async_setup_entry(
     - Creates entities from static description lists.
     - Creates dynamic cloud library entities when running as a cloud coordinator.
     """
+    if is_poseidon_entry(entry):
+        poseidon = get_poseidon(hass)
+        if poseidon is not None:
+            poseidon.async_set_entity_adder(
+                "sensor",
+                lambda devices: async_add_entities(
+                    poseidon_dose_sensors(poseidon, devices)
+                ),
+            )
+        return
+
     device = cast(ReefBeatCoordinator, hass.data[DOMAIN][entry.entry_id])
     entities: list[SensorEntity] = []
 
@@ -2753,9 +2823,11 @@ async def async_setup_entry(
         )
 
     # ReefLED week program following the weather
+    # ReefDose heads: dose regulation (assisted dosing, brine)
+    entities.extend(regulation_entities(device, "sensor"))
     entities.extend(weather_entities(device, "sensor"))
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
 # -----------------------------------------------------------------------------

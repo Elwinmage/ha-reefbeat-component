@@ -13,6 +13,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.redsea.const import DOMAIN
 from custom_components.redsea.coordinator import ReefBeatCloudCoordinator
 from custom_components.redsea.websocket import (
+    _dimensions,
     async_register_websocket,
     cloud_aquariums,
 )
@@ -112,3 +113,8 @@ async def test_aquariums_with_devices(hass: HomeAssistant, hass_ws_client: Any) 
 
 async def test_no_cloud(hass: HomeAssistant) -> None:
     assert cloud_aquariums(hass) == []
+
+
+def test_dimensions_never_entered_are_none() -> None:
+    """The cloud reports 0 for an aquarium without dimensions."""
+    assert _dimensions({"length": 0.0, "width": 0.0, "height": 0.0}) is None

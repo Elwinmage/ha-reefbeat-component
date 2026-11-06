@@ -88,6 +88,8 @@ from .maintenance import (
     iter_maintenance_probes,
     tasks_for,
 )
+from .poseidon import get_poseidon, is_poseidon_entry
+from .poseidon.switch_entity import PoseidonPollPauseSwitch, PoseidonSwitch
 from .probe_entities import probe_display_name, tag_port_entities, tag_probe_entities
 from .wave_group_entities import WaveGroupSwitchEntity
 
@@ -522,6 +524,21 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up switch entities for a config entry."""
+    if is_poseidon_entry(entry):
+        poseidon = get_poseidon(hass)
+        if poseidon is not None:
+            poseidon.async_set_switch_adder(
+                lambda devices: async_add_entities(
+                    entity
+                    for hwid, device in devices.items()
+                    for entity in (
+                        PoseidonSwitch(poseidon, hwid, device),
+                        PoseidonPollPauseSwitch(poseidon, hwid, device),
+                    )
+                )
+            )
+        return
+
     device = cast(ReefBeatCoordinator, hass.data[DOMAIN][entry.entry_id])
     entities: list[SwitchEntity] = []
 
@@ -979,7 +996,7 @@ async def async_setup_entry(
     # Group (virtual LED) settings: staggered sunrise
     entities.extend(group_entities(device, "switch"))
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
 def _add_maintenance_notify_switches(
@@ -1470,7 +1487,7 @@ def _effective_state_is_on(mode: Any, state: Any) -> bool | None:
 
 
 # REEFPOWER — per-socket toggle
-class ReefPowerSocketSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class ReefPowerSocketSwitchEntity(ReefRoleMixin, ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Toggle a single AC socket on a RSPOWER device.
 
     Backing endpoint: ``POST /socket/{n}/toggle`` with an empty JSON body.
@@ -1621,7 +1638,7 @@ class ReefPowerTemperatureConfigSwitchEntity(ReefBeatSwitchEntity):
 
 
 # REEFCONTROL — per-port toggle
-class ReefControlPortSwitchEntity(ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
+class ReefControlPortSwitchEntity(ReefRoleMixin, ReefBeatRestoreEntity, SwitchEntity):  # type: ignore[reportIncompatibleVariableOverride]
     """Toggle a single 12V DC port on a RSCONTROL device.
 
     Backing endpoint: ``POST /port/{n}/toggle``. Same firmware-flip semantics

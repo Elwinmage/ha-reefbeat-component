@@ -50,7 +50,8 @@ def _number(value: Any) -> float | None:
 def _dimensions(aquarium: dict[str, Any]) -> dict[str, float] | None:
     """Tank dimensions in cm: length = X (front), width = Y (depth)."""
     dims = {k: _number(aquarium.get(k)) for k in ("length", "width", "height")}
-    if any(v is None for v in dims.values()):
+    # The cloud reports 0 for an aquarium whose dimensions were never entered
+    if any(v is None or v <= 0 for v in dims.values()):
         return None
     return {k: round(v, 2) for k, v in dims.items() if v is not None}
 
@@ -76,11 +77,14 @@ def cloud_aquariums(hass: HomeAssistant) -> list[dict[str, Any]]:
             for device in devices:
                 if not isinstance(device, dict) or device.get("aquarium_uid") != uid:
                     continue
-                entry = dev_reg.async_get_device(
-                    identifiers={(DOMAIN, str(device.get("hwid", "")))}
+                # Identifiers are only unique within a config entry: every
+                # device carrying this one belongs to the aquarium
+                device_ids.extend(
+                    entry.id
+                    for entry in dev_reg.async_get_devices(
+                        identifiers={(DOMAIN, str(device.get("hwid", "")))}
+                    )
                 )
-                if entry is not None:
-                    device_ids.append(entry.id)
             feeding = [
                 entity_id
                 for n in _FEEDING_SHORTCUTS

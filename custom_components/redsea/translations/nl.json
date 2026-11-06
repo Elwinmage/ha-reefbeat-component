@@ -3,11 +3,14 @@
     "abort": {
       "already_configured": "Apparaat al geconfigureerd",
       "cannot_create": "Kan ReefBeat-apparaat niet aanmaken met de opgegeven parameters",
-      "group_already_driven": "Deze lampen worden al door een virtuele LED aangestuurd"
+      "group_already_driven": "Deze lampen worden al door een virtuele LED aangestuurd",
+      "poseidon_no_cloud_account": "Poseidon heeft een ReefBeat-cloudaccount nodig: voeg er eerst een toe."
     },
     "error": {
       "auth_failed": "Authenticatie mislukt, controleer je gegevens",
-      "nothing_detected": "Geen apparaat gedetecteerd"
+      "nothing_detected": "Geen apparaat gedetecteerd",
+      "port_in_use": "Deze poort is al in gebruik op deze machine",
+      "invalid_host": "Geen geldig IPv4-adres"
     },
     "flow_title": "{name}",
     "progress": {
@@ -43,6 +46,15 @@
         "description": "{count} apparaat/apparaten van dit ReefBeat-account staan nog niet in Home Assistant en antwoorden op het adres dat de cloud meldt. Ze zijn aangevinkt: vink uit wat u niet wilt toevoegen en verstuur.\n\nNiet bereikbaar op hun laatst bekende adres (voeg ze toe via een netwerkscan of op IP): {unreachable}",
         "data": {
           "cloud_devices": "Toe te voegen apparaten"
+        }
+      },
+      "poseidon": {
+        "title": "Poseidon-modus",
+        "description": "Poseidon plaatst in Home Assistant een relais tussen je apparaten en de Red Sea-broker. De apparaten blijven werken met de ReefBeat-app; hun verkeer loopt via Home Assistant.\n\nDe voorgestelde poort is de eerste vrije die gevonden is. Het adres is het adres waarmee de apparaten Home Assistant bereiken. Het cloudaccount wordt gebruikt om de sleutels op te halen van apparaten die er nog geen hebben.",
+        "data": {
+          "port": "Luisterpoort",
+          "host": "Adres van Home Assistant zoals de apparaten het zien",
+          "cloud_account": "Cloudaccount"
         }
       }
     }
@@ -156,6 +168,9 @@
       },
       "port_ato_fault": {
         "name": "Poort {port} ATO-storing"
+      },
+      "regulation_alarm": {
+        "name": "Regelalarm"
       }
     },
     "button": {
@@ -395,6 +410,18 @@
       },
       "port_ato_stop": {
         "name": "Poort {port} ATO stoppen"
+      },
+      "regulation_record": {
+        "name": "Testresultaat opslaan"
+      },
+      "regulation_apply": {
+        "name": "Voorgestelde dosis toepassen"
+      },
+      "regulation_dismiss": {
+        "name": "Voorgestelde dosis negeren"
+      },
+      "maint_control_probe_refractometer_check": {
+        "name": "Refractometercontrole van sonde {probe}"
       }
     },
     "light": {
@@ -648,6 +675,42 @@
       },
       "port_ato_flow_rate": {
         "name": "Poort {port} ATO-debiet"
+      },
+      "regulation_target": {
+        "name": "Regeldoel"
+      },
+      "regulation_potency": {
+        "name": "Sterkte van het supplement"
+      },
+      "regulation_tolerance": {
+        "name": "Regeltolerantie"
+      },
+      "regulation_tank_volume": {
+        "name": "Watervolume van de bak"
+      },
+      "regulation_max_change": {
+        "name": "Max. doseringswijziging"
+      },
+      "regulation_correction_days": {
+        "name": "Spreiding van de correctie"
+      },
+      "brine_concentration": {
+        "name": "Concentratie van de pekel"
+      },
+      "brine_max_rise": {
+        "name": "Max. stijging saliniteit"
+      },
+      "brine_doses_per_day": {
+        "name": "Pekeldoses per dag"
+      },
+      "salinity_check_tolerance": {
+        "name": "Tolerantie refractometercontrole"
+      },
+      "regulation_measurement": {
+        "name": "Testresultaat"
+      },
+      "maint_control_probe_refractometer_check_interval_weeks": {
+        "name": "Refractometercontrole van sonde {probe} (weken)"
       }
     },
     "select": {
@@ -729,6 +792,42 @@
           "sunset": "Uitgelijnd op zonsondergang",
           "both": "Uitgerekt tussen op- en ondergang"
         }
+      },
+      "regulation_mode": {
+        "name": "Doseerregeling",
+        "state": {
+          "off": "Uit",
+          "assisted": "Ondersteund doseren",
+          "brine": "Pekel (saliniteit)"
+        }
+      },
+      "regulation_parameter": {
+        "name": "Geregelde parameter",
+        "state": {
+          "kh": "KH / Alkaliniteit",
+          "ca": "Calcium",
+          "mg": "Magnesium",
+          "k": "Kalium",
+          "no3": "Nitraat",
+          "po4": "Fosfaat",
+          "i": "Jodium",
+          "fe": "IJzer",
+          "salinity": "Saliniteit"
+        }
+      },
+      "brine_salinity_source": {
+        "name": "Saliniteitssensor",
+        "state": {
+          "none": "Geen"
+        }
+      },
+      "poseidon_strategy": {
+        "name": "Poseidon-strategie",
+        "state": {
+          "spy": "Spion",
+          "shadow": "Shadow",
+          "poseidon": "Poseidon"
+        }
       }
     },
     "sensor": {
@@ -800,6 +899,9 @@
         "state": {
           "none": "Geen"
         }
+      },
+      "aquarium": {
+        "name": "Aquarium"
       },
       "connected_control": {
         "name": "Paired control hub"
@@ -1513,6 +1615,44 @@
           "ec_sensor_s1": "Niveausensor 1",
           "ec_sensor_s2": "Niveausensor 2"
         }
+      },
+      "regulation_status": {
+        "name": "Status van de regeling",
+        "state": {
+          "off": "Uit",
+          "bundle": "Gekoppelde koppen (niet ondersteund)",
+          "not_configured": "Niet geconfigureerd",
+          "waiting_data": "Wacht op gegevens",
+          "in_range": "Binnen doel",
+          "proposal": "Nieuwe dosis voorgesteld",
+          "retest_suggested": "Nieuwe test aanbevolen",
+          "regulating": "Regelt",
+          "too_salty": "Te zout",
+          "cannot_compensate": "Compensatie onmogelijk",
+          "source_unavailable": "Saliniteitssensor niet beschikbaar",
+          "recalibration_required": "Herkalibratie van de sonde nodig"
+        }
+      },
+      "regulation_proposed_dose": {
+        "name": "Voorgestelde dagdosis"
+      },
+      "regulation_consumption": {
+        "name": "Verbruik"
+      },
+      "regulation_last_measurement": {
+        "name": "Laatste testresultaat"
+      },
+      "regulation_tank_volume_used": {
+        "name": "Gebruikt watervolume"
+      },
+      "brine_salinity": {
+        "name": "Saliniteit (24-uursgemiddelde)"
+      },
+      "brine_daily_volume": {
+        "name": "Geplande pekel per dag"
+      },
+      "poseidon_last_dose": {
+        "name": "Laatste dosering"
       }
     },
     "switch": {
@@ -1716,6 +1856,15 @@
       },
       "port_ato_temp_log": {
         "name": "Poort {port} ATO-temperatuurlog"
+      },
+      "maint_control_probe_refractometer_check_notify": {
+        "name": "Refractometercontrole van sonde {probe} (meldingen)"
+      },
+      "poseidon_mode": {
+        "name": "Poseidon-modus"
+      },
+      "poseidon_poll_pause": {
+        "name": "Opvraagpauze (spion)"
       }
     },
     "text": {
@@ -1797,7 +1946,14 @@
       "no_free_port": "Deze hub heeft geen vrije 12V-poort voor de ATO-module.",
       "cloud_devices_added": "{count} apparaat/apparaten worden toegevoegd.",
       "cloud_devices_unavailable": "De apparaten van dit account konden niet uit de ReefBeat-cloud worden gelezen. Probeer het later opnieuw.",
-      "cloud_devices_none": "Alle apparaten van dit account staan al in Home Assistant."
+      "cloud_devices_none": "Alle apparaten van dit account staan al in Home Assistant.",
+      "poseidon_not_running": "Poseidon draait niet.",
+      "poseidon_nothing_to_add": "Er kan geen apparaat worden toegevoegd.\n\nAl in Poseidon-modus: {poseidon}\nZonder cloudgegevens (lokaal aquarium): {no_cloud}\nNiet in het cloudaccount: {not_in_account}\nOnbereikbaar: {unreachable}",
+      "poseidon_devices_added": "Klaar:\n{report}",
+      "poseidon_add_failed": "Het toevoegen van de apparaten is mislukt, zie de logboeken.",
+      "poseidon_imported": "Import klaar: {added} toegevoegd, {updated} bijgewerkt, {skipped} overgeslagen.",
+      "poseidon_export_link": "**{link_start}Sleutels van {count} apparaten downloaden{link_end}**\n\nDe link is {minutes} minuten geldig en opent in een nieuw tabblad. Het bestand bevat de sleutels leesbaar: bewaar het veilig.",
+      "poseidon_rescue_link": "**{link_start}Noodscript downloaden ({count} apparaten){link_end}**\n\nDe link is {minutes} minuten geldig en opent in een nieuw tabblad. Kan Home Assistant het niet meer, dan zet `python3 {file}` de apparaten terug op de Red Sea-broker vanaf elke computer in hun netwerk (Python 3.8+, verder niets te installeren; `--dry-run` om alleen te kijken, `--help` voor de opties).\n\nHet script bevat de sleutels van de apparaten leesbaar: bewaar het veilig en download het opnieuw na het toevoegen van apparaten."
     },
     "error": {
       "auth_failed": "Verificatie mislukt, controleer je gegevens",
@@ -1809,10 +1965,16 @@
       "no_probe_detected": "Geen nieuwe sonde van het gekozen type gedetecteerd. Zet hem in koppelmodus en probeer opnieuw.",
       "group_min_members": "Kies minstens twee LED's.",
       "group_duplicate_position": "Elke LED moet precies één positie krijgen.",
-      "ato_install_failed": "De hub weigerde de ATO-module te installeren. Controleer of de poort vrij is en de ATO-sonde aangesloten."
+      "ato_install_failed": "De hub weigerde de ATO-module te installeren. Controleer of de poort vrij is en de ATO-sonde aangesloten.",
+      "nothing_selected": "Selecteer minstens één apparaat",
+      "confirm_required": "Vink het vakje aan om te bevestigen",
+      "invalid_watchdog_key": "De sleutel moet precies 16 tekens lang zijn",
+      "invalid_keystore": "Dit bestand is geen keystore",
+      "upload_missing": "Het verzonden bestand is niet meer beschikbaar: verzend het opnieuw"
     },
     "progress": {
-      "applying": "Nieuwe Wi-Fi-inloggegevens toepassen en het apparaat op het netwerk lokaliseren..."
+      "applying": "Nieuwe Wi-Fi-inloggegevens toepassen en het apparaat op het netwerk lokaliseren...",
+      "poseidon_adding": "De sleutels worden opgehaald en de apparaten naar de Poseidon-modus geschakeld. Sleutels ophalen duurt ongeveer een minuut per apparaat."
     },
     "step": {
       "init": {
@@ -1829,7 +1991,12 @@
           "del_probe": "Sonde verwijderen",
           "change_probe": "Sonde vervangen",
           "install_ato": "ATO-module installeren",
-          "cloud_devices": "Apparaten van dit account toevoegen"
+          "cloud_devices": "Apparaten van dit account toevoegen",
+          "add_devices": "Apparaten toevoegen",
+          "settings_poseidon": "Poseidon-instellingen",
+          "export_keystore": "Sleutels exporteren",
+          "import_keystore": "Sleutels importeren",
+          "rescue_script": "Noodscript"
         },
         "title": "Configuratie"
       },
@@ -1841,11 +2008,15 @@
           "scan_interval": "Verversingsinterval",
           "not_virtual": "Niet configureerbaar",
           "slaves": "LED",
-          "ip_update": "Als een apparaat van IP wisselt"
+          "ip_update": "Als een apparaat van IP wisselt",
+          "message_history_days": "Berichtgeschiedenis (dagen)",
+          "message_history_max": "Berichtgeschiedenis (max. items)"
         },
         "title": "Apparaatinstellingen",
         "data_description": {
-          "ip_update": "De cloud meldt het IP van elk apparaat. Een apparaat dat op een nieuw adres wordt gevonden (gecontroleerd dat het hetzelfde is) kan automatisch of via een te bevestigen reparatie worden bijgewerkt."
+          "ip_update": "De cloud meldt het IP van elk apparaat. Een apparaat dat op een nieuw adres wordt gevonden (gecontroleerd dat het hetzelfde is) kan automatisch of via een te bevestigen reparatie worden bijgewerkt.",
+          "message_history_days": "Hoe lang de berichten en waarschuwingen van het apparaat bewaard worden, getoond in de geschiedenis van de kaart.",
+          "message_history_max": "Daarboven worden de oudste berichten verwijderd."
         }
       },
       "wifi_scan": {
@@ -1934,6 +2105,48 @@
         "data": {
           "cloud_devices": "Toe te voegen apparaten"
         }
+      },
+      "add_devices": {
+        "title": "Apparaten aan Poseidon toevoegen",
+        "description": "Apparaten met 🔑 hebben nog geen sleutels: die ophalen is destructief (zie de volgende stap). De andere schakelen meteen naar de Poseidon-modus.\n\nAl in Poseidon-modus: {poseidon}\nZonder cloudgegevens (lokaal aquarium): {no_cloud}\nNiet in het cloudaccount: {not_in_account}\nOnbereikbaar: {unreachable}",
+        "data": {
+          "devices": "Apparaten"
+        }
+      },
+      "add_devices_confirm": {
+        "title": "Sleutels ophalen: destructief",
+        "description": "Om hun sleutels op te halen, worden deze apparaten uit de ReefBeat-cloud verwijderd en opnieuw aangemaakt: {devices}.\n\n- ze worden losgekoppeld van hun aquarium, en de app kan vragen ze opnieuw te koppelen;\n- schema's, presets en geschiedenis die in de cloud voor hen bewaard worden, kunnen verloren gaan;\n- hun configuratie wordt vooraf opgeslagen en achteraf vergeleken: RSRUN en RSWAVE krijgen de hunne automatisch terug, voor de andere wordt wat veranderd is in een melding vermeld.\n\nHome Assistant bewaart de sleutels, ook als Poseidon verwijderd wordt.",
+        "data": {
+          "confirm": "Begrepen, sleutels ophalen"
+        }
+      },
+      "settings_poseidon": {
+        "title": "Poseidon-instellingen",
+        "description": "De debugmodus schrijft elk frame dat het relais passeert ontsleuteld naar {logs}/poseidon.jsonl (geroteerd): de gegevens staan daar in leesbare vorm.\n\nEen apparaat in Poseidon-modus wordt als stil gemeld (reparatiemelding, attribuut `silent` van zijn schakelaar) wanneer er gedurende de termijn niets voor het apparaat door het relais ging.\n\nDe watchdog-sleutel versleutelt de `is_alive`-uitwisselingen: kopieer hem naar de watchdog-configuratie. Laat leeg om geen enkele watchdog te antwoorden.\n\nDe strategie geldt voor de apparaten in Poseidon-modus zonder eigen strategie (de keuzelijst Poseidon-strategie van elk apparaat). Spion legt frames, HTTP-verzoeken met hun antwoorden (sleutels en wachtwoorden gemaskeerd, /cloud nooit geschreven) en vergelijkingen vast in {logs}/spy.jsonl. Shadow voegt de verzonden toestanden samen en schrijft de resterende verschillen naar {logs}/shadow.jsonl. Poseidon vraagt elke N minuten op en gebruikt de verzonden toestanden.",
+        "data": {
+          "debug": "Debugmodus (ontsleutelde frames in een bestand)",
+          "silent_minutes": "Wachttijd voordat een apparaat stil is (minuten)",
+          "watchdog_key": "Watchdog-sleutel (16 tekens)",
+          "strategy": "Standaardstrategie van de apparaten",
+          "reduced_minutes": "Opvraaginterval van de Poseidon-strategie (minuten)",
+          "safety_minutes": "Veiligheidsuitlezing van een volledig gepusht apparaat (minuten)",
+          "anomalies": "Onverwachte berichten melden",
+          "anomaly_search": "Bestaande meldingen op GitHub zoeken",
+          "connect_guard": "Herstelopdrachten van de cloud bij verbinden tegenhouden"
+        },
+        "data_description": {
+          "safety_minutes": "Poseidon-strategie: een apparaat waarvan de gepushte berichten elke veranderende waarde dekken (een ReefControl Power zonder door een sensor gestuurd stopcontact, een ReefDose) wordt alleen zo vaak uitgelezen, als vangnet. Ook zijn /cloud, zolang het met de relay communiceert.",
+          "anomalies": "Berichten van een apparaat in Poseidon-modus die niets voorzag (nieuw topic, onbekend commando, nieuw veld) gaan geanonimiseerd naar {logs}/anomalies.jsonl, met een reparatie om ze op GitHub te melden.",
+          "anomaly_search": "Voor een reparatie worden de issues van de repository op de handtekening van de anomalie doorzocht: alleen die korte hash wordt verzonden, niets over uw apparaten. Uit: geen verzoek naar GitHub.",
+          "connect_guard": "Tijdens de eerste 30 seconden van elke verbinding van een apparaat met de relay worden de herstelopdrachten van de Red Sea-cloud (groep en programma van een ReefWave, voerkop van een ReefDose) niet doorgestuurd: de cloud kan een oude kopie van de instellingen terugzetten, en een ReefWave verloor zo zijn hele programma. Elke andere opdracht gaat door."
+        }
+      },
+      "import_keystore": {
+        "title": "Sleutels importeren",
+        "description": "Een keystore in het formaat van de CLI (keystore.json) of van een export, verzonden vanuit deze browser.\n\nEen apparaat wordt alleen vervangen door een recenter record; apparaten zonder sleutels worden overgeslagen.",
+        "data": {
+          "file": "Keystore-bestand (.json)"
+        }
       }
     }
   },
@@ -1943,7 +2156,8 @@
         "cloud_api": "Cloud account",
         "local_detect": "Lokale detectie",
         "manual_mode": "Handmatige modus",
-        "virtual_led": "Virtuele Led"
+        "virtual_led": "Virtuele Led",
+        "poseidon": "Poseidon-modus"
       }
     },
     "ip_address": {
@@ -1956,6 +2170,13 @@
         "auto": "Automatisch bijwerken",
         "repair": "Vraag het mij (reparatie)",
         "off": "Niets doen"
+      }
+    },
+    "poseidon_strategy": {
+      "options": {
+        "spy": "Spion: opvragen ongewijzigd, alles vastgelegd (spy.jsonl)",
+        "shadow": "Shadow: opvragen ongewijzigd, verzonden toestanden samengevoegd (shadow.jsonl)",
+        "poseidon": "Poseidon: opvragen elke N minuten, verzonden toestanden gebruikt"
       }
     }
   },
@@ -2288,6 +2509,76 @@
           "description": "De nieuwe naam van het programma."
         }
       }
+    },
+    "record_measurement": {
+      "name": "Meting opslaan",
+      "description": "Slaat een testresultaat op voor een ReefDose-kop. In ondersteunde modus wordt een nieuwe dagdosis voorgesteld; in pekelmodus is een saliniteit de refractometercontrole van de saliniteitssonde.",
+      "fields": {
+        "device_id": {
+          "name": "Kop",
+          "description": "Het apparaat van de ReefDose-kop."
+        },
+        "value": {
+          "name": "Waarde",
+          "description": "Gemeten waarde, in de eenheid van de parameter (dKH, ppm, ppt)."
+        },
+        "parameter": {
+          "name": "Parameter",
+          "description": "Gemeten parameter. Standaard de parameter die de kop regelt."
+        },
+        "measured_at": {
+          "name": "Gemeten op",
+          "description": "Wanneer de test werd gedaan. Standaard nu."
+        }
+      }
+    },
+    "poseidon_export": {
+      "name": "Poseidon: sleutels exporteren",
+      "description": "Schrijft de sleutels van de Poseidon-apparaten naar een bestand in /config/redsea/poseidon, in het formaat van de CLI."
+    },
+    "get_messages": {
+      "name": "Berichten ophalen",
+      "description": "Geeft de geschiedenis van de berichten en waarschuwingen van een apparaat terug, nieuwste eerst.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat-ID",
+          "description": "De configuratie-entry van het apparaat."
+        },
+        "msg_type": {
+          "name": "Berichttype",
+          "description": "last_message, last_alert_message of All."
+        },
+        "days": {
+          "name": "Dagen",
+          "description": "Alleen de berichten van de laatste dagen."
+        },
+        "limit": {
+          "name": "Limiet",
+          "description": "Maximaal dit aantal berichten."
+        }
+      }
+    },
+    "get_doses": {
+      "name": "Doseringen ophalen",
+      "description": "Geeft de geschiedenis van de doseringen van een ReefDose in Poseidon-modus, de nieuwste eerst.",
+      "fields": {
+        "device_id": {
+          "name": "Apparaat",
+          "description": "De ReefDose, een van zijn koppen, of zijn configuratie-item."
+        },
+        "head": {
+          "name": "Kop",
+          "description": "Alleen de doseringen van deze kop."
+        },
+        "days": {
+          "name": "Dagen",
+          "description": "Alleen de doseringen van de laatste dagen."
+        },
+        "limit": {
+          "name": "Limiet",
+          "description": "Hoogstens zoveel doseringen."
+        }
+      }
     }
   },
   "exceptions": {
@@ -2353,6 +2644,12 @@
     },
     "wave_group_bad_order": {
       "message": "De nieuwe volgorde moet elke pomp van de groep één keer bevatten."
+    },
+    "bundled_daily_dose": {
+      "message": "Gekoppelde koppen: alleen kop 1 (Part 1, ingesteld op de calciumtest) heeft een dagdosis, de doseerpomp leidt de andere koppen af uit de bundelverhoudingen."
+    },
+    "poseidon_not_running": {
+      "message": "Poseidon draait niet."
     }
   },
   "issues": {
@@ -2416,6 +2713,30 @@
           "device_not_found": "Het apparaat antwoordt niet meer op dit adres: het probleem komt terug als het daar weer wordt gevonden."
         }
       }
+    },
+    "poseidon_port_in_use": {
+      "title": "Poseidon: poort {port} is bezet",
+      "description": "Een andere dienst luistert op poort {port}: het Poseidon-relais kan niet starten, dus de apparaten in Poseidon-modus bereiken de Red Sea-cloud niet. Stop die dienst, of verwijder Poseidon en voeg het opnieuw toe met een andere poort."
+    },
+    "poseidon_device_silent": {
+      "title": "{name}: stil in Poseidon-modus",
+      "description": "{name} staat in Poseidon-modus maar er ging al meer dan {minutes} minuten niets voor het apparaat door het relais: het staat misschien uit of bereikt Home Assistant niet meer. Het wordt niet automatisch teruggeschakeld; deze melding verdwijnt vanzelf zodra het verkeer weer loopt."
+    },
+    "poseidon_anomaly_new": {
+      "title": "Poseidon: onverwacht bericht van een {model} ({signature})",
+      "description": "Een {model} (firmware {firmware}) in Poseidon-modus stuurde iets wat niets voorzag: **{kind}** — {details}.\n\nHet staat geanonimiseerd in redsea/poseidon/logs/anomalies.jsonl. **Meer informatie** opent een vooraf ingevulde GitHub-issue: u kunt die lezen en aanpassen voor het verzenden, niets gaat weg zonder u."
+    },
+    "poseidon_anomaly_reported": {
+      "title": "Poseidon: bekend onverwacht bericht van een {model} ({signature})",
+      "description": "Een {model} (firmware {firmware}) in Poseidon-modus stuurde iets wat niets voorzag: **{kind}** — {details}.\n\nHet is al gemeld (issue #{number}): **Meer informatie** opent die, om te volgen of toe te voegen wat u zag."
+    },
+    "poseidon_anomaly_fixed": {
+      "title": "Poseidon: verwerkt vanaf versie {version} ({signature})",
+      "description": "Een {model} (firmware {firmware}) in Poseidon-modus stuurde iets wat een eerdere versie niet voorzag: **{kind}** — {details}.\n\nHet wordt verwerkt vanaf versie {version} van de integratie (issue #{number}): werk die bij om deze reparatie te laten verdwijnen."
+    },
+    "poseidon_anomaly_closed": {
+      "title": "Poseidon: onverwacht bericht al behandeld ({signature})",
+      "description": "Een {model} (firmware {firmware}) in Poseidon-modus stuurde iets wat niets voorzag: **{kind}** — {details}.\n\nDe melding (issue #{number}) is gesloten: **Meer informatie** opent die. Heropen haar als het nog speelt."
     }
   }
 }

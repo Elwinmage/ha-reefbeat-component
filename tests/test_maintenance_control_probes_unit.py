@@ -56,6 +56,7 @@ def test_control_tasks_registered_for_both_models() -> None:
         "control_probe_clean",
         "control_probe_calibration_ph",
         "control_probe_calibration_ec",
+        "control_probe_refractometer_check",
         "control_probe_calibration_orp",
         "control_probe_replace",
     }

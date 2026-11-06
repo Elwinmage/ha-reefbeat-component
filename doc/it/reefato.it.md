@@ -10,6 +10,9 @@
 <img src="../img/rsato_diag.png" alt="Image">
 </p>
 
+> [!IMPORTANT]
+> La [modalità Poseidon](poseidon.it.md#strategie) non ha mai funzionato su un ReefATO+: non ne ho uno. Usa prima la strategia *Spia*, poi inviami i suoi log o apri le riparazioni che segnala, come spiegato [qui](poseidon.it.md#strategie).
+
 ### Attività di manutenzione
 | Attività | Predefinito | Intervallo |
 | -------- | ----------- | ---------- |

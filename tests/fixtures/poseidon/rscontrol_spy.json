@@ -1,0 +1,168 @@
+{
+  "source": "spy ReefControl (setup mode), 2026-11-01 09:47-09:54",
+  "hwid": "0000aaaa0005",
+  "answers_before": {
+    "/mode": {
+      "mode": "setup"
+    },
+    "/dashboard": {
+      "mode": "setup",
+      "is_internet_connected": true,
+      "cable_connected": false,
+      "connected_device": null,
+      "probes": [],
+      "ports": [
+        {
+          "number": 0,
+          "name": "S1",
+          "mode": "setup",
+          "type": "unknown",
+          "state": "unknown",
+          "user_config_mode": "setup",
+          "consumption": 0
+        },
+        {
+          "number": 1,
+          "name": "S2",
+          "mode": "setup",
+          "type": "unknown",
+          "state": "unknown",
+          "user_config_mode": "setup",
+          "consumption": 0
+        }
+      ],
+      "buzzer": {
+        "active": false,
+        "cause": "none",
+        "dismissed": false
+      },
+      "leak_detector": true,
+      "leak": {
+        "mode": "auto"
+      }
+    },
+    "/wifi": {
+      "ip": "192.0.2.30",
+      "gateway": "192.0.2.1",
+      "dns": "192.0.2.1",
+      "subnet_mask": "255.255.255.0",
+      "bssid": "00:00:00:00:00:01",
+      "mac": "00:00:00:00:00:05",
+      "ssid": "reef-net",
+      "channel": 9,
+      "sub_channel": 1,
+      "signal_dBm": -14,
+      "is_connected": true,
+      "auto_connect": false,
+      "auto_reconnect": false,
+      "isConnected": true,
+      "real_sleep_mode": "no_sleep",
+      "sleep_mode": "no_sleep",
+      "phy_mode": "802.11n",
+      "watchdog_enabled": true,
+      "watchdog_duration": 900,
+      "auth_method": "WPA2_PSK",
+      "success": true
+    }
+  },
+  "telemetry": [
+    {
+      "mode": "setup",
+      "active_shortcut": "no_shortcut",
+      "probes": [],
+      "local_time": "2026-11-01T09:47:19+01:00",
+      "utc_time": "2026-11-01T08:47:19Z",
+      "hwid": "0000aaaa0005",
+      "wifi_signal": -15,
+      "free_heap": 56182,
+      "metrics": {
+        "wifi_sig": -14,
+        "ping": 16
+      }
+    },
+    {
+      "mode": "setup",
+      "active_shortcut": "no_shortcut",
+      "probes": [],
+      "local_time": "2026-11-01T09:48:19+01:00",
+      "utc_time": "2026-11-01T08:48:19Z",
+      "hwid": "0000aaaa0005",
+      "wifi_signal": -16,
+      "free_heap": 55604,
+      "metrics": {
+        "wifi_sig": -15,
+        "ping": 16
+      }
+    },
+    {
+      "mode": "setup",
+      "active_shortcut": "no_shortcut",
+      "probes": [],
+      "local_time": "2026-11-01T09:49:19+01:00",
+      "utc_time": "2026-11-01T08:49:19Z",
+      "hwid": "0000aaaa0005",
+      "wifi_signal": -15,
+      "free_heap": 55384,
+      "metrics": {
+        "wifi_sig": -15,
+        "ping": 24
+      }
+    },
+    {
+      "mode": "setup",
+      "active_shortcut": "no_shortcut",
+      "probes": [],
+      "local_time": "2026-11-01T09:50:19+01:00",
+      "utc_time": "2026-11-01T08:50:19Z",
+      "hwid": "0000aaaa0005",
+      "wifi_signal": -15,
+      "free_heap": 55394,
+      "metrics": {
+        "wifi_sig": -15,
+        "ping": 28
+      }
+    },
+    {
+      "mode": "setup",
+      "active_shortcut": "no_shortcut",
+      "probes": [],
+      "local_time": "2026-11-01T09:51:19+01:00",
+      "utc_time": "2026-11-01T08:51:19Z",
+      "hwid": "0000aaaa0005",
+      "wifi_signal": -16,
+      "free_heap": 55394,
+      "metrics": {
+        "wifi_sig": -15,
+        "ping": 39
+      }
+    },
+    {
+      "mode": "setup",
+      "active_shortcut": "no_shortcut",
+      "probes": [],
+      "local_time": "2026-11-01T09:52:19+01:00",
+      "utc_time": "2026-11-01T08:52:19Z",
+      "hwid": "0000aaaa0005",
+      "wifi_signal": -15,
+      "free_heap": 55441,
+      "metrics": {
+        "wifi_sig": -15,
+        "ping": 18
+      }
+    },
+    {
+      "mode": "setup",
+      "active_shortcut": "no_shortcut",
+      "probes": [],
+      "local_time": "2026-11-01T09:53:19+01:00",
+      "utc_time": "2026-11-01T08:53:19Z",
+      "hwid": "0000aaaa0005",
+      "wifi_signal": -15,
+      "free_heap": 55408,
+      "metrics": {
+        "wifi_sig": -15,
+        "ping": 28
+      }
+    }
+  ]
+}

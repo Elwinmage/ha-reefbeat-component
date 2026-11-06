@@ -10,6 +10,9 @@
 <img src="../img/rsato_diag.png" alt="Image">
 </p>
 
+> [!IMPORTANT]
+> Der [Poseidon-Modus](poseidon.de.md#strategien) lief noch nie auf einem ReefATO+: Ich besitze keinen. Nutzen Sie zuerst die Strategie *Spion*, und senden Sie mir dann seine Logs oder öffnen Sie die gemeldeten Reparaturhinweise, wie [hier](poseidon.de.md#strategien) erklärt.
+
 ### Wartungsaufgaben
 | Aufgabe | Standard | Spanne |
 | ------- | -------- | ------ |

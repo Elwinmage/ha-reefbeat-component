@@ -2,6 +2,570 @@
 
 ## MODIFICATIONS
 
+### `reef_role` on socket and port switches
+
+- The on/off switches of RSPOWER sockets and RSCONTROL ports now publish a
+  `reef_role` attribute (`socket_N_on_off`, `port_N_on_off`), like their
+  consumption and mode sensors. A blueprint can tie a switch to its own
+  consumption sensor without depending on the install language or on renamed
+  entities: the `reef_heater_test` and `reef_relay_watch` blueprints of
+  ha-reef-blueprints rely on it.
+
+### Poseidon: ReefWave merged, polled as a safety net only
+
+From the spy runs of 2026-10-30 to 2026-11-03 (a RSWAVE45 0.10.0 in a group:
+programs written in the app, feedings, key capture), checked against 81047
+polls:
+
+- ReefWave merger: its telemetry (mode, wifi signal) and its states (mode,
+  `device_settings`). A program written in the app pushes a `schedule` (its
+  hash and uid, not its intervals): the pump is read again; each of the 30
+  changes of `/auto` polled came after one. A connection and a feeding program
+  read it again too.
+- Fully pushed once its program and mode were polled: with the Poseidon
+  strategy, the pump (polled every 2 minutes so far) is polled every *Safety
+  polling interval*. Its current wave is derived from its program and the
+  clock, refreshed with each telemetry.
+- Catalogue of the ReefWave: its states and the commands of the app
+  (`/auto/init`, `/auto`, `/auto/complete`, `/auto/apply`, `/group`,
+  `/group/sync`, `PUT /device-settings`).
+
+### Poseidon: ReefRun merged, `redsea_notification` event
+
+From the spy runs of 2026-10-30 to 2026-11-03 (a return pump and an RSK 900
+skimmer: cup full, skimmer calibrated, pump disconnected, schedules and
+overskimming changed in the app), checked against every poll:
+
+- ReefRun merger: its telemetry (mode, state, intensity, temperature,
+  missing pump of each pump, wifi signal) and its states (pumps, schedules,
+  overskimming, full cup sensor, shortcuts) merged into `/dashboard`,
+  `/pump/settings`, `/pump/shortcuts`. The intensity of a state is the one of
+  the schedule, not the real one of a skimmer driven by its EC sensor: not
+  merged. The end of a calibration reads the device again (the dates of
+  `/calibration` are pushed by nothing), so does a reconnection, and a
+  `notification` (a pump to reconnect: `reconnect_pump` is pushed by
+  nothing). Not fully pushed: `is_internet_connected` is not.
+- Catalogue of the ReefRun: telemetry, states, `PUT /v2/pump/settings`,
+  `POST /pump/*/reset-state`.
+- `redsea_notification` event: fired for every alarm a device pushes
+  (`full_cup_warning`, `no_pump` of a ReefRun; `sensor_danger_range`,
+  `temperature_danger_range`, `aquarium_water_leak` of a ReefControl;
+  `stock_level_empty` of a ReefDose), with what the device told.
+
+### Poseidon: ports of a ReefControl toggled in the app
+
+- `POST /port/*/toggle` catalogued: a port of the ReefControl switched on or
+  off in the ReefBeat app (spy run of 2026-11-03) no more raises an
+  unexpected message.
+- The states it pushes (`ports`, `ports_settings`) were already merged; a
+  port pushed "off" now consumes 0 at once, as the next poll tells (its
+  consumption is pushed by nothing: the one of a port switched on comes by
+  the poll).
+
+### Poseidon: daily doses of a ReefDose no more taken from its telemetry
+
+- The `daily_doses` of a head in the telemetry is wrong for a moment: one
+  more right after each dose (25 for 24), its `doses_today` on connection
+  (overnight spy run of 2026-11-02/03). It is no more merged: it only changes
+  with the schedule of the head, which reads the device again.
+
+### Poseidon: ports of the ReefControl, sockets removed from the Power
+
+From a spy run where a socket of the ReefControl Power was removed and a 12V
+port of the ReefControl installed and scheduled in the ReefBeat app:
+
+- ReefControl states: `ports` (mode, state) and `ports_settings` (name,
+  mode, enabled...) merged into `/dashboard.ports` and `/ports/config`; a
+  port of another type than polled (installed, removed) reads the device
+  again. A port switched by its schedule pushes its state too (checked at
+  23:00:00, "on"); its consumption is pushed by nothing. The schedule of a port is pushed by nothing: the read after every
+  write command of the app covers it.
+- ReefControl Power: the null consumption pushed for a socket in setup mode
+  (removed) is 0, as polled.
+- Catalogue: `DELETE /socket/*/config` and `PUT /unsubscribe` of the Power;
+  `POST /port/*/install`, `PUT /port/*/schedule`, `PUT /ports/config`,
+  `PUT /socket/*/unsubscribe`, `GET /leak/config` of the ReefControl; the
+  port fields of its states.
+
+### Poseidon: the guard at connection holds back the known restores only
+
+- A ReefControl crashed (`metrics.fatal_error`) as an ATO probe was
+  installed in the ReefBeat app, and reconnected: for 30 seconds, the guard
+  held back the commands the app was sending (`DELETE /probe`,
+  `POST /ble/off`, `PUT /probe/config`) and raised a repair issue.
+- The guard now holds back only the known restores of the cloud (the group
+  and schedule of a ReefWave, the food head of a ReefDose); any other
+  command passes, written to the logs (`guard_passed` in the spy file). No
+  repair issue any more; the option is renamed accordingly.
+
+### Poseidon: ReefControl with probes, paired with a ReefControl Power
+
+From a spy run where the probe of a ReefControl Power was removed, the
+Power paired with a ReefControl, and an ORP, EC, pH, temperature, leak and
+ATO probe installed, set up and calibrated on the ReefControl:
+
+- ReefControl telemetry: the readings of each probe (value, level, status,
+  ec / ppt / sg, temperature, leak detected, ATO water level) merged into
+  the probe of `/dashboard` with the same uid; the value of an EC probe is
+  the one of its measurement unit. Checked against every poll of the run.
+- New `probe` topic (pushed when a reading changes): merged the same way,
+  at once rather than at the next telemetry (the level of an ATO probe is
+  its water level).
+- ReefControl states: mode, link with the ReefControl Power
+  (`connected_device`, `cable_connected`), leak mode merged; a probe or a
+  port installed, set up or calibrated reads the device again.
+- ReefControl Power states: the link with the ReefControl, and the
+  temperature probe removed (`DELETE /sensor`), merged.
+- Catalogue: the `probe`, `notification` and `calibration-log` topics, the
+  states and commands of the ReefControl (probes installed, set up,
+  calibrated, offset, removed; leak; pairing), `DELETE /sensor` of the
+  Power, and `metrics.fatal_error` (pushed once after a firmware crash).
+
+### Poseidon: ReefControl Power with a temperature probe
+
+From a spy run of a RSPOWER6 1.1.9 whose temperature probe was installed and
+set up in the ReefBeat app:
+
+- The `pwr_temperature` of the telemetry (value, status, level: the values
+  of the poll, not rounded) is merged into `/dashboard.temperature`. A
+  device with a probe is now `FULLY_PUSHED` too (safety polling only).
+- Catalogue: the probe fields of the telemetry, and the commands of the app
+  (`POST /sensor/install`, `POST /ble/off`, `GET /temperature-probe-info`,
+  `GET /temperature`, `GET|PUT /temperature/config`,
+  `GET /temperature/subscriptions`, `GET|POST /probe/offset`,
+  `GET /sockets/config`).
+- Not every setting changed in the app is pushed: the offset of the probe
+  (`POST /probe/offset`) is not. In Poseidon mode, every write command of
+  the app that the device accepts now reads it again, config included.
+
+### ReefDose assisted dosing: potency of the supplements
+
+- A head holding a supplement of the ReefDose list whose label gives its
+  dose gets its potency while none is set (1 mL in 100 L):
+  - Red Sea: Foundation A 2 ppm Ca, Foundation B 0.1 dKH, Foundation C
+    1 ppm Mg, Colors A 0.03 ppm iodine, Colors B 1.75 ppm K, Colors C
+    0.02 ppm iron;
+  - Aquaforest Lab: Ca Plus 2 ppm, KH Plus 0.05 dKH, Mg Plus 1 ppm;
+  - Brightwell: Reef Code A 0.606 ppm Ca, Reef Code B 0.084 dKH, Calcion
+    1.514 ppm, Hydrat-Mg 0.738 ppm, Potassion 0.795 ppm K, Ferrion
+    0.038 ppm Fe;
+  - Seachem: Reef Calcium 0.48 ppm, Reef Complete 1.6 ppm, Reef Fusion 1
+    1 ppm Ca, Reef Fusion 2 0.123 dKH;
+  - Tropic Marin: Potassium 1.009 ppm K. Turning assisted dosing on regulates
+  the head on what its supplement raises. A head already regulated without
+  potency gets it at start, and a proposal from its tests at once. Not the
+  powders (it depends on how they are dissolved), the two-parts given as a
+  starting dose only (ESV B-Ionic, ATI Essentials Pro, Aquaforest
+  Component 1+2+3+) nor NO3:PO4-X (what it removes depends on the
+  bacteria).
+- The potency is set to 0.001, whatever the parameter (it followed the step
+  of the parameter: 0.01 for KH).
+
+### ReefDose assisted dosing: iodine and iron
+
+- Two new regulated parameters, in mg/L (ppm) as the hobby tests give them
+  (a Colombo iodine test reads 0.06): iodine (target 0.06, tolerance 0.01,
+  at most 0.01 corrected a day, step 0.001) and iron (target 0.005,
+  tolerance 0.002, at most 0.002 a day, step 0.001). Translated in every
+  language; offered by `redsea.record_measurement` too.
+
+### Poseidon: `POST /head/*/compensate` of a ReefDose is expected
+
+- Sent by the ReefBeat app when a lowered daily dose leaves no dose for
+  today (alert `NoMoreDosesManualDoseAlert` of the head settings): it doses
+  the rest of the day (`{"volume": mL}`), told by a `dosing-log` of type
+  `compensation`. No more "unexpected message" for it.
+
+### Poseidon: the waves of a ReefWave are kept by a key capture
+
+A ReefWave depends on the cloud: its waves and its program live there, and
+the cloud pushes its copy to the pump at every connection. The capture
+(delete then create the device again) put the program back on the pump
+only: a cloud copy lost by the delete wiped it again at the next
+connection.
+
+- Before the delete, the custom waves of the aquarium (not the Red Sea
+  ones), with the intensities of each pump, are saved in the snapshot with
+  the program of the pump. If the library cannot be read, the capture
+  stops before deleting anything.
+- After the keys: a wave gone is created again (the program uses its new
+  uid), a wave that lost the settings of the pump gets them back (the other
+  pumps keep theirs); the program is posted to the cloud
+  (`/reef-wave/schedule/<hwid>`), then the cloud pushes the programs of the
+  aquarium to its pumps (`/reef-wave/<aquarium>/sync`).
+- The pump is read again: only if it did not get its program is it written
+  directly, as before. The snapshot is kept until the cloud took everything
+  back; what was done is listed in the notification of the capture.
+
+### Poseidon: first merger of the ReefControl
+
+From a spy run of a ReefControl still in setup mode (no probe, no port set
+up, no state pushed yet):
+
+- Telemetry catalogue of the `reef-control` family: the first telemetry
+  with a probe will be reported as an unexpected message, which tells the
+  fields of a probe (sample in the issue).
+- Telemetry merger: the mode into `/mode` and `/dashboard`, the signal into
+  `/wifi`. The probes are not merged yet (always empty so far); every
+  pushed state reads the device again (no state merger yet).
+
+### Fix: colour of a ReefLED G1 right after a restart
+
+- The kelvin <-> white/blue conversions of a G1 were built after its first
+  fetch, which derives its colour and intensity from its white and blue:
+  until the next poll, the colour was the 9000 K fallback (seen on a
+  RSLED160: white 32 %, blue 94 % shown as 9000 K instead of about
+  21200 K). They are now built before it.
+
+### Poseidon: `metrics.int_dis` of the telemetry is expected
+
+- Pushed once by a device after a loss of its internet access (seen on a
+  RSMAT 1.10.2), like `mqtt_dis` and `wifi_dis`: added to the metrics of
+  every telemetry catalogue, no more "unexpected message" for it.
+
+### Poseidon: ReefDose at midnight
+
+Checked on the spy runs of the night of 2026-10-30/31 (two ReefDose): at
+23:59:53 a doser pushes a state with its daily metrics (merged as it is); its
+daily counters come back to zero with the first telemetry after midnight;
+its dosing queue, pushed by nothing, is replaced at midnight by the one of
+the new day.
+
+- In Poseidon mode, the dosers are read again at 00:01 (Home Assistant's
+  time): the queue of the new day, even for a doser whose first dose is at
+  noon.
+- With that read and the one after each dose, everything that changes on a
+  ReefDose comes pushed: once polled, it is only polled every *Safety
+  polling interval* (`FULLY_PUSHED`).
+- A dose missing from the dosing queue (the one at midnight, which is in no
+  queue; a manual dose from the app) gets a start and a duration estimated
+  from the flow of its head (volume ÷ flow of its last 20 doses of measured
+  duration, at least 3): new `start_estimated` field of `redsea_dose`, of
+  the dose history and of the last dose sensor.
+
+### Fix: colour and intensity of a ReefLED G1 in Poseidon mode
+
+- The telemetry of a G1 updates its white and blue, but its colour and
+  intensity (light **kelvin_intensity**), which Home Assistant derives from
+  them, were only derived again at the next poll: in Poseidon mode they
+  stayed those of an earlier time, far from the white and blue shown (seen
+  on a RSLED160 in auto mode: white 32 %, blue 94 % shown as 9000 K, 95 %
+  instead of about 21200 K, 94 %). They are now derived again with every
+  telemetry.
+
+### Poseidon: messages of the ReefBeat app
+
+- In Poseidon mode (any strategy), the answer of a device to a write command
+  of the ReefBeat app or of the cloud (`command-response`, paired with its
+  command by `uuid`) feeds the **Last message** / **Last alert** sensors and
+  the message history, as the answer to a push of Home Assistant does: its
+  `message`, its `alert`, or an alert on `"success": false` or an error
+  status. The reads of the app (`GET`) are left out.
+- New `origin` attribute of both sensors, and field of each history entry:
+  `ha` or `reefbeat`.
+
+### Poseidon: history of the doses of a ReefDose
+
+- Every `redsea_dose` is also kept, per device and head, for 30 days (5000
+  doses at most), in `.storage/redsea_poseidon_doses`: across restarts and
+  recorder purges.
+- Each head of a ReefDose with Poseidon keys gets a **Last dose** sensor
+  (`poseidon_last_dose`, timestamp, on the head device), available only
+  while the doser is in Poseidon mode: the end of the last dose, with its
+  volume, type, start, duration and supplement as attributes.
+- New action `redsea.get_doses`: the doses, newest first, of a doser, one of
+  its heads, or its config entry, optionally by head, over the last days, at
+  most a number of them. Read by the ha-reef-card (dose history of a head).
+
+### Poseidon: `redsea_dose` event
+
+- Fired when a ReefDose in Poseidon mode (any strategy) ends a dose, from its
+  `dosing-log`: device, head, supplement, brand, type (`scheduled`,
+  `manual`), volume, end, and its start and duration when the dosing queue
+  polled before it had it (nothing is pushed when a dose starts: its start
+  is the time the queue gave it; a manual dose from the app has none).
+  Checked on ten doses of a spy run (4 to 19 s each, start found for all).
+  A `dosing-log` pushed twice after a reconnection is fired once.
+- Poseidon documentation (English, French): merged families, new settings,
+  unexpected messages, guard at connection, events.
+
+### Poseidon: what the app changes always reaches Home Assistant
+
+Checked on every write command of the ReefBeat app in the spy runs (RSPOWER,
+RSWAVE, RSDOSE, RSMAT, RSRUN, RSLED): each one is followed by a pushed
+state, and what it changed comes back through it; the answers of the
+commands carry nothing more. Two gaps closed:
+
+- A read again by the poseidon strategy (state not fully merged, family
+  without merger, dosing-log) now reads the config sources too: what the
+  app changes is mostly settings (`/configuration`, `/device-settings`,
+  `/acclimation`, `/moonphase`, `/preset_name/N`, `/auto/N`...), which the
+  polling never reads again. A message arriving less than
+  `PUSH_REFRESH_MIN_S` after a read is no longer dropped: one more read
+  follows at the end of that delay.
+- A merger now says "read again" whenever the state tells something it
+  cannot write: a field it does not know, or the schedule of a ReefDose
+  head (pushed without its intervals nor its time: an interval moved would
+  have gone unnoticed). What it can merge is merged anyway. The ReefMat
+  merges `auto_advance` and its `device_settings` into `/configuration`.
+- Anomaly catalogue: the commands of a ReefDose head changed in the app
+  (`validate-settings`, `PUT /head/N/settings`, `compensate/cancel`,
+  `GET /bundle/settings`), `metrics.wifi_dis`, and a ReefWave telemetry
+  without `active-wave` (pump off).
+
+### Poseidon: ReefMat and ReefLED merged
+
+- ReefMat (`reef-mat`), from a spy run with eleven advances (one manual):
+  - state at each advance: `is_advancing`, `last_advance_cause`, the
+    lengths (`today_usage`, `total_usage`, `remaining_length`) and the step
+    counters into `/dashboard`. `/dashboard` truncates the lengths to 0.1
+    (never rounds them up): so does the merger;
+  - `rolling-log` (pushed at each advance) merged like a state: its
+    `advance_cause` is the only message telling an advance by the EC sensor;
+  - telemetry: mode, roll level, days left, lengths, step counters,
+    material name, setup date (`+00:00` told as `Z`), wifi signal.
+  - The EC readings of `/dashboard` are pushed by nothing: it keeps its
+    polling (`reduced_minutes`).
+- ReefLED (`reef-lights`) telemetry: the channels Home Assistant reads in
+  `/manual` (only those it has: a G2 has others), the fan, the temperature,
+  the moon phase, the acclimation, the active program, the mode and the
+  wifi signal. No state seen yet.
+- Checked by replaying the run: no difference on what is merged.
+- Anomaly catalogue: the state a ReefControl Power pushes on connection
+  (`attributes`, setup dates, feeding type, temperature settings, time
+  zone) and `metrics.res` in the telemetry are known.
+
+### Poseidon: devices protected when they join the relay
+
+- Guard of a new connection (option `connect_guard`, on by default): for
+  the first 30 seconds of each connection of a device to the relay, the
+  write commands of the Red Sea cloud (`POST`, `PUT`, `DELETE`, and the
+  commands that cannot be read) are not forwarded; its reads still are. At
+  a first connection through the relay, the cloud may restore an old copy
+  of the device settings: a ReefWave lost its whole schedule that way, 3 s
+  after connecting (`/auto/init`, `/auto` with a single "No Wave",
+  `/auto/complete`). The cloud does it at every connection (a ReefDose gets
+  `POST /food-head`, its feeding schedule reset to default; a ReefWave
+  `POST /group`, `/auto/init`, `/auto` per interval, `/auto/complete`,
+  `/auto/apply`): these known restores are held back silently, only logged;
+  any other write command held back raises a repair issue listing it. The
+  spy and debug logs mark them all (`guard_blocked`, with `known_restore`
+  and the command it would have written, keys masked).
+- A device pointed at the relay that never connects to it (it kept its
+  session with the Red Sea broker: an RSRUN did, while telling `CONNECTED`
+  to the relay) is made to reconnect after 2 minutes: pointed back at the
+  Red Sea broker, then at the relay again, twice at most. The spy log
+  marks it (`reconnect`).
+
+### Poseidon: ReefDose states and telemetry merged
+
+- Mergers for the ReefDose (`reef-dosing`), written from a spy run of two
+  RSDOSE4 3.0.1 with the HTTP answers:
+  - telemetry (every 60 s): main mode, and per head the volumes dosed today
+    (rounded to 0.1 mL as the device answers them), doses, daily doses,
+    remaining days, stock level, recalibration, missed doses into
+    `/dashboard`, container volume and today's volume into
+    `/head/N/settings`, the wifi signal into `/wifi`. Checked against every
+    poll of the run;
+  - state: mode, battery, time error, device settings, and per head its
+    state, daily dose, supplement, calibration and options. A pushed
+    schedule other than the polled one is not merged: it only carries part
+    of the schedule and the dosing queue follows it, so the device is read
+    again.
+- `/dosing-queue` is pushed by nothing, but every dose pushes a
+  `dosing-log`: with the poseidon strategy, it reads the device again (at
+  most once every `PUSH_REFRESH_MIN_S`), so the queue and the dosed volumes
+  follow at once. A ReefDose keeps `reduced_minutes` otherwise.
+- Anomaly catalogue of the ReefDose (no anomaly on the recorded runs).
+  `rolling-log` (pushed by a ReefMat when its roll advances) and
+  `dosing-log` are known topics.
+- Telemetry catalogues of the ReefMat, ReefLED and ReefWave (their states
+  and commands are not checked yet).
+- `group/<family>/<group uid>` topics (ReefWave pumps synced together) are
+  known: their messages are sent in clear (base64 of a JSON object padded
+  with NUL bytes), decoded in the spy and debug logs and checked
+  (`POST /group/sync` known).
+
+### Poseidon: unexpected messages reported
+
+- Every message crossing the relay for a device in Poseidon mode is checked
+  against what is known of its family (`poseidon/anomalies.py`), on four
+  levels:
+  1. unknown MQTT packet type or topic (any family);
+  2. unknown command sent to the device (method and URL, numbers as `*`);
+  3. state with an unknown field, or a known field with another type;
+  4. telemetry with an unknown field, a missing one or another type.
+  Only the ReefControl Power has a catalogue yet (levels 2 to 4); it gives
+  no anomaly on the recorded runs. `GET /time` and `POST /time` (sent by the
+  ReefBeat app when its daylight saving setting changes) are known for every
+  device.
+- Each anomaly has a signature (hash of its kind, family, topic and key
+  differences, never of the values): the same for every user. Its first
+  occurrence goes to `logs/anomalies.jsonl` with an anonymised sample
+  (hwid, names, network addresses, keys and secrets removed); the next ones
+  are counted.
+- An unknown command first waits 5 s for what the device made of it: its
+  answer (`command-response` of the same `uuid`) and the states it pushed
+  meanwhile (at most 5 messages, anonymised) go with it, in the log and in
+  the prefilled issue.
+- The signature is looked for in the titles of the GitHub issues (only the
+  signature is sent, answer kept 24 h), and a repair issue tells what to do:
+  open a new issue (link with title, body and label prefilled, sent only by
+  the user), follow the open one, update to the version of its
+  `fixed-in-x.y.z` label, or read the closed one. A telemetry anomaly only
+  gets a repair when the search answered and found nothing.
+- Two new options in the Poseidon settings: `anomalies` (detection, on by
+  default; off removes its repairs) and `anomaly_search` (GitHub search,
+  on by default).
+
+### Poseidon: ReefControl Power states merged
+
+- First merger of pushed states (`poseidon/mergers.py`), for the
+  ReefControl Power (`reef-power`), written from a spy run with the HTTP
+  answers. With the shadow and poseidon strategies, a socket switched, set
+  or renamed, a schedule written or the strip turned off or on in the
+  ReefBeat app shows in Home Assistant at once, without waiting for a poll:
+  - `mode` -> `/mode` and `/dashboard` (`previous_mode` takes the old one);
+  - `sockets.N` -> the socket `N` of `/dashboard` and `/sockets/config`
+    (`prev_mode` takes the old mode); its `state` is not merged when the
+    push says `unknown` (it always does, where `/dashboard` tells
+    `standby` or `on`);
+  - `schedule.N` -> `/socket/N/config/schedule`;
+  - `feed_schedule`: nothing polled matches it yet, not merged.
+- Telemetry merged too (every 60 s): main mode, battery level, and the
+  consumption, mode and previous mode of each socket into `/dashboard`
+  (mode also into `/sockets/config`), the wifi signal into `/wifi`. The
+  consumption may lag a poll by up to a minute after a change (the device
+  does not always push a telemetry at once). With the spy and shadow
+  strategies, only the last telemetry waits for its comparison.
+- Socket state computed as the ReefBeat app does (it never reads
+  `/dashboard`): a socket in `schedule` mode is `on` within one of its
+  intervals, `standby` otherwise, any other mode `unknown`, on the clock of
+  the device itself (`local_time` of its telemetry, its own offset).
+  Checked against every polled `/dashboard` of a spy run. Only with the
+  strip in `auto` mode and for sockets driven by nothing else (no power
+  detector, no sensor): the others keep their polled state.
+- Poseidon strategy: a device whose pushed messages cover every value that
+  changes (a ReefControl Power without temperature probe nor sensor driven
+  socket) is only polled every `safety_minutes` (new option, 60 by
+  default, never more often than `reduced_minutes`), as a safety net. The
+  others keep `reduced_minutes`.
+- `/cloud` of a device in Poseidon mode that is exchanging through the relay
+  (traffic within the last 2 minutes) is read every `safety_minutes` only,
+  instead of every minute: its traffic says where it is. As soon as it goes
+  quiet (rebooting, pointed back at Red Sea), it is read every minute again.
+
+### Poseidon spy: HTTP answers, pause, comparisons
+
+- The spy file records the answer of each HTTP request sent to the device
+  (`response`), to tell what a pushed value is in the polled sources. An
+  answer equal to the previous one of the same request is not repeated
+  (`response_unchanged`); a new spy run starts with whole answers. The
+  answer of `/cloud` is never written (`response_omitted`: it holds the
+  device keys), and keys, secrets, passwords and tokens are masked in the
+  others. The answers are copied as the device sent them, before the
+  integration adds to them.
+- Fix: pausing the polling of a device let one more poll through (the one
+  already scheduled); it is cancelled now.
+- Fix: the comparisons of a pushed state found nothing: its values are
+  wrapped in `specific_attributes`, absent from the polled sources. The
+  wrapper is dropped; a value matched on a shorter part of its path tells
+  it (`via`).
+- Fix: the reads of `/cloud` Poseidon does through the coordinator were
+  recorded with the `integration` origin; they are `poseidon` now
+  (`http_origin` context of the API).
+
+### Poseidon: new trident icon
+
+- `redsea:trident` redrawn heavier: barbed outward tines, diamond
+  spearhead, chevron guard and pommel (readable at 16-24 px).
+
+### Fix: deprecated `DeviceEntry.config_entries`
+
+- Poseidon no longer reads `DeviceEntry.config_entries` (deprecated since
+  Home Assistant 2026.10, removed in 2027.10) but `config_entry_id`, with a
+  fallback on the set for older Home Assistant versions.
+
+### Cloud aquarium sensor
+
+- New `aquarium` sensor (diagnostic) on every device linked to a cloud
+  account: the name of the aquarium the device belongs to in the ReefBeat
+  app, unknown when it is not linked or in no aquarium. Attributes:
+  `aquarium_uid`, `cloud_account`, `system_model`, `water_volume`,
+  `net_water_volume`. Not on LED groups. Refreshed when the device links to
+  or unlinks from its account, and with the device's data; a rename in the
+  app shows at the next device refresh.
+
+### Messages: timestamp and history
+
+- `last_message` and `last_alert_message` sensors: new `timestamp` attribute
+  (ISO 8601, UTC) telling when the message / alert came; reset by
+  `redsea.clean_message`.
+- Every message and alert of a device is kept in a history
+  (`.storage/redsea_messages_<entry_id>`), all of them, repeated ones
+  included. Kept 31 days and at most 500 entries by default, both settable
+  in the device settings (`message_history_days`, `message_history_max`).
+  The history survives restarts and entry reloads, and is deleted with the
+  entry.
+- New `redsea.get_messages` service (response only): the history of a
+  device, newest first, filtered by `msg_type`, `days` and `limit`. Used by
+  ha-reef-card's message history dialog.
+- Fix: a successful push no longer clears the last alert; only
+  `redsea.clean_message` or a new alert replaces it.
+- Fix: `redsea.clean_message` with `msg_type: All` now also clears the
+  alert.
+
+### RSDOSE: dose regulation of the heads
+
+- New per-head `regulation_mode` select: `off`, `assisted` or `brine`.
+- Bundled heads (Red Sea Complete Reef Care): only head 1 (Part 1) is
+  regulated, in assisted mode on the calcium (Red Sea's weekly calcium
+  test); the doser derives the other heads from the bundle ratios. The
+  `daily_dose` of heads 2-4 is refused while the heads are bundled, as in
+  ha-reef-card.
+- Assisted dosing: set a target (KH, Ca, Mg, K, NO3, PO4), the supplement
+  potency (unit/mL/100 L) and record test results (`regulation_measurement`
+  + `regulation_record`, or the new `redsea.record_measurement` service).
+  From the results and the volumes actually dosed, the tank's consumption is
+  estimated and a new daily dose proposed (`regulation_proposed_dose`),
+  applied only with `regulation_apply`. The correction is spread over a few
+  days, capped per day, and a dose moves at most `regulation_max_change` %
+  at a time. A result far from the prediction asks for a retest.
+- Brine: new supplement "DIY - Brine" in the supplement list, the only one
+  offering the salinity regulation (`regulation_mode`: off / brine on a brine
+  head, off / assisted on any other); taking the brine off a head stops its
+  regulation. The head holds a brine (g/L); a salinity sensor (RSCONTROL EC probe
+  or any sensor in ppt, mS/cm or SG) is sampled every 10 minutes and Home
+  Assistant sends manual doses (1 mL minimum) to hold the target salinity
+  (default 35 ppt): learned salt loss plus a correction, capped per day
+  (halved without a refractometer check for 45 days). Nothing is dosed while
+  Home Assistant is down. Switching a head to brine mode switches its own
+  schedule off: the whole plan is dosed by Home Assistant (a schedule the
+  user switches back on is taken into account).
+- Brine start: the salinity is sampled as soon as the brine mode and the
+  sensor are set, and the regulation starts after 6 samples (1 hour); until
+  then the status is `waiting_data` with `samples` / `samples_needed`, and
+  `brine_salinity` shows the current reading (`averaged` attribute false)
+  instead of nothing.
+- A supplement changed on a head (brine put on or taken off) is seen on the
+  next read of the doser: the regulation mode offers the right modes and
+  the status follows at once (until then, until the next change of the
+  regulation or a restart).
+- Alarms (`regulation_alarm` binary sensor and `redsea_dose_regulation_alarm`
+  event): too salty for 24 h, salinity not recovered after 3 days, sensor
+  lost for 2 h, probe recalibration required.
+- Refractometer check: a salinity recorded in brine mode is compared with
+  the probe; within `salinity_check_tolerance` it marks the new RSCONTROL
+  maintenance task `control_probe_refractometer_check` (monthly) done,
+  otherwise the regulation pauses until the EC probe is calibrated again.
+- Tank volume: the user's value, else the `water_volume` sensor of the
+  reeftank aquarium holding the doser (the doser or a head placed on its
+  views, or linked to the doser's cloud aquarium; reeftank stays optional),
+  else the net water volume of the ReefBeat cloud aquarium of the doser.
+- Brine concentration defaults to 200 g/L.
+- Dosed volumes come from the doser's `/daily-log` (7 days, new config
+  source), kept 180 days in `.storage/redsea_dose_regulation_<entry_id>`.
+
 ### Cloud aquariums for the aquarium view
 
 - New WebSocket command `redsea/aquariums`: the aquariums of every ReefBeat
@@ -407,6 +971,24 @@
    `entity.binary_sensor.buzzer_enabled` removed with its entity.
 
 ## FIXES
+
+- Faster start: the entities are no longer updated before being added
+  (`update_before_add`). That update asked each device for a full poll,
+  after a 2 s pause, right after the one that had just filled the cache:
+  every platform waited for it ("Setup of … platform redsea is taking over
+  10 seconds"), and each device was polled twice in a row. The entities
+  take their state from the cache, read just before.
+- A number restored at start no longer hides the value the device just
+  gave: only a value Home Assistant keeps itself (`$.local…`, such as the
+  manual dose volume) is restored over the cache, a value of the device
+  only when the device told nothing for it. A restored value used to stay
+  until the next poll, and for good in a config source (device settings,
+  LED offset…), which the polling never reads again.
+
+- Cloud aquariums: the devices of an aquarium are found with
+  `async_get_devices` instead of the deprecated `async_get_device` (device
+  identifiers are only unique within a config entry; it stops working in
+  Home Assistant 2027.8).
 
 ### RSCONTROL probes
  - The probe-scoped maintenance tasks were built by `button.py` and

@@ -1,0 +1,2587 @@
+{
+  "source": "spy RSDOSE4 3.0.1, 2026-10-30 08:20-08:37",
+  "hwid": "0000aaaa0002",
+  "answers_before": {
+    "/mode": {
+      "mode": "auto"
+    },
+    "/wifi": {
+      "signal_dBm": -83
+    },
+    "/dashboard": {
+      "restore_settings": true,
+      "is_active": false,
+      "battery_level": "high",
+      "time_error": false,
+      "bundled_heads": false,
+      "heads": {
+        "1": {
+          "supplement": "Calcium (Foundation A)",
+          "state": "on",
+          "auto_dosed_today": 6.9,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "daily_dose": 20.7,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "is_food_head": false,
+          "shortcut_code": "no_shortcut",
+          "daily_doses": 3
+        },
+        "2": {
+          "supplement": "KH/Alkalinity (Foundation B)",
+          "state": "on",
+          "auto_dosed_today": 62.5,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "daily_dose": 150,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "is_food_head": false,
+          "shortcut_code": "no_shortcut",
+          "daily_doses": 12
+        },
+        "3": {
+          "supplement": "Magnesium (Foundation C)",
+          "state": "on",
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "daily_dose": 13,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "is_food_head": false,
+          "shortcut_code": "no_shortcut",
+          "daily_doses": 2
+        },
+        "4": {
+          "supplement": "NO3PO4-X",
+          "state": "on",
+          "auto_dosed_today": 10.5,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "daily_dose": 10.5,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "is_food_head": false,
+          "shortcut_code": "no_shortcut",
+          "daily_doses": 1
+        }
+      }
+    },
+    "/dosing-queue": [
+      {
+        "head": "KH",
+        "time": 37725,
+        "volume": 12.5,
+        "dose_type": "Auto"
+      },
+      {
+        "head": "Ca",
+        "time": 43200,
+        "volume": 6.9,
+        "dose_type": "Auto"
+      },
+      {
+        "head": "Mg",
+        "time": 43821,
+        "volume": 6.5,
+        "dose_type": "Auto"
+      },
+      {
+        "head": "KH",
+        "time": 44550,
+        "volume": 12.5,
+        "dose_type": "Auto"
+      },
+      {
+        "head": "KH",
+        "time": 51375,
+        "volume": 12.5,
+        "dose_type": "Auto"
+      },
+      {
+        "head": "Ca",
+        "time": 57600,
+        "volume": 6.9,
+        "dose_type": "Auto"
+      },
+      {
+        "head": "Mg",
+        "time": 58221,
+        "volume": 6.5,
+        "dose_type": "Auto"
+      },
+      {
+        "head": "KH",
+        "time": 58841,
+        "volume": 12.5,
+        "dose_type": "Auto"
+      },
+      {
+        "head": "KH",
+        "time": 65025,
+        "volume": 12.5,
+        "dose_type": "Auto"
+      },
+      {
+        "head": "KH",
+        "time": 71850,
+        "volume": 12.5,
+        "dose_type": "Auto"
+      },
+      {
+        "head": "KH",
+        "time": 78675,
+        "volume": 12.5,
+        "dose_type": "Auto"
+      }
+    ],
+    "/head/2/settings": {
+      "slm": true,
+      "container_volume": 575.0627,
+      "schedule_enabled": true,
+      "state": "on",
+      "show": true,
+      "dc": true,
+      "last_calibrated": 1782303449,
+      "today_auto_dosed_volume": 62.5,
+      "is_food_head": false,
+      "shortcut_code": "no_shortcut",
+      "food_delay": 0,
+      "vps": 0.060606,
+      "entire_dd": true,
+      "enable_ratio": true,
+      "supplement": {
+        "uid": "76830db3-a0bd-459a-9974-76a57d026893",
+        "name": "KH/Alkalinity (Foundation B)",
+        "display_name": "KH",
+        "short_name": "KH",
+        "brand_name": "Red Sea",
+        "type": "null",
+        "concentration": 0,
+        "made_by_redsea": true,
+        "is_brand_editable": false,
+        "is_supplement_editable": false,
+        "is_name_editable": false
+      },
+      "schedule": {
+        "type": "custom",
+        "dd": 150,
+        "days": [1, 2, 3, 4, 5, 6, 7],
+        "intervals": [
+          {
+            "st": 60,
+            "end": 1425,
+            "nd": 12,
+            "mode": "quick"
+          }
+        ]
+      },
+      "recalibration_required": false,
+      "manual_dose_scheduled": false
+    },
+    "/head/4/settings": {
+      "slm": true,
+      "container_volume": 383.6656,
+      "schedule_enabled": true,
+      "state": "on",
+      "show": true,
+      "dc": true,
+      "last_calibrated": 1786398556,
+      "today_auto_dosed_volume": 10.5,
+      "is_food_head": false,
+      "shortcut_code": "no_shortcut",
+      "food_delay": 0,
+      "vps": 0.060606,
+      "entire_dd": true,
+      "enable_ratio": true,
+      "supplement": {
+        "uid": "ffaf6ff8-bc6d-44eb-9e4b-e679943dc835",
+        "name": "NO3PO4-X",
+        "display_name": "",
+        "short_name": "NPX",
+        "brand_name": "Red Sea",
+        "type": "null",
+        "concentration": 0,
+        "made_by_redsea": true,
+        "is_brand_editable": false,
+        "is_supplement_editable": false,
+        "is_name_editable": false
+      },
+      "schedule": {
+        "type": "single",
+        "dd": 10.5,
+        "days": [1, 2, 3, 4, 5, 6, 7],
+        "mode": "whisper",
+        "time": 480
+      },
+      "recalibration_required": false,
+      "manual_dose_scheduled": false
+    },
+    "/head/3/settings": {
+      "slm": true,
+      "container_volume": 2674.039,
+      "schedule_enabled": true,
+      "state": "on",
+      "show": true,
+      "dc": true,
+      "last_calibrated": 1779354847,
+      "today_auto_dosed_volume": 0,
+      "is_food_head": false,
+      "shortcut_code": "no_shortcut",
+      "food_delay": 0,
+      "vps": 0.075758,
+      "entire_dd": true,
+      "enable_ratio": true,
+      "supplement": {
+        "uid": "f524734e-8651-496e-b09b-640b40fc8bab",
+        "name": "Magnesium (Foundation C)",
+        "display_name": "Magnesium",
+        "short_name": "Mg",
+        "brand_name": "Red Sea",
+        "type": "null",
+        "concentration": 0,
+        "made_by_redsea": true,
+        "is_brand_editable": false,
+        "is_supplement_editable": false,
+        "is_name_editable": false
+      },
+      "schedule": {
+        "type": "custom",
+        "dd": 13,
+        "days": [1, 2, 3, 4, 5, 6, 7],
+        "intervals": [
+          {
+            "st": 720,
+            "end": 1200,
+            "nd": 2,
+            "mode": "regular"
+          }
+        ]
+      },
+      "recalibration_required": false,
+      "manual_dose_scheduled": false
+    },
+    "/head/1/settings": {
+      "slm": true,
+      "container_volume": 355.9323,
+      "schedule_enabled": true,
+      "state": "on",
+      "show": true,
+      "dc": true,
+      "last_calibrated": 1786376059,
+      "today_auto_dosed_volume": 6.9,
+      "is_food_head": false,
+      "shortcut_code": "no_shortcut",
+      "food_delay": 0,
+      "vps": 0.072727,
+      "entire_dd": true,
+      "enable_ratio": true,
+      "supplement": {
+        "uid": "7d67412c-fde0-44d4-882a-dc8746fd4acb",
+        "name": "Calcium (Foundation A)",
+        "display_name": "Calcium",
+        "short_name": "Ca",
+        "brand_name": "Red Sea",
+        "type": "null",
+        "concentration": 0,
+        "made_by_redsea": true,
+        "is_brand_editable": false,
+        "is_supplement_editable": false,
+        "is_name_editable": false
+      },
+      "schedule": {
+        "type": "custom",
+        "dd": 20.7,
+        "days": [1, 2, 3, 4, 5, 6, 7],
+        "intervals": [
+          {
+            "st": 480,
+            "end": 1200,
+            "nd": 3,
+            "mode": "regular"
+          }
+        ]
+      },
+      "recalibration_required": false,
+      "manual_dose_scheduled": false
+    },
+    "/device-settings": {
+      "stock_alert_days": 5,
+      "dosing_waiting_period": 600,
+      "missed_doses_reminder": true,
+      "calibration_reminder_days": 60,
+      "calibration_reminder_steps": 35000,
+      "calibration_reminder": false,
+      "daily_metrics_last_compute_time": 1793318400,
+      "shortcut_off_delay": 0
+    }
+  },
+  "states": [
+    {
+      "attributes": {
+        "system": {
+          "name": "RSDOSE4-0000000000",
+          "hw_type": "reef-dosing",
+          "hw_model": "RSDOSE4",
+          "free_heap": 61140,
+          "largest_free_block": 36852
+        },
+        "firmware": {
+          "version": "3.0.1",
+          "board": "esp32",
+          "framework": "a"
+        },
+        "networking": {
+          "wifi_ip": "<…>",
+          "network": "<…>",
+          "mac": "<…>",
+          "bssid": "<…>"
+        }
+      },
+      "specific_attributes": {
+        "ntp_sync": true,
+        "timezone": 120,
+        "mode": "auto",
+        "is_factory_reset": false,
+        "active_shortcut": "no_shortcut",
+        "stock_alert_days": 5,
+        "dosing_waiting_period": 600,
+        "missed_doses_reminder": true,
+        "calibration_reminder_days": 60,
+        "calibration_reminder_steps": 35000,
+        "calibration_reminder": false,
+        "daily_metrics_last_compute_time": 1793318400,
+        "start_of_schedule_for_next_day": 0,
+        "factory_reset_time": 1577836800,
+        "device_settings": {
+          "shortcut_off_delay": 0,
+          "bundled_heads": false,
+          "auto_fill_schedule": false
+        },
+        "heads": {
+          "1": {
+            "state": "on",
+            "last_calibrated": 1786376059,
+            "daily_dose": 20.7,
+            "schedule_type": "custom",
+            "nd": 3,
+            "dd": 20.7,
+            "days": [1, 2, 3, 4, 5, 6, 7],
+            "supplement": {
+              "uid": "7d67412c-fde0-44d4-882a-dc8746fd4acb",
+              "name": "Calcium (Foundation A)",
+              "display_name": "Calcium",
+              "short_name": "Ca",
+              "brand_name": "Red Sea",
+              "type": "null",
+              "concentration": 0,
+              "made_by_redsea": true
+            },
+            "schedule_enabled": true,
+            "show": true,
+            "is_food_head": false,
+            "shortcut_code": "no_shortcut",
+            "food_delay": 0,
+            "dc": true,
+            "vps": 0.072727,
+            "slm": true,
+            "enable_ratio": true
+          },
+          "2": {
+            "state": "on",
+            "last_calibrated": 1782303449,
+            "daily_dose": 150,
+            "schedule_type": "custom",
+            "nd": 12,
+            "dd": 150,
+            "days": [1, 2, 3, 4, 5, 6, 7],
+            "supplement": {
+              "uid": "76830db3-a0bd-459a-9974-76a57d026893",
+              "name": "KH/Alkalinity (Foundation B)",
+              "display_name": "KH",
+              "short_name": "KH",
+              "brand_name": "Red Sea",
+              "type": "null",
+              "concentration": 0,
+              "made_by_redsea": true
+            },
+            "schedule_enabled": true,
+            "show": true,
+            "is_food_head": false,
+            "shortcut_code": "no_shortcut",
+            "food_delay": 0,
+            "dc": true,
+            "vps": 0.060606,
+            "slm": true,
+            "enable_ratio": true
+          },
+          "3": {
+            "state": "on",
+            "last_calibrated": 1779354847,
+            "daily_dose": 13,
+            "schedule_type": "custom",
+            "nd": 2,
+            "dd": 13,
+            "days": [1, 2, 3, 4, 5, 6, 7],
+            "supplement": {
+              "uid": "f524734e-8651-496e-b09b-640b40fc8bab",
+              "name": "Magnesium (Foundation C)",
+              "display_name": "Magnesium",
+              "short_name": "Mg",
+              "brand_name": "Red Sea",
+              "type": "null",
+              "concentration": 0,
+              "made_by_redsea": true
+            },
+            "schedule_enabled": true,
+            "show": true,
+            "is_food_head": false,
+            "shortcut_code": "no_shortcut",
+            "food_delay": 0,
+            "dc": true,
+            "vps": 0.075758,
+            "slm": true,
+            "enable_ratio": true
+          },
+          "4": {
+            "state": "on",
+            "last_calibrated": 1786398556,
+            "daily_dose": 10.5,
+            "schedule_type": "single",
+            "nd": 1,
+            "dd": 10.5,
+            "days": [1, 2, 3, 4, 5, 6, 7],
+            "supplement": {
+              "uid": "ffaf6ff8-bc6d-44eb-9e4b-e679943dc835",
+              "name": "NO3PO4-X",
+              "display_name": "",
+              "short_name": "NPX",
+              "brand_name": "Red Sea",
+              "type": "null",
+              "concentration": 0,
+              "made_by_redsea": true
+            },
+            "schedule_enabled": true,
+            "show": true,
+            "is_food_head": false,
+            "shortcut_code": "no_shortcut",
+            "food_delay": 0,
+            "dc": true,
+            "vps": 0.060606,
+            "slm": true,
+            "enable_ratio": true
+          }
+        },
+        "food_head_schedule": {},
+        "battery_level": "high",
+        "time_error": false,
+        "time_error_unixtime": 0,
+        "file_error": false
+      }
+    },
+    {
+      "specific_attributes": {
+        "battery_level": "high"
+      }
+    },
+    {
+      "specific_attributes": {
+        "stock_alert_days": 5,
+        "dosing_waiting_period": 600,
+        "missed_doses_reminder": true,
+        "calibration_reminder_days": 60,
+        "calibration_reminder_steps": 35000,
+        "calibration_reminder": false,
+        "daily_metrics_last_compute_time": 1793318400,
+        "start_of_schedule_for_next_day": 0,
+        "factory_reset_time": 1577836800,
+        "device_settings": {
+          "shortcut_off_delay": 0,
+          "bundled_heads": false,
+          "auto_fill_schedule": false
+        }
+      }
+    },
+    {
+      "specific_attributes": {
+        "ntp_sync": true,
+        "timezone": 60
+      }
+    }
+  ],
+  "telemetry": [
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T09:21:07+02:00",
+      "utc_time": "2026-10-30T07:21:07Z",
+      "free_heap": 62696,
+      "largest_free_block": 36852,
+      "wifi_signal": -83,
+      "uptime": "D:000-H:17-m:14-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -82,
+        "ping": 40
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T09:22:07+02:00",
+      "utc_time": "2026-10-30T07:22:07Z",
+      "free_heap": 62692,
+      "largest_free_block": 36852,
+      "wifi_signal": -83,
+      "uptime": "D:000-H:17-m:15-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -82,
+        "ping": 57
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T09:23:07+02:00",
+      "utc_time": "2026-10-30T07:23:07Z",
+      "free_heap": 62696,
+      "largest_free_block": 36852,
+      "wifi_signal": -82,
+      "uptime": "D:000-H:17-m:16-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -82,
+        "ping": 45
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T09:24:07+02:00",
+      "utc_time": "2026-10-30T07:24:07Z",
+      "free_heap": 62684,
+      "largest_free_block": 36852,
+      "wifi_signal": -82,
+      "uptime": "D:000-H:17-m:17-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -82,
+        "ping": 51
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T09:25:07+02:00",
+      "utc_time": "2026-10-30T07:25:07Z",
+      "free_heap": 62668,
+      "largest_free_block": 36852,
+      "wifi_signal": -82,
+      "uptime": "D:000-H:17-m:18-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -81,
+        "ping": 42
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T09:26:07+02:00",
+      "utc_time": "2026-10-30T07:26:07Z",
+      "free_heap": 62676,
+      "largest_free_block": 36852,
+      "wifi_signal": -82,
+      "uptime": "D:000-H:17-m:19-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -83,
+        "ping": 53
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T08:27:18+01:00",
+      "utc_time": "2026-10-30T07:27:18Z",
+      "free_heap": 62692,
+      "largest_free_block": 36852,
+      "wifi_signal": -82,
+      "uptime": "D:000-H:17-m:20-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -81,
+        "ping": 86
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T08:28:18+01:00",
+      "utc_time": "2026-10-30T07:28:18Z",
+      "free_heap": 62692,
+      "largest_free_block": 36852,
+      "wifi_signal": -82,
+      "uptime": "D:000-H:17-m:21-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -82,
+        "ping": 43
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T08:29:18+01:00",
+      "utc_time": "2026-10-30T07:29:18Z",
+      "free_heap": 62696,
+      "largest_free_block": 36852,
+      "wifi_signal": -82,
+      "uptime": "D:000-H:17-m:22-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -82,
+        "ping": 43
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T08:30:18+01:00",
+      "utc_time": "2026-10-30T07:30:18Z",
+      "free_heap": 62696,
+      "largest_free_block": 36852,
+      "wifi_signal": -82,
+      "uptime": "D:000-H:17-m:23-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -82,
+        "ping": 44
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T08:31:18+01:00",
+      "utc_time": "2026-10-30T07:31:18Z",
+      "free_heap": 62696,
+      "largest_free_block": 36852,
+      "wifi_signal": -83,
+      "uptime": "D:000-H:17-m:24-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -81,
+        "ping": 50
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T08:32:18+01:00",
+      "utc_time": "2026-10-30T07:32:18Z",
+      "free_heap": 62696,
+      "largest_free_block": 36852,
+      "wifi_signal": -81,
+      "uptime": "D:000-H:17-m:25-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -81,
+        "ping": 54
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T08:33:18+01:00",
+      "utc_time": "2026-10-30T07:33:18Z",
+      "free_heap": 60248,
+      "largest_free_block": 36852,
+      "wifi_signal": -83,
+      "uptime": "D:000-H:17-m:26-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -83,
+        "ping": 53
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T08:34:18+01:00",
+      "utc_time": "2026-10-30T07:34:18Z",
+      "free_heap": 62512,
+      "largest_free_block": 36852,
+      "wifi_signal": -83,
+      "uptime": "D:000-H:17-m:27-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -82,
+        "ping": 60
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T08:35:18+01:00",
+      "utc_time": "2026-10-30T07:35:18Z",
+      "free_heap": 60268,
+      "largest_free_block": 36852,
+      "wifi_signal": -83,
+      "uptime": "D:000-H:17-m:28-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -82,
+        "ping": 46
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T08:36:18+01:00",
+      "utc_time": "2026-10-30T07:36:18Z",
+      "free_heap": 62696,
+      "largest_free_block": 36852,
+      "wifi_signal": -83,
+      "uptime": "D:000-H:17-m:29-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -82,
+        "ping": 43
+      }
+    },
+    {
+      "hwid": "0000aaaa0002",
+      "local_time": "2026-10-30T08:37:18+01:00",
+      "utc_time": "2026-10-30T07:37:18Z",
+      "free_heap": 63140,
+      "largest_free_block": 36852,
+      "wifi_signal": -83,
+      "uptime": "D:000-H:17-m:30-s:39",
+      "mode": "auto",
+      "active_shortcut": "no_shortcut",
+      "task_watermark": {
+        "DosingQueueGeneratorTask": 2744,
+        "DosingQueueExecutorTask": 984,
+        "HeadServiceTask": 864,
+        "NtpSyncTask": 4492,
+        "OfflineDosingLogTask": 4492,
+        "MqttServiceEventsTask": 4704,
+        "MqttServiceMainTask": 3216,
+        "ConnectivityServiceTask": 4492,
+        "CronServiceTask": 208,
+        "InternetServiceTask": 2360,
+        "WifiServiceEventsTask": 2560,
+        "WifiServiceWatchdogTask": 3384
+      },
+      "heads": {
+        "1": {
+          "total_dosed_steps": 117203,
+          "auto_dosed_today": 6.909064,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 355.9323,
+          "remaining_days": 17,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 3
+        },
+        "2": {
+          "total_dosed_steps": 465629,
+          "auto_dosed_today": 62.49812,
+          "manual_dosed_today": 0,
+          "doses_today": 5,
+          "container_volume": 575.0627,
+          "remaining_days": 3,
+          "stock_level": "low",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 12
+        },
+        "3": {
+          "total_dosed_steps": 106044,
+          "auto_dosed_today": 0,
+          "manual_dosed_today": 0,
+          "doses_today": 0,
+          "container_volume": 2674.039,
+          "remaining_days": 205,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 2
+        },
+        "4": {
+          "total_dosed_steps": 412498,
+          "auto_dosed_today": 10.48217,
+          "manual_dosed_today": 0,
+          "doses_today": 1,
+          "container_volume": 383.6656,
+          "remaining_days": 36,
+          "stock_level": "high",
+          "recalibration_required": false,
+          "missed_dose": {
+            "missed_volume": 0,
+            "total_volume": 0
+          },
+          "daily_doses": 1
+        }
+      },
+      "backup_restore": 0,
+      "metrics": {
+        "wifi_sig": -83,
+        "ping": 50
+      }
+    }
+  ],
+  "commands": [
+    {
+      "kind": "command-response",
+      "payload": {
+        "uuid": "235e2001-6948-43ff-9e0c-4a9fe1c21e17",
+        "hwid": "0000aaaa0002",
+        "status": 200,
+        "body": {
+          "success": true,
+          "message": "scheduled feeding settings were restored to default"
+        }
+      }
+    },
+    {
+      "kind": "command-response",
+      "payload": {
+        "uuid": "9bda7b0d-08f9-44fc-9877-5fc0cde6ef02",
+        "hwid": "0000aaaa0002",
+        "status": 200,
+        "body": {
+          "epoch": 1793344837,
+          "now": 1793352037,
+          "pretty": "2026-10-30T09:20:37+02:00",
+          "utc_pretty": "2026-10-30T07:20:37Z",
+          "timezone": 120,
+          "ntp_sync": true,
+          "last_ntp_sync_at": 1793318095
+        }
+      }
+    },
+    {
+      "kind": "command-response",
+      "payload": {
+        "uuid": "59b23a7c-6062-4724-8623-ca5f375484a7",
+        "hwid": "0000aaaa0002",
+        "status": 200,
+        "body": {
+          "success": true,
+          "message": "settings updated successfully"
+        }
+      }
+    },
+    {
+      "kind": "command",
+      "payload": {
+        "uuid": "fffe9791-f5b4-41d1-9baf-df7566aee383",
+        "hwid": "0000aaaa0002",
+        "method": "GET",
+        "url": "/dashboard",
+        "body": null,
+        "retries": 1,
+        "timeout": null
+      }
+    },
+    {
+      "kind": "command-response",
+      "payload": {
+        "uuid": "fffe9791-f5b4-41d1-9baf-df7566aee383",
+        "hwid": "0000aaaa0002",
+        "status": 200,
+        "body": {
+          "restore_settings": true,
+          "is_active": false,
+          "battery_level": "high",
+          "time_error": false,
+          "bundled_heads": false,
+          "heads": {
+            "1": {
+              "supplement": "Calcium (Foundation A)",
+              "state": "on",
+              "auto_dosed_today": 6.9,
+              "manual_dosed_today": 0,
+              "doses_today": 1,
+              "daily_dose": 20.7,
+              "remaining_days": 17,
+              "stock_level": "high",
+              "recalibration_required": false,
+              "missed_dose": {
+                "missed_volume": 0,
+                "total_volume": 0
+              },
+              "is_food_head": false,
+              "shortcut_code": "no_shortcut",
+              "daily_doses": 3
+            },
+            "2": {
+              "supplement": "KH/Alkalinity (Foundation B)",
+              "state": "on",
+              "auto_dosed_today": 62.5,
+              "manual_dosed_today": 0,
+              "doses_today": 5,
+              "daily_dose": 150,
+              "remaining_days": 3,
+              "stock_level": "low",
+              "recalibration_required": false,
+              "missed_dose": {
+                "missed_volume": 0,
+                "total_volume": 0
+              },
+              "is_food_head": false,
+              "shortcut_code": "no_shortcut",
+              "daily_doses": 12
+            },
+            "3": {
+              "supplement": "Magnesium (Foundation C)",
+              "state": "on",
+              "auto_dosed_today": 0,
+              "manual_dosed_today": 0,
+              "doses_today": 0,
+              "daily_dose": 13,
+              "remaining_days": 205,
+              "stock_level": "high",
+              "recalibration_required": false,
+              "missed_dose": {
+                "missed_volume": 0,
+                "total_volume": 0
+              },
+              "is_food_head": false,
+              "shortcut_code": "no_shortcut",
+              "daily_doses": 2
+            },
+            "4": {
+              "supplement": "NO3PO4-X",
+              "state": "on",
+              "auto_dosed_today": 10.5,
+              "manual_dosed_today": 0,
+              "doses_today": 1,
+              "daily_dose": 10.5,
+              "remaining_days": 36,
+              "stock_level": "high",
+              "recalibration_required": false,
+              "missed_dose": {
+                "missed_volume": 0,
+                "total_volume": 0
+              },
+              "is_food_head": false,
+              "shortcut_code": "no_shortcut",
+              "daily_doses": 1
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "command",
+      "payload": {
+        "uuid": "6122ec0e-357b-4efc-8068-5fab581362e1",
+        "hwid": "0000aaaa0002",
+        "method": "GET",
+        "url": "/head/2/settings",
+        "body": {},
+        "retries": 1,
+        "timeout": null
+      }
+    },
+    {
+      "kind": "command",
+      "payload": {
+        "uuid": "a3aad8ab-77b1-4928-91df-b9d93af81df9",
+        "hwid": "0000aaaa0002",
+        "method": "GET",
+        "url": "/head/1/settings",
+        "body": {},
+        "retries": 1,
+        "timeout": null
+      }
+    },
+    {
+      "kind": "command",
+      "payload": {
+        "uuid": "7943eff4-d8cc-47bb-b623-46ca634d3837",
+        "hwid": "0000aaaa0002",
+        "method": "GET",
+        "url": "/head/3/settings",
+        "body": {},
+        "retries": 1,
+        "timeout": null
+      }
+    },
+    {
+      "kind": "command-response",
+      "payload": {
+        "uuid": "6122ec0e-357b-4efc-8068-5fab581362e1",
+        "hwid": "0000aaaa0002",
+        "status": 200,
+        "body": {
+          "slm": true,
+          "container_volume": 575.0627,
+          "schedule_enabled": true,
+          "state": "on",
+          "show": true,
+          "dc": true,
+          "last_calibrated": 1782303449,
+          "today_auto_dosed_volume": 62.5,
+          "is_food_head": false,
+          "shortcut_code": "no_shortcut",
+          "food_delay": 0,
+          "vps": 0.060606,
+          "entire_dd": true,
+          "enable_ratio": true,
+          "supplement": {
+            "uid": "76830db3-a0bd-459a-9974-76a57d026893",
+            "name": "KH/Alkalinity (Foundation B)",
+            "display_name": "KH",
+            "short_name": "KH",
+            "brand_name": "Red Sea",
+            "type": "null",
+            "concentration": 0,
+            "made_by_redsea": true,
+            "is_brand_editable": false,
+            "is_supplement_editable": false,
+            "is_name_editable": false
+          },
+          "schedule": {
+            "type": "custom",
+            "dd": 150,
+            "days": [1, 2, 3, 4, 5, 6, 7],
+            "intervals": [
+              {
+                "st": 60,
+                "end": 1425,
+                "nd": 12,
+                "mode": "quick"
+              }
+            ]
+          },
+          "recalibration_required": false,
+          "manual_dose_scheduled": false
+        }
+      }
+    },
+    {
+      "kind": "command",
+      "payload": {
+        "uuid": "fde8385e-d52c-4d64-b0cd-82bbf8cba291",
+        "hwid": "0000aaaa0002",
+        "method": "GET",
+        "url": "/head/4/settings",
+        "body": {},
+        "retries": 1,
+        "timeout": null
+      }
+    },
+    {
+      "kind": "command-response",
+      "payload": {
+        "uuid": "a3aad8ab-77b1-4928-91df-b9d93af81df9",
+        "hwid": "0000aaaa0002",
+        "status": 200,
+        "body": {
+          "slm": true,
+          "container_volume": 355.9323,
+          "schedule_enabled": true,
+          "state": "on",
+          "show": true,
+          "dc": true,
+          "last_calibrated": 1786376059,
+          "today_auto_dosed_volume": 6.9,
+          "is_food_head": false,
+          "shortcut_code": "no_shortcut",
+          "food_delay": 0,
+          "vps": 0.072727,
+          "entire_dd": true,
+          "enable_ratio": true,
+          "supplement": {
+            "uid": "7d67412c-fde0-44d4-882a-dc8746fd4acb",
+            "name": "Calcium (Foundation A)",
+            "display_name": "Calcium",
+            "short_name": "Ca",
+            "brand_name": "Red Sea",
+            "type": "null",
+            "concentration": 0,
+            "made_by_redsea": true,
+            "is_brand_editable": false,
+            "is_supplement_editable": false,
+            "is_name_editable": false
+          },
+          "schedule": {
+            "type": "custom",
+            "dd": 20.7,
+            "days": [1, 2, 3, 4, 5, 6, 7],
+            "intervals": [
+              {
+                "st": 480,
+                "end": 1200,
+                "nd": 3,
+                "mode": "regular"
+              }
+            ]
+          },
+          "recalibration_required": false,
+          "manual_dose_scheduled": false
+        }
+      }
+    },
+    {
+      "kind": "command-response",
+      "payload": {
+        "uuid": "7943eff4-d8cc-47bb-b623-46ca634d3837",
+        "hwid": "0000aaaa0002",
+        "status": 200,
+        "body": {
+          "slm": true,
+          "container_volume": 2674.039,
+          "schedule_enabled": true,
+          "state": "on",
+          "show": true,
+          "dc": true,
+          "last_calibrated": 1779354847,
+          "today_auto_dosed_volume": 0,
+          "is_food_head": false,
+          "shortcut_code": "no_shortcut",
+          "food_delay": 0,
+          "vps": 0.075758,
+          "entire_dd": true,
+          "enable_ratio": true,
+          "supplement": {
+            "uid": "f524734e-8651-496e-b09b-640b40fc8bab",
+            "name": "Magnesium (Foundation C)",
+            "display_name": "Magnesium",
+            "short_name": "Mg",
+            "brand_name": "Red Sea",
+            "type": "null",
+            "concentration": 0,
+            "made_by_redsea": true,
+            "is_brand_editable": false,
+            "is_supplement_editable": false,
+            "is_name_editable": false
+          },
+          "schedule": {
+            "type": "custom",
+            "dd": 13,
+            "days": [1, 2, 3, 4, 5, 6, 7],
+            "intervals": [
+              {
+                "st": 720,
+                "end": 1200,
+                "nd": 2,
+                "mode": "regular"
+              }
+            ]
+          },
+          "recalibration_required": false,
+          "manual_dose_scheduled": false
+        }
+      }
+    },
+    {
+      "kind": "command-response",
+      "payload": {
+        "uuid": "fde8385e-d52c-4d64-b0cd-82bbf8cba291",
+        "hwid": "0000aaaa0002",
+        "status": 200,
+        "body": {
+          "slm": true,
+          "container_volume": 383.6656,
+          "schedule_enabled": true,
+          "state": "on",
+          "show": true,
+          "dc": true,
+          "last_calibrated": 1786398556,
+          "today_auto_dosed_volume": 10.5,
+          "is_food_head": false,
+          "shortcut_code": "no_shortcut",
+          "food_delay": 0,
+          "vps": 0.060606,
+          "entire_dd": true,
+          "enable_ratio": true,
+          "supplement": {
+            "uid": "ffaf6ff8-bc6d-44eb-9e4b-e679943dc835",
+            "name": "NO3PO4-X",
+            "display_name": "",
+            "short_name": "NPX",
+            "brand_name": "Red Sea",
+            "type": "null",
+            "concentration": 0,
+            "made_by_redsea": true,
+            "is_brand_editable": false,
+            "is_supplement_editable": false,
+            "is_name_editable": false
+          },
+          "schedule": {
+            "type": "single",
+            "dd": 10.5,
+            "days": [1, 2, 3, 4, 5, 6, 7],
+            "mode": "whisper",
+            "time": 480
+          },
+          "recalibration_required": false,
+          "manual_dose_scheduled": false
+        }
+      }
+    },
+    {
+      "kind": "command",
+      "payload": {
+        "uuid": "049a170f-55e6-48fd-ab86-3d825b2c92ef",
+        "hwid": "0000aaaa0002",
+        "method": "GET",
+        "url": "/time",
+        "body": {},
+        "retries": 1,
+        "timeout": null
+      }
+    },
+    {
+      "kind": "command-response",
+      "payload": {
+        "uuid": "049a170f-55e6-48fd-ab86-3d825b2c92ef",
+        "hwid": "0000aaaa0002",
+        "status": 200,
+        "body": {
+          "epoch": 1793345174,
+          "now": 1793352374,
+          "pretty": "2026-10-30T09:26:14+02:00",
+          "utc_pretty": "2026-10-30T07:26:14Z",
+          "timezone": 120,
+          "ntp_sync": true,
+          "last_ntp_sync_at": 1793318095
+        }
+      }
+    },
+    {
+      "kind": "command",
+      "payload": {
+        "uuid": "6d90e2f5-4d27-45f9-a29f-d49103c10583",
+        "hwid": "0000aaaa0002",
+        "method": "POST",
+        "url": "/time",
+        "body": {
+          "timezone": 60
+        },
+        "retries": 1,
+        "timeout": null
+      }
+    },
+    {
+      "kind": "command",
+      "payload": {
+        "uuid": "d87302fe-15df-4499-91d9-a8d2b90b1f63",
+        "hwid": "0000aaaa0002",
+        "method": "POST",
+        "url": "/time",
+        "body": {
+          "time": 1793345186,
+          "ntp_sync": true,
+          "timezone": 60
+        },
+        "retries": 1,
+        "timeout": null
+      }
+    },
+    {
+      "kind": "command-response",
+      "payload": {
+        "uuid": "6d90e2f5-4d27-45f9-a29f-d49103c10583",
+        "hwid": "0000aaaa0002",
+        "status": 200,
+        "body": {
+          "epoch": 1793345174,
+          "now": 1793348774,
+          "pretty": "2026-10-30T08:26:14+01:00",
+          "utc_pretty": "2026-10-30T07:26:14Z",
+          "timezone": 60,
+          "ntp_sync": true,
+          "last_ntp_sync_at": 1793318095
+        }
+      }
+    },
+    {
+      "kind": "command-response",
+      "payload": {
+        "uuid": "d87302fe-15df-4499-91d9-a8d2b90b1f63",
+        "hwid": "0000aaaa0002",
+        "status": 200,
+        "body": {
+          "epoch": 1793345186,
+          "now": 1793348786,
+          "pretty": "2026-10-30T08:26:26+01:00",
+          "utc_pretty": "2026-10-30T07:26:26Z",
+          "timezone": 60,
+          "ntp_sync": true,
+          "last_ntp_sync_at": 1793318095
+        }
+      }
+    }
+  ]
+}

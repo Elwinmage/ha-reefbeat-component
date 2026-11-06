@@ -10,6 +10,9 @@
 <img src="../img/rsato_diag.png" alt="Image">
 </p>
 
+> [!IMPORTANT]
+> Le [mode Poseidon](poseidon.fr.md#stratégies) n'a jamais tourné sur une ReefATO+ : je n'en ai pas. Utilisez d'abord la stratégie *Espion*, puis envoyez-moi ses logs ou ouvrez les réparations qu'elle remonte, comme expliqué [ici](poseidon.fr.md#stratégies).
+
 ### Tâches de maintenance
 | Tâche | Défaut | Plage |
 | ----- | ------ | ----- |

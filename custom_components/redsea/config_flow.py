@@ -15,6 +15,7 @@ import ipaddress
 import logging
 import pathlib
 from asyncio import timeout
+from collections.abc import Mapping
 from functools import partial
 from time import time
 from typing import TYPE_CHECKING, Any, cast
@@ -60,6 +61,7 @@ from .const import (
     ADD_CLOUD_API,
     ADD_LOCAL_DETECT,
     ADD_MANUAL_MODE,
+    ADD_POSEIDON,
     ADD_TYPES,
     ATO_SCAN_INTERVAL,
     CLOUD_DEVICE_TYPE,
@@ -85,6 +87,8 @@ from .const import (
     CONFIG_FLOW_INTENSITY_COMPENSATION,
     CONFIG_FLOW_IP_ADDRESS,
     CONFIG_FLOW_IP_UPDATE,
+    CONFIG_FLOW_MESSAGE_HISTORY_DAYS,
+    CONFIG_FLOW_MESSAGE_HISTORY_MAX,
     CONFIG_FLOW_OLD_PROBE,
     CONFIG_FLOW_PROBE_TYPE,
     CONFIG_FLOW_PROBES,
@@ -113,6 +117,8 @@ from .const import (
     LED_SCAN_INTERVAL,
     LEDS_INTENSITY_COMPENSATION,
     MAT_SCAN_INTERVAL,
+    MESSAGE_HISTORY_DAYS,
+    MESSAGE_HISTORY_MAX,
     OPTIONS_MENU_ADD_PROBE,
     OPTIONS_MENU_CHANGE_PROBE,
     OPTIONS_MENU_CLOUD_DEVICES,
@@ -131,6 +137,8 @@ from .const import (
     WIFI_REDISCOVER_MAX_ATTEMPTS,
 )
 from .groups import cloud_groups, discovery_unique_id
+from .poseidon.flow import PoseidonConfigFlowMixin, PoseidonOptionsFlowMixin
+from .poseidon.manager import is_poseidon_entry
 from .reefbeat import parse
 from .wifi import (
     connect_wifi,
@@ -297,6 +305,22 @@ def _ip_update_selector() -> SelectSelector:
     )
 
 
+def _message_history_fields(data: Mapping[str, Any]) -> dict[Any, Any]:
+    """Settings fields of the message / alert history (see messages.py)."""
+    return {
+        vol.Required(
+            CONFIG_FLOW_MESSAGE_HISTORY_DAYS,
+            default=int(
+                data.get(CONFIG_FLOW_MESSAGE_HISTORY_DAYS, MESSAGE_HISTORY_DAYS)
+            ),
+        ): vol.All(vol.Coerce(int), vol.Range(min=1, max=365)),
+        vol.Required(
+            CONFIG_FLOW_MESSAGE_HISTORY_MAX,
+            default=int(data.get(CONFIG_FLOW_MESSAGE_HISTORY_MAX, MESSAGE_HISTORY_MAX)),
+        ): vol.All(vol.Coerce(int), vol.Range(min=1, max=10000)),
+    }
+
+
 def _checkbox_list(options: list[SelectOptionDict]) -> SelectSelector:
     """Multi-select always rendered as a list of checkboxes.
 
@@ -319,7 +343,9 @@ def _checkbox_list(options: list[SelectOptionDict]) -> SelectSelector:
 # =============================================================================
 
 
-class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class ReefBeatConfigFlow(
+    PoseidonConfigFlowMixin, config_entries.ConfigFlow, domain=DOMAIN
+):
     """ReefBeat config flow."""
 
     VERSION = 1
@@ -474,7 +500,15 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     {
                         vol.Required(
                             CONFIG_FLOW_ADD_TYPE, default=ADD_LOCAL_DETECT
-                        ): vol.In(ADD_TYPES)
+                        ): SelectSelector(
+                            # A selector, so the options take their labels
+                            # from selector.add_type in the translations
+                            SelectSelectorConfig(
+                                options=list(ADD_TYPES),
+                                mode=SelectSelectorMode.LIST,
+                                translation_key=CONFIG_FLOW_ADD_TYPE,
+                            )
+                        )
                     }
                 ),
             )
@@ -494,6 +528,9 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             if add_type == ADD_LOCAL_DETECT:
                 return await self.auto_detect(subnetwork)
+
+            if add_type == ADD_POSEIDON:
+                return await self.async_step_poseidon()
 
             if add_type == VIRTUAL_LED:
                 title = f"{VIRTUAL_LED}-{int(time())}"
@@ -940,7 +977,7 @@ class ReefBeatConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 # Options flow
-class OptionsFlowHandler(config_entries.OptionsFlow):
+class OptionsFlowHandler(PoseidonOptionsFlowMixin, config_entries.OptionsFlow):
     """Handle integration options.
 
     Structure:
@@ -986,13 +1023,17 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self._wifi_manual_candidates: list[str] = []
         # Group (virtual LED): members chosen, waiting to be ordered
         self._new_group_members: list[str] = []
+        # Poseidon entry: devices being added
+        self._poseidon_init()
 
     # ------------------------------------------------------------------
     # Dispatcher
     # ------------------------------------------------------------------
 
     def _entry_kind(self) -> str:
-        """Classify the config entry: 'virtual', 'cloud' or 'local'."""
+        """Classify the config entry: 'virtual', 'cloud', 'poseidon' or 'local'."""
+        if is_poseidon_entry(self._config_entry):
+            return "poseidon"
         if self._config_entry.title.startswith(VIRTUAL_LED + "-"):
             return "virtual"
         hw_model = self._config_entry.data.get(CONFIG_FLOW_HW_MODEL)
@@ -1005,6 +1046,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     ) -> config_entries.ConfigFlowResult:
         """Route to the right sub-flow based on the entry kind."""
         kind = self._entry_kind()
+
+        if kind == "poseidon":
+            return await self.async_step_poseidon_menu()
 
         if kind == "virtual":
             # Virtual LEDs only choose and order their LEDs — no menu, no Wi-Fi.
@@ -1133,6 +1177,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                                     CONFIG_FLOW_IP_UPDATE, IP_UPDATE_AUTO
                                 ),
                             ): _ip_update_selector(),
+                            **_message_history_fields(user_input),
                         }
                     )
                     # Stay on the settings step so validation errors don't
@@ -1161,6 +1206,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     CONFIG_FLOW_SCAN_INTERVAL: user_input[CONFIG_FLOW_SCAN_INTERVAL],
                     CONFIG_FLOW_CONFIG_TYPE: user_input[CONFIG_FLOW_CONFIG_TYPE],
                 }
+                for key in (
+                    CONFIG_FLOW_MESSAGE_HISTORY_DAYS,
+                    CONFIG_FLOW_MESSAGE_HISTORY_MAX,
+                ):
+                    if key in user_input:
+                        data[key] = user_input[key]
                 if CONFIG_FLOW_INTENSITY_COMPENSATION in user_input:
                     data[CONFIG_FLOW_INTENSITY_COMPENSATION] = user_input[
                         CONFIG_FLOW_INTENSITY_COMPENSATION
@@ -1195,6 +1246,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Required(
                         CONFIG_FLOW_INTENSITY_COMPENSATION, default=False
                     ): bool,
+                    **_message_history_fields(self._config_entry.data),
                 }
             )
         elif hw_model == CLOUD_DEVICE_TYPE:
@@ -1223,6 +1275,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                             CONFIG_FLOW_IP_UPDATE, IP_UPDATE_AUTO
                         ),
                     ): _ip_update_selector(),
+                    **_message_history_fields(self._config_entry.data),
                 }
             )
         else:
@@ -1233,6 +1286,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         default=get_scan_interval_safe(hw_model),
                     ): int,
                     vol.Required(CONFIG_FLOW_CONFIG_TYPE, default=False): bool,
+                    **_message_history_fields(self._config_entry.data),
                 }
             )
 

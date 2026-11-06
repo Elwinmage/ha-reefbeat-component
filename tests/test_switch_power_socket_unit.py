@@ -378,3 +378,19 @@ def test_device_info_returns_coordinator_info() -> None:
     device = FakePowerCoordinator()
     entity = _make(device, 0)
     assert entity.device_info == device.device_info
+
+
+# ---------------------------------------------------------------------------
+# reef_role
+# ---------------------------------------------------------------------------
+
+
+def test_socket_switch_publishes_its_role() -> None:
+    """The role ties a switch to its consumption sensor in any language."""
+    desc = ReefPowerSocketSwitchEntityDescription(
+        key="socket_2_on_off",
+        translation_key="socket_2_on_off",
+        socket=2,
+    )
+    entity = ReefPowerSocketSwitchEntity(cast(Any, FakePowerCoordinator()), desc)
+    assert entity.extra_state_attributes == {"reef_role": "socket_2_on_off"}

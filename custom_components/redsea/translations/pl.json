@@ -3,11 +3,14 @@
     "abort": {
       "already_configured": "Urządzenie już skonfigurowane",
       "cannot_create": "Nie można utworzyć urządzenia ReefBeat z podanymi parametrami",
-      "group_already_driven": "Te lampy są już sterowane przez wirtualny LED"
+      "group_already_driven": "Te lampy są już sterowane przez wirtualny LED",
+      "poseidon_no_cloud_account": "Poseidon wymaga konta w chmurze ReefBeat: najpierw je dodaj."
     },
     "error": {
       "auth_failed": "Uwierzytelnianie nie powiodło się, sprawdź swoje dane logowania",
-      "nothing_detected": "Nie wykryto żadnego urządzenia"
+      "nothing_detected": "Nie wykryto żadnego urządzenia",
+      "port_in_use": "Ten port jest już używany na tym komputerze",
+      "invalid_host": "Nieprawidłowy adres IPv4"
     },
     "flow_title": "{name}",
     "progress": {
@@ -43,6 +46,15 @@
         "description": "{count} urządzenie(a) tego konta ReefBeat nie są jeszcze w Home Assistant i odpowiadają pod adresem podanym przez chmurę. Są zaznaczone: odznacz te, których nie chcesz dodać, i zatwierdź.\n\nNiedostępne pod ostatnim znanym adresem (dodaj je skanowaniem sieci lub po IP): {unreachable}",
         "data": {
           "cloud_devices": "Urządzenia do dodania"
+        }
+      },
+      "poseidon": {
+        "title": "Tryb Poseidon",
+        "description": "Poseidon umieszcza w Home Assistant przekaźnik między twoimi urządzeniami a brokerem Red Sea. Urządzenia nadal działają z aplikacją ReefBeat; ich ruch przechodzi przez Home Assistant.\n\nProponowany port to pierwszy znaleziony wolny port. Adres to ten, pod którym urządzenia łączą się z Home Assistant. Konto w chmurze służy do pobrania kluczy urządzeń, które ich nie mają.",
+        "data": {
+          "port": "Port nasłuchu",
+          "host": "Adres Home Assistant widziany przez urządzenia",
+          "cloud_account": "Konto w chmurze"
         }
       }
     }
@@ -156,6 +168,9 @@
       },
       "port_ato_fault": {
         "name": "Port {port} awaria ATO"
+      },
+      "regulation_alarm": {
+        "name": "Alarm regulacji"
       }
     },
     "button": {
@@ -395,6 +410,18 @@
       },
       "port_ato_stop": {
         "name": "Port {port} zatrzymaj ATO"
+      },
+      "regulation_record": {
+        "name": "Zapisz wynik testu"
+      },
+      "regulation_apply": {
+        "name": "Zastosuj proponowaną dawkę"
+      },
+      "regulation_dismiss": {
+        "name": "Odrzuć proponowaną dawkę"
+      },
+      "maint_control_probe_refractometer_check": {
+        "name": "Kontrola refraktometrem sondy {probe}"
       }
     },
     "light": {
@@ -648,6 +675,42 @@
       },
       "port_ato_flow_rate": {
         "name": "Port {port} przepływ ATO"
+      },
+      "regulation_target": {
+        "name": "Cel regulacji"
+      },
+      "regulation_potency": {
+        "name": "Moc suplementu"
+      },
+      "regulation_tolerance": {
+        "name": "Tolerancja regulacji"
+      },
+      "regulation_tank_volume": {
+        "name": "Objętość wody w zbiorniku"
+      },
+      "regulation_max_change": {
+        "name": "Maks. zmiana dawki"
+      },
+      "regulation_correction_days": {
+        "name": "Rozłożenie korekty"
+      },
+      "brine_concentration": {
+        "name": "Stężenie solanki"
+      },
+      "brine_max_rise": {
+        "name": "Maks. wzrost zasolenia"
+      },
+      "brine_doses_per_day": {
+        "name": "Dawki solanki na dzień"
+      },
+      "salinity_check_tolerance": {
+        "name": "Tolerancja kontroli refraktometrem"
+      },
+      "regulation_measurement": {
+        "name": "Wynik testu"
+      },
+      "maint_control_probe_refractometer_check_interval_weeks": {
+        "name": "Kontrola refraktometrem sondy {probe} (tygodnie)"
       }
     },
     "select": {
@@ -729,6 +792,42 @@
           "sunset": "Wyrównany do zachodu",
           "both": "Rozciągnięty między wschodem a zachodem"
         }
+      },
+      "regulation_mode": {
+        "name": "Regulacja dozowania",
+        "state": {
+          "off": "Wyłączona",
+          "assisted": "Dozowanie wspomagane",
+          "brine": "Solanka (zasolenie)"
+        }
+      },
+      "regulation_parameter": {
+        "name": "Regulowany parametr",
+        "state": {
+          "kh": "KH / Alkaliczność",
+          "ca": "Wapń",
+          "mg": "Magnez",
+          "k": "Potas",
+          "no3": "Azotany",
+          "po4": "Fosforany",
+          "i": "Jod",
+          "fe": "Żelazo",
+          "salinity": "Zasolenie"
+        }
+      },
+      "brine_salinity_source": {
+        "name": "Czujnik zasolenia",
+        "state": {
+          "none": "Brak"
+        }
+      },
+      "poseidon_strategy": {
+        "name": "Strategia Poseidon",
+        "state": {
+          "spy": "Szpieg",
+          "shadow": "Shadow",
+          "poseidon": "Poseidon"
+        }
       }
     },
     "sensor": {
@@ -800,6 +899,9 @@
         "state": {
           "none": "żaden"
         }
+      },
+      "aquarium": {
+        "name": "Akwarium"
       },
       "connected_control": {
         "name": "Paired control hub"
@@ -1505,6 +1607,44 @@
           "ec_sensor_s1": "Czujnik poziomu 1",
           "ec_sensor_s2": "Czujnik poziomu 2"
         }
+      },
+      "regulation_status": {
+        "name": "Stan regulacji",
+        "state": {
+          "off": "Wyłączona",
+          "bundle": "Głowice zgrupowane (nieobsługiwane)",
+          "not_configured": "Nieskonfigurowana",
+          "waiting_data": "Oczekiwanie na dane",
+          "in_range": "W normie",
+          "proposal": "Zaproponowano nową dawkę",
+          "retest_suggested": "Zalecany ponowny test",
+          "regulating": "Regulacja",
+          "too_salty": "Za słone",
+          "cannot_compensate": "Kompensacja niemożliwa",
+          "source_unavailable": "Czujnik zasolenia niedostępny",
+          "recalibration_required": "Wymagana ponowna kalibracja sondy"
+        }
+      },
+      "regulation_proposed_dose": {
+        "name": "Proponowana dawka dzienna"
+      },
+      "regulation_consumption": {
+        "name": "Zużycie"
+      },
+      "regulation_last_measurement": {
+        "name": "Ostatni wynik testu"
+      },
+      "regulation_tank_volume_used": {
+        "name": "Użyta objętość wody"
+      },
+      "brine_salinity": {
+        "name": "Zasolenie (średnia 24 h)"
+      },
+      "brine_daily_volume": {
+        "name": "Planowana solanka na dzień"
+      },
+      "poseidon_last_dose": {
+        "name": "Ostatnia dawka"
       }
     },
     "switch": {
@@ -1708,6 +1848,15 @@
       },
       "port_ato_temp_log": {
         "name": "Port {port} dziennik temperatury ATO"
+      },
+      "maint_control_probe_refractometer_check_notify": {
+        "name": "Kontrola refraktometrem sondy {probe} (powiadomienia)"
+      },
+      "poseidon_mode": {
+        "name": "Tryb Poseidon"
+      },
+      "poseidon_poll_pause": {
+        "name": "Pauza odpytywania (szpieg)"
       }
     },
     "text": {
@@ -1789,7 +1938,14 @@
       "no_free_port": "Ten hub nie ma wolnego portu 12V dla modułu ATO.",
       "cloud_devices_added": "Dodawanie {count} urządzenia(eń).",
       "cloud_devices_unavailable": "Nie udało się odczytać urządzeń tego konta z chmury ReefBeat. Spróbuj później.",
-      "cloud_devices_none": "Wszystkie urządzenia tego konta są już w Home Assistant."
+      "cloud_devices_none": "Wszystkie urządzenia tego konta są już w Home Assistant.",
+      "poseidon_not_running": "Poseidon nie jest uruchomiony.",
+      "poseidon_nothing_to_add": "Nie można dodać żadnego urządzenia.\n\nJuż w trybie Poseidon: {poseidon}\nBez danych chmury (lokalne akwarium): {no_cloud}\nBrak w koncie chmury: {not_in_account}\nNiedostępne: {unreachable}",
+      "poseidon_devices_added": "Gotowe:\n{report}",
+      "poseidon_add_failed": "Dodawanie urządzeń nie powiodło się, zobacz dzienniki.",
+      "poseidon_imported": "Import zakończony: {added} dodane, {updated} zaktualizowane, {skipped} pominięte.",
+      "poseidon_export_link": "**{link_start}Pobierz klucze {count} urządzeń{link_end}**\n\nLink jest ważny przez {minutes} minut i otwiera się w nowej karcie. Plik zawiera klucze jawnie: przechowuj go bezpiecznie.",
+      "poseidon_rescue_link": "**{link_start}Pobierz skrypt ratunkowy ({count} urządzeń){link_end}**\n\nLink jest ważny przez {minutes} minut i otwiera się w nowej karcie. Gdy Home Assistant już tego nie może, `python3 {file}` przełącza urządzenia z powrotem na broker Red Sea z dowolnego komputera w ich sieci (Python 3.8+, nic więcej do instalowania; `--dry-run`, aby tylko sprawdzić, `--help` dla opcji).\n\nSkrypt zawiera klucze urządzeń jawnie: przechowuj go bezpiecznie i pobierz ponownie po dodaniu urządzeń."
     },
     "error": {
       "auth_failed": "Uwierzytelnianie nie powiodło się, sprawdź dane logowania",
@@ -1801,10 +1957,16 @@
       "no_probe_detected": "Nie wykryto nowej sondy wybranego typu. Przełącz ją w tryb parowania i spróbuj ponownie.",
       "group_min_members": "Wybierz co najmniej dwa LED-y.",
       "group_duplicate_position": "Każdy LED musi mieć dokładnie jedną pozycję.",
-      "ato_install_failed": "Hub odmówił instalacji modułu ATO. Sprawdź, czy port jest wolny, a sonda ATO podłączona."
+      "ato_install_failed": "Hub odmówił instalacji modułu ATO. Sprawdź, czy port jest wolny, a sonda ATO podłączona.",
+      "nothing_selected": "Wybierz co najmniej jedno urządzenie",
+      "confirm_required": "Zaznacz pole, aby potwierdzić",
+      "invalid_watchdog_key": "Klucz musi mieć dokładnie 16 znaków",
+      "invalid_keystore": "Ten plik nie jest keystore",
+      "upload_missing": "Wysłany plik nie jest już dostępny: wyślij go ponownie"
     },
     "progress": {
-      "applying": "Wysyłanie nowych danych uwierzytelniających Wi-Fi i lokalizowanie urządzenia w sieci..."
+      "applying": "Wysyłanie nowych danych uwierzytelniających Wi-Fi i lokalizowanie urządzenia w sieci...",
+      "poseidon_adding": "Pobieranie kluczy i przełączanie urządzeń w tryb Poseidon. Pobranie kluczy trwa około minuty na urządzenie."
     },
     "step": {
       "init": {
@@ -1821,7 +1983,12 @@
           "del_probe": "Usuń sondę",
           "change_probe": "Wymień sondę",
           "install_ato": "Zainstaluj moduł ATO",
-          "cloud_devices": "Dodaj urządzenia tego konta"
+          "cloud_devices": "Dodaj urządzenia tego konta",
+          "add_devices": "Dodaj urządzenia",
+          "settings_poseidon": "Ustawienia Poseidon",
+          "export_keystore": "Eksportuj klucze",
+          "import_keystore": "Importuj klucze",
+          "rescue_script": "Skrypt ratunkowy"
         },
         "title": "Konfiguracja"
       },
@@ -1833,11 +2000,15 @@
           "scan_interval": "Interwał odświeżania",
           "not_virtual": "Nie można konfigurować",
           "slaves": "LED",
-          "ip_update": "Gdy urządzenie zmieni IP"
+          "ip_update": "Gdy urządzenie zmieni IP",
+          "message_history_days": "Historia komunikatów (dni)",
+          "message_history_max": "Historia komunikatów (maks. wpisów)"
         },
         "title": "Ustawienia urządzenia",
         "data_description": {
-          "ip_update": "Chmura podaje IP każdego urządzenia. Urządzenie znalezione pod nowym adresem (sprawdzone, że to samo) może zostać zaktualizowane automatycznie lub przez naprawę do potwierdzenia."
+          "ip_update": "Chmura podaje IP każdego urządzenia. Urządzenie znalezione pod nowym adresem (sprawdzone, że to samo) może zostać zaktualizowane automatycznie lub przez naprawę do potwierdzenia.",
+          "message_history_days": "Jak długo przechowywane są komunikaty i alerty urządzenia, wyświetlane w historii karty.",
+          "message_history_max": "Powyżej tej liczby najstarsze komunikaty są usuwane."
         }
       },
       "wifi_scan": {
@@ -1926,6 +2097,48 @@
         "data": {
           "cloud_devices": "Urządzenia do dodania"
         }
+      },
+      "add_devices": {
+        "title": "Dodaj urządzenia do Poseidon",
+        "description": "Urządzenia oznaczone 🔑 nie mają jeszcze kluczy: ich pobranie jest destrukcyjne (zobacz następny krok). Pozostałe od razu przechodzą w tryb Poseidon.\n\nJuż w trybie Poseidon: {poseidon}\nBez danych chmury (lokalne akwarium): {no_cloud}\nBrak w koncie chmury: {not_in_account}\nNiedostępne: {unreachable}",
+        "data": {
+          "devices": "Urządzenia"
+        }
+      },
+      "add_devices_confirm": {
+        "title": "Pobranie kluczy: destrukcyjne",
+        "description": "Aby pobrać ich klucze, te urządzenia są usuwane z chmury ReefBeat i tworzone ponownie: {devices}.\n\n- zostają odłączone od swojego akwarium, a aplikacja może poprosić o ponowne sparowanie;\n- harmonogramy, ustawienia i historia przechowywane dla nich w chmurze mogą zostać utracone;\n- ich konfiguracja jest zapisywana przed i porównywana po: RSRUN i RSWAVE odzyskują swoją automatycznie, dla pozostałych zmiany są wymienione w powiadomieniu.\n\nHome Assistant przechowuje klucze, nawet jeśli Poseidon zostanie usunięty.",
+        "data": {
+          "confirm": "Rozumiem, pobierz klucze"
+        }
+      },
+      "settings_poseidon": {
+        "title": "Ustawienia Poseidon",
+        "description": "Tryb debug zapisuje każdą ramkę przechodzącą przez przekaźnik, odszyfrowaną, do {logs}/poseidon.jsonl (z rotacją): dane są tam jawne.\n\nUrządzenie w trybie Poseidon jest zgłaszane jako ciche (zgłoszenie naprawy, atrybut `silent` jego przełącznika), gdy przez ten czas nic dla niego nie przeszło przez przekaźnik.\n\nKlucz watchdoga szyfruje wymianę `is_alive`: skopiuj go do konfiguracji watchdoga. Zostaw pusty, aby nie odpowiadać żadnemu watchdogowi.\n\nStrategia dotyczy urządzeń w trybie Poseidon, które nie mają własnej (wybór Strategia Poseidon każdego urządzenia). Szpieg zapisuje ramki, żądania HTTP wraz z odpowiedziami (klucze i hasła zamaskowane, /cloud nigdy nie zapisywane) i porównania do {logs}/spy.jsonl. Shadow scala wysłane stany i zapisuje pozostałe różnice do {logs}/shadow.jsonl. Poseidon odpytuje co N minut i korzysta z wysłanych stanów.",
+        "data": {
+          "debug": "Tryb debug (odszyfrowane ramki w pliku)",
+          "silent_minutes": "Czas, po którym urządzenie jest ciche (minuty)",
+          "watchdog_key": "Klucz watchdoga (16 znaków)",
+          "strategy": "Domyślna strategia urządzeń",
+          "reduced_minutes": "Interwał odpytywania strategii Poseidon (minuty)",
+          "safety_minutes": "Odczyt bezpieczeństwa urządzenia w pełni wysyłającego (minuty)",
+          "anomalies": "Zgłaszaj nieoczekiwane wiadomości",
+          "anomaly_search": "Szukaj istniejących zgłoszeń na GitHubie",
+          "connect_guard": "Wstrzymuj przywracanie z chmury przy połączeniu"
+        },
+        "data_description": {
+          "safety_minutes": "Strategia Poseidon: urządzenie, którego wysyłane wiadomości obejmują każdą zmieniającą się wartość (ReefControl Power bez gniazda sterowanego czujnikiem, ReefDose), jest odczytywane tylko z tą częstotliwością, dla bezpieczeństwa. Także jego /cloud, dopóki komunikuje się z przekaźnikiem.",
+          "anomalies": "Wiadomości urządzenia w trybie Poseidon, których nic nie przewidywało (nowy topic, nieznane polecenie, nowe pole), trafiają do {logs}/anomalies.jsonl (zanonimizowane), wraz z naprawą do zgłoszenia ich na GitHubie.",
+          "anomaly_search": "Przed utworzeniem naprawy zgłoszenia repozytorium są przeszukiwane po sygnaturze anomalii: wysyłany jest tylko ten krótki skrót, nic o Twoich urządzeniach. Wyłączone: brak zapytań do GitHuba.",
+          "connect_guard": "Przez pierwsze 30 sekund każdego połączenia urządzenia z przekaźnikiem przywrócenia wysyłane przez chmurę Red Sea (grupa i program ReefWave, głowica karmienia ReefDose) nie są przekazywane: chmura może przywrócić starą kopię ustawień, a ReefWave straciła w ten sposób cały program. Każde inne polecenie przechodzi."
+        }
+      },
+      "import_keystore": {
+        "title": "Importuj klucze",
+        "description": "Keystore w formacie CLI (keystore.json) lub eksportu, wysłany z tej przeglądarki.\n\nUrządzenie jest zastępowane tylko nowszym wpisem; urządzenia bez kluczy są pomijane.",
+        "data": {
+          "file": "Plik keystore (.json)"
+        }
       }
     }
   },
@@ -1935,7 +2148,8 @@
         "cloud_api": "Konto chmury",
         "local_detect": "Lokalne wykrywanie",
         "manual_mode": "Tryb ręczny",
-        "virtual_led": "Wirtualny LED"
+        "virtual_led": "Wirtualny LED",
+        "poseidon": "Tryb Poseidon"
       }
     },
     "ip_address": {
@@ -1948,6 +2162,13 @@
         "auto": "Aktualizuj automatycznie",
         "repair": "Zapytaj mnie (naprawa)",
         "off": "Nic nie rób"
+      }
+    },
+    "poseidon_strategy": {
+      "options": {
+        "spy": "Szpieg: odpytywanie bez zmian, wszystko zapisywane (spy.jsonl)",
+        "shadow": "Shadow: odpytywanie bez zmian, wysłane stany scalane (shadow.jsonl)",
+        "poseidon": "Poseidon: odpytywanie co N minut, wysłane stany używane"
       }
     }
   },
@@ -2280,6 +2501,76 @@
           "description": "Nowa nazwa programu."
         }
       }
+    },
+    "record_measurement": {
+      "name": "Zapisz pomiar",
+      "description": "Zapisuje wynik testu dla głowicy ReefDose. W trybie wspomaganym proponowana jest nowa dawka dzienna; w trybie solanki zasolenie jest kontrolą refraktometrem sondy zasolenia.",
+      "fields": {
+        "device_id": {
+          "name": "Głowica",
+          "description": "Urządzenie głowicy ReefDose."
+        },
+        "value": {
+          "name": "Wartość",
+          "description": "Zmierzona wartość w jednostce parametru (dKH, ppm, ppt)."
+        },
+        "parameter": {
+          "name": "Parametr",
+          "description": "Mierzony parametr. Domyślnie parametr regulowany przez głowicę."
+        },
+        "measured_at": {
+          "name": "Zmierzono",
+          "description": "Kiedy wykonano test. Domyślnie teraz."
+        }
+      }
+    },
+    "poseidon_export": {
+      "name": "Poseidon: eksportuj klucze",
+      "description": "Zapisuje klucze urządzeń Poseidon do pliku w /config/redsea/poseidon, w formacie CLI."
+    },
+    "get_messages": {
+      "name": "Pobierz komunikaty",
+      "description": "Zwraca historię komunikatów i alertów urządzenia, od najnowszych.",
+      "fields": {
+        "device_id": {
+          "name": "ID urządzenia",
+          "description": "Wpis konfiguracji urządzenia."
+        },
+        "msg_type": {
+          "name": "Typ komunikatu",
+          "description": "last_message, last_alert_message lub All."
+        },
+        "days": {
+          "name": "Dni",
+          "description": "Tylko komunikaty z ostatnich dni."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Najwyżej tyle komunikatów."
+        }
+      }
+    },
+    "get_doses": {
+      "name": "Pobierz dawki",
+      "description": "Zwraca historię dawek ReefDose w trybie Poseidon, od najnowszych.",
+      "fields": {
+        "device_id": {
+          "name": "Urządzenie",
+          "description": "ReefDose, jedna z jego głowic lub jego wpis konfiguracji."
+        },
+        "head": {
+          "name": "Głowica",
+          "description": "Tylko dawki tej głowicy."
+        },
+        "days": {
+          "name": "Dni",
+          "description": "Tylko dawki z ostatnich dni."
+        },
+        "limit": {
+          "name": "Limit",
+          "description": "Najwyżej tyle dawek."
+        }
+      }
     }
   },
   "exceptions": {
@@ -2345,6 +2636,12 @@
     },
     "wave_group_bad_order": {
       "message": "Nowa kolejność musi zawierać każdą pompę grupy dokładnie raz."
+    },
+    "bundled_daily_dose": {
+      "message": "Głowice zgrupowane: tylko głowica 1 (Part 1, ustawiana według testu wapnia) ma dawkę dzienną, dozownik wylicza pozostałe głowice z proporcji pakietu."
+    },
+    "poseidon_not_running": {
+      "message": "Poseidon nie jest uruchomiony."
     }
   },
   "issues": {
@@ -2408,6 +2705,30 @@
           "device_not_found": "Urządzenie nie odpowiada już pod tym adresem: problem wróci, jeśli zostanie tam znalezione."
         }
       }
+    },
+    "poseidon_port_in_use": {
+      "title": "Poseidon: port {port} jest zajęty",
+      "description": "Inna usługa nasłuchuje na porcie {port}: przekaźnik Poseidon nie może się uruchomić, więc urządzenia w trybie Poseidon nie łączą się z chmurą Red Sea. Zatrzymaj tę usługę albo usuń Poseidon i dodaj go ponownie z innym portem."
+    },
+    "poseidon_device_silent": {
+      "title": "{name}: ciche w trybie Poseidon",
+      "description": "{name} jest w trybie Poseidon, ale od ponad {minutes} minut nic dla niego nie przeszło przez przekaźnik: może jest wyłączone albo nie łączy się już z Home Assistant. Nie jest automatycznie przełączane z powrotem; to zgłoszenie znika samo, gdy ruch wznowi się."
+    },
+    "poseidon_anomaly_new": {
+      "title": "Poseidon: nieoczekiwana wiadomość od {model} ({signature})",
+      "description": "{model} (firmware {firmware}) w trybie Poseidon wysłał coś, czego nic nie przewidywało: **{kind}** — {details}.\n\nZapisano to w redsea/poseidon/logs/anomalies.jsonl (zanonimizowane). **Dowiedz się więcej** otwiera wypełnione zgłoszenie na GitHubie: możesz je przeczytać i zmienić przed wysłaniem, nic nie zostanie wysłane bez Ciebie."
+    },
+    "poseidon_anomaly_reported": {
+      "title": "Poseidon: znana nieoczekiwana wiadomość od {model} ({signature})",
+      "description": "{model} (firmware {firmware}) w trybie Poseidon wysłał coś, czego nic nie przewidywało: **{kind}** — {details}.\n\nZostało to już zgłoszone (issue #{number}): **Dowiedz się więcej** otwiera zgłoszenie, aby je śledzić lub dodać swoje obserwacje."
+    },
+    "poseidon_anomaly_fixed": {
+      "title": "Poseidon: obsługiwane od wersji {version} ({signature})",
+      "description": "{model} (firmware {firmware}) w trybie Poseidon wysłał coś, czego wcześniejsza wersja nie przewidywała: **{kind}** — {details}.\n\nJest to obsługiwane od wersji {version} integracji (issue #{number}): zaktualizuj ją, aby ta naprawa zniknęła."
+    },
+    "poseidon_anomaly_closed": {
+      "title": "Poseidon: nieoczekiwana wiadomość już obsłużona ({signature})",
+      "description": "{model} (firmware {firmware}) w trybie Poseidon wysłał coś, czego nic nie przewidywało: **{kind}** — {details}.\n\nJego zgłoszenie (issue #{number}) jest zamknięte: **Dowiedz się więcej** je otwiera. Otwórz je ponownie, jeśli to nadal ważne."
     }
   }
 }

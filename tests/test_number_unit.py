@@ -457,3 +457,53 @@ async def test_number_set_native_value_non_seconds_keeps_float(
 
     assert entity.native_value == 75.3
     assert device.set_calls[-1] == ("$.brightness", 75.3)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("value_name", "cached", "expected", "written"),
+    [
+        # A value of the device just read: the restored one never hides it
+        ("$.sources[?(@.name=='/dashboard')].data.v", 3.0, 3.0, False),
+        # A value Home Assistant keeps itself: restored over its default
+        ("$.local.head.1.manual_dose", 5.0, 12.5, True),
+    ],
+)
+async def test_restore_never_hides_a_value_of_the_device(
+    monkeypatch: Any,
+    hass: Any,
+    value_name: str,
+    cached: float,
+    expected: float,
+    written: bool,
+) -> None:
+    async def _noop_restore_added(self: Any) -> None:
+        return None
+
+    monkeypatch.setattr(RestoreNumber, "async_added_to_hass", _noop_restore_added)
+    device = FakeCoordinator(hass=hass)
+    device.set_data(value_name, cached)
+    device.set_calls.clear()
+    desc = ReefBeatNumberEntityDescription(
+        key="x",
+        translation_key="x",
+        value_name=value_name,
+        dependency=None,
+        native_min_value=0,
+        native_max_value=100,
+        native_step=0.1,
+    )
+    ent = ReefBeatNumberEntity(cast(Any, device), desc)
+    ent.hass = hass
+
+    class _Extra:
+        def as_dict(self) -> dict[str, Any]:
+            return {"native_value": 12.5}
+
+    async def _last_extra() -> Any:
+        return _Extra()
+
+    ent.async_get_last_extra_data = _last_extra  # type: ignore[assignment]
+    await ent.async_added_to_hass()
+    assert ent._attr_native_value == expected
+    assert bool(device.set_calls) is written

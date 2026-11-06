@@ -49,6 +49,8 @@ from .const import (
     CONFIG_FLOW_CLOUD_USERNAME,
     CONFIG_FLOW_HW_MODEL,
     CONFIG_FLOW_IP_ADDRESS,
+    CONFIG_FLOW_MESSAGE_HISTORY_DAYS,
+    CONFIG_FLOW_MESSAGE_HISTORY_MAX,
     DOMAIN,
     HW_ATO_IDS,
     HW_CONTROL_IDS,
@@ -60,6 +62,8 @@ from .const import (
     HW_RUN_IDS,
     HW_WAVE_IDS,
     LINKED_LED,
+    MESSAGE_HISTORY_DAYS,
+    MESSAGE_HISTORY_MAX,
     PLATFORMS,
     REFRESH_DEVICE_DELAY,
     SIGNAL_GROUP_MEMBER_GONE,
@@ -80,6 +84,7 @@ from .coordinator import (
     ReefVirtualLedCoordinator,
     ReefWaveCoordinator,
 )
+from .dose_regulation import DoseRegulator, RegulationStore
 from .groups import GroupStore, group_error, members_from_legacy
 from .led_weather import (
     WEATHER_CHECK_SECONDS,
@@ -94,6 +99,19 @@ from .led_weather import (
     weather_lost,
 )
 from .maintenance import MaintenanceStore, register_led_tasks
+from .messages import (
+    MESSAGES_DATA,
+    MessageStore,
+    async_get_message_store,
+    async_remove_message_store,
+)
+from .poseidon import (
+    async_register_poseidon_services,
+    async_remove_poseidon,
+    async_setup_poseidon,
+    async_unload_poseidon,
+    is_poseidon_entry,
+)
 from .reefbeat.cloud import InvalidAuth
 from .reefbeat.control import ReefControlAPI
 from .wave_library import program_waves
@@ -189,6 +207,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data,
     )
 
+    if is_poseidon_entry(entry):
+        return await async_setup_poseidon(hass, entry)
+
     try:
         if CONFIG_FLOW_CLOUD_USERNAME in entry.data:
             coordinator: ReefBeatCloudCoordinator | ReefBeatCoordinator = (
@@ -230,6 +251,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Attach to the coordinator so platforms find it without going through
     # hass.data again; also keeps the lifecycle tied to the entry.
     coordinator.maintenance = maintenance_store  # type: ignore[attr-defined]
+
+    # History of the device's messages and alerts, fed by its API
+    message_store = await async_get_message_store(
+        hass,
+        entry.entry_id,
+        int(entry.data.get(CONFIG_FLOW_MESSAGE_HISTORY_DAYS, MESSAGE_HISTORY_DAYS)),
+        int(entry.data.get(CONFIG_FLOW_MESSAGE_HISTORY_MAX, MESSAGE_HISTORY_MAX)),
+    )
+    coordinator.messages = message_store  # type: ignore[attr-defined]
+    api = getattr(coordinator, "my_api", None)
+    if api is not None:
+        api.on_message = message_store.add
 
     # ReefLED: settings of the week program following the weather of a place
     if isinstance(coordinator, ReefLedCoordinator):
@@ -308,6 +341,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _cancel("cancel")
 
         entry.async_on_unload(_weather_unload)
+
+    # ReefDose: dose regulation of the heads (assisted dosing, brine)
+    if isinstance(coordinator, ReefDoseCoordinator):
+        regulation_store = RegulationStore(
+            hass, entry.entry_id, range(1, coordinator.heads_nb + 1)
+        )
+        await regulation_store.async_load()
+        regulator = DoseRegulator(hass, coordinator, regulation_store)
+        coordinator.regulation = regulator  # type: ignore[attr-defined]
+        await regulator.async_start()
+        entry.async_on_unload(regulator.async_stop)
 
     # Group (virtual LED): staggered sunrise and offsets written to the lamps
     if isinstance(coordinator, ReefVirtualLedCoordinator):
@@ -561,6 +605,9 @@ async def async_remove_config_entry_device(
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry and its platforms."""
+    if is_poseidon_entry(entry):
+        return await async_unload_poseidon(hass, entry)
+
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if not unload_ok:
         return False
@@ -584,6 +631,15 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """A config entry was removed: drop what it kept on disk."""
+    if is_poseidon_entry(entry):
+        await async_remove_poseidon(hass, entry)
+        return
+    with suppress(Exception):
+        await async_remove_message_store(hass, entry.entry_id)
+
+
 # Frontend resources
 _FRONTEND_DIR = Path(__file__).parent / "frontend"
 _ICONS_JS_URL = f"/{DOMAIN}/frontend/redsea-icons.js"
@@ -594,6 +650,8 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema("redsea")
 # Services
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the integration (register services and frontend resources)."""
+    # Poseidon mode: keystore export
+    async_register_poseidon_services(hass)
 
     # Cloud aquariums for the aquarium view of the card (reeftank)
     async_register_websocket(hass)
@@ -719,6 +777,33 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         "clean_message",
         handle_clean_message,
         supports_response=SupportsResponse.NONE,
+    )
+
+    @callback
+    async def handle_get_messages(call: ServiceCall) -> ServiceResponse:
+        """Return the message / alert history of a device, newest first."""
+        entry_id = call.data.get("device_id")
+        store: MessageStore | None = hass.data.get(MESSAGES_DATA, {}).get(entry_id)
+        if entry_id not in hass.data.get(DOMAIN, {}) or store is None:
+            return {"error": "Device not enabled", "messages": []}
+        days = call.data.get("days")
+        limit = call.data.get("limit")
+        messages = store.entries(
+            msg_type=call.data.get("msg_type"),
+            days=float(days) if days else None,
+            limit=int(limit) if limit else None,
+        )
+        return {
+            "messages": cast(JsonValueType, messages),
+            "retention_days": store.days,
+            "max_entries": store.max_entries,
+        }
+
+    hass.services.async_register(
+        DOMAIN,
+        "get_messages",
+        handle_get_messages,
+        supports_response=SupportsResponse.ONLY,
     )
 
     @callback
@@ -1282,4 +1367,63 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         supports_response=SupportsResponse.ONLY,
     )
 
+    @callback
+    async def handle_record_measurement(call: ServiceCall) -> ServiceResponse:
+        """Record a test result for a ReefDose head (dose regulation).
+
+        ``device_id`` is the head's device. ``parameter`` defaults to the
+        head's regulated parameter; ``measured_at`` to now.
+        """
+        found = _dose_head(hass, call.data.get("device_id"))
+        if found is None:
+            return {"ok": False, "error": "Not a ReefDose head"}
+        coordinator, head = found
+        regulator = getattr(coordinator, "regulation", None)
+        if not isinstance(regulator, DoseRegulator):
+            return {"ok": False, "error": "Regulation unavailable"}
+        at = call.data.get("measured_at")
+        if at is not None:
+            # The datetime selector gives a local time without offset
+            parsed = dt_util.parse_datetime(str(at))
+            if parsed is None:
+                return {"ok": False, "error": f"invalid measured_at {at!r}"}
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=dt_util.get_default_time_zone())
+            at = dt_util.as_local(parsed)
+        try:
+            value = float(call.data["value"])
+            result = await regulator.async_record(
+                head, value, call.data.get("parameter"), at
+            )
+        except (KeyError, TypeError, ValueError) as err:
+            return {"ok": False, "error": str(err)}
+        return {"ok": True, **result}
+
+    _LOGGER.debug("Registering service redsea.record_measurement")
+    hass.services.async_register(
+        DOMAIN,
+        "record_measurement",
+        handle_record_measurement,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
     return True
+
+
+def _dose_head(hass: HomeAssistant, device_id: Any) -> tuple[Any, int] | None:
+    """ReefDose coordinator and head number of a head's device id."""
+    if not isinstance(device_id, str):
+        return None
+    ha_device = dr.async_get(hass).async_get(device_id)
+    if ha_device is None:
+        return None
+    for domain, ident in ha_device.identifiers:
+        match = _HEAD_NAME_RE.match(ident) if domain == DOMAIN else None
+        if match is None:
+            continue
+        for coordinator in hass.data.get(DOMAIN, {}).values():
+            if isinstance(
+                coordinator, ReefDoseCoordinator
+            ) and coordinator.model_id == match.group("prefix"):
+                return coordinator, int(match.group("head"))
+    return None

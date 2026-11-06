@@ -543,6 +543,29 @@ async def test_cloud_link_ready_off_event_clears_link(
 
 
 @pytest.mark.asyncio
+async def test_cloud_link_and_unlink_refresh_entities(
+    hass: HomeAssistant,
+) -> None:
+    """The aquarium sensor follows the link: entities refresh on both sides."""
+
+    class _TestLinked(ReefBeatCloudLinkedCoordinator):
+        pass
+
+    entry = _make_entry(title="LED", ip="192.0.2.10", hw_model="RSLED50")
+    device = _TestLinked(hass, cast(Any, entry))
+    device.my_api = cast(Any, _FakeAPI())
+    updates: list[int] = []
+    device.async_add_listener(lambda: updates.append(1))
+
+    cloud = _FakeCloudCoordinator(title="MyCloud")
+    await device.set_cloud_link(cast(Any, cloud))
+    assert len(updates) == 1
+
+    device._handle_ask_for_link_ready(_Event({"state": "off", "account": "MyCloud"}))
+    assert len(updates) == 2
+
+
+@pytest.mark.asyncio
 async def test_cloud_linked_async_setup_requests_link_when_running(
     hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
 ) -> None:

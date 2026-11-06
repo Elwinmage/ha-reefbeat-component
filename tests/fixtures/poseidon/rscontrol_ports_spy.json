@@ -1,0 +1,1187 @@
+{
+  "source": "spy: a socket of a ReefControl Power removed, a 12V port of the ReefControl installed and scheduled, 2026-11-02 21:14-21:23",
+  "hwid": "0000aaaa0005",
+  "power_hwid": "0000aaaa0001",
+  "control": {
+    "before": {
+      "/dashboard": {
+        "mode": "auto",
+        "is_internet_connected": true,
+        "cable_connected": true,
+        "connected_device": {
+          "state": "paired_connected",
+          "hwid": "0000aaaa0001",
+          "internet_connected": true
+        },
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 74,
+            "level": "danger",
+            "last_installation_date": 1793649719
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "measurement_unit": "ppt",
+            "value": 34.4,
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.2,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.7,
+            "temp_level": "desired",
+            "last_installation_date": 1793650296,
+            "last_adjustment_date": 1793651648
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.07,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793650908,
+            "last_adjustment_date": 1793653378
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.7,
+            "level": "desired",
+            "last_installation_date": 1793651722,
+            "last_adjustment_date": 1793647293
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false,
+            "last_installation_date": 1793651744
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793652199,
+            "last_adjustment_date": 1793653398
+          }
+        ],
+        "ports": [
+          {
+            "number": 0,
+            "name": "S1",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          }
+        ],
+        "buzzer": {
+          "active": false,
+          "cause": "none",
+          "dismissed": false
+        },
+        "leak_detector": true,
+        "leak": {
+          "mode": "auto"
+        }
+      },
+      "/ports/config": [
+        {
+          "number": 0,
+          "type": "unknown",
+          "mode": "setup",
+          "user_config_mode": "setup",
+          "enabled": true,
+          "name": "S1",
+          "shortcut_off_delay": 0,
+          "power_detector_enabled": false,
+          "power_on_percent": 100,
+          "is_btn_assigned": true,
+          "sensor": null
+        },
+        {
+          "number": 1,
+          "type": "unknown",
+          "mode": "setup",
+          "user_config_mode": "setup",
+          "enabled": true,
+          "name": "S2",
+          "shortcut_off_delay": 0,
+          "power_detector_enabled": false,
+          "power_on_percent": 100,
+          "is_btn_assigned": false,
+          "sensor": null
+        }
+      ]
+    },
+    "after": {
+      "/dashboard": {
+        "mode": "auto",
+        "is_internet_connected": true,
+        "cable_connected": true,
+        "connected_device": {
+          "state": "paired_connected",
+          "hwid": "0000aaaa0001",
+          "internet_connected": true
+        },
+        "probes": [
+          {
+            "type": "orp",
+            "uid": "0x0071F",
+            "name": "ORP 71F",
+            "status": "auto",
+            "value": 74,
+            "level": "danger",
+            "last_installation_date": 1793649719
+          },
+          {
+            "type": "ec",
+            "uid": "0x007BF",
+            "measurement_unit": "ppt",
+            "value": 34.4,
+            "name": "Salinité 7BF",
+            "status": "auto",
+            "ec": 52.2,
+            "ppt": 34.4,
+            "sg": 1.0259,
+            "level": "desired",
+            "temp_value": 25.7,
+            "temp_level": "desired",
+            "last_installation_date": 1793650296,
+            "last_adjustment_date": 1793651648
+          },
+          {
+            "type": "ph",
+            "uid": "0x00B39",
+            "name": "pH B39",
+            "status": "auto",
+            "value": 8.07,
+            "level": "desired",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793650908,
+            "last_adjustment_date": 1793653378
+          },
+          {
+            "type": "temperature",
+            "uid": "0x000F7",
+            "name": "Température F7",
+            "status": "auto",
+            "value": 25.7,
+            "level": "desired",
+            "last_installation_date": 1793651722,
+            "last_adjustment_date": 1793647293
+          },
+          {
+            "type": "leak",
+            "uid": "0x0032B",
+            "name": "Fuite 32B",
+            "status": "auto",
+            "detected": false,
+            "last_installation_date": 1793651744
+          },
+          {
+            "type": "ato",
+            "uid": "0x0024E",
+            "name": "Temp. osmolateur 24E",
+            "status": "auto",
+            "water_level": "desired_level_2",
+            "temp_value": 25.6,
+            "temp_level": "desired",
+            "last_installation_date": 1793652199,
+            "last_adjustment_date": 1793653398
+          }
+        ],
+        "ports": [
+          {
+            "number": 0,
+            "name": "Led Chaetomorp",
+            "mode": "schedule",
+            "type": "other",
+            "state": "standby",
+            "user_config_mode": "schedule",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "setup",
+            "type": "unknown",
+            "state": "unknown",
+            "user_config_mode": "setup",
+            "consumption": 0
+          }
+        ],
+        "buzzer": {
+          "active": false,
+          "cause": "none",
+          "dismissed": false
+        },
+        "leak_detector": true,
+        "leak": {
+          "mode": "auto"
+        }
+      }
+    },
+    "states": [
+      {
+        "ts": "2026-11-02T21:15:19.232922+01:00",
+        "payload": {
+          "specific_attributes": {
+            "ports_settings": [
+              {
+                "type": "unknown",
+                "number": 0
+              },
+              {
+                "type": "unknown",
+                "number": 1
+              }
+            ]
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:18:52.921027+01:00",
+        "payload": {
+          "specific_attributes": {
+            "ports": [
+              {
+                "type": "other",
+                "number": 0,
+                "is_setup": true,
+                "mode": "off",
+                "state": "unknown",
+                "last_installation_date": 1793654332
+              },
+              {
+                "type": "unknown",
+                "number": 1,
+                "last_installation_date": null
+              }
+            ]
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:18:52.936316+01:00",
+        "payload": {
+          "specific_attributes": {
+            "ports_settings": [
+              {
+                "type": "other",
+                "name": "S1",
+                "number": 0,
+                "user_config_mode": "off",
+                "enabled": true,
+                "power_detector_enabled": false,
+                "sensor": null
+              },
+              {
+                "type": "unknown",
+                "number": 1
+              }
+            ]
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:18:53.123323+01:00",
+        "payload": {
+          "specific_attributes": {
+            "ports_settings": [
+              {
+                "type": "other",
+                "name": "S1",
+                "number": 0,
+                "user_config_mode": "off",
+                "enabled": true,
+                "power_detector_enabled": false,
+                "sensor": null
+              },
+              {
+                "type": "unknown",
+                "number": 1
+              }
+            ]
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:18:53.684317+01:00",
+        "payload": {
+          "specific_attributes": {
+            "ports": [
+              {
+                "type": "other",
+                "number": 0,
+                "is_setup": true,
+                "mode": "schedule",
+                "state": "standby",
+                "last_installation_date": 1793654332
+              },
+              {
+                "type": "unknown",
+                "number": 1,
+                "last_installation_date": null
+              }
+            ]
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:18:53.748603+01:00",
+        "payload": {
+          "specific_attributes": {
+            "ports": [
+              {
+                "type": "other",
+                "number": 0,
+                "is_setup": true,
+                "mode": "schedule",
+                "state": "standby",
+                "last_installation_date": 1793654332
+              },
+              {
+                "type": "unknown",
+                "number": 1,
+                "last_installation_date": null
+              }
+            ]
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:18:53.786248+01:00",
+        "payload": {
+          "specific_attributes": {
+            "ports_settings": [
+              {
+                "type": "other",
+                "name": "Led Chaetomorp",
+                "number": 0,
+                "user_config_mode": "schedule",
+                "enabled": true,
+                "power_detector_enabled": false,
+                "sensor": null
+              },
+              {
+                "type": "unknown",
+                "number": 1
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "commands": [
+      {
+        "method": "PUT",
+        "url": "/socket/1/unsubscribe",
+        "body": null
+      },
+      {
+        "method": "POST",
+        "url": "/port/0/install",
+        "body": {
+          "type": "other"
+        }
+      },
+      {
+        "method": "PUT",
+        "url": "/port/0/schedule",
+        "body": {
+          "intervals": [
+            {
+              "time": 0,
+              "duration": 900
+            },
+            {
+              "time": 1380,
+              "duration": 59
+            }
+          ]
+        }
+      },
+      {
+        "method": "PUT",
+        "url": "/ports/config",
+        "body": [
+          {
+            "mode": "schedule",
+            "number": 0,
+            "name": "Led Chaetomorp",
+            "power_detector_enabled": false,
+            "type": "other",
+            "enabled": true,
+            "power_on_percent": 100,
+            "is_btn_assigned": true
+          }
+        ]
+      }
+    ]
+  },
+  "power": {
+    "before": {
+      "/dashboard": {
+        "temperature": null,
+        "is_internet_connected": true,
+        "mode": "auto",
+        "previous_mode": "off",
+        "device_setup_date": 1766281705,
+        "auto_from_buttons": false,
+        "battery_level": "high",
+        "connected_device": {
+          "type": "control",
+          "hwid": "0000aaaa0005",
+          "status": "connected",
+          "internet_connected": true
+        },
+        "sockets": [
+          {
+            "number": 0,
+            "name": "Init",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "schedule",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "standby",
+            "consumption": 0
+          },
+          {
+            "number": 2,
+            "name": "Runner",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 7.496833324432373
+          },
+          {
+            "number": 3,
+            "name": "S4",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 103.92849731445312
+          },
+          {
+            "number": 4,
+            "name": "Chauffage 1",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 5,
+            "name": "Chauffage 2",
+            "mode": "on",
+            "prev_mode": "schedule",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 392.4563293457031
+          }
+        ]
+      }
+    },
+    "after": {
+      "/dashboard": {
+        "temperature": null,
+        "is_internet_connected": true,
+        "mode": "auto",
+        "previous_mode": "off",
+        "device_setup_date": 1766281705,
+        "auto_from_buttons": false,
+        "battery_level": "high",
+        "connected_device": {
+          "type": "control",
+          "hwid": "0000aaaa0005",
+          "status": "connected",
+          "internet_connected": true
+        },
+        "sockets": [
+          {
+            "number": 0,
+            "name": "Init",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "setup",
+            "prev_mode": "schedule",
+            "enabled": true,
+            "user_config_mode": "setup",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 2,
+            "name": "Runner",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 7.546166896820068
+          },
+          {
+            "number": 3,
+            "name": "S4",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 103.89700317382812
+          },
+          {
+            "number": 4,
+            "name": "Chauffage 1",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 5,
+            "name": "Chauffage 2",
+            "mode": "on",
+            "prev_mode": "schedule",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 395.39166259765625
+          }
+        ]
+      }
+    },
+    "states": [
+      {
+        "ts": "2026-11-02T21:15:20.618209+01:00",
+        "payload": {
+          "specific_attributes": {
+            "sockets": {
+              "0": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Init",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "1": {
+                "mode": "setup",
+                "user_config_mode": "setup",
+                "enabled": true,
+                "name": "S2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "2": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Runner",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "3": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "S4",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "4": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 1",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "5": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              }
+            }
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:15:20.630190+01:00",
+        "payload": {
+          "specific_attributes": {
+            "schedule": {
+              "0": {
+                "intervals": null
+              },
+              "1": {
+                "intervals": null
+              },
+              "2": {
+                "intervals": null
+              },
+              "3": {
+                "intervals": null
+              },
+              "4": {
+                "intervals": null
+              },
+              "5": {
+                "intervals": [
+                  {
+                    "time": 0,
+                    "duration": 839
+                  },
+                  {
+                    "time": 840,
+                    "duration": 241
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:15:20.644183+01:00",
+        "payload": {
+          "specific_attributes": {
+            "feed_schedule": null
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:16:08.713953+01:00",
+        "payload": {
+          "specific_attributes": {
+            "sockets": {
+              "0": {
+                "mode": "off",
+                "user_config_mode": "off",
+                "enabled": true,
+                "name": "Init",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "1": {
+                "mode": "setup",
+                "user_config_mode": "setup",
+                "enabled": true,
+                "name": "S2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "2": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Runner",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "3": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "S4",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "4": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 1",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "5": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              }
+            }
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:16:08.933980+01:00",
+        "payload": {
+          "specific_attributes": {
+            "sockets": {
+              "0": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Init",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "1": {
+                "mode": "setup",
+                "user_config_mode": "setup",
+                "enabled": true,
+                "name": "S2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "2": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Runner",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "3": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "S4",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "4": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 1",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "5": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              }
+            }
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:16:23.547625+01:00",
+        "payload": {
+          "specific_attributes": {
+            "sockets": {
+              "0": {
+                "mode": "off",
+                "user_config_mode": "off",
+                "enabled": true,
+                "name": "Init",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "1": {
+                "mode": "setup",
+                "user_config_mode": "setup",
+                "enabled": true,
+                "name": "S2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "2": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Runner",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "3": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "S4",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "4": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 1",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "5": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              }
+            }
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:16:24.521007+01:00",
+        "payload": {
+          "specific_attributes": {
+            "sockets": {
+              "0": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Init",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "1": {
+                "mode": "setup",
+                "user_config_mode": "setup",
+                "enabled": true,
+                "name": "S2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "2": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Runner",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "3": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "S4",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "4": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 1",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "5": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              }
+            }
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:16:26.088478+01:00",
+        "payload": {
+          "specific_attributes": {
+            "sockets": {
+              "0": {
+                "mode": "off",
+                "user_config_mode": "off",
+                "enabled": true,
+                "name": "Init",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "1": {
+                "mode": "setup",
+                "user_config_mode": "setup",
+                "enabled": true,
+                "name": "S2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "2": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Runner",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "3": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "S4",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "4": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 1",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "5": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              }
+            }
+          }
+        }
+      },
+      {
+        "ts": "2026-11-02T21:16:31.678073+01:00",
+        "payload": {
+          "specific_attributes": {
+            "sockets": {
+              "0": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Init",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "1": {
+                "mode": "setup",
+                "user_config_mode": "setup",
+                "enabled": true,
+                "name": "S2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "2": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Runner",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "3": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "S4",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "4": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 1",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              },
+              "5": {
+                "mode": "on",
+                "user_config_mode": "on",
+                "enabled": true,
+                "name": "Chauffage 2",
+                "power_detector_enabled": false,
+                "sensor": null,
+                "state": "unknown"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "telemetry": [
+      {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "paired_control",
+        "sockets": {
+          "0": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "1": {
+            "consumption": null,
+            "mode": "setup",
+            "prev_mode": "schedule"
+          },
+          "2": {
+            "consumption": 7.499666690826416,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "3": {
+            "consumption": 103.92183685302734,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "4": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "5": {
+            "consumption": 392.13385009765625,
+            "mode": "on",
+            "prev_mode": "schedule"
+          }
+        },
+        "pwr_temperature": null,
+        "local_time": "2026-11-02T21:15:19+01:00",
+        "utc_time": "2026-11-02T20:15:19Z",
+        "hwid": "0000aaaa0001",
+        "wifi_signal": -60,
+        "free_heap": 55477
+      }
+    ],
+    "commands": [
+      {
+        "method": "DELETE",
+        "url": "/socket/1/config",
+        "body": null
+      },
+      {
+        "method": "PUT",
+        "url": "/unsubscribe",
+        "body": {
+          "sockets": [1]
+        }
+      },
+      {
+        "method": "POST",
+        "url": "/socket/0/toggle",
+        "body": null
+      },
+      {
+        "method": "POST",
+        "url": "/socket/0/toggle",
+        "body": null
+      },
+      {
+        "method": "POST",
+        "url": "/socket/0/toggle",
+        "body": null
+      },
+      {
+        "method": "POST",
+        "url": "/socket/0/toggle",
+        "body": null
+      },
+      {
+        "method": "POST",
+        "url": "/socket/0/toggle",
+        "body": null
+      },
+      {
+        "method": "POST",
+        "url": "/socket/0/toggle",
+        "body": null
+      }
+    ]
+  }
+}

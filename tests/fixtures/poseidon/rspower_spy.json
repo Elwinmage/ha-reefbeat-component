@@ -1,0 +1,3059 @@
+{
+  "source": "spy RSPOWER6 1.1.9, 2026-10-29 14:57-15:07",
+  "hwid": "0000aaaa0001",
+  "answers_before": {
+    "/mode": {
+      "mode": "auto"
+    },
+    "/dashboard": {
+      "temperature": null,
+      "is_internet_connected": true,
+      "mode": "auto",
+      "previous_mode": "auto",
+      "device_setup_date": 1766281705,
+      "auto_from_buttons": false,
+      "battery_level": "high",
+      "connected_device": null,
+      "sockets": [
+        {
+          "number": 0,
+          "name": "Init",
+          "mode": "on",
+          "prev_mode": "off",
+          "enabled": true,
+          "user_config_mode": "on",
+          "state": "unknown",
+          "consumption": 0
+        },
+        {
+          "number": 1,
+          "name": "S2",
+          "mode": "schedule",
+          "prev_mode": "off",
+          "enabled": true,
+          "user_config_mode": "schedule",
+          "state": "standby",
+          "consumption": 0
+        },
+        {
+          "number": 2,
+          "name": "Runner",
+          "mode": "on",
+          "prev_mode": "off",
+          "enabled": true,
+          "user_config_mode": "on",
+          "state": "unknown",
+          "consumption": 0
+        },
+        {
+          "number": 3,
+          "name": "S4",
+          "mode": "on",
+          "prev_mode": "off",
+          "enabled": true,
+          "user_config_mode": "on",
+          "state": "unknown",
+          "consumption": 105.1796646118164
+        },
+        {
+          "number": 4,
+          "name": "S5",
+          "mode": "on",
+          "prev_mode": "off",
+          "enabled": true,
+          "user_config_mode": "on",
+          "state": "unknown",
+          "consumption": 0
+        },
+        {
+          "number": 5,
+          "name": "torotest",
+          "mode": "off",
+          "prev_mode": "off",
+          "enabled": true,
+          "user_config_mode": "off",
+          "state": "unknown",
+          "consumption": 0
+        }
+      ]
+    },
+    "/sockets/config": {
+      "sockets": [
+        {
+          "number": 0,
+          "shortcut_off_delay": 0,
+          "mode": "on",
+          "user_config_mode": "on",
+          "enabled": true,
+          "name": "Init",
+          "power_detector_enabled": false,
+          "sensor": null
+        },
+        {
+          "number": 1,
+          "shortcut_off_delay": 0,
+          "mode": "schedule",
+          "user_config_mode": "schedule",
+          "enabled": true,
+          "name": "S2",
+          "power_detector_enabled": false,
+          "sensor": null
+        },
+        {
+          "number": 2,
+          "shortcut_off_delay": 0,
+          "mode": "on",
+          "user_config_mode": "on",
+          "enabled": true,
+          "name": "Runner",
+          "power_detector_enabled": false,
+          "sensor": null
+        },
+        {
+          "number": 3,
+          "shortcut_off_delay": 0,
+          "mode": "on",
+          "user_config_mode": "on",
+          "enabled": true,
+          "name": "S4",
+          "power_detector_enabled": false,
+          "sensor": null
+        },
+        {
+          "number": 4,
+          "shortcut_off_delay": 0,
+          "mode": "on",
+          "user_config_mode": "on",
+          "enabled": true,
+          "name": "S5",
+          "power_detector_enabled": false,
+          "sensor": null
+        },
+        {
+          "number": 5,
+          "shortcut_off_delay": 0,
+          "mode": "off",
+          "user_config_mode": "off",
+          "enabled": true,
+          "name": "torotest",
+          "power_detector_enabled": false,
+          "sensor": null
+        }
+      ]
+    },
+    "/socket/0/config/schedule": {
+      "intervals": null
+    },
+    "/socket/1/config/schedule": {
+      "intervals": [
+        {
+          "time": 0,
+          "duration": 465
+        },
+        {
+          "time": 465,
+          "duration": 2
+        }
+      ]
+    },
+    "/socket/2/config/schedule": {
+      "intervals": null
+    },
+    "/socket/5/config/schedule": {
+      "intervals": [
+        {
+          "time": 0,
+          "duration": 1439
+        }
+      ]
+    },
+    "/socket/3/config/schedule": {
+      "intervals": null
+    },
+    "/socket/4/config/schedule": {
+      "intervals": null
+    }
+  },
+  "states": [
+    {
+      "ts": "2026-10-29T14:59:18.187297+01:00",
+      "payload": {
+        "specific_attributes": {
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "standby"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "torotest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:00:44.625219+01:00",
+      "payload": {
+        "specific_attributes": {
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "standby"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "torotest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "on"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:00:44.634750+01:00",
+      "payload": {
+        "specific_attributes": {
+          "schedule": {
+            "0": {
+              "intervals": null
+            },
+            "1": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 465
+                },
+                {
+                  "time": 465,
+                  "duration": 2
+                }
+              ]
+            },
+            "2": {
+              "intervals": null
+            },
+            "3": {
+              "intervals": null
+            },
+            "4": {
+              "intervals": null
+            },
+            "5": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 1439
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:00:44.656357+01:00",
+      "payload": {
+        "specific_attributes": {
+          "feed_schedule": null
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:02:27.316828+01:00",
+      "payload": {
+        "specific_attributes": {
+          "schedule": {
+            "0": {
+              "intervals": null
+            },
+            "1": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 465
+                },
+                {
+                  "time": 465,
+                  "duration": 2
+                }
+              ]
+            },
+            "2": {
+              "intervals": null
+            },
+            "3": {
+              "intervals": null
+            },
+            "4": {
+              "intervals": null
+            },
+            "5": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 839
+                },
+                {
+                  "time": 840,
+                  "duration": 241
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:02:27.377798+01:00",
+      "payload": {
+        "specific_attributes": {
+          "feed_schedule": null
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:03:35.520682+01:00",
+      "payload": {
+        "specific_attributes": {
+          "schedule": {
+            "0": {
+              "intervals": null
+            },
+            "1": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 465
+                },
+                {
+                  "time": 465,
+                  "duration": 2
+                }
+              ]
+            },
+            "2": {
+              "intervals": null
+            },
+            "3": {
+              "intervals": null
+            },
+            "4": {
+              "intervals": null
+            },
+            "5": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 839
+                },
+                {
+                  "time": 840,
+                  "duration": 241
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:03:35.530739+01:00",
+      "payload": {
+        "specific_attributes": {
+          "feed_schedule": null
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:03:35.545132+01:00",
+      "payload": {
+        "specific_attributes": {
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "standby"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "tototest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "on"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:05:48.518709+01:00",
+      "payload": {
+        "specific_attributes": {
+          "mode": "off",
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "tototest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "on"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:05:49.020033+01:00",
+      "payload": {
+        "specific_attributes": {
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "tototest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:05:49.156336+01:00",
+      "payload": {
+        "specific_attributes": {
+          "schedule": {
+            "0": {
+              "intervals": null
+            },
+            "1": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 465
+                },
+                {
+                  "time": 465,
+                  "duration": 2
+                }
+              ]
+            },
+            "2": {
+              "intervals": null
+            },
+            "3": {
+              "intervals": null
+            },
+            "4": {
+              "intervals": null
+            },
+            "5": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 839
+                },
+                {
+                  "time": 840,
+                  "duration": 241
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:05:49.165641+01:00",
+      "payload": {
+        "specific_attributes": {
+          "feed_schedule": null
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:06:37.325715+01:00",
+      "payload": {
+        "specific_attributes": {
+          "mode": "auto",
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "standby"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "tototest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:06:38.388690+01:00",
+      "payload": {
+        "specific_attributes": {
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "standby"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "tototest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "on"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:06:38.416739+01:00",
+      "payload": {
+        "specific_attributes": {
+          "schedule": {
+            "0": {
+              "intervals": null
+            },
+            "1": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 465
+                },
+                {
+                  "time": 465,
+                  "duration": 2
+                }
+              ]
+            },
+            "2": {
+              "intervals": null
+            },
+            "3": {
+              "intervals": null
+            },
+            "4": {
+              "intervals": null
+            },
+            "5": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 839
+                },
+                {
+                  "time": 840,
+                  "duration": 241
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:06:38.531827+01:00",
+      "payload": {
+        "specific_attributes": {
+          "feed_schedule": null
+        }
+      }
+    }
+  ],
+  "dashboard_after": {
+    "temperature": null,
+    "is_internet_connected": true,
+    "mode": "auto",
+    "previous_mode": "off",
+    "device_setup_date": 1766281705,
+    "auto_from_buttons": false,
+    "battery_level": "high",
+    "connected_device": null,
+    "sockets": [
+      {
+        "number": 0,
+        "name": "Init",
+        "mode": "on",
+        "prev_mode": "off",
+        "enabled": true,
+        "user_config_mode": "on",
+        "state": "unknown",
+        "consumption": 0
+      },
+      {
+        "number": 1,
+        "name": "S2",
+        "mode": "schedule",
+        "prev_mode": "off",
+        "enabled": true,
+        "user_config_mode": "schedule",
+        "state": "standby",
+        "consumption": 0
+      },
+      {
+        "number": 2,
+        "name": "Runner",
+        "mode": "on",
+        "prev_mode": "off",
+        "enabled": true,
+        "user_config_mode": "on",
+        "state": "unknown",
+        "consumption": 0
+      },
+      {
+        "number": 3,
+        "name": "S4",
+        "mode": "on",
+        "prev_mode": "off",
+        "enabled": true,
+        "user_config_mode": "on",
+        "state": "unknown",
+        "consumption": 17.52716636657715
+      },
+      {
+        "number": 4,
+        "name": "S5",
+        "mode": "on",
+        "prev_mode": "off",
+        "enabled": true,
+        "user_config_mode": "on",
+        "state": "unknown",
+        "consumption": 0
+      },
+      {
+        "number": 5,
+        "name": "tototest",
+        "mode": "schedule",
+        "prev_mode": "on",
+        "enabled": true,
+        "user_config_mode": "schedule",
+        "state": "on",
+        "consumption": 0
+      }
+    ]
+  },
+  "events": [
+    {
+      "ts": "2026-10-29T14:58:04.129307+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "unpaired",
+        "sockets": {
+          "0": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "1": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "off"
+          },
+          "2": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "3": {
+            "consumption": 105.1796646118164,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "4": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "5": {
+            "consumption": 0,
+            "mode": "off",
+            "prev_mode": "off"
+          }
+        },
+        "pwr_temperature": null,
+        "local_time": "2026-10-29T15:58:04+02:00",
+        "utc_time": "2026-10-29T13:58:04Z",
+        "hwid": "0000aaaa0001",
+        "wifi_signal": -63,
+        "free_heap": 56926,
+        "metrics": {
+          "wifi_sig": -63,
+          "ping": 22
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T14:58:04.616621+01:00",
+      "kind": "dashboard",
+      "payload": {
+        "temperature": null,
+        "is_internet_connected": true,
+        "mode": "auto",
+        "previous_mode": "auto",
+        "device_setup_date": 1766281705,
+        "auto_from_buttons": false,
+        "battery_level": "high",
+        "connected_device": null,
+        "sockets": [
+          {
+            "number": 0,
+            "name": "Init",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "schedule",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "standby",
+            "consumption": 0
+          },
+          {
+            "number": 2,
+            "name": "Runner",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 3,
+            "name": "S4",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 105.1796646118164
+          },
+          {
+            "number": 4,
+            "name": "S5",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 5,
+            "name": "torotest",
+            "mode": "off",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "off",
+            "state": "unknown",
+            "consumption": 0
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-10-29T14:58:46.552604+01:00",
+      "kind": "dashboard",
+      "payload": {
+        "temperature": null,
+        "is_internet_connected": true,
+        "mode": "auto",
+        "previous_mode": "auto",
+        "device_setup_date": 1766281705,
+        "auto_from_buttons": false,
+        "battery_level": "high",
+        "connected_device": null,
+        "sockets": [
+          {
+            "number": 0,
+            "name": "Init",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "schedule",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "standby",
+            "consumption": 0
+          },
+          {
+            "number": 2,
+            "name": "Runner",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 3,
+            "name": "S4",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 105.21916961669922
+          },
+          {
+            "number": 4,
+            "name": "S5",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 5,
+            "name": "torotest",
+            "mode": "off",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "off",
+            "state": "unknown",
+            "consumption": 0
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-10-29T14:59:04.126983+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "unpaired",
+        "sockets": {
+          "0": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "1": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "off"
+          },
+          "2": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "3": {
+            "consumption": 105.22100067138672,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "4": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "5": {
+            "consumption": 0,
+            "mode": "off",
+            "prev_mode": "off"
+          }
+        },
+        "pwr_temperature": null,
+        "local_time": "2026-10-29T15:59:04+02:00",
+        "utc_time": "2026-10-29T13:59:04Z",
+        "hwid": "0000aaaa0001",
+        "wifi_signal": -63,
+        "free_heap": 56316,
+        "metrics": {
+          "wifi_sig": -62,
+          "ping": 17
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T14:59:18.121618+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "unpaired",
+        "sockets": {
+          "0": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "1": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "off"
+          },
+          "2": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "3": {
+            "consumption": 105.19383239746094,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "4": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "5": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          }
+        },
+        "pwr_temperature": null,
+        "local_time": "2026-10-29T15:59:17+02:00",
+        "utc_time": "2026-10-29T13:59:17Z",
+        "hwid": "0000aaaa0001",
+        "wifi_signal": -63,
+        "free_heap": 56363
+      }
+    },
+    {
+      "ts": "2026-10-29T14:59:18.187297+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "standby"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "torotest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T14:59:46.606242+01:00",
+      "kind": "dashboard",
+      "payload": {
+        "temperature": null,
+        "is_internet_connected": true,
+        "mode": "auto",
+        "previous_mode": "auto",
+        "device_setup_date": 1766281705,
+        "auto_from_buttons": false,
+        "battery_level": "high",
+        "connected_device": null,
+        "sockets": [
+          {
+            "number": 0,
+            "name": "Init",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "schedule",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "standby",
+            "consumption": 0
+          },
+          {
+            "number": 2,
+            "name": "Runner",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 3,
+            "name": "S4",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 105.1518325805664
+          },
+          {
+            "number": 4,
+            "name": "S5",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 5,
+            "name": "torotest",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-10-29T15:00:04.570139+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "unpaired",
+        "sockets": {
+          "0": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "1": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "off"
+          },
+          "2": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "3": {
+            "consumption": 105.12866973876953,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "4": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "5": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          }
+        },
+        "pwr_temperature": null,
+        "local_time": "2026-10-29T16:00:04+02:00",
+        "utc_time": "2026-10-29T14:00:04Z",
+        "hwid": "0000aaaa0001",
+        "wifi_signal": -63,
+        "free_heap": 56685,
+        "metrics": {
+          "wifi_sig": -63,
+          "ping": 18
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:00:44.514866+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "unpaired",
+        "sockets": {
+          "0": {
+            "consumption": 0.5608333349227905,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "1": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "off"
+          },
+          "2": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "3": {
+            "consumption": 105.16217041015625,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "4": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "5": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "on"
+          }
+        },
+        "pwr_temperature": null,
+        "local_time": "2026-10-29T16:00:44+02:00",
+        "utc_time": "2026-10-29T14:00:44Z",
+        "hwid": "0000aaaa0001",
+        "wifi_signal": -64,
+        "free_heap": 56864,
+        "metrics": {
+          "wifi_sig": -63,
+          "ping": 28
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:00:44.625219+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "standby"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "torotest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "on"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:00:44.634750+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "schedule": {
+            "0": {
+              "intervals": null
+            },
+            "1": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 465
+                },
+                {
+                  "time": 465,
+                  "duration": 2
+                }
+              ]
+            },
+            "2": {
+              "intervals": null
+            },
+            "3": {
+              "intervals": null
+            },
+            "4": {
+              "intervals": null
+            },
+            "5": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 1439
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:00:44.656357+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "feed_schedule": null
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:00:46.620335+01:00",
+      "kind": "dashboard",
+      "payload": {
+        "temperature": null,
+        "is_internet_connected": true,
+        "mode": "auto",
+        "previous_mode": "auto",
+        "device_setup_date": 1766281705,
+        "auto_from_buttons": false,
+        "battery_level": "high",
+        "connected_device": null,
+        "sockets": [
+          {
+            "number": 0,
+            "name": "Init",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0.5608333349227905
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "schedule",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "standby",
+            "consumption": 0
+          },
+          {
+            "number": 2,
+            "name": "Runner",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 3,
+            "name": "S4",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 105.16217041015625
+          },
+          {
+            "number": 4,
+            "name": "S5",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 5,
+            "name": "torotest",
+            "mode": "schedule",
+            "prev_mode": "on",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "on",
+            "consumption": 0
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-10-29T15:01:04.127438+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "unpaired",
+        "sockets": {
+          "0": {
+            "consumption": 0.5608333349227905,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "1": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "off"
+          },
+          "2": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "3": {
+            "consumption": 105.17366790771484,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "4": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "5": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "on"
+          }
+        },
+        "pwr_temperature": null,
+        "local_time": "2026-10-29T16:01:04+02:00",
+        "utc_time": "2026-10-29T14:01:04Z",
+        "hwid": "0000aaaa0001",
+        "wifi_signal": -63,
+        "free_heap": 57338,
+        "metrics": {
+          "wifi_sig": -64,
+          "ping": 42
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:01:46.596689+01:00",
+      "kind": "dashboard",
+      "payload": {
+        "temperature": null,
+        "is_internet_connected": true,
+        "mode": "auto",
+        "previous_mode": "auto",
+        "device_setup_date": 1766281705,
+        "auto_from_buttons": false,
+        "battery_level": "high",
+        "connected_device": null,
+        "sockets": [
+          {
+            "number": 0,
+            "name": "Init",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "schedule",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "standby",
+            "consumption": 0
+          },
+          {
+            "number": 2,
+            "name": "Runner",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 3,
+            "name": "S4",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 105.17250061035156
+          },
+          {
+            "number": 4,
+            "name": "S5",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 5,
+            "name": "torotest",
+            "mode": "schedule",
+            "prev_mode": "on",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "on",
+            "consumption": 0
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-10-29T15:02:04.129247+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "unpaired",
+        "sockets": {
+          "0": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "1": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "off"
+          },
+          "2": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "3": {
+            "consumption": 105.18049621582031,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "4": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "5": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "on"
+          }
+        },
+        "pwr_temperature": null,
+        "local_time": "2026-10-29T16:02:04+02:00",
+        "utc_time": "2026-10-29T14:02:04Z",
+        "hwid": "0000aaaa0001",
+        "wifi_signal": -64,
+        "free_heap": 58104,
+        "metrics": {
+          "wifi_sig": -64,
+          "ping": 40
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:02:27.316828+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "schedule": {
+            "0": {
+              "intervals": null
+            },
+            "1": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 465
+                },
+                {
+                  "time": 465,
+                  "duration": 2
+                }
+              ]
+            },
+            "2": {
+              "intervals": null
+            },
+            "3": {
+              "intervals": null
+            },
+            "4": {
+              "intervals": null
+            },
+            "5": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 839
+                },
+                {
+                  "time": 840,
+                  "duration": 241
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:02:27.377798+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "feed_schedule": null
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:02:46.624251+01:00",
+      "kind": "dashboard",
+      "payload": {
+        "temperature": null,
+        "is_internet_connected": true,
+        "mode": "auto",
+        "previous_mode": "auto",
+        "device_setup_date": 1766281705,
+        "auto_from_buttons": false,
+        "battery_level": "high",
+        "connected_device": null,
+        "sockets": [
+          {
+            "number": 0,
+            "name": "Init",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "schedule",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "standby",
+            "consumption": 0
+          },
+          {
+            "number": 2,
+            "name": "Runner",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 3,
+            "name": "S4",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 105.14866638183594
+          },
+          {
+            "number": 4,
+            "name": "S5",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 5,
+            "name": "torotest",
+            "mode": "schedule",
+            "prev_mode": "on",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "on",
+            "consumption": 0
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-10-29T15:03:04.131899+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "unpaired",
+        "sockets": {
+          "0": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "1": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "off"
+          },
+          "2": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "3": {
+            "consumption": 105.14949798583984,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "4": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "5": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "on"
+          }
+        },
+        "pwr_temperature": null,
+        "local_time": "2026-10-29T16:03:04+02:00",
+        "utc_time": "2026-10-29T14:03:04Z",
+        "hwid": "0000aaaa0001",
+        "wifi_signal": -63,
+        "free_heap": 58469,
+        "metrics": {
+          "wifi_sig": -63,
+          "ping": 22
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:03:35.520682+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "schedule": {
+            "0": {
+              "intervals": null
+            },
+            "1": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 465
+                },
+                {
+                  "time": 465,
+                  "duration": 2
+                }
+              ]
+            },
+            "2": {
+              "intervals": null
+            },
+            "3": {
+              "intervals": null
+            },
+            "4": {
+              "intervals": null
+            },
+            "5": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 839
+                },
+                {
+                  "time": 840,
+                  "duration": 241
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:03:35.530739+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "feed_schedule": null
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:03:35.545132+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "standby"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "tototest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "on"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:03:46.647727+01:00",
+      "kind": "dashboard",
+      "payload": {
+        "temperature": null,
+        "is_internet_connected": true,
+        "mode": "auto",
+        "previous_mode": "auto",
+        "device_setup_date": 1766281705,
+        "auto_from_buttons": false,
+        "battery_level": "high",
+        "connected_device": null,
+        "sockets": [
+          {
+            "number": 0,
+            "name": "Init",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "schedule",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "standby",
+            "consumption": 0
+          },
+          {
+            "number": 2,
+            "name": "Runner",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 3,
+            "name": "S4",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 105.16650390625
+          },
+          {
+            "number": 4,
+            "name": "S5",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 5,
+            "name": "tototest",
+            "mode": "schedule",
+            "prev_mode": "on",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "on",
+            "consumption": 0
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-10-29T15:04:04.159090+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "unpaired",
+        "sockets": {
+          "0": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "1": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "off"
+          },
+          "2": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "3": {
+            "consumption": 105.1614990234375,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "4": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "5": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "on"
+          }
+        },
+        "pwr_temperature": null,
+        "local_time": "2026-10-29T16:04:04+02:00",
+        "utc_time": "2026-10-29T14:04:04Z",
+        "hwid": "0000aaaa0001",
+        "wifi_signal": -63,
+        "free_heap": 58615,
+        "metrics": {
+          "wifi_sig": -64,
+          "ping": 21
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:04:46.628588+01:00",
+      "kind": "dashboard",
+      "payload": {
+        "temperature": null,
+        "is_internet_connected": true,
+        "mode": "auto",
+        "previous_mode": "auto",
+        "device_setup_date": 1766281705,
+        "auto_from_buttons": false,
+        "battery_level": "high",
+        "connected_device": null,
+        "sockets": [
+          {
+            "number": 0,
+            "name": "Init",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "schedule",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "standby",
+            "consumption": 0
+          },
+          {
+            "number": 2,
+            "name": "Runner",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 3,
+            "name": "S4",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 105.17416381835938
+          },
+          {
+            "number": 4,
+            "name": "S5",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 5,
+            "name": "tototest",
+            "mode": "schedule",
+            "prev_mode": "on",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "on",
+            "consumption": 0
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-10-29T15:05:04.158672+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "unpaired",
+        "sockets": {
+          "0": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "1": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "off"
+          },
+          "2": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "3": {
+            "consumption": 105.17183685302734,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "4": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "5": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "on"
+          }
+        },
+        "pwr_temperature": null,
+        "local_time": "2026-10-29T16:05:04+02:00",
+        "utc_time": "2026-10-29T14:05:04Z",
+        "hwid": "0000aaaa0001",
+        "wifi_signal": -64,
+        "free_heap": 58622,
+        "metrics": {
+          "wifi_sig": -65,
+          "ping": 27
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:05:46.656682+01:00",
+      "kind": "dashboard",
+      "payload": {
+        "temperature": null,
+        "is_internet_connected": true,
+        "mode": "auto",
+        "previous_mode": "auto",
+        "device_setup_date": 1766281705,
+        "auto_from_buttons": false,
+        "battery_level": "high",
+        "connected_device": null,
+        "sockets": [
+          {
+            "number": 0,
+            "name": "Init",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "schedule",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "standby",
+            "consumption": 0
+          },
+          {
+            "number": 2,
+            "name": "Runner",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 3,
+            "name": "S4",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 105.17483520507812
+          },
+          {
+            "number": 4,
+            "name": "S5",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 5,
+            "name": "tototest",
+            "mode": "schedule",
+            "prev_mode": "on",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "on",
+            "consumption": 0
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-10-29T15:05:48.518709+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "mode": "off",
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "tototest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "on"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:05:49.020033+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "tototest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:05:49.156336+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "schedule": {
+            "0": {
+              "intervals": null
+            },
+            "1": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 465
+                },
+                {
+                  "time": 465,
+                  "duration": 2
+                }
+              ]
+            },
+            "2": {
+              "intervals": null
+            },
+            "3": {
+              "intervals": null
+            },
+            "4": {
+              "intervals": null
+            },
+            "5": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 839
+                },
+                {
+                  "time": 840,
+                  "duration": 241
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:05:49.165641+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "feed_schedule": null
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:06:04.145922+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "off",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "unpaired",
+        "sockets": {
+          "0": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "1": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "off"
+          },
+          "2": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "3": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "4": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "5": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "on"
+          }
+        },
+        "pwr_temperature": null,
+        "local_time": "2026-10-29T16:06:04+02:00",
+        "utc_time": "2026-10-29T14:06:04Z",
+        "hwid": "0000aaaa0001",
+        "wifi_signal": -64,
+        "free_heap": 58707,
+        "metrics": {
+          "wifi_sig": -63,
+          "ping": 27
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:06:37.325715+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "mode": "auto",
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "standby"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "tototest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:06:38.388690+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "sockets": {
+            "0": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Init",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "1": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "S2",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "standby"
+            },
+            "2": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "Runner",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "3": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S4",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "4": {
+              "mode": "on",
+              "user_config_mode": "on",
+              "enabled": true,
+              "name": "S5",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "unknown"
+            },
+            "5": {
+              "mode": "schedule",
+              "user_config_mode": "schedule",
+              "enabled": true,
+              "name": "tototest",
+              "power_detector_enabled": false,
+              "sensor": null,
+              "state": "on"
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:06:38.416739+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "schedule": {
+            "0": {
+              "intervals": null
+            },
+            "1": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 465
+                },
+                {
+                  "time": 465,
+                  "duration": 2
+                }
+              ]
+            },
+            "2": {
+              "intervals": null
+            },
+            "3": {
+              "intervals": null
+            },
+            "4": {
+              "intervals": null
+            },
+            "5": {
+              "intervals": [
+                {
+                  "time": 0,
+                  "duration": 839
+                },
+                {
+                  "time": 840,
+                  "duration": 241
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:06:38.531827+01:00",
+      "kind": "state",
+      "payload": {
+        "specific_attributes": {
+          "feed_schedule": null
+        }
+      }
+    },
+    {
+      "ts": "2026-10-29T15:06:46.673376+01:00",
+      "kind": "dashboard",
+      "payload": {
+        "temperature": null,
+        "is_internet_connected": true,
+        "mode": "auto",
+        "previous_mode": "off",
+        "device_setup_date": 1766281705,
+        "auto_from_buttons": false,
+        "battery_level": "high",
+        "connected_device": null,
+        "sockets": [
+          {
+            "number": 0,
+            "name": "Init",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 1,
+            "name": "S2",
+            "mode": "schedule",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "standby",
+            "consumption": 0
+          },
+          {
+            "number": 2,
+            "name": "Runner",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 3,
+            "name": "S4",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 17.52716636657715
+          },
+          {
+            "number": 4,
+            "name": "S5",
+            "mode": "on",
+            "prev_mode": "off",
+            "enabled": true,
+            "user_config_mode": "on",
+            "state": "unknown",
+            "consumption": 0
+          },
+          {
+            "number": 5,
+            "name": "tototest",
+            "mode": "schedule",
+            "prev_mode": "on",
+            "enabled": true,
+            "user_config_mode": "schedule",
+            "state": "on",
+            "consumption": 0
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-10-29T15:07:04.131851+01:00",
+      "kind": "telemetry",
+      "payload": {
+        "mode": "auto",
+        "active_shortcut": "no_shortcut",
+        "battery_level": "high",
+        "pairing_status": "unpaired",
+        "sockets": {
+          "0": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "1": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "off"
+          },
+          "2": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "3": {
+            "consumption": 18.087665557861328,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "4": {
+            "consumption": 0,
+            "mode": "on",
+            "prev_mode": "off"
+          },
+          "5": {
+            "consumption": 0,
+            "mode": "schedule",
+            "prev_mode": "on"
+          }
+        },
+        "pwr_temperature": null,
+        "local_time": "2026-10-29T16:07:04+02:00",
+        "utc_time": "2026-10-29T14:07:04Z",
+        "hwid": "0000aaaa0001",
+        "wifi_signal": -64,
+        "free_heap": 58860,
+        "metrics": {
+          "wifi_sig": -64,
+          "ping": 24
+        }
+      }
+    }
+  ],
+  "wifi_signal_dBm_first": -64
+}

@@ -189,3 +189,38 @@ def test_dose_number_handle_available_update_sets_attr_available() -> None:
 
     entity._handle_available_update(object())
     assert entity._attr_available is False
+
+
+@pytest.mark.asyncio
+async def test_dose_bundled_daily_dose_only_on_head_1(hass: Any) -> None:
+    """Bundled heads: the doser derives heads 2-4 from head 1 (Part 1)."""
+    from homeassistant.exceptions import HomeAssistantError
+
+    device = FakeDoseCoordinator(hass=hass)
+    device.get_data_map["$.sources[?(@.name=='/dashboard')].data.bundled_heads"] = True
+
+    def daily_dose(head: int) -> ReefDoseNumberEntity:
+        desc = ReefDoseNumberEntityDescription(
+            key=f"dd{head}",
+            translation_key="daily_dose",
+            value_name=f"$.dd{head}",
+            head=head,
+            native_min_value=0,
+            native_max_value=300,
+            native_step=0.1,
+        )
+        ent = ReefDoseNumberEntity(cast(Any, device), desc)
+        ent.hass = hass
+        ent.async_write_ha_state = lambda: None  # type: ignore[assignment]
+        return ent
+
+    with pytest.raises(HomeAssistantError) as err:
+        await daily_dose(2).async_set_native_value(5.0)
+    assert err.value.translation_key == "bundled_daily_dose"
+    assert not device.pushed
+    await daily_dose(1).async_set_native_value(5.0)
+    assert device.pushed[-1][1].get("head") == 1
+    # Not bundled: every head
+    device.get_data_map["$.sources[?(@.name=='/dashboard')].data.bundled_heads"] = False
+    await daily_dose(3).async_set_native_value(4.0)
+    assert device.pushed[-1][1].get("head") == 3

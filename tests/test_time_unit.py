@@ -87,7 +87,7 @@ async def test_async_setup_entry_skips_non_mat_device() -> None:
 
     added: list[Any] = []
 
-    def _add(entities: list[Any], _update: bool) -> None:
+    def _add(entities: list[Any], _update: bool = False) -> None:
         added.extend(entities)
 
     await async_setup_entry(cast(Any, _Hass()), cast(Any, _Entry()), cast(Any, _add))
@@ -119,7 +119,7 @@ async def test_async_setup_entry_adds_mat_time_entity(
     added: list[Any] = []
     updates: list[bool] = []
 
-    def _add(entities: list[Any], update_before_add: bool) -> None:
+    def _add(entities: list[Any], update_before_add: bool = False) -> None:
         added.extend(entities)
         updates.append(update_before_add)
 
@@ -128,7 +128,8 @@ async def test_async_setup_entry_adds_mat_time_entity(
     )
 
     assert len(added) == 1
-    assert updates == [True]
+    # The cache is read before the platforms: nothing to update before adding
+    assert updates == [False]
     assert isinstance(added[0], time_mod.ReefMatTimeEntity)
 
 

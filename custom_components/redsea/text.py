@@ -264,7 +264,7 @@ async def async_setup_entry(
     # ReefLED week program following the weather
     entities.extend(weather_entities(device, "text"))
 
-    async_add_entities(entities, True)
+    async_add_entities(entities)
 
 
 # -----------------------------------------------------------------------------
