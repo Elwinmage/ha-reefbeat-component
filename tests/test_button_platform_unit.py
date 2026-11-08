@@ -164,24 +164,6 @@ def test_get_supplement_helpers_success_and_errors() -> None:
     with pytest.raises(ValueError, match=r"has no valid bundle"):
         button_mod._get_supplement_bundle(None, "0e63ba83-3ec4-445e-a3dd-7f2dbdc7f964")
 
-
-def test_reefcare_parts_are_standalone_supplements() -> None:
-    """Each ReefCare part can be set alone on a head (bundle split in the app)."""
-    from custom_components.redsea.supplements import supplements
-
-    SUPPLEMENTS = supplements(None)
-    bundle = button_mod._get_supplement_bundle(None, "redsea-reefcare")
-    sizes = next(s for s in SUPPLEMENTS if s["uid"] == "redsea-reefcare")["sizes"]
-    for part in bundle.values():
-        uid = part["supplement"]["uid"]
-        standalone = button_mod._get_supplement(None, uid)
-        # Not the bundle itself: a plain supplement the select can offer
-        assert standalone.get("type") != "Bundle"
-        assert standalone["name"] == part["supplement"]["name"]
-        assert standalone["fullname"] == "Red Sea - ReefCare " + standalone["name"]
-        assert standalone["sizes"] == [x * part["ratio"] for x in sizes]
-
-
 def test_reefcare_parts_are_standalone_supplements() -> None:
     """Each ReefCare part can be set alone on a head (bundle split in the app)."""
     from custom_components.redsea.supplements_list import SUPPLEMENTS
