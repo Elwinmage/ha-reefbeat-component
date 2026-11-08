@@ -1,0 +1,20 @@
+{
+  "uid": "deb3a943-68a5-40a9-860b-e6d259eee947",
+  "brand": "Aqua Forest",
+  "name": "Mg Plus",
+  "fullname": "Aqua Forest - Mg Plus",
+  "display_name": "Magnesium",
+  "short_name": "Mg",
+  "made_by_redsea": false,
+  "sizes": [150, 2000],
+  "kind": "mg",
+  "effects": [
+    {
+      "parameter": "mg",
+      "unit": "ppm",
+      "per_ml_per_100l": 1.0
+    }
+  ],
+  "verified": true,
+  "source": "Aquaforest label: 10 mL in 100 L (Mg Plus: 10 ppm), converted to 1 mL in 100 L (1 meq/L = 2.8 dKH)"
+}

@@ -1857,6 +1857,9 @@
       },
       "poseidon_poll_pause": {
         "name": "Pausa de la consulta (espía)"
+      },
+      "catalog_auto_update": {
+        "name": "Actualización automática"
       }
     },
     "text": {
@@ -2642,6 +2645,15 @@
     },
     "poseidon_not_running": {
       "message": "Poseidon no está en marcha."
+    },
+    "catalog_unknown": {
+      "message": "El catálogo de suplementos aún no se ha comprobado."
+    },
+    "catalog_incompatible": {
+      "message": "El catálogo de suplementos {version} necesita la versión {minimum} de la integración o posterior."
+    },
+    "catalog_install_failed": {
+      "message": "Error al actualizar el catálogo de suplementos: {error}"
     }
   },
   "issues": {

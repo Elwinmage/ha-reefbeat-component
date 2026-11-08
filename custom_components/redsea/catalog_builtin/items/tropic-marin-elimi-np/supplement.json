@@ -1,0 +1,12 @@
+{
+  "uid": "68af4707-6766-4792-9380-f199b790eb81",
+  "brand": "Tropic Marin",
+  "name": "Elimi-NP",
+  "fullname": "Tropic Marin - Elimi-NP",
+  "display_name": "Nutrient control",
+  "short_name": "NP",
+  "made_by_redsea": false,
+  "sizes": [50, 250],
+  "kind": "nutrient",
+  "verified": false
+}

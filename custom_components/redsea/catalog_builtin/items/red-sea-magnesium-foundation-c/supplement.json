@@ -1,0 +1,20 @@
+{
+  "uid": "f524734e-8651-496e-b09b-640b40fc8bab",
+  "brand": "Red Sea",
+  "name": "Magnesium (Foundation C)",
+  "fullname": "Red Sea - Magnesium (Foundation C)",
+  "display_name": "Magnesium",
+  "short_name": "Mg",
+  "made_by_redsea": true,
+  "sizes": [5000, 1000, 500, 250],
+  "kind": "mg",
+  "effects": [
+    {
+      "parameter": "mg",
+      "unit": "ppm",
+      "per_ml_per_100l": 1.0
+    }
+  ],
+  "verified": true,
+  "source": "Red Sea label dose (Foundation C), converted to 1 mL in 100 L (1 meq/L = 2.8 dKH)"
+}

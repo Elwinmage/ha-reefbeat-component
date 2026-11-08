@@ -1,0 +1,20 @@
+{
+  "uid": "c857b721-1652-4b89-8c68-d14c3f14f08e",
+  "brand": "Brightwell",
+  "name": "Reef Code A",
+  "fullname": "Brightwell - Reef Code A",
+  "display_name": "Calcium",
+  "short_name": "Ca",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 2000, 20000],
+  "kind": "ca",
+  "effects": [
+    {
+      "parameter": "ca",
+      "unit": "ppm",
+      "per_ml_per_100l": 0.606
+    }
+  ],
+  "verified": true,
+  "source": "Brightwell label: 1 mL in 1 US gallon (3.785 L) (Reef Code A: 16 ppm), converted to 1 mL in 100 L (1 meq/L = 2.8 dKH)"
+}

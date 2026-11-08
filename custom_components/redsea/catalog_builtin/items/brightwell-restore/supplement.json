@@ -1,0 +1,12 @@
+{
+  "uid": "f1b4e562-f31a-4d71-ad04-80837511dc50",
+  "brand": "Brightwell",
+  "name": "Restore",
+  "fullname": "Brightwell - Restore",
+  "display_name": "Coral food",
+  "short_name": "Food",
+  "made_by_redsea": false,
+  "sizes": [125, 250, 500, 2000, 20000],
+  "kind": "food",
+  "verified": false
+}

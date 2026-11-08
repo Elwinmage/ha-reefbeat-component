@@ -1857,6 +1857,9 @@
       },
       "poseidon_poll_pause": {
         "name": "Pausa dell'interrogazione (spia)"
+      },
+      "catalog_auto_update": {
+        "name": "Aggiornamento automatico"
       }
     },
     "text": {
@@ -2642,6 +2645,15 @@
     },
     "poseidon_not_running": {
       "message": "Poseidon non è avviato."
+    },
+    "catalog_unknown": {
+      "message": "Il catalogo degli integratori non è ancora stato verificato."
+    },
+    "catalog_incompatible": {
+      "message": "Il catalogo degli integratori {version} richiede la versione {minimum} dell'integrazione o successiva."
+    },
+    "catalog_install_failed": {
+      "message": "Aggiornamento del catalogo degli integratori non riuscito: {error}"
     }
   },
   "issues": {

@@ -1,0 +1,12 @@
+{
+  "uid": "c6ef7fdf-53eb-440e-bef4-d3f0fb8b6245",
+  "brand": "Seachem",
+  "name": "Reef Strontium",
+  "fullname": "Seachem - Reef Strontium",
+  "display_name": "Strontium",
+  "short_name": "Sr",
+  "made_by_redsea": false,
+  "sizes": [250, 500],
+  "kind": "trace",
+  "verified": false
+}

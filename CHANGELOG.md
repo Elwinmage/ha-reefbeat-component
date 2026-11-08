@@ -2,6 +2,29 @@
 
 ## MODIFICATIONS
 
+### ReefDose: supplements from the reeftech-catalog
+
+- The supplement list (`supplements_list.py`) is gone: supplements now come
+  from the `supplements` section of
+  [reeftech-catalog](https://github.com/Elwinmage/reeftech-catalog). A new
+  supplement is a catalog release, without a new version of the integration
+  nor of the card.
+- The catalog is checked at start-up then every 12 hours and installed in
+  `<config>/redsea/catalog/` (only the entries that changed are downloaded,
+  checked, then swapped in one move). It has a config entry of its own,
+  *ReefBeat supplements catalog*, created by the first ReefDose (it does not
+  hang on one doser among several), whose device holds an `update` entity
+  (installed / latest release, notes) and an *Automatic update* switch (on by
+  default). Offline, the built-in
+  snapshot shipped with the integration is used; entries put in
+  `<config>/redsea/catalog_user/` (same layout) override both.
+- Bottle visuals are served at `/redsea_catalog/...`, and the card reads the
+  catalog through `redsea/catalog` and `redsea/catalog/subscribe`.
+- The supplement potencies of the assisted regulation (dose from the label)
+  moved to the catalog too, as verified `effects`.
+- The catalog runs only when a ReefDose is configured.
+
+
 ### ReefDose: ReefCare parts as standalone supplements
 
 - The four ReefCare parts (Part 1 to Part 4) can be set alone on a head, as

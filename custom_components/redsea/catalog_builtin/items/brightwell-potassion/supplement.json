@@ -1,0 +1,20 @@
+{
+  "uid": "2033a72f-1d00-4974-b1f5-bc7ee38858c4",
+  "brand": "Brightwell",
+  "name": "Potassion",
+  "fullname": "Brightwell - Potassion",
+  "display_name": "Potassium",
+  "short_name": "K",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 2000, 20000],
+  "kind": "trace",
+  "effects": [
+    {
+      "parameter": "k",
+      "unit": "ppm",
+      "per_ml_per_100l": 0.795
+    }
+  ],
+  "verified": true,
+  "source": "Brightwell label: 1 mL in 1 US gallon (3.785 L) (Potassion: 21 ppm), converted to 1 mL in 100 L (1 meq/L = 2.8 dKH)"
+}

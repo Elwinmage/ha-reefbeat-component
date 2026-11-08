@@ -1,0 +1,12 @@
+{
+  "uid": "59bce33d-a6e0-4753-9049-edae4c0df753",
+  "brand": "Seachem",
+  "name": "Reef Iodine",
+  "fullname": "Seachem - Reef Iodine",
+  "display_name": "Iodine",
+  "short_name": "Iod",
+  "made_by_redsea": false,
+  "sizes": [100, 250, 500],
+  "kind": "trace",
+  "verified": false
+}

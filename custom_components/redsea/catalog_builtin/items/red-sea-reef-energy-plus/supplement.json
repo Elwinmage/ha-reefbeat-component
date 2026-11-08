@@ -1,0 +1,12 @@
+{
+  "uid": "bf9a7da3-741b-4c1d-8542-d9344a95fb70",
+  "brand": "Red Sea",
+  "name": "Reef Energy Plus",
+  "fullname": "Red Sea - Reef Energy Plus",
+  "display_name": "Coral food",
+  "short_name": "RE+",
+  "made_by_redsea": true,
+  "sizes": [5000, 1000, 500, 250],
+  "kind": "trace",
+  "verified": false
+}

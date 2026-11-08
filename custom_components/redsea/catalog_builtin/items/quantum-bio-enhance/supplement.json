@@ -1,0 +1,12 @@
+{
+  "uid": "fd8dee42-f3da-4660-b491-880d7dac869a",
+  "brand": "Quantum",
+  "name": "Bio enhance",
+  "fullname": "Quantum - Bio enhance",
+  "display_name": "Coral food",
+  "short_name": "Food",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 1000, 5000],
+  "kind": "food",
+  "verified": false
+}

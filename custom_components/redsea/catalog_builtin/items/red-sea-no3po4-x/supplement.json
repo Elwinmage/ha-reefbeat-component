@@ -1,0 +1,12 @@
+{
+  "uid": "ffaf6ff8-bc6d-44eb-9e4b-e679943dc835",
+  "brand": "Red Sea",
+  "name": "NO3PO4-X",
+  "fullname": "Red Sea - NO3PO4-X",
+  "display_name": "Nutrient control",
+  "short_name": "NPX",
+  "made_by_redsea": true,
+  "sizes": [5000, 1000, 500],
+  "kind": "nutrient",
+  "verified": false
+}

@@ -1,0 +1,12 @@
+{
+  "uid": "9f2292c0-6681-4805-a94a-4a9168095674",
+  "brand": "Brightwell",
+  "name": "KoralAmino",
+  "fullname": "Brightwell - KoralAmino",
+  "display_name": "Coral food",
+  "short_name": "Food",
+  "made_by_redsea": false,
+  "sizes": [30, 60, 125, 250, 2000, 20000],
+  "kind": "food",
+  "verified": false
+}

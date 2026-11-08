@@ -1,0 +1,33 @@
+{
+  "uid": "redsea-reefcare",
+  "brand": "Red Sea",
+  "name": "ReefCare",
+  "fullname": "RedSea - ReefCare Program",
+  "short_name": "Care",
+  "made_by_redsea": true,
+  "sizes": [500, 1000, 2000],
+  "kind": "bundle",
+  "bundle": [
+    {
+      "slot": 1,
+      "part": "red-sea-reefcare-part-1-calcium-magnesium",
+      "ratio": 1
+    },
+    {
+      "slot": 2,
+      "part": "red-sea-reefcare-part-2-kh-alkalinity-ph-stabilizer",
+      "ratio": 2
+    },
+    {
+      "slot": 3,
+      "part": "red-sea-reefcare-part-3-iodine-potassium",
+      "ratio": 0.5
+    },
+    {
+      "slot": 4,
+      "part": "red-sea-reefcare-part-4-iron-bioactive-elements",
+      "ratio": 0.5
+    }
+  ],
+  "verified": false
+}

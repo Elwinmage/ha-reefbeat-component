@@ -21,8 +21,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .catalog_runtime import signal_catalog_changed
 from .const import (
     DOMAIN,
     EC_UNITS,
@@ -54,12 +56,7 @@ from .poseidon import get_poseidon, is_poseidon_entry
 from .poseidon.switch_entity import PoseidonStrategySelect
 from .probe_entities import probe_display_name, tag_probe_entities
 from .reefbeat import fusion
-from .supplements_list import SUPPLEMENTS as SUPPLEMENTS_LIST
-
-# Keep the imported constant intact; use a local name for the sorted view.
-_SORTED_SUPPLEMENTS: list[dict[str, Any]] = sorted(
-    SUPPLEMENTS_LIST, key=lambda d: d.get("fullname", "")
-)
+from .supplements import supplements as catalog_supplements
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -206,7 +203,7 @@ async def async_setup_entry(
                     value_name="$.local.head." + str(head) + ".new_supplement",
                     exists_fn=lambda _: True,
                     icon="mdi:shaker",
-                    options=translate_list(_SORTED_SUPPLEMENTS, "fullname"),
+                    options=translate_list(catalog_supplements(hass), "fullname"),
                     entity_category=EntityCategory.CONFIG,
                     head=head,
                 )
@@ -512,12 +509,34 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
         self._attr_current_option = translate(
             self._device.get_data(self._value_name),
             "fullname",
-            dictionary=_SORTED_SUPPLEMENTS,
+            dictionary=self._supplements(),
             src_lang="uid",
         )
         self._attr_options = list(getattr(self._description, "options", None) or []) + [
             "other"
         ]
+
+    def _supplements(self) -> list[dict[str, Any]]:
+        """Supplements of the catalog (as loaded now)."""
+        return catalog_supplements(getattr(self._device, "hass", None))
+
+    async def async_added_to_hass(self) -> None:
+        """Also follow the supplements catalog: a new release adds options."""
+        await super().async_added_to_hass()
+        # The catalog entry may load after this doser: follow it by signal
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, signal_catalog_changed(DOMAIN), self._catalog_changed
+            )
+        )
+
+    @callback
+    def _catalog_changed(self) -> None:
+        """Offer the supplements of the catalog now installed."""
+        options = translate_list(self._supplements(), "fullname") + ["other"]
+        if options != self._attr_options:
+            self._attr_options = options
+            self.async_write_ha_state()
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -530,7 +549,7 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
             self._attr_current_option = translate(
                 self._device.get_data(self._value_name),
                 "fullname",
-                dictionary=_SORTED_SUPPLEMENTS,
+                dictionary=self._supplements(),
                 src_lang="uid",
             )
         self.async_write_ha_state()
@@ -550,7 +569,7 @@ class ReefDoseSelectEntity(ReefBeatSelectEntity):
             hass.bus.async_fire(event_type, {"other": True})
         else:
             value = translate(
-                option, "uid", dictionary=_SORTED_SUPPLEMENTS, src_lang="fullname"
+                option, "uid", dictionary=self._supplements(), src_lang="fullname"
             )
             hass.bus.async_fire(event_type, {"other": False})
 

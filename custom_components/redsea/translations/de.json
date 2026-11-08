@@ -1857,6 +1857,9 @@
       },
       "poseidon_poll_pause": {
         "name": "Abfragepause (Spion)"
+      },
+      "catalog_auto_update": {
+        "name": "Automatische Aktualisierung"
       }
     },
     "text": {
@@ -2642,6 +2645,15 @@
     },
     "poseidon_not_running": {
       "message": "Poseidon läuft nicht."
+    },
+    "catalog_unknown": {
+      "message": "Der Ergänzungskatalog wurde noch nicht geprüft."
+    },
+    "catalog_incompatible": {
+      "message": "Ergänzungskatalog {version} benötigt Version {minimum} der Integration oder neuer."
+    },
+    "catalog_install_failed": {
+      "message": "Aktualisierung des Ergänzungskatalogs fehlgeschlagen: {error}"
     }
   },
   "issues": {

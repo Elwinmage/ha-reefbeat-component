@@ -1,0 +1,20 @@
+{
+  "uid": "9ea6c9f2-b6f3-41ee-9370-06457f286fe5",
+  "brand": "Aqua Forest",
+  "name": "Ca Plus",
+  "fullname": "Aqua Forest - Ca Plus",
+  "display_name": "Calcium",
+  "short_name": "Ca",
+  "made_by_redsea": false,
+  "sizes": [150, 2000],
+  "kind": "ca",
+  "effects": [
+    {
+      "parameter": "ca",
+      "unit": "ppm",
+      "per_ml_per_100l": 2.0
+    }
+  ],
+  "verified": true,
+  "source": "Aquaforest label: 10 mL in 100 L (Ca Plus: 20 ppm), converted to 1 mL in 100 L (1 meq/L = 2.8 dKH)"
+}

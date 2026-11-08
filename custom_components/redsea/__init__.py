@@ -44,6 +44,7 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
 from homeassistant.util.json import JsonValueType
 
+from .catalog_runtime import async_setup_catalog, async_unload_catalog
 from .const import (
     CONF_GROUP_MEMBERS,
     CONFIG_FLOW_CLOUD_USERNAME,
@@ -114,6 +115,12 @@ from .poseidon import (
 )
 from .reefbeat.cloud import InvalidAuth
 from .reefbeat.control import ReefControlAPI
+from .supplements import CATALOG as SUPPLEMENTS_CATALOG
+from .supplements import (
+    CATALOG_PLATFORMS,
+    async_request_catalog_entry,
+    is_catalog_entry,
+)
 from .wave_library import program_waves
 from .websocket import async_register_websocket
 
@@ -209,6 +216,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if is_poseidon_entry(entry):
         return await async_setup_poseidon(hass, entry)
+
+    if is_catalog_entry(entry):
+        # Supplements catalog: its own device (update + automatic update)
+        await async_setup_catalog(hass, entry, SUPPLEMENTS_CATALOG)
+        await hass.config_entries.async_forward_entry_setups(entry, CATALOG_PLATFORMS)
+        return True
 
     try:
         if CONFIG_FLOW_CLOUD_USERNAME in entry.data:
@@ -360,6 +373,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         coordinator.group_store = group_store
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+
+    # The supplements catalog lives in an entry of its own: the first
+    # ReefDose creates it
+    if isinstance(coordinator, ReefDoseCoordinator):
+        async_request_catalog_entry(hass)
 
     # Before the platforms build their entities, so a leak probe keeps its
     # entity_id (hence history) across the unique_id fix.
@@ -608,6 +626,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if is_poseidon_entry(entry):
         return await async_unload_poseidon(hass, entry)
 
+    if is_catalog_entry(entry):
+        unloaded = await hass.config_entries.async_unload_platforms(
+            entry, CATALOG_PLATFORMS
+        )
+        await async_unload_catalog(hass, entry, SUPPLEMENTS_CATALOG)
+        return unloaded
+
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if not unload_ok:
         return False
@@ -635,6 +660,9 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """A config entry was removed: drop what it kept on disk."""
     if is_poseidon_entry(entry):
         await async_remove_poseidon(hass, entry)
+        return
+    if is_catalog_entry(entry):
+        # The downloaded catalog stays: a new catalog entry reuses it
         return
     with suppress(Exception):
         await async_remove_message_store(hass, entry.entry_id)

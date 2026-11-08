@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import math
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
@@ -24,7 +24,7 @@ from custom_components.redsea.maintenance import (
     MaintenanceStore,
 )
 
-T0 = datetime(2026, 10, 1, 10, 0, tzinfo=timezone.utc)
+T0 = datetime(2026, 10, 1, 10, 0, tzinfo=UTC)
 FIXTURES = Path(__file__).parent / "fixtures" / "devices"
 
 
@@ -688,7 +688,7 @@ async def test_daily_log_sync(hass: HomeAssistant) -> None:
     regulator, doser, clock = await _regulator(hass, (1, 4))
     await regulator.async_sync_daily_log()
     assert regulator.head_state(1).daily == {}
-    clock.at = datetime(2025, 11, 21, 12, tzinfo=timezone.utc)
+    clock.at = datetime(2025, 11, 21, 12, tzinfo=UTC)
     doser.data[LOG] = json.loads(
         (FIXTURES / "DOSE4" / "daily-log" / "data").read_text()
     )
@@ -1149,15 +1149,17 @@ COLORS_A = "93e742b0-67c9-4800-9aa9-212e52532343"
 
 
 def test_potency_of_the_red_sea_supplements() -> None:
-    from custom_components.redsea.supplements_list import SUPPLEMENTS
+    from custom_components.redsea.supplements import supplement_potency, supplements
 
-    names = {s["uid"]: s["name"] for s in SUPPLEMENTS}
-    brands = {s["uid"]: s["brand_name"] for s in SUPPLEMENTS}
-    red_sea = {
-        names[uid]: v
-        for uid, v in R.SUPPLEMENT_POTENCY.items()
-        if brands[uid] == "Red Sea"
-    }
+    catalog = supplements(None)
+    potency: dict[str, tuple[str, float]] = {}
+    for s in catalog:
+        value = supplement_potency(None, s["uid"])
+        if value is not None:
+            potency[s["uid"]] = value
+    names = {s["uid"]: s["name"] for s in catalog}
+    brands = {s["uid"]: s["brand_name"] for s in catalog}
+    red_sea = {names[uid]: v for uid, v in potency.items() if brands[uid] == "Red Sea"}
     assert red_sea == {
         "Calcium (Foundation A)": ("ca", 2.0),
         "KH/Alkalinity (Foundation B)": ("kh", 0.1),
@@ -1166,16 +1168,19 @@ def test_potency_of_the_red_sea_supplements() -> None:
         "Potassium (Colors B)": ("k", 1.75),
         "Iron (Colors C)": ("fe", 0.02),
     }
+    assert len(potency) == 20
     # Every one in the list, its parameter the one its short name tells
-    short = {s["uid"]: s["short_name"].strip().lower() for s in SUPPLEMENTS}
-    for uid, (parameter, potency) in R.SUPPLEMENT_POTENCY.items():
-        assert uid in names
+    short = {s["uid"]: s["short_name"].strip().lower() for s in catalog}
+    for uid, (parameter, value) in potency.items():
         assert short[uid] == parameter, names[uid]
-        assert potency > 0 and potency == round(potency, 3)
-    # Converted from 1 US gallon: Reef Code B, 2.22 dKH/mL/gal
-    assert R.SUPPLEMENT_POTENCY["fb5347b5-9764-445e-ac6a-513700f6740d"] == ("kh", 0.084)
-    for parameter, _ in R.SUPPLEMENT_POTENCY.values():
+        assert value > 0 and value == round(value, 3)
         assert parameter in R.ASSISTED_PARAMETERS
+    # Converted from 1 US gallon: Reef Code B, 2.22 dKH/mL/gal
+    assert potency["fb5347b5-9764-445e-ac6a-513700f6740d"] == ("kh", 0.084)
+    # Unknown, empty or unverified: no potency
+    assert supplement_potency(None, None) is None
+    assert supplement_potency(None, "does-not-exist") is None
+    assert supplement_potency(None, "0e63ba83-3ec4-445e-a3dd-7f2dbdc7f964") is None
 
 
 async def test_assisted_mode_takes_the_potency_of_the_supplement(
@@ -1295,10 +1300,10 @@ async def test_tick_refreshes_assisted_heads(hass: HomeAssistant) -> None:
 
 
 async def test_brine_only_with_the_brine_supplement(hass: HomeAssistant) -> None:
-    from custom_components.redsea.supplements_list import SUPPLEMENTS
+    from custom_components.redsea.supplements import supplements
 
-    # The brine of the regulation is the one of the supplement list
-    assert any(s["uid"] == R.BRINE_SUPPLEMENT_UID for s in SUPPLEMENTS)
+    # The brine of the regulation is the one of the supplements catalog
+    assert any(s["uid"] == R.BRINE_SUPPLEMENT_UID for s in supplements(hass))
     regulator, doser, clock = await _regulator(hass)
     assert regulator.modes(1) == ["off", "assisted"]
     with pytest.raises(ValueError, match="brine supplement"):

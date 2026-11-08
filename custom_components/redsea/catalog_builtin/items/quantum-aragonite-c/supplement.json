@@ -1,0 +1,12 @@
+{
+  "uid": "5f491b59-4f54-4572-bbce-aa9b708ccb51",
+  "brand": "Quantum",
+  "name": "Aragonite C",
+  "fullname": "Quantum - Aragonite C",
+  "display_name": "Magnesium",
+  "short_name": "Mg",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 1000, 5000],
+  "kind": "mg",
+  "verified": false
+}

@@ -474,6 +474,44 @@ if os.path.isdir(poseidon_dir):
     keys_in_code = sorted(set(keys_in_code))
 ## End poseidon patch
 
+# ---------------------------------------------------------------------------
+# Supplements catalog (catalog_runtime.py, copied from reeftech-catalog)
+# ---------------------------------------------------------------------------
+# Same pattern as Poseidon: class attribute `_attr_translation_key`, platform
+# taken from the `<Platform>Entity` base class.
+catalog_file = os.path.join(base_path, "catalog_runtime.py")
+if os.path.exists(catalog_file):
+    with open(catalog_file) as f:
+        catalog_tree = ast.parse(f.read())
+    for node in ast.walk(catalog_tree):
+        if not isinstance(node, ast.ClassDef):
+            continue
+        platform = next(
+            (
+                base.id[: -len("Entity")].lower()
+                for base in node.bases
+                if isinstance(base, ast.Name)
+                and base.id.endswith("Entity")
+                and base.id[: -len("Entity")].lower() in entity_domains
+            ),
+            None,
+        )
+        if platform is None:
+            continue
+        for stmt in node.body:
+            if (
+                isinstance(stmt, ast.Assign)
+                and isinstance(stmt.value, ast.Constant)
+                and isinstance(stmt.value.value, str)
+                and any(
+                    isinstance(t, ast.Name) and t.id == "_attr_translation_key"
+                    for t in stmt.targets
+                )
+            ):
+                keys_in_code.append(f"{platform}.{stmt.value.value}")
+    keys_in_code = sorted(set(keys_in_code))
+## End catalog patch
+
 all_good: bool = True
 
 for lang in langs:

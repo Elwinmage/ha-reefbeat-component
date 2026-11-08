@@ -1,0 +1,12 @@
+{
+  "uid": "7df1b60e-9c66-4601-ba65-3ad952610f03",
+  "brand": "Fauna Marine",
+  "name": "Min S",
+  "fullname": "Fauna Marine - Min S",
+  "display_name": "Coral food",
+  "short_name": "Food",
+  "made_by_redsea": false,
+  "sizes": [100, 250, 500, 1000],
+  "kind": "food",
+  "verified": false
+}

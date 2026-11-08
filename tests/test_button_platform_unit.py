@@ -151,19 +151,18 @@ async def test_async_setup_entry_adds_entities_for_each_device_type(
 
 def test_get_supplement_helpers_success_and_errors() -> None:
     # Known UIDs
-    one = button_mod._get_supplement("0e63ba83-3ec4-445e-a3dd-7f2dbdc7f964")
+    one = button_mod._get_supplement(None, "0e63ba83-3ec4-445e-a3dd-7f2dbdc7f964")
     assert one["uid"]
 
-    bundle = button_mod._get_supplement_bundle("redsea-reefcare")
+    bundle = button_mod._get_supplement_bundle(None, "redsea-reefcare")
     assert isinstance(bundle, dict)
 
     with pytest.raises(ValueError, match=r"Unknown supplement uid"):
-        button_mod._get_supplement("does-not-exist")
+        button_mod._get_supplement(None, "does-not-exist")
 
     # A non-bundle supplement should fail bundle retrieval.
     with pytest.raises(ValueError, match=r"has no valid bundle"):
-        button_mod._get_supplement_bundle("0e63ba83-3ec4-445e-a3dd-7f2dbdc7f964")
-
+        button_mod._get_supplement_bundle(None, "0e63ba83-3ec4-445e-a3dd-7f2dbdc7f964")
 
 def test_reefcare_parts_are_standalone_supplements() -> None:
     """Each ReefCare part can be set alone on a head (bundle split in the app)."""

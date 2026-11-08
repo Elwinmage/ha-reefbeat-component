@@ -1,0 +1,20 @@
+{
+  "uid": "622118c6-0a11-4c1d-86de-49c92683bc2d",
+  "brand": "Seachem",
+  "name": "Reef Fusion 2",
+  "fullname": "Seachem - Reef Fusion 2",
+  "display_name": "KH",
+  "short_name": "KH",
+  "made_by_redsea": false,
+  "sizes": [500, 1000, 2000, 4000],
+  "kind": "kh",
+  "effects": [
+    {
+      "parameter": "kh",
+      "unit": "dkh",
+      "per_ml_per_100l": 0.123
+    }
+  ],
+  "verified": true,
+  "source": "Seachem label (Reef Fusion 2: 1 mL in 25 L, 0.176 meq/L), converted to 1 mL in 100 L (1 meq/L = 2.8 dKH)"
+}

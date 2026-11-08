@@ -1,0 +1,12 @@
+{
+  "uid": "4bad5f8d-3094-496c-abf6-7c773cf7f4ed",
+  "brand": "Brightwell",
+  "name": "Koralcolor",
+  "fullname": "Brightwell - Koralcolor",
+  "display_name": "Trace elements",
+  "short_name": "TE",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 2000],
+  "kind": "trace",
+  "verified": false
+}

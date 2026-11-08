@@ -1,0 +1,12 @@
+{
+  "uid": "0b2f70cb-34cf-4b0f-b238-df38ea3d1809",
+  "brand": "Brightwell",
+  "name": "Replenish",
+  "fullname": "Brightwell - Replenish",
+  "display_name": "Trace elements",
+  "short_name": "TE",
+  "made_by_redsea": false,
+  "sizes": [125, 250, 500, 2000, 20000],
+  "kind": "trace",
+  "verified": false
+}
