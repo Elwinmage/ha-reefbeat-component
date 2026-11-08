@@ -275,3 +275,44 @@ def test_dose_select_handle_coordinator_update_uid_branch(
     entity._handle_coordinator_update()
 
     assert entity.current_option == expected_fullname
+
+
+@pytest.mark.asyncio
+async def test_reefdose_select_other_makes_text_available_before_returning(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The text boxes are available as soon as "other" is selected.
+
+    The card sends text.set_value right after select_option: the text entity
+    must not still be unavailable when it arrives.
+    """
+    from homeassistant.core import Event, callback
+
+    from custom_components.redsea.select import (
+        ReefDoseSelectEntity,
+        ReefDoseSelectEntityDescription,
+    )
+
+    device = FakeDoseCoordinator(
+        hass=hass, _data={"$.sup": "0e63ba83-3ec4-445e-a3dd-7f2dbdc7f964"}
+    )
+    desc = ReefDoseSelectEntityDescription(
+        key="sup",
+        translation_key="supplements",
+        value_name="$.sup",
+        head=1,
+    )
+    ent = ReefDoseSelectEntity(cast(Any, device), desc)
+    monkeypatch.setattr(ent, "async_write_ha_state", lambda: None, raising=True)
+
+    seen: list[Any] = []
+
+    @callback
+    def _listener(event: Event) -> None:
+        seen.append(event.data.get("other"))
+
+    hass.bus.async_listen("$.sup", _listener)
+
+    await ent.async_select_option("other")
+    # No await of the event loop in between: the listener already ran
+    assert seen == [True]
