@@ -1,0 +1,12 @@
+{
+  "uid": "8afdd5cf-9c3a-45f5-b579-3e7c17d04671",
+  "brand": "Tropic Marin",
+  "name": "K Element",
+  "fullname": "Tropic Marin - K Element",
+  "display_name": "Trace elements -",
+  "short_name": "TE",
+  "made_by_redsea": false,
+  "sizes": [200, 500, 1000],
+  "kind": "trace",
+  "verified": false
+}

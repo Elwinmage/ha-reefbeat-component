@@ -1,0 +1,20 @@
+{
+  "uid": "fb5347b5-9764-445e-ac6a-513700f6740d",
+  "brand": "Brightwell",
+  "name": "Reef Code B",
+  "fullname": "Brightwell - Reef Code B",
+  "display_name": "KH",
+  "short_name": "KH",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 2000, 20000],
+  "kind": "kh",
+  "effects": [
+    {
+      "parameter": "kh",
+      "unit": "dkh",
+      "per_ml_per_100l": 0.084
+    }
+  ],
+  "verified": true,
+  "source": "Brightwell label: 1 mL in 1 US gallon (3.785 L) (Reef Code B: 2.22 dKH), converted to 1 mL in 100 L (1 meq/L = 2.8 dKH)"
+}

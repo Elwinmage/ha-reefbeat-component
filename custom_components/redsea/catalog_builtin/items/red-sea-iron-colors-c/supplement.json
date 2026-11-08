@@ -1,0 +1,20 @@
+{
+  "uid": "c7a26034-8e40-41bb-bfb5-169089470f1e",
+  "brand": "Red Sea",
+  "name": "Iron (Colors C)",
+  "fullname": "Red Sea - Iron (Colors C)",
+  "display_name": "Iron",
+  "short_name": "Fe",
+  "made_by_redsea": true,
+  "sizes": [500, 100],
+  "kind": "trace",
+  "effects": [
+    {
+      "parameter": "fe",
+      "unit": "ppm",
+      "per_ml_per_100l": 0.02
+    }
+  ],
+  "verified": true,
+  "source": "Red Sea label dose (Colors C), converted to 1 mL in 100 L (1 meq/L = 2.8 dKH)"
+}

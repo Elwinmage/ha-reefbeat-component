@@ -1,0 +1,18 @@
+{
+  "uid": "b99739a8-bced-420e-bbdb-86ccd14524fd",
+  "brand": "DIY",
+  "name": "Brine",
+  "fullname": "DIY - Brine",
+  "display_name": "Brine",
+  "short_name": "NaCl",
+  "made_by_redsea": false,
+  "kind": "brine",
+  "concentration_g_l": {
+    "default": 200,
+    "min": 100,
+    "max": 300
+  },
+  "regulation": ["salinity"],
+  "verified": true,
+  "source": "Home-made: salt mass per litre is set by the user; salinity raise is computed from it"
+}

@@ -62,6 +62,19 @@ def _no_cloud_device_probe(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
+@pytest.fixture(autouse=True)
+def _no_catalog_download(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The supplements catalog is never downloaded: GitHub is unreachable,
+    so the built-in snapshot is used. Tests of the catalog patch it again."""
+    from unittest.mock import AsyncMock
+
+    from custom_components.redsea.catalog_pack import PackClient, PackError
+
+    monkeypatch.setattr(
+        PackClient, "latest", AsyncMock(side_effect=PackError("offline (tests)"))
+    )
+
+
 # Ensure HA loads integrations from ./custom_components during tests
 @pytest.fixture(autouse=True)
 def _auto_enable_custom_integrations(enable_custom_integrations):

@@ -1,0 +1,20 @@
+{
+  "uid": "bd79c239-f189-4684-9ca9-8d0ca8a9bab5",
+  "brand": "Brightwell",
+  "name": "Ferrion",
+  "fullname": "Brightwell - Ferrion",
+  "display_name": "Iron",
+  "short_name": "Fe",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 2000, 20000],
+  "kind": "trace",
+  "effects": [
+    {
+      "parameter": "fe",
+      "unit": "ppm",
+      "per_ml_per_100l": 0.038
+    }
+  ],
+  "verified": true,
+  "source": "Brightwell label: 1 mL in 1 US gallon (3.785 L) (Ferrion: 1 ppm), converted to 1 mL in 100 L (1 meq/L = 2.8 dKH)"
+}

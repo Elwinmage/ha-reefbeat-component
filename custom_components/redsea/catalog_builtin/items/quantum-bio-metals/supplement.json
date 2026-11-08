@@ -1,0 +1,12 @@
+{
+  "uid": "a1d797e3-4679-4be4-9219-22e35822ab97",
+  "brand": "Quantum",
+  "name": "Bio Metals",
+  "fullname": "Quantum - Bio Metals",
+  "display_name": "Iron",
+  "short_name": "Fe",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 1000, 5000],
+  "kind": "trace",
+  "verified": false
+}

@@ -1,0 +1,12 @@
+{
+  "uid": "7a680713-a8d3-496b-8081-a694ce2a1f31",
+  "brand": "Tropic Marin",
+  "name": "Plus-NP",
+  "fullname": "Tropic Marin - Plus-NP",
+  "display_name": "Nutrient control",
+  "short_name": "NP+",
+  "made_by_redsea": false,
+  "sizes": [200, 250],
+  "kind": "nutrient",
+  "verified": false
+}

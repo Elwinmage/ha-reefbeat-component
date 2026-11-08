@@ -1,0 +1,12 @@
+{
+  "uid": "3485b1a7-b21c-45a0-9c9d-f4d951aab16c",
+  "brand": "Brightwell",
+  "name": "Liquid Reef",
+  "fullname": "Brightwell - Liquid Reef",
+  "display_name": "Calcium",
+  "short_name": "Ca",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 2000],
+  "kind": "ca",
+  "verified": false
+}

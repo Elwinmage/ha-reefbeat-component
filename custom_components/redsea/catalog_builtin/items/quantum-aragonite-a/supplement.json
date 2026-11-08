@@ -1,0 +1,12 @@
+{
+  "uid": "322c1c47-7259-4fd9-9050-f6157036ea36",
+  "brand": "Quantum",
+  "name": "Aragonite A",
+  "fullname": "Quantum - Aragonite A",
+  "display_name": "Calcium",
+  "short_name": "Ca",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 1000, 5000],
+  "kind": "ca",
+  "verified": false
+}

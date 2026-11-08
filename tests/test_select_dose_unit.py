@@ -143,7 +143,7 @@ async def test_reefdose_select_async_select_option_other_fires_event_and_sets_va
     ) -> None:
         fired.append((event_type, event_data or {}))
 
-    monkeypatch.setattr(type(hass.bus), "fire", _fire, raising=True)
+    monkeypatch.setattr(type(hass.bus), "async_fire", _fire, raising=True)
     monkeypatch.setattr(ent, "async_write_ha_state", lambda: None, raising=True)
 
 
@@ -175,7 +175,7 @@ async def test_reefdose_select_async_select_option_known_supplement_translates_t
     ) -> None:
         fired.append((event_type, event_data or {}))
 
-    monkeypatch.setattr(type(hass.bus), "fire", _fire, raising=True)
+    monkeypatch.setattr(type(hass.bus), "async_fire", _fire, raising=True)
     monkeypatch.setattr(ent, "async_write_ha_state", lambda: None, raising=True)
 
     await ent.async_select_option(fullname)
@@ -211,7 +211,7 @@ async def test_reefdose_select_async_select_option_known_supplement_fire_other(
     ) -> None:
         fired.append((event_type, event_data or {}))
 
-    monkeypatch.setattr(type(hass.bus), "fire", _fire, raising=True)
+    monkeypatch.setattr(type(hass.bus), "async_fire", _fire, raising=True)
     monkeypatch.setattr(ent, "async_write_ha_state", lambda: None, raising=True)
 
     await ent.async_select_option("other")

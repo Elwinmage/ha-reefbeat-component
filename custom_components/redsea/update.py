@@ -29,9 +29,11 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .catalog_runtime import catalog_entities
 from .const import DOMAIN
 from .coordinator import ReefBeatCoordinator, ReefVirtualLedCoordinator
 from .entity import ReefBeatRestoreEntity
+from .supplements import is_catalog_entry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -110,6 +112,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up update entities for a config entry."""
+    if is_catalog_entry(config_entry):
+        # Supplements catalog: installed / latest release
+        async_add_entities(catalog_entities(hass, config_entry, DOMAIN, "update"))
+        return
     device = cast(ReefBeatCoordinator, hass.data[DOMAIN][config_entry.entry_id])
 
     entities: list[UpdateEntity] = []

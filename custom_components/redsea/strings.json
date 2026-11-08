@@ -1865,6 +1865,9 @@
       },
       "poseidon_poll_pause": {
         "name": "Polling pause (spy)"
+      },
+      "catalog_auto_update": {
+        "name": "Automatic update"
       }
     },
     "text": {
@@ -2650,6 +2653,15 @@
     },
     "poseidon_not_running": {
       "message": "Poseidon is not running."
+    },
+    "catalog_unknown": {
+      "message": "The supplements catalog has not been checked yet."
+    },
+    "catalog_incompatible": {
+      "message": "Supplements catalog {version} needs version {minimum} of the integration or newer."
+    },
+    "catalog_install_failed": {
+      "message": "Supplements catalog update failed: {error}"
     }
   },
   "issues": {

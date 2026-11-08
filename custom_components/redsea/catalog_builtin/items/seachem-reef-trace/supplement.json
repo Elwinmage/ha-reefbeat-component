@@ -1,0 +1,12 @@
+{
+  "uid": "4981b4d6-4321-46ca-8659-4f8e3f554563",
+  "brand": "Seachem",
+  "name": "Reef Trace",
+  "fullname": "Seachem - Reef Trace",
+  "display_name": "Trace elements ",
+  "short_name": "TE",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 2000],
+  "kind": "trace",
+  "verified": false
+}

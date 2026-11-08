@@ -1865,6 +1865,9 @@
       },
       "poseidon_poll_pause": {
         "name": "Opvraagpauze (spion)"
+      },
+      "catalog_auto_update": {
+        "name": "Automatisch bijwerken"
       }
     },
     "text": {
@@ -2650,6 +2653,15 @@
     },
     "poseidon_not_running": {
       "message": "Poseidon draait niet."
+    },
+    "catalog_unknown": {
+      "message": "De supplementencatalogus is nog niet gecontroleerd."
+    },
+    "catalog_incompatible": {
+      "message": "Supplementencatalogus {version} vereist versie {minimum} van de integratie of nieuwer."
+    },
+    "catalog_install_failed": {
+      "message": "Bijwerken van de supplementencatalogus mislukt: {error}"
     }
   },
   "issues": {

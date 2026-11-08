@@ -7,6 +7,11 @@
 [run]
 source = custom_components/redsea
 branch = False
+# Copies of the reeftech-catalog client (scripts/sync_client.py there),
+# tested at 100 % in that repository
+omit =
+    custom_components/redsea/catalog_pack.py
+    custom_components/redsea/catalog_runtime.py
 
 [report]
 # `exclude_also` ADDS to the built-in defaults (which already include

@@ -1,0 +1,12 @@
+{
+  "uid": "fddbe0a4-02eb-4903-969b-6c27c805bf6b",
+  "brand": "Tropic Marin",
+  "name": "Amino Organic",
+  "fullname": "Tropic Marin - Amino Organic",
+  "display_name": "Coral food",
+  "short_name": "Food",
+  "made_by_redsea": false,
+  "sizes": [250, 5000],
+  "kind": "food",
+  "verified": false
+}

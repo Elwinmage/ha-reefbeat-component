@@ -1,0 +1,12 @@
+{
+  "uid": "8fec18b0-adf6-4dfa-b923-c7226a6fb87d",
+  "brand": "Quantum",
+  "name": "Bio Kalium",
+  "fullname": "Quantum - Bio Kalium",
+  "display_name": "Potassium",
+  "short_name": "K",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 1000, 5000],
+  "kind": "trace",
+  "verified": false
+}

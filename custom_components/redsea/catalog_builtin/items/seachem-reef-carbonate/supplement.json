@@ -1,0 +1,12 @@
+{
+  "uid": "a3fb3879-ff35-4da8-b331-c0b1b673fa6b",
+  "brand": "Seachem",
+  "name": "Reef Carbonate",
+  "fullname": "Seachem - Reef Carbonate",
+  "display_name": "KH",
+  "short_name": "KH",
+  "made_by_redsea": false,
+  "sizes": [100, 500, 2000, 4000],
+  "kind": "kh",
+  "verified": false
+}

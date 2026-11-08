@@ -1,0 +1,20 @@
+{
+  "uid": "4e3badc4-cd5b-4e79-9d91-8382ced88c17",
+  "brand": "Seachem",
+  "name": "Reef Complete",
+  "fullname": "Seachem - Reef Complete",
+  "display_name": "Calcium",
+  "short_name": "Ca",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 2000],
+  "kind": "ca",
+  "effects": [
+    {
+      "parameter": "ca",
+      "unit": "ppm",
+      "per_ml_per_100l": 1.6
+    }
+  ],
+  "verified": true,
+  "source": "Seachem label (Reef Complete: 5 mL in 80 L, 10 mg/L), converted to 1 mL in 100 L (1 meq/L = 2.8 dKH)"
+}

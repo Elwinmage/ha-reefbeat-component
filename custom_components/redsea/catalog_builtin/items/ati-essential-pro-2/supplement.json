@@ -1,0 +1,12 @@
+{
+  "uid": "e1dbec89-2396-4269-8f28-ab7534cb2d7d",
+  "brand": "ATI",
+  "name": "Essential Pro 2",
+  "fullname": "ATI - Essential Pro 2",
+  "display_name": "Calcium",
+  "short_name": "Ca",
+  "made_by_redsea": false,
+  "sizes": [500, 2000, 5000, 10000],
+  "kind": "ca",
+  "verified": false
+}

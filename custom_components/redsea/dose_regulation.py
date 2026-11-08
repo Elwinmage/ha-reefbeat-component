@@ -44,7 +44,7 @@ import math
 import statistics
 from collections.abc import Callable, Iterable
 from dataclasses import asdict, dataclass, fields
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from itertools import pairwise
 from typing import Any, Final, cast
 
@@ -56,6 +56,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
+from .supplements import supplement_potency
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -73,55 +74,13 @@ REGULATOR_ATTR: Final[str] = "regulation"
 # derives the other heads from the bundle ratios (Part 2 x2, Parts 3-4 x0.5)
 BUNDLE_HEAD: Final[int] = 1
 BUNDLE_PARAMETER: Final[str] = "ca"
-# The brine supplement (supplements_list.py): the only one regulated on the
+# The brine supplement (catalog "diy-brine"): the only one regulated on the
 # salinity, and it is regulated on nothing else
 BRINE_SUPPLEMENT_UID: Final[str] = "b99739a8-bced-420e-bbdb-86ccd14524fd"
-# Supplements of the ReefDose list: the parameter each one raises, and by how
-# much 1 mL raises it in 100 L, from the dose given on its label (converted
-# to 100 L: 1 US gallon = 3.785 L, 1 meq/L = 2.8 dKH): the potency a head
-# regulated on that parameter gets while none is set. Only liquids whose
-# label gives that dose: not the powders (it depends on how they are
-# dissolved), not the two-parts given as a starting dose only (ESV B-Ionic,
-# ATI Essentials Pro, Aquaforest Component 1+2+3+), not the carbon sources
-# (NO3:PO4-X: what it removes depends on the bacteria).
-SUPPLEMENT_POTENCY: Final[dict[str, tuple[str, float]]] = {
-    "7d67412c-fde0-44d4-882a-dc8746fd4acb": ("ca", 2.0),  # Foundation A
-    "76830db3-a0bd-459a-9974-76a57d026893": ("kh", 0.1),  # Foundation B
-    "f524734e-8651-496e-b09b-640b40fc8bab": ("mg", 1.0),  # Foundation C
-    "93e742b0-67c9-4800-9aa9-212e52532343": ("i", 0.03),  # Colors A
-    "2f386917-54bd-4dd4-aa8b-9d1fea37edc5": ("k", 1.75),  # Colors B
-    "c7a26034-8e40-41bb-bfb5-169089470f1e": ("fe", 0.02),  # Colors C
-    # Aquaforest Lab: 10 mL in 100 L
-    "9ea6c9f2-b6f3-41ee-9370-06457f286fe5": ("ca", 2.0),  # Ca Plus: 20 ppm
-    "e391e8d1-0d4c-4355-8887-9231500703ef": ("kh", 0.05),  # KH Plus: 0.5 dKH
-    "deb3a943-68a5-40a9-860b-e6d259eee947": ("mg", 1.0),  # Mg Plus: 10 ppm
-    # Brightwell: 1 mL in 1 US gallon
-    "c857b721-1652-4b89-8c68-d14c3f14f08e": ("ca", 0.606),  # Reef Code A: 16 ppm
-    "fb5347b5-9764-445e-ac6a-513700f6740d": ("kh", 0.084),  # Reef Code B: 2.22 dKH
-    "fca74872-947b-4968-9687-e3c4a43723e1": ("ca", 1.514),  # Calcion: 40 ppm
-    "a72f14b4-7a0d-4582-b043-f0c0f9cb51eb": ("mg", 0.738),  # Hydrat-Mg: 19.5 ppm
-    "2033a72f-1d00-4974-b1f5-bc7ee38858c4": ("k", 0.795),  # Potassion: 21 ppm
-    "bd79c239-f189-4684-9ca9-8d0ca8a9bab5": ("fe", 0.038),  # Ferrion: 1 ppm
-    # Seachem
-    "20d65a7e-d12c-4185-a809-97aac782aca1": (
-        "ca",
-        0.48,
-    ),  # Reef Calcium: 5 mL/80 L 3 mg/L
-    "4e3badc4-cd5b-4e79-9d91-8382ced88c17": (
-        "ca",
-        1.6,
-    ),  # Reef Complete: 5 mL/80 L 10 mg/L
-    "7711655c-fd34-4fa3-99e8-ac76403248b1": (
-        "ca",
-        1.0,
-    ),  # Reef Fusion 1: 1 mL/25 L 4 mg/L
-    "622118c6-0a11-4c1d-86de-49c92683bc2d": (
-        "kh",
-        0.123,
-    ),  # Reef Fusion 2: 1 mL/25 L 0.176 meq/L
-    # Tropic Marin: 15 mL in 40 US gallons
-    "964e897e-9668-4fc8-9cd9-e8c42a27cf85": ("k", 1.009),  # Potassium: 10 ppm
-}
+# The potency of a supplement (the parameter it raises, and by how much 1 mL
+# raises it in 100 L, from the dose given on its label) comes from the
+# verified `effects` of the supplements catalog (reeftech-catalog): the
+# potency a head regulated on that parameter gets while none is set.
 # Source of the doser holding the volumes dosed over the last 7 days
 DAILY_LOG: Final[str] = "/daily-log"
 # The reeftank integration (optional): its aquariums' water volume sensors
@@ -824,7 +783,7 @@ def parse_dt(value: Any) -> datetime | None:
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        parsed = parsed.replace(tzinfo=UTC)
     return parsed
 
 
@@ -842,7 +801,7 @@ def daily_log_volumes(
         stamp = day.get("date") if day else None
         if day is None or not isinstance(stamp, (int, float)):
             continue
-        iso = datetime.fromtimestamp(stamp, timezone.utc).date().isoformat()
+        iso = datetime.fromtimestamp(stamp, UTC).date().isoformat()
         for head, volumes in out.items():
             volume = day.get(str(head))
             if isinstance(volume, (int, float)) and volume >= 0:
@@ -1106,8 +1065,8 @@ class DoseRegulator:
 
     def supplement_potency(self, head: int) -> tuple[str, float] | None:
         """The parameter the supplement of a head raises and its potency, for
-        the Red Sea supplements whose label tells them."""
-        return SUPPLEMENT_POTENCY.get(str(self._supplement_uid(head)))
+        the supplements whose label tells them (verified catalog data)."""
+        return supplement_potency(self.hass, str(self._supplement_uid(head)))
 
     def _supplement_potency(self, head: int) -> bool:
         """Give a head regulated on what its supplement raises the potency of

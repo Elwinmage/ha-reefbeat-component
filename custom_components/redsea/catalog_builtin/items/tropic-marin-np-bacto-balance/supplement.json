@@ -1,0 +1,12 @@
+{
+  "uid": "43b51c1f-0363-4ef5-be89-f129e512e25b",
+  "brand": "Tropic Marin",
+  "name": "NP-Bacto-Balance",
+  "fullname": "Tropic Marin - NP-Bacto-Balance",
+  "display_name": "Nutrient control",
+  "short_name": "NP-Bal",
+  "made_by_redsea": false,
+  "sizes": [200, 500, 1000],
+  "kind": "nutrient",
+  "verified": false
+}

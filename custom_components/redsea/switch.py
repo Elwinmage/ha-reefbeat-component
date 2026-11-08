@@ -42,6 +42,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.typing import StateType
 
+from .catalog_runtime import catalog_entities
 from .const import (
     ATO_AUTO_FILL_INTERNAL_NAME,
     ATO_BUZZER_ENABLED_INTERNAL_NAME,
@@ -91,6 +92,7 @@ from .maintenance import (
 from .poseidon import get_poseidon, is_poseidon_entry
 from .poseidon.switch_entity import PoseidonPollPauseSwitch, PoseidonSwitch
 from .probe_entities import probe_display_name, tag_port_entities, tag_probe_entities
+from .supplements import is_catalog_entry
 from .wave_group_entities import WaveGroupSwitchEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -524,6 +526,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up switch entities for a config entry."""
+    if is_catalog_entry(entry):
+        # Supplements catalog: automatic update
+        async_add_entities(catalog_entities(hass, entry, DOMAIN, "switch"))
+        return
     if is_poseidon_entry(entry):
         poseidon = get_poseidon(hass)
         if poseidon is not None:

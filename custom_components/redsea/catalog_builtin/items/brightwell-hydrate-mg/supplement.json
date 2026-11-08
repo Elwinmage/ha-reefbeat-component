@@ -1,0 +1,20 @@
+{
+  "uid": "a72f14b4-7a0d-4582-b043-f0c0f9cb51eb",
+  "brand": "Brightwell",
+  "name": "Hydrate - MG",
+  "fullname": "Brightwell - Hydrate - MG",
+  "display_name": "Magnesium",
+  "short_name": "Mg",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 2000, 20000],
+  "kind": "mg",
+  "effects": [
+    {
+      "parameter": "mg",
+      "unit": "ppm",
+      "per_ml_per_100l": 0.738
+    }
+  ],
+  "verified": true,
+  "source": "Brightwell label: 1 mL in 1 US gallon (3.785 L) (Hydrat-Mg: 19.5 ppm), converted to 1 mL in 100 L (1 meq/L = 2.8 dKH)"
+}

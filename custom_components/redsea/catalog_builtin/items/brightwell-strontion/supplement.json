@@ -1,0 +1,12 @@
+{
+  "uid": "a7b45d32-e879-4bf8-9779-2d39933d104b",
+  "brand": "Brightwell",
+  "name": "Strontion",
+  "fullname": "Brightwell - Strontion",
+  "display_name": "Stromtium",
+  "short_name": "Sr",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 2000, 20000],
+  "kind": "trace",
+  "verified": false
+}

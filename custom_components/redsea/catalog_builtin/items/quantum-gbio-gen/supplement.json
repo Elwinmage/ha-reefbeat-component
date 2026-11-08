@@ -1,0 +1,12 @@
+{
+  "uid": "26a4f030-e78c-459c-90cb-5c6099de10fd",
+  "brand": "Quantum",
+  "name": "Gbio Gen",
+  "fullname": "Quantum - Gbio Gen",
+  "display_name": "Iodie",
+  "short_name": "I",
+  "made_by_redsea": false,
+  "sizes": [1000, 500, 250],
+  "kind": "trace",
+  "verified": false
+}

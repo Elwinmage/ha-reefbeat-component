@@ -1,0 +1,12 @@
+{
+  "uid": "668eb67c-1ba7-464f-9d0c-434cc8738a47",
+  "brand": "Seachem",
+  "name": "Reef Plus",
+  "fullname": "Seachem - Reef Plus",
+  "display_name": "Coral food",
+  "short_name": "Food",
+  "made_by_redsea": false,
+  "sizes": [250, 500, 2000],
+  "kind": "food",
+  "verified": false
+}

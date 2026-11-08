@@ -1,0 +1,20 @@
+{
+  "uid": "7d67412c-fde0-44d4-882a-dc8746fd4acb",
+  "brand": "Red Sea",
+  "name": "Calcium (Foundation A)",
+  "fullname": "Red Sea - Calcium (Foundation A)",
+  "display_name": "Calcium",
+  "short_name": "Ca",
+  "made_by_redsea": true,
+  "sizes": [5000, 1000, 500, 250],
+  "kind": "ca",
+  "effects": [
+    {
+      "parameter": "ca",
+      "unit": "ppm",
+      "per_ml_per_100l": 2.0
+    }
+  ],
+  "verified": true,
+  "source": "Red Sea label dose (Foundation A), converted to 1 mL in 100 L (1 meq/L = 2.8 dKH)"
+}

@@ -140,6 +140,8 @@ from .groups import cloud_groups, discovery_unique_id
 from .poseidon.flow import PoseidonConfigFlowMixin, PoseidonOptionsFlowMixin
 from .poseidon.manager import is_poseidon_entry
 from .reefbeat import parse
+from .supplements import CATALOG as SUPPLEMENTS_CATALOG
+from .supplements import CATALOG_UNIQUE_ID, CONF_CATALOG, is_catalog_entry
 from .wifi import (
     connect_wifi,
     get_current_ssid,
@@ -964,6 +966,22 @@ class ReefBeatConfigFlow(
             data_schema=schema,
             description_placeholders=placeholders,
         )
+
+    async def async_step_catalog(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """The supplements catalog entry, created by the first ReefDose."""
+        await self.async_set_unique_id(CATALOG_UNIQUE_ID)
+        self._abort_if_unique_id_configured()
+        return self.async_create_entry(
+            title=SUPPLEMENTS_CATALOG.title, data={CONF_CATALOG: True}
+        )
+
+    @classmethod
+    @callback
+    def async_supports_options(cls, config_entry: ConfigEntry) -> bool:
+        """The catalog entry has no options (its switch turns updates off)."""
+        return not is_catalog_entry(config_entry)
 
     async def async_step_import(
         self, user_input: dict[str, Any] | None = None

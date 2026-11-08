@@ -1,0 +1,19 @@
+{
+  "uid": "964e897e-9668-4fc8-9cd9-e8c42a27cf85",
+  "brand": "Tropic Marin",
+  "name": "Potassium",
+  "fullname": "Tropic Marin - Potassium",
+  "short_name": "K",
+  "made_by_redsea": false,
+  "sizes": [500],
+  "kind": "trace",
+  "effects": [
+    {
+      "parameter": "k",
+      "unit": "ppm",
+      "per_ml_per_100l": 1.009
+    }
+  ],
+  "verified": true,
+  "source": "Tropic Marin label: 15 mL in 40 US gallons (Potassium: 10 ppm), converted to 1 mL in 100 L (1 meq/L = 2.8 dKH)"
+}

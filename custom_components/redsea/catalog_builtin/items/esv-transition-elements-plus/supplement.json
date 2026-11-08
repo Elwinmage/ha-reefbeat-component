@@ -1,0 +1,12 @@
+{
+  "uid": "73c23d0c-a891-4729-8474-4f809829d925",
+  "brand": "ESV",
+  "name": "Transition elements plus",
+  "fullname": "ESV - Transition elements plus",
+  "display_name": "Nutrient control",
+  "short_name": "NP",
+  "made_by_redsea": false,
+  "sizes": [237, 946, 3785],
+  "kind": "nutrient",
+  "verified": false
+}

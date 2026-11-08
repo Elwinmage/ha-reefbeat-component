@@ -67,7 +67,7 @@ from .probe_entities import (
     tag_port_entities,
     tag_probe_entities,
 )
-from .supplements_list import SUPPLEMENTS
+from .supplements import device_payload, supplement_by_uid
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -77,25 +77,25 @@ _LOGGER = logging.getLogger(__name__)
 # =============================================================================
 
 
-def _get_supplement(uid: str) -> dict[str, Any]:
-    """Return the supplement dict for a given uid.
+def _get_supplement(hass: HomeAssistant | None, uid: str) -> dict[str, Any]:
+    """Return what is sent to the doser for the supplement of a uid.
 
     Raises:
-        ValueError: If the uid is not present in `SUPPLEMENTS`.
+        ValueError: If the uid is not in the supplements catalog.
     """
-    supplement = next((item for item in SUPPLEMENTS if item.get("uid") == uid), None)
+    supplement = supplement_by_uid(hass, uid)
     if supplement is None:
         raise ValueError(f"Unknown supplement uid: {uid}")
-    return supplement
+    return device_payload(supplement)
 
 
-def _get_supplement_bundle(uid: str) -> dict[str, Any]:
+def _get_supplement_bundle(hass: HomeAssistant | None, uid: str) -> dict[str, Any]:
     """Return the supplement 'bundle' dict for a given uid.
 
     Raises:
         ValueError: If the uid is unknown or does not contain a valid bundle dict.
     """
-    supplement = _get_supplement(uid)
+    supplement = _get_supplement(hass, uid)
     bundle = supplement.get("bundle")
     if not isinstance(bundle, dict):
         raise ValueError(f"Supplement uid '{uid}' has no valid bundle")
@@ -1303,7 +1303,9 @@ class ReefDoseButtonEntity(ButtonEntity):
         )
         _LOGGER.debug("Set supplement %s", uid)
         if uid == "redsea-reefcare":
-            payload: dict[str, Any] = _get_supplement_bundle(uid)
+            payload: dict[str, Any] = _get_supplement_bundle(
+                getattr(self._device, "hass", None), uid
+            )
             await self._device.set_bundle(payload)
             return
         elif uid == "other":
@@ -1330,7 +1332,7 @@ class ReefDoseButtonEntity(ButtonEntity):
                         "Setting supplement: " + label + " text box can not be empty"
                     )
         else:
-            payload = _get_supplement(uid)
+            payload = _get_supplement(getattr(self._device, "hass", None), uid)
 
         _LOGGER.debug("_set_supplement %s %s", desc.action, payload)
         action = desc.action
