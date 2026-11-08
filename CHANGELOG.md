@@ -2,7 +2,7 @@
 
 ## MODIFICATIONS
 
-<<<<<<< HEAD
+>>>>>>> 9862d72 (Use catalgoue for maintenance and supplements)
 ### ReefDose: supplements from the reeftech-catalog
 
 - The supplement list (`supplements_list.py`) is gone: supplements now come
@@ -25,8 +25,6 @@
   moved to the catalog too, as verified `effects`.
 - The catalog runs only when a ReefDose is configured.
 
-=======
->>>>>>> 9b787a9 (RSDOSE: #118 of ha-reef-card. bundle supplements can be dissociated)
 ### ReefDose: ReefCare parts as standalone supplements
 
 - The four ReefCare parts (Part 1 to Part 4) can be set alone on a head, as
