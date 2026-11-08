@@ -403,7 +403,7 @@ async def test_reset_device_connection_error_is_success() -> None:
 @pytest.mark.asyncio
 async def test_reset_device_timeout_is_success() -> None:
     """A timeout also counts as success (device restarting mid-response)."""
-    session = _FakeSession(raise_on_post=asyncio.TimeoutError())
+    session = _FakeSession(raise_on_post=TimeoutError())
     ok = await reset_device(cast(Any, session), "10.0.0.5")
     assert ok is True
 

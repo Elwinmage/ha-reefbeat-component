@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, cast
+from typing import Any, Self, cast
 
 import pytest
-from typing_extensions import Self
 
 import custom_components.redsea.reefbeat.api as api_mod
 from custom_components.redsea.reefbeat.api import ReefBeatAPI

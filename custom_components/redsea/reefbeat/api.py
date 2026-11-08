@@ -575,7 +575,7 @@ class ReefBeatAPI:
                     answer = payload
                     return True
 
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        except (TimeoutError, aiohttp.ClientError) as err:
             _LOGGER.debug("GET %s error: %s", url, err)
             return False
         finally:

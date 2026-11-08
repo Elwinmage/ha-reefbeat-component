@@ -154,7 +154,7 @@ async def test_coordinator_async_update_data_timeout_wraps(hass: HomeAssistant) 
     entry = _make_entry(title="Test", ip="192.0.2.10", hw_model="RSLED50")
     coordinator = ReefBeatCoordinator(hass, cast(Any, entry))
 
-    coordinator.my_api = cast(Any, _FakeAPI(fetch_data_exc=asyncio.TimeoutError()))
+    coordinator.my_api = cast(Any, _FakeAPI(fetch_data_exc=TimeoutError()))
 
     with pytest.raises(UpdateFailed, match=r"update failed: TimeoutError"):
         await coordinator._async_update_data()

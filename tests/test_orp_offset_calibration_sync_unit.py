@@ -12,7 +12,7 @@ Captured on a real RSCONTROLPRO:
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
@@ -192,7 +192,7 @@ async def test_record_reset_only_moves_forward() -> None:
     store = _store()
     listener = MagicMock()
     store.async_add_listener("S", 1, "t", listener)
-    when = datetime(2026, 9, 26, 9, 0, tzinfo=timezone.utc)
+    when = datetime(2026, 9, 26, 9, 0, tzinfo=UTC)
 
     assert await store.async_record_reset("S", 1, "t", when) is True
     assert store.get_last_reset("S", 1, "t") == when
@@ -245,7 +245,7 @@ async def test_sync_dates_the_calibration_tasks() -> None:
         ("SER", probe_sub_id("0x00B39"), "control_probe_calibration_ph"),
         ("SER", probe_sub_id("0x0071F"), "control_probe_calibration_orp"),
     ]
-    assert calls[1].args[3] == datetime.fromtimestamp(1790416038, tz=timezone.utc)
+    assert calls[1].args[3] == datetime.fromtimestamp(1790416038, tz=UTC)
 
 
 @pytest.mark.asyncio

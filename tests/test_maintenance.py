@@ -6,7 +6,7 @@ Covers the pure helpers (`compute_days_left`, `is_overdue`), the persistent
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any, cast
 
 import pytest
@@ -35,29 +35,29 @@ class TestComputeDaysLeft:
         # `compute_days_left` uses integer floor of remaining seconds, so
         # any time elapsed at all -> N-1 days, not N. To assert "full
         # interval", we have to pretend zero seconds elapsed.
-        now = datetime(2026, 1, 15, 12, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
         assert maint.compute_days_left(now, 30, now=now) == 30
 
     def test_one_second_after_reset_loses_one_day(self) -> None:
         # Documents the floor behaviour: 30d - 1s = 29 whole days remaining.
-        now = datetime(2026, 1, 15, 12, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
         last = now - timedelta(seconds=1)
         assert maint.compute_days_left(last, 30, now=now) == 29
 
     def test_partial_day_elapsed_still_counts_as_full_remaining(self) -> None:
         # 12h elapsed of a 30-day interval -> 29 days left (int floor of remainder).
-        now = datetime(2026, 1, 15, 12, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
         last = now - timedelta(hours=12)
         assert maint.compute_days_left(last, 30, now=now) == 29
 
     def test_exact_interval_boundary(self) -> None:
         # Elapsed == interval exactly -> 0 days left (still due, not yet overdue).
-        now = datetime(2026, 1, 15, 12, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
         last = now - timedelta(days=30)
         assert maint.compute_days_left(last, 30, now=now) == 0
 
     def test_overdue_returns_negative(self) -> None:
-        now = datetime(2026, 1, 15, 12, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
         last = now - timedelta(days=35)
         # 5 days overdue; negative.
         assert maint.compute_days_left(last, 30, now=now) == -5
@@ -65,7 +65,7 @@ class TestComputeDaysLeft:
     def test_overdue_rounding_consistency(self) -> None:
         # Overdue by 1 hour past the interval: should report -1 (rounded up
         # in magnitude) so the UI says "1 day late" rather than "0 days left".
-        now = datetime(2026, 1, 15, 13, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 1, 15, 13, 0, tzinfo=UTC)
         last = now - timedelta(days=30, hours=1)
         result = maint.compute_days_left(last, 30, now=now)
         assert result is not None and result < 0
@@ -77,12 +77,12 @@ class TestIsOverdue:
         assert maint.is_overdue(None, 30) is False
 
     def test_zero_days_left_is_not_overdue(self) -> None:
-        now = datetime(2026, 1, 15, 12, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
         last = now - timedelta(days=30)
         assert maint.is_overdue(last, 30, now=now) is False
 
     def test_negative_days_left_is_overdue(self) -> None:
-        now = datetime(2026, 1, 15, 12, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
         last = now - timedelta(days=40)
         assert maint.is_overdue(last, 30, now=now) is True
 
@@ -179,10 +179,10 @@ class TestMaintenanceStore:
     async def test_reset_roundtrip(self, hass: HomeAssistant) -> None:
         store = maint.MaintenanceStore(hass, "entry-test-2")
         await store.async_load()
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         ts = await store.async_reset("serial-abc", 1, "dose_heads_replace")
         # Returned timestamp lands between "before" and "now".
-        assert before <= ts <= datetime.now(timezone.utc)
+        assert before <= ts <= datetime.now(UTC)
         # Read-back matches the persisted value.
         assert store.get_last_reset("serial-abc", 1, "dose_heads_replace") == ts
 

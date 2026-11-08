@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import importlib
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any, Self, cast
 
 import pytest
-from typing_extensions import Self
 
 import custom_components.redsea.reefbeat.cloud as cloud_mod
 from custom_components.redsea.reefbeat.cloud import ReefBeatCloudAPI

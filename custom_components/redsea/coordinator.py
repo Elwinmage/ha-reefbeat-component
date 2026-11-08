@@ -26,7 +26,7 @@ import logging
 import uuid
 from asyncio import timeout
 from collections.abc import Callable
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from time import time
 from typing import Any, cast
 
@@ -262,7 +262,7 @@ class ReefBeatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return res
         except UpdateFailed:
             raise
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             _LOGGER.debug(
                 "Coordinator update timed out for %s (%s): %s",
                 self._title,
@@ -3720,7 +3720,7 @@ class ReefControlCoordinator(ReefBeatCloudLinkedCoordinator):
                 self.serial,
                 sub_id,
                 task_key,
-                datetime.fromtimestamp(epoch, tz=timezone.utc),
+                datetime.fromtimestamp(epoch, tz=UTC),
             )
 
     # -- Probe add / remove (driven by the options flow) -------------------

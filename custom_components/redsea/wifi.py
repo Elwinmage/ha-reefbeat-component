@@ -200,7 +200,7 @@ async def reset_device(session: aiohttp.ClientSession, ip: str) -> bool:
                 # Any status is fine as long as the device received the request.
                 _LOGGER.debug("wifi.reset_device: %s -> %s", url, resp.status)
                 return True
-    except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+    except (TimeoutError, aiohttp.ClientError) as err:
         # A dropped connection here almost certainly means the device is
         # rebooting — that's exactly what we asked for.
         _LOGGER.debug("wifi.reset_device: %s disconnected as expected: %s", url, err)

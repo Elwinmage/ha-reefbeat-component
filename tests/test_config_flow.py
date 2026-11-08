@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any, Self, cast
 
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
-from typing_extensions import Self
 
 from custom_components.redsea.config_flow import (
     _device_to_string,
