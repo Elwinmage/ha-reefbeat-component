@@ -2,7 +2,6 @@
 
 ## MODIFICATIONS
 
->>>>>>> 9862d72 (Use catalgoue for maintenance and supplements)
 ### ReefDose: supplements from the reeftech-catalog
 
 - The supplement list (`supplements_list.py`) is gone: supplements now come
@@ -24,6 +23,7 @@
 - The supplement potencies of the assisted regulation (dose from the label)
   moved to the catalog too, as verified `effects`.
 - The catalog runs only when a ReefDose is configured.
+
 
 ### ReefDose: ReefCare parts as standalone supplements
 

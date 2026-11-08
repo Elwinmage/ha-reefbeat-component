@@ -182,6 +182,22 @@ def test_reefcare_parts_are_standalone_supplements() -> None:
         assert standalone["sizes"] == [x * part["ratio"] for x in sizes]
 
 
+def test_reefcare_parts_are_standalone_supplements() -> None:
+    """Each ReefCare part can be set alone on a head (bundle split in the app)."""
+    from custom_components.redsea.supplements_list import SUPPLEMENTS
+
+    bundle = button_mod._get_supplement_bundle("redsea-reefcare")
+    sizes = next(s for s in SUPPLEMENTS if s["uid"] == "redsea-reefcare")["sizes"]
+    for part in bundle.values():
+        uid = part["supplement"]["uid"]
+        standalone = button_mod._get_supplement(uid)
+        # Not the bundle itself: a plain supplement the select can offer
+        assert standalone.get("type") != "Bundle"
+        assert standalone["name"] == part["supplement"]["name"]
+        assert standalone["fullname"] == "Red Sea - ReefCare " + standalone["name"]
+        assert standalone["sizes"] == [x * part["ratio"] for x in sizes]
+
+
 @pytest.mark.asyncio
 async def test_reefbeat_button_entity_press_fn_none_still_refreshes() -> None:
     """No press_fn means the refresh is the action, as for fetch_data."""
