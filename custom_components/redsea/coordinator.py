@@ -118,7 +118,12 @@ from .groups import (
     staggered_offsets,
     sync_action,
 )
-from .maintenance import CALIBRATION_TASKS, MaintenanceStore, probe_sub_id
+from .maintenance import (
+    CALIBRATION_TASKS,
+    DOSE_CALIBRATION_TASK,
+    MaintenanceStore,
+    probe_sub_id,
+)
 from .probe_entities import ato_port_entity_port
 from .reefbeat import (
     ReefATOAPI,
@@ -1802,6 +1807,16 @@ class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
         """Fetch fresh data and prefill local editable supplement fields for each head."""
         res = await super()._async_update_data()
 
+        # Date each head's calibration reminder from the device.
+        try:
+            await self._sync_calibration_maintenance()
+        except Exception:  # never let this break a refresh
+            _LOGGER.debug(
+                "%s: head calibration reminder sync failed",
+                self._title,
+                exc_info=True,
+            )
+
         # Prefill once: populate editable fields from current /head/<n>/settings values
         # only when the local fields are empty. This avoids constantly overwriting
         # user edits while still providing sensible defaults.
@@ -1854,6 +1869,37 @@ class ReefDoseCoordinator(ReefBeatCloudLinkedCoordinator):
                 head_dict["new_supplement_short_name"] = cur_short
 
         return res
+
+    async def _sync_calibration_maintenance(self) -> None:
+        """Date each head's calibration reminder from the device.
+
+        A head carries its own ``last_calibrated`` (epoch, set when it was
+        calibrated from the ReefBeat app). The per-head calibration task moves
+        its last-reset forward to that date, so the reminder counts from the
+        real calibration; ``async_record_reset`` never moves back, so a later
+        manual press of the task button is kept.
+        """
+        store = cast(MaintenanceStore | None, getattr(self, "maintenance", None))
+        if store is None:
+            return
+        for head in range(1, self.heads_nb + 1):
+            raw = self.get_data(
+                "$.sources[?(@.name=='/head/"
+                + str(head)
+                + "/settings')].data.last_calibrated"
+            )
+            if raw is None:
+                continue
+            try:
+                ts = int(raw)
+            except (TypeError, ValueError):
+                continue
+            await store.async_record_reset(
+                self.serial,
+                head,
+                DOSE_CALIBRATION_TASK,
+                datetime.fromtimestamp(ts, tz=UTC),
+            )
 
     async def calibration(self, action: str, head: int, param: Any) -> None:
         """Run a calibration step for the given dosing head."""

@@ -92,6 +92,10 @@ class MaintenanceTask:
     unit: str = "weeks"
 
 
+# RSDOSE per-head calibration task, dated from the device's native
+# `last_calibrated` (see ReefDoseCoordinator._sync_calibration_maintenance).
+DOSE_CALIBRATION_TASK: Final = "dose_heads_calibration"
+
 # Catalogue per hardware model id (matches CONFIG_FLOW_HW_MODEL values).
 # Ranges below correspond to manufacturer recommendations widened by +/-1
 # unit (see README). Defaults are the median of the widened range.
@@ -119,16 +123,18 @@ TASKS: Final[dict[str, tuple[MaintenanceTask, ...]]] = {
     ),
     # --- RSDOSE (heads) -----------------------------------------------------
     # The "monthly visual check" is intentionally omitted (informal task,
-    # poor fit for a button). RSDOSE "recalibration" is omitted because the
-    # device already exposes `last_calibration` natively.
+    # poor fit for a button). The calibration reminder is one task per head,
+    # dated from the head's native `last_calibrated`
+    # (ReefDoseCoordinator._sync_calibration_maintenance): the countdown runs
+    # from the real calibration date, and the interval stays configurable.
     "RSDOSE2": (
         MaintenanceTask(
-            key="dose_heads_calibration",
+            key=DOSE_CALIBRATION_TASK,
             translation_key="maint_dose_heads_calibration",
             default_days=90,  # 90 days default
             min_days=80,  # 80 days minimum
             max_days=120,  # 120 days maximum
-            applies_to_sub=None,  # Device level, not per-head
+            applies_to_sub="head",  # one calibration task per head
             icon="mdi:water-check",
             unit="days",
         ),
@@ -145,12 +151,12 @@ TASKS: Final[dict[str, tuple[MaintenanceTask, ...]]] = {
     ),
     "RSDOSE4": (
         MaintenanceTask(
-            key="dose_heads_calibration",
+            key=DOSE_CALIBRATION_TASK,
             translation_key="maint_dose_heads_calibration",
             default_days=90,  # 90 days default
             min_days=80,  # 80 days minimum
             max_days=120,  # 120 days maximum
-            applies_to_sub=None,  # Device level, not per-head
+            applies_to_sub="head",  # one calibration task per head
             icon="mdi:water-check",
             unit="days",
         ),
