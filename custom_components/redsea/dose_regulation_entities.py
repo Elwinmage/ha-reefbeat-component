@@ -5,6 +5,8 @@ Per head, on the head's device:
 - select  regulation_mode            off / assisted / brine
 - select  regulation_parameter       parameter regulated in assisted mode
 - select  brine_salinity_source      salinity sensor of the brine mode
+- select  regulation_test_kit        titration kit the test is read with
+- number  regulation_reagent         syringe reading of the kit (mL)
 - number  regulation_target ... salinity_check_tolerance (settings)
 - number  regulation_measurement     test result to record
 - button  regulation_record          record the test result
@@ -62,6 +64,7 @@ from .dose_regulation import (
     HeadState,
     salinity_unit_supported,
 )
+from .test_kits import MANUAL, TEST_KITS, kits_for
 
 # Value of the source select when no sensor is chosen
 NO_SOURCE = "none"
@@ -157,6 +160,38 @@ class RegulationModeSelect(RegulationSelect):
         return offered if current in offered else [*offered, current]
 
 
+class TitrationKitSelect(RegulationEntity, SelectEntity):
+    """Titration kit the test result is read with: the syringe reading then
+    gives the result (``manual``: the result is typed in)."""
+
+    _attr_entity_category = None
+    _attr_icon = "mdi:eyedropper"
+
+    @property
+    def options(self) -> list[str]:  # pyright: ignore[reportIncompatibleVariableOverride]
+        return kits_for(self.state_data.settings.parameter)
+
+    @property
+    def current_option(self) -> str | None:  # pyright: ignore[reportIncompatibleVariableOverride]
+        return self.state_data.settings.test_kit
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:  # pyright: ignore[reportIncompatibleVariableOverride]
+        kit = TEST_KITS.get(self.state_data.settings.test_kit)
+        if kit is None:
+            return {"reef_role": self._key}
+        return {
+            "reef_role": self._key,
+            "brand": kit.brand,
+            "factor": kit.factor,
+            "reading": kit.reading,
+            "capacity": kit.capacity,
+        }
+
+    async def async_select_option(self, option: str) -> None:
+        await self._async_set("test_kit", option)
+
+
 class SalinitySourceSelect(RegulationEntity, SelectEntity):
     """Salinity sensor driving the brine regulation.
 
@@ -240,6 +275,23 @@ class PotencyNumber(ParameterNumber):
     @property
     def native_step(self) -> float:  # pyright: ignore[reportIncompatibleVariableOverride]
         return float(self._attr_native_step or 0.001)
+
+    @property
+    def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
+        """Greyed for a supplement no test drives (NO3PO4-X): it has no
+        potency to give."""
+        return super().available and self.regulator.is_regulated_supplement(self._head)
+
+
+class ReagentNumber(RegulationNumber):
+    """Syringe reading of the titration kit (not a config): greyed while the
+    result is typed in by hand."""
+
+    _attr_entity_category = None
+
+    @property
+    def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
+        return super().available and self.state_data.settings.test_kit != MANUAL
 
 
 class MeasurementNumber(ParameterNumber):
@@ -480,6 +532,7 @@ def _head_entities(device: Any, head: int, platform: str) -> list[Any]:
                 PARAMETER_OPTIONS,
             ),
             SalinitySourceSelect(device, head, "brine_salinity_source"),
+            TitrationKitSelect(device, head, "regulation_test_kit"),
         ],
         "number": lambda: [
             ParameterNumber(
@@ -572,6 +625,15 @@ def _head_entities(device: Any, head: int, platform: str) -> list[Any]:
                 "measurement",
                 0.01,
                 icon="mdi:test-tube",
+            ),
+            ReagentNumber(
+                device,
+                head,
+                "regulation_reagent",
+                "reagent_ml",
+                0.01,
+                UnitOfVolume.MILLILITERS,
+                "mdi:eyedropper-variant",
             ),
         ],
         "button": lambda: [

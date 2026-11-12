@@ -11,7 +11,9 @@ import asyncio
 import copy
 import json
 import logging
+import re
 import time
+import warnings
 from asyncio import timeout
 from collections.abc import Awaitable, Callable, Iterator
 from contextlib import contextmanager, suppress
@@ -152,6 +154,41 @@ def _is_volatile_path(name: str) -> bool:
     return any(marker in name for marker in _VOLATILE_MARKERS)
 
 
+# Logical AND of a filter, written with spaces around it (`@.a==1 && @.b==2`).
+# Spaces are required, so a literal holding "&" (`?type=orp&uid=…`) is kept.
+_AND_RE = re.compile(r"(?<=\s)&&?(?=\s)")
+
+
+def _detect_and_operator() -> str:
+    """The AND operator of the installed jsonpath-ng.
+
+    jsonpath-ng 1.9 only knows `&`; recent versions accept `&&` and warn that
+    `&` will be removed in 2.0. The integration writes `&&` everywhere and the
+    filters are translated once, here, for whichever version Home Assistant
+    installed.
+    """
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", DeprecationWarning)
+            _parse("$[?(@.a==1 && @.b==2)]")
+    except Exception:  # any parse error means: not supported
+        return "&"
+    return "&&"
+
+
+AND_OPERATOR: str = _detect_and_operator()
+
+
+def normalize_filters(expr: str, operator: str | None = None) -> str:
+    """A JSONPath with its filter ANDs written for the installed jsonpath-ng.
+
+    @param expr: the JSONPath, with `&` or `&&` between filter terms
+    @param operator: the AND to write, the detected one by default
+    @return the JSONPath ready for jsonpath-ng
+    """
+    return _AND_RE.sub(operator or AND_OPERATOR, expr)
+
+
 @lru_cache(maxsize=2048)
 def parse(expr: str) -> JSONPathExpr:
     """Typed, memoized wrapper around jsonpath_ng.ext.parse.
@@ -159,8 +196,10 @@ def parse(expr: str) -> JSONPathExpr:
     Compiling a JSONPath is the costly part; the compiled expression is
     immutable and reusable, so it is cached. This makes the non-positional
     (re-matching) read path cheap: only the ``find()`` traversal runs per call.
+    The filter ANDs are translated for the installed jsonpath-ng first (see
+    ``normalize_filters``).
     """
-    return cast(JSONPathExpr, _parse(expr))
+    return cast(JSONPathExpr, _parse(normalize_filters(expr)))
 
 
 # -----------------------------------------------------------------------------
@@ -745,7 +784,9 @@ class ReefBeatAPI:
             self.quick_refresh = None
         else:
             if self._live_config_update:
-                query = parse("$.sources[?(@.type!='device-info' & @.type!='preview')]")
+                query = parse(
+                    "$.sources[?(@.type!='device-info' && @.type!='preview')]"
+                )
             else:
                 query = parse("$.sources[?(@.type=='data')]")
             sources = query.find(self.data)

@@ -914,7 +914,7 @@ class ReefControlAPI(ReefBeatAPI):
             return f"$.sources[?(@.name=='/leak/config')].data.{field}"
         entry = (
             "$.sources[?(@.name=='/probe/config')]"
-            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]"
+            f".data[?(@.type=='{ptype}' && @.uid=='{uid}')]"
         )
         return f"{entry}.temp.{field}" if loc == "temp" else f"{entry}.{field}"
 
@@ -992,7 +992,7 @@ class ReefControlAPI(ReefBeatAPI):
         """Return the cached ``/probe/config`` entry for a probe, if any."""
         entry = self.get_data(
             "$.sources[?(@.name=='/probe/config')]"
-            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]",
+            f".data[?(@.type=='{ptype}' && @.uid=='{uid}')]",
             is_None_possible=True,
         )
         return entry if isinstance(entry, dict) else None

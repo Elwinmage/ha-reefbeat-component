@@ -13,6 +13,7 @@ import json  # pyright: ignore[reportUnusedImport]  # noqa: F401
 import logging
 import re
 from contextlib import suppress
+from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
 
@@ -1435,7 +1436,92 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         supports_response=SupportsResponse.OPTIONAL,
     )
 
+    def _regulator_of(call: ServiceCall) -> tuple[DoseRegulator, int] | str:
+        """Regulator and head of a call on a head's device, or the error."""
+        found = _dose_head(hass, call.data.get("device_id"))
+        if found is None:
+            return "Not a ReefDose head"
+        coordinator, head = found
+        regulator = getattr(coordinator, "regulation", None)
+        if not isinstance(regulator, DoseRegulator):
+            return "Regulation unavailable"
+        return regulator, head
+
+    @callback
+    async def handle_update_measurement(call: ServiceCall) -> ServiceResponse:
+        """Correct a test result of a head's history (value and/or date).
+
+        ``measured_at`` identifies the result (as listed in the attributes of
+        the last test result sensor); ``value`` and ``new_measured_at`` are
+        the corrections.
+        """
+        found = _regulator_of(call)
+        if isinstance(found, str):
+            return {"ok": False, "error": found}
+        regulator, head = found
+        try:
+            at = _parse_local(call.data["measured_at"])
+            new_at = call.data.get("new_measured_at")
+            value = call.data.get("value")
+            return await regulator.async_update_measurement(
+                head,
+                at,
+                None if value is None else float(value),
+                None if new_at is None else _parse_local(new_at),
+                call.data.get("parameter"),
+            )
+        except (KeyError, TypeError, ValueError) as err:
+            return {"ok": False, "error": str(err)}
+
+    _LOGGER.debug("Registering service redsea.update_measurement")
+    hass.services.async_register(
+        DOMAIN,
+        "update_measurement",
+        handle_update_measurement,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    @callback
+    async def handle_delete_measurement(call: ServiceCall) -> ServiceResponse:
+        """Remove a test result from a head's history."""
+        found = _regulator_of(call)
+        if isinstance(found, str):
+            return {"ok": False, "error": found}
+        regulator, head = found
+        try:
+            return await regulator.async_delete_measurement(
+                head,
+                _parse_local(call.data["measured_at"]),
+                call.data.get("parameter"),
+            )
+        except (KeyError, TypeError, ValueError) as err:
+            return {"ok": False, "error": str(err)}
+
+    _LOGGER.debug("Registering service redsea.delete_measurement")
+    hass.services.async_register(
+        DOMAIN,
+        "delete_measurement",
+        handle_delete_measurement,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
     return True
+
+
+def _parse_local(value: Any) -> datetime:
+    """A date of a service call, in local time.
+
+    The datetime selector gives a local time without offset; the card sends
+    the ISO dates of the history, with their offset.
+
+    @raise ValueError: not a date
+    """
+    parsed = dt_util.parse_datetime(str(value))
+    if parsed is None:
+        raise ValueError(f"invalid date {value!r}")
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=dt_util.get_default_time_zone())
+    return dt_util.as_local(parsed)
 
 
 def _dose_head(hass: HomeAssistant, device_id: Any) -> tuple[Any, int] | None:

@@ -1028,7 +1028,7 @@ async def async_setup_entry(
                         native_max_value=acc_max,
                         value_name=(
                             "$.sources[?(@.name=='/probe/config')]"
-                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')].ranges[0]"
+                            f".data[?(@.type=='{ptype}' && @.uid=='{uid}')].ranges[0]"
                         ),
                         icon="mdi:arrow-collapse-down",
                         entity_category=EntityCategory.CONFIG,
@@ -1051,7 +1051,7 @@ async def async_setup_entry(
                         native_max_value=des_max,
                         value_name=(
                             "$.sources[?(@.name=='/probe/config')]"
-                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')].ranges[1]"
+                            f".data[?(@.type=='{ptype}' && @.uid=='{uid}')].ranges[1]"
                         ),
                         icon="mdi:arrow-down-bold-box-outline",
                         entity_category=EntityCategory.CONFIG,
@@ -1074,7 +1074,7 @@ async def async_setup_entry(
                         native_max_value=des_max,
                         value_name=(
                             "$.sources[?(@.name=='/probe/config')]"
-                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')].ranges[2]"
+                            f".data[?(@.type=='{ptype}' && @.uid=='{uid}')].ranges[2]"
                         ),
                         icon="mdi:arrow-up-bold-box-outline",
                         entity_category=EntityCategory.CONFIG,
@@ -1097,7 +1097,7 @@ async def async_setup_entry(
                         native_max_value=acc_max,
                         value_name=(
                             "$.sources[?(@.name=='/probe/config')]"
-                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')].ranges[3]"
+                            f".data[?(@.type=='{ptype}' && @.uid=='{uid}')].ranges[3]"
                         ),
                         icon="mdi:arrow-collapse-up",
                         entity_category=EntityCategory.CONFIG,
@@ -1129,7 +1129,7 @@ async def async_setup_entry(
 
                 unit_path = (
                     "$.sources[?(@.name=='/probe/config')]"
-                    f".data[?(@.type=='ec' & @.uid=='{uid}')].unit"
+                    f".data[?(@.type=='ec' && @.uid=='{uid}')].unit"
                 )
 
                 entities.append(
@@ -1145,7 +1145,7 @@ async def async_setup_entry(
                             native_max_value=acc_max,
                             value_name=(
                                 "$.sources[?(@.name=='/probe/config')]"
-                                f".data[?(@.type=='ec' & @.uid=='{uid}')].ranges[0]"
+                                f".data[?(@.type=='ec' && @.uid=='{uid}')].ranges[0]"
                             ),
                             icon="mdi:arrow-collapse-down",
                             entity_category=EntityCategory.CONFIG,
@@ -1170,7 +1170,7 @@ async def async_setup_entry(
                             native_max_value=des_max,
                             value_name=(
                                 "$.sources[?(@.name=='/probe/config')]"
-                                f".data[?(@.type=='ec' & @.uid=='{uid}')].ranges[1]"
+                                f".data[?(@.type=='ec' && @.uid=='{uid}')].ranges[1]"
                             ),
                             icon="mdi:arrow-down-bold-box-outline",
                             entity_category=EntityCategory.CONFIG,
@@ -1195,7 +1195,7 @@ async def async_setup_entry(
                             native_max_value=des_max,
                             value_name=(
                                 "$.sources[?(@.name=='/probe/config')]"
-                                f".data[?(@.type=='ec' & @.uid=='{uid}')].ranges[2]"
+                                f".data[?(@.type=='ec' && @.uid=='{uid}')].ranges[2]"
                             ),
                             icon="mdi:arrow-up-bold-box-outline",
                             entity_category=EntityCategory.CONFIG,
@@ -1220,7 +1220,7 @@ async def async_setup_entry(
                             native_max_value=acc_max,
                             value_name=(
                                 "$.sources[?(@.name=='/probe/config')]"
-                                f".data[?(@.type=='ec' & @.uid=='{uid}')].ranges[3]"
+                                f".data[?(@.type=='ec' && @.uid=='{uid}')].ranges[3]"
                             ),
                             icon="mdi:arrow-collapse-up",
                             entity_category=EntityCategory.CONFIG,
@@ -1265,7 +1265,7 @@ async def async_setup_entry(
                         native_max_value=t_acc_max,
                         value_name=(
                             "$.sources[?(@.name=='/probe/config')]"
-                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]"
+                            f".data[?(@.type=='{ptype}' && @.uid=='{uid}')]"
                             ".temp.ranges[0]"
                         ),
                         icon="mdi:thermometer-low",
@@ -1292,7 +1292,7 @@ async def async_setup_entry(
                         native_max_value=t_des_max,
                         value_name=(
                             "$.sources[?(@.name=='/probe/config')]"
-                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]"
+                            f".data[?(@.type=='{ptype}' && @.uid=='{uid}')]"
                             ".temp.ranges[1]"
                         ),
                         icon="mdi:thermometer-chevron-down",
@@ -1319,7 +1319,7 @@ async def async_setup_entry(
                         native_max_value=t_des_max,
                         value_name=(
                             "$.sources[?(@.name=='/probe/config')]"
-                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]"
+                            f".data[?(@.type=='{ptype}' && @.uid=='{uid}')]"
                             ".temp.ranges[2]"
                         ),
                         icon="mdi:thermometer-chevron-up",
@@ -1346,7 +1346,7 @@ async def async_setup_entry(
                         native_max_value=t_acc_max,
                         value_name=(
                             "$.sources[?(@.name=='/probe/config')]"
-                            f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]"
+                            f".data[?(@.type=='{ptype}' && @.uid=='{uid}')]"
                             ".temp.ranges[3]"
                         ),
                         icon="mdi:thermometer-high",

@@ -710,6 +710,9 @@
       },
       "maint_control_probe_refractometer_check_interval_weeks": {
         "name": "Contrôle réfractomètre de la sonde {probe} (semaines)"
+      },
+      "regulation_reagent": {
+        "name": "Lecture du réactif"
       }
     },
     "select": {
@@ -826,6 +829,19 @@
           "spy": "Espion",
           "shadow": "Shadow",
           "poseidon": "Poseidon"
+        }
+      },
+      "regulation_test_kit": {
+        "name": "Kit de test",
+        "state": {
+          "manual": "Saisie manuelle",
+          "redsea_kh": "Red Sea KH/Alkalinity Pro",
+          "redsea_ca": "Red Sea Calcium Pro",
+          "redsea_mg": "Red Sea Magnesium Pro",
+          "salifert_kh": "Salifert KH/Alk",
+          "salifert_ca": "Salifert Ca",
+          "salifert_mg": "Salifert Mg",
+          "colombo_kh": "Colombo Marine KH"
         }
       }
     },
@@ -2572,6 +2588,50 @@
         "limit": {
           "name": "Limite",
           "description": "Au plus ce nombre de doses."
+        }
+      }
+    },
+    "update_measurement": {
+      "name": "Modifier une mesure",
+      "description": "Corrige un résultat de test de l'historique d'une tête ReefDose (régulation du dosage).",
+      "fields": {
+        "device_id": {
+          "name": "Tête",
+          "description": "L'appareil de la tête ReefDose."
+        },
+        "measured_at": {
+          "name": "Mesuré le",
+          "description": "Date du résultat de test, telle que listée dans l'historique."
+        },
+        "value": {
+          "name": "Valeur",
+          "description": "Valeur corrigée, dans l'unité du paramètre."
+        },
+        "new_measured_at": {
+          "name": "Nouvelle date",
+          "description": "Date corrigée du test."
+        },
+        "parameter": {
+          "name": "Paramètre",
+          "description": "Paramètre mesuré. Par défaut celui régulé par la tête."
+        }
+      }
+    },
+    "delete_measurement": {
+      "name": "Supprimer une mesure",
+      "description": "Supprime un résultat de test de l'historique d'une tête ReefDose (régulation du dosage).",
+      "fields": {
+        "device_id": {
+          "name": "Tête",
+          "description": "L'appareil de la tête ReefDose."
+        },
+        "measured_at": {
+          "name": "Mesuré le",
+          "description": "Date du résultat de test, telle que listée dans l'historique."
+        },
+        "parameter": {
+          "name": "Paramètre",
+          "description": "Paramètre mesuré. Par défaut celui régulé par la tête."
         }
       }
     }

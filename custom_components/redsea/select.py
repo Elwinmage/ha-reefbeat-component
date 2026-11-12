@@ -335,7 +335,7 @@ async def async_setup_entry(
                         icon="mdi:swap-horizontal",
                         value_name=(
                             "$.sources[?(@.name=='/probe/config')]"
-                            f".data[?(@.type=='ec' & @.uid=='{uid}')].unit"
+                            f".data[?(@.type=='ec' && @.uid=='{uid}')].unit"
                         ),
                         options=list(EC_UNITS),
                         entity_category=EntityCategory.CONFIG,

@@ -110,7 +110,7 @@ def probe_ranges(
     """
     entry = device.get_data(
         "$.sources[?(@.name=='/probe/config')]"
-        f".data[?(@.type=='{ptype}' & @.uid=='{uid}')]",
+        f".data[?(@.type=='{ptype}' && @.uid=='{uid}')]",
         is_None_possible=True,
     )
     if not isinstance(entry, dict):

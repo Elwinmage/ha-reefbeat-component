@@ -48,7 +48,7 @@ async def _entities(
 async def test_builder(hass: HomeAssistant) -> None:
     assert E.regulation_entities(object(), "sensor") == []
     found, _, _ = await _entities(hass)
-    assert len(found) == 3 + 11 + 3 + 7 + 1
+    assert len(found) == 4 + 12 + 3 + 7 + 1
     assert E._head_entities(FakeDoser(), 1, "light") == []
     status = found["regulation_status"]
     assert status.unique_id == "SER_regulation_status_head_1"
@@ -377,6 +377,63 @@ async def test_setup_and_record_measurement_service(
     }
     coordinator.regulation = regulator
 
+    # Correct then delete a test result of the history
+    async def edit(service: str, data: dict[str, Any]) -> Any:
+        return await hass.services.async_call(
+            DOMAIN, service, data, blocking=True, return_response=True
+        )
+
+    first = regulator.head_state(1).measurements[0]
+    stamp = first.at.isoformat()
+    response = await edit(
+        "update_measurement",
+        {
+            "device_id": head.id,
+            "measured_at": stamp,
+            "value": 8.6,
+            "new_measured_at": "2026-09-29 08:00:00",
+        },
+    )
+    assert response["ok"] is True
+    moved = regulator.head_state(1).measurements[0]
+    assert moved.value == 8.6
+    assert moved.at == datetime(2026, 9, 29, 8, tzinfo=dt_util.get_default_time_zone())
+    # Only the value: the date is kept
+    response = await edit(
+        "update_measurement",
+        {"device_id": head.id, "measured_at": moved.at.isoformat(), "value": 8.5},
+    )
+    assert response["ok"] is True and moved.value == 8.5
+    count = len(regulator.head_state(1).measurements)
+    response = await edit(
+        "delete_measurement",
+        {"device_id": head.id, "measured_at": moved.at.isoformat()},
+    )
+    assert response == {"ok": True, "measurements": count - 1}
+    assert (
+        await edit(
+            "delete_measurement",
+            {"device_id": head.id, "measured_at": moved.at.isoformat()},
+        )
+    )["ok"] is False
+    assert (
+        await edit("delete_measurement", {"device_id": head.id, "measured_at": "x"})
+    ) == {"ok": False, "error": "invalid date 'x'"}
+    assert (
+        await edit("update_measurement", {"device_id": "nope", "measured_at": stamp})
+    ) == {"ok": False, "error": "Not a ReefDose head"}
+    assert (
+        await edit("update_measurement", {"device_id": head.id, "measured_at": "x"})
+    ) == {"ok": False, "error": "invalid date 'x'"}
+    assert (
+        await edit("delete_measurement", {"device_id": "nope", "measured_at": stamp})
+    ) == {"ok": False, "error": "Not a ReefDose head"}
+    coordinator.regulation = None
+    assert (
+        await edit("delete_measurement", {"device_id": head.id, "measured_at": stamp})
+    ) == {"ok": False, "error": "Regulation unavailable"}
+    coordinator.regulation = regulator
+
     assert await hass.config_entries.async_unload(local_dose_config_entry.entry_id)
     await hass.async_block_till_done()
     assert not regulator._unsubs
@@ -398,3 +455,54 @@ async def test_dose_head_resolution(hass: HomeAssistant) -> None:
     hass.data.setdefault(DOMAIN, {})["x"] = object()
     assert _dose_head(hass, other.id) is None
     assert _dose_head(hass, orphan.id) is None
+
+
+async def test_test_kit_entities(hass: HomeAssistant) -> None:
+    found, regulator, _doser = await _entities(hass)
+    kit = found["regulation_test_kit"]
+    reagent = found["regulation_reagent"]
+    assert kit.current_option == "manual"
+    assert kit.options == ["manual", "redsea_kh", "salifert_kh", "colombo_kh"]
+    assert kit.extra_state_attributes == {"reef_role": "regulation_test_kit"}
+    # Typed in by hand: the reading is greyed
+    assert reagent.available is False
+    assert reagent.native_unit_of_measurement == "mL"
+    await kit.async_select_option("colombo_kh")
+    assert kit.extra_state_attributes == {
+        "reef_role": "regulation_test_kit",
+        "brand": "Colombo",
+        "factor": 20.0,
+        "reading": "used",
+        "capacity": 1.0,
+    }
+    assert reagent.available is True
+    await reagent.async_set_native_value(0.44)
+    # 0.44 mL x 20 = 8.8 dKH, the result to record
+    assert found["regulation_measurement"].native_value == 8.8
+    with pytest.raises(HomeAssistantError):
+        await kit.async_select_option("redsea_ca")
+    await kit.async_select_option("salifert_kh")
+    with pytest.raises(HomeAssistantError):
+        # At most 1 mL can be left in the syringe
+        await reagent.async_set_native_value(1.5)
+    await reagent.async_set_native_value(0.5)
+    assert regulator.head_state(1).settings.measurement == 8.0
+    await found["regulation_record"].async_press()
+    assert regulator.head_state(1).measurements[-1].source == "salifert_kh"
+    # Another parameter: the kit goes back to manual entry
+    await found["regulation_parameter"].async_select_option("ca")
+    assert kit.current_option == "manual"
+    assert kit.options == ["manual", "redsea_ca", "salifert_ca"]
+
+
+async def test_potency_greyed_for_nutrient_reducer(hass: HomeAssistant) -> None:
+    found, _, doser = await _entities(hass)
+    potency = found["regulation_potency"]
+    mode = found["regulation_mode"]
+    assert potency.available is True
+    # Red Sea NO3PO4-X lowers nitrate and phosphate: no test drives it
+    doser.data[SUPPLEMENT(1)] = "ffaf6ff8-bc6d-44eb-9e4b-e679943dc835"
+    assert potency.available is False
+    assert mode.options == ["off"]
+    with pytest.raises(HomeAssistantError):
+        await mode.async_select_option("assisted")

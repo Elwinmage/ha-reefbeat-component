@@ -153,6 +153,22 @@ def device_payload(supplement: dict[str, Any]) -> dict[str, Any]:
     return {key: supplement[key] for key in _PAYLOAD_KEYS if key in supplement}
 
 
+# Kinds of supplements no test result drives: a nutrient reducer (Red Sea
+# NO3PO4-X lowers nitrate and phosphate, it raises nothing) or a food
+NOT_REGULATED_KINDS: Final[frozenset[str]] = frozenset({"nutrient", "food"})
+
+
+def supplement_regulated(hass: HomeAssistant | None, uid: str | None) -> bool:
+    """Whether a test can drive the dose of a supplement.
+
+    A supplement unknown to the catalog (the user's own) is the user's call.
+    """
+    if not uid:
+        return True
+    supplement = supplement_by_uid(hass, uid)
+    return supplement is None or supplement.get("kind") not in NOT_REGULATED_KINDS
+
+
 def supplement_potency(
     hass: HomeAssistant | None, uid: str | None
 ) -> tuple[str, float] | None:

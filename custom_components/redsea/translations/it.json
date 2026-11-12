@@ -711,6 +711,9 @@
       },
       "maint_control_probe_refractometer_check_interval_weeks": {
         "name": "Controllo con rifrattometro della sonda {probe} (settimane)"
+      },
+      "regulation_reagent": {
+        "name": "Lettura del reagente"
       }
     },
     "select": {
@@ -827,6 +830,19 @@
           "spy": "Spia",
           "shadow": "Shadow",
           "poseidon": "Poseidon"
+        }
+      },
+      "regulation_test_kit": {
+        "name": "Kit di test",
+        "state": {
+          "manual": "Inserito a mano",
+          "redsea_kh": "Red Sea KH/Alkalinity Pro",
+          "redsea_ca": "Red Sea Calcium Pro",
+          "redsea_mg": "Red Sea Magnesium Pro",
+          "salifert_kh": "Salifert KH/Alk",
+          "salifert_ca": "Salifert Ca",
+          "salifert_mg": "Salifert Mg",
+          "colombo_kh": "Colombo Marine KH"
         }
       }
     },
@@ -2572,6 +2588,50 @@
         "limit": {
           "name": "Limite",
           "description": "Al massimo questo numero di dosi."
+        }
+      }
+    },
+    "update_measurement": {
+      "name": "Modifica misura",
+      "description": "Corregge un risultato di test nello storico di una testa ReefDose (regolazione del dosaggio).",
+      "fields": {
+        "device_id": {
+          "name": "Testa",
+          "description": "Il dispositivo della testa ReefDose."
+        },
+        "measured_at": {
+          "name": "Misurato il",
+          "description": "Data del risultato, come elencata nello storico."
+        },
+        "value": {
+          "name": "Valore",
+          "description": "Valore corretto, nell'unità del parametro."
+        },
+        "new_measured_at": {
+          "name": "Nuova data",
+          "description": "Data corretta del test."
+        },
+        "parameter": {
+          "name": "Parametro",
+          "description": "Parametro misurato. Predefinito: quello regolato dalla testa."
+        }
+      }
+    },
+    "delete_measurement": {
+      "name": "Elimina misura",
+      "description": "Rimuove un risultato di test dallo storico di una testa ReefDose (regolazione del dosaggio).",
+      "fields": {
+        "device_id": {
+          "name": "Testa",
+          "description": "Il dispositivo della testa ReefDose."
+        },
+        "measured_at": {
+          "name": "Misurato il",
+          "description": "Data del risultato, come elencata nello storico."
+        },
+        "parameter": {
+          "name": "Parametro",
+          "description": "Parametro misurato. Predefinito: quello regolato dalla testa."
         }
       }
     }

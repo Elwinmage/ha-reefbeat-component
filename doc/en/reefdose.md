@@ -91,6 +91,20 @@ It moves at most **Max dose change** (20 % by default) from the current dose, an
 a change under 5 % is not proposed. A test too far from what was expected gives
 *Retest suggested* instead of a proposal.
 
+**Test kits**: instead of typing the result, pick the kit in **Test kit** and
+type the syringe reading in **Reagent reading** (mL): the result is computed
+into **Test result**. Red Sea Pro (KH, Ca, Mg) and Colombo (KH) are read as the
+reagent used, Salifert (KH, Ca, Mg) as what is left in the 1 mL syringe.
+
+**History**: `redsea.update_measurement` corrects a result (its `value`, its
+date with `new_measured_at`) and `redsea.delete_measurement` removes one, both
+identified by their `measured_at` as listed in the `measurements` attribute of
+**Last test result**. The proposal is recomputed.
+
+A supplement no test drives (Red Sea NO3:PO4-X, which lowers nitrate and
+phosphate, or a food) offers no assisted mode, and its **Supplement potency**
+is unavailable.
+
 > [!NOTE]
 > With bundled heads (Red Sea Complete Reef Care), only head 1 can be regulated,
 > in assisted mode on the calcium: the doser derives the other heads from it.

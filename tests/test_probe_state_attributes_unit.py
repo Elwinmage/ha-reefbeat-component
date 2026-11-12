@@ -23,7 +23,7 @@ from custom_components.redsea.probe_entities import (
 )
 from custom_components.redsea.sensor import _build_probe_descriptions
 
-_CONFIG_RE = re.compile(r"@\.type=='([^']*)' & @\.uid=='([^']*)'")
+_CONFIG_RE = re.compile(r"@\.type=='([^']*)' &&? @\.uid=='([^']*)'")
 
 
 class FakeHub:

@@ -417,7 +417,7 @@ def _ec_unit_range_entity(device: Any, field: str, unit: str) -> Any:
         ),
         dependency=(
             "$.sources[?(@.name=='/probe/config')]"
-            ".data[?(@.type=='ec' & @.uid=='0xE1')].unit"
+            ".data[?(@.type=='ec' && @.uid=='0xE1')].unit"
         ),
         dependency_values=[unit],
     )
@@ -427,7 +427,7 @@ def _ec_unit_range_entity(device: Any, field: str, unit: str) -> Any:
 
 
 _EC_UNIT_PATH = (
-    "$.sources[?(@.name=='/probe/config')].data[?(@.type=='ec' & @.uid=='0xE1')].unit"
+    "$.sources[?(@.name=='/probe/config')].data[?(@.type=='ec' && @.uid=='0xE1')].unit"
 )
 
 

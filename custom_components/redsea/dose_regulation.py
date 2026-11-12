@@ -56,7 +56,8 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
-from .supplements import supplement_potency
+from .supplements import supplement_potency, supplement_regulated
+from .test_kits import MANUAL, TEST_KITS, kit_value
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -247,6 +248,8 @@ SETTING_BOUNDS: Final[dict[str, tuple[float, float]]] = {
     "brine_doses_per_day": (1.0, 24.0),
     "salinity_check_tolerance": (0.1, 3.0),
     "measurement": (0.0, 2000.0),
+    # Syringe reading of a titration kit (refilled syringes go past 1 mL)
+    "reagent_ml": (0.0, 5.0),
 }
 
 
@@ -258,6 +261,9 @@ class HeadSettings:
     (unit of the parameter / mL / 100 L), as printed on most supplements.
     ``tank_volume`` 0 means "found automatically" (see DoseRegulator.volume).
     ``measurement`` is the value typed in before pressing "record".
+    ``test_kit`` is the titration kit the result is read with (``manual``:
+    typed in); with a kit, ``reagent_ml`` (the syringe reading) gives the
+    measurement.
     """
 
     mode: str = "off"
@@ -274,6 +280,8 @@ class HeadSettings:
     salinity_check_tolerance: float = 1.0
     salinity_source: str = ""
     measurement: float = 0.0
+    test_kit: str = MANUAL
+    reagent_ml: float = 0.0
 
     @classmethod
     def from_dict(cls, raw: Any) -> HeadSettings:
@@ -329,6 +337,16 @@ class HeadSettings:
                 raise ValueError("salinity_source must be an entity id")
             self.salinity_source = value
             return
+        if key == "test_kit":
+            if value != MANUAL and (
+                value not in TEST_KITS or TEST_KITS[value].parameter != self.parameter
+            ):
+                raise ValueError(f"test kit {value!r} does not test {self.parameter}")
+            if value != self.test_kit:
+                # The reading of another syringe means nothing for this one
+                self.reagent_ml = 0.0
+            self.test_kit = value
+            return
         if key not in SETTING_BOUNDS:
             raise ValueError(f"unknown setting {key!r}")
         try:
@@ -338,6 +356,9 @@ class HeadSettings:
         low, high = SETTING_BOUNDS[key]
         if not math.isfinite(number) or not low <= number <= high:
             raise ValueError(f"{key} must be within [{low}, {high}]")
+        if key == "reagent_ml" and self.test_kit != MANUAL:
+            # Checked against the syringe of the kit before it is kept
+            TEST_KITS[self.test_kit].value(number)
         setattr(self, key, number)
 
     def _use_parameter(self, parameter: str) -> None:
@@ -345,6 +366,22 @@ class HeadSettings:
         self.parameter = parameter
         self.target = param.target
         self.tolerance = param.tolerance
+        # A kit tests one parameter only
+        if self.test_kit != MANUAL and TEST_KITS[self.test_kit].parameter != parameter:
+            self.test_kit = MANUAL
+            self.reagent_ml = 0.0
+
+    def kit_measurement(self) -> float | None:
+        """Test result read from the syringe of the kit, None if typed in.
+
+        @raise ValueError: impossible reading for the kit
+        """
+        value = kit_value(self.test_kit, self.reagent_ml)
+        if value is None:
+            return None
+        decimals = max(0, -math.floor(math.log10(PARAMETERS[self.parameter].step)))
+        low, high = SETTING_BOUNDS["measurement"]
+        return min(max(round(value, decimals), low), high)
 
 
 # =============================================================================
@@ -1119,10 +1156,19 @@ class DoseRegulator:
         """Whether the head holds the brine supplement."""
         return self._supplement_uid(head) == BRINE_SUPPLEMENT_UID
 
+    def is_regulated_supplement(self, head: int) -> bool:
+        """Whether a test can drive the supplement of a head: not a nutrient
+        reducer (NO3PO4-X lowers what it acts on) nor a food."""
+        uid = self._supplement_uid(head)
+        return supplement_regulated(self.hass, uid if isinstance(uid, str) else None)
+
     def modes(self, head: int) -> list[str]:
         """Regulation modes offered by a head, after its supplement: the
-        brine head is regulated on the salinity, the others on a test."""
-        return ["off", "brine"] if self.is_brine_head(head) else ["off", "assisted"]
+        brine head is regulated on the salinity, the others on a test, but
+        for the supplements no test drives."""
+        if self.is_brine_head(head):
+            return ["off", "brine"]
+        return ["off", "assisted"] if self.is_regulated_supplement(head) else ["off"]
 
     def scheduled_dose(self, head: int) -> float:
         """Daily dose the head doses by itself (0 when its schedule is off)."""
@@ -1297,6 +1343,11 @@ class DoseRegulator:
         if key == "salinity_source":
             # Another sensor: the samples of the former one mean nothing
             state.samples = []
+        if key in ("test_kit", "reagent_ml", "parameter"):
+            # The syringe reading gives the test result to record
+            measured = state.settings.kit_measurement()
+            if measured is not None:
+                state.settings.measurement = measured
         if key in ("mode", "salinity_source") and self._brine_runs(head):
             # First sample now rather than at the next tick
             self._sample(head, self.now())
@@ -1346,8 +1397,11 @@ class DoseRegulator:
         """
         state = self.store.heads[head]
         settings = state.settings
+        source = "manual"
         if value is None:
             value = settings.measurement
+            # Read on the syringe of a kit, typed in otherwise
+            source = settings.test_kit
         parameter = parameter or settings.parameter
         if parameter not in PARAMETERS:
             raise ValueError(f"unknown parameter {parameter!r}")
@@ -1357,7 +1411,7 @@ class DoseRegulator:
         if parameter == "salinity" and settings.mode == "brine":
             result = self._check_refractometer(head, float(value), at)
         else:
-            result = self._record_test(head, float(value), parameter, at)
+            result = self._record_test(head, float(value), parameter, at, source)
         state.prune(self.now())
         self.refresh_status(head)
         await self.store.async_save()
@@ -1366,11 +1420,18 @@ class DoseRegulator:
         return result
 
     def _record_test(
-        self, head: int, value: float, parameter: str, at: datetime
+        self,
+        head: int,
+        value: float,
+        parameter: str,
+        at: datetime,
+        source: str = "manual",
     ) -> dict[str, Any]:
         state = self.store.heads[head]
         settings = state.settings
-        measurement = Measurement(at=at, parameter=parameter, value=value)
+        measurement = Measurement(
+            at=at, parameter=parameter, value=value, source=source
+        )
         result: dict[str, Any] = {"recorded": True, "suspect": False}
         same = [m for m in state.measurements if m.parameter == parameter]
         volume, _ = self.volume(head)
@@ -1422,7 +1483,7 @@ class DoseRegulator:
         state = self.store.heads[head]
         settings = state.settings
         volume, _ = self.volume(head)
-        if not volume or settings.potency <= 0:
+        if not volume or settings.potency <= 0 or settings.mode not in self.modes(head):
             state.proposal = None
             return
         tested = [m for m in state.measurements if m.parameter == settings.parameter]
@@ -1463,6 +1524,71 @@ class DoseRegulator:
         self.refresh_status(head)
         await self.store.async_save()
         return proposal.dose
+
+    # ---- measurement history --------------------------------------------
+
+    def _find_measurement(
+        self, head: int, at: datetime, parameter: str | None
+    ) -> Measurement:
+        """The measurement of a head taken at ``at`` (to the second).
+
+        @raise ValueError: no such measurement
+        """
+        parameter = parameter or self.store.heads[head].settings.parameter
+        stamp = at.replace(microsecond=0)
+        for measurement in self.store.heads[head].measurements:
+            if (
+                measurement.parameter == parameter
+                and measurement.at.replace(microsecond=0) == stamp
+            ):
+                return measurement
+        raise ValueError(f"no {parameter} measurement at {at.isoformat()}")
+
+    async def async_update_measurement(
+        self,
+        head: int,
+        at: datetime,
+        value: float | None = None,
+        new_at: datetime | None = None,
+        parameter: str | None = None,
+    ) -> dict[str, Any]:
+        """Correct a measurement of the history (its value, its date).
+
+        A corrected value is the user's: it is no longer suspect. The
+        consumption and the proposal follow.
+
+        @raise ValueError: no such measurement
+        """
+        state = self.store.heads[head]
+        measurement = self._find_measurement(head, at, parameter)
+        if value is not None:
+            measurement.value = float(value)
+            measurement.suspect = False
+        if new_at is not None:
+            measurement.at = new_at
+        state.measurements.sort(key=lambda m: m.at)
+        return await self._async_history_changed(head, measurement.parameter)
+
+    async def async_delete_measurement(
+        self, head: int, at: datetime, parameter: str | None = None
+    ) -> dict[str, Any]:
+        """Remove a measurement from the history (a test done wrong).
+
+        @raise ValueError: no such measurement
+        """
+        state = self.store.heads[head]
+        measurement = self._find_measurement(head, at, parameter)
+        state.measurements.remove(measurement)
+        return await self._async_history_changed(head, measurement.parameter)
+
+    async def _async_history_changed(self, head: int, parameter: str) -> dict[str, Any]:
+        state = self.store.heads[head]
+        settings = state.settings
+        if settings.mode == "assisted" and parameter == settings.parameter:
+            self._propose(head)
+        self.refresh_status(head)
+        await self.store.async_save()
+        return {"ok": True, "measurements": len(state.measurements)}
 
     async def async_dismiss(self, head: int) -> None:
         """Forget the pending proposal."""

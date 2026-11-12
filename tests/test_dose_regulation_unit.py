@@ -1326,3 +1326,114 @@ async def test_brine_only_with_the_brine_supplement(hass: HomeAssistant) -> None
     # Turning it off is always possible
     await regulator.async_set(1, "mode", "off")
     assert state.status == "off"
+
+
+# =============================================================================
+# Test kits, nutrient reducers, history editing
+# =============================================================================
+
+
+def test_titration_kits() -> None:
+    from custom_components.redsea import test_kits as K
+
+    assert K.kits_for("mg") == ["manual", "redsea_mg", "salifert_mg"]
+    assert K.kits_for("fe") == ["manual"]
+    assert K.kit_value("manual", 0.5) is None
+    assert K.kit_value("redsea_kh", 0.4) == pytest.approx(5.6)
+    assert K.kit_value("redsea_ca", 0.86) == pytest.approx(430.0)
+    assert K.kit_value("salifert_kh", 0.5) == pytest.approx(8.0)
+    assert K.kit_value("salifert_mg", 0.1) == pytest.approx(1350.0)
+    with pytest.raises(ValueError, match="unknown test kit"):
+        K.kit_value("acme_kh", 1)
+    with pytest.raises(ValueError, match="negative"):
+        K.kit_value("redsea_kh", -1)
+    with pytest.raises(ValueError, match="left in the syringe"):
+        K.kit_value("salifert_ca", 1.2)
+    # A refilled syringe goes past 1 mL
+    assert K.kit_value("redsea_kh", 1.2) == pytest.approx(16.8)
+
+
+def test_settings_test_kit() -> None:
+    settings = R.HeadSettings()
+    assert settings.kit_measurement() is None
+    settings.set("test_kit", "redsea_kh")
+    settings.set("reagent_ml", 0.6)
+    # Rounded to the step of the parameter
+    assert settings.kit_measurement() == 8.4
+    with pytest.raises(ValueError, match="does not test"):
+        settings.set("test_kit", "redsea_ca")
+    with pytest.raises(ValueError, match="does not test"):
+        settings.set("test_kit", "nope")
+    # Another kit: the former reading is dropped
+    settings.set("test_kit", "salifert_kh")
+    assert settings.reagent_ml == 0.0
+    with pytest.raises(ValueError, match="left in the syringe"):
+        settings.set("reagent_ml", 2.0)
+    settings.set("test_kit", "salifert_kh")
+    settings.set("reagent_ml", 0.25)
+    # Read back from the store
+    again = R.HeadSettings.from_dict(settings.as_dict())
+    assert (again.test_kit, again.reagent_ml) == ("salifert_kh", 0.25)
+    settings.set("parameter", "ca")
+    assert (settings.test_kit, settings.reagent_ml) == ("manual", 0.0)
+    # Ca keeps a kit of its own across a parameter change to itself
+    settings.set("test_kit", "redsea_ca")
+    settings.set("parameter", "ca")
+    assert settings.test_kit == "redsea_ca"
+    # Results above the bounds of a measurement are clamped
+    settings.set("reagent_ml", 5.0)
+    assert settings.kit_measurement() == 2000.0
+
+
+async def test_nutrient_reducer_not_regulated(hass: HomeAssistant) -> None:
+    regulator, doser, _clock = await _regulator(hass, (1,))
+    assert regulator.modes(1) == ["off", "assisted"]
+    await regulator.async_set(1, "mode", "assisted")
+    await regulator.async_set(1, "potency", 0.05)
+    await regulator.async_set(1, "tank_volume", 100)
+    doser.data[SUPPLEMENT(1)] = "ffaf6ff8-bc6d-44eb-9e4b-e679943dc835"
+    assert regulator.modes(1) == ["off"]
+    regulator.refresh_status(1)
+    assert regulator.head_state(1).status == "not_configured"
+    await regulator.async_record(1, 7.0)
+    assert regulator.head_state(1).proposal is None
+    # A supplement unknown to the catalog is the user's call
+    doser.data[SUPPLEMENT(1)] = "my-own"
+    assert regulator.modes(1) == ["off", "assisted"]
+    # No supplement on the head
+    doser.data[SUPPLEMENT(1)] = None
+    assert regulator.modes(1) == ["off", "assisted"]
+
+
+async def test_edit_measurement_history(hass: HomeAssistant) -> None:
+    regulator, doser, clock = await _regulator(hass, (1,))
+    doser.data[DD(1)] = 10.0
+    await regulator.async_set(1, "mode", "assisted")
+    await regulator.async_set(1, "potency", 0.05)
+    await regulator.async_set(1, "tank_volume", 100)
+    await regulator.async_record(1, 7.0, at=T0)
+    clock.advance(days=2)
+    await regulator.async_record(1, 7.2, at=clock.at)
+    state = regulator.head_state(1)
+    assert [m.source for m in state.measurements] == ["manual", "manual"]
+    state.measurements[1].suspect = True
+    # Microseconds are not part of the identity of a test
+    result = await regulator.async_update_measurement(
+        1, clock.at.replace(microsecond=5), value=7.5
+    )
+    assert result == {"ok": True, "measurements": 2}
+    assert state.measurements[1].value == 7.5
+    assert state.measurements[1].suspect is False
+    # Moved before the first one: the history stays in order
+    await regulator.async_update_measurement(1, clock.at, new_at=T0 - timedelta(days=1))
+    assert [m.value for m in state.measurements] == [7.5, 7.0]
+    with pytest.raises(ValueError, match="no kh measurement"):
+        await regulator.async_delete_measurement(1, T0 + timedelta(hours=1))
+    with pytest.raises(ValueError, match="no ca measurement"):
+        await regulator.async_delete_measurement(1, T0, "ca")
+    await regulator.async_delete_measurement(1, T0)
+    assert [m.value for m in state.measurements] == [7.5]
+    # Out of assisted mode no proposal is made, the history still changes
+    await regulator.async_set(1, "mode", "off")
+    await regulator.async_delete_measurement(1, T0 - timedelta(days=1))
+    assert state.measurements == []

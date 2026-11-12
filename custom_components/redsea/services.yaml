@@ -610,6 +610,73 @@ record_measurement:
       required: false
       selector:
         datetime:
+# Correct a test result of a ReefDose head's history (dose regulation).
+update_measurement:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: redsea
+    measured_at:
+      required: true
+      selector:
+        datetime:
+    value:
+      required: false
+      example: 8.2
+      selector:
+        number:
+          min: 0
+          max: 2000
+          step: 0.01
+          mode: box
+    new_measured_at:
+      required: false
+      selector:
+        datetime:
+    parameter:
+      required: false
+      selector:
+        select:
+          options:
+            - kh
+            - ca
+            - mg
+            - k
+            - no3
+            - po4
+            - i
+            - fe
+            - salinity
+
+# Remove a test result from a ReefDose head's history (dose regulation).
+delete_measurement:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: redsea
+    measured_at:
+      required: true
+      selector:
+        datetime:
+    parameter:
+      required: false
+      selector:
+        select:
+          options:
+            - kh
+            - ca
+            - mg
+            - k
+            - no3
+            - po4
+            - i
+            - fe
+            - salinity
+
 # Poseidon mode: write the keystore to a file (CLI format).
 poseidon_export:
 

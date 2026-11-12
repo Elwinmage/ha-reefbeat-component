@@ -73,6 +73,12 @@ Vous fixez une cible (par exemple KH 8,4 dKH) et enregistrez vos résultats de t
 
 La proposition correspond à ce que consomme le bac, plus une correction : l'écart à la cible réparti sur les jours de l'**Étalement de la correction**, rien à l'intérieur de la **Tolérance de régulation**. Elle s'écarte au plus de la **Variation max de dose** (20 % par défaut) de la dose actuelle, et un changement de moins de 5 % n'est pas proposé. Un test trop éloigné de ce qui était attendu donne *Nouveau test conseillé* au lieu d'une proposition.
 
+**Kits de test** : au lieu de saisir le résultat, choisissez le kit dans **Kit de test** et saisissez la lecture de la seringue dans **Lecture du réactif** (mL) : le résultat est calculé dans **Résultat de test**. Red Sea Pro (KH, Ca, Mg) et Colombo (KH) se lisent en réactif utilisé, Salifert (KH, Ca, Mg) en ce qui reste dans la seringue de 1 mL.
+
+**Historique** : `redsea.update_measurement` corrige un résultat (sa `value`, sa date avec `new_measured_at`) et `redsea.delete_measurement` en supprime un, tous deux identifiés par leur `measured_at` tel que listé dans l'attribut `measurements` du **Dernier résultat de test**. La proposition est recalculée.
+
+Un supplément qu'aucun test ne pilote (Red Sea NO3:PO4-X, qui fait baisser nitrate et phosphate, ou une nourriture) n'offre pas de mode assisté, et sa **Puissance du supplément** est indisponible.
+
 > [!NOTE]
 > Avec des têtes groupées (Red Sea Complete Reef Care), seule la tête 1 peut être régulée, en dosage assisté sur le calcium : le doseur en déduit les autres têtes.
 
