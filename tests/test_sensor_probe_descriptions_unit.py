@@ -84,6 +84,20 @@ def test_build_probe_descriptions_missing_uid_returns_empty() -> None:
     assert descs == []
 
 
+def test_build_probe_descriptions_ph() -> None:
+    """pH probes are dimensionless and carry the PH device class."""
+    from homeassistant.components.sensor import SensorDeviceClass
+
+    descs = _build_probe_descriptions(
+        {"uid": "0x0PH1", "type": "ph", "name": "Tank pH"}
+    )
+    main = next(d for d in descs if d.key == "probe_ph_0x0ph1_value")
+    assert main.native_unit_of_measurement is None
+    assert main.device_class == SensorDeviceClass.PH
+    assert main.suggested_display_precision == 2
+    assert main.translation_key == "probe_ph_value"
+
+
 def test_build_probe_descriptions_orp() -> None:
     """ORP probes report in mV with 0-decimal precision."""
     descs = _build_probe_descriptions(

@@ -1749,6 +1749,7 @@ def _build_probe_descriptions(
     value_device_class: SensorDeviceClass | None = None
     if ptype == "ph":
         value_unit = None  # dimensionless
+        value_device_class = SensorDeviceClass.PH
         value_precision = 2
     elif ptype == "orp":
         value_unit = "mV"
