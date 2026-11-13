@@ -1205,11 +1205,15 @@ class DoseRegulator:
     def measured_value(self, head: int) -> tuple[float | None, str | None]:
         """Latest reading of the head's chemistry and where it comes from.
 
-        Single entry point for the card and the proposal. A reeftank
-        per-chemistry sensor is meant to take precedence once the tank
-        integration exposes one; for now the shared manual-test series is
-        the only source (origin ``manual``), None when nothing was tested.
+        Single entry point for the card and the proposal. The reeftank
+        per-chemistry sensor of the doser's aquarium wins (the canonical
+        home of a test); else the shared manual-test series kept here;
+        None when nothing was tested.
         """
+        parameter = self.head_state(head).settings.parameter
+        reeftank = self.reeftank_measurement(parameter)
+        if reeftank is not None:
+            return reeftank, "reeftank"
         serie = self.series(head)
         if serie:
             return serie[-1].value, "manual"
@@ -1358,6 +1362,51 @@ class DoseRegulator:
             )
             if linked or devices.intersection(placed):
                 return round(value, 1)
+        return None
+
+    def reeftank_measurement(self, parameter: str) -> float | None:
+        """Latest value of a chemistry from the reeftank aquarium, if any.
+
+        Read from the reeftank per-chemistry sensors (an optional
+        integration: nothing is imported from it), matched to the doser's
+        aquarium exactly as the volume is. The sensor marks itself with a
+        ``reef_parameter`` attribute, so a short key (``i``, ``k``) is never
+        confused with another entity.
+        """
+        aquarium = self._cloud_aquarium()
+        devices = {
+            entry.id
+            for entry in (
+                self._device_entry(self.device.model_id),
+                *(
+                    self._device_entry(f"{self.device.model_id}_head_{head}")
+                    for head in self.store.heads
+                ),
+            )
+            if entry is not None
+        }
+        cloud_uid = aquarium.get("uid") if aquarium else None
+        for entity in er.async_get(self.hass).entities.values():
+            if entity.platform != REEFTANK_DOMAIN:
+                continue
+            state = self.hass.states.get(entity.entity_id)
+            if state is None or state.attributes.get("reef_parameter") != parameter:
+                continue
+            try:
+                value = float(state.state)
+            except ValueError:
+                continue
+            if not math.isfinite(value):
+                continue
+            placed = _as_list(state.attributes.get("device_ids"))
+            cloud = _as_dict(state.attributes.get("cloud")) or {}
+            linked = (
+                cloud_uid is not None
+                and cloud.get("provider") == DOMAIN
+                and cloud.get("uid") == cloud_uid
+            )
+            if linked or devices.intersection(placed):
+                return value
         return None
 
     def _cloud_aquarium(self) -> dict[str, Any] | None:

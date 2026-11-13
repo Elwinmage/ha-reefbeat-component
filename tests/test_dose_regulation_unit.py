@@ -848,6 +848,68 @@ async def test_reeftank_volume(
     assert regulator.volume(1) == (250.0, "user")
 
 
+async def test_reeftank_measurement(
+    hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A head reads its chemistry from the reeftank sensor of its aquarium."""
+    from custom_components.redsea import websocket
+
+    regulator, _doser, _clock = await _regulator(hass, (1,))
+    await regulator.async_set(1, "mode", "assisted")  # KH by default
+    entry = MockConfigEntry(domain=DOMAIN)
+    entry.add_to_hass(hass)
+    regulator.device._entry = entry  # type: ignore[attr-defined]
+    dev_reg = dr.async_get(hass)
+    doser = dev_reg.async_get_or_create(
+        config_entry_id=entry.entry_id, identifiers={(DOMAIN, "HWID")}
+    )
+    aquariums: list[dict[str, Any]] = [{"uid": "cloud-1", "device_ids": [doser.id]}]
+    monkeypatch.setattr(websocket, "cloud_aquariums", lambda hass: aquariums)
+    ent_reg = er.async_get(hass)
+    sensor = ent_reg.async_get_or_create(
+        "sensor", "reeftank", "aq1_kh", suggested_object_id="tank_kh"
+    )
+    # Another chemistry of the same aquarium is not this parameter
+    ent_reg.async_get_or_create(
+        "sensor", "reeftank", "aq1_ca", suggested_object_id="tank_ca"
+    )
+    hass.states.async_set(
+        "sensor.tank_ca", "430", {"reef_parameter": "ca", "device_ids": [doser.id]}
+    )
+    # Another integration marking the same parameter is ignored
+    ent_reg.async_get_or_create(
+        "sensor", "other", "x_kh", suggested_object_id="other_kh"
+    )
+    hass.states.async_set(
+        "sensor.other_kh", "9", {"reef_parameter": "kh", "device_ids": [doser.id]}
+    )
+
+    def kh(value: str, **attributes: Any) -> None:
+        hass.states.async_set(
+            sensor.entity_id, value, {"reef_parameter": "kh", **attributes}
+        )
+
+    # No state yet, then placed on no view of the aquarium: nothing
+    assert regulator.reeftank_measurement("kh") is None
+    kh("8.2", device_ids=["someone_else"], cloud=None)
+    assert regulator.reeftank_measurement("kh") is None
+    # The doser placed on the aquarium
+    kh("8.2", device_ids=[doser.id])
+    assert regulator.reeftank_measurement("kh") == 8.2
+    # Linked to the doser's cloud aquarium only
+    kh("8.3", cloud={"provider": "redsea", "uid": "cloud-1"})
+    assert regulator.reeftank_measurement("kh") == 8.3
+    # Non-numeric and nan are skipped
+    for bad in ("unknown", "nan"):
+        kh(bad, device_ids=[doser.id])
+        assert regulator.reeftank_measurement("kh") is None
+    # measured_value prefers the reeftank sensor over the manual series
+    regulator.store.series("kh").append(R.Measurement(T0, "kh", 7.0))
+    assert regulator.measured_value(1) == (7.0, "manual")
+    kh("8.4", device_ids=[doser.id])
+    assert regulator.measured_value(1) == (8.4, "reeftank")
+
+
 async def test_cloud_volume(
     hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch
 ) -> None:
