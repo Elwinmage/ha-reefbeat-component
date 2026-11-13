@@ -458,8 +458,7 @@ def _consumption_unit(regulator: DoseRegulator, head: int) -> str:
 
 
 def _last_measurement(regulator: DoseRegulator, head: int) -> float | None:
-    state = regulator.head_state(head)
-    same = [m for m in state.measurements if m.parameter == state.settings.parameter]
+    same = regulator.series(head)
     return same[-1].value if same else None
 
 
@@ -470,7 +469,7 @@ def _measurement_unit(regulator: DoseRegulator, head: int) -> str:
 def _history(regulator: DoseRegulator, head: int) -> dict[str, Any]:
     """Measurements, dose changes and dosed volumes, for the card's chart."""
     state = regulator.head_state(head)
-    same = [m for m in state.measurements if m.parameter == state.settings.parameter]
+    same = regulator.series(head)
     last = same[-1] if same else None
     days = sorted(state.daily)[-HISTORY_SHOWN:]
     return {

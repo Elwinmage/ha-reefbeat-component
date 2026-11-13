@@ -340,16 +340,14 @@ async def test_setup_and_record_measurement_service(
         }
     )
     assert response["ok"] is True
-    assert regulator.head_state(1).measurements[0].value == 8.2
-    assert regulator.head_state(1).measurements[0].at == datetime(
-        2026, 10, 1, 7, tzinfo=UTC
-    )
+    assert regulator.series(1)[0].value == 8.2
+    assert regulator.series(1)[0].at == datetime(2026, 10, 1, 7, tzinfo=UTC)
     # The datetime selector gives a local time without offset
     response = await call(
         {"device_id": head.id, "value": 8.3, "measured_at": "2026-09-30 08:00:00"}
     )
     assert response["ok"] is True
-    first = regulator.head_state(1).measurements[0]
+    first = regulator.series(1)[0]
     assert first.value == 8.3
     # The offset of that date in Home Assistant's time zone (not today's: they
     # differ across a daylight saving change)
@@ -383,7 +381,7 @@ async def test_setup_and_record_measurement_service(
             DOMAIN, service, data, blocking=True, return_response=True
         )
 
-    first = regulator.head_state(1).measurements[0]
+    first = regulator.series(1)[0]
     stamp = first.at.isoformat()
     response = await edit(
         "update_measurement",
@@ -395,7 +393,7 @@ async def test_setup_and_record_measurement_service(
         },
     )
     assert response["ok"] is True
-    moved = regulator.head_state(1).measurements[0]
+    moved = regulator.series(1)[0]
     assert moved.value == 8.6
     assert moved.at == datetime(2026, 9, 29, 8, tzinfo=dt_util.get_default_time_zone())
     # Only the value: the date is kept
@@ -404,7 +402,7 @@ async def test_setup_and_record_measurement_service(
         {"device_id": head.id, "measured_at": moved.at.isoformat(), "value": 8.5},
     )
     assert response["ok"] is True and moved.value == 8.5
-    count = len(regulator.head_state(1).measurements)
+    count = len(regulator.series(1))
     response = await edit(
         "delete_measurement",
         {"device_id": head.id, "measured_at": moved.at.isoformat()},
@@ -488,7 +486,7 @@ async def test_test_kit_entities(hass: HomeAssistant) -> None:
     await reagent.async_set_native_value(0.5)
     assert regulator.head_state(1).settings.measurement == 8.0
     await found["regulation_record"].async_press()
-    assert regulator.head_state(1).measurements[-1].source == "salifert_kh"
+    assert regulator.series(1)[-1].source == "salifert_kh"
     # Another parameter: the kit goes back to manual entry
     await found["regulation_parameter"].async_select_option("ca")
     assert kit.current_option == "manual"

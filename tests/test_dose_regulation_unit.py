@@ -536,6 +536,9 @@ async def test_store_saves_reloads_and_notifies(hass: HomeAssistant) -> None:
     calls: list[int] = []
     remove = store.async_add_listener(lambda: calls.append(1))
     store.heads[1].settings.set("mode", "assisted")
+    # A shared chemistry series is saved at the store level, not per head
+    store.series("kh").append(R.Measurement(T0, "kh", 7.0))
+    store.series("ca").append(R.Measurement(T0, "ca", 420.0))
     await store.async_save()
     store.async_delay_save()
     assert calls == [1, 1]
@@ -547,11 +550,70 @@ async def test_store_saves_reloads_and_notifies(hass: HomeAssistant) -> None:
     await again.async_load()
     assert again.heads[1].settings.mode == "assisted"
     assert again.heads[2].settings.mode == "off"
+    # The shared series read back by chemistry, bad keys ignored
+    assert [m.value for m in again.series("kh")] == [7.0]
+    assert [m.value for m in again.series("ca")] == [420.0]
+
+
+def test_load_series_sorts_and_drops_bad() -> None:
+    raw = [
+        {"at": (T0 + timedelta(days=1)).isoformat(), "parameter": "kh", "value": 8.0},
+        {"at": T0.isoformat(), "parameter": "kh", "value": 7.0},
+        "garbage",
+    ]
+    assert [m.value for m in R._load_series(raw)] == [7.0, 8.0]
+
+
+async def test_migrates_old_per_head_measurements(hass: HomeAssistant) -> None:
+    """A store written before chemistry was tank-wide is folded and deduped."""
+    old = R.RegulationStore(hass, "e_mig", [1, 2])
+    await old.async_load()
+    # Reach into the stored shape: results kept under each head, no chemistry
+    raw = old._data()
+    raw["heads"]["1"]["measurements"] = [
+        R.Measurement(T0, "kh", 7.0).as_dict(),
+        R.Measurement(T0 + timedelta(days=1), "ca", 420.0).as_dict(),
+    ]
+    raw["heads"]["2"]["measurements"] = [R.Measurement(T0, "kh", 7.0).as_dict()]
+    del raw["chemistry"]
+    await old._store.async_save(raw)
+
+    migrated = R.RegulationStore(hass, "e_mig", [1, 2])
+    await migrated.async_load()
+    # The duplicate KH test on head 2 is dropped; CA kept
+    assert [m.value for m in migrated.series("kh")] == [7.0]
+    assert [m.value for m in migrated.series("ca")] == [420.0]
+    # The per-head carrier is cleared after the fold
+    assert migrated.heads[1].measurements == []
 
 
 # =============================================================================
 # Regulator: assisted mode
 # =============================================================================
+
+
+async def test_one_head_per_chemistry(hass: HomeAssistant) -> None:
+    """Two heads cannot regulate the same chemistry in assisted mode."""
+    regulator, _doser, _clock = await _regulator(hass)
+    await regulator.async_set(1, "mode", "assisted")  # KH by default
+    with pytest.raises(ValueError, match="kh is already regulated by head 1"):
+        await regulator.async_set(2, "mode", "assisted")
+    # On another chemistry head 2 is welcome
+    await regulator.async_set(2, "parameter", "ca")
+    await regulator.async_set(2, "mode", "assisted")
+    assert regulator.head_state(2).settings.mode == "assisted"
+    # And head 1 may not switch onto the chemistry head 2 now holds
+    with pytest.raises(ValueError, match="ca is already regulated by head 2"):
+        await regulator.async_set(1, "parameter", "ca")
+
+
+async def test_measured_value_entry_point(hass: HomeAssistant) -> None:
+    """The current reading and its origin, shared by chemistry."""
+    regulator, _doser, _clock = await _regulator(hass)
+    await regulator.async_set(1, "mode", "assisted")  # KH
+    assert regulator.measured_value(1) == (None, None)
+    regulator.store.series("kh").append(R.Measurement(T0, "kh", 7.4))
+    assert regulator.measured_value(1) == (7.4, "manual")
 
 
 async def test_assisted_flow(hass: HomeAssistant) -> None:
@@ -616,7 +678,7 @@ async def test_assisted_suspect_then_confirmed(hass: HomeAssistant) -> None:
     clock.advance(hours=1)
     result = await regulator.async_record(1, 9.1)
     assert not result["suspect"]
-    assert not any(m.suspect for m in state.measurements)
+    assert not any(m.suspect for m in regulator.series(1))
     assert state.status in ("proposal", "in_range")
 
 
@@ -635,7 +697,7 @@ async def test_assisted_other_parameter_and_garbage(hass: HomeAssistant) -> None
     # from the correction only
     await regulator.async_set(1, "measurement", 7.0)
     await regulator.async_record(1)
-    assert state.measurements[-1].value == 7.0
+    assert regulator.store.series("kh")[-1].value == 7.0
     assert state.proposal is not None and state.proposal.current == 0.0
 
 
@@ -1022,7 +1084,7 @@ async def test_refractometer_check(hass: HomeAssistant) -> None:
         "gap": -0.3,
     }
     assert state.last_check == clock() and not regulator.prudent(1)
-    assert state.measurements[-1].source == "refractometer"
+    assert regulator.store.series("salinity")[-1].source == "refractometer"
     # Out of tolerance: recalibration needed, the regulation pauses
     clock.advance(days=30)
     result = await regulator.async_record(1, 36.0)
@@ -1205,6 +1267,8 @@ async def test_assisted_mode_takes_the_potency_of_the_supplement(
     assert settings.potency == 0.03
     await regulator.async_set(1, "potency", 0)
     assert settings.potency == 0
+    # Head 1 steps aside so head 2 can take the default chemistry
+    await regulator.async_set(1, "mode", "off")
     # An unknown supplement: the parameter stays as it was
     doser.data[SUPPLEMENT(2)] = "unknown"
     await regulator.async_set(2, "mode", "assisted")
@@ -1284,7 +1348,7 @@ async def test_assisted_review_cases(hass: HomeAssistant) -> None:
     # A back-dated result is not checked against a later one
     result = await regulator.async_record(1, 20.0, "kh", T0 - timedelta(days=1))
     assert result["suspect"] is False
-    assert state.measurements[0].value == 20.0
+    assert regulator.store.series("kh")[0].value == 20.0
 
 
 async def test_tick_refreshes_assisted_heads(hass: HomeAssistant) -> None:
@@ -1414,26 +1478,26 @@ async def test_edit_measurement_history(hass: HomeAssistant) -> None:
     await regulator.async_record(1, 7.0, at=T0)
     clock.advance(days=2)
     await regulator.async_record(1, 7.2, at=clock.at)
-    state = regulator.head_state(1)
-    assert [m.source for m in state.measurements] == ["manual", "manual"]
-    state.measurements[1].suspect = True
+    kh = regulator.store.series("kh")
+    assert [m.source for m in kh] == ["manual", "manual"]
+    kh[1].suspect = True
     # Microseconds are not part of the identity of a test
     result = await regulator.async_update_measurement(
         1, clock.at.replace(microsecond=5), value=7.5
     )
     assert result == {"ok": True, "measurements": 2}
-    assert state.measurements[1].value == 7.5
-    assert state.measurements[1].suspect is False
+    assert kh[1].value == 7.5
+    assert kh[1].suspect is False
     # Moved before the first one: the history stays in order
     await regulator.async_update_measurement(1, clock.at, new_at=T0 - timedelta(days=1))
-    assert [m.value for m in state.measurements] == [7.5, 7.0]
+    assert [m.value for m in regulator.store.series("kh")] == [7.5, 7.0]
     with pytest.raises(ValueError, match="no kh measurement"):
         await regulator.async_delete_measurement(1, T0 + timedelta(hours=1))
     with pytest.raises(ValueError, match="no ca measurement"):
         await regulator.async_delete_measurement(1, T0, "ca")
     await regulator.async_delete_measurement(1, T0)
-    assert [m.value for m in state.measurements] == [7.5]
+    assert [m.value for m in regulator.store.series("kh")] == [7.5]
     # Out of assisted mode no proposal is made, the history still changes
     await regulator.async_set(1, "mode", "off")
     await regulator.async_delete_measurement(1, T0 - timedelta(days=1))
-    assert state.measurements == []
+    assert regulator.store.series("kh") == []

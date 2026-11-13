@@ -554,6 +554,15 @@ class Measurement:
         )
 
 
+def _load_series(raw: Any) -> list[Measurement]:
+    """A stored chemistry series, bad entries dropped, sorted by date."""
+    series = [
+        m for m in (Measurement.from_dict(r) for r in _as_list(raw)) if m is not None
+    ]
+    series.sort(key=lambda m: m.at)
+    return series
+
+
 def estimate_consumption(
     measurements: list[Measurement],
     dosed: Callable[[datetime, datetime], float],
@@ -954,7 +963,6 @@ class HeadState:
         return {
             "settings": self.settings.as_dict(),
             "daily": self.daily,
-            "measurements": [m.as_dict() for m in self.measurements],
             "proposal": self.proposal.as_dict() if self.proposal else None,
             "history": self.history,
             "brine": {
@@ -974,8 +982,6 @@ class HeadState:
         """Drop what is older than the history kept."""
         oldest = (now - timedelta(days=HISTORY_DAYS)).date().isoformat()
         self.daily = {k: v for k, v in self.daily.items() if k >= oldest}
-        limit = now - timedelta(days=HISTORY_DAYS)
-        self.measurements = [m for m in self.measurements if m.at >= limit]
         self.history = self.history[-50:]
         kept_days = sorted(self.day_sums)[-DAY_STATS_KEPT:]
         self.day_sums = {k: self.day_sums[k] for k in kept_days}
@@ -991,6 +997,9 @@ class RegulationStore:
             hass, STORAGE_VERSION, STORAGE_KEY_TPL.format(entry_id=entry_id)
         )
         self.heads: dict[int, HeadState] = {head: HeadState.empty() for head in heads}
+        # Test results shared by chemistry (``kh``, ``ca``…), tank-wide: a
+        # measurement is a property of the water, not of the head that dosed.
+        self.chemistry: dict[str, list[Measurement]] = {}
         self._listeners: list[Callable[[], None]] = []
 
     async def async_load(self) -> None:
@@ -998,9 +1007,60 @@ class RegulationStore:
         stored = _as_dict(raw.get("heads")) or {}
         for head in self.heads:
             self.heads[head] = HeadState.from_dict(stored.get(str(head)))
+        chemistry = _as_dict(raw.get("chemistry"))
+        if chemistry is None:
+            self._migrate_head_measurements()
+        else:
+            self.chemistry = {
+                parameter: series
+                for parameter, series in (
+                    (p, _load_series(v)) for p, v in chemistry.items()
+                )
+                if parameter in PARAMETERS and series
+            }
+        # The per-head series is now only a migration carrier; free it.
+        for state in self.heads.values():
+            state.measurements = []
+
+    def _migrate_head_measurements(self) -> None:
+        """Fold the old per-head measurements into the shared series (once).
+
+        Results stored before chemistry was tank-wide were kept under each
+        head; the same test could sit on several heads, so fold and dedup.
+        """
+        seen: set[tuple[str, str, float]] = set()
+        for state in self.heads.values():
+            for m in state.measurements:
+                key = (m.parameter, m.at.replace(microsecond=0).isoformat(), m.value)
+                if key in seen:
+                    continue
+                seen.add(key)
+                self.chemistry.setdefault(m.parameter, []).append(m)
+        for series in self.chemistry.values():
+            series.sort(key=lambda m: m.at)
+
+    def series(self, parameter: str) -> list[Measurement]:
+        """The shared series of a chemistry, created empty on first use."""
+        return self.chemistry.setdefault(parameter, [])
+
+    def prune_series(self, now: datetime) -> None:
+        """Drop results older than the history kept, series by series."""
+        limit = now - timedelta(days=HISTORY_DAYS)
+        for parameter, serie in list(self.chemistry.items()):
+            kept = [m for m in serie if m.at >= limit]
+            if kept:
+                self.chemistry[parameter] = kept
+            else:
+                del self.chemistry[parameter]
 
     def _data(self) -> dict[str, Any]:
-        return {"heads": {str(h): s.as_dict() for h, s in self.heads.items()}}
+        return {
+            "heads": {str(h): s.as_dict() for h, s in self.heads.items()},
+            "chemistry": {
+                parameter: [m.as_dict() for m in serie]
+                for parameter, serie in self.chemistry.items()
+            },
+        }
 
     async def async_save(self) -> None:
         await self._store.async_save(self._data())
@@ -1138,6 +1198,23 @@ class DoseRegulator:
     def head_state(self, head: int) -> HeadState:
         return self.store.heads[head]
 
+    def series(self, head: int) -> list[Measurement]:
+        """The shared chemistry series of the head's regulated parameter."""
+        return self.store.series(self.head_state(head).settings.parameter)
+
+    def measured_value(self, head: int) -> tuple[float | None, str | None]:
+        """Latest reading of the head's chemistry and where it comes from.
+
+        Single entry point for the card and the proposal. A reeftank
+        per-chemistry sensor is meant to take precedence once the tank
+        integration exposes one; for now the shared manual-test series is
+        the only source (origin ``manual``), None when nothing was tested.
+        """
+        serie = self.series(head)
+        if serie:
+            return serie[-1].value, "manual"
+        return None, None
+
     def bundled(self) -> bool:
         return bool(
             self.device.get_data(
@@ -1193,6 +1270,7 @@ class DoseRegulator:
             state = self.store.heads[head]
             state.daily.update(days)
             state.prune(now)
+        self.store.prune_series(now)
         await self.store.async_save()
 
     async def _async_stop_schedule(self, head: int) -> None:
@@ -1320,6 +1398,8 @@ class DoseRegulator:
         bundled = self.bundled()
         if bundled:
             self._check_bundle(head, key, value)
+        elif key in ("mode", "parameter"):
+            self._check_single_regulator(head, key, value)
         state.settings.set(key, value)
         if bundled and key == "mode" and value == "assisted":
             state.settings.set("parameter", BUNDLE_PARAMETER)
@@ -1371,6 +1451,35 @@ class DoseRegulator:
         if key == "parameter" and value != BUNDLE_PARAMETER:
             raise ValueError("bundled heads: the calcium is regulated")
 
+    def _effective_regulation(self, head: int, key: str, value: Any) -> tuple[str, str]:
+        """The (mode, parameter) the head would regulate after this change.
+
+        Mirrors the auto-parameter of ``async_set``: entering assisted mode
+        on a Red Sea supplement adopts the parameter that supplement raises.
+        """
+        settings = self.store.heads[head].settings
+        mode = value if key == "mode" else settings.mode
+        parameter = value if key == "parameter" else settings.parameter
+        if mode == "assisted" and key == "mode" and settings.potency <= 0:
+            known = self.supplement_potency(head)
+            if known is not None:
+                parameter = known[0]
+        return mode, parameter
+
+    def _check_single_regulator(self, head: int, key: str, value: Any) -> None:
+        """Only one head may regulate a given chemistry in assisted mode.
+
+        @raise ValueError: another head already regulates that chemistry
+        """
+        mode, parameter = self._effective_regulation(head, key, value)
+        if mode != "assisted":
+            return
+        for other, state in self.store.heads.items():
+            if other == head or state.settings.mode != "assisted":
+                continue
+            if state.settings.parameter == parameter:
+                raise ValueError(f"{parameter} is already regulated by head {other}")
+
     def _bundle_allows(self, head: int) -> bool:
         """Whether a head's regulation runs while the heads are bundled."""
         settings = self.store.heads[head].settings
@@ -1413,6 +1522,7 @@ class DoseRegulator:
         else:
             result = self._record_test(head, float(value), parameter, at, source)
         state.prune(self.now())
+        self.store.prune_series(self.now())
         self.refresh_status(head)
         await self.store.async_save()
         if result.get("checked") and result.get("within"):
@@ -1433,7 +1543,8 @@ class DoseRegulator:
             at=at, parameter=parameter, value=value, source=source
         )
         result: dict[str, Any] = {"recorded": True, "suspect": False}
-        same = [m for m in state.measurements if m.parameter == parameter]
+        serie = self.store.series(parameter)
+        same = list(serie)
         volume, _ = self.volume(head)
         regulated = settings.mode == "assisted" and parameter == settings.parameter
         previous = max(same, key=lambda m: m.at) if same else None
@@ -1462,8 +1573,8 @@ class DoseRegulator:
                     settings.tolerance,
                 )
         result["suspect"] = measurement.suspect
-        state.measurements.append(measurement)
-        state.measurements.sort(key=lambda m: m.at)
+        serie.append(measurement)
+        serie.sort(key=lambda m: m.at)
         if regulated:
             self._propose(head)
         return result
@@ -1486,7 +1597,7 @@ class DoseRegulator:
         if not volume or settings.potency <= 0 or settings.mode not in self.modes(head):
             state.proposal = None
             return
-        tested = [m for m in state.measurements if m.parameter == settings.parameter]
+        tested = self.store.series(settings.parameter)
         same = [m for m in tested if not m.suspect]
         # The last test is in doubt: wait for the retest
         if not same or tested[-1].suspect:
@@ -1536,11 +1647,8 @@ class DoseRegulator:
         """
         parameter = parameter or self.store.heads[head].settings.parameter
         stamp = at.replace(microsecond=0)
-        for measurement in self.store.heads[head].measurements:
-            if (
-                measurement.parameter == parameter
-                and measurement.at.replace(microsecond=0) == stamp
-            ):
+        for measurement in self.store.series(parameter):
+            if measurement.at.replace(microsecond=0) == stamp:
                 return measurement
         raise ValueError(f"no {parameter} measurement at {at.isoformat()}")
 
@@ -1559,14 +1667,13 @@ class DoseRegulator:
 
         @raise ValueError: no such measurement
         """
-        state = self.store.heads[head]
         measurement = self._find_measurement(head, at, parameter)
         if value is not None:
             measurement.value = float(value)
             measurement.suspect = False
         if new_at is not None:
             measurement.at = new_at
-        state.measurements.sort(key=lambda m: m.at)
+        self.store.series(measurement.parameter).sort(key=lambda m: m.at)
         return await self._async_history_changed(head, measurement.parameter)
 
     async def async_delete_measurement(
@@ -1576,9 +1683,8 @@ class DoseRegulator:
 
         @raise ValueError: no such measurement
         """
-        state = self.store.heads[head]
         measurement = self._find_measurement(head, at, parameter)
-        state.measurements.remove(measurement)
+        self.store.series(measurement.parameter).remove(measurement)
         return await self._async_history_changed(head, measurement.parameter)
 
     async def _async_history_changed(self, head: int, parameter: str) -> dict[str, Any]:
@@ -1588,7 +1694,7 @@ class DoseRegulator:
             self._propose(head)
         self.refresh_status(head)
         await self.store.async_save()
-        return {"ok": True, "measurements": len(state.measurements)}
+        return {"ok": True, "measurements": len(self.store.series(parameter))}
 
     async def async_dismiss(self, head: int) -> None:
         """Forget the pending proposal."""
@@ -1621,8 +1727,9 @@ class DoseRegulator:
             source="refractometer",
             probe_value=None if probe is None else round(probe, 2),
         )
-        state.measurements.append(measurement)
-        state.measurements.sort(key=lambda m: m.at)
+        serie = self.store.series("salinity")
+        serie.append(measurement)
+        serie.sort(key=lambda m: m.at)
         if probe is None:
             return {"recorded": True, "checked": False}
         gap = probe - value
@@ -1858,9 +1965,7 @@ class DoseRegulator:
         missing = self._missing(head)
         if missing:
             return "not_configured", None, {"missing": missing}
-        same = [
-            m for m in state.measurements if m.parameter == state.settings.parameter
-        ]
+        same = self.store.series(state.settings.parameter)
         details = {k: v for k, v in state.details.items() if k == "last_proposal"}
         if not same:
             return "waiting_data", None, details
