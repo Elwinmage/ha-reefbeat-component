@@ -21,9 +21,15 @@ It keeps `<config>/<domain>/catalog/` up to date (check at start-up then
 every 12 hours, automatic install unless switched off), merges it with the
 built-in snapshot (`catalog_builtin/` next to this file) and the user folder
 (`<config>/<domain>/catalog_user/`), serves the visuals at
-`/<domain>_catalog/{builtin,pack,user}/...` and answers the cards on the
+`/<domain>_catalog/{builtin,pack,shared,user}/...` and answers the cards on the
 websocket (`<domain>/catalog`, `<domain>/catalog/subscribe`, and for the
 equipment section `<domain>/catalog/maintenance`).
+
+It also reads the user layer shared by every integration,
+`<config>/reeftech_catalog/user/<section>/` (written by catalog editors), between
+the downloaded pack and the user folder of the domain. A writer tells the
+integrations to reload it by sending the dispatcher signal
+`SIGNAL_USER_CATALOG_CHANGED` (argument: the section changed, or None).
 
 Translation keys expected in the integration: the exceptions
 `catalog_unknown`, `catalog_incompatible` (placeholders `version`, `minimum`)
@@ -55,7 +61,10 @@ from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
-from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.dispatcher import (
+    async_dispatcher_connect,
+    async_dispatcher_send,
+)
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.storage import Store
@@ -96,6 +105,7 @@ from .catalog_pack import (
     read_installed,
     resolve_maintenance,
     select,
+    shared_user_parts,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -105,6 +115,9 @@ BUILTIN_DIR = Path(__file__).parent / "catalog_builtin"
 #: Version shown while no pack is installed
 NOT_INSTALLED = "0"
 MANUFACTURER = "ReefTech"
+#: Sent by whoever writes in the shared user layer, with the section changed
+#: (or None for all of them): every updater of that section reloads its view.
+SIGNAL_USER_CATALOG_CHANGED = "reeftech_catalog_user_changed"
 
 
 @dataclass(frozen=True)
@@ -149,6 +162,9 @@ class CatalogUpdater:
         self.integration_version = integration_version
         self.root = Path(hass.config.path(spec.domain, "catalog"))
         self.user_root = Path(hass.config.path(spec.domain, "catalog_user"))
+        self.shared_root = Path(hass.config.path(*shared_user_parts(spec.section)))
+        #: Counts the reloads asked by writers; stamps the visuals of the shared layer
+        self.user_revision = 0
         self.client = PackClient(async_get_clientsession(hass), spec.section, spec.repo)
         self.installed: Manifest | None = None
         self.latest: Manifest | None = None
@@ -161,6 +177,7 @@ class CatalogUpdater:
         self._view: dict[str, Any] | None = None
         self._listeners: list[Callable[[], None]] = []
         self._unsub_timer: CALLBACK_TYPE | None = None
+        self._unsub_user: CALLBACK_TYPE | None = None
 
     # -- state ----------------------------------------------------------------
 
@@ -212,6 +229,9 @@ class CatalogUpdater:
         # Loaded before the platforms, so that entities read it synchronously
         await self.async_view(refresh=True)
         self._notify()
+        self._unsub_user = async_dispatcher_connect(
+            self.hass, SIGNAL_USER_CATALOG_CHANGED, self._on_user_changed
+        )
         self._unsub_timer = async_track_time_interval(
             self.hass, self._async_timer, timedelta(hours=self.spec.check_hours)
         )
@@ -223,6 +243,7 @@ class CatalogUpdater:
     def _prepare_folders(self) -> Manifest | None:
         self.root.mkdir(parents=True, exist_ok=True)
         self.user_root.mkdir(parents=True, exist_ok=True)
+        self.shared_root.mkdir(parents=True, exist_ok=True)
         return read_installed(self.root, self.spec.section)
 
     @callback
@@ -231,9 +252,26 @@ class CatalogUpdater:
         if self._unsub_timer is not None:
             self._unsub_timer()
             self._unsub_timer = None
+        if self._unsub_user is not None:
+            self._unsub_user()
+            self._unsub_user = None
 
     async def _async_timer(self, _now: Any) -> None:
         await self.async_check()
+
+    @callback
+    def _on_user_changed(self, section: str | None = None) -> None:
+        """A writer changed the shared user layer: reload it in the background."""
+        if section is not None and section != self.spec.section:
+            return
+        self.hass.async_create_background_task(
+            self._async_reload_user(), f"{self.spec.domain} user catalog reload"
+        )
+
+    async def _async_reload_user(self) -> None:
+        self.user_revision += 1
+        await self.async_view(refresh=True)
+        self._notify()
 
     async def async_set_auto_update(self, value: bool) -> None:
         """Turn automatic installs on or off (kept across restarts)."""
@@ -350,6 +388,9 @@ class CatalogUpdater:
                 )
             )
         layers.append(Layer("pack", self.root, f"{base}/pack", installed))
+        layers.append(
+            Layer("user", self.shared_root, f"{base}/shared", f"u{self.user_revision}")
+        )
         layers.append(Layer("user", self.user_root, f"{base}/user", "user"))
         return layers
 
@@ -359,7 +400,7 @@ class CatalogUpdater:
         return self._view or {}
 
     async def async_view(self, refresh: bool = False) -> dict[str, Any]:
-        """Merged catalog (built-in < downloaded < user), re-read on demand."""
+        """Merged catalog (built-in < downloaded < shared user < user), re-read on demand."""
         view = self._view
         if view is None or refresh:
             view = await self.hass.async_add_executor_job(

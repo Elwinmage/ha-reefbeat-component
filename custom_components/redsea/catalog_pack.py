@@ -23,11 +23,15 @@ Home Assistant side). A section release holds a `manifest.json`:
     }
 
 Installed packs, the built-in snapshot shipped with an integration and the
-user folder share the repository layout of the section:
+user folders share the repository layout of the section:
 
     tasks/<task_id>.json                                 (equipment)
     categories/<id>/category.json [+ image.webp, ...]   (equipment)
-    items/<id>/item.json | supplement.json [+ ...]      (both)
+    items/<id>/item.json | supplement.json | parameter.json [+ ...]
+
+A manifest may also carry a `schema` record: the JSON Schemas the entries of
+the section are checked against (data only, no code), for tools that edit the
+catalog. Consumers reading the entries ignore it.
 """
 
 from __future__ import annotations
@@ -59,11 +63,19 @@ KIND_LAYOUT: dict[str, tuple[str, str | None]] = {
     "category": ("categories", "category.json"),
     "item": ("items", "item.json"),
     "supplement": ("items", "supplement.json"),
+    "parameter": ("items", "parameter.json"),
 }
 SECTION_KINDS: dict[str, frozenset[str]] = {
     "equipment": frozenset({"tasks", "category", "item"}),
     "supplements": frozenset({"supplement"}),
+    "parameters": frozenset({"parameter"}),
 }
+#: Kind of the manifest `schema` record (not an entry of the section)
+SCHEMA_KIND = "schema"
+#: Folders, under the Home Assistant config folder, of the user layer shared by
+#: every integration: <config>/reeftech_catalog/user/<section>/ (section layout)
+SHARED_FOLDER = "reeftech_catalog"
+SHARED_USER_FOLDER = "user"
 IMAGE_FILES = ("image.webp", "image.png")
 THUMB_FILE = "thumb.webp"
 ALLOWED_SUFFIXES = (".json", ".webp", ".png")
@@ -123,6 +135,13 @@ class Manifest:
     notes: str = ""
     entries: dict[str, PackEntry] = field(default_factory=dict)
     raw: dict[str, Any] = field(default_factory=dict)
+    #: Archive of the JSON Schemas of the section, when the release has one
+    schema: PackEntry | None = None
+
+
+def shared_user_parts(section: str) -> tuple[str, ...]:
+    """Path parts, under the config folder, of the shared user layer of a section."""
+    return (SHARED_FOLDER, SHARED_USER_FOLDER, section)
 
 
 def _check_version(value: Any, what: str) -> str:
@@ -131,19 +150,10 @@ def _check_version(value: Any, what: str) -> str:
     return value
 
 
-def _parse_entry(name: str, item: Any, section: str) -> PackEntry:
-    if not isinstance(item, dict):
-        raise PackError(f"entry {name} is not an object")
-    kind = item.get("kind")
-    if kind not in SECTION_KINDS[section]:
-        raise PackError(f"entry {name}: kind {kind!r} not in section {section}")
-    if kind == "tasks":
-        if name != "tasks":
-            raise PackError(f"bad entry name {name!r}")
-    else:
-        prefix, _, entry_id = name.partition(".")
-        if prefix != kind or not _ID_RE.match(entry_id):
-            raise PackError(f"bad entry name {name!r}")
+def _parse_archive(
+    name: str, kind: str, item: dict[str, Any], section: str
+) -> PackEntry:
+    """The archive fields (sha256, size, archive, since) of a manifest record."""
     sha = item.get("sha256")
     size = item.get("size")
     archive = item.get("archive")
@@ -162,12 +172,35 @@ def _parse_entry(name: str, item: Any, section: str) -> PackEntry:
     ):
         raise PackError(f"entry {name}: bad archive {archive!r}")
     since = _check_version(item.get("since"), f"entry {name} version")
+    return PackEntry(name, kind, sha, size, archive, since)
+
+
+def _parse_entry(name: str, item: Any, section: str) -> PackEntry:
+    if not isinstance(item, dict):
+        raise PackError(f"entry {name} is not an object")
+    kind = item.get("kind")
+    if kind not in SECTION_KINDS[section]:
+        raise PackError(f"entry {name}: kind {kind!r} not in section {section}")
+    if kind == "tasks":
+        if name != "tasks":
+            raise PackError(f"bad entry name {name!r}")
+    else:
+        prefix, _, entry_id = name.partition(".")
+        if prefix != kind or not _ID_RE.match(entry_id):
+            raise PackError(f"bad entry name {name!r}")
+    entry = _parse_archive(name, kind, item, section)
     scopes = item.get("scopes")
     if scopes is not None:
         if not isinstance(scopes, list) or not all(isinstance(s, str) for s in scopes):
             raise PackError(f"entry {name}: bad scopes")
-        scopes = tuple(scopes)
-    return PackEntry(name, kind, sha, size, archive, since, scopes)
+        entry = replace(entry, scopes=tuple(scopes))
+    return entry
+
+
+def _parse_schema(item: Any, section: str) -> PackEntry:
+    if not isinstance(item, dict):
+        raise PackError("schema is not an object")
+    return _parse_archive(SCHEMA_KIND, SCHEMA_KIND, item, section)
 
 
 def parse_manifest(data: Any, section: str) -> Manifest:
@@ -198,7 +231,8 @@ def parse_manifest(data: Any, section: str) -> Manifest:
         name: _parse_entry(str(name), item, section)
         for name, item in raw_entries.items()
     }
-    return Manifest(section, version, dict(minimum), notes, entries, data)
+    schema = _parse_schema(data["schema"], section) if "schema" in data else None
+    return Manifest(section, version, dict(minimum), notes, entries, data, schema)
 
 
 def select(manifest: Manifest, scopes: Iterable[str] | None) -> Manifest:
@@ -309,7 +343,8 @@ def extract_entry(blob: bytes, entry: PackEntry, dest: Path) -> None:
         if total > 4 * MAX_ENTRY_BYTES:
             raise PackError(f"{entry.name}: too big once extracted")
         names = {i.filename for i in infos}
-        _, descriptor = KIND_LAYOUT[entry.kind]
+        # The schema archive has no descriptor, only JSON files
+        _, descriptor = KIND_LAYOUT.get(entry.kind, ("", None))
         if descriptor is not None and descriptor not in names:
             raise PackError(f"{entry.name}: no {descriptor}")
         for name in sorted(names):
@@ -419,7 +454,7 @@ class PackClient:
 class Layer:
     """A folder holding catalog entries, and how its files are served."""
 
-    name: str  # builtin | pack | user
+    name: str  # builtin | pack | user (the shared and the domain folders)
     root: Path
     url: str  # URL the folder is served at
     stamp: str  # appended to file URLs so that browsers reload changed files
