@@ -1,0 +1,26 @@
+{
+  "brand": "Salifert",
+  "name": "Calcium Profi Test",
+  "tests": [
+    {
+      "parameter": "ca",
+      "unit": "ppm",
+      "method": "titration",
+      "table": {
+        "amount_unit": "ml",
+        "points": [
+          {
+            "amount": 0,
+            "value": 0
+          },
+          {
+            "amount": 1,
+            "value": 500
+          }
+        ]
+      }
+    }
+  ],
+  "verified": true,
+  "source": "Salifert Ca Profi Test instructions: ppm Ca = 500 - 500 x syringe reading (1 ml syringe, 2 ml sample), amount used = 1 - reading"
+}

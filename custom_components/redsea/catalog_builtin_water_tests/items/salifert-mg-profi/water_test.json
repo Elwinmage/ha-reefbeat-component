@@ -1,0 +1,26 @@
+{
+  "brand": "Salifert",
+  "name": "Mg Profi Test",
+  "tests": [
+    {
+      "parameter": "mg",
+      "unit": "ppm",
+      "method": "titration",
+      "table": {
+        "amount_unit": "ml",
+        "points": [
+          {
+            "amount": 0,
+            "value": 0
+          },
+          {
+            "amount": 1,
+            "value": 1500
+          }
+        ]
+      }
+    }
+  ],
+  "verified": false,
+  "source": "Carried over from the previous ReefDose test table (Salifert Mg: ppm = (1 - syringe reading) x 1500, 2 ml sample); the manual was not checked"
+}

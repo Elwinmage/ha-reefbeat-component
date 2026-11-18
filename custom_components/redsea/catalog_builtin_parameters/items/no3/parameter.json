@@ -1,0 +1,25 @@
+{
+  "name": {
+    "en": "Nitrate",
+    "fr": "Nitrate"
+  },
+  "symbol": "NO3",
+  "category": "nutrient",
+  "unit": "ppm",
+  "decimals": 1,
+  "icon": "mdi:molecule",
+  "effect_parameter": "no3",
+  "range": {
+    "min": 0,
+    "max": 20,
+    "low": 1,
+    "high": 10,
+    "optimal": 5
+  },
+  "regulation": {
+    "tolerance": 1,
+    "max_rate": 2,
+    "step": 0.1
+  },
+  "source": "Red Sea Reef Care reference program"
+}

@@ -1,0 +1,25 @@
+{
+  "name": {
+    "en": "Iodine",
+    "fr": "Iode"
+  },
+  "symbol": "I",
+  "category": "trace",
+  "unit": "ppb",
+  "decimals": 0,
+  "icon": "mdi:alpha-i-circle-outline",
+  "effect_parameter": "i",
+  "range": {
+    "min": 0,
+    "max": 120,
+    "low": 40,
+    "high": 80,
+    "optimal": 60
+  },
+  "regulation": {
+    "tolerance": 10,
+    "max_rate": 10,
+    "step": 1
+  },
+  "source": "Common reef-keeping range"
+}

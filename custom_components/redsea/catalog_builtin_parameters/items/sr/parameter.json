@@ -1,0 +1,20 @@
+{
+  "name": {
+    "en": "Strontium",
+    "fr": "Strontium"
+  },
+  "symbol": "Sr",
+  "category": "minor",
+  "unit": "ppm",
+  "decimals": 1,
+  "icon": "mdi:alpha-s-circle-outline",
+  "effect_parameter": "sr",
+  "range": {
+    "min": 4,
+    "max": 14,
+    "low": 8,
+    "high": 10,
+    "optimal": 9
+  },
+  "source": "Common reef-keeping range"
+}

@@ -1,0 +1,26 @@
+{
+  "brand": "Colombo",
+  "name": "Marine KH Test",
+  "tests": [
+    {
+      "parameter": "kh",
+      "unit": "dkh",
+      "method": "titration",
+      "table": {
+        "amount_unit": "ml",
+        "points": [
+          {
+            "amount": 0,
+            "value": 0
+          },
+          {
+            "amount": 1,
+            "value": 20
+          }
+        ]
+      }
+    }
+  ],
+  "verified": false,
+  "source": "Carried over from the previous ReefDose test table (Colombo Marine KH: dKH = ml of KH-2 used x 20, 5 ml sample); the manual was not checked"
+}

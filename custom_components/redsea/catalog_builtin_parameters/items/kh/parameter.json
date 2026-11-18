@@ -1,0 +1,25 @@
+{
+  "name": {
+    "en": "Alkalinity",
+    "fr": "Alcalinité"
+  },
+  "symbol": "KH",
+  "category": "alkalinity",
+  "unit": "dkh",
+  "decimals": 1,
+  "icon": "mdi:water-opacity",
+  "effect_parameter": "kh",
+  "range": {
+    "min": 6,
+    "max": 14,
+    "low": 7,
+    "high": 8.5,
+    "optimal": 8
+  },
+  "regulation": {
+    "tolerance": 0.2,
+    "max_rate": 0.5,
+    "step": 0.01
+  },
+  "source": "Red Sea Reef Care reference program"
+}

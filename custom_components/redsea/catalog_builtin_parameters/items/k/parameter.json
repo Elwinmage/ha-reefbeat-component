@@ -1,0 +1,25 @@
+{
+  "name": {
+    "en": "Potassium",
+    "fr": "Potassium"
+  },
+  "symbol": "K",
+  "category": "minor",
+  "unit": "ppm",
+  "decimals": 0,
+  "icon": "mdi:alpha-k-circle-outline",
+  "effect_parameter": "k",
+  "range": {
+    "min": 350,
+    "max": 450,
+    "low": 380,
+    "high": 420,
+    "optimal": 400
+  },
+  "regulation": {
+    "tolerance": 10,
+    "max_rate": 20,
+    "step": 1
+  },
+  "source": "Common reef-keeping range"
+}

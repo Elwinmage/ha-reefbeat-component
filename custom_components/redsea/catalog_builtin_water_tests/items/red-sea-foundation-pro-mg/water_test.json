@@ -1,0 +1,26 @@
+{
+  "brand": "Red Sea",
+  "name": "Reef Foundation Pro Magnesium Test",
+  "tests": [
+    {
+      "parameter": "mg",
+      "unit": "ppm",
+      "method": "titration",
+      "table": {
+        "amount_unit": "ml",
+        "points": [
+          {
+            "amount": 0,
+            "value": 0
+          },
+          {
+            "amount": 1,
+            "value": 2000
+          }
+        ]
+      }
+    }
+  ],
+  "verified": true,
+  "source": "Red Sea Reef Foundation Pro instructions, Mg: titrator 20 ppm (2 ml sample); resolution confirmed by the Red Sea Foundation manual"
+}

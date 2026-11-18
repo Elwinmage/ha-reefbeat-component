@@ -1,0 +1,25 @@
+{
+  "name": {
+    "en": "Magnesium",
+    "fr": "Magnésium"
+  },
+  "symbol": "Mg",
+  "category": "major",
+  "unit": "ppm",
+  "decimals": 0,
+  "icon": "mdi:alpha-m-circle-outline",
+  "effect_parameter": "mg",
+  "range": {
+    "min": 1100,
+    "max": 1500,
+    "low": 1250,
+    "high": 1400,
+    "optimal": 1340
+  },
+  "regulation": {
+    "tolerance": 30,
+    "max_rate": 50,
+    "step": 1
+  },
+  "source": "Red Sea Reef Care reference program"
+}

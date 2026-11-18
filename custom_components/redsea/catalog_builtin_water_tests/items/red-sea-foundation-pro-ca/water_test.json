@@ -1,0 +1,26 @@
+{
+  "brand": "Red Sea",
+  "name": "Reef Foundation Pro Calcium Test",
+  "tests": [
+    {
+      "parameter": "ca",
+      "unit": "ppm",
+      "method": "titration",
+      "table": {
+        "amount_unit": "ml",
+        "points": [
+          {
+            "amount": 0,
+            "value": 0
+          },
+          {
+            "amount": 1,
+            "value": 500
+          }
+        ]
+      }
+    }
+  ],
+  "verified": true,
+  "source": "Red Sea Reef Foundation Pro instructions, Ca: titrator 0.01 ml = 5 ppm (5 ml sample); resolution confirmed by the Red Sea Foundation manual"
+}

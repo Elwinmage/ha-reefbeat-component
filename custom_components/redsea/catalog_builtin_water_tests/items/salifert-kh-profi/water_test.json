@@ -1,0 +1,26 @@
+{
+  "brand": "Salifert",
+  "name": "KH/Alkalinity Profi Test",
+  "tests": [
+    {
+      "parameter": "kh",
+      "unit": "dkh",
+      "method": "titration",
+      "table": {
+        "amount_unit": "ml",
+        "points": [
+          {
+            "amount": 0,
+            "value": 0
+          },
+          {
+            "amount": 1,
+            "value": 16
+          }
+        ]
+      }
+    }
+  ],
+  "verified": false,
+  "source": "Salifert KH instructions as reproduced by retailers: dKH = (1 - syringe reading) x 16 for 4 ml sample (x2 with the 2 ml low resolution mode); official table not checked"
+}

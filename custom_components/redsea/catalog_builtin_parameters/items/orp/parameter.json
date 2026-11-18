@@ -1,0 +1,20 @@
+{
+  "name": {
+    "en": "ORP",
+    "fr": "Potentiel redox"
+  },
+  "symbol": "ORP",
+  "category": "physical",
+  "unit": "mv",
+  "decimals": 0,
+  "icon": "mdi:flash-outline",
+  "device_class": "voltage",
+  "range": {
+    "min": 200,
+    "max": 500,
+    "low": 300,
+    "high": 450,
+    "optimal": 380
+  },
+  "source": "Common reef-keeping range"
+}

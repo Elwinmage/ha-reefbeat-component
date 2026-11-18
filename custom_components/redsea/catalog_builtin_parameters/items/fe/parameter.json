@@ -1,0 +1,25 @@
+{
+  "name": {
+    "en": "Iron",
+    "fr": "Fer"
+  },
+  "symbol": "Fe",
+  "category": "trace",
+  "unit": "ppb",
+  "decimals": 1,
+  "icon": "mdi:alpha-f-circle-outline",
+  "effect_parameter": "fe",
+  "regulation": {
+    "tolerance": 2,
+    "max_rate": 2,
+    "step": 1
+  },
+  "range": {
+    "min": 2,
+    "max": 50,
+    "low": 5,
+    "high": 20,
+    "optimal": 5
+  },
+  "source": "ReefDose regulation default (usual reef target) and the default zones of the reef parameters card"
+}

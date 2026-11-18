@@ -1,0 +1,20 @@
+{
+  "name": {
+    "en": "Temperature",
+    "fr": "Température"
+  },
+  "symbol": "T",
+  "category": "physical",
+  "unit": "celsius",
+  "decimals": 1,
+  "icon": "mdi:thermometer",
+  "device_class": "temperature",
+  "range": {
+    "min": 20,
+    "max": 30,
+    "low": 24,
+    "high": 27,
+    "optimal": 25.5
+  },
+  "source": "Common reef-keeping range"
+}

@@ -1,0 +1,20 @@
+{
+  "name": {
+    "en": "pH",
+    "fr": "pH"
+  },
+  "symbol": "pH",
+  "category": "physical",
+  "unit": "ph",
+  "decimals": 2,
+  "icon": "mdi:ph",
+  "device_class": "ph",
+  "range": {
+    "min": 7.4,
+    "max": 8.6,
+    "low": 7.8,
+    "high": 8.4,
+    "optimal": 8.2
+  },
+  "source": "Common reef-keeping range"
+}

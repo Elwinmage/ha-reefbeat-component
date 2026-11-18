@@ -1,0 +1,25 @@
+{
+  "name": {
+    "en": "Calcium",
+    "fr": "Calcium"
+  },
+  "symbol": "Ca",
+  "category": "major",
+  "unit": "ppm",
+  "decimals": 0,
+  "icon": "mdi:alpha-c-circle-outline",
+  "effect_parameter": "ca",
+  "range": {
+    "min": 360,
+    "max": 480,
+    "low": 410,
+    "high": 450,
+    "optimal": 430
+  },
+  "regulation": {
+    "tolerance": 10,
+    "max_rate": 20,
+    "step": 1
+  },
+  "source": "Red Sea Reef Care reference program"
+}

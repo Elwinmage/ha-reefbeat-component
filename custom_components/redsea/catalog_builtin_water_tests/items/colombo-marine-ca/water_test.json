@@ -1,0 +1,26 @@
+{
+  "brand": "Colombo",
+  "name": "Marine Calcium Test",
+  "tests": [
+    {
+      "parameter": "ca",
+      "unit": "ppm",
+      "method": "titration",
+      "table": {
+        "amount_unit": "ml",
+        "points": [
+          {
+            "amount": 0,
+            "value": 0
+          },
+          {
+            "amount": 1,
+            "value": 500
+          }
+        ]
+      }
+    }
+  ],
+  "verified": false,
+  "source": "Colombo Marine Calcium instructions as reproduced by a retailer: ml of Ca-3 used x 500 = mg/l (5 ml sample); the table of the manual was not checked"
+}
