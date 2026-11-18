@@ -579,13 +579,31 @@ record_measurement:
           integration: redsea
     value:
       name: Value
-      description: Measured value, in the unit of the parameter (dKH, ppm, ppt).
-      required: true
+      description: Measured value, in the unit of the parameter (dKH, ppm, ppt). Not needed with an amount of reagent.
+      required: false
       example: 8.2
       selector:
         number:
           min: 0
           max: 2000
+          step: 0.01
+          mode: box
+    test:
+      name: Water test
+      description: Id of the water test of the catalog the amount of reagent was read with. Defaults to the test selected on the head.
+      required: false
+      example: red-sea-foundation-pro-kh
+      selector:
+        text:
+    amount:
+      name: Reagent used
+      description: Amount of reagent used (mL or drops, as the test counts); the value is worked out with the table of the test.
+      required: false
+      example: 0.4
+      selector:
+        number:
+          min: 0
+          max: 100
           step: 0.01
           mode: box
     parameter:

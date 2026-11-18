@@ -91,10 +91,17 @@ It moves at most **Max dose change** (20 % by default) from the current dose, an
 a change under 5 % is not proposed. A test too far from what was expected gives
 *Retest suggested* instead of a proposal.
 
-**Test kits**: instead of typing the result, pick the kit in **Test kit** and
-type the syringe reading in **Reagent reading** (mL): the result is computed
-into **Test result**. Red Sea Pro (KH, Ca, Mg) and Colombo (KH) are read as the
-reagent used, Salifert (KH, Ca, Mg) as what is left in the 1 mL syringe.
+**Water tests**: instead of typing the result, pick the test in **Test kit** and
+enter the amount of reagent used in **Reagent used** (mL or drops, as the test
+counts): the result is computed with the table of the test and shown in **Test
+result**. The tests, and the parameters you can regulate, come from the
+[reeftech-catalog](https://github.com/Elwinmage/reeftech-catalog) (`water_tests`
+and `parameters` sections), so a new test is a catalog release. A test marked ⚠
+has a table that was not checked against its manual: it works, check the result.
+The tables cover the amounts of the manufacturer; beyond them, type the result.
+The test chosen for a parameter is remembered: coming back to it brings it back.
+`redsea.record_measurement` accepts the same: `test` (catalog id, the head's by
+default) and `amount` instead of `value`.
 
 **History**: `redsea.update_measurement` corrects a result (its `value`, its
 date with `new_measured_at`) and `redsea.delete_measurement` removes one, both

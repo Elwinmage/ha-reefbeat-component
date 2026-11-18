@@ -21,6 +21,7 @@ from test_dose_regulation_unit import (
     put_brine,
 )
 
+from custom_components.redsea import catalog_tables
 from custom_components.redsea import dose_regulation as R
 from custom_components.redsea import dose_regulation_entities as E
 from custom_components.redsea.const import DOMAIN
@@ -88,7 +89,8 @@ async def test_selects(hass: HomeAssistant) -> None:
     assert mode.options == ["off", "assisted", "brine"]
     await mode.async_select_option("assisted")
     await parameter.async_select_option("mg")
-    assert regulator.head_state(1).settings.target == 1350.0
+    # The default target is the optimal value of the catalog's reference band
+    assert regulator.head_state(1).settings.target == 1340.0
     doser.data["$.sources[?(@.name=='/dashboard')].data.bundled_heads"] = True
     await mode.async_select_option("off")
     with pytest.raises(HomeAssistantError):
@@ -341,6 +343,13 @@ async def test_setup_and_record_measurement_service(
     )
     assert response["ok"] is True
     assert regulator.series(1)[0].value == 8.2
+    # An amount of reagent read with a test of the catalog
+    response = await call(
+        {"device_id": head.id, "test": "red-sea-foundation-pro-kh", "amount": 0.5}
+    )
+    assert response["ok"] is True
+    response = await call({"device_id": head.id, "amount": 0.5, "test": "manual"})
+    assert response["ok"] is False and "water test" in response["error"]
     assert regulator.series(1)[0].at == datetime(2026, 10, 1, 7, tzinfo=UTC)
     # The datetime selector gives a local time without offset
     response = await call(
@@ -455,42 +464,127 @@ async def test_dose_head_resolution(hass: HomeAssistant) -> None:
     assert _dose_head(hass, orphan.id) is None
 
 
+@pytest.fixture(autouse=True)
+def _restore_catalog_tables():
+    """Tests replace the catalog tables: the next one starts from the built-in ones."""
+    yield
+    catalog_tables.reset()
+
+
 async def test_test_kit_entities(hass: HomeAssistant) -> None:
     found, regulator, _doser = await _entities(hass)
     kit = found["regulation_test_kit"]
     reagent = found["regulation_reagent"]
+    colombo = "Colombo Marine KH Test ⚠"
+    redsea = "Red Sea Reef Foundation Pro Alkalinity Test"
+    salifert = "Salifert KH/Alkalinity Profi Test ⚠"
     assert kit.current_option == "manual"
-    assert kit.options == ["manual", "redsea_kh", "salifert_kh", "colombo_kh"]
+    # The tests of the catalog for KH, named like the products; ⚠: table not checked
+    assert kit.options == ["manual", colombo, redsea, salifert]
     assert kit.extra_state_attributes == {"reef_role": "regulation_test_kit"}
-    # Typed in by hand: the reading is greyed
+    # Typed in by hand: the amount is greyed
     assert reagent.available is False
     assert reagent.native_unit_of_measurement == "mL"
-    await kit.async_select_option("colombo_kh")
-    assert kit.extra_state_attributes == {
+    assert reagent.native_max_value == 100.0
+    await kit.async_select_option(colombo)
+    assert regulator.head_state(1).settings.test_kit == "colombo-marine-kh"
+    assert kit.current_option == colombo
+    attributes = kit.extra_state_attributes
+    assert attributes is not None
+    assert attributes | {"image": None, "thumb": None} == {
         "reef_role": "regulation_test_kit",
+        "test_id": "colombo-marine-kh",
         "brand": "Colombo",
-        "factor": 20.0,
-        "reading": "used",
-        "capacity": 1.0,
+        "name": "Marine KH Test",
+        "verified": False,
+        "amount_unit": "ml",
+        "amount_min": 0,
+        "amount_max": 1,
+        "image": None,
+        "thumb": None,
     }
     assert reagent.available is True
+    # The table of the test bounds the amount
+    assert reagent.native_max_value == 1
     await reagent.async_set_native_value(0.44)
     # 0.44 mL x 20 = 8.8 dKH, the result to record
     assert found["regulation_measurement"].native_value == 8.8
     with pytest.raises(HomeAssistantError):
-        await kit.async_select_option("redsea_ca")
-    await kit.async_select_option("salifert_kh")
+        # A test of another parameter
+        await kit.async_select_option("red-sea-foundation-pro-ca")
+    await kit.async_select_option(redsea)
+    assert kit.extra_state_attributes["verified"] is True  # type: ignore[index]
     with pytest.raises(HomeAssistantError):
-        # At most 1 mL can be left in the syringe
+        # The table stops at 1 mL: nothing is guessed beyond
         await reagent.async_set_native_value(1.5)
     await reagent.async_set_native_value(0.5)
-    assert regulator.head_state(1).settings.measurement == 8.0
+    assert regulator.head_state(1).settings.measurement == 7.0
     await found["regulation_record"].async_press()
-    assert regulator.series(1)[-1].source == "salifert_kh"
-    # Another parameter: the kit goes back to manual entry
+    assert regulator.series(1)[-1].source == "red-sea-foundation-pro-kh"
+    # Another parameter: the test goes back to manual entry
     await found["regulation_parameter"].async_select_option("ca")
     assert kit.current_option == "manual"
-    assert kit.options == ["manual", "redsea_ca", "salifert_ca"]
+    assert kit.options[0] == "manual" and len(kit.options) == 4
+
+
+async def test_test_kit_entities_follow_the_catalog(hass: HomeAssistant) -> None:
+    found, regulator, _doser = await _entities(hass)
+    kit = found["regulation_test_kit"]
+    reagent = found["regulation_reagent"]
+    parameter = found["regulation_parameter"]
+    await kit.async_select_option("Red Sea Reef Foundation Pro Alkalinity Test")
+    # A test the catalog no longer has stays shown, so that the change is visible
+    catalog_tables.install("water_tests", {"items": {}})
+    assert kit.current_option == "red-sea-foundation-pro-kh"
+    assert kit.options == ["manual", "red-sea-foundation-pro-kh"]
+    assert kit.extra_state_attributes == {"reef_role": "regulation_test_kit"}
+    assert reagent.native_max_value == 100.0
+    # Counted in drops
+    drops = {
+        "brand": "Acme",
+        "name": "KH drops",
+        "verified": True,
+        "tests": [
+            {
+                "parameter": "kh",
+                "unit": "dkh",
+                "method": "titration",
+                "table": {
+                    "amount_unit": "drops",
+                    "points": [
+                        {"amount": 0, "value": 0},
+                        {"amount": 20, "value": 20},
+                    ],
+                },
+            }
+        ],
+    }
+    catalog_tables.install("water_tests", {"items": {"acme-kh": drops}})
+    await kit.async_select_option("Acme KH drops")
+    assert reagent.native_unit_of_measurement == "drops"
+    assert reagent.native_max_value == 20
+    await reagent.async_set_native_value(8)
+    assert found["regulation_measurement"].native_value == 8.0
+    # The parameter select follows the catalog too
+    assert parameter.options[0] == "kh"
+    catalog_tables.install("parameters", _only_kh())
+    assert parameter.options == ["kh"]
+    await regulator.async_set(1, "mode", "assisted")
+    catalog_tables.install("parameters", {"items": {"ca": _only_kh()["items"]["kh"]}})
+    # A parameter set before the catalog changed stays shown
+    assert parameter.options == ["ca", "kh"]
+
+
+def _only_kh() -> dict:
+    return {
+        "items": {
+            "kh": {
+                "unit": "dkh",
+                "range": {"optimal": 8},
+                "regulation": {"tolerance": 0.2, "max_rate": 0.5, "step": 0.01},
+            }
+        }
+    }
 
 
 async def test_potency_greyed_for_nutrient_reducer(hass: HomeAssistant) -> None:

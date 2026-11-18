@@ -353,7 +353,6 @@ class ReefBeatConfigFlow(
     VERSION = 1
     # 1.2: virtual LED members kept as an ordered list (CONF_GROUP_MEMBERS)
     MINOR_VERSION = 2
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     async def _unique_id(self, user_input: dict[str, Any]) -> str:
         """Resolve device UUID for a local device entry (retrying as needed)."""
@@ -970,11 +969,12 @@ class ReefBeatConfigFlow(
     async def async_step_catalog(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """The supplements catalog entry, created by the first ReefDose."""
+        """The catalog entry (supplements, water tests, parameters), created by the first ReefDose."""
         await self.async_set_unique_id(CATALOG_UNIQUE_ID)
         self._abort_if_unique_id_configured()
         return self.async_create_entry(
-            title=SUPPLEMENTS_CATALOG.title, data={CONF_CATALOG: True}
+            title=SUPPLEMENTS_CATALOG.device_title or SUPPLEMENTS_CATALOG.title,
+            data={CONF_CATALOG: True},
         )
 
     @classmethod

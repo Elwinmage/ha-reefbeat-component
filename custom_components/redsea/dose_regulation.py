@@ -43,7 +43,7 @@ import logging
 import math
 import statistics
 from collections.abc import Callable, Iterable
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, field, fields
 from datetime import UTC, date, datetime, timedelta
 from itertools import pairwise
 from typing import Any, Final, cast
@@ -55,9 +55,16 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
+from .catalog_tables import (
+    LEGACY_TEST_IDS,
+    MANUAL,
+    PARAMETERS,
+    WATER_TESTS,
+    decimals,
+    test_value,
+)
 from .const import DOMAIN
 from .supplements import supplement_potency, supplement_regulated
-from .test_kits import MANUAL, TEST_KITS, kit_value
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -142,49 +149,8 @@ DAY_STATS_KEPT: Final[int] = 14
 _PPT_UNITS: Final[frozenset[str]] = frozenset({"ppt", "‰", "psu", "g/l", "g/kg"})
 
 
-@dataclass(frozen=True, slots=True)
-class Parameter:
-    """A water parameter a head can regulate.
-
-    ``max_rate`` is the largest correction per day (in ``unit``) the
-    regulation asks for, whatever the gap to the target.
-    """
-
-    unit: str
-    target: float
-    tolerance: float
-    max_rate: float
-    step: float
-
-
-PARAMETERS: Final[dict[str, Parameter]] = {
-    "kh": Parameter("dKH", 8.0, 0.2, 0.5, 0.01),
-    "ca": Parameter("ppm", 430.0, 10.0, 20.0, 1.0),
-    "mg": Parameter("ppm", 1350.0, 30.0, 50.0, 1.0),
-    "k": Parameter("ppm", 400.0, 10.0, 20.0, 1.0),
-    "no3": Parameter("ppm", 5.0, 1.0, 2.0, 0.1),
-    "po4": Parameter("ppm", 0.05, 0.02, 0.03, 0.01),
-    # Trace elements, in mg/L as the hobby tests give them (Colombo iodine:
-    # 0.06): natural seawater for iodine, a usual reef target for iron
-    "i": Parameter("ppm", 0.06, 0.01, 0.01, 0.001),
-    "fe": Parameter("ppm", 0.005, 0.002, 0.002, 0.001),
-    "salinity": Parameter("ppt", 35.0, 0.3, 0.5, 0.1),
-}
-
-# Options of the parameter select (same order as PARAMETERS)
-PARAMETER_OPTIONS: Final[list[str]] = [
-    "kh",
-    "ca",
-    "mg",
-    "k",
-    "no3",
-    "po4",
-    "i",
-    "fe",
-    "salinity",
-]
-# Parameters offered in assisted mode (salinity is the brine mode's)
-ASSISTED_PARAMETERS: Final[list[str]] = [p for p in PARAMETERS if p != "salinity"]
+# The parameters a head can regulate and the water tests come from the catalog
+# (catalog_tables.py): PARAMETERS and WATER_TESTS follow the loaded catalog.
 
 STATUSES: Final[list[str]] = [
     "off",
@@ -248,8 +214,8 @@ SETTING_BOUNDS: Final[dict[str, tuple[float, float]]] = {
     "brine_doses_per_day": (1.0, 24.0),
     "salinity_check_tolerance": (0.1, 3.0),
     "measurement": (0.0, 2000.0),
-    # Syringe reading of a titration kit (refilled syringes go past 1 mL)
-    "reagent_ml": (0.0, 5.0),
+    # Reagent used by a titration test (the table of the test bounds it further)
+    "reagent_ml": (0.0, 100.0),
 }
 
 
@@ -261,9 +227,11 @@ class HeadSettings:
     (unit of the parameter / mL / 100 L), as printed on most supplements.
     ``tank_volume`` 0 means "found automatically" (see DoseRegulator.volume).
     ``measurement`` is the value typed in before pressing "record".
-    ``test_kit`` is the titration kit the result is read with (``manual``:
-    typed in); with a kit, ``reagent_ml`` (the syringe reading) gives the
-    measurement.
+    ``test_kit`` is the id of the catalog water test the result is read with
+    (``manual``: typed in); with a test, ``reagent_ml`` (the amount of reagent
+    used, in the unit of the test's table) gives the measurement.
+    ``last_tests`` remembers the test last chosen for each parameter: coming
+    back to a parameter brings its test back.
     """
 
     mode: str = "off"
@@ -282,6 +250,7 @@ class HeadSettings:
     measurement: float = 0.0
     test_kit: str = MANUAL
     reagent_ml: float = 0.0
+    last_tests: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, raw: Any) -> HeadSettings:
@@ -293,8 +262,12 @@ class HeadSettings:
         for f in fields(cls):
             if f.name not in data:
                 continue
+            value = data[f.name]
+            if f.name == "test_kit":
+                # Kits of the first versions are catalog tests now
+                value = LEGACY_TEST_IDS.get(value, value)
             try:
-                settings.set(f.name, data[f.name], reset_parameter=False)
+                settings.set(f.name, value, reset_parameter=False)
             except ValueError:
                 _LOGGER.debug("Dropping stored setting %s=%r", f.name, data[f.name])
         return settings
@@ -337,15 +310,27 @@ class HeadSettings:
                 raise ValueError("salinity_source must be an entity id")
             self.salinity_source = value
             return
+        if key == "last_tests":
+            if not isinstance(value, dict):
+                raise ValueError("last_tests must map parameters to test ids")
+            last_tests: dict[str, str] = {}
+            for parameter, test in cast(dict[Any, Any], value).items():
+                if not isinstance(parameter, str) or not isinstance(test, str):
+                    raise ValueError("last_tests must map parameters to test ids")
+                last_tests[parameter] = LEGACY_TEST_IDS.get(test, test)
+            self.last_tests = last_tests
+            return
         if key == "test_kit":
             if value != MANUAL and (
-                value not in TEST_KITS or TEST_KITS[value].parameter != self.parameter
+                value not in WATER_TESTS
+                or WATER_TESTS[value].parameter != self.parameter
             ):
-                raise ValueError(f"test kit {value!r} does not test {self.parameter}")
+                raise ValueError(f"water test {value!r} does not test {self.parameter}")
             if value != self.test_kit:
                 # The reading of another syringe means nothing for this one
                 self.reagent_ml = 0.0
             self.test_kit = value
+            self.last_tests[self.parameter] = value
             return
         if key not in SETTING_BOUNDS:
             raise ValueError(f"unknown setting {key!r}")
@@ -357,8 +342,8 @@ class HeadSettings:
         if not math.isfinite(number) or not low <= number <= high:
             raise ValueError(f"{key} must be within [{low}, {high}]")
         if key == "reagent_ml" and self.test_kit != MANUAL:
-            # Checked against the syringe of the kit before it is kept
-            TEST_KITS[self.test_kit].value(number)
+            # Checked against the table of the test before it is kept
+            WATER_TESTS[self.test_kit].value(number)
         setattr(self, key, number)
 
     def _use_parameter(self, parameter: str) -> None:
@@ -366,22 +351,30 @@ class HeadSettings:
         self.parameter = parameter
         self.target = param.target
         self.tolerance = param.tolerance
-        # A kit tests one parameter only
-        if self.test_kit != MANUAL and TEST_KITS[self.test_kit].parameter != parameter:
-            self.test_kit = MANUAL
+        # A test measures one parameter only: the one last used for this
+        # parameter comes back, typing in otherwise
+        remembered = self.last_tests.get(parameter, MANUAL)
+        if remembered != MANUAL and (
+            remembered not in WATER_TESTS
+            or WATER_TESTS[remembered].parameter != parameter
+        ):
+            remembered = MANUAL
+        if remembered != self.test_kit:
+            self.test_kit = remembered
             self.reagent_ml = 0.0
 
     def kit_measurement(self) -> float | None:
-        """Test result read from the syringe of the kit, None if typed in.
+        """Test result worked out from the reagent used, None if typed in.
 
-        @raise ValueError: impossible reading for the kit
+        @raise ValueError: unknown test, or an amount its table does not cover
         """
-        value = kit_value(self.test_kit, self.reagent_ml)
+        value = test_value(self.test_kit, self.reagent_ml)
         if value is None:
             return None
-        decimals = max(0, -math.floor(math.log10(PARAMETERS[self.parameter].step)))
         low, high = SETTING_BOUNDS["measurement"]
-        return min(max(round(value, decimals), low), high)
+        return min(
+            max(round(value, decimals(PARAMETERS[self.parameter].step)), low), high
+        )
 
 
 # =============================================================================
@@ -1546,8 +1539,14 @@ class DoseRegulator:
         value: float | None = None,
         parameter: str | None = None,
         at: datetime | None = None,
+        test: str | None = None,
+        amount: float | None = None,
     ) -> dict[str, Any]:
         """Record a test result for a head and react to it.
+
+        The result is ``value``, or worked out from the ``amount`` of reagent
+        used with a catalog water test (``test``, the one selected on the head
+        by default); otherwise the one prepared on the head is recorded.
 
         - assisted mode: the consumption is estimated again and a new dose
           proposed;
@@ -1556,7 +1555,33 @@ class DoseRegulator:
         state = self.store.heads[head]
         settings = state.settings
         source = "manual"
-        if value is None:
+        if value is not None and amount is not None:
+            raise ValueError("give either a value or an amount of reagent")
+        if amount is not None:
+            test = test or settings.test_kit
+            if test == MANUAL:
+                raise ValueError("an amount of reagent needs a water test")
+            if test not in WATER_TESTS:
+                raise ValueError(f"unknown water test {test!r}")
+            parameter = parameter or WATER_TESTS[test].parameter
+            if WATER_TESTS[test].parameter != parameter:
+                raise ValueError(f"water test {test!r} does not test {parameter}")
+            if parameter not in PARAMETERS:
+                raise ValueError(f"unknown parameter {parameter!r}")
+            low, high = SETTING_BOUNDS["measurement"]
+            value = min(
+                max(
+                    round(
+                        test_value(test, float(amount)) or 0.0,
+                        decimals(PARAMETERS[parameter].step),
+                    ),
+                    low,
+                ),
+                high,
+            )
+            source = test
+            settings.last_tests[parameter] = test
+        elif value is None:
             value = settings.measurement
             # Read on the syringe of a kit, typed in otherwise
             source = settings.test_kit

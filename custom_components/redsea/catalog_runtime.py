@@ -148,24 +148,67 @@ class CatalogSpec:
     scopes: tuple[str, ...] | None = None  # None keeps every scope
     repo: str = REPO
     check_hours: int = CHECK_HOURS
+    #: Folders and URLs of the domain carry the section (`catalog_user_<section>`,
+    #: `/<domain>_catalog_<section>/...`): needed from the second section of a
+    #: domain on. The first one keeps the plain names, so that nothing moves for
+    #: an integration that already reads a section.
+    by_section: bool = False
+    #: Name of the catalog device when the first section of the domain gives it
+    #: a name that fits all of them (default: its own title)
+    device_title: str | None = None
+
+    @property
+    def suffix(self) -> str:
+        """What the folders and URLs of this section add to the plain names."""
+        return f"_{self.section}" if self.by_section else ""
 
 
-def signal_catalog_changed(domain: str) -> str:
+def signal_catalog_changed(domain: str, section: str | None = None) -> str:
     """Dispatcher signal sent each time the catalog of a domain changes.
 
     For entities of other config entries (they may be set up before the
-    entry hosting the catalog): connect with async_dispatcher_connect.
+    entry hosting the catalog): connect with async_dispatcher_connect. Without
+    a section, the signal comes for a change of any section of the domain.
     """
-    return f"{domain}_catalog_changed"
+    if section is None:
+        return f"{domain}_catalog_changed"
+    return f"{domain}_catalog_changed_{section}"
+
+
+def builtin_dir(spec: CatalogSpec) -> Path:
+    """Folder of the built-in snapshot of a section."""
+    return BUILTIN_DIR.with_name(f"{BUILTIN_DIR.name}{spec.suffix}")
 
 
 def _registry(hass: HomeAssistant) -> dict[str, Any]:
     return hass.data.setdefault(DATA_KEY, {})
 
 
-def get_updater(hass: HomeAssistant, domain: str) -> CatalogUpdater | None:
-    """The running updater of a domain, if any."""
-    return _registry(hass).get(domain)
+def _updater_key(domain: str, section: str) -> str:
+    return f"{domain}/{section}"
+
+
+def get_updaters(hass: HomeAssistant, domain: str) -> list[CatalogUpdater]:
+    """The running updaters of a domain, the first one set up first."""
+    return [
+        value
+        for value in _registry(hass).values()
+        if isinstance(value, CatalogUpdater) and value.spec.domain == domain
+    ]
+
+
+def get_updater(
+    hass: HomeAssistant, domain: str, section: str | None = None
+) -> CatalogUpdater | None:
+    """The running updater of a section of a domain, if any.
+
+    Without a section: the first one set up (the only one for a domain that
+    reads a single section).
+    """
+    if section is not None:
+        return _registry(hass).get(_updater_key(domain, section))
+    updaters = get_updaters(hass, domain)
+    return updaters[0] if updaters else None
 
 
 def get_shared_pack(hass: HomeAssistant, section: str) -> SharedPack | None:
@@ -466,8 +509,10 @@ class CatalogUpdater:
         self.shared = shared
         #: Pack of the domain's own folder: the previous shared pack, for an
         #: integration too old for the current release
-        self.root = Path(hass.config.path(spec.domain, "catalog"))
-        self.user_root = Path(hass.config.path(spec.domain, "catalog_user"))
+        self.root = Path(hass.config.path(spec.domain, f"catalog{spec.suffix}"))
+        self.user_root = Path(
+            hass.config.path(spec.domain, f"catalog_user{spec.suffix}")
+        )
         self.shared_root = Path(hass.config.path(*shared_user_parts(spec.section)))
         #: Counts the reloads asked by writers; stamps the visuals of the shared layer
         self.user_revision = 0
@@ -565,7 +610,9 @@ class CatalogUpdater:
         """Tell the listeners and the dispatcher that the state changed."""
         for listener in list(self._listeners):
             listener()
-        async_dispatcher_send(self.hass, signal_catalog_changed(self.spec.domain))
+        domain, section = self.spec.domain, self.spec.section
+        async_dispatcher_send(self.hass, signal_catalog_changed(domain))
+        async_dispatcher_send(self.hass, signal_catalog_changed(domain, section))
 
     # -- life cycle -----------------------------------------------------------
 
@@ -616,13 +663,20 @@ class CatalogUpdater:
         self.notify()
 
     async def async_set_auto_update(self, value: bool) -> None:
-        """Turn automatic installs on or off (kept across restarts)."""
-        self.auto_update = value
-        self.shared.set_auto(self.spec.domain, value)
+        """Turn automatic installs on or off (kept across restarts).
+
+        One switch for the domain: it applies to every section it reads.
+        """
+        updaters = get_updaters(self.hass, self.spec.domain)
+        for updater in updaters:
+            updater.auto_update = value
+            updater.shared.set_auto(updater.spec.domain, value)
         await self._store.async_save({"auto_update": value})
-        self.notify()
+        for updater in updaters:
+            updater.notify()
         if value:
-            await self.async_check()
+            for updater in updaters:
+                await updater.async_check()
 
     # -- checks and installs --------------------------------------------------
 
@@ -663,17 +717,17 @@ class CatalogUpdater:
         if shared is not None:
             return Layer("pack", self.shared.root, self.shared.url, shared.version)
         own = self.legacy_installed.version if self.legacy_installed else NOT_INSTALLED
-        return Layer("pack", self.root, f"/{self.spec.domain}_catalog/pack", own)
+        base = f"/{self.spec.domain}_catalog{self.spec.suffix}"
+        return Layer("pack", self.root, f"{base}/pack", own)
 
     def layers(self) -> list[Layer]:
         """The folders the view is read from, least specific first."""
-        base = f"/{self.spec.domain}_catalog"
+        base = f"/{self.spec.domain}_catalog{self.spec.suffix}"
         layers = []
-        if BUILTIN_DIR.is_dir():
+        builtin = builtin_dir(self.spec)
+        if builtin.is_dir():
             layers.append(
-                Layer(
-                    "builtin", BUILTIN_DIR, f"{base}/builtin", self.integration_version
-                )
+                Layer("builtin", builtin, f"{base}/builtin", self.integration_version)
             )
         layers.append(self._pack_layer())
         layers.append(
@@ -704,9 +758,13 @@ class CatalogUpdater:
 async def async_setup_catalog(
     hass: HomeAssistant, entry: ConfigEntry, spec: CatalogSpec
 ) -> CatalogUpdater:
-    """Start the domain's updater on its first config entry, register the others."""
+    """Start the updater of a section on its first config entry, register the others.
+
+    A domain reading several sections calls this once per section.
+    """
     registry = _registry(hass)
-    updater: CatalogUpdater | None = registry.get(spec.domain)
+    key = _updater_key(spec.domain, spec.section)
+    updater: CatalogUpdater | None = registry.get(key)
     if updater is None:
         stored = await Store(hass, 1, f"{spec.domain}.catalog").async_load() or {}
         auto = bool(stored.get("auto_update", True))
@@ -722,10 +780,12 @@ async def async_setup_catalog(
         updater = CatalogUpdater(
             hass, spec, str(integration.version or "0"), shared, auto
         )
-        registry[spec.domain] = updater
+        registry[key] = updater
         await updater.async_start()
         await _async_register_paths(hass, updater)
-        _register_websocket(hass, spec)
+        _register_websocket(hass, spec.domain)
+        if spec.section == "equipment":
+            _register_maintenance_command(hass, spec.domain)
     if entry.entry_id not in updater.entry_ids:
         updater.entry_ids.append(entry.entry_id)
     return updater
@@ -739,16 +799,17 @@ async def async_unload_catalog(
     When the entry hosting the catalog entities goes while others stay, the
     next one is reloaded so that it adds them.
     """
-    updater: CatalogUpdater | None = _registry(hass).get(spec.domain)
+    updater = get_updater(hass, spec.domain, spec.section)
     if updater is None or entry.entry_id not in updater.entry_ids:
         return
     was_owner = updater.owner_entry_id == entry.entry_id
     updater.entry_ids.remove(entry.entry_id)
     if not updater.entry_ids:
         updater.async_stop()
-        del _registry(hass)[spec.domain]
+        del _registry(hass)[_updater_key(spec.domain, spec.section)]
         # Readers fall back to what they had before the catalog was loaded
         async_dispatcher_send(hass, signal_catalog_changed(spec.domain))
+        async_dispatcher_send(hass, signal_catalog_changed(spec.domain, spec.section))
     elif was_owner:
         hass.config_entries.async_schedule_reload(str(updater.owner_entry_id))
 
@@ -758,14 +819,14 @@ async def _async_register_paths(hass: HomeAssistant, updater: CatalogUpdater) ->
 
     The shared pack has its own path (`_async_register_pack_path`).
     """
-    key = f"paths_{updater.spec.domain}"
+    key = f"paths_{updater.spec.domain}{updater.spec.suffix}"
     registry = _registry(hass)
     if registry.get(key) or getattr(hass, "http", None) is None:
         return
     registry[key] = True
-    base = f"/{updater.spec.domain}_catalog"
+    base = f"/{updater.spec.domain}_catalog{updater.spec.suffix}"
     paths = [
-        (f"{base}/builtin", BUILTIN_DIR),
+        (f"{base}/builtin", builtin_dir(updater.spec)),
         (f"{base}/pack", updater.root),
         (f"{base}/shared", updater.shared_root),
         (f"{base}/user", updater.user_root),
@@ -779,25 +840,40 @@ async def _async_register_paths(hass: HomeAssistant, updater: CatalogUpdater) ->
     )
 
 
-def _register_websocket(hass: HomeAssistant, spec: CatalogSpec) -> None:
-    """Register the websocket commands of a domain (once per run)."""
-    key = f"websocket_{spec.domain}"
+def _command_updater(
+    hass: HomeAssistant, domain: str, connection: ActiveConnection, msg: dict[str, Any]
+) -> CatalogUpdater | None:
+    """The updater a command asks for (`section`, the first one by default)."""
+    updater = get_updater(hass, domain, msg.get("section"))
+    if updater is None:
+        what = msg.get("section") or "catalog"
+        connection.send_error(msg["id"], "not_loaded", f"{domain} {what} is not loaded")
+    return updater
+
+
+def _register_websocket(hass: HomeAssistant, domain: str) -> None:
+    """Register the websocket commands of a domain (once per run).
+
+    Every command takes an optional `section`; the first section of the domain
+    is the default, so that a card asking for a single section need not name it.
+    """
+    key = f"websocket_{domain}"
     registry = _registry(hass)
     if registry.get(key):
         return
     registry[key] = True
-    domain = spec.domain
 
     def _updater(
         connection: ActiveConnection, msg: dict[str, Any]
     ) -> CatalogUpdater | None:
-        updater = get_updater(hass, domain)
-        if updater is None:
-            connection.send_error(msg["id"], "not_loaded", f"{domain} is not loaded")
-        return updater
+        return _command_updater(hass, domain, connection, msg)
 
     @websocket_command(
-        {vol.Required("type"): f"{domain}/catalog", vol.Optional("refresh"): bool}
+        {
+            vol.Required("type"): f"{domain}/catalog",
+            vol.Optional("refresh"): bool,
+            vol.Optional("section"): str,
+        }
     )
     @async_response
     async def ws_catalog(
@@ -810,7 +886,7 @@ def _register_websocket(hass: HomeAssistant, spec: CatalogSpec) -> None:
         connection.send_result(
             msg["id"],
             {
-                "section": spec.section,
+                "section": updater.spec.section,
                 "format": MANIFEST_FORMAT,
                 "version": updater.installed.version if updater.installed else None,
                 "updating": updater.in_progress,
@@ -818,7 +894,12 @@ def _register_websocket(hass: HomeAssistant, spec: CatalogSpec) -> None:
             },
         )
 
-    @websocket_command({vol.Required("type"): f"{domain}/catalog/subscribe"})
+    @websocket_command(
+        {
+            vol.Required("type"): f"{domain}/catalog/subscribe",
+            vol.Optional("section"): str,
+        }
+    )
     @callback
     def ws_subscribe(
         hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]
@@ -846,8 +927,14 @@ def _register_websocket(hass: HomeAssistant, spec: CatalogSpec) -> None:
     async_register_command(hass, ws_catalog)
     async_register_command(hass, ws_subscribe)
 
-    if spec.section != "equipment":
+
+def _register_maintenance_command(hass: HomeAssistant, domain: str) -> None:
+    """Register `<domain>/catalog/maintenance`, for a domain reading equipment."""
+    key = f"websocket_maintenance_{domain}"
+    registry = _registry(hass)
+    if registry.get(key):
         return
+    registry[key] = True
 
     @websocket_command(
         {
@@ -861,7 +948,9 @@ def _register_websocket(hass: HomeAssistant, spec: CatalogSpec) -> None:
         hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]
     ) -> None:
         """Tasks an equipment would get (category tasks overridden by the item)."""
-        updater = _updater(connection, msg)
+        updater = _command_updater(
+            hass, domain, connection, {"id": msg["id"], "section": "equipment"}
+        )
         if updater is None:
             return
         view = await updater.async_view()
@@ -883,14 +972,20 @@ def _register_websocket(hass: HomeAssistant, spec: CatalogSpec) -> None:
 def catalog_entities(
     hass: HomeAssistant, entry: ConfigEntry, domain: str, platform: str
 ) -> list[Entity]:
-    """Entities of the catalog for a platform, only for the hosting entry."""
-    updater = get_updater(hass, domain)
-    if updater is None or updater.owner_entry_id != entry.entry_id:
-        return []
+    """Entities of the catalog for a platform, only for the hosting entry.
+
+    One update entity per section the entry hosts; one automatic update switch
+    for the domain, with the first section.
+    """
+    hosted = [
+        updater
+        for updater in get_updaters(hass, domain)
+        if updater.owner_entry_id == entry.entry_id
+    ]
     if platform == "update":
-        return [CatalogUpdateEntity(updater)]
-    if platform == "switch":
-        return [CatalogAutoUpdateSwitch(updater)]
+        return [CatalogUpdateEntity(updater) for updater in hosted]
+    if platform == "switch" and hosted and hosted[0] is get_updater(hass, domain):
+        return [CatalogAutoUpdateSwitch(hosted[0])]
     return []
 
 
@@ -904,9 +999,12 @@ class _CatalogEntity(Entity):
         """Bind to the updater."""
         self._updater = updater
         spec = updater.spec
+        # One device for the domain, named after its first section
+        first = (get_updater(updater.hass, spec.domain) or updater).spec
+        self._device_name = first.device_title or first.title
         self._attr_device_info = DeviceInfo(
-            identifiers={(spec.domain, f"catalog_{spec.section}")},
-            name=spec.title,
+            identifiers={(spec.domain, f"catalog_{first.section}")},
+            name=self._device_name,
             manufacturer=MANUFACTURER,
             entry_type=DeviceEntryType.SERVICE,
             configuration_url=f"https://github.com/{spec.repo}",
@@ -929,8 +1027,6 @@ class _CatalogEntity(Entity):
 class CatalogUpdateEntity(_CatalogEntity, UpdateEntity):
     """Installed and latest release of the section; installs on demand."""
 
-    # Named after its device
-    _attr_name = None
     _attr_supported_features = (
         UpdateEntityFeature.INSTALL
         | UpdateEntityFeature.PROGRESS
@@ -942,6 +1038,11 @@ class CatalogUpdateEntity(_CatalogEntity, UpdateEntity):
         self._attr_unique_id = f"catalog_{updater.spec.section}"
         self._attr_title = updater.spec.title
         super().__init__(updater)
+        # Named after its device, unless the device is shared with other sections
+        if self._device_name == updater.spec.title:
+            self._attr_name = None
+        else:
+            self._attr_name = updater.spec.title
 
     def _refresh(self) -> None:
         updater = self._updater

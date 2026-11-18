@@ -22,7 +22,12 @@ from .catalog_pack import Layer, build_view
 from .catalog_runtime import BUILTIN_DIR, CatalogSpec, get_updater
 from .const import DOMAIN
 
-CATALOG: Final = CatalogSpec(DOMAIN, "supplements", "ReefBeat supplements catalog")
+CATALOG: Final = CatalogSpec(
+    DOMAIN,
+    "supplements",
+    "ReefBeat supplements catalog",
+    device_title="ReefBeat catalog",
+)
 
 # The catalog has a config entry of its own (like Poseidon), created by the
 # first ReefDose: its device does not hang on one doser among several.

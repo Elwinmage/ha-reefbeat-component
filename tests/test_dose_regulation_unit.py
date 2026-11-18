@@ -15,6 +15,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.redsea import catalog_tables
 from custom_components.redsea import dose_regulation as R
 from custom_components.redsea.const import DOMAIN
 from custom_components.redsea.coordinator import ReefControlCoordinator
@@ -355,8 +356,10 @@ def test_trace_elements_in_mg_per_litre() -> None:
     assert proposal.dose == 3.6 and proposal.limited
     settings.set("parameter", "fe")
     assert (settings.target, settings.tolerance) == (0.005, 0.002)
-    assert R.PARAMETER_OPTIONS.index("fe") == R.PARAMETER_OPTIONS.index("salinity") - 1
-    assert "i" in R.ASSISTED_PARAMETERS and "fe" in R.ASSISTED_PARAMETERS
+    options = catalog_tables.parameter_options()
+    assert options.index("fe") == options.index("salinity") - 1
+    assisted = catalog_tables.assisted_parameters()
+    assert "i" in assisted and "fe" in assisted and "salinity" not in assisted
 
 
 def test_proposal_cases() -> None:
@@ -1298,7 +1301,7 @@ def test_potency_of_the_red_sea_supplements() -> None:
     for uid, (parameter, value) in potency.items():
         assert short[uid] == parameter, names[uid]
         assert value > 0 and value == round(value, 3)
-        assert parameter in R.ASSISTED_PARAMETERS
+        assert parameter in catalog_tables.assisted_parameters()
     # Converted from 1 US gallon: Reef Code B, 2.22 dKH/mL/gal
     assert potency["fb5347b5-9764-445e-ac6a-513700f6740d"] == ("kh", 0.084)
     # Unknown, empty or unverified: no potency
@@ -1460,55 +1463,147 @@ async def test_brine_only_with_the_brine_supplement(hass: HomeAssistant) -> None
 
 
 def test_titration_kits() -> None:
-    from custom_components.redsea import test_kits as K
-
-    assert K.kits_for("mg") == ["manual", "redsea_mg", "salifert_mg"]
-    assert K.kits_for("fe") == ["manual"]
-    assert K.kit_value("manual", 0.5) is None
-    assert K.kit_value("redsea_kh", 0.4) == pytest.approx(5.6)
-    assert K.kit_value("redsea_ca", 0.86) == pytest.approx(430.0)
-    assert K.kit_value("salifert_kh", 0.5) == pytest.approx(8.0)
-    assert K.kit_value("salifert_mg", 0.1) == pytest.approx(1350.0)
-    with pytest.raises(ValueError, match="unknown test kit"):
-        K.kit_value("acme_kh", 1)
+    T = catalog_tables
+    assert T.test_options("mg") == [
+        "manual",
+        "red-sea-foundation-pro-mg",
+        "salifert-mg-profi",
+    ]
+    assert T.test_options("fe") == ["manual"]
+    assert T.test_value("manual", 0.5) is None
+    assert T.test_value("red-sea-foundation-pro-kh", 0.4) == pytest.approx(5.6)
+    assert T.test_value("red-sea-foundation-pro-ca", 0.86) == pytest.approx(430.0)
+    assert T.test_value("salifert-kh-profi", 0.5) == pytest.approx(8.0)
+    # The amount used, 1500 ppm per mL
+    assert T.test_value("salifert-mg-profi", 0.1) == pytest.approx(150.0)
+    with pytest.raises(ValueError, match="unknown water test"):
+        T.test_value("acme-kh", 1)
     with pytest.raises(ValueError, match="negative"):
-        K.kit_value("redsea_kh", -1)
-    with pytest.raises(ValueError, match="left in the syringe"):
-        K.kit_value("salifert_ca", 1.2)
-    # A refilled syringe goes past 1 mL
-    assert K.kit_value("redsea_kh", 1.2) == pytest.approx(16.8)
+        T.test_value("red-sea-foundation-pro-kh", -1)
+    # Nothing is guessed beyond the table
+    with pytest.raises(ValueError, match="table covers 0 to 1 ml"):
+        T.test_value("salifert-ca-profi", 1.2)
+    with pytest.raises(ValueError, match="table covers"):
+        T.test_value("red-sea-foundation-pro-kh", 1.2)
 
 
 def test_settings_test_kit() -> None:
     settings = R.HeadSettings()
     assert settings.kit_measurement() is None
-    settings.set("test_kit", "redsea_kh")
+    settings.set("test_kit", "red-sea-foundation-pro-kh")
     settings.set("reagent_ml", 0.6)
     # Rounded to the step of the parameter
     assert settings.kit_measurement() == 8.4
     with pytest.raises(ValueError, match="does not test"):
-        settings.set("test_kit", "redsea_ca")
+        settings.set("test_kit", "red-sea-foundation-pro-ca")
     with pytest.raises(ValueError, match="does not test"):
         settings.set("test_kit", "nope")
-    # Another kit: the former reading is dropped
-    settings.set("test_kit", "salifert_kh")
+    # Another test: the former reading is dropped
+    settings.set("test_kit", "salifert-kh-profi")
     assert settings.reagent_ml == 0.0
-    with pytest.raises(ValueError, match="left in the syringe"):
-        settings.set("reagent_ml", 2.0)
-    settings.set("test_kit", "salifert_kh")
+    settings.set("test_kit", "salifert-kh-profi")
     settings.set("reagent_ml", 0.25)
     # Read back from the store
     again = R.HeadSettings.from_dict(settings.as_dict())
-    assert (again.test_kit, again.reagent_ml) == ("salifert_kh", 0.25)
+    assert (again.test_kit, again.reagent_ml) == ("salifert-kh-profi", 0.25)
+    # Ids of the former built-in kits are migrated
+    legacy = settings.as_dict() | {"test_kit": "salifert_kh"}
+    assert R.HeadSettings.from_dict(legacy).test_kit == "salifert-kh-profi"
     settings.set("parameter", "ca")
     assert (settings.test_kit, settings.reagent_ml) == ("manual", 0.0)
-    # Ca keeps a kit of its own across a parameter change to itself
-    settings.set("test_kit", "redsea_ca")
+    # Ca keeps a test of its own across a parameter change to itself
+    settings.set("test_kit", "red-sea-foundation-pro-ca")
     settings.set("parameter", "ca")
-    assert settings.test_kit == "redsea_ca"
-    # Results above the bounds of a measurement are clamped
-    settings.set("reagent_ml", 5.0)
-    assert settings.kit_measurement() == 2000.0
+    assert settings.test_kit == "red-sea-foundation-pro-ca"
+    settings.set("reagent_ml", 1.0)
+    assert settings.kit_measurement() == 500.0
+
+
+def test_settings_remember_the_test_of_each_parameter() -> None:
+    settings = R.HeadSettings()
+    settings.set("test_kit", "red-sea-foundation-pro-kh")
+    settings.set("parameter", "ca")
+    assert settings.test_kit == "manual"
+    settings.set("test_kit", "salifert-ca-profi")
+    settings.set("reagent_ml", 0.5)
+    # Back to the first parameter: its test comes back, the reading does not
+    settings.set("parameter", "kh")
+    assert (settings.test_kit, settings.reagent_ml) == (
+        "red-sea-foundation-pro-kh",
+        0.0,
+    )
+    settings.set("parameter", "ca")
+    assert settings.test_kit == "salifert-ca-profi"
+    # A remembered test the catalog no longer has is not brought back
+    settings.last_tests["mg"] = "gone"
+    settings.set("parameter", "mg")
+    assert settings.test_kit == "manual"
+    # Kept in the store, with the ids of former kits migrated
+    raw = settings.as_dict() | {"last_tests": {"kh": "salifert_kh"}}
+    assert R.HeadSettings.from_dict(raw).last_tests == {"kh": "salifert-kh-profi"}
+    with pytest.raises(ValueError, match="last_tests"):
+        settings.set("last_tests", ["kh"])
+    with pytest.raises(ValueError, match="last_tests"):
+        settings.set("last_tests", {"kh": 3})
+
+
+async def test_record_with_a_test_and_an_amount(hass: HomeAssistant) -> None:
+    regulator, _doser, _clock = await _regulator(hass, (1,))
+    await regulator.async_set(1, "mode", "assisted")
+    # 0.5 mL of the Red Sea KH test: 7 dKH
+    result = await regulator.async_record(
+        1, test="red-sea-foundation-pro-kh", amount=0.5
+    )
+    assert result["recorded"] is True
+    point = regulator.series(1)[-1]
+    assert (point.value, point.source) == (7.0, "red-sea-foundation-pro-kh")
+    # The test is remembered for the parameter, and found again by default
+    assert regulator.head_state(1).settings.last_tests["kh"] == (
+        "red-sea-foundation-pro-kh"
+    )
+    await regulator.async_set(1, "test_kit", "red-sea-foundation-pro-kh")
+    await regulator.async_record(1, amount=0.6)
+    assert regulator.series(1)[-1].value == 8.4
+    # The parameter is the one of the test
+    await regulator.async_record(1, test="red-sea-foundation-pro-ca", amount=0.86)
+    assert regulator.store.series("ca")[-1].value == 430.0
+    cases: tuple[tuple[dict[str, Any], str], ...] = (
+        ({"value": 8.0, "amount": 0.5}, "either"),
+        ({"amount": 0.5, "test": "manual"}, "needs a water test"),
+        ({"amount": 0.5, "test": "nope"}, "unknown water test"),
+        (
+            {"amount": 0.5, "test": "red-sea-foundation-pro-kh", "parameter": "ca"},
+            "does not test",
+        ),
+        ({"amount": 1.5, "test": "red-sea-foundation-pro-kh"}, "table covers"),
+    )
+    for kwargs, message in cases:
+        with pytest.raises(ValueError, match=message):
+            await regulator.async_record(1, **kwargs)
+    # A test of a parameter that cannot be regulated
+    sr = {
+        "brand": "Acme",
+        "name": "Sr",
+        "tests": [
+            {
+                "parameter": "sr",
+                "unit": "ppm",
+                "method": "titration",
+                "table": {
+                    "amount_unit": "ml",
+                    "points": [{"amount": 0, "value": 0}, {"amount": 1, "value": 10}],
+                },
+            }
+        ],
+    }
+    catalog_tables.install("water_tests", {"items": {"acme-sr": sr}})
+    with pytest.raises(ValueError, match="unknown parameter"):
+        await regulator.async_record(1, test="acme-sr", amount=0.5)
+    catalog_tables.reset()
+    # No test selected on the head: an amount alone is refused
+    await regulator.async_set(1, "test_kit", "manual")
+    with pytest.raises(ValueError, match="needs a water test"):
+        await regulator.async_record(1, amount=0.5)
 
 
 async def test_nutrient_reducer_not_regulated(hass: HomeAssistant) -> None:

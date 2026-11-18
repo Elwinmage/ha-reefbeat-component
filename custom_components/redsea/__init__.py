@@ -45,7 +45,7 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
 from homeassistant.util.json import JsonValueType
 
-from .catalog_runtime import async_setup_catalog, async_unload_catalog
+from .catalog_sections import async_setup_catalogs, async_unload_catalogs
 from .const import (
     CONF_GROUP_MEMBERS,
     CONFIG_FLOW_CLOUD_USERNAME,
@@ -116,7 +116,6 @@ from .poseidon import (
 )
 from .reefbeat.cloud import InvalidAuth
 from .reefbeat.control import ReefControlAPI
-from .supplements import CATALOG as SUPPLEMENTS_CATALOG
 from .supplements import (
     CATALOG_PLATFORMS,
     async_request_catalog_entry,
@@ -219,8 +218,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         return await async_setup_poseidon(hass, entry)
 
     if is_catalog_entry(entry):
-        # Supplements catalog: its own device (update + automatic update)
-        await async_setup_catalog(hass, entry, SUPPLEMENTS_CATALOG)
+        # Catalogs (supplements, water tests, parameters): one device (an
+        # update entity per section, one automatic update switch)
+        await async_setup_catalogs(hass, entry)
         await hass.config_entries.async_forward_entry_setups(entry, CATALOG_PLATFORMS)
         return True
 
@@ -631,7 +631,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         unloaded = await hass.config_entries.async_unload_platforms(
             entry, CATALOG_PLATFORMS
         )
-        await async_unload_catalog(hass, entry, SUPPLEMENTS_CATALOG)
+        await async_unload_catalogs(hass, entry)
         return unloaded
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
@@ -1400,8 +1400,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async def handle_record_measurement(call: ServiceCall) -> ServiceResponse:
         """Record a test result for a ReefDose head (dose regulation).
 
-        ``device_id`` is the head's device. ``parameter`` defaults to the
-        head's regulated parameter; ``measured_at`` to now.
+        ``device_id`` is the head's device. The result is ``value``, or the
+        ``amount`` of reagent used with the water ``test`` of the catalog (the
+        head's own by default). ``parameter`` defaults to the head's regulated
+        parameter (the test's with an amount); ``measured_at`` to now.
         """
         found = _dose_head(hass, call.data.get("device_id"))
         if found is None:
@@ -1420,9 +1422,15 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 parsed = parsed.replace(tzinfo=dt_util.get_default_time_zone())
             at = dt_util.as_local(parsed)
         try:
-            value = float(call.data["value"])
+            raw = call.data.get("value")
+            amount = call.data.get("amount")
             result = await regulator.async_record(
-                head, value, call.data.get("parameter"), at
+                head,
+                None if raw is None else float(raw),
+                call.data.get("parameter"),
+                at,
+                call.data.get("test"),
+                None if amount is None else float(amount),
             )
         except (KeyError, TypeError, ValueError) as err:
             return {"ok": False, "error": str(err)}

@@ -5,8 +5,8 @@ Per head, on the head's device:
 - select  regulation_mode            off / assisted / brine
 - select  regulation_parameter       parameter regulated in assisted mode
 - select  brine_salinity_source      salinity sensor of the brine mode
-- select  regulation_test_kit        titration kit the test is read with
-- number  regulation_reagent         syringe reading of the kit (mL)
+- select  regulation_test_kit        water test (catalog) the result is read with
+- number  regulation_reagent         reagent used by the test (mL or drops)
 - number  regulation_target ... salinity_check_tolerance (settings)
 - number  regulation_measurement     test result to record
 - button  regulation_record          record the test result
@@ -52,11 +52,16 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import Entity
 
+from .catalog_tables import (
+    MANUAL,
+    PARAMETERS,
+    WATER_TESTS,
+    parameter_options,
+    test_options,
+)
 from .dose_regulation import (
     ALARMS,
     MODES,
-    PARAMETER_OPTIONS,
-    PARAMETERS,
     REGULATOR_ATTR,
     SETTING_BOUNDS,
     STATUSES,
@@ -64,7 +69,6 @@ from .dose_regulation import (
     HeadState,
     salinity_unit_supported,
 )
-from .test_kits import MANUAL, TEST_KITS, kits_for
 
 # Value of the source select when no sensor is chosen
 NO_SOURCE = "none"
@@ -142,6 +146,20 @@ class RegulationSelect(RegulationEntity, SelectEntity):
         await self._async_set(self._setting, option)
 
 
+class ParameterSelect(RegulationSelect):
+    """Parameter regulated: those of the parameters catalog with regulation data.
+
+    A parameter set before the catalog changed stays shown, so that the change
+    is visible.
+    """
+
+    @property
+    def options(self) -> list[str]:  # pyright: ignore[reportIncompatibleVariableOverride]
+        offered = parameter_options()
+        current = self.state_data.settings.parameter
+        return offered if current in offered else [*offered, current]
+
+
 class RegulationModeSelect(RegulationSelect):
     """Regulation mode, the entry point of the feature (not a config).
 
@@ -161,35 +179,65 @@ class RegulationModeSelect(RegulationSelect):
 
 
 class TitrationKitSelect(RegulationEntity, SelectEntity):
-    """Titration kit the test result is read with: the syringe reading then
-    gives the result (``manual``: the result is typed in)."""
+    """Water test (catalog) the test result is read with: the amount of reagent
+    used then gives the result with the table of the manufacturer (``manual``:
+    the result is typed in).
+
+    The options are the names of the products, so that the select reads like the
+    box of the test; a test whose table was not checked is marked with a
+    warning sign (and ``verified: false`` in the attributes).
+    """
 
     _attr_entity_category = None
     _attr_icon = "mdi:eyedropper"
 
+    def _label(self, test_id: str) -> str:
+        test = WATER_TESTS[test_id]
+        return test.label if test.verified else f"{test.label} ⚠"
+
+    def _labels(self) -> dict[str, str]:
+        """Option -> id of the tests of the regulated parameter."""
+        return {
+            self._label(test_id): test_id
+            for test_id in test_options(self.state_data.settings.parameter)
+            if test_id != MANUAL
+        }
+
     @property
     def options(self) -> list[str]:  # pyright: ignore[reportIncompatibleVariableOverride]
-        return kits_for(self.state_data.settings.parameter)
+        options = [MANUAL, *self._labels()]
+        current = self.current_option
+        return options if current in options else [*options, str(current)]
 
     @property
     def current_option(self) -> str | None:  # pyright: ignore[reportIncompatibleVariableOverride]
-        return self.state_data.settings.test_kit
+        current = self.state_data.settings.test_kit
+        if current in WATER_TESTS:
+            return self._label(current)
+        # Typed in, or a test the catalog no longer has
+        return current
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:  # pyright: ignore[reportIncompatibleVariableOverride]
-        kit = TEST_KITS.get(self.state_data.settings.test_kit)
-        if kit is None:
+        test = WATER_TESTS.get(self.state_data.settings.test_kit)
+        if test is None:
             return {"reef_role": self._key}
+        low, high = test.amounts()
         return {
             "reef_role": self._key,
-            "brand": kit.brand,
-            "factor": kit.factor,
-            "reading": kit.reading,
-            "capacity": kit.capacity,
+            "test_id": test.id,
+            "brand": test.brand,
+            "name": test.name,
+            "verified": test.verified,
+            "amount_unit": test.amount_unit,
+            "amount_min": low,
+            "amount_max": high,
+            "image": test.image,
+            "thumb": test.thumb,
         }
 
     async def async_select_option(self, option: str) -> None:
-        await self._async_set("test_kit", option)
+        await self._async_set("test_kit", self._labels().get(option, option))
 
 
 class SalinitySourceSelect(RegulationEntity, SelectEntity):
@@ -284,14 +332,30 @@ class PotencyNumber(ParameterNumber):
 
 
 class ReagentNumber(RegulationNumber):
-    """Syringe reading of the titration kit (not a config): greyed while the
-    result is typed in by hand."""
+    """Reagent used by the water test (not a config): greyed while the result is
+    typed in by hand. The unit (mL or drops) and the largest amount come from the
+    table of the test."""
 
     _attr_entity_category = None
+
+    def _test(self) -> Any:
+        return WATER_TESTS.get(self.state_data.settings.test_kit)
 
     @property
     def available(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
         return super().available and self.state_data.settings.test_kit != MANUAL
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:  # pyright: ignore[reportIncompatibleVariableOverride]
+        test = self._test()
+        return "drops" if test is not None and test.amount_unit == "drops" else "mL"
+
+    @property
+    def native_max_value(self) -> float:  # pyright: ignore[reportIncompatibleVariableOverride]
+        test = self._test()
+        return (
+            test.amounts()[1] if test is not None else SETTING_BOUNDS["reagent_ml"][1]
+        )
 
 
 class MeasurementNumber(ParameterNumber):
@@ -523,12 +587,12 @@ def _head_entities(device: Any, head: int, platform: str) -> list[Any]:
     builders: dict[str, Callable[[], list[Any]]] = {
         "select": lambda: [
             RegulationModeSelect(device, head, "regulation_mode", "mode", MODES),
-            RegulationSelect(
+            ParameterSelect(
                 device,
                 head,
                 "regulation_parameter",
                 "parameter",
-                PARAMETER_OPTIONS,
+                parameter_options(),
             ),
             SalinitySourceSelect(device, head, "brine_salinity_source"),
             TitrationKitSelect(device, head, "regulation_test_kit"),

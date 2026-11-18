@@ -72,7 +72,7 @@ async def test_doser_creates_the_catalog_entry(
 
     catalog = _catalog_entry(hass)
     assert catalog is not None and sup.is_catalog_entry(catalog)
-    assert catalog.title == "ReefBeat supplements catalog"
+    assert catalog.title == "ReefBeat catalog"
     assert not ConfigFlow.async_supports_options(catalog)
     assert ConfigFlow.async_supports_options(doser)
     updater = get_updater(hass, DOMAIN)
@@ -84,7 +84,13 @@ async def test_doser_creates_the_catalog_entry(
         e.unique_id: e.entity_id
         for e in er.async_entries_for_config_entry(registry, catalog.entry_id)
     }
-    assert set(ids) == {"catalog_supplements", "catalog_supplements_auto_update"}
+    # One update entity per section, one switch for all of them
+    assert set(ids) == {
+        "catalog_supplements",
+        "catalog_water_tests",
+        "catalog_parameters",
+        "catalog_supplements_auto_update",
+    }
     update = hass.states.get(ids["catalog_supplements"])
     switch = hass.states.get(ids["catalog_supplements_auto_update"])
     assert update is not None and update.attributes["installed_version"] == "0"

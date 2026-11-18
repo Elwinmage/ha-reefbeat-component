@@ -2,6 +2,26 @@
 
 ## MODIFICATIONS
 
+### ReefDose: parameters and water tests from the reeftech-catalog
+
+- The regulable parameters (target, tolerance, largest daily correction, step)
+  and the titration tests now come from the `parameters` and `water_tests`
+  sections of the catalog, like the supplements (built-in snapshots, updates
+  with the same *Automatic update* switch; one update entity per section on the
+  *ReefBeat catalog* device, formerly *ReefBeat supplements catalog*).
+- **Test kit** lists the tests of the catalog for the chosen parameter, named
+  like the products; ⚠ marks a test whose table is not verified. **Reagent
+  used** (formerly *Reagent reading*) is the amount used, in mL or drops, and
+  stops at the end of the table: nothing is extrapolated.
+- Kits saved by earlier versions are migrated. Salifert tests now count the
+  amount used, not what is left in the syringe. The default magnesium target is
+  1340 ppm (optimal of the catalog).
+- The test last chosen for each parameter is remembered. `record_measurement`
+  takes a `test` and an `amount` of reagent (instead of a `value`) and works the
+  result out with the table of the test.
+- Needs a catalog `parameters` release carrying `regulation`
+  (`min_integration.redsea`).
+
 ### ReefDose: supplements from the reeftech-catalog
 
 - The supplement list (`supplements_list.py`) is gone: supplements now come
