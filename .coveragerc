@@ -12,6 +12,7 @@ branch = False
 omit =
     custom_components/redsea/catalog_pack.py
     custom_components/redsea/catalog_runtime.py
+    custom_components/redsea/catalog_conversion.py
 
 [report]
 # `exclude_also` ADDS to the built-in defaults (which already include

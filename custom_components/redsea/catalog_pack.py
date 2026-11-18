@@ -27,7 +27,7 @@ user folders share the repository layout of the section:
 
     tasks/<task_id>.json                                 (equipment)
     categories/<id>/category.json [+ image.webp, ...]   (equipment)
-    items/<id>/item.json | supplement.json | parameter.json [+ ...]
+    items/<id>/item.json | supplement.json | parameter.json | water_test.json [+ ...]
 
 A manifest may also carry a `schema` record: the JSON Schemas the entries of
 the section are checked against (data only, no code), for tools that edit the
@@ -64,11 +64,13 @@ KIND_LAYOUT: dict[str, tuple[str, str | None]] = {
     "item": ("items", "item.json"),
     "supplement": ("items", "supplement.json"),
     "parameter": ("items", "parameter.json"),
+    "water_test": ("items", "water_test.json"),
 }
 SECTION_KINDS: dict[str, frozenset[str]] = {
     "equipment": frozenset({"tasks", "category", "item"}),
     "supplements": frozenset({"supplement"}),
     "parameters": frozenset({"parameter"}),
+    "water_tests": frozenset({"water_test"}),
 }
 #: Kind of the manifest `schema` record (not an entry of the section)
 SCHEMA_KIND = "schema"
@@ -76,6 +78,9 @@ SCHEMA_KIND = "schema"
 #: every integration: <config>/reeftech_catalog/user/<section>/ (section layout)
 SHARED_FOLDER = "reeftech_catalog"
 SHARED_USER_FOLDER = "user"
+#: Folder of the downloaded packs shared by every integration (and the editor):
+#: <config>/reeftech_catalog/pack/<section>/ (section layout, plus manifest.json)
+SHARED_PACK_FOLDER = "pack"
 IMAGE_FILES = ("image.webp", "image.png")
 THUMB_FILE = "thumb.webp"
 ALLOWED_SUFFIXES = (".json", ".webp", ".png")
@@ -89,7 +94,7 @@ _ID_RE = re.compile(r"^[a-z0-9]+(?:[-_][a-z0-9]+)*$")
 _FILE_RE = re.compile(r"^[A-Za-z0-9_@.-]{1,120}$")
 _SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 _VERSION_RE = re.compile(r"^[0-9A-Za-z._+-]{1,40}$")
-_ARCHIVE_RE = re.compile(r"^[a-z]+-[0-9A-Za-z._+-]{1,40}/[A-Za-z0-9_.-]{1,120}\.zip$")
+_ARCHIVE_RE = re.compile(r"^[a-z_]+-[0-9A-Za-z._+-]{1,40}/[A-Za-z0-9_.-]{1,120}\.zip$")
 
 
 class PackError(Exception):
@@ -142,6 +147,11 @@ class Manifest:
 def shared_user_parts(section: str) -> tuple[str, ...]:
     """Path parts, under the config folder, of the shared user layer of a section."""
     return (SHARED_FOLDER, SHARED_USER_FOLDER, section)
+
+
+def shared_pack_parts(section: str) -> tuple[str, ...]:
+    """Path parts, under the config folder, of the shared downloaded pack of a section."""
+    return (SHARED_FOLDER, SHARED_PACK_FOLDER, section)
 
 
 def _check_version(value: Any, what: str) -> str:
@@ -389,6 +399,24 @@ def commit(root: Path, staging: Path, manifest: Manifest) -> None:
     shutil.rmtree(old, ignore_errors=True)
 
 
+def copy_pack(src: Path, dest: Path) -> None:
+    """Replace the pack at `dest` by a copy of the pack at `src`.
+
+    Prepared next to `dest` and swapped in one move, like an install: an
+    interruption leaves the previous `dest` untouched.
+    """
+    staging = staging_dir(dest)
+    shutil.rmtree(staging, ignore_errors=True)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(src, staging)
+    old = dest.with_name(dest.name + ".old")
+    shutil.rmtree(old, ignore_errors=True)
+    if dest.exists():
+        dest.rename(old)
+    staging.rename(dest)
+    shutil.rmtree(old, ignore_errors=True)
+
+
 # -- network ------------------------------------------------------------------
 
 
@@ -563,13 +591,29 @@ def build_view(
     return view
 
 
+def usable_icon(icon: Any, icon_sets: Iterable[str] = ("mdi",)) -> str | None:
+    """The icon when its set is available on this installation, else None.
+
+    The catalog may use the `redsea:` icon set, which only the installations having
+    the redsea integration (or an editor) provide: the others get None and show
+    their default icon.
+    """
+    if not isinstance(icon, str) or ":" not in icon:
+        return None
+    return icon if icon.split(":", 1)[0] in set(icon_sets) else None
+
+
 def resolve_maintenance(
-    view: dict[str, Any], item_id: str | None = None, category_id: str | None = None
+    view: dict[str, Any],
+    item_id: str | None = None,
+    category_id: str | None = None,
+    icon_sets: Iterable[str] = ("mdi",),
 ) -> list[dict]:
     """Tasks to create for an equipment: category tasks overridden by the item ones.
 
     Each task: `task` (id), `name`, `description`, `icon`, `schedule`,
-    `regulatory`. Unknown tasks are skipped.
+    `regulatory`. Unknown tasks are skipped. `icon` is None when its icon set is not
+    in `icon_sets` (see `usable_icon`).
     """
     tasks: dict[str, dict[str, Any]] = view.get("tasks", {})
     item = view.get("items", {}).get(item_id) if item_id else None
@@ -605,7 +649,7 @@ def resolve_maintenance(
                 "task": task_id,
                 "name": template.get("name", {}),
                 "description": template.get("description", {}),
-                "icon": template.get("icon"),
+                "icon": usable_icon(template.get("icon"), icon_sets),
                 "schedule": ref.get("schedule", template.get("schedule")),
                 "regulatory": ref.get("regulatory", template.get("regulatory", False)),
             }

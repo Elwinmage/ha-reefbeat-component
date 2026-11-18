@@ -17,19 +17,30 @@ One updater per integration domain, shared by all its config entries:
     # update.py / switch.py
     async_add_entities([*catalog_entities(hass, entry, DOMAIN, "update"), ...])
 
-It keeps `<config>/<domain>/catalog/` up to date (check at start-up then
-every 12 hours, automatic install unless switched off), merges it with the
-built-in snapshot (`catalog_builtin/` next to this file) and the user folder
-(`<config>/<domain>/catalog_user/`), serves the visuals at
-`/<domain>_catalog/{builtin,pack,shared,user}/...` and answers the cards on the
-websocket (`<domain>/catalog`, `<domain>/catalog/subscribe`, and for the
-equipment section `<domain>/catalog/maintenance`).
+The downloaded pack of a section is common to every reader of that section: a
+`SharedPack` keeps `<config>/reeftech_catalog/pack/<section>/` up to date (check
+at start-up then every 12 hours, automatic install unless every reader switched
+it off) and tells the updaters when it changes. Each updater merges it with the
+built-in snapshot (`catalog_builtin/` next to this file) and the user folders,
+serves the visuals at `/<domain>_catalog/{builtin,shared,user}/...` (the pack at
+`/reeftech_catalog_pack/<section>/...`) and answers the cards on the websocket
+(`<domain>/catalog`, `<domain>/catalog/subscribe`, and for the equipment section
+`<domain>/catalog/maintenance`).
+
+An integration too old for the current release (`min_integration`) does not use
+the shared pack: it keeps the pack of its own folder `<config>/<domain>/catalog/`,
+a copy of the previous shared pack made when the incompatible release was
+installed. Once the integration is compatible again it switches to the shared
+pack and its own folder is removed.
 
 It also reads the user layer shared by every integration,
 `<config>/reeftech_catalog/user/<section>/` (written by catalog editors), between
-the downloaded pack and the user folder of the domain. A writer tells the
-integrations to reload it by sending the dispatcher signal
-`SIGNAL_USER_CATALOG_CHANGED` (argument: the section changed, or None).
+the pack and the user folder of the domain. A writer tells the integrations to
+reload it by sending the dispatcher signal `SIGNAL_USER_CATALOG_CHANGED`
+(argument: the section changed, or None).
+
+A tool that is not a reader of the catalog (an editor) takes the shared pack with
+`async_acquire_pack` and gives it back with `async_release_pack`.
 
 Translation keys expected in the integration: the exceptions
 `catalog_unknown`, `catalog_incompatible` (placeholders `version`, `minimum`)
@@ -39,7 +50,9 @@ and `catalog_install_failed` (placeholder `error`), and the entity name
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import shutil
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import timedelta
@@ -98,13 +111,14 @@ from .catalog_pack import (
     PackError,
     build_view,
     commit,
+    copy_pack,
     extract_entry,
     is_compatible,
     plan,
     prepare_staging,
     read_installed,
     resolve_maintenance,
-    select,
+    shared_pack_parts,
     shared_user_parts,
 )
 
@@ -115,6 +129,10 @@ BUILTIN_DIR = Path(__file__).parent / "catalog_builtin"
 #: Version shown while no pack is installed
 NOT_INSTALLED = "0"
 MANUFACTURER = "ReefTech"
+#: Where the visuals of the shared packs are served: <url>/<section>/...
+SHARED_PACK_URL = "/reeftech_catalog_pack"
+#: Hours between two checks of the releases (the shortest asked by a holder wins)
+CHECK_HOURS = 12
 #: Sent by whoever writes in the shared user layer, with the section changed
 #: (or None for all of them): every updater of that section reloads its view.
 SIGNAL_USER_CATALOG_CHANGED = "reeftech_catalog_user_changed"
@@ -125,11 +143,11 @@ class CatalogSpec:
     """What an integration reads from the catalog."""
 
     domain: str
-    section: str  # equipment | supplements
+    section: str  # equipment | supplements | parameters | water_tests
     title: str  # name of the catalog device
     scopes: tuple[str, ...] | None = None  # None keeps every scope
     repo: str = REPO
-    check_hours: int = 12
+    check_hours: int = CHECK_HOURS
 
 
 def signal_catalog_changed(domain: str) -> str:
@@ -150,48 +168,43 @@ def get_updater(hass: HomeAssistant, domain: str) -> CatalogUpdater | None:
     return _registry(hass).get(domain)
 
 
-class CatalogUpdater:
-    """State of a domain's catalog: checks, installs and the merged view."""
+def get_shared_pack(hass: HomeAssistant, section: str) -> SharedPack | None:
+    """The shared pack of a section, if some holder has taken it."""
+    return _registry(hass).get(f"pack_{section}")
 
-    def __init__(
-        self, hass: HomeAssistant, spec: CatalogSpec, integration_version: str
-    ) -> None:
-        """Bind to the folders of the domain."""
+
+# -- shared pack ----------------------------------------------------------------
+
+
+class SharedPack:
+    """The downloaded pack of a section: checks, installs, shared by its holders.
+
+    Holders (an integration reading the section, an editor) keep it alive; the
+    updaters among them are told to reload their view when a release is
+    installed. It installs a release even when some holder is too old for it:
+    such an updater keeps the previous pack as its own (see `_preserve`).
+    """
+
+    def __init__(self, hass: HomeAssistant, section: str, repo: str = REPO) -> None:
+        """Bind to the shared folder of the section."""
         self.hass = hass
-        self.spec = spec
-        self.integration_version = integration_version
-        self.root = Path(hass.config.path(spec.domain, "catalog"))
-        self.user_root = Path(hass.config.path(spec.domain, "catalog_user"))
-        self.shared_root = Path(hass.config.path(*shared_user_parts(spec.section)))
-        #: Counts the reloads asked by writers; stamps the visuals of the shared layer
-        self.user_revision = 0
-        self.client = PackClient(async_get_clientsession(hass), spec.section, spec.repo)
+        self.section = section
+        self.root = Path(hass.config.path(*shared_pack_parts(section)))
+        self.url = f"{SHARED_PACK_URL}/{section}"
+        self.client = PackClient(async_get_clientsession(hass), section, repo)
         self.installed: Manifest | None = None
         self.latest: Manifest | None = None
         self.last_error: str | None = None
         self.in_progress = False
         self.progress: int | None = None
-        self.auto_update = True
-        self.entry_ids: list[str] = []
-        self._store: Store[dict[str, Any]] = Store(hass, 1, f"{spec.domain}.catalog")
-        self._view: dict[str, Any] | None = None
+        #: holder -> (installs new releases by itself, hours between two checks)
+        self.holders: dict[str, tuple[bool, int]] = {}
+        #: Updaters reading the pack, by domain
+        self.updaters: dict[str, CatalogUpdater] = {}
         self._listeners: list[Callable[[], None]] = []
         self._unsub_timer: CALLBACK_TYPE | None = None
-        self._unsub_user: CALLBACK_TYPE | None = None
 
     # -- state ----------------------------------------------------------------
-
-    @property
-    def owner_entry_id(self) -> str | None:
-        """Config entry hosting the catalog entities."""
-        return self.entry_ids[0] if self.entry_ids else None
-
-    @property
-    def compatible(self) -> bool:
-        """The latest release can be used by this integration."""
-        return self.latest is None or is_compatible(
-            self.latest, self.spec.domain, self.integration_version
-        )
 
     @property
     def update_available(self) -> bool:
@@ -201,6 +214,11 @@ class CatalogUpdater:
         if self.installed is None:
             return True
         return self.latest.raw != self.installed.raw
+
+    @property
+    def wants_auto(self) -> bool:
+        """At least one holder wants new releases installed as they come."""
+        return any(auto for auto, _ in self.holders.values())
 
     @callback
     def async_add_listener(self, listener: Callable[[], None]) -> CALLBACK_TYPE:
@@ -215,36 +233,48 @@ class CatalogUpdater:
 
     @callback
     def _notify(self) -> None:
+        for updater in list(self.updaters.values()):
+            updater.notify()
         for listener in list(self._listeners):
             listener()
-        async_dispatcher_send(self.hass, signal_catalog_changed(self.spec.domain))
+
+    @callback
+    def set_auto(self, holder: str, auto: bool) -> None:
+        """A holder turned automatic installs on or off."""
+        _, hours = self.holders[holder]
+        self.holders[holder] = (auto, hours)
 
     # -- life cycle -----------------------------------------------------------
 
-    async def async_start(self) -> None:
-        """Read the installed pack and the settings, then check in the background."""
-        stored = await self._store.async_load() or {}
-        self.auto_update = bool(stored.get("auto_update", True))
-        self.installed = await self.hass.async_add_executor_job(self._prepare_folders)
-        # Loaded before the platforms, so that entities read it synchronously
-        await self.async_view(refresh=True)
-        self._notify()
-        self._unsub_user = async_dispatcher_connect(
-            self.hass, SIGNAL_USER_CATALOG_CHANGED, self._on_user_changed
-        )
-        self._unsub_timer = async_track_time_interval(
-            self.hass, self._async_timer, timedelta(hours=self.spec.check_hours)
-        )
-        # A first check that fails (offline) must not delay nor fail the setup
+    async def async_prepare(self) -> None:
+        """Create the folder and read the installed pack."""
+        self.installed = await self.hass.async_add_executor_job(self._prepare_folder)
+
+    @callback
+    def async_begin(self) -> None:
+        """Start the periodic checks, with a first one in the background.
+
+        A first check that fails (offline) must not delay nor fail the set-up.
+        """
+        self._schedule()
+        # Not started eagerly: the caller still has to register its updater
         self.hass.async_create_background_task(
-            self.async_check(), f"{self.spec.domain} catalog check"
+            self.async_check(), f"{self.section} catalog check", eager_start=False
         )
 
-    def _prepare_folders(self) -> Manifest | None:
+    def _prepare_folder(self) -> Manifest | None:
         self.root.mkdir(parents=True, exist_ok=True)
-        self.user_root.mkdir(parents=True, exist_ok=True)
-        self.shared_root.mkdir(parents=True, exist_ok=True)
-        return read_installed(self.root, self.spec.section)
+        return read_installed(self.root, self.section)
+
+    @callback
+    def _schedule(self) -> None:
+        """(Re)start the periodic check, at the pace of the most demanding holder."""
+        self.async_stop()
+        if self.holders:
+            hours = min(hours for _, hours in self.holders.values())
+            self._unsub_timer = async_track_time_interval(
+                self.hass, self._async_timer, timedelta(hours=hours)
+            )
 
     @callback
     def async_stop(self) -> None:
@@ -252,12 +282,324 @@ class CatalogUpdater:
         if self._unsub_timer is not None:
             self._unsub_timer()
             self._unsub_timer = None
-        if self._unsub_user is not None:
-            self._unsub_user()
-            self._unsub_user = None
 
     async def _async_timer(self, _now: Any) -> None:
         await self.async_check()
+
+    # -- checks ---------------------------------------------------------------
+
+    async def async_check(self, force: bool = False) -> None:
+        """Read the current manifest; install it when asked or when a holder wants it.
+
+        Errors are kept in `last_error`, never raised: offline or GitHub down
+        keeps the installed pack, quietly.
+        """
+        try:
+            latest = await self.client.latest()
+        except PackError as err:
+            self.last_error = str(err)
+            _LOGGER.debug("%s catalog check failed: %s", self.section, err)
+            self._notify()
+            return
+        self.last_error = None
+        self.latest = latest
+        for updater in self.updaters.values():
+            if not is_compatible(
+                latest, updater.spec.domain, updater.integration_version
+            ):
+                _LOGGER.warning(
+                    "%s catalog %s needs %s %s or newer: it keeps its previous catalog",
+                    self.section,
+                    latest.version,
+                    updater.spec.domain,
+                    latest.min_integration.get(updater.spec.domain),
+                )
+        self._notify()
+        if not (force or self.wants_auto) or not self.update_available:
+            return
+        try:
+            await self.async_install()
+        except (PackError, OSError) as err:
+            self.last_error = str(err)
+            _LOGGER.warning("%s catalog update failed: %s", self.section, err)
+            self._notify()
+
+    # -- install --------------------------------------------------------------
+
+    async def async_install(self) -> None:
+        """Install the latest release. Raises PackError or OSError."""
+        latest = self.latest
+        if latest is None:
+            raise PackError("the catalog has not been checked yet")
+        if self.in_progress:
+            return
+        self.in_progress = True
+        self.progress = 0
+        self._notify()
+        try:
+            installed = await self.hass.async_add_executor_job(
+                read_installed, self.root, self.section
+            )
+            keep, fetch = plan(installed, latest)
+            staging = await self.hass.async_add_executor_job(
+                prepare_staging, self.root, keep
+            )
+            for done, item in enumerate(fetch, start=1):
+                blob = await self.client.entry(item)
+                await self.hass.async_add_executor_job(
+                    extract_entry, blob, item, staging / item.rel_dir
+                )
+                self.progress = round(100 * done / len(fetch))
+                self._notify()
+            await self.hass.async_add_executor_job(self._preserve, installed, latest)
+            await self.hass.async_add_executor_job(commit, self.root, staging, latest)
+            # Set before the final notification, so listeners see the new version
+            self.installed = latest
+            for updater in list(self.updaters.values()):
+                await updater.async_reload()
+        finally:
+            self.in_progress = False
+            self.progress = None
+            self._notify()
+        _LOGGER.info(
+            "%s catalog %s installed (%d entries downloaded, %d kept)",
+            self.section,
+            latest.version,
+            len(fetch),
+            len(keep),
+        )
+
+    def _preserve(self, previous: Manifest | None, latest: Manifest) -> None:
+        """Give the previous pack to the updaters too old for the new release.
+
+        They would otherwise be left with nothing but their built-in snapshot.
+        Runs before the new pack replaces the previous one.
+        """
+        if previous is None:
+            return
+        for updater in self.updaters.values():
+            domain, version = updater.spec.domain, updater.integration_version
+            if is_compatible(previous, domain, version) and not is_compatible(
+                latest, domain, version
+            ):
+                copy_pack(self.root, updater.root)
+
+
+async def async_acquire_pack(
+    hass: HomeAssistant,
+    section: str,
+    holder: str,
+    *,
+    auto: bool = False,
+    check_hours: int = CHECK_HOURS,
+    repo: str = REPO,
+) -> SharedPack:
+    """Take the shared pack of a section for a holder, starting it with the first one.
+
+    `auto`: the holder wants new releases installed as they are published.
+    """
+    registry = _registry(hass)
+    # One holder at a time: the others find the pack read and checking
+    async with registry.setdefault("pack_lock", asyncio.Lock()):
+        pack: SharedPack | None = registry.get(f"pack_{section}")
+        if pack is not None:
+            pack.holders[holder] = (auto, check_hours)
+            pack._schedule()
+            return pack
+        pack = SharedPack(hass, section, repo)
+        pack.holders[holder] = (auto, check_hours)
+        await pack.async_prepare()
+        await _async_register_pack_path(hass, pack)
+        registry[f"pack_{section}"] = pack
+        # No `await` between here and the registration of the caller's updater
+        # (the first check must find it)
+        pack.async_begin()
+        return pack
+
+
+@callback
+def async_release_pack(hass: HomeAssistant, section: str, holder: str) -> None:
+    """Give the shared pack back; the last holder stops its checks."""
+    registry = _registry(hass)
+    pack: SharedPack | None = registry.get(f"pack_{section}")
+    if pack is None or holder not in pack.holders:
+        return
+    del pack.holders[holder]
+    pack.updaters.pop(holder, None)
+    if pack.holders:
+        pack._schedule()
+    else:
+        pack.async_stop()
+        del registry[f"pack_{section}"]
+
+
+async def _async_register_pack_path(hass: HomeAssistant, pack: SharedPack) -> None:
+    """Serve the visuals of a shared pack (public catalog data), once per run."""
+    key = f"pack_paths_{pack.section}"
+    registry = _registry(hass)
+    if registry.get(key) or getattr(hass, "http", None) is None:
+        return
+    registry[key] = True
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(pack.url, str(pack.root), cache_headers=False)]
+    )
+
+
+# -- updater --------------------------------------------------------------------
+
+
+class CatalogUpdater:
+    """State of a domain's catalog: its source pack and the merged view."""
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        spec: CatalogSpec,
+        integration_version: str,
+        shared: SharedPack,
+        auto_update: bool = True,
+    ) -> None:
+        """Bind to the shared pack and the folders of the domain."""
+        self.hass = hass
+        self.spec = spec
+        self.integration_version = integration_version
+        self.shared = shared
+        #: Pack of the domain's own folder: the previous shared pack, for an
+        #: integration too old for the current release
+        self.root = Path(hass.config.path(spec.domain, "catalog"))
+        self.user_root = Path(hass.config.path(spec.domain, "catalog_user"))
+        self.shared_root = Path(hass.config.path(*shared_user_parts(spec.section)))
+        #: Counts the reloads asked by writers; stamps the visuals of the shared layer
+        self.user_revision = 0
+        self.legacy_installed: Manifest | None = None
+        self.auto_update = auto_update
+        self.entry_ids: list[str] = []
+        self._store: Store[dict[str, Any]] = Store(hass, 1, f"{spec.domain}.catalog")
+        self._view: dict[str, Any] | None = None
+        self._listeners: list[Callable[[], None]] = []
+        self._unsub_user: CALLBACK_TYPE | None = None
+        # Registered at once, so that an install cannot miss this updater
+        shared.updaters[spec.domain] = self
+
+    # -- state ----------------------------------------------------------------
+
+    @property
+    def owner_entry_id(self) -> str | None:
+        """Config entry hosting the catalog entities."""
+        return self.entry_ids[0] if self.entry_ids else None
+
+    @property
+    def client(self) -> PackClient:
+        """Client reading the releases of the section."""
+        return self.shared.client
+
+    @property
+    def latest(self) -> Manifest | None:
+        """Current release, once a check succeeded."""
+        return self.shared.latest
+
+    @property
+    def last_error(self) -> str | None:
+        """Why the last check or install failed, if it did."""
+        return self.shared.last_error
+
+    @property
+    def in_progress(self) -> bool:
+        """The pack is being installed."""
+        return self.shared.in_progress
+
+    @property
+    def progress(self) -> int | None:
+        """Percentage of the install in progress."""
+        return self.shared.progress
+
+    def _shared_manifest(self) -> Manifest | None:
+        """The shared pack when this integration can use it, else None."""
+        pack = self.shared.installed
+        if pack is not None and is_compatible(
+            pack, self.spec.domain, self.integration_version
+        ):
+            return pack
+        return None
+
+    @property
+    def uses_shared(self) -> bool:
+        """The view is built on the shared pack (not on the folder of the domain)."""
+        return self._shared_manifest() is not None
+
+    @property
+    def installed(self) -> Manifest | None:
+        """Manifest of the pack the view is built on."""
+        return self._shared_manifest() or self.legacy_installed
+
+    @property
+    def compatible(self) -> bool:
+        """The latest release can be used by this integration."""
+        return self.latest is None or is_compatible(
+            self.latest, self.spec.domain, self.integration_version
+        )
+
+    @property
+    def update_available(self) -> bool:
+        """A release different from the pack in use (or no pack at all)."""
+        if self.latest is None:
+            return False
+        installed = self.installed
+        if installed is None:
+            return True
+        return self.latest.raw != installed.raw
+
+    @callback
+    def async_add_listener(self, listener: Callable[[], None]) -> CALLBACK_TYPE:
+        """Be told when the state changes (check, progress, install done)."""
+        self._listeners.append(listener)
+
+        @callback
+        def _remove() -> None:
+            self._listeners.remove(listener)
+
+        return _remove
+
+    @callback
+    def notify(self) -> None:
+        """Tell the listeners and the dispatcher that the state changed."""
+        for listener in list(self._listeners):
+            listener()
+        async_dispatcher_send(self.hass, signal_catalog_changed(self.spec.domain))
+
+    # -- life cycle -----------------------------------------------------------
+
+    async def async_start(self) -> None:
+        """Read the packs and the folders, then listen to the shared user layer."""
+        await self.async_reload()
+        self.notify()
+        self._unsub_user = async_dispatcher_connect(
+            self.hass, SIGNAL_USER_CATALOG_CHANGED, self._on_user_changed
+        )
+
+    def _prepare_folders(self) -> Manifest | None:
+        """Create the folders; read the own pack, or drop it once the shared one serves."""
+        self.user_root.mkdir(parents=True, exist_ok=True)
+        self.shared_root.mkdir(parents=True, exist_ok=True)
+        if self.uses_shared:
+            shutil.rmtree(self.root, ignore_errors=True)
+        self.root.mkdir(parents=True, exist_ok=True)
+        return read_installed(self.root, self.spec.section)
+
+    async def async_reload(self) -> None:
+        """The packs changed (start-up, install): read them and rebuild the view."""
+        self.legacy_installed = await self.hass.async_add_executor_job(
+            self._prepare_folders
+        )
+        await self.async_view(refresh=True)
+
+    @callback
+    def async_stop(self) -> None:
+        """Stop listening and give the shared pack back."""
+        if self._unsub_user is not None:
+            self._unsub_user()
+            self._unsub_user = None
+        async_release_pack(self.hass, self.spec.section, self.spec.domain)
 
     @callback
     def _on_user_changed(self, section: str | None = None) -> None:
@@ -271,48 +613,22 @@ class CatalogUpdater:
     async def _async_reload_user(self) -> None:
         self.user_revision += 1
         await self.async_view(refresh=True)
-        self._notify()
+        self.notify()
 
     async def async_set_auto_update(self, value: bool) -> None:
         """Turn automatic installs on or off (kept across restarts)."""
         self.auto_update = value
+        self.shared.set_auto(self.spec.domain, value)
         await self._store.async_save({"auto_update": value})
-        self._notify()
+        self.notify()
         if value:
             await self.async_check()
 
-    # -- checks ---------------------------------------------------------------
+    # -- checks and installs --------------------------------------------------
 
     async def async_check(self) -> None:
-        """Read the current manifest; install it when automatic installs are on."""
-        try:
-            latest = await self.client.latest()
-        except PackError as err:
-            # Offline or GitHub down: keep the installed catalog, quietly
-            self.last_error = str(err)
-            _LOGGER.debug("%s catalog check failed: %s", self.spec.domain, err)
-            self._notify()
-            return
-        self.last_error = None
-        self.latest = select(latest, self.spec.scopes)
-        self._notify()
-        if not (self.auto_update and self.update_available) or self.in_progress:
-            return
-        if not self.compatible:
-            _LOGGER.warning(
-                "%s catalog %s needs %s %s or newer: not installed",
-                self.spec.section,
-                latest.version,
-                self.spec.domain,
-                latest.min_integration.get(self.spec.domain),
-            )
-            return
-        try:
-            await self.async_install()
-        except HomeAssistantError as err:
-            _LOGGER.warning("%s catalog update failed: %s", self.spec.domain, err)
-
-    # -- install --------------------------------------------------------------
+        """Read the current manifest; it is installed when a holder wants it."""
+        await self.shared.async_check()
 
     async def async_install(self) -> None:
         """Install the latest release. Raises HomeAssistantError."""
@@ -331,55 +647,27 @@ class CatalogUpdater:
                     "minimum": str(latest.min_integration.get(domain)),
                 },
             )
-        if self.in_progress:
-            return
-        self.in_progress = True
-        self.progress = 0
-        self._notify()
         try:
-            installed = await self.hass.async_add_executor_job(
-                read_installed, self.root, self.spec.section
-            )
-            keep, fetch = plan(installed, latest)
-            staging = await self.hass.async_add_executor_job(
-                prepare_staging, self.root, keep
-            )
-            for done, item in enumerate(fetch, start=1):
-                blob = await self.client.entry(item)
-                await self.hass.async_add_executor_job(
-                    extract_entry, blob, item, staging / item.rel_dir
-                )
-                self.progress = round(100 * done / len(fetch))
-                self._notify()
-            await self.hass.async_add_executor_job(commit, self.root, staging, latest)
-            # Set before the final notification, so listeners see the new version
-            self.installed = latest
-            self._view = await self.hass.async_add_executor_job(
-                build_view, self._layers(), self.spec.section, self.spec.scopes
-            )
+            await self.shared.async_install()
         except (PackError, OSError) as err:
             raise HomeAssistantError(
                 translation_domain=domain,
                 translation_key="catalog_install_failed",
                 translation_placeholders={"error": str(err)},
             ) from err
-        finally:
-            self.in_progress = False
-            self.progress = None
-            self._notify()
-        _LOGGER.info(
-            "%s catalog %s installed (%d entries downloaded, %d kept)",
-            self.spec.section,
-            latest.version,
-            len(fetch),
-            len(keep),
-        )
 
     # -- merged view ----------------------------------------------------------
 
-    def _layers(self) -> list[Layer]:
+    def _pack_layer(self) -> Layer:
+        shared = self._shared_manifest()
+        if shared is not None:
+            return Layer("pack", self.shared.root, self.shared.url, shared.version)
+        own = self.legacy_installed.version if self.legacy_installed else NOT_INSTALLED
+        return Layer("pack", self.root, f"/{self.spec.domain}_catalog/pack", own)
+
+    def layers(self) -> list[Layer]:
+        """The folders the view is read from, least specific first."""
         base = f"/{self.spec.domain}_catalog"
-        installed = self.installed.version if self.installed else NOT_INSTALLED
         layers = []
         if BUILTIN_DIR.is_dir():
             layers.append(
@@ -387,7 +675,7 @@ class CatalogUpdater:
                     "builtin", BUILTIN_DIR, f"{base}/builtin", self.integration_version
                 )
             )
-        layers.append(Layer("pack", self.root, f"{base}/pack", installed))
+        layers.append(self._pack_layer())
         layers.append(
             Layer("user", self.shared_root, f"{base}/shared", f"u{self.user_revision}")
         )
@@ -400,11 +688,11 @@ class CatalogUpdater:
         return self._view or {}
 
     async def async_view(self, refresh: bool = False) -> dict[str, Any]:
-        """Merged catalog (built-in < downloaded < shared user < user), re-read on demand."""
+        """Merged catalog (built-in < pack < shared user < user), re-read on demand."""
         view = self._view
         if view is None or refresh:
             view = await self.hass.async_add_executor_job(
-                build_view, self._layers(), self.spec.section, self.spec.scopes
+                build_view, self.layers(), self.spec.section, self.spec.scopes
             )
             self._view = view
         return view
@@ -420,8 +708,20 @@ async def async_setup_catalog(
     registry = _registry(hass)
     updater: CatalogUpdater | None = registry.get(spec.domain)
     if updater is None:
+        stored = await Store(hass, 1, f"{spec.domain}.catalog").async_load() or {}
+        auto = bool(stored.get("auto_update", True))
         integration = await async_get_integration(hass, spec.domain)
-        updater = CatalogUpdater(hass, spec, str(integration.version or "0"))
+        shared = await async_acquire_pack(
+            hass,
+            spec.section,
+            spec.domain,
+            auto=auto,
+            check_hours=spec.check_hours,
+            repo=spec.repo,
+        )
+        updater = CatalogUpdater(
+            hass, spec, str(integration.version or "0"), shared, auto
+        )
         registry[spec.domain] = updater
         await updater.async_start()
         await _async_register_paths(hass, updater)
@@ -454,16 +754,27 @@ async def async_unload_catalog(
 
 
 async def _async_register_paths(hass: HomeAssistant, updater: CatalogUpdater) -> None:
-    """Serve the visuals of the three layers (public catalog data)."""
+    """Serve the visuals of the domain's layers (public catalog data).
+
+    The shared pack has its own path (`_async_register_pack_path`).
+    """
     key = f"paths_{updater.spec.domain}"
     registry = _registry(hass)
     if registry.get(key) or getattr(hass, "http", None) is None:
         return
     registry[key] = True
+    base = f"/{updater.spec.domain}_catalog"
+    paths = [
+        (f"{base}/builtin", BUILTIN_DIR),
+        (f"{base}/pack", updater.root),
+        (f"{base}/shared", updater.shared_root),
+        (f"{base}/user", updater.user_root),
+    ]
     await hass.http.async_register_static_paths(
         [
-            StaticPathConfig(layer.url, str(layer.root), cache_headers=False)
-            for layer in updater._layers()
+            StaticPathConfig(url, str(root), cache_headers=False)
+            for url, root in paths
+            if root.is_dir()
         ]
     )
 

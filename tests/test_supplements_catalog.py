@@ -116,14 +116,14 @@ async def test_doser_creates_the_catalog_entry(
         "verified": False,
     }
     updater._view = view
-    updater._notify()
+    updater.notify()
     await hass.async_block_till_done()
     select = hass.states.get(select_id)
     assert select is not None
     options = select.attributes["options"]
     assert "My Brand - KH" in options and options[-1] == "other"
     # Same catalog again: nothing written
-    updater._notify()
+    updater.notify()
 
     # Removing the catalog entry stops the catalog; the doser keeps working
     assert await hass.config_entries.async_remove(catalog.entry_id)
