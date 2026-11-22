@@ -3,7 +3,7 @@ import os
 import re
 import sys
 
-input_file = "icons.js"
+input_file = "redsea-icons.js"
 output_dir = "svg_output"
 
 if not os.path.exists(input_file):
