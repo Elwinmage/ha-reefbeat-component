@@ -64,6 +64,9 @@
       "ato_sensor_connected": {
         "name": "Temperatuursensor verbonden"
       },
+      "auto_regulation": {
+        "name": "Automatische regeling"
+      },
       "battery_level": {
         "name": "Batterijniveau"
       },

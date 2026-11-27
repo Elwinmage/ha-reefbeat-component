@@ -29,6 +29,15 @@
 <img src="../img/rsrun_diag.png" alt="Image">
 </p>
 
+### Auto-régulation
+
+Un écumeur piloté par sa sonde EC baisse sa vitesse de lui-même lorsque la
+colonne d'eau monte trop haut. Le capteur **Auto-régulation** (un capteur de
+problème, un par pompe d'écumeur) est actif pendant ce temps : la pompe tourne
+sous l'intensité demandée par son planning, ou remonte l'état `over-skimming`.
+Ses attributs portent l'intensité planifiée, l'intensité réelle et l'écart entre
+les deux. La carte reef trace cet écart, et sa durée, sur le planning de vitesse.
+
 ### Tâches de maintenance
 Les tâches sont rattachées au sous-appareil pompe et dépendent de son type.
 

@@ -522,6 +522,31 @@ async def async_setup_entry(
                     entity_category=EntityCategory.DIAGNOSTIC,
                 )
             )
+            # Skimmer only: the pump slowing itself down (over-skimming), which
+            # the ReefBeat app reports as a warning. A pump whose type changes
+            # reloads the entry, so gating on the type here is enough.
+            if (
+                device.get_data(
+                    "$.sources[?(@.name=='/pump/settings')].data.pump_"
+                    + str(pump)
+                    + ".type",
+                    is_None_possible=True,
+                )
+                == "skimmer"
+            ):
+                run_descs.append(
+                    ReefRunBinarySensorEntityDescription(
+                        key="auto_regulation_pump_" + str(pump),
+                        translation_key="auto_regulation",
+                        device_class=BinarySensorDeviceClass.PROBLEM,
+                        icon="mdi:car-speed-limiter",
+                        value_fn=lambda device, pump=pump: device.auto_regulation(pump),
+                        attributes_fn=lambda device, pump=pump: (
+                            device.auto_regulation_attributes(pump)
+                        ),
+                        pump=pump,
+                    )
+                )
             run_descs.append(
                 ReefRunBinarySensorEntityDescription(
                     key="sensor_controlled_pump_" + str(pump),

@@ -29,6 +29,15 @@
 <img src="../img/rsrun_diag.png" alt="Image">
 </p>
 
+### Auto regulation
+
+A skimmer driven by its EC sensor lowers its own speed when the water column
+rises too high. The **Auto regulation** sensor (a problem sensor, one per
+skimmer pump) is on while that lasts: the pump runs under the intensity its
+schedule asks for, or reports the `over-skimming` state. Its attributes carry
+the scheduled intensity, the real one and the gap between them. The reef card
+draws that gap, and how long it lasted, on the speed schedule.
+
 ### Maintenance tasks
 Tasks are attached to the pump sub-device and depend on its type.
 

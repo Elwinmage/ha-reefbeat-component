@@ -29,6 +29,15 @@
 <img src="../img/rsrun_diag.png" alt="Image">
 </p>
 
+### Autoregulacja
+
+Odpieniacz sterowany sondą EC sam obniża prędkość, gdy kolumna wody podnosi się
+za wysoko. Sensor **Autoregulacja** (sensor problemu, jeden na pompę
+odpieniacza) jest włączony przez ten czas: pompa pracuje poniżej intensywności
+wymaganej przez harmonogram albo zgłasza stan `over-skimming`. Jego atrybuty
+zawierają intensywność z harmonogramu, rzeczywistą oraz różnicę między nimi.
+Karta reef rysuje tę różnicę i czas jej trwania na harmonogramie prędkości.
+
 ### Zadania konserwacyjne
 Zadania są przypisane do podurządzenia pompy i zależą od jej typu.
 

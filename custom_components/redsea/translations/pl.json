@@ -64,6 +64,9 @@
       "ato_sensor_connected": {
         "name": "Sonda temperatury podłączona"
       },
+      "auto_regulation": {
+        "name": "Autoregulacja"
+      },
       "battery_level": {
         "name": "Poziom baterii"
       },

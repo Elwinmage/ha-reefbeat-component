@@ -29,6 +29,16 @@
 <img src="../img/rsrun_diag.png" alt="Image">
 </p>
 
+### Autorregulación
+
+Un espumador controlado por su sonda EC baja su velocidad por sí mismo cuando la
+columna de agua sube demasiado. El sensor **Autorregulación** (un sensor de
+problema, uno por bomba de espumador) está activo mientras dura: la bomba
+funciona por debajo de la intensidad que pide su programación, o informa del
+estado `over-skimming`. Sus atributos llevan la intensidad programada, la real y
+la diferencia. La tarjeta reef dibuja esa diferencia, y su duración, en la
+programación de velocidad.
+
 ### Tareas de mantenimiento
 Las tareas se asocian al subdispositivo bomba y dependen de su tipo.
 

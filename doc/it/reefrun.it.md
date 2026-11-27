@@ -29,6 +29,16 @@
 <img src="../img/rsrun_diag.png" alt="Image">
 </p>
 
+### Autoregolazione
+
+Uno schiumatoio pilotato dalla sua sonda EC abbassa la velocità da solo quando
+la colonna d'acqua sale troppo. Il sensore **Autoregolazione** (un sensore di
+problema, uno per pompa dello schiumatoio) è attivo per tutta la durata: la
+pompa gira sotto l'intensità richiesta dalla programmazione, oppure riporta lo
+stato `over-skimming`. I suoi attributi portano l'intensità programmata, quella
+reale e lo scarto. La card reef disegna questo scarto, e la sua durata, sulla
+programmazione della velocità.
+
 ### Attività di manutenzione
 Le attività sono associate al sottodispositivo pompa e dipendono dal suo tipo.
 

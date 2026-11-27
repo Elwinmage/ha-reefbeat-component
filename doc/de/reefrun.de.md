@@ -29,6 +29,16 @@
 <img src="../img/rsrun_diag.png" alt="Image">
 </p>
 
+### Automatische Regelung
+
+Ein über seinen EC-Sensor gesteuerter Abschäumer senkt seine Drehzahl von
+selbst, wenn die Wassersäule zu hoch steigt. Der Sensor **Automatische
+Regelung** (ein Problem-Sensor, einer je Abschäumerpumpe) ist währenddessen an:
+Die Pumpe läuft unter der vom Zeitplan geforderten Intensität oder meldet den
+Zustand `over-skimming`. Seine Attribute enthalten die geplante Intensität, die
+tatsächliche und die Differenz. Die Reef-Karte zeichnet diese Differenz und ihre
+Dauer im Drehzahl-Zeitplan.
+
 ### Wartungsaufgaben
 Die Aufgaben hängen am Untergerät Pumpe und richten sich nach deren Typ.
 

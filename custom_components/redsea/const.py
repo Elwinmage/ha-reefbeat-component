@@ -508,6 +508,11 @@ ATO_MODES: Final[tuple[str, ...]] = ("auto", "empty", "error")
 
 RUN_SCAN_INTERVAL: Final[int] = 60  # seconds
 
+# How far under its scheduled intensity a skimmer pump must run before it is
+# called self-regulating: /dashboard lags a little behind a schedule change,
+# and the device rounds the intensity it reports.
+RUN_AUTO_REGULATION_DEADBAND: Final[int] = 2  # percent
+
 RETURN_MODELS: Final[tuple[str, ...]] = (
     "return-6",
     "return-7",

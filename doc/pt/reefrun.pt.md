@@ -29,6 +29,16 @@
 <img src="../img/rsrun_diag.png" alt="Image">
 </p>
 
+### Autorregulação
+
+Um escumador controlado pela sua sonda EC baixa a velocidade sozinho quando a
+coluna de água sobe demasiado. O sensor **Autorregulação** (um sensor de
+problema, um por bomba de escumador) fica ativo durante esse tempo: a bomba
+funciona abaixo da intensidade pedida pelo seu agendamento, ou reporta o estado
+`over-skimming`. Os seus atributos trazem a intensidade agendada, a real e a
+diferença. O cartão reef desenha essa diferença, e a sua duração, no agendamento
+de velocidade.
+
 ### Tarefas de manutenção
 As tarefas são associadas ao subaparelho bomba e dependem do seu tipo.
 

@@ -85,6 +85,7 @@ from .const import (
     LIGHTS_LIBRARY,
     PROBE_REFRESH_DELAY,
     REFRESH_DEVICE_DELAY,
+    RUN_AUTO_REGULATION_DEADBAND,
     SCAN_INTERVAL,
     SCHEDULE_REFRESH_DELAY,
     SIGNAL_GROUP_MEMBER_GONE,
@@ -2003,15 +2004,13 @@ class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
         )
         schedule = self.my_api.get_data(schedule_path)
 
-        now = datetime.now()
-        now_minutes = now.hour * 60 + now.minute
-
-        cur_prog = schedule[0]
-        for prog in schedule[1:]:
-            if int(prog["st"]) < now_minutes:
-                cur_prog = prog
-            else:
-                break
+        cur_prog = self.active_schedule_entry(schedule)
+        if cur_prog is None:
+            _LOGGER.warning(
+                "coordinator.ReefRunCoordinator.set_pump_intensity: pump %d has no schedule",
+                pump,
+            )
+            return
 
         cur_prog["ti"] = intensity
 
@@ -2133,6 +2132,127 @@ class ReefRunCoordinator(ReefBeatCloudLinkedCoordinator):
         return self.get_data(
             f"$.sources[?(@.name=='/dashboard')].data.pump_{pump}.{field}"
         )
+
+    # -- Schedule in force / auto regulation ----------------------------------
+
+    @staticmethod
+    def active_schedule_entry(
+        schedule: Any, now_minutes: int | None = None
+    ) -> dict[str, Any] | None:
+        """Return the schedule segment a pump runs on at a given time.
+
+        The segments of a ReefRun schedule are sorted by start minute (``st``);
+        the one in force is the last one started. Before the first start the
+        pump keeps the first segment, as the device itself does.
+
+        Args:
+            schedule: The ``schedule`` list of a pump (/pump/settings).
+            now_minutes: Minutes since midnight; current local time when None.
+
+        Returns:
+            The segment in force, or None when the schedule is empty/unusable.
+        """
+        if not isinstance(schedule, list) or not schedule:
+            return None
+        if now_minutes is None:
+            now = datetime.now()
+            now_minutes = now.hour * 60 + now.minute
+
+        current = schedule[0]
+        for entry in schedule[1:]:
+            if not isinstance(entry, dict):
+                continue
+            try:
+                start = int(entry["st"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if start < now_minutes:
+                current = entry
+            else:
+                break
+        return current if isinstance(current, dict) else None
+
+    def pump_schedule(self, pump: int) -> Any:
+        """Return the schedule of a pump, as /pump/settings holds it."""
+        return self.get_data(
+            f"$.sources[?(@.name=='/pump/settings')].data.pump_{pump}.schedule",
+            is_None_possible=True,
+        )
+
+    def scheduled_intensity(self, pump: int) -> float | None:
+        """Return the intensity the schedule asks of a pump right now."""
+        entry = self.active_schedule_entry(self.pump_schedule(pump))
+        if entry is None:
+            return None
+        try:
+            return float(entry["ti"])
+        except (KeyError, TypeError, ValueError):
+            return None
+
+    def running_intensity(self, pump: int) -> float | None:
+        """Return the intensity a pump really runs at (/dashboard)."""
+        raw = self._pump_field(pump, "intensity")
+        try:
+            return None if raw is None else float(raw)
+        except (TypeError, ValueError):
+            return None
+
+    def auto_regulation(self, pump: int) -> bool | None:
+        """Whether a skimmer pump is slowing itself down on its own.
+
+        A skimmer driven by its EC sensor lowers its speed below the scheduled
+        one when the water column rises too high (over-skimming protection) —
+        what the ReefBeat app reports as a warning. The device says so in two
+        ways, and either is enough:
+
+        - its state becomes ``over-skimming``;
+        - it simply runs under the intensity its schedule asks for, which is
+          what the gradual slow down looks like while the state stays
+          ``operational``.
+
+        Other states (feeding, preview, maintenance, dry-run, full-cup, ...)
+        also lower the speed, but for reasons of their own: they are left out,
+        as is a pump whose schedule is off or which its sensor does not drive.
+
+        Args:
+            pump: Pump number (1 or 2).
+
+        Returns:
+            True while the pump regulates itself, False otherwise, None when
+            the pump is not a skimmer or says nothing usable.
+        """
+        if self._pump_field(pump, "type") != "skimmer":
+            return None
+
+        state = self._pump_field(pump, "state")
+        if state == "over-skimming":
+            return True
+        if state != "operational":
+            return False
+        if not self._pump_field(pump, "schedule_enabled"):
+            return False
+        if not self._pump_field(pump, "sensor_controlled"):
+            return False
+
+        scheduled = self.scheduled_intensity(pump)
+        running = self.running_intensity(pump)
+        if scheduled is None or running is None:
+            return None
+        return running < scheduled - RUN_AUTO_REGULATION_DEADBAND
+
+    def auto_regulation_attributes(self, pump: int) -> dict[str, Any]:
+        """Scheduled vs. real intensity, for the card and the blueprints."""
+        scheduled = self.scheduled_intensity(pump)
+        running = self.running_intensity(pump)
+        deviation = (
+            None if scheduled is None or running is None else running - scheduled
+        )
+        return {
+            "scheduled_intensity": scheduled,
+            "running_intensity": running,
+            "deviation": deviation,
+            "pump": pump,
+        }
 
     async def set_pump_name(self, pump: int, name: str) -> None:
         """Rename a pump.

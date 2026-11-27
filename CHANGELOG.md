@@ -2,6 +2,17 @@
 
 ## MODIFICATIONS
 
+### ReefRun: the skimmer saying it regulates itself
+
+- A new **Auto regulation** sensor (a problem sensor, one per skimmer pump) is
+  on while a skimmer lowers its own speed: it runs under the intensity its
+  schedule asks for (over a 2% deadband, a pump left to itself or in feeding,
+  preview or maintenance excepted), or reports the `over-skimming` state. This
+  is the warning the ReefBeat app shows, so it joins the common alarm of the
+  reef card and can be notified like any other problem sensor.
+- Its attributes carry `scheduled_intensity`, `running_intensity` and their
+  `deviation`, which the reef card draws on the speed schedule.
+
 ### ReefDose: parameters and water tests from the reeftech-catalog
 
 - The regulable parameters (target, tolerance, largest daily correction, step)
